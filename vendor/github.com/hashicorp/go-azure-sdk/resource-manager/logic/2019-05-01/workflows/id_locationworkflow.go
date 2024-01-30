@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LocationWorkflowId{}
+var _ resourceids.ResourceId = &LocationWorkflowId{}
 
 // LocationWorkflowId is a struct representing the Resource ID for a Location Workflow
 type LocationWorkflowId struct {
@@ -32,7 +32,7 @@ func NewLocationWorkflowID(subscriptionId string, resourceGroupName string, loca
 
 // ParseLocationWorkflowID parses 'input' into a LocationWorkflowId
 func ParseLocationWorkflowID(input string) (*LocationWorkflowId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocationWorkflowId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocationWorkflowId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseLocationWorkflowID(input string) (*LocationWorkflowId, error) {
 // ParseLocationWorkflowIDInsensitively parses 'input' case-insensitively into a LocationWorkflowId
 // note: this method should only be used for API response data and not user input
 func ParseLocationWorkflowIDInsensitively(input string) (*LocationWorkflowId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocationWorkflowId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocationWorkflowId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

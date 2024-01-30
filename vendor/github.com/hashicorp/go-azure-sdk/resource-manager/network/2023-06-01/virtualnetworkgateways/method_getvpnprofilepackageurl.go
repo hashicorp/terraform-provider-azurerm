@@ -18,6 +18,7 @@ type GetVpnProfilePackageUrlOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *string
 }
 
 // GetVpnProfilePackageUrl ...

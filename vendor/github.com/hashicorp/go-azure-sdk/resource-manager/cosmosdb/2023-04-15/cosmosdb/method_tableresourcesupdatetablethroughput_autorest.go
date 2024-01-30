@@ -16,6 +16,7 @@ import (
 type TableResourcesUpdateTableThroughputOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // TableResourcesUpdateTableThroughput ...

@@ -143,7 +143,9 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
-* `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group`, or `ServicePrincpal`.
+* `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created.
+
+~> **NOTE:** If one of `condition` or `condition_version` is set both fields must be present.
 
 * `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
 

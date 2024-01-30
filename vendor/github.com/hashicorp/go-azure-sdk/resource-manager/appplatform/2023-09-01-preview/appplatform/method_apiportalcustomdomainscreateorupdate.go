@@ -18,6 +18,7 @@ type ApiPortalCustomDomainsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApiPortalCustomDomainResource
 }
 
 // ApiPortalCustomDomainsCreateOrUpdate ...

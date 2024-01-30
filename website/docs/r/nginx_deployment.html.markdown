@@ -125,7 +125,7 @@ A `identity` block supports the following:
 
 A `frontend_private` block supports the following:
 
-* `allocation_method` - (Required) Specify the methos of allocating the private IP. Possible values are `Static` and `Dynamic`.
+* `allocation_method` - (Required) Specify the method of allocating the private IP. Possible values are `Static` and `Dynamic`.
 
 * `ip_address` - (Required) Specify the IP Address of this private IP.
 
@@ -141,7 +141,7 @@ A `frontend_public` block supports the following:
 
 A `logging_storage_account` block supports the following:
 
-* `container_name` - (Optional) Specify the container name of Stoage Account for logging.
+* `container_name` - (Optional) Specify the container name of Storage Account for logging.
 
 * `name` - (Optional) The account name of the StorageAccount for Nginx Logging.
 

@@ -45,8 +45,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the ServiceBus Topic resource. Changing this forces a new resource to be created.
 
-* `namespace_id` - (Required) The ID of the ServiceBus Namespace to create Changing this forces a new resource to be created.
-    this topic in. Changing this forces a new resource to be created.
+* `namespace_id` - (Required) The ID of the ServiceBus Namespace to create this topic in. Changing this forces a new resource to be created.
 
 * `status` - (Optional) The Status of the Service Bus Topic. Acceptable values are `Active` or `Disabled`. Defaults to `Active`.
 

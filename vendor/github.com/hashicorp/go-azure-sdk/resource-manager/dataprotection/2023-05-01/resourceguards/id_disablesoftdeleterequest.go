@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DisableSoftDeleteRequestId{}
+var _ resourceids.ResourceId = &DisableSoftDeleteRequestId{}
 
 // DisableSoftDeleteRequestId is a struct representing the Resource ID for a Disable Soft Delete Request
 type DisableSoftDeleteRequestId struct {
@@ -32,7 +32,7 @@ func NewDisableSoftDeleteRequestID(subscriptionId string, resourceGroupName stri
 
 // ParseDisableSoftDeleteRequestID parses 'input' into a DisableSoftDeleteRequestId
 func ParseDisableSoftDeleteRequestID(input string) (*DisableSoftDeleteRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DisableSoftDeleteRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&DisableSoftDeleteRequestId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDisableSoftDeleteRequestID(input string) (*DisableSoftDeleteRequestId,
 // ParseDisableSoftDeleteRequestIDInsensitively parses 'input' case-insensitively into a DisableSoftDeleteRequestId
 // note: this method should only be used for API response data and not user input
 func ParseDisableSoftDeleteRequestIDInsensitively(input string) (*DisableSoftDeleteRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DisableSoftDeleteRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&DisableSoftDeleteRequestId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

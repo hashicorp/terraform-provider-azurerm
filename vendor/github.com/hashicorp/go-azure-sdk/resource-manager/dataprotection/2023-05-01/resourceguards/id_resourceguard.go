@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ResourceGuardId{}
+var _ resourceids.ResourceId = &ResourceGuardId{}
 
 // ResourceGuardId is a struct representing the Resource ID for a Resource Guard
 type ResourceGuardId struct {
@@ -30,7 +30,7 @@ func NewResourceGuardID(subscriptionId string, resourceGroupName string, resourc
 
 // ParseResourceGuardID parses 'input' into a ResourceGuardId
 func ParseResourceGuardID(input string) (*ResourceGuardId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ResourceGuardId{})
+	parser := resourceids.NewParserFromResourceIdType(&ResourceGuardId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseResourceGuardID(input string) (*ResourceGuardId, error) {
 // ParseResourceGuardIDInsensitively parses 'input' case-insensitively into a ResourceGuardId
 // note: this method should only be used for API response data and not user input
 func ParseResourceGuardIDInsensitively(input string) (*ResourceGuardId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ResourceGuardId{})
+	parser := resourceids.NewParserFromResourceIdType(&ResourceGuardId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

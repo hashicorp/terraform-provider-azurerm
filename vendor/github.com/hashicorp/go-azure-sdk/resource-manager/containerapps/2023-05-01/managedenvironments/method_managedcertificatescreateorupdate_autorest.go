@@ -16,6 +16,7 @@ import (
 type ManagedCertificatesCreateOrUpdateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ManagedCertificate
 }
 
 // ManagedCertificatesCreateOrUpdate ...

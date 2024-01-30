@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TrustedAccessRoleBindingId{}
+var _ resourceids.ResourceId = &TrustedAccessRoleBindingId{}
 
 // TrustedAccessRoleBindingId is a struct representing the Resource ID for a Trusted Access Role Binding
 type TrustedAccessRoleBindingId struct {
@@ -32,7 +32,7 @@ func NewTrustedAccessRoleBindingID(subscriptionId string, resourceGroupName stri
 
 // ParseTrustedAccessRoleBindingID parses 'input' into a TrustedAccessRoleBindingId
 func ParseTrustedAccessRoleBindingID(input string) (*TrustedAccessRoleBindingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TrustedAccessRoleBindingId{})
+	parser := resourceids.NewParserFromResourceIdType(&TrustedAccessRoleBindingId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseTrustedAccessRoleBindingID(input string) (*TrustedAccessRoleBindingId,
 // ParseTrustedAccessRoleBindingIDInsensitively parses 'input' case-insensitively into a TrustedAccessRoleBindingId
 // note: this method should only be used for API response data and not user input
 func ParseTrustedAccessRoleBindingIDInsensitively(input string) (*TrustedAccessRoleBindingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TrustedAccessRoleBindingId{})
+	parser := resourceids.NewParserFromResourceIdType(&TrustedAccessRoleBindingId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

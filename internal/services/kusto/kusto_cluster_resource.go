@@ -45,7 +45,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := clusters.ParseClusterID(id)
+			_, err := commonids.ParseKustoClusterID(id)
 			return err
 		}),
 
@@ -281,7 +281,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster creation.")
 
-	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewKustoClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -293,8 +293,8 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	locks.ByName(id.ClusterName, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(id.ClusterName, "azurerm_kusto_cluster")
+	locks.ByName(id.KustoClusterName, "azurerm_kusto_cluster")
+	defer locks.UnlockByName(id.KustoClusterName, "azurerm_kusto_cluster")
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
@@ -380,7 +380,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	kustoCluster := clusters.Cluster{
-		Name:       utils.String(id.ClusterName),
 		Location:   location.Normalize(d.Get("location").(string)),
 		Identity:   expandedIdentity,
 		Sku:        *sku,
@@ -407,7 +406,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters.ParseClusterID(d.Id())
+	id, err := commonids.ParseKustoClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -421,7 +420,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ClusterName)
+	d.Set("name", id.KustoClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -486,7 +485,7 @@ func resourceKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters.ParseClusterID(d.Id())
+	id, err := commonids.ParseKustoClusterID(d.Id())
 	if err != nil {
 		return err
 	}

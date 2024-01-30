@@ -18,6 +18,7 @@ type AppsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AppResource
 }
 
 // AppsCreateOrUpdate ...

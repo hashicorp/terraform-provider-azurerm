@@ -18,6 +18,7 @@ type ResetSharedKeyOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ConnectionResetSharedKey
 }
 
 // ResetSharedKey ...

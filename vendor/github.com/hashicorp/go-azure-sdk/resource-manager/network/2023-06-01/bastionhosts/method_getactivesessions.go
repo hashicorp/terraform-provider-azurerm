@@ -53,15 +53,6 @@ func (c BastionHostsClient) GetActiveSessions(ctx context.Context, id BastionHos
 		return
 	}
 
-	var values struct {
-		Values *[]BastionActiveSession `json:"value"`
-	}
-	if err = resp.Unmarshal(&values); err != nil {
-		return
-	}
-
-	result.Model = values.Values
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

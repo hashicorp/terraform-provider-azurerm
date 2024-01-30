@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StreamId{}
+var _ resourceids.ResourceId = &StreamId{}
 
 // StreamId is a struct representing the Resource ID for a Stream
 type StreamId struct {
@@ -34,7 +34,7 @@ func NewStreamID(subscriptionId string, resourceGroupName string, automationAcco
 
 // ParseStreamID parses 'input' into a StreamId
 func ParseStreamID(input string) (*StreamId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseStreamID(input string) (*StreamId, error) {
 // ParseStreamIDInsensitively parses 'input' case-insensitively into a StreamId
 // note: this method should only be used for API response data and not user input
 func ParseStreamIDInsensitively(input string) (*StreamId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

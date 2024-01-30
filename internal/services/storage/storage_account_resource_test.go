@@ -1526,6 +1526,18 @@ func TestAccStorageAccount_minimalSharePropertiesPremiumFileStorage(t *testing.T
 	})
 }
 
+func TestAccStorageAccount_invalidAccountKindForAccessTier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidAccountKindForAccessTier(data),
+			ExpectError: regexp.MustCompile("`access_tier` is only available for BlobStorage, StorageV2, and FileStorage accounts"),
+		},
+	})
+}
+
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
@@ -4501,6 +4513,29 @@ resource "azurerm_storage_account" "test" {
     # change_feed_retention_in_days
     # restore_policy
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) invalidAccountKindForAccessTier(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_kind             = "Storage"
+  account_tier             = "Standard"
+  access_tier              = "Hot"
+  account_replication_type = "GRS"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

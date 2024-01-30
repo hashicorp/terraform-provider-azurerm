@@ -142,20 +142,20 @@ resource "azurerm_cognitive_account" "test" {
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data, "OpenAI")
 	return fmt.Sprintf(`
-
-
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
   name                 = "acctest-cd-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   model {
-    format  = "OpenAI"
-    name    = "text-embedding-ada-002"
-    version = "2"
+    format = "OpenAI"
+    name   = "text-embedding-ada-002"
   }
   scale {
     type = "Standard"
+  }
+  lifecycle {
+    ignore_changes = [model.0.version]
   }
 }
 `, template, data.RandomInteger)

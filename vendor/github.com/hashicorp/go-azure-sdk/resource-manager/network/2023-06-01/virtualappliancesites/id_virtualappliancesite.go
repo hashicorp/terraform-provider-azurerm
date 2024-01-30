@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualApplianceSiteId{}
+var _ resourceids.ResourceId = &VirtualApplianceSiteId{}
 
 // VirtualApplianceSiteId is a struct representing the Resource ID for a Virtual Appliance Site
 type VirtualApplianceSiteId struct {
@@ -32,7 +32,7 @@ func NewVirtualApplianceSiteID(subscriptionId string, resourceGroupName string, 
 
 // ParseVirtualApplianceSiteID parses 'input' into a VirtualApplianceSiteId
 func ParseVirtualApplianceSiteID(input string) (*VirtualApplianceSiteId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualApplianceSiteId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualApplianceSiteId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseVirtualApplianceSiteID(input string) (*VirtualApplianceSiteId, error) 
 // ParseVirtualApplianceSiteIDInsensitively parses 'input' case-insensitively into a VirtualApplianceSiteId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualApplianceSiteIDInsensitively(input string) (*VirtualApplianceSiteId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualApplianceSiteId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualApplianceSiteId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

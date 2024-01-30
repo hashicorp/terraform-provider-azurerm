@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = WebPubSubId{}
+var _ resourceids.ResourceId = &WebPubSubId{}
 
 // WebPubSubId is a struct representing the Resource ID for a Web Pub Sub
 type WebPubSubId struct {
@@ -30,7 +30,7 @@ func NewWebPubSubID(subscriptionId string, resourceGroupName string, webPubSubNa
 
 // ParseWebPubSubID parses 'input' into a WebPubSubId
 func ParseWebPubSubID(input string) (*WebPubSubId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WebPubSubId{})
+	parser := resourceids.NewParserFromResourceIdType(&WebPubSubId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseWebPubSubID(input string) (*WebPubSubId, error) {
 // ParseWebPubSubIDInsensitively parses 'input' case-insensitively into a WebPubSubId
 // note: this method should only be used for API response data and not user input
 func ParseWebPubSubIDInsensitively(input string) (*WebPubSubId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WebPubSubId{})
+	parser := resourceids.NewParserFromResourceIdType(&WebPubSubId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

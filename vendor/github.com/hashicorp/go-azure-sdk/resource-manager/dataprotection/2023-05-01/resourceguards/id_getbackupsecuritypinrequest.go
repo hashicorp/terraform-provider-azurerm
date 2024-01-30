@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = GetBackupSecurityPINRequestId{}
+var _ resourceids.ResourceId = &GetBackupSecurityPINRequestId{}
 
 // GetBackupSecurityPINRequestId is a struct representing the Resource ID for a Get Backup Security P I N Request
 type GetBackupSecurityPINRequestId struct {
@@ -32,7 +32,7 @@ func NewGetBackupSecurityPINRequestID(subscriptionId string, resourceGroupName s
 
 // ParseGetBackupSecurityPINRequestID parses 'input' into a GetBackupSecurityPINRequestId
 func ParseGetBackupSecurityPINRequestID(input string) (*GetBackupSecurityPINRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GetBackupSecurityPINRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&GetBackupSecurityPINRequestId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseGetBackupSecurityPINRequestID(input string) (*GetBackupSecurityPINRequ
 // ParseGetBackupSecurityPINRequestIDInsensitively parses 'input' case-insensitively into a GetBackupSecurityPINRequestId
 // note: this method should only be used for API response data and not user input
 func ParseGetBackupSecurityPINRequestIDInsensitively(input string) (*GetBackupSecurityPINRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GetBackupSecurityPINRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&GetBackupSecurityPINRequestId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

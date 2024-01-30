@@ -33,10 +33,8 @@ resource "azurerm_image" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the image. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create. Changing this forces a new resource to be created.
-    the image. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the image. Changing this forces a new resource to be created.
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
-    Changing this forces a new resource to be created.
 * `source_virtual_machine_id` - (Optional) The Virtual Machine ID from which to create the image.
 * `os_disk` - (Optional) One or more `os_disk` blocks as defined below. Changing this forces a new resource to be created.
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.

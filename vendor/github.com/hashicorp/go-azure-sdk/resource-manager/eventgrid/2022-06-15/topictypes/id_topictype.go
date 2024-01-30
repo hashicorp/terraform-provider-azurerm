@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TopicTypeId{}
+var _ resourceids.ResourceId = &TopicTypeId{}
 
 // TopicTypeId is a struct representing the Resource ID for a Topic Type
 type TopicTypeId struct {
@@ -26,7 +26,7 @@ func NewTopicTypeID(topicTypeName string) TopicTypeId {
 
 // ParseTopicTypeID parses 'input' into a TopicTypeId
 func ParseTopicTypeID(input string) (*TopicTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TopicTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&TopicTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -43,7 +43,7 @@ func ParseTopicTypeID(input string) (*TopicTypeId, error) {
 // ParseTopicTypeIDInsensitively parses 'input' case-insensitively into a TopicTypeId
 // note: this method should only be used for API response data and not user input
 func ParseTopicTypeIDInsensitively(input string) (*TopicTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TopicTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&TopicTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

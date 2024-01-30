@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ContainerRegistryId{}
+var _ resourceids.ResourceId = &ContainerRegistryId{}
 
 // ContainerRegistryId is a struct representing the Resource ID for a Container Registry
 type ContainerRegistryId struct {
@@ -32,7 +32,7 @@ func NewContainerRegistryID(subscriptionId string, resourceGroupName string, spr
 
 // ParseContainerRegistryID parses 'input' into a ContainerRegistryId
 func ParseContainerRegistryID(input string) (*ContainerRegistryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContainerRegistryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContainerRegistryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseContainerRegistryID(input string) (*ContainerRegistryId, error) {
 // ParseContainerRegistryIDInsensitively parses 'input' case-insensitively into a ContainerRegistryId
 // note: this method should only be used for API response data and not user input
 func ParseContainerRegistryIDInsensitively(input string) (*ContainerRegistryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContainerRegistryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContainerRegistryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

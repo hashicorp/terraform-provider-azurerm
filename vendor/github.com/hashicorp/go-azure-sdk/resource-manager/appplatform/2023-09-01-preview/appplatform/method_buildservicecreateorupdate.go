@@ -18,6 +18,7 @@ type BuildServiceCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *BuildService
 }
 
 // BuildServiceCreateOrUpdate ...

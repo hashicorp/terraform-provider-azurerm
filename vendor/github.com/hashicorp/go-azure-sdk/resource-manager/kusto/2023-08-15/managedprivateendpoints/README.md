@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := managedprivateendpoints.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := managedprivateendpoints.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := managedprivateendpoints.ManagedPrivateEndpointsCheckNameRequest{
 	// ...
@@ -90,7 +90,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedprivateendpoints.NewClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := managedprivateendpoints.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.List(ctx, id)
 if err != nil {
