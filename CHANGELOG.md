@@ -8,8 +8,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
-* dependencies: updating to `v0.20240126.1105227` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24654]
-* dependencies: updating to `v0.20240126.1105227` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24654]
+* dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24695]
+* dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24695]
 * provider: the Provider is now built using Go 1.21.6 [GH-24653]
 * `hdinsight`: refactoring to use `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24011]
 * `hdinsight`: updating to API Version `2021-06-01` [GH-24011]
