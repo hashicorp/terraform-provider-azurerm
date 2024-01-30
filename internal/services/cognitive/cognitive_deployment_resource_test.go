@@ -127,7 +127,7 @@ func (r CognitiveDeploymentTestResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r CognitiveDeploymentTestResource) template(data acceptance.TestData, kind string) string {
+func (r CognitiveDeploymentTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -141,14 +141,14 @@ resource "azurerm_cognitive_account" "test" {
   name                = "acctest-ca-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  kind                = "%s"
+  kind                = "OpenAI"
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, kind)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func (r CognitiveDeploymentTestResource) basic(data acceptance.TestData) string {
-	template := r.template(data, "OpenAI")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -190,7 +190,7 @@ resource "azurerm_cognitive_deployment" "import" {
 }
 
 func (r CognitiveDeploymentTestResource) complete(data acceptance.TestData) string {
-	template := r.template(data, "OpenAI")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -213,7 +213,7 @@ resource "azurerm_cognitive_deployment" "test" {
 }
 
 func (r CognitiveDeploymentTestResource) update(data acceptance.TestData) string {
-	template := r.template(data, "OpenAI")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -235,7 +235,7 @@ resource "azurerm_cognitive_deployment" "test" {
 }
 
 func (r CognitiveDeploymentTestResource) updateVersion(data acceptance.TestData) string {
-	template := r.template(data, "OpenAI")
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
