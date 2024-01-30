@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `email_password` - (Optional) The email password that the Bot will authenticate with.
 
-* `magic_code` - (Optional) The magic code for setting up the modern authentication(OAUTH).
+* `magic_code` - (Optional) The magic code used to set up OAUTH authentication.
 
 ## Attributes Reference
 
