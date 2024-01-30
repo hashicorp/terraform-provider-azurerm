@@ -8,7 +8,6 @@ type VMwareRunAsAccount struct {
 	Properties *RunAsAccountProperties `json:"properties,omitempty"`
 	Type       *string                 `json:"type,omitempty"`
 }
-
 type RunAsAccountProperties struct {
 	CreatedTimestamp *string                       `json:"createdTimestamp,omitempty"`
 	CredentialType   *runasaccounts.CredentialType `json:"credentialType,omitempty"`
