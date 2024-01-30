@@ -479,13 +479,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// The `minimalTlsVersion` of the source CosmosDB Account is `Tls12` when it isn't set in the request payload but the `minimalTlsVersion` of the restored CosmosDB Account is `Tls` when it isn't set in the request payload. So the default value isn't added in the schema.
-			"minimal_tls_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
-			},
-
 			"mongo_server_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -827,10 +820,6 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("minimal_tls_version"); ok {
-		account.Properties.MinimalTlsVersion = pointer.To(cosmosdb.MinimalTlsVersion(v.(string)))
-	}
-
 	// These values may not have changed but they need to be in the update params...
 	if v, ok := d.GetOk("default_identity_type"); ok {
 		account.Properties.DefaultIdentity = pointer.To(v.(string))
@@ -1016,7 +1005,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 			"kind", "tags", "enable_free_tier", "enable_automatic_failover", "analytical_storage_enabled",
-			"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version") {
+			"local_authentication_disabled", "partition_merge_enabled") {
 			updateRequired = true
 		}
 
@@ -1066,10 +1055,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
 			},
 			Tags: t,
-		}
-
-		if v, ok := d.GetOk("minimal_tls_version"); ok {
-			account.Properties.MinimalTlsVersion = pointer.To(cosmosdb.MinimalTlsVersion(v.(string)))
 		}
 
 		if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
@@ -1352,7 +1337,6 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("default_identity_type", props.DefaultIdentity)
 		d.Set("create_mode", pointer.From(props.CreateMode))
 		d.Set("partition_merge_enabled", pointer.From(props.EnablePartitionMerge))
-		d.Set("minimal_tls_version", pointer.From(props.MinimalTlsVersion))
 
 		if v := existing.Model.Properties.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)

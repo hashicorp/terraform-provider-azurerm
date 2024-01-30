@@ -420,7 +420,7 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind cosmosdb.Databa
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, false, cosmosdb.MinimalTlsVersionTlsOneOne, cosmosdb.DefaultConsistencyLevelStrong, 8, 880),
+			Config: r.consistency(data, kind, false, cosmosdb.DefaultConsistencyLevelStrong, 8, 880),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
 		},
 		data.ImportStep(),
@@ -430,12 +430,12 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind cosmosdb.Databa
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, true, cosmosdb.MinimalTlsVersionTlsOneOne, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
+			Config: r.consistency(data, kind, true, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, false, cosmosdb.MinimalTlsVersionTlsOneTwo, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 77, 700),
+			Config: r.consistency(data, kind, false, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 77, 700),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
@@ -1441,7 +1441,7 @@ resource "azurerm_cosmosdb_account" "import" {
 `, r.basic(data, "GlobalDocumentDB", consistency))
 }
 
-func (CosmosDBAccountResource) consistency(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, partitionMergeEnabled bool, minimalTlsVersion cosmosdb.MinimalTlsVersion, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {
+func (CosmosDBAccountResource) consistency(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, partitionMergeEnabled bool, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1459,7 +1459,6 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type              = "Standard"
   kind                    = "%s"
   partition_merge_enabled = %t
-  minimal_tls_version     = "%s"
 
   consistency_policy {
     consistency_level       = "%s"
@@ -1472,7 +1471,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), partitionMergeEnabled, string(minimalTlsVersion), string(consistency), interval, staleness)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), partitionMergeEnabled, string(consistency), interval, staleness)
 }
 
 func (CosmosDBAccountResource) consistencyMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {
@@ -3577,8 +3576,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      capabilities,
-      minimal_tls_version
+      capabilities
     ]
   }
 }
@@ -3654,8 +3652,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      capabilities,
-      minimal_tls_version
+      capabilities
     ]
   }
 }
@@ -3720,8 +3717,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      capabilities,
-      minimal_tls_version
+      capabilities
     ]
   }
 }
@@ -3762,8 +3758,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   lifecycle {
     ignore_changes = [
-      capabilities,
-      minimal_tls_version
+      capabilities
     ]
   }
 }
@@ -4113,8 +4108,7 @@ resource "azurerm_cosmosdb_account" "test" {
   // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc,
-      minimal_tls_version
+      restore.0.restore_timestamp_in_utc
     ]
   }
 }
@@ -4338,54 +4332,43 @@ resource "azurerm_cosmosdb_account" "test" {
 func (r CosmosDBAccountResource) withoutMaxAgeInSeconds(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 %[1]s
-
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%[3]s"
-
   consistency_policy {
     consistency_level       = "%[4]s"
     max_interval_in_seconds = 300
     max_staleness_prefix    = 170000
   }
-
   is_virtual_network_filter_enabled = true
-
   virtual_network_rule {
     id = azurerm_subnet.subnet1.id
   }
-
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
   }
-
   enable_multiple_write_locations = true
-
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
   geo_location {
     location          = "%[5]s"
     failover_priority = 1
   }
-
   geo_location {
     location          = "%[6]s"
     failover_priority = 2
   }
-
   cors_rule {
     allowed_origins = ["http://www.example.com"]
     exposed_headers = ["x-tempo-*"]
     allowed_headers = ["x-tempo-*"]
     allowed_methods = ["GET", "PUT"]
   }
-
   access_key_metadata_writes_enabled    = false
   network_acl_bypass_for_azure_services = true
 }
