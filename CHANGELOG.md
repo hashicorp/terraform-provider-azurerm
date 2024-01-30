@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `nginx`: updating to API Version `2023-09-01` [GH-24640]
 * `servicefabricmanagedcluster`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24654]
 * `springcloud`: updating to use API Version `2023-11-01-preview` [GH-24690]
+* `subscriptions`: refactoring to use `hashicorp/go-azure-sdk` [GH-24663]
 * `azurerm_bot_channel_email` - support for the `magic_code` property [GH-23129]
 * `azurerm_servicebus_namespace` - updating to use API Version `2022-10-01-preview` [GH-24650]
 * `azurerm_virtual_desktop_workspace` - correctly validate the `name` property [GH-24668]
