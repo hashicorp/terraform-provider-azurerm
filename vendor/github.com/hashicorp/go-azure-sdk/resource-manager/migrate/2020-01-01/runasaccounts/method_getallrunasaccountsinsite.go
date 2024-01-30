@@ -19,7 +19,8 @@ type GetAllRunAsAccountsInSiteOperationResponse struct {
 }
 
 type GetAllRunAsAccountsInSiteCompleteResult struct {
-	Items []VMwareRunAsAccount
+	LatestHttpResponse *http.Response
+	Items              []VMwareRunAsAccount
 }
 
 // GetAllRunAsAccountsInSite ...
@@ -83,7 +84,8 @@ func (c RunAsAccountsClient) GetAllRunAsAccountsInSiteCompleteMatchingPredicate(
 	}
 
 	result = GetAllRunAsAccountsInSiteCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
