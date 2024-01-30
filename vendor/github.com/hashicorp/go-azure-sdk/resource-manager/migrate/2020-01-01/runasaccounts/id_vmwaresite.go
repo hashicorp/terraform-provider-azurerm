@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VMwareSiteId{}
+var _ resourceids.ResourceId = &VMwareSiteId{}
 
 // VMwareSiteId is a struct representing the Resource ID for a V Mware Site
 type VMwareSiteId struct {
@@ -30,7 +30,7 @@ func NewVMwareSiteID(subscriptionId string, resourceGroupName string, vmwareSite
 
 // ParseVMwareSiteID parses 'input' into a VMwareSiteId
 func ParseVMwareSiteID(input string) (*VMwareSiteId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VMwareSiteId{})
+	parser := resourceids.NewParserFromResourceIdType(&VMwareSiteId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseVMwareSiteID(input string) (*VMwareSiteId, error) {
 // ParseVMwareSiteIDInsensitively parses 'input' case-insensitively into a VMwareSiteId
 // note: this method should only be used for API response data and not user input
 func ParseVMwareSiteIDInsensitively(input string) (*VMwareSiteId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VMwareSiteId{})
+	parser := resourceids.NewParserFromResourceIdType(&VMwareSiteId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
