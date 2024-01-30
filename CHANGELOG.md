@@ -3,7 +3,8 @@
 FEATURES:
 
 * **New Data Source**: `azurerm_nginx_configuration` [GH-24642]
-
+* **New Resource**: `azurerm_site_recovery_vmware_replicated_vm` [GH-22477]
+  
 ENHANCEMENTS:
 
 * dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
@@ -15,13 +16,16 @@ ENHANCEMENTS:
 * `loadbalancer`: updating to use `hashicorp/go-azure-sdk` [GH-24291]
 * `nginx`: updating to API Version `2023-09-01` [GH-24640]
 * `servicefabricmanagedcluster`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24654]
+* `azurerm_bot_channel_email` - support for the `magic_code` property [GH-23129]
 * `azurerm_servicebus_namespace` - updating to use API Version `2022-10-01-preview` [GH-24650]
+* `azurerm_virtual_desktop_workspace` - correctly validate the `name` property [GH-24668]
 
 BUG FIXES:
 
 * provider: skip registration for resource providers that are unavailable [GH-24571]
 * `azurerm_dns_cname_record` - fix casing issue in `target_resource_id` by parsing the ID insensitively
 * `azurerm_mssql_managed_instance_failover_group` - fixed issue when trying to create a failover group with a managed instance from a different subscription [GH-24646]
+* `azurermapp_service_managed_certificate` - fix casing issue in `app_service_plan_id` by parsing insensitively [GH-24664]
 * `azurerm_storage_account` - change update order for `access_tier`to prevent errors when uploading blobs to the archive tier [GH-22250]
 
 ## 3.89.0 (January 25, 2024)
