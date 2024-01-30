@@ -67,6 +67,12 @@ resource "azurerm_spring_cloud_gateway" "example" {
     issuer_uri    = "https://www.test.com/issueToken"
     scope         = ["read"]
   }
+
+  response_cache {
+    cache_type   = "LocalCachePerRoute"
+    size         = "100MB"
+    time_to_live = "30s"
+  }
 }
 ```
 
@@ -97,6 +103,8 @@ The following arguments are supported:
 * `public_network_access_enabled` - (Optional) Indicates whether the Spring Cloud Gateway exposes endpoint.
 
 * `quota` - (Optional) A `quota` block as defined below.
+
+* `response_cache` - (Optional) A `response_cache` block as defined below.
 
 * `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
@@ -141,6 +149,16 @@ A `cors` block supports the following:
 * `exposed_headers` - (Optional) HTTP response headers to expose for cross-site requests.
 
 * `max_age_seconds` - (Optional) How long, in seconds, the response from a pre-flight request can be cached by clients.
+
+---
+
+A `response_cache` block supports the following:
+
+* `cache_type` - (Optional) Specifies the response cache type of the Spring Cloud Gateway. Possible values are `LocalCachePerRoute` and `LocalCachePerInstance`.
+
+* `size` - (Optional) Specifies the maximum size of cache (10MB, 900KB, 1GB...) to determine if the cache needs to evict some entries.
+
+* `time_to_live` - (Optional) Specifies the time before a cached entry is expired (300s, 5m, 1h...).
 
 ---
 

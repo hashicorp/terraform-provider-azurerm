@@ -26,6 +26,7 @@ type SpringCloudGatewayModel struct {
 	ClientAuthorization                   []ClientAuthorizationModel `tfschema:"client_authorization"`
 	Cors                                  []CorsModel                `tfschema:"cors"`
 	EnvironmentVariables                  map[string]string          `tfschema:"environment_variables"`
+	ResponseCache                         []ResponseCacheModel       `tfschema:"response_cache"`
 	SensitiveEnvironmentVariables         map[string]string          `tfschema:"sensitive_environment_variables"`
 	HttpsOnly                             bool                       `tfschema:"https_only"`
 	InstanceCount                         int                        `tfschema:"instance_count"`
@@ -68,6 +69,12 @@ type GatewaySsoModel struct {
 type QuotaModel struct {
 	Cpu    string `tfschema:"cpu"`
 	Memory string `tfschema:"memory"`
+}
+
+type ResponseCacheModel struct {
+	CacheType  string `tfschema:"cache_type"`
+	Size       string `tfschema:"size"`
+	TimeToLive string `tfschema:"time_to_live"`
 }
 
 type SpringCloudGatewayResource struct{}
@@ -263,6 +270,36 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"response_cache": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"cache_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"LocalCachePerInstance",
+							"LocalCachePerRoute",
+						}, false),
+					},
+
+					"size": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"time_to_live": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		},
+
 		"sensitive_environment_variables": {
 			Type:      pluginsdk.TypeMap,
 			Optional:  true,
@@ -409,15 +446,16 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 
 			gatewayResource := appplatform.GatewayResource{
 				Properties: &appplatform.GatewayProperties{
-					ClientAuth:            expandGatewayClientAuth(model.ClientAuthorization),
-					ApiMetadataProperties: expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata),
-					ApmTypes:              expandGatewayGatewayApmTypes(model.ApplicationPerformanceMonitoringTypes),
-					CorsProperties:        expandGatewayGatewayCorsProperties(model.Cors),
-					EnvironmentVariables:  expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables),
-					HTTPSOnly:             pointer.To(model.HttpsOnly),
-					Public:                pointer.To(model.PublicNetworkAccessEnabled),
-					ResourceRequests:      expandGatewayGatewayResourceRequests(model.Quota),
-					SsoProperties:         expandGatewaySsoProperties(model.Sso),
+					ClientAuth:              expandGatewayClientAuth(model.ClientAuthorization),
+					ApiMetadataProperties:   expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata),
+					ApmTypes:                expandGatewayGatewayApmTypes(model.ApplicationPerformanceMonitoringTypes),
+					CorsProperties:          expandGatewayGatewayCorsProperties(model.Cors),
+					EnvironmentVariables:    expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables),
+					HTTPSOnly:               pointer.To(model.HttpsOnly),
+					Public:                  pointer.To(model.PublicNetworkAccessEnabled),
+					ResponseCacheProperties: expandGatewayResponseCacheProperties(model.ResponseCache),
+					ResourceRequests:        expandGatewayGatewayResourceRequests(model.Quota),
+					SsoProperties:           expandGatewaySsoProperties(model.Sso),
 				},
 				Sku: &appplatform.Sku{
 					Name:     service.Model.Sku.Name,
@@ -506,6 +544,10 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 				properties.SsoProperties = expandGatewaySsoProperties(model.Sso)
 			}
 
+			if metadata.ResourceData.HasChange("response_cache") {
+				properties.ResponseCacheProperties = expandGatewayResponseCacheProperties(model.ResponseCache)
+			}
+
 			if metadata.ResourceData.HasChange("instance_count") {
 				sku.Capacity = pointer.To(int64(model.InstanceCount))
 			}
@@ -568,6 +610,7 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccessEnabled = pointer.From(props.Public)
 					state.Quota = flattenGatewayGatewayResourceRequests(props.ResourceRequests)
 					state.Sso = flattenGatewaySsoProperties(props.SsoProperties, model.Sso)
+					state.ResponseCache = flattenGatewayResponseCacheProperties(props.ResponseCacheProperties)
 				}
 
 				if sku := resp.Model.Sku; sku != nil {
@@ -692,6 +735,26 @@ func expandGatewayClientAuth(input []ClientAuthorizationModel) *appplatform.Gate
 	}
 }
 
+func expandGatewayResponseCacheProperties(input []ResponseCacheModel) appplatform.GatewayResponseCacheProperties {
+	if len(input) == 0 {
+		return appplatform.RawGatewayResponseCachePropertiesImpl{}
+	}
+	v := input[0]
+	switch v.CacheType {
+	case "LocalCachePerInstance":
+		return appplatform.GatewayLocalResponseCachePerInstanceProperties{
+			Size:       pointer.To(v.Size),
+			TimeToLive: pointer.To(v.TimeToLive),
+		}
+	case "LocalCachePerRoute":
+		return appplatform.GatewayLocalResponseCachePerRouteProperties{
+			Size:       pointer.To(v.Size),
+			TimeToLive: pointer.To(v.TimeToLive),
+		}
+	}
+	return appplatform.RawGatewayResponseCachePropertiesImpl{}
+}
+
 func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayApiMetadataProperties) []ApiMetadataModel {
 	if input == nil {
 		return make([]ApiMetadataModel, 0)
@@ -802,4 +865,29 @@ func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []
 			VerificationEnabled: verificationEnabled,
 		},
 	}
+}
+
+func flattenGatewayResponseCacheProperties(input appplatform.GatewayResponseCacheProperties) []ResponseCacheModel {
+	if input == nil {
+		return make([]ResponseCacheModel, 0)
+	}
+	switch v := input.(type) {
+	case appplatform.GatewayLocalResponseCachePerInstanceProperties:
+		return []ResponseCacheModel{
+			{
+				CacheType:  "LocalCachePerInstance",
+				Size:       pointer.From(v.Size),
+				TimeToLive: pointer.From(v.TimeToLive),
+			},
+		}
+	case appplatform.GatewayLocalResponseCachePerRouteProperties:
+		return []ResponseCacheModel{
+			{
+				CacheType:  "LocalCachePerRoute",
+				Size:       pointer.From(v.Size),
+				TimeToLive: pointer.From(v.TimeToLive),
+			},
+		}
+	}
+	return make([]ResponseCacheModel, 0)
 }
