@@ -48,16 +48,6 @@ func (c WebAppsClient) ListPublishingCredentials(ctx context.Context, id commoni
 		return
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
->>>>>>> bd17dc90f0 (finish refactor for go-azure-sdk first pass)
-=======
->>>>>>> 9dfd13e6e3 (tidy and fixup broken slot test)
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return
