@@ -18,6 +18,15 @@ func ListPublishingCredentials(ctx context.Context, client *webapps.WebAppsClien
 		return nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 	}
 
+	// The credentials are regenerated at some point in the creation process, the initial response is not the final
+	// value. The final result error is populated on success as a 404, so we're ignoring it here since this is a R/O
+	// pair of properties
+	_ = siteCredentials.Poller.PollUntilDone(ctx)
+	siteCredentials, err = client.ListPublishingCredentials(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
+	}
+
 	if siteCredentials.HttpResponse != nil {
 		err = UnmarshalCredentialsResponse(siteCredentials.HttpResponse.Body, userModel)
 		if err != nil {
@@ -32,6 +41,14 @@ func ListPublishingCredentialsSlot(ctx context.Context, client *webapps.WebAppsC
 	userModel := &webapps.User{}
 
 	siteCredentials, err := client.ListPublishingCredentialsSlot(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
+	}
+	// The credentials are regenerated at some point in the creation process, the initial response is not the final
+	// value. The final result error is populated on success as a 404, so we're ignoring it here since this is a R/O
+	// pair of properties
+	_ = siteCredentials.Poller.PollUntilDone(ctx)
+	siteCredentials, err = client.ListPublishingCredentialsSlot(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("listing Site Publishing Credential information for %s: %+v", id, err)
 	}
