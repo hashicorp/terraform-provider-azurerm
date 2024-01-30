@@ -53,7 +53,7 @@ var (
 	storageKindsSupportHns = []storage.Kind{
 		storage.KindBlobStorage,
 		storage.KindStorageV2,
-		storage.KindFileStorage,
+		storage.KindBlockBlobStorage,
 	}
 )
 
