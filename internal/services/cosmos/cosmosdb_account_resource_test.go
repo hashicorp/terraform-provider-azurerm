@@ -3542,6 +3542,7 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
+
 }
 `, r.basicWithNetworkBypassTemplate(data), data.RandomInteger, string(kind), string(consistency))
 }
@@ -3655,6 +3656,7 @@ resource "azurerm_cosmosdb_account" "test" {
       capabilities
     ]
   }
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(consistency))
 }
