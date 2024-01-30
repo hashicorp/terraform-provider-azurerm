@@ -3,7 +3,8 @@
 FEATURES:
 
 * **New Data Source**: `azurerm_nginx_configuration` [GH-24642]
-
+* **New Resource**: `azurerm_site_recovery_vmware_replicated_vm` [GH-22477]
+  
 ENHANCEMENTS:
 
 * dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
