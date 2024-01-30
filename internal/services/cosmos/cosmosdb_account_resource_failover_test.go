@@ -136,10 +136,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [minimal_tls_version]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -171,10 +167,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [minimal_tls_version]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -204,10 +196,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [minimal_tls_version]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -236,10 +224,6 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
-  }
-
-  lifecycle {
-    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -275,10 +259,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  lifecycle {
-    ignore_changes = [minimal_tls_version]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -307,10 +287,6 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
-  }
-
-  lifecycle {
-    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -347,10 +323,6 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = "%s"
     failover_priority = 1
-  }
-
-  lifecycle {
-    ignore_changes = [minimal_tls_version]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
