@@ -25,6 +25,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * provider: skip registration for resource providers that are unavailable [GH-24571]
+* `azurerm_storage_account` - conditionally update properties only if needed [GH-24669]
 * `azurerm_dns_cname_record` - fix casing issue in `target_resource_id` by parsing the ID insensitively
 * `azurerm_mssql_managed_instance_failover_group` - fixed issue when trying to create a failover group with a managed instance from a different subscription [GH-24646]
 * `azurermapp_service_managed_certificate` - fix casing issue in `app_service_plan_id` by parsing insensitively [GH-24664]
