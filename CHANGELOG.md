@@ -1,5 +1,10 @@
 ## 3.90.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* provider - The provider will now automatically register the `AppConfiguration`, `DataFactory`, and `SignalRService` Resource Providers [GH-24645]
+* provider - The provider will now automatically register the `AppConfiguration`, `DataFactory`, and `SignalRService` Resource Providers. When running Terraform with limited permissions, note that you [must disable automatic Resource Provider Registration and ensure that any Resource Providers Terraform requires are registered]([XXX](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#skip_provider_registration)). [GH-24645]
+  
 FEATURES:
 
 * **New Data Source**: `azurerm_nginx_configuration` [GH-24642]
@@ -7,10 +12,13 @@ FEATURES:
   
 ENHANCEMENTS:
 
+* provider: registering the Resource Provider `Microsoft.AppConfiguration` [GH-24645]
+* provider: registering the Resource Provider `Microsoft.DataFactory` [GH-24645]
+* provider: registering the Resource Provider `Microsoft.SignalRService` [GH-24645]
+* provider: the Provider is now built using Go 1.21.6 [GH-24653]
 * dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
 * dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24695]
 * dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24695]
-* provider: the Provider is now built using Go 1.21.6 [GH-24653]
 * `hdinsight`: refactoring to use `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24011]
 * `hdinsight`: updating to API Version `2021-06-01` [GH-24011]
 * `loadbalancer`: updating to use `hashicorp/go-azure-sdk` [GH-24291]
@@ -295,7 +303,7 @@ BUG FIXES:
 
 ## 3.83.0 (November 30, 2023)
 
-UPGRADE NOTES
+UPGRADE NOTES:
 
 * Key Vaults are now loaded using [the `ListBySubscription` API within the Key Vault Resource Provider](https://learn.microsoft.com/en-us/rest/api/keyvault/keyvault/vaults/list-by-subscription?view=rest-keyvault-keyvault-2022-07-01&tabs=HTTP) rather than [the Resources API](https://learn.microsoft.com/en-us/rest/api/keyvault/keyvault/vaults/list?view=rest-keyvault-keyvault-2022-07-01&tabs=HTTP). This change means that the Provider now caches the list of Key Vaults available within a Subscription, rather than loading these piecemeal to workaround stale data returned from the Resources API ([#24019](https://github.com/hashicorp/terraform-provider-azurerm/issues/24019))
 
