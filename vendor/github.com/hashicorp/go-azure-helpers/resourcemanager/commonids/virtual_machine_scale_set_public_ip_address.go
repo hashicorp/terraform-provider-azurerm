@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualMachineScaleSetPublicIPAddressId{}
+var _ resourceids.ResourceId = &VirtualMachineScaleSetPublicIPAddressId{}
 
 // VirtualMachineScaleSetPublicIPAddressId is a struct representing the Resource ID for a Virtual Machine Scale Set Public I P Address
 type VirtualMachineScaleSetPublicIPAddressId struct {
@@ -38,7 +38,7 @@ func NewVirtualMachineScaleSetPublicIPAddressID(subscriptionId string, resourceG
 
 // ParseVirtualMachineScaleSetPublicIPAddressID parses 'input' into a VirtualMachineScaleSetPublicIPAddressId
 func ParseVirtualMachineScaleSetPublicIPAddressID(input string) (*VirtualMachineScaleSetPublicIPAddressId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetPublicIPAddressId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetPublicIPAddressId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -55,14 +55,14 @@ func ParseVirtualMachineScaleSetPublicIPAddressID(input string) (*VirtualMachine
 // ParseVirtualMachineScaleSetPublicIPAddressIDInsensitively parses 'input' case-insensitively into a VirtualMachineScaleSetPublicIPAddressId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualMachineScaleSetPublicIPAddressIDInsensitively(input string) (*VirtualMachineScaleSetPublicIPAddressId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineScaleSetPublicIPAddressId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineScaleSetPublicIPAddressId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := VirtualMachineScaleSetPublicIPAddressId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

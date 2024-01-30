@@ -243,6 +243,8 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 					Description: "The FQDN of the ingress.",
 				},
 
+				"ip_security_restriction": ContainerAppIngressIpSecurityRestrictionComputed(),
+
 				"target_port": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -487,6 +489,40 @@ func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "Name for the IP restriction rule.",
+				},
+			},
+		},
+	}
+}
+
+func ContainerAppIngressIpSecurityRestrictionComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"action": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The action. Allow or Deny.",
+				},
+
+				"description": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "Describe the IP restriction rule that is being sent to the container-app.",
+				},
+
+				"ip_address_range": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "CIDR notation to match incoming IP address.",
+				},
+
+				"name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "Name for the IP restriction rule.",
 				},
 			},
 		},
@@ -3167,7 +3203,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 		r := containerapps.ScaleRule{
 			Name: pointer.To(v.Name),
 			Custom: &containerapps.CustomScaleRule{
-				Metadata: &v.Metadata,
+				Metadata: pointer.To(v.Metadata),
 				Type:     pointer.To(v.CustomRuleType),
 			},
 		}

@@ -66,6 +66,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(backupvaults.StorageSettingTypesGeoRedundant),
 					string(backupvaults.StorageSettingTypesLocallyRedundant),
+					string(backupvaults.StorageSettingTypesZoneRedundant),
 				}, false),
 			},
 

@@ -43,6 +43,31 @@ func (p Properties) AddField(f *Field) {
 	p[f.Name] = f
 }
 
+func (p Properties) hasCircularRef() string {
+	for name, f := range p {
+		if f.Typ == FieldTypeBlock {
+			if f.Subs.hasCircularRefFor(name) {
+				return name
+			}
+		}
+	}
+	return ""
+}
+
+func (p Properties) hasCircularRefFor(name string) bool {
+	if p == nil {
+		return false
+	}
+
+	if f, ok := p[name]; ok {
+		if f.Typ == FieldTypeBlock {
+			return true
+		}
+		return f.Subs.hasCircularRefFor(name)
+	}
+	return false
+}
+
 const (
 	Default  = 0
 	Optional = 1 << iota
@@ -316,6 +341,16 @@ func (r *ResourceDoc) TuneSubBlocks() (fixNames []string) {
 		partial(f)
 	}
 	return
+}
+
+func (r *ResourceDoc) HasCircularRef() string {
+	if name := r.Args.hasCircularRef(); name != "" {
+		return name
+	}
+	if name := r.Attr.hasCircularRef(); name != "" {
+		return name
+	}
+	return ""
 }
 
 func NewResourceDoc() *ResourceDoc {

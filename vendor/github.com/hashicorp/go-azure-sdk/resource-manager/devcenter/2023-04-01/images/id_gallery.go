@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = GalleryId{}
+var _ resourceids.ResourceId = &GalleryId{}
 
 // GalleryId is a struct representing the Resource ID for a Gallery
 type GalleryId struct {
@@ -32,7 +32,7 @@ func NewGalleryID(subscriptionId string, resourceGroupName string, devCenterName
 
 // ParseGalleryID parses 'input' into a GalleryId
 func ParseGalleryID(input string) (*GalleryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GalleryId{})
+	parser := resourceids.NewParserFromResourceIdType(&GalleryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseGalleryID(input string) (*GalleryId, error) {
 // ParseGalleryIDInsensitively parses 'input' case-insensitively into a GalleryId
 // note: this method should only be used for API response data and not user input
 func ParseGalleryIDInsensitively(input string) (*GalleryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GalleryId{})
+	parser := resourceids.NewParserFromResourceIdType(&GalleryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

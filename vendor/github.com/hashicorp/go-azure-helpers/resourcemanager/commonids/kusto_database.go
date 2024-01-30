@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = KustoDatabaseId{}
+var _ resourceids.ResourceId = &KustoDatabaseId{}
 
 // KustoDatabaseId is a struct representing the Resource ID for a Kusto Database
 type KustoDatabaseId struct {
@@ -32,7 +32,7 @@ func NewKustoDatabaseID(subscriptionId string, resourceGroupName string, kustoCl
 
 // ParseKustoDatabaseID parses 'input' into a KustoDatabaseId
 func ParseKustoDatabaseID(input string) (*KustoDatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KustoDatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&KustoDatabaseId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseKustoDatabaseID(input string) (*KustoDatabaseId, error) {
 // ParseKustoDatabaseIDInsensitively parses 'input' case-insensitively into a KustoDatabaseId
 // note: this method should only be used for API response data and not user input
 func ParseKustoDatabaseIDInsensitively(input string) (*KustoDatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KustoDatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&KustoDatabaseId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := KustoDatabaseId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

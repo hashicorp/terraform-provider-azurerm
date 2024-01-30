@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProductId{}
+var _ resourceids.ResourceId = &ProductId{}
 
 // ProductId is a struct representing the Resource ID for a Product
 type ProductId struct {
@@ -32,7 +32,7 @@ func NewProductID(subscriptionId string, resourceGroupName string, serviceName s
 
 // ParseProductID parses 'input' into a ProductId
 func ParseProductID(input string) (*ProductId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProductId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProductId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseProductID(input string) (*ProductId, error) {
 // ParseProductIDInsensitively parses 'input' case-insensitively into a ProductId
 // note: this method should only be used for API response data and not user input
 func ParseProductIDInsensitively(input string) (*ProductId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProductId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProductId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LoadBalancerBackendAddressPoolId{}
+var _ resourceids.ResourceId = &LoadBalancerBackendAddressPoolId{}
 
 // LoadBalancerBackendAddressPoolId is a struct representing the Resource ID for a Load Balancer Backend Address Pool
 type LoadBalancerBackendAddressPoolId struct {
@@ -32,7 +32,7 @@ func NewLoadBalancerBackendAddressPoolID(subscriptionId string, resourceGroupNam
 
 // ParseLoadBalancerBackendAddressPoolID parses 'input' into a LoadBalancerBackendAddressPoolId
 func ParseLoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAddressPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LoadBalancerBackendAddressPoolId{})
+	parser := resourceids.NewParserFromResourceIdType(&LoadBalancerBackendAddressPoolId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseLoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAd
 // ParseLoadBalancerBackendAddressPoolIDInsensitively parses 'input' case-insensitively into a LoadBalancerBackendAddressPoolId
 // note: this method should only be used for API response data and not user input
 func ParseLoadBalancerBackendAddressPoolIDInsensitively(input string) (*LoadBalancerBackendAddressPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LoadBalancerBackendAddressPoolId{})
+	parser := resourceids.NewParserFromResourceIdType(&LoadBalancerBackendAddressPoolId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

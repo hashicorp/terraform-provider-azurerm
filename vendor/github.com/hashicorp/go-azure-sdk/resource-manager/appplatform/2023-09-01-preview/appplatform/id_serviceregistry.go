@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ServiceRegistryId{}
+var _ resourceids.ResourceId = &ServiceRegistryId{}
 
 // ServiceRegistryId is a struct representing the Resource ID for a Service Registry
 type ServiceRegistryId struct {
@@ -32,7 +32,7 @@ func NewServiceRegistryID(subscriptionId string, resourceGroupName string, sprin
 
 // ParseServiceRegistryID parses 'input' into a ServiceRegistryId
 func ParseServiceRegistryID(input string) (*ServiceRegistryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServiceRegistryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ServiceRegistryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseServiceRegistryID(input string) (*ServiceRegistryId, error) {
 // ParseServiceRegistryIDInsensitively parses 'input' case-insensitively into a ServiceRegistryId
 // note: this method should only be used for API response data and not user input
 func ParseServiceRegistryIDInsensitively(input string) (*ServiceRegistryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServiceRegistryId{})
+	parser := resourceids.NewParserFromResourceIdType(&ServiceRegistryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

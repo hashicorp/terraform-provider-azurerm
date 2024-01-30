@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FederatedIdentityCredentialId{}
+var _ resourceids.ResourceId = &FederatedIdentityCredentialId{}
 
 // FederatedIdentityCredentialId is a struct representing the Resource ID for a Federated Identity Credential
 type FederatedIdentityCredentialId struct {
@@ -32,7 +32,7 @@ func NewFederatedIdentityCredentialID(subscriptionId string, resourceGroupName s
 
 // ParseFederatedIdentityCredentialID parses 'input' into a FederatedIdentityCredentialId
 func ParseFederatedIdentityCredentialID(input string) (*FederatedIdentityCredentialId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FederatedIdentityCredentialId{})
+	parser := resourceids.NewParserFromResourceIdType(&FederatedIdentityCredentialId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseFederatedIdentityCredentialID(input string) (*FederatedIdentityCredent
 // ParseFederatedIdentityCredentialIDInsensitively parses 'input' case-insensitively into a FederatedIdentityCredentialId
 // note: this method should only be used for API response data and not user input
 func ParseFederatedIdentityCredentialIDInsensitively(input string) (*FederatedIdentityCredentialId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FederatedIdentityCredentialId{})
+	parser := resourceids.NewParserFromResourceIdType(&FederatedIdentityCredentialId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -16,6 +16,7 @@ import (
 type GremlinResourcesUpdateGremlinDatabaseThroughputOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // GremlinResourcesUpdateGremlinDatabaseThroughput ...

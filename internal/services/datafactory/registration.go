@@ -30,7 +30,10 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		TriggerScheduleDataSource{},
+		TriggerSchedulesDataSource{},
+	}
 }
 
 func (Registration) Resources() []sdk.Resource {

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkGroupId{}
+var _ resourceids.ResourceId = &NetworkGroupId{}
 
 // NetworkGroupId is a struct representing the Resource ID for a Network Group
 type NetworkGroupId struct {
@@ -32,7 +32,7 @@ func NewNetworkGroupID(subscriptionId string, resourceGroupName string, networkM
 
 // ParseNetworkGroupID parses 'input' into a NetworkGroupId
 func ParseNetworkGroupID(input string) (*NetworkGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseNetworkGroupID(input string) (*NetworkGroupId, error) {
 // ParseNetworkGroupIDInsensitively parses 'input' case-insensitively into a NetworkGroupId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkGroupIDInsensitively(input string) (*NetworkGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

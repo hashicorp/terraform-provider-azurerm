@@ -18,6 +18,7 @@ type SnapshotPoliciesUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *SnapshotPolicy
 }
 
 // SnapshotPoliciesUpdate ...

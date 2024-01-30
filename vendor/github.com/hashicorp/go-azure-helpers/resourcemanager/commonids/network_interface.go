@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = NetworkInterfaceId{}
+var _ resourceids.ResourceId = &NetworkInterfaceId{}
 
 // NetworkInterfaceId is a struct representing the Resource ID for a Network Interface
 type NetworkInterfaceId struct {
@@ -30,7 +30,7 @@ func NewNetworkInterfaceID(subscriptionId string, resourceGroupName string, netw
 
 // ParseNetworkInterfaceID parses 'input' into a NetworkInterfaceId
 func ParseNetworkInterfaceID(input string) (*NetworkInterfaceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkInterfaceId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkInterfaceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseNetworkInterfaceID(input string) (*NetworkInterfaceId, error) {
 // ParseNetworkInterfaceIDInsensitively parses 'input' case-insensitively into a NetworkInterfaceId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkInterfaceIDInsensitively(input string) (*NetworkInterfaceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkInterfaceId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkInterfaceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := NetworkInterfaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

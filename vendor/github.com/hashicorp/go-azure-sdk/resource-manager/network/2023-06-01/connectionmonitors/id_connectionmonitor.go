@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectionMonitorId{}
+var _ resourceids.ResourceId = &ConnectionMonitorId{}
 
 // ConnectionMonitorId is a struct representing the Resource ID for a Connection Monitor
 type ConnectionMonitorId struct {
@@ -32,7 +32,7 @@ func NewConnectionMonitorID(subscriptionId string, resourceGroupName string, net
 
 // ParseConnectionMonitorID parses 'input' into a ConnectionMonitorId
 func ParseConnectionMonitorID(input string) (*ConnectionMonitorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectionMonitorId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectionMonitorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseConnectionMonitorID(input string) (*ConnectionMonitorId, error) {
 // ParseConnectionMonitorIDInsensitively parses 'input' case-insensitively into a ConnectionMonitorId
 // note: this method should only be used for API response data and not user input
 func ParseConnectionMonitorIDInsensitively(input string) (*ConnectionMonitorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectionMonitorId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectionMonitorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

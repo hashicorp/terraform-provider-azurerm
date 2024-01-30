@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -196,19 +197,19 @@ func TestAccServicePlanIsolated_appServiceEnvironmentV3(t *testing.T) {
 }
 
 func (r ServicePlanResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServicePlanID(state.ID)
+	id, err := commonids.ParseAppServicePlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.AppService.ServicePlanClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	resp, err := client.AppService.ServicePlanClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retreiving %s: %v", id, err)
 	}
-	if utils.ResponseWasNotFound(resp.Response) {
+	if response.WasNotFound(resp.HttpResponse) {
 		return utils.Bool(false), nil
 	}
 	return utils.Bool(true), nil

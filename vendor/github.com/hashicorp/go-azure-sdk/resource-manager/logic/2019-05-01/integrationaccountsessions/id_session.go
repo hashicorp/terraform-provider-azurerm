@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SessionId{}
+var _ resourceids.ResourceId = &SessionId{}
 
 // SessionId is a struct representing the Resource ID for a Session
 type SessionId struct {
@@ -32,7 +32,7 @@ func NewSessionID(subscriptionId string, resourceGroupName string, integrationAc
 
 // ParseSessionID parses 'input' into a SessionId
 func ParseSessionID(input string) (*SessionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SessionId{})
+	parser := resourceids.NewParserFromResourceIdType(&SessionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseSessionID(input string) (*SessionId, error) {
 // ParseSessionIDInsensitively parses 'input' case-insensitively into a SessionId
 // note: this method should only be used for API response data and not user input
 func ParseSessionIDInsensitively(input string) (*SessionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SessionId{})
+	parser := resourceids.NewParserFromResourceIdType(&SessionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

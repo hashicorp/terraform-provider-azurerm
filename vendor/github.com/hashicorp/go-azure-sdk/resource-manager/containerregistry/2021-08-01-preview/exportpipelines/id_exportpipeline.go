@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExportPipelineId{}
+var _ resourceids.ResourceId = &ExportPipelineId{}
 
 // ExportPipelineId is a struct representing the Resource ID for a Export Pipeline
 type ExportPipelineId struct {
@@ -32,7 +32,7 @@ func NewExportPipelineID(subscriptionId string, resourceGroupName string, regist
 
 // ParseExportPipelineID parses 'input' into a ExportPipelineId
 func ParseExportPipelineID(input string) (*ExportPipelineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExportPipelineId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExportPipelineId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseExportPipelineID(input string) (*ExportPipelineId, error) {
 // ParseExportPipelineIDInsensitively parses 'input' case-insensitively into a ExportPipelineId
 // note: this method should only be used for API response data and not user input
 func ParseExportPipelineIDInsensitively(input string) (*ExportPipelineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExportPipelineId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExportPipelineId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
