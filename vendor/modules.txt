@@ -1033,6 +1033,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/test
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceplans
+github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders
+github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub
 # github.com/hashicorp/go-azure-sdk/sdk v0.20240130.1054849
