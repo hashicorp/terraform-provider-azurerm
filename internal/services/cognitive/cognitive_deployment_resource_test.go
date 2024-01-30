@@ -99,6 +99,14 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.updateVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("model.0.version").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -207,10 +215,6 @@ resource "azurerm_cognitive_deployment" "test" {
 func (r CognitiveDeploymentTestResource) update(data acceptance.TestData) string {
 	template := r.template(data, "OpenAI")
 	return fmt.Sprintf(`
-
-
-
-
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
@@ -221,6 +225,28 @@ resource "azurerm_cognitive_deployment" "test" {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"
     version = "2"
+  }
+  scale {
+    type     = "Standard"
+    capacity = 2
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CognitiveDeploymentTestResource) updateVersion(data acceptance.TestData) string {
+	template := r.template(data, "OpenAI")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                 = "acctest-cd-%d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  rai_policy_name      = "Microsoft.Default"
+  model {
+    format  = "OpenAI"
+    name    = "text-embedding-ada-002"
+    version = "1"
   }
   scale {
     type     = "Standard"
