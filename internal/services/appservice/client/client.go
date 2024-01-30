@@ -6,10 +6,9 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceplans"
 	_ "github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	_ "github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
-
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
