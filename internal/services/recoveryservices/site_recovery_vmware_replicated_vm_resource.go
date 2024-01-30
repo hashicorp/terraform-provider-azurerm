@@ -13,9 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	vmwaremachines "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
 	vmwarerunasaccounts "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2022-10-01/vaults"
@@ -99,7 +97,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"recovery_vault_id": commonschema.ResourceIDReferenceRequired(vaults.VaultId{}),
+		"recovery_vault_id": commonschema.ResourceIDReferenceRequired(&vaults.VaultId{}),
 
 		"source_vm_name": {
 			Type:         pluginsdk.TypeString,
@@ -115,7 +113,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"recovery_replication_policy_id": commonschema.ResourceIDReferenceRequired(replicationpolicies.ReplicationPolicyId{}),
+		"recovery_replication_policy_id": commonschema.ResourceIDReferenceRequired(&replicationpolicies.ReplicationPolicyId{}),
 
 		"physical_server_credential_name": {
 			Type:         pluginsdk.TypeString,
@@ -131,7 +129,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForLicenseType(), false),
 		},
 
-		"target_resource_group_id": commonschema.ResourceIDReferenceRequired(commonids.ResourceGroupId{}),
+		"target_resource_group_id": commonschema.ResourceIDReferenceRequired(&commonids.ResourceGroupId{}),
 
 		"target_vm_name": {
 			Type:         pluginsdk.TypeString,
@@ -157,7 +155,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 		"default_target_disk_encryption_set_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: diskencryptionsets.ValidateDiskEncryptionSetID,
+			ValidateFunc: commonids.ValidateDiskEncryptionSetID,
 		},
 
 		"multi_vm_group_name": {
@@ -166,7 +164,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"target_proximity_placement_group_id": commonschema.ResourceIDReferenceOptional(proximityplacementgroups.ProximityPlacementGroupId{}),
+		"target_proximity_placement_group_id": commonschema.ResourceIDReferenceOptional(&proximityplacementgroups.ProximityPlacementGroupId{}),
 
 		"target_vm_size": {
 			Type:         pluginsdk.TypeString,
@@ -177,7 +175,7 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 		"target_availability_set_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
+			ValidateFunc: commonids.ValidateAvailabilitySetID,
 			ConflictsWith: []string{
 				"target_zone",
 			},
@@ -199,9 +197,9 @@ func (s VMWareReplicatedVmResource) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"network_interface"},
 		},
 
-		"test_network_id": commonschema.ResourceIDReferenceOptional(commonids.VirtualNetworkId{}),
+		"test_network_id": commonschema.ResourceIDReferenceOptional(&commonids.VirtualNetworkId{}),
 
-		"target_boot_diagnostics_storage_account_id": commonschema.ResourceIDReferenceOptional(commonids.StorageAccountId{}),
+		"target_boot_diagnostics_storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}),
 
 		// managed disk is enabled only if mobility service is already installed. (in most cases, it's not installed)
 		"managed_disk": {
@@ -233,9 +231,9 @@ func resourceSiteRecoveryVMWareReplicatedVMManagedDiskSchema() *pluginsdk.Resour
 				ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 			},
 
-			"target_disk_encryption_set_id": commonschema.ResourceIDReferenceOptional(diskencryptionsets.DiskEncryptionSetId{}),
+			"target_disk_encryption_set_id": commonschema.ResourceIDReferenceOptional(&commonids.DiskEncryptionSetId{}),
 
-			"log_storage_account_id": commonschema.ResourceIDReferenceOptional(commonids.StorageAccountId{}),
+			"log_storage_account_id": commonschema.ResourceIDReferenceOptional(&commonids.StorageAccountId{}),
 		},
 	}
 }
@@ -784,7 +782,7 @@ func (s VMWareReplicatedVmResource) Read() sdk.ResourceFunc {
 					if inMageRcm.RunAsAccountId != nil && *inMageRcm.RunAsAccountId != "" {
 						credential, err = fetchCredentialByRunAsAccountId(ctx, runAsAccountId, *inMageRcm.RunAsAccountId)
 						if err != nil {
-							return fmt.Errorf("retireving credential by run as account id %q: %+v", *inMageRcm.RunAsAccountId, err)
+							return fmt.Errorf("retrieving credential by run as account id %q: %+v", *inMageRcm.RunAsAccountId, err)
 						}
 					}
 					state.PhysicalServerCredentialName = credential
@@ -896,9 +894,9 @@ func fetchRunAsAccountsIdBySite(ctx context.Context, runAsAccountClient *vmwarer
 		return "", fmt.Errorf("parse %s: %+v", siteId, err)
 	}
 
-	hackedClinet := azuresdkhacks.RunAsAccountsClient{Client: runAsAccountClient.Client}
+	hackedClient := azuresdkhacks.RunAsAccountsClient{Client: runAsAccountClient.Client}
 	// GET on Site is not working, tracked on https://github.com/Azure/azure-rest-api-specs/issues/24711
-	resp, err := hackedClinet.GetAllRunAsAccountsInSiteComplete(ctx, *parsedSiteId)
+	resp, err := hackedClient.GetAllRunAsAccountsInSiteComplete(ctx, *parsedSiteId)
 	if err != nil {
 		return "", err
 	}
