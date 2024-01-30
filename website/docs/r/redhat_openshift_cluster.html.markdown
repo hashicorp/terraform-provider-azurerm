@@ -82,7 +82,7 @@ resource "azurerm_redhat_openshift_cluster" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   cluster_profile {
-    domain = "aro-example.com"
+    domain  = "aro-example.com"
     version = "4.13.23"
   }
 
