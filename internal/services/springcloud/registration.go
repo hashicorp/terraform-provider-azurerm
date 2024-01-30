@@ -78,5 +78,6 @@ func (r Registration) Resources() []sdk.Resource {
 		SpringCloudDevToolPortalResource{},
 		SpringCloudCustomizedAcceleratorResource{},
 		SpringCloudElasticApplicationPerformanceMonitoringResource{},
+		SpringCloudNewRelicApplicationPerformanceMonitoringResource{},
 	}
 }
