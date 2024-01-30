@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -149,6 +149,32 @@ func TestAccStreamAnalyticsJob_jobStorageAccount(t *testing.T) {
 			),
 		},
 		data.ImportStep("job_storage_account.0.account_key"),
+	})
+}
+
+func TestAccStreamAnalyticsJob_standardV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+	r := StreamAnalyticsJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standardV2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -424,4 +450,36 @@ QUERY
 
 }
 `, data.RandomInteger, data.RandomString, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StreamAnalyticsJobResource) standardV2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_stream_analytics_job" "test" {
+  name                = "acctestjob-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_units     = 7
+  sku_name            = "StandardV2"
+
+  tags = {
+    environment = "Test"
+  }
+
+  transformation_query = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -6,7 +6,7 @@ description: |-
   Manages fully managed Azure Red Hat OpenShift Cluster (also known as ARO)
 ---
 
-# azurerm_redhatopenshift_cluster
+# azurerm_redhat_openshift_cluster
 
 Manages a fully managed Azure Red Hat OpenShift Cluster (also known as ARO).
 
@@ -24,7 +24,7 @@ resource "azuread_application" "example" {
 }
 
 resource "azuread_service_principal" "example" {
-  application_id = azuread_application.example.application_id
+  client_id = azuread_application.example.client_id
 }
 
 resource "azuread_service_principal_password" "example" {
@@ -33,7 +33,7 @@ resource "azuread_service_principal_password" "example" {
 
 data "azuread_service_principal" "redhatopenshift" {
   // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
-  application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+  client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
 resource "azurerm_role_assignment" "role_network1" {
@@ -111,7 +111,7 @@ resource "azurerm_redhat_openshift_cluster" "example" {
   }
 
   service_principal {
-    client_id     = azuread_application.example.application_id
+    client_id     = azuread_application.example.client_id
     client_secret = azuread_service_principal_password.example.value
   }
 
@@ -122,7 +122,7 @@ resource "azurerm_redhat_openshift_cluster" "example" {
 }
 
 output "console_url" {
-  value = azurerm_redhatopenshift_cluster.example.console_url
+  value = azurerm_redhat_openshift_cluster.example.console_url
 }
 ```
 
@@ -278,5 +278,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Red Hat OpenShift Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_redhatopenshift_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.RedHatOpenShift/openShiftClusters/cluster1
+terraform import azurerm_redhat_openshift_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.RedHatOpenShift/openShiftClusters/cluster1
 ```
