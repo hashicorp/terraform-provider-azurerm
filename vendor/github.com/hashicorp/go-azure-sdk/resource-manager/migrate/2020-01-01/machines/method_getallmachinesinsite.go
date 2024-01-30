@@ -19,7 +19,8 @@ type GetAllMachinesInSiteOperationResponse struct {
 }
 
 type GetAllMachinesInSiteCompleteResult struct {
-	Items []VMwareMachine
+	LatestHttpResponse *http.Response
+	Items              []VMwareMachine
 }
 
 type GetAllMachinesInSiteOperationOptions struct {
@@ -123,7 +124,8 @@ func (c MachinesClient) GetAllMachinesInSiteCompleteMatchingPredicate(ctx contex
 	}
 
 	result = GetAllMachinesInSiteCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
