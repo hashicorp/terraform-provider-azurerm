@@ -170,6 +170,10 @@ resource "azurerm_lab_service_user" "import" {
   name   = azurerm_lab_service_user.test.name
   lab_id = azurerm_lab_service_user.test.lab_id
   email  = azurerm_lab_service_user.test.email
+
+  connection_setting {
+    client_ssh_access = "Public"
+  }
 }
 `, r.basic(data))
 }

@@ -188,6 +188,10 @@ resource "azurerm_lab_service_lab" "import" {
       capacity = 1
     }
   }
+
+  connection_setting {
+    client_ssh_access = "Public"
+  }
 }
 `, r.basic(data))
 }
