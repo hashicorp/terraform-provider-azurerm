@@ -56,6 +56,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Chaos Studio Capability.
 
+* `urn` - The Unique Resource Name of the Capability
+
 ---
 
 
