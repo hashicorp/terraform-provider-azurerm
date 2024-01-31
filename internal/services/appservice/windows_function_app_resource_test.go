@@ -186,7 +186,7 @@ func TestAccWindowsFunctionApp_withCustomContentShareElasticPremiumPlan(t *testi
 				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("test-acc-custom-content-share"),
 			),
 		},
-		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
 	})
 }
 
@@ -202,7 +202,7 @@ func TestAccWindowsFunctionApp_withCustomContentShareVnetEnabled(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 			),
 		},
-		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "app_settings.%"),
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", "app_settings.%", "site_credential.0.password"),
 	})
 }
 
@@ -398,7 +398,8 @@ func TestAccWindowsFunctionApp_zipDeploy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("zip_deploy_file"),
+		data.ImportStep("zip_deploy_file",
+			"site_credential.0.password"),
 	})
 }
 

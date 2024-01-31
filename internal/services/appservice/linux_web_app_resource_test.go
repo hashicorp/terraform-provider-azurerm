@@ -1063,7 +1063,8 @@ func TestAccLinuxWebApp_withDocker(t *testing.T) {
 			"site_config.0.application_stack.0.docker_image",
 			"site_config.0.application_stack.0.docker_image_name",
 			"site_config.0.application_stack.0.docker_image_tag",
-			"site_config.0.application_stack.0.docker_registry_url"),
+			"site_config.0.application_stack.0.docker_registry_url",
+			"site_credential.0.password"),
 	})
 }
 
@@ -1089,7 +1090,8 @@ func TestAccLinuxWebApp_withDockerHub(t *testing.T) {
 			"site_config.0.application_stack.0.docker_image",
 			"site_config.0.application_stack.0.docker_image_name",
 			"site_config.0.application_stack.0.docker_image_tag",
-			"site_config.0.application_stack.0.docker_registry_url"),
+			"site_config.0.application_stack.0.docker_registry_url",
+			"site_credential.0.password"),
 	})
 }
 
@@ -1115,7 +1117,8 @@ func TestAccLinuxWebApp_withDockerDeprecatedUpgrade(t *testing.T) {
 			"site_config.0.application_stack.0.docker_image",
 			"site_config.0.application_stack.0.docker_image_name",
 			"site_config.0.application_stack.0.docker_image_tag",
-			"site_config.0.application_stack.0.docker_registry_url"),
+			"site_config.0.application_stack.0.docker_registry_url",
+			"site_credential.0.password"),
 		{
 			Config: r.dockerImageName(data, "https://index.docker.io", "nginx:latest"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1423,7 +1426,8 @@ func TestAccLinuxWebApp_zipDeploy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("zip_deploy_file"),
+		data.ImportStep("zip_deploy_file",
+			"site_credential.0.password"),
 	})
 }
 

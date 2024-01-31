@@ -879,7 +879,8 @@ func TestAccWindowsWebApp_dockerHub(t *testing.T) {
 			"site_config.0.application_stack.0.docker_registry_url",
 			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
 			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_credential.0.password"),
 	})
 }
 
@@ -906,7 +907,8 @@ func TestAccWindowsWebApp_withDockerDeprecatedUpgrade(t *testing.T) {
 			"site_config.0.application_stack.0.docker_registry_url",
 			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
 			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_credential.0.password"),
 		{
 			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1363,7 +1365,7 @@ func TestAccWindowsWebApp_zipDeploy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("zip_deploy_file"),
+		data.ImportStep("zip_deploy_file", "site_credential.0.password"),
 	})
 }
 
