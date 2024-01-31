@@ -190,10 +190,6 @@ resource "azurerm_lab_service_schedule" "import" {
   lab_id    = azurerm_lab_service_schedule.test.lab_id
   stop_time = azurerm_lab_service_schedule.test.stop_time
   time_zone = azurerm_lab_service_schedule.test.time_zone
-
-  connection_setting {
-    client_ssh_access = "Public"
-  }
 }
 `, r.basic(data, stopTime))
 }
