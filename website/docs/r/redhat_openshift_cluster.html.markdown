@@ -199,7 +199,7 @@ A `worker_profile` block supports the following:
 
 A `cluster_profile` block supports the following:
 
-* `version` - (Required) The version of the OpenShift cluster. Available versions can be found by Azure CLI command `az aro get-versions --location <region>`. Changing this forces a new resource to be created.
+* `version` - (Required) The version of the OpenShift cluster. Available versions can be found with the Azure CLI command `az aro get-versions --location <region>`. Changing this forces a new resource to be created.
 
 * `domain` - (Required) The custom domain for the cluster. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional). Changing this forces a new resource to be created.
 
