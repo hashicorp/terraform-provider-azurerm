@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
 * dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24695]
 * dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24695]
+* `datafactory`: updating to use `tombuildsstuff/kermit` [GH-24675]
 * `hdinsight`: refactoring to use `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24011]
 * `hdinsight`: updating to API Version `2021-06-01` [GH-24011]
 * `loadbalancer`: updating to use `hashicorp/go-azure-sdk` [GH-24291]
