@@ -421,7 +421,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Read() sdk.Resource
 				state.DefaultRetentionRule = flattenBackupPolicyKubernetesClusterDefaultRetentionRule(&properties.PolicyRules)
 				state.RetentionRule = flattenBackupPolicyKubernetesClusterRetentionRules(&properties.PolicyRules)
 				state.BackupRepeatingTimeIntervals = flattenBackupPolicyKubernetesClusterBackupRuleArray(&properties.PolicyRules)
-				state.TimeZone = flattenBackupPolicyDiskBackupTimeZone(&properties.PolicyRules)
+				state.TimeZone = flattenBackupPolicyKubernetesClusterBackupTimeZone(&properties.PolicyRules)
 			}
 
 			return metadata.Encode(&state)
