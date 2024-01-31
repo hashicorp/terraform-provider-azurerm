@@ -89,7 +89,7 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 			ConflictsWith: []string{
 				"vault_key_reference",
 			},
-			// if `type` is set to `kv`, then `value` will be set by `vault_key_reference`
+			// if `type` is set to `vault`, then `value` will be set by `vault_key_reference`
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				return d.Get("type").(string) == KeyTypeVault && d.Get("vault_key_reference").(string) != "" && old != "" && new == ""
 			},
