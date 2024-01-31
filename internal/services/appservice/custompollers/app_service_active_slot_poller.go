@@ -41,13 +41,13 @@ func NewAppServiceActiveSlotPoller(client *webapps.WebAppsClient, id commonids.A
 func (p appServiceActiveSlotPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.appId)
 	if err == nil {
-		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.SlotSwapStatus != nil {
-			swapStatus := pointer.From(resp.Model.Properties.SlotSwapStatus)
-			if pointer.From(swapStatus.SourceSlotName) != p.id.SlotName {
+		if resp.Model != nil && resp.Model.Properties != nil {
+			swapStatus := resp.Model.Properties.SlotSwapStatus
+			if swapStatus == nil || pointer.From(swapStatus.SourceSlotName) != p.id.SlotName {
 				return &pollingInProgress, err
 			}
 			return &pollingSuccess, nil
 		}
 	}
-	return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
+	return nil, fmt.Errorf("retrieving %s: %+v", p.appId, err)
 }

@@ -257,7 +257,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_service_plan" "test" {
-  name                = "acctestASP-WAS-%[1]d"
+  name                = "acctestASP-LAS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Linux"
@@ -265,7 +265,7 @@ resource "azurerm_service_plan" "test" {
 }
 
 resource "azurerm_linux_function_app" "test" {
-  name                = "acctestWA-%[1]d"
+  name                = "acctestLA-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
