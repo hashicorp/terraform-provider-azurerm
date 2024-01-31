@@ -127,6 +127,33 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
+		"connection_setting": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_rdp_access": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypePublic),
+						}, false),
+						AtLeastOneOf: []string{"connection_setting.0.client_rdp_access", "connection_setting.0.client_ssh_access"},
+					},
+
+					"client_ssh_access": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypePublic),
+						}, false),
+						AtLeastOneOf: []string{"connection_setting.0.client_rdp_access", "connection_setting.0.client_ssh_access"},
+					},
+				},
+			},
+		},
+
 		"security": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -347,31 +374,6 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							string(lab.ShutdownOnIdleModeLowUsage),
 							string(lab.ShutdownOnIdleModeUserAbsence),
-						}, false),
-					},
-				},
-			},
-		},
-
-		"connection_setting": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_rdp_access": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypePublic),
-						}, false),
-					},
-
-					"client_ssh_access": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypePublic),
 						}, false),
 					},
 				},
