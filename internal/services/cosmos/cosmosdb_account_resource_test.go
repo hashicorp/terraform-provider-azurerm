@@ -420,7 +420,7 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind cosmosdb.Databa
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, cosmosdb.DefaultConsistencyLevelStrong, 8, 880),
+			Config: r.consistency(data, kind, false, cosmosdb.DefaultConsistencyLevelStrong, 8, 880),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
 		},
 		data.ImportStep(),
@@ -430,12 +430,12 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind cosmosdb.Databa
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
+			Config: r.consistency(data, kind, true, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 77, 700),
+			Config: r.consistency(data, kind, false, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 77, 700),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
@@ -1441,7 +1441,7 @@ resource "azurerm_cosmosdb_account" "import" {
 `, r.basic(data, "GlobalDocumentDB", consistency))
 }
 
-func (CosmosDBAccountResource) consistency(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {
+func (CosmosDBAccountResource) consistency(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, partitionMergeEnabled bool, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1453,11 +1453,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "%s"
+  name                    = "acctest-ca-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  offer_type              = "Standard"
+  kind                    = "%s"
+  partition_merge_enabled = %t
 
   consistency_policy {
     consistency_level       = "%s"
@@ -1470,7 +1471,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), interval, staleness)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), partitionMergeEnabled, string(consistency), interval, staleness)
 }
 
 func (CosmosDBAccountResource) consistencyMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {

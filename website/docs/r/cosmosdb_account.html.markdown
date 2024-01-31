@@ -146,6 +146,8 @@ The following arguments are supported:
 
 * `enable_automatic_failover` - (Optional) Enable automatic failover for this Cosmos DB account.
 
+* `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below.
