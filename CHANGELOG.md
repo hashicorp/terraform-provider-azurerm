@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_bot_channel_email` - support for the `magic_code` property [GH-23129]
 * `azurerm_cosmosdb_account` - support new property `partition_merge_enabled` [GH-24615]
 * `azurerm_servicebus_namespace` - updating to use API Version `2022-10-01-preview` [GH-24650]
+* `azurerm_spring_cloud_api_portal` - support for the `api_try_out_enabled` property [GH-24696]
 * `azurerm_virtual_desktop_workspace` - correctly validate the `name` property [GH-24668]
 
 BUG FIXES:
