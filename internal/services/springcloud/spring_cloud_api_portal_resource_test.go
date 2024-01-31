@@ -172,6 +172,7 @@ resource "azurerm_spring_cloud_api_portal" "test" {
   https_only_enabled            = false
   public_network_access_enabled = false
   instance_count                = 1
+  api_try_out_enabled           = true
 
   sso {
     client_id     = "%s"
