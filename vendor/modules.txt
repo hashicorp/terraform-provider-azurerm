@@ -6,7 +6,6 @@ github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
 github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor
-github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight
 github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights
@@ -21,7 +20,6 @@ github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/site
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
-github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web
 github.com/Azure/azure-sdk-for-go/version
@@ -157,7 +155,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240125.1172517
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240130.1054849
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -221,7 +219,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/r
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis
 github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis
-github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform
+github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform
 github.com/hashicorp/go-azure-sdk/resource-manager/attestation/2020-10-01/attestationproviders
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentscheduleinstances
@@ -509,6 +507,18 @@ github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13
 github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13/graphservicesprods
 github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/configurations
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/privateendpointconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/privatelinkresources
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/promote
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/regions
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/scriptactions
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/scriptexecutionhistory
+github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/virtualmachines
 github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08
 github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08/healthbots
 github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/dicomservices
@@ -613,6 +623,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveevents
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/liveoutputs
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-08-01/streamingpoliciesandstreaminglocators
+github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines
+github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts
 github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork
@@ -928,7 +940,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics
 github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topicsauthorizationrule
-github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/servicefabric/2021-06-01/cluster
 github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster
 github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/nodetype
@@ -1021,9 +1033,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/test
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/connections
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2016-06-01/managedapis
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceplans
+github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders
+github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240125.1172517
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240130.1054849
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
