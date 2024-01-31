@@ -155,7 +155,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240130.1054849
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240131.1125554
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -1036,7 +1036,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceprovid
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240130.1054849
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240131.1125554
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
