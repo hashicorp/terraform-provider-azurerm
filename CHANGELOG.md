@@ -33,6 +33,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * provider: skip registration for resource providers that are unavailable [GH-24571]
+* `azurerm_app_configuration` - no longer require `lifecycle_ignore_changes` for the `value` property when using a key vault reference [GH-24702]
 * `azurerm_app_service_managed_certificate` - fix casing issue in `app_service_plan_id` by parsing insensitively [GH-24664]
 * `azurerm_dns_cname_record` - fix casing issue in `target_resource_id` by parsing the ID insensitively
 * `azurerm_mssql_managed_instance_failover_group` - fixed issue when trying to create a failover group with a managed instance from a different subscription [GH-24646]
