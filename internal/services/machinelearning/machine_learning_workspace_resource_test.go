@@ -941,8 +941,8 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   feature_store {
     computer_spark_runtime_version = "3.1"
-    offline_connection_name  = "offlineStoreConnectionName"
-    online_connection_name   = "onlineStoreConnectionName"
+    offline_connection_name        = "offlineStoreConnectionName"
+    online_connection_name         = "onlineStoreConnectionName"
   }
 
   identity {
@@ -969,8 +969,8 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   feature_store {
     computer_spark_runtime_version = "3.5"
-    offline_connection_name  = "offlineStoreConnectionNameUpdate"
-    online_connection_name   = "onlineStoreConnectionNameUpdate"
+    offline_connection_name        = "offlineStoreConnectionNameUpdate"
+    online_connection_name         = "onlineStoreConnectionNameUpdate"
   }
 
   identity {
