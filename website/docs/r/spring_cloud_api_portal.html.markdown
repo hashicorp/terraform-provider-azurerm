@@ -63,7 +63,7 @@ The following arguments are supported:
 
 ---
 
-* `api_try_out_enabled` - (Optional) Specifies whether the API try-out feature is enabled or disabled. When enabled, users can try out the API by sending requests and viewing responses in API portal.
+* `api_try_out_enabled` - (Optional) Specifies whether the API try-out feature is enabled. When enabled, users can try out the API by sending requests and viewing responses in API portal.
 
 * `gateway_ids` - (Optional) Specifies a list of Spring Cloud Gateway.
 
