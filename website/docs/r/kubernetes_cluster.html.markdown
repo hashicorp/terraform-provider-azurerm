@@ -369,8 +369,9 @@ An `monitor_metrics` block supports the following:
 * `annotations_allowed` - (Optional) Specifies a comma-separated list of Kubernetes annotation keys that will be used in the resource's labels metric.
 
 * `labels_allowed` - (Optional) Specifies a Comma-separated list of additional Kubernetes label keys that will be used in the resource's labels metric.
+
+-> **Note:** Both properties `annotations_allowed` and `labels_allowed` are required if you are enabling Managed Prometheus with an existing Azure Monitor Workspace. 
   
--> **Note:** Both properties `annotations_allowed` and `labels_allowed` are required if you are enabling Managed Prometheus with an Azure Monitor Workspace. Set both properties to `null` if no value is needed.  
 ---
 
 A `default_node_pool` block supports the following:
