@@ -158,8 +158,8 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 				}
 			}
-			if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
-				return tf.ImportAsExistsError(r.ResourceType(), *existing.Model.Id)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
 			envelope := webapps.HybridConnection{

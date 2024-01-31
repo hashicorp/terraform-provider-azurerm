@@ -280,7 +280,10 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			baseID := commonids.NewAppServiceID(subscriptionId, functionApp.ResourceGroup, functionApp.Name)
-			id, _ := commonids.ParseFunctionAppID(baseID.ID())
+			id, err := commonids.ParseFunctionAppID(baseID.ID())
+			if err != nil {
+				return err
+			}
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {

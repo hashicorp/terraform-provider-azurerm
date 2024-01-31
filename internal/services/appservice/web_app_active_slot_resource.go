@@ -6,6 +6,8 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -101,8 +103,14 @@ func (r WebAppActiveSlotResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId.ID())
 			defer locks.UnlockByID(appId.ID())
 
-			if err := client.SwapSlotWithProductionThenPoll(ctx, appId, csmSlotEntity); err != nil {
+			if _, err := client.SwapSlotWithProduction(ctx, appId, csmSlotEntity); err != nil {
 				return fmt.Errorf("making %s the active slot: %+v", id.SlotName, err)
+			}
+
+			pollerType := custompollers.NewAppServiceActiveSlotPoller(client, appId, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			metadata.SetID(appId)

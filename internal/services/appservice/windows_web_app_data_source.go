@@ -236,7 +236,10 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			baseId := commonids.NewAppServiceID(subscriptionId, webApp.ResourceGroup, webApp.Name)
-			id, _ := commonids.ParseWebAppID(baseId.ID())
+			id, err := commonids.ParseWebAppID(baseId.ID())
+			if err != nil {
+				return err
+			}
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {

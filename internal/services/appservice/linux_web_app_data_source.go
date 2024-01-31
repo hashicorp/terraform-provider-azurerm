@@ -263,7 +263,10 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			}
 
 			baseID := commonids.NewAppServiceID(subscriptionId, webApp.ResourceGroup, webApp.Name)
-			id, _ := commonids.ParseWebAppID(baseID.ID())
+			id, err := commonids.ParseWebAppID(baseID.ID())
+			if err != nil {
+				return err
+			}
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {

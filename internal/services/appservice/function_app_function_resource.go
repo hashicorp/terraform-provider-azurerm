@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FunctionAppFunctionResource struct{}
@@ -224,9 +223,9 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			fnEnvelope := webapps.FunctionEnvelope{
 				Properties: &webapps.FunctionEnvelopeProperties{
 					Config:     pointer.To(confJSON),
-					TestData:   utils.String(appFunction.TestData),
-					Language:   utils.String(appFunction.Language),
-					IsDisabled: utils.Bool(!appFunction.Enabled),
+					TestData:   pointer.To(appFunction.TestData),
+					Language:   pointer.To(appFunction.Language),
+					IsDisabled: pointer.To(!appFunction.Enabled),
 					Files:      expandFunctionFiles(appFunction.Files),
 				},
 			}
@@ -262,12 +261,8 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId.ID())
 			defer locks.UnlockByID(appId.ID())
 
-			if result, err := client.CreateFunction(ctx, id, fnEnvelope); err != nil {
+			if err := client.CreateFunctionThenPoll(ctx, id, fnEnvelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			} else {
-				if err = result.Poller.PollUntilDone(ctx); err != nil {
-					return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-				}
 			}
 
 			metadata.SetID(id)
@@ -296,13 +291,12 @@ func (r FunctionAppFunctionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			appFunc := FunctionAppFunctionModel{}
+			appFunc := FunctionAppFunctionModel{
+				Name:  id.FunctionName,
+				AppID: commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName).ID(),
+			}
 
 			if model := existing.Model; model != nil {
-				appFunc = FunctionAppFunctionModel{
-					Name:  id.FunctionName,
-					AppID: commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName).ID(),
-				}
 				if props := model.Properties; props != nil {
 					appFunc.ConfigURL = pointer.From(props.ConfigHref)
 					appFunc.Enabled = !pointer.From(props.IsDisabled)
@@ -430,11 +424,11 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				model.Properties.IsDisabled = utils.Bool(!appFunction.Enabled)
+				model.Properties.IsDisabled = pointer.To(!appFunction.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("test_data") {
-				model.Properties.TestData = utils.String(appFunction.TestData)
+				model.Properties.TestData = pointer.To(appFunction.TestData)
 			}
 
 			deadline, ok := ctx.Deadline()

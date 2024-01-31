@@ -381,7 +381,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			baseId := commonids.NewAppServiceID(subscriptionId, functionApp.ResourceGroup, functionApp.Name)
-			id, _ := commonids.ParseFunctionAppID(baseId.ID())
+			id, err := commonids.ParseFunctionAppID(baseId.ID())
+			if err != nil {
+				return err
+			}
 
 			servicePlanId, err := commonids.ParseAppServicePlanID(functionApp.ServicePlanId)
 			if err != nil {

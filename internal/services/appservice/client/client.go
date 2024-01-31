@@ -30,19 +30,19 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	webAppServiceClient, err := webapps.NewWebAppsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Api client: %+v", err)
+		return nil, fmt.Errorf("building WebApps client: %+v", err)
 	}
 	o.Configure(webAppServiceClient.Client, o.Authorizers.ResourceManager)
 
 	resourceProvidersClient, err := resourceproviders.NewResourceProvidersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Api client: %+v", err)
+		return nil, fmt.Errorf("building ResourceProviders client: %+v", err)
 	}
 	o.Configure(resourceProvidersClient.Client, o.Authorizers.ResourceManager)
 
 	servicePlanClient, err := appserviceplans.NewAppServicePlansClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Api client: %+v", err)
+		return nil, fmt.Errorf("building ServicePlan client: %+v", err)
 	}
 	o.Configure(servicePlanClient.Client, o.Authorizers.ResourceManager)
 
