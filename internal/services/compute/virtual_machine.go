@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
@@ -432,10 +433,6 @@ func virtualMachineOsImageNotificationSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-				},
 				"timeout": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
@@ -480,11 +477,10 @@ func expandOsImageNotificationProfile(input []interface{}) *compute.OSImageNotif
 	}
 
 	raw := input[0].(map[string]interface{})
-	enabled := raw["enabled"].(bool)
 	timeout := raw["timeout"].(string)
 
 	return &compute.OSImageNotificationProfile{
-		Enable:           &enabled,
+		Enable:           utils.Bool(true),
 		NotBeforeTimeout: &timeout,
 	}
 }
@@ -506,26 +502,18 @@ func expandTerminateNotificationProfile(input []interface{}) *compute.TerminateN
 	}
 }
 
-func flattenOsImageNotificationProfile(input *compute.OSImageNotificationProfile, isConfigured bool) []interface{} {
-	if input == nil && !isConfigured {
+func flattenOsImageNotificationProfile(input *compute.OSImageNotificationProfile) []interface{} {
+	if input == nil || !pointer.From(input.Enable) {
 		return nil
 	}
 
-	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
-	// a user explicitly set enabled to false, we need to assign a default block to this field
-	enabled := false
-	if input != nil && input.Enable != nil {
-		enabled = *input.Enable
-	}
-
 	timeout := "PT15M"
-	if input != nil && input.NotBeforeTimeout != nil {
+	if input.NotBeforeTimeout != nil {
 		timeout = *input.NotBeforeTimeout
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled": enabled,
 			"timeout": timeout,
 		},
 	}

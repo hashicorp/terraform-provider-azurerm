@@ -1001,8 +1001,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
-		_, isConfigured := d.GetOk("os_image_notification")
-		if err := d.Set("os_image_notification", flattenOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile, isConfigured)); err != nil {
+		if err := d.Set("os_image_notification", flattenOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile)); err != nil {
 			return fmt.Errorf("setting `termination_notification`: %+v", err)
 		}
 

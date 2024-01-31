@@ -743,36 +743,29 @@ func TestAccWindowsVirtualMachine_otherOsImageNotification(t *testing.T) {
 	r := WindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// turn termination notification on
 		{
 			Config: r.otherOsImageNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("os_image_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("admin_password", "os_image_notification"),
-		// turn termination notification off
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherOsImageNotification(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("os_image_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep("admin_password", "os_image_notification"),
-		// turn termination notification on again
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherOsImageNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("os_image_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("os_image_notification.0.enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep("admin_password", "os_image_notification"),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -2883,6 +2876,11 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func (r WindowsVirtualMachineResource) otherOsImageNotification(data acceptance.TestData, enabled bool) string {
+	osImageNotificationConfig := ""
+	if enabled {
+		osImageNotificationConfig = "os_image_notification {}"
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -2909,11 +2907,9 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  os_image_notification {
-    enabled = %t
-  }
+  %s
 }
-`, r.template(data), enabled)
+`, r.template(data), osImageNotificationConfig)
 }
 
 func (r WindowsVirtualMachineResource) otherTerminationNotification(data acceptance.TestData, enabled bool) string {

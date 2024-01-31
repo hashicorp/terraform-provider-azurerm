@@ -360,8 +360,6 @@ The `source_image_reference` block supports the following:
 
 A `os_image_notification` block supports the following:
 
-* `enabled` - (Required) Should the OS image notification be enabled on this Virtual Machine?
-
 * `timeout` - (Optional) Length of time a notification to be sent to the VM on the instance metadata server till the VM gets OS upgraded. The only possible value is `PT15M`. Defaults to `PT15M`.
 
 ---
