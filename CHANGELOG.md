@@ -26,6 +26,7 @@ ENHANCEMENTS:
 * `servicefabricmanagedcluster`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24654]
 * `springcloud`: updating to use API Version `2023-11-01-preview` [GH-24690]
 * `subscriptions`: refactoring to use `hashicorp/go-azure-sdk` [GH-24663]
+* `azurerm_cosmosdb_account` - support for the `gremlin_database` and `tables_to_restore` properties [GH-24627]
 * `azurerm_bot_channel_email` - support for the `magic_code` property [GH-23129]
 * `azurerm_cosmosdb_account` - support new property `partition_merge_enabled` [GH-24615]
 * `azurerm_servicebus_namespace` - updating to use API Version `2022-10-01-preview` [GH-24650]
