@@ -40,8 +40,8 @@ func (DesktopVirtualizationWorkspaceDataSource) complete(data acceptance.TestDat
 %s
 
 data "azurerm_virtual_desktop_workspace" "test" {
-	name                = azurerm_virtual_desktop_workspace.test.name
-	resource_group_name = azurerm_virtual_desktop_workspace.test.resource_group_name
+  name                = azurerm_virtual_desktop_workspace.test.name
+  resource_group_name = azurerm_virtual_desktop_workspace.test.resource_group_name
 }
 `, template)
 }
