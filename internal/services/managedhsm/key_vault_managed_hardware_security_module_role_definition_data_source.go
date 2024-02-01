@@ -142,7 +142,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.KeyVault.MHSMRoleClient
+			client := meta.Client.ManagedHSMs.MHSMRoleClient
 			result, err := client.Get(ctx, id.VaultBaseUrl, roleDefinitionScope, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(result.Response) {

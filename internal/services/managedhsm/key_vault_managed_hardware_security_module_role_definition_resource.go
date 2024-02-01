@@ -158,7 +158,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.KeyVault.MHSMRoleClient
+			client := meta.Client.ManagedHSMs.MHSMRoleClient
 
 			var model KeyVaultMHSMRoleDefinitionModel
 			if err = meta.Decode(&model); err != nil {
@@ -217,7 +217,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.KeyVault.MHSMRoleClient
+			client := meta.Client.ManagedHSMs.MHSMRoleClient
 			result, err := client.Get(ctx, id.VaultBaseUrl, id.Scope, id.Name)
 			if err != nil {
 				if response.WasNotFound(result.Response.Response) {
@@ -251,7 +251,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: time.Minute * 10,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.KeyVault.MHSMRoleClient
+			client := meta.Client.ManagedHSMs.MHSMRoleClient
 
 			var model KeyVaultMHSMRoleDefinitionModel
 			if err = meta.Decode(&model); err != nil {
@@ -305,7 +305,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 
 			locks.ByName(id.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(id.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
-			if _, err = meta.Client.KeyVault.MHSMRoleClient.Delete(ctx, id.VaultBaseUrl, id.Scope, id.Name); err != nil {
+			if _, err = meta.Client.ManagedHSMs.MHSMRoleClient.Delete(ctx, id.VaultBaseUrl, id.Scope, id.Name); err != nil {
 				return fmt.Errorf("deleting %+v: %v", id, err)
 			}
 			return nil
