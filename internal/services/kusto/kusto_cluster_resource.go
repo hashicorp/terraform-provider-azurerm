@@ -820,7 +820,7 @@ func flattenKustoClusterSku(sku *clusters.AzureSku) []interface{} {
 }
 
 func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []interface{} {
-	if vnet == nil {
+	if vnet == nil || *vnet.State == clusters.VnetStateDisabled {
 		return []interface{}{}
 	}
 
