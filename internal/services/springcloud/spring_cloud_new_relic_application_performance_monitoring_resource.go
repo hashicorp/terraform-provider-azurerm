@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -11,24 +12,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type SpringCloudNewRelicApplicationPerformanceMonitoringModel struct {
-	Name                         string `tfschema:"name"`
-	SpringCloudServiceId         string `tfschema:"spring_cloud_service_id"`
-	GloballyEnabled              bool   `tfschema:"globally_enabled"`
-	AppName                      string `tfschema:"app_name"`
-	AgentEnabled                 bool   `tfschema:"agent_enabled"`
-	AppServerPort                int    `tfschema:"app_server_port"`
-	AuditModeEnabled             bool   `tfschema:"audit_mode_enabled"`
-	AutoAppNamingEnabled         bool   `tfschema:"auto_app_naming_enabled"`
-	AutoTransactionNamingEnabled bool   `tfschema:"auto_transaction_naming_enabled"`
-	CustomTracingEnabled         bool   `tfschema:"custom_tracing_enabled"`
-	Labels                       string `tfschema:"labels"`
-	LicenseKey                   string `tfschema:"license_key"`
+	Name                         string            `tfschema:"name"`
+	SpringCloudServiceId         string            `tfschema:"spring_cloud_service_id"`
+	GloballyEnabled              bool              `tfschema:"globally_enabled"`
+	AppName                      string            `tfschema:"app_name"`
+	AgentEnabled                 bool              `tfschema:"agent_enabled"`
+	AppServerPort                int               `tfschema:"app_server_port"`
+	AuditModeEnabled             bool              `tfschema:"audit_mode_enabled"`
+	AutoAppNamingEnabled         bool              `tfschema:"auto_app_naming_enabled"`
+	AutoTransactionNamingEnabled bool              `tfschema:"auto_transaction_naming_enabled"`
+	CustomTracingEnabled         bool              `tfschema:"custom_tracing_enabled"`
+	Labels                       map[string]string `tfschema:"labels"`
+	LicenseKey                   string            `tfschema:"license_key"`
 }
 
 type SpringCloudNewRelicApplicationPerformanceMonitoringResource struct{}
@@ -106,15 +108,16 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Arguments()
 		},
 
 		"labels": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
 		},
 
 		"globally_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 		},
 	}
 }
@@ -135,7 +138,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Create() sd
 			client := metadata.Client.AppPlatform.AppPlatformClient
 			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
 			if err != nil {
-				return fmt.Errorf("parsing spring service ID: %+v", err)
+				return err
 			}
 			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
@@ -158,7 +161,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Create() sd
 						"enable_auto_app_naming":         fmt.Sprintf("%t", model.AutoAppNamingEnabled),
 						"enable_auto_transaction_naming": fmt.Sprintf("%t", model.AutoTransactionNamingEnabled),
 						"enable_custom_tracing":          fmt.Sprintf("%t", model.CustomTracingEnabled),
-						"labels":                         model.Labels,
+						"labels":                         expandNewRelicLabels(model.Labels),
 					}),
 					Secrets: pointer.To(map[string]string{
 						"license_key": model.LicenseKey,
@@ -248,7 +251,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Update() sd
 			}
 
 			if metadata.ResourceData.HasChange("labels") {
-				(*properties.Properties)["labels"] = model.Labels
+				(*properties.Properties)["labels"] = expandNewRelicLabels(model.Labels)
 			}
 
 			if metadata.ResourceData.HasChange("license_key") {
@@ -364,7 +367,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Read() sdk.
 						state.CustomTracingEnabled = value == "true"
 					}
 					if value, ok := (*props.Properties)["labels"]; ok {
-						state.Labels = value
+						state.Labels = flattenNewRelicLabels(value)
 					}
 				}
 			}
@@ -393,4 +396,29 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Delete() sd
 			return nil
 		},
 	}
+}
+
+func expandNewRelicLabels(input map[string]string) string {
+	if len(input) == 0 {
+		return ""
+	}
+	labels := make([]string, 0)
+	for k, v := range input {
+		labels = append(labels, fmt.Sprintf("%s:%s", k, v))
+	}
+	return strings.Join(labels, ";")
+}
+
+func flattenNewRelicLabels(input string) map[string]string {
+	if input == "" {
+		return nil
+	}
+	labels := make(map[string]string)
+	for _, label := range strings.Split(input, ";") {
+		parts := strings.Split(label, ":")
+		if len(parts) == 2 {
+			labels[parts[0]] = parts[1]
+		}
+	}
+	return labels
 }

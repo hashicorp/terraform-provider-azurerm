@@ -32,18 +32,16 @@ resource "azurerm_spring_cloud_service" "example" {
 }
 
 resource "azurerm_spring_cloud_new_relic_application_performance_monitoring" "example" {
-  name                            = "example"
-  spring_cloud_service_id         = azurerm_spring_cloud_service.example.id
-  app_name                        = "example-app-name"
-  license_key                     = "example-license-key"
-  agent_enabled                   = true
-  app_server_port                 = 8080
-  audit_mode_enabled              = true
-  auto_app_naming_enabled         = true
-  auto_transaction_naming_enabled = true
-  custom_tracing_enabled          = true
-  labels                          = "tagName1:tagValue1;tagName2:tagValue2;tagName3:tagValue3"
-  globally_enabled                = true
+  name                    = "example"
+  spring_cloud_service_id = azurerm_spring_cloud_service.example.id
+  app_name                = "example-app-name"
+  license_key             = "example-license-key"
+  app_server_port         = 8080
+  labels = {
+    "tagName1" = "tagValue1"
+    "tagName2" = "tagValue2"
+  }
+  globally_enabled = true
 }
 ```
 
@@ -73,7 +71,7 @@ The following arguments are supported:
 
 * `custom_tracing_enabled` - (Optional) Specifies whether enable all instrumentation using an `@Trace` annotation. Disabling this causes `@Trace` annotations to be ignored. Defaults to `true`.
 
-* `labels` - (Optional) Specifies the labels to be added to the New Relic application. The format is `tagName1:tagValue1;tagName2:tagValue2;tagName3:tagValue3`.
+* `labels` - (Optional) Specifies a mapping of labels to be added to the New Relic application.
 
 * `globally_enabled` - (Optional) Specifies whether the Spring Cloud Application Performance Monitoring resource for Application Insights is enabled globally. Defaults to `false`.
 
