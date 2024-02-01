@@ -9,7 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
+	tagsSdk "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags"
 	subscriptionAlias "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +24,6 @@ import (
 	billingValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/billing/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/validate"
-	legacyTags "github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -237,11 +236,11 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("tags") {
-		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(*alias.Model.Properties.SubscriptionId)
-		t := legacyTags.Expand(d.Get("tags").(map[string]interface{}))
-		scope := fmt.Sprintf("subscriptions/%s", *alias.Model.Properties.SubscriptionId)
-		tagsResource := resources.TagsResource{
-			Properties: &resources.Tags{
+		tagsClient := meta.(*clients.Client).Resource.TagsClient
+		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		scope := commonids.NewScopeID(commonids.NewSubscriptionID(*alias.Model.Properties.SubscriptionId).ID())
+		tagsResource := tagsSdk.TagsResource{
+			Properties: tagsSdk.Tags{
 				Tags: t,
 			},
 		}
@@ -287,14 +286,15 @@ func resourceSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("tags") {
-		tagsClient := meta.(*clients.Client).Resource.TagsClientForSubscription(subscriptionId.ID())
-		t := legacyTags.Expand(d.Get("tags").(map[string]interface{}))
-		tagsResource := resources.TagsResource{
-			Properties: &resources.Tags{
+		tagsClient := meta.(*clients.Client).Resource.TagsClient
+		t := tags.Expand(d.Get("tags").(map[string]interface{}))
+		scope := commonids.NewScopeID(subscriptionId.ID())
+		tagsResource := tagsSdk.TagsResource{
+			Properties: tagsSdk.Tags{
 				Tags: t,
 			},
 		}
-		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, subscriptionId.ID(), tagsResource); err != nil {
+		if _, err = tagsClient.CreateOrUpdateAtScope(ctx, scope, tagsResource); err != nil {
 			return fmt.Errorf("setting tags on %s: %+v", *id, err)
 		}
 	}
