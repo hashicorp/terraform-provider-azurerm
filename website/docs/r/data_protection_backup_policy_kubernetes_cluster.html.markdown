@@ -112,19 +112,9 @@ A `criteria` block supports the following:
 
 A `life_cycle` block supports the following:
 
-* `data_store_type` - (Required) The type of data store. Possible values is `OperationalStore`. 
+* `data_store_type` - (Required) The type of data store. The only possible value is `OperationalStore`.
 
 * `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
-
-* `target_copy_setting` - (Optional) A `target_copy_setting` block as defined below. Changing this forces a new resource to be created.
-
----
-
-A `target_copy_setting` block supports the following:
-
-* `copy_after` - (Required) Specifies when the backups are tiered across two or more selected data stores as a json encoded string. Changing this forces a new resource to be created.
-
-* `data_store_type` - (Required) The target copy data store type. Possible values is `OperationalStore`. 
 
 ## Attributes Reference
 

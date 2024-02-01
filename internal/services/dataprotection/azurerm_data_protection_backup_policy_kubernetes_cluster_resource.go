@@ -5,7 +5,6 @@ package dataprotection
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -44,14 +43,8 @@ type RetentionRule struct {
 }
 
 type LifeCycle struct {
-	DataStoreType     string              `tfschema:"data_store_type"`
-	Duration          string              `tfschema:"duration"`
-	TargetCopySetting []TargetCopySetting `tfschema:"target_copy_setting"`
-}
-
-type TargetCopySetting struct {
-	CopyAfter     string `tfschema:"copy_after"`
 	DataStoreType string `tfschema:"data_store_type"`
+	Duration      string `tfschema:"duration"`
 }
 
 type Criteria struct {
@@ -138,33 +131,6 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									ForceNew:     true,
 									ValidateFunc: validate.ISO8601Duration,
 								},
-
-								"target_copy_setting": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									ForceNew: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"copy_after": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ForceNew:     true,
-												ValidateFunc: validation.StringIsJSON,
-											},
-											"data_store_type": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ForceNew: true,
-												ValidateFunc: validation.StringInSlice([]string{
-													// confirmed with the service team that currently only `OperationalStore` is supported.
-													// However, since `VaultStore` is in public preview and will be supported in the future, it is open to user specification.
-													string(backuppolicies.DataStoreTypesOperationalStore),
-												}, false),
-											},
-										},
-									},
-								},
 							},
 						},
 					},
@@ -195,13 +161,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(backuppolicies.AbsoluteMarkerAllBackup),
-										string(backuppolicies.AbsoluteMarkerFirstOfDay),
-										string(backuppolicies.AbsoluteMarkerFirstOfMonth),
-										string(backuppolicies.AbsoluteMarkerFirstOfWeek),
-										string(backuppolicies.AbsoluteMarkerFirstOfYear),
-									}, false),
+									ValidateFunc: validation.StringInSlice(
+										backuppolicies.PossibleValuesForAbsoluteMarker(), false),
 								},
 
 								"days_of_week": {
@@ -243,14 +204,8 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									ForceNew: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
-										Type: pluginsdk.TypeString,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(backuppolicies.WeekNumberFirst),
-											string(backuppolicies.WeekNumberSecond),
-											string(backuppolicies.WeekNumberThird),
-											string(backuppolicies.WeekNumberFourth),
-											string(backuppolicies.WeekNumberLast),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringInSlice(backuppolicies.PossibleValuesForWeekNumber(), false),
 									},
 								},
 							},
@@ -279,33 +234,6 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Arguments() map[str
 									Required:     true,
 									ForceNew:     true,
 									ValidateFunc: validate.ISO8601Duration,
-								},
-
-								"target_copy_setting": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									ForceNew: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"copy_after": {
-												Type:         pluginsdk.TypeString,
-												Required:     true,
-												ForceNew:     true,
-												ValidateFunc: validation.StringIsJSON,
-											},
-											"data_store_type": {
-												Type:     pluginsdk.TypeString,
-												Required: true,
-												ForceNew: true,
-												ValidateFunc: validation.StringInSlice([]string{
-													/// confirmed with the service team that currently only `OperationalStore` is supported.
-													// However, since `VaultStore` is in public preview and will be supported in the future, it is open to user specification.
-													string(backuppolicies.DataStoreTypesOperationalStore),
-												}, false),
-											},
-										},
-									},
 								},
 							},
 						},
@@ -400,15 +328,10 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Read() sdk.Resource
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
+					return metadata.MarkAsGone(*id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			model := resp.Model
-			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
 			state := BackupPolicyKubernatesClusterModel{
@@ -417,11 +340,13 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Read() sdk.Resource
 				VaultName:         id.BackupVaultName,
 			}
 
-			if properties, ok := model.Properties.(backuppolicies.BackupPolicy); ok {
-				state.DefaultRetentionRule = flattenBackupPolicyKubernetesClusterDefaultRetentionRule(&properties.PolicyRules)
-				state.RetentionRule = flattenBackupPolicyKubernetesClusterRetentionRules(&properties.PolicyRules)
-				state.BackupRepeatingTimeIntervals = flattenBackupPolicyKubernetesClusterBackupRuleArray(&properties.PolicyRules)
-				state.TimeZone = flattenBackupPolicyKubernetesClusterBackupTimeZone(&properties.PolicyRules)
+			if model := resp.Model; model != nil {
+				if properties, ok := model.Properties.(backuppolicies.BackupPolicy); ok {
+					state.DefaultRetentionRule = flattenBackupPolicyKubernetesClusterDefaultRetentionRule(&properties.PolicyRules)
+					state.RetentionRule = flattenBackupPolicyKubernetesClusterRetentionRules(&properties.PolicyRules)
+					state.BackupRepeatingTimeIntervals = flattenBackupPolicyKubernetesClusterBackupRuleArray(&properties.PolicyRules)
+					state.TimeZone = flattenBackupPolicyKubernetesClusterBackupTimeZone(&properties.PolicyRules)
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -441,7 +366,7 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Delete() sdk.Resour
 			}
 
 			if _, err := client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -500,23 +425,6 @@ func expandBackupPolicyKubernetesClusterAzureRetentionRules(input []RetentionRul
 func expandBackupPolicyKubernetesClusterLifeCycle(input []LifeCycle) []backuppolicies.SourceLifeCycle {
 	results := make([]backuppolicies.SourceLifeCycle, 0)
 	for _, item := range input {
-		targetCopySettingList := make([]backuppolicies.TargetCopySetting, 0)
-		if tcs := item.TargetCopySetting; len(tcs) > 0 {
-			copyAfter, err := expandTargetCopySettingFromJSON(tcs[0].CopyAfter)
-			if err != nil {
-				return results
-			}
-
-			targetCopySetting := backuppolicies.TargetCopySetting{
-				CopyAfter: copyAfter,
-				DataStore: backuppolicies.DataStoreInfoBase{
-					DataStoreType: backuppolicies.DataStoreTypes(tcs[0].DataStoreType),
-					ObjectType:    "DataStoreInfoBase",
-				},
-			}
-			targetCopySettingList = append(targetCopySettingList, targetCopySetting)
-		}
-
 		sourceLifeCycle := backuppolicies.SourceLifeCycle{
 			DeleteAfter: backuppolicies.AbsoluteDeleteOption{
 				Duration: item.Duration,
@@ -525,32 +433,12 @@ func expandBackupPolicyKubernetesClusterLifeCycle(input []LifeCycle) []backuppol
 				DataStoreType: backuppolicies.DataStoreTypes(item.DataStoreType),
 				ObjectType:    "DataStoreInfoBase",
 			},
-			TargetDataStoreCopySettings: pointer.To(targetCopySettingList),
+			TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
 		}
 		results = append(results, sourceLifeCycle)
 	}
 
 	return results
-}
-
-func expandTargetCopySettingFromJSON(input string) (backuppolicies.CopyOption, error) {
-	if input == "" {
-		return nil, nil
-	}
-	targetCopySetting := &backuppolicies.TargetCopySetting{}
-	err := targetCopySetting.UnmarshalJSON([]byte(fmt.Sprintf(`{ "copyAfter": %s }`, input)))
-	if err != nil {
-		return nil, err
-	}
-	return targetCopySetting.CopyAfter, nil
-}
-
-func flattenTargetCopySettingFromJSON(input backuppolicies.CopyOption) (string, error) {
-	if input == nil {
-		return "", nil
-	}
-	result, err := json.Marshal(input)
-	return string(result), err
 }
 
 func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRule) (*[]backuppolicies.TaggingCriteria, error) {
@@ -794,41 +682,15 @@ func flattenBackupPolicyKubernetesClusterBackupLifeCycleArray(input []backuppoli
 	}
 
 	for _, item := range input {
-		var targetDataStoreCopySetting []TargetCopySetting
 		var duration string
 		var dataStoreType string
-		if v := item.TargetDataStoreCopySettings; v != nil && len(*v) > 0 {
-			targetDataStoreCopySetting = flattenBackupPolicyKubernetesClusterBackupTargetDataStoreCopySettingArray(v)
-		}
 		if deleteOption, ok := item.DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
 			duration = deleteOption.Duration
 		}
 		dataStoreType = string(item.SourceDataStore.DataStoreType)
 
 		results = append(results, LifeCycle{
-			Duration:          duration,
-			TargetCopySetting: targetDataStoreCopySetting,
-			DataStoreType:     dataStoreType,
-		})
-	}
-	return results
-}
-
-func flattenBackupPolicyKubernetesClusterBackupTargetDataStoreCopySettingArray(input *[]backuppolicies.TargetCopySetting) []TargetCopySetting {
-	results := make([]TargetCopySetting, 0)
-	if input == nil || len(*input) == 0 {
-		return results
-	}
-
-	for _, item := range *input {
-		copyAfter, err := flattenTargetCopySettingFromJSON(item.CopyAfter)
-		if err != nil {
-			return nil
-		}
-		dataStoreType := string(item.DataStore.DataStoreType)
-
-		results = append(results, TargetCopySetting{
-			CopyAfter:     copyAfter,
+			Duration:      duration,
 			DataStoreType: dataStoreType,
 		})
 	}

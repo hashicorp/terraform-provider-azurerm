@@ -61,34 +61,6 @@ func TestAccDataProtectionBackupPolicyKubernatesCluster_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyKubernatesCluster_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_kubernetes_cluster", "test")
-	r := DataProtectionBackupPolicyKubernatesClusterTestResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r DataProtectionBackupPolicyKubernatesClusterTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
@@ -221,12 +193,6 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
     life_cycle {
       duration        = "P7D"
       data_store_type = "OperationalStore"
-      target_copy_setting {
-        copy_after = jsonencode({
-          objectType = "ImmediateCopyOption"
-        })
-        data_store_type = "OperationalStore"
-      }
     }
 
     life_cycle {
