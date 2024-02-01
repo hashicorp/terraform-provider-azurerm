@@ -445,7 +445,7 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 }
 
 func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
-	sdClient := cli.MHSMSDClient
+	sdClient := cli.DataPlaneSecurityDomainsClient
 	keyClient := cli.DataPlaneClient
 
 	var param kv74.CertificateInfoObject

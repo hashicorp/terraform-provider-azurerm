@@ -17,13 +17,14 @@ type Client struct {
 	//
 	// As such this separation on our side is intentional to avoid code reuse given these differences.
 
-	// TODO: rename these once this is ported over
+	// Resource Manager
+	ManagedHsmClient *managedhsms.ManagedHsmsClient
 
-	ManagedHsmClient          *managedhsms.ManagedHsmsClient
-	DataPlaneClient           *dataplane.BaseClient
-	MHSMSDClient              *dataplane.HSMSecurityDomainClient
-	MHSMRoleClient            *dataplane.RoleDefinitionsClient
-	MHSMRoleAssignmentsClient *dataplane.RoleAssignmentsClient
+	// Data Plane
+	DataPlaneClient                *dataplane.BaseClient
+	DataPlaneRoleAssignmentsClient *dataplane.RoleAssignmentsClient
+	DataPlaneRoleDefinitionsClient *dataplane.RoleDefinitionsClient
+	DataPlaneSecurityDomainsClient *dataplane.HSMSecurityDomainClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -33,20 +34,23 @@ func NewClient(o *common.ClientOptions) *Client {
 	managementClient := dataplane.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
-	sdClient := dataplane.NewHSMSecurityDomainClient()
-	o.ConfigureClient(&sdClient.Client, o.ManagedHSMAuthorizer)
+	securityDomainClient := dataplane.NewHSMSecurityDomainClient()
+	o.ConfigureClient(&securityDomainClient.Client, o.ManagedHSMAuthorizer)
 
-	mhsmRoleDefineClient := dataplane.NewRoleDefinitionsClient()
-	o.ConfigureClient(&mhsmRoleDefineClient.Client, o.ManagedHSMAuthorizer)
+	roleDefinitionsClient := dataplane.NewRoleDefinitionsClient()
+	o.ConfigureClient(&roleDefinitionsClient.Client, o.ManagedHSMAuthorizer)
 
-	mhsmRoleAssignClient := dataplane.NewRoleAssignmentsClient()
-	o.ConfigureClient(&mhsmRoleAssignClient.Client, o.ManagedHSMAuthorizer)
+	roleAssignmentsClient := dataplane.NewRoleAssignmentsClient()
+	o.ConfigureClient(&roleAssignmentsClient.Client, o.ManagedHSMAuthorizer)
 
 	return &Client{
-		ManagedHsmClient:          &managedHsmClient,
-		DataPlaneClient:           &managementClient,
-		MHSMSDClient:              &sdClient,
-		MHSMRoleClient:            &mhsmRoleDefineClient,
-		MHSMRoleAssignmentsClient: &mhsmRoleAssignClient,
+		// Resource Manger
+		ManagedHsmClient: &managedHsmClient,
+
+		// Data Plane
+		DataPlaneClient:                &managementClient,
+		DataPlaneSecurityDomainsClient: &securityDomainClient,
+		DataPlaneRoleDefinitionsClient: &roleDefinitionsClient,
+		DataPlaneRoleAssignmentsClient: &roleAssignmentsClient,
 	}
 }

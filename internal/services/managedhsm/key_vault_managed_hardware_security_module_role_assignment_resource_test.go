@@ -22,7 +22,7 @@ func (k KeyVaultManagedHSMRoleAssignmentResource) Exists(ctx context.Context, cl
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.ManagedHSMs.MHSMRoleAssignmentsClient.Get(ctx, id.VaultBaseUrl, id.Scope, id.Name)
+	resp, err := client.ManagedHSMs.DataPlaneRoleAssignmentsClient.Get(ctx, id.VaultBaseUrl, id.Scope, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Type %s: %+v", id, err)
 	}
