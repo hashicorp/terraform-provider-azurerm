@@ -66,6 +66,7 @@ func LongTermRetentionPolicySchema() *pluginsdk.Schema {
 				"immutable_backups_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 			},
 		},
