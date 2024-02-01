@@ -913,6 +913,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyas
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups
+github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2022-09-01/services
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/adminkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/querykeys
