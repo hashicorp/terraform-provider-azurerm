@@ -34,18 +34,27 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+	return map[string]*pluginsdk.Resource{
+		"azurerm_key_vault_managed_hardware_security_module": dataSourceKeyVaultManagedHardwareSecurityModule(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+	return map[string]*pluginsdk.Resource{
+		"azurerm_key_vault_managed_hardware_security_module": resourceKeyVaultManagedHardwareSecurityModule(),
+	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		KeyvaultMHSMRoleDefinitionDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		KeyVaultMHSMRoleDefinitionResource{},
+		KeyVaultManagedHSMRoleAssignmentResource{},
+	}
 }

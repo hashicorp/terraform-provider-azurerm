@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package keyvault_test
+package managedhsm_test
 
 import (
 	"context"
