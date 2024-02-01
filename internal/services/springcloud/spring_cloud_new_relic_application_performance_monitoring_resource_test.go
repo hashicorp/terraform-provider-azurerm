@@ -166,8 +166,8 @@ resource "azurerm_spring_cloud_new_relic_application_performance_monitoring" "te
   auto_transaction_naming_enabled = false
   custom_tracing_enabled          = false
   labels = {
-    "tagName1" = "tagValue1"
-    "tagName2" = "tagValue2"
+    tagName1 = "tagValue1"
+    tagName2 = "tagValue2"
   }
   globally_enabled = true
 }
