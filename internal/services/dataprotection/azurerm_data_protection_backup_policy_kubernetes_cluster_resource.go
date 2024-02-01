@@ -399,12 +399,15 @@ func expandBackupPolicyKubernetesClusterAzureBackupRuleArray(input []string, tim
 
 func expandBackupPolicyKubernetesClusterDefaultRetentionRule(input []DefaultRetentionRule) backuppolicies.BasePolicyRule {
 	results := backuppolicies.AzureRetentionRule{}
-	for _, item := range input {
-		lifeCycle := expandBackupPolicyKubernetesClusterLifeCycle(item.LifeCycle)
-		results.Name = "Default"
-		results.IsDefault = pointer.To(true)
-		results.Lifecycles = lifeCycle
+	if len(input) == 0 {
+		return results
 	}
+
+	lifeCycle := expandBackupPolicyKubernetesClusterLifeCycle(input[0].LifeCycle)
+	results.Name = "Default"
+	results.IsDefault = pointer.To(true)
+	results.Lifecycles = lifeCycle
+
 	return results
 }
 
@@ -564,9 +567,7 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]backuppolicies.
 	for _, item := range *input {
 		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
 			if trigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
-				if trigger.TaggingCriteria != nil {
-					taggingCriterias = trigger.TaggingCriteria
-				}
+				taggingCriterias = trigger.TaggingCriteria
 			}
 		}
 	}
@@ -582,6 +583,7 @@ func flattenBackupPolicyKubernetesClusterRetentionRules(input *[]backuppolicies.
 					if strings.EqualFold(criteria.TagInfo.TagName, name) {
 						taggingPriority = int(criteria.TaggingPriority)
 						taggingCriteria = flattenBackupPolicyKubernetesClusterBackupCriteriaArray(criteria.Criteria)
+						break
 					}
 				}
 
