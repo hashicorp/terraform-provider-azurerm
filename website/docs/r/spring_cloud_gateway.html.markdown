@@ -68,8 +68,7 @@ resource "azurerm_spring_cloud_gateway" "example" {
     scope         = ["read"]
   }
 
-  response_cache {
-    cache_type   = "LocalCachePerRoute"
+  local_response_cache_per_instance {
     size         = "100MB"
     time_to_live = "30s"
   }
@@ -104,7 +103,9 @@ The following arguments are supported:
 
 * `quota` - (Optional) A `quota` block as defined below.
 
-* `response_cache` - (Optional) A `response_cache` block as defined below.
+* `local_response_cache_per_instance` - (Optional) A `local_response_cache_per_instance` block as defined below. Only one of `local_response_cache_per_instance` or `local_response_cache_per_route` can be specified.
+
+* `local_response_cache_per_route` - (Optional) A `local_response_cache_per_route` block as defined below. Only one of `local_response_cache_per_instance` or `local_response_cache_per_route` can be specified.
 
 * `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
@@ -152,9 +153,15 @@ A `cors` block supports the following:
 
 ---
 
-A `response_cache` block supports the following:
+A `local_response_cache_per_route` block supports the following:
 
-* `cache_type` - (Optional) Specifies the response cache type of the Spring Cloud Gateway. Possible values are `LocalCachePerRoute` and `LocalCachePerInstance`.
+* `size` - (Optional) Specifies the maximum size of cache (10MB, 900KB, 1GB...) to determine if the cache needs to evict some entries.
+
+* `time_to_live` - (Optional) Specifies the time before a cached entry is expired (300s, 5m, 1h...).
+
+---
+
+A `local_response_cache_per_instance` block supports the following:
 
 * `size` - (Optional) Specifies the maximum size of cache (10MB, 900KB, 1GB...) to determine if the cache needs to evict some entries.
 
