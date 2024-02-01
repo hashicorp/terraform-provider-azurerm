@@ -15,7 +15,7 @@ import (
 
 var _ pollers.PollerType = &hsmDownloadPoller{}
 
-func NewHSMPurgePoller(client *managedhsms.ManagedHsmsClient, id managedhsms.DeletedManagedHSMId) *hsmPurgePoller {
+func NewHSMPurgePoller(client *managedhsms.ManagedHsmsClient, id managedhsms.DeletedManagedHSMId) pollers.PollerType {
 	return &hsmPurgePoller{
 		client:          client,
 		purgeId:         id,

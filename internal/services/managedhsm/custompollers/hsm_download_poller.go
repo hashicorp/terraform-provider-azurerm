@@ -14,7 +14,7 @@ import (
 
 var _ pollers.PollerType = &hsmDownloadPoller{}
 
-func NewHSMDownloadPoller(client *kv74.HSMSecurityDomainClient, baseUrl string) *hsmDownloadPoller {
+func NewHSMDownloadPoller(client *kv74.HSMSecurityDomainClient, baseUrl string) pollers.PollerType {
 	return &hsmDownloadPoller{
 		client:  client,
 		baseUrl: baseUrl,
