@@ -293,7 +293,9 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Create() sdk.Resour
 
 			policyRules := make([]backuppolicies.BasePolicyRule, 0)
 			policyRules = append(policyRules, expandBackupPolicyKubernetesClusterAzureBackupRuleArray(model.BackupRepeatingTimeIntervals, model.TimeZone, taggingCriteria)...)
-			policyRules = append(policyRules, expandBackupPolicyKubernetesClusterDefaultRetentionRule(model.DefaultRetentionRule))
+			if v := expandBackupPolicyKubernetesClusterDefaultRetentionRule(model.DefaultRetentionRule); v != nil {
+				policyRules = append(policyRules, pointer.From(v))
+			}
 			policyRules = append(policyRules, expandBackupPolicyKubernetesClusterAzureRetentionRules(model.RetentionRule)...)
 
 			parameters := backuppolicies.BaseBackupPolicyResource{
@@ -397,18 +399,15 @@ func expandBackupPolicyKubernetesClusterAzureBackupRuleArray(input []string, tim
 	return results
 }
 
-func expandBackupPolicyKubernetesClusterDefaultRetentionRule(input []DefaultRetentionRule) backuppolicies.BasePolicyRule {
-	results := backuppolicies.AzureRetentionRule{}
+func expandBackupPolicyKubernetesClusterDefaultRetentionRule(input []DefaultRetentionRule) *backuppolicies.AzureRetentionRule {
 	if len(input) == 0 {
-		return results
+		return nil
 	}
-
-	lifeCycle := expandBackupPolicyKubernetesClusterLifeCycle(input[0].LifeCycle)
-	results.Name = "Default"
-	results.IsDefault = pointer.To(true)
-	results.Lifecycles = lifeCycle
-
-	return results
+	return &backuppolicies.AzureRetentionRule{
+		Name:       "Default",
+		IsDefault:  pointer.To(true),
+		Lifecycles: expandBackupPolicyKubernetesClusterLifeCycle(input[0].LifeCycle),
+	}
 }
 
 func expandBackupPolicyKubernetesClusterAzureRetentionRules(input []RetentionRule) []backuppolicies.BasePolicyRule {
