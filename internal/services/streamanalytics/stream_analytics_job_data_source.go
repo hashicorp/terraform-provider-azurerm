@@ -66,7 +66,7 @@ func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"last_output_time": {
 				Type:     pluginsdk.TypeString,
