@@ -22,6 +22,7 @@ func (c QueryPacksClient) CreateOrUpdate(ctx context.Context, id QueryPackId, in
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPut,

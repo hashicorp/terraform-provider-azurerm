@@ -146,6 +146,8 @@ The following arguments are supported:
 
 * `enable_automatic_failover` - (Optional) Enable automatic failover for this Cosmos DB account.
 
+* `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below.
@@ -283,6 +285,10 @@ A `restore` block supports the following:
 
 * `database` - (Optional) A `database` block as defined below. Changing this forces a new resource to be created.
 
+* `gremlin_database` - (Optional) One or more `gremlin_database` blocks as defined below. Changing this forces a new resource to be created.
+
+* `tables_to_restore` - (Optional) A list of specific tables available for restore. Changing this forces a new resource to be created.
+
 ---
 
 A `database` block supports the following:
@@ -290,6 +296,14 @@ A `database` block supports the following:
 * `name` - (Required) The database name for the restore request. Changing this forces a new resource to be created.
 
 * `collection_names` - (Optional) A list of the collection names for the restore request. Changing this forces a new resource to be created.
+
+---
+
+A `gremlin_database` block supports the following:
+
+* `name` - (Required) The Gremlin Database name for the restore request. Changing this forces a new resource to be created.
+
+* `graph_names` - (Optional) A list of the Graph names for the restore request. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

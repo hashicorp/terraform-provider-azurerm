@@ -52,10 +52,6 @@ func (c CapacityPoolsClient) PoolsCreateOrUpdate(ctx context.Context, id Capacit
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

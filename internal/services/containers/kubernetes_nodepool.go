@@ -17,9 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -1009,6 +1010,44 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"allowed_host_ports": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"port_start": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
+
+							"port_end": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
+
+							"protocol": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(agentpools.ProtocolTCP),
+									string(agentpools.ProtocolUDP),
+								}, false),
+							},
+						},
+					},
+				},
+
+				"application_security_group_ids": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
+					},
+				},
+
 				"node_public_ip_tags": {
 					Type:     pluginsdk.TypeMap,
 					Optional: true,
@@ -1086,6 +1125,18 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	}
 	if networkProfileRaw := defaultCluster.NetworkProfile; networkProfileRaw != nil {
 		networkProfile := agentpools.AgentPoolNetworkProfile{}
+		if allowedHostPortsRaw := networkProfileRaw.AllowedHostPorts; allowedHostPortsRaw != nil {
+			allowedHostPorts := make([]agentpools.PortRange, 0)
+			for _, allowedHostPortRaw := range *allowedHostPortsRaw {
+				allowedHostPorts = append(allowedHostPorts, agentpools.PortRange{
+					PortStart: allowedHostPortRaw.PortStart,
+					PortEnd:   allowedHostPortRaw.PortEnd,
+					Protocol:  pointer.To(agentpools.Protocol(pointer.From(allowedHostPortRaw.Protocol))),
+				})
+			}
+			networkProfile.AllowedHostPorts = &allowedHostPorts
+		}
+		networkProfile.ApplicationSecurityGroups = networkProfileRaw.ApplicationSecurityGroups
 		if nodePublicIPTagsRaw := networkProfileRaw.NodePublicIPTags; nodePublicIPTagsRaw != nil {
 			ipTags := make([]agentpools.IPTag, 0)
 			for _, ipTagRaw := range *nodePublicIPTagsRaw {
@@ -2159,8 +2210,37 @@ func expandClusterPoolNetworkProfile(input []interface{}) *managedclusters.Agent
 	}
 	v := input[0].(map[string]interface{})
 	return &managedclusters.AgentPoolNetworkProfile{
-		NodePublicIPTags: expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
+		ApplicationSecurityGroups: utils.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
+		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
 	}
+}
+
+func expandClusterPoolNetworkProfileAllowedHostPorts(input []interface{}) *[]managedclusters.PortRange {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]managedclusters.PortRange, 0)
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+		var portEnd, portStart int64
+		var protocol managedclusters.Protocol
+		if raw["port_end"] != nil {
+			portEnd = int64(raw["port_end"].(int))
+		}
+		if raw["port_start"] != nil {
+			portStart = int64(raw["port_start"].(int))
+		}
+		if raw["protocol"] != nil {
+			protocol = managedclusters.Protocol(raw["protocol"].(string))
+		}
+		out = append(out, managedclusters.PortRange{
+			PortEnd:   pointer.To(portEnd),
+			PortStart: pointer.To(portStart),
+			Protocol:  pointer.To(protocol),
+		})
+	}
+	return &out
 }
 
 func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]managedclusters.IPTag {
@@ -2180,15 +2260,31 @@ func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{
 }
 
 func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []interface{} {
-	if input == nil || input.NodePublicIPTags == nil {
+	if input == nil || input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
 		return []interface{}{}
 	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"node_public_ip_tags": flattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+			"allowed_host_ports":             flattenClusterPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
+			"application_security_group_ids": utils.FlattenStringSlice(input.ApplicationSecurityGroups),
+			"node_public_ip_tags":            flattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}
+}
+
+func flattenClusterPoolNetworkProfileAllowedHostPorts(input *[]managedclusters.PortRange) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	out := make([]interface{}, 0)
+	for _, portRange := range *input {
+		out = append(out, map[string]interface{}{
+			"port_end":   pointer.From(portRange.PortEnd),
+			"port_start": pointer.From(portRange.PortStart),
+			"protocol":   pointer.From(portRange.Protocol),
+		})
+	}
+	return out
 }
 
 func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.IPTag) map[string]interface{} {
