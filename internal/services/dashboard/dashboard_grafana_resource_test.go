@@ -57,7 +57,7 @@ func TestAccDashboardGrafana_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("configuration.0.smtp.0.password"),
+		data.ImportStep("smtp.0.password"),
 	})
 }
 
@@ -217,16 +217,14 @@ resource "azurerm_dashboard_grafana" "test" {
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
   grafana_major_version             = "9"
-  configuration {
-    smtp {
-      smtp_enabled     = true
-      host             = "localhost:25"
-      user             = "user"
-      password         = "password"
-      from_address     = "admin@grafana.localhost"
-      from_name        = "Grafana"
-      start_tls_policy = "OpportunisticStartTLS"
-    }
+  smtp {
+    enabled          = true
+    host             = "localhost:25"
+    user             = "user"
+    password         = "password"
+    from_address     = "admin@grafana.localhost"
+    from_name        = "Grafana"
+    start_tls_policy = "OpportunisticStartTLS"
   }
 
   identity {

@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `grafana_major_version` - (Optional) Which major version of Grafana to deploy. Defaults to `9`. Possible values are `9`, `10`. Changing this forces a new resource to be created.
 
-* `configuration` - (Optional) A `configuration` block as defined below.
+* `smtp` - (Optional) A `smtp` block as defined below.
 
 * `azure_monitor_workspace_integrations` - (Optional) A `azure_monitor_workspace_integrations` block as defined below.
 
@@ -70,15 +70,9 @@ The following arguments are supported:
 
 ---
 
-An `configuration` block supports the following:
-
-* `smtp` - (Optional) A `smtp` block as defined below.
-
----
-
 A `smtp` block supports the following:
 
-* `smtp_enabled` - (Optional) Whether to enable the smtp setting of the Grafana instance. Defaults to `false`.
+* `enabled` - (Optional) Whether to enable the smtp setting of the Grafana instance. Defaults to `false`.
 
 * `host` - (Required) SMTP server hostname with port, e.g. test.email.net:587
 
@@ -92,7 +86,7 @@ A `smtp` block supports the following:
 
 * `from_name` - (Optional) Name used when sending emails. Defaults to `Azure Managed Grafana Notification`.
 
-* `skip_verify` - (Optional) Whether verify SSL for SMTP server. Defaults to `false`.
+* `verification_skip_enabled` - (Optional) Whether verify SSL for SMTP server. Defaults to `false`.
 
 ---
 
