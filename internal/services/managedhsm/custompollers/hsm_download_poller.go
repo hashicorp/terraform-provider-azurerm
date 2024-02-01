@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	kv74 "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var _ pollers.PollerType = &hsmDownloadPoller{}
 
-func NewHSMDownloadPoller(client *kv74.HSMSecurityDomainClient, baseUrl string) pollers.PollerType {
+func NewHSMDownloadPoller(client *dataplane.HSMSecurityDomainClient, baseUrl string) pollers.PollerType {
 	return &hsmDownloadPoller{
 		client:  client,
 		baseUrl: baseUrl,
@@ -22,7 +22,7 @@ func NewHSMDownloadPoller(client *kv74.HSMSecurityDomainClient, baseUrl string) 
 }
 
 type hsmDownloadPoller struct {
-	client  *kv74.HSMSecurityDomainClient
+	client  *dataplane.HSMSecurityDomainClient
 	baseUrl string
 }
 
@@ -32,7 +32,7 @@ func (p *hsmDownloadPoller) Poll(ctx context.Context) (*pollers.PollResult, erro
 		return nil, fmt.Errorf("waiting for Security Domain to download failed within %s: %+v", p.baseUrl, err)
 	}
 
-	if res.Status == kv74.OperationStatusSuccess {
+	if res.Status == dataplane.OperationStatusSuccess {
 		return &pollers.PollResult{
 			Status:       pollers.PollingStatusSucceeded,
 			PollInterval: 10 * time.Second,

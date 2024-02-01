@@ -5,6 +5,7 @@ package managedhsm
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"

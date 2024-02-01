@@ -6,6 +6,8 @@ package managedhsm
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,8 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -170,7 +170,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 			locks.ByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 
-			id, err := parse.NewMHSMNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
+			id, err := parse.NewNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
 			if err != nil {
 				return err
 			}
@@ -207,7 +207,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			// import has no model data but only id
-			id, err := parse.MHSMNestedItemID(meta.ResourceData.Id())
+			id, err := parse.NestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -258,7 +258,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			id, err := parse.NewMHSMNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
+			id, err := parse.NewNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
 			if err != nil {
 				return err
 			}
@@ -297,7 +297,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := parse.MHSMNestedItemID(meta.ResourceData.Id())
+			id, err := parse.NestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -314,7 +314,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 }
 
 func (k KeyVaultMHSMRoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.MHSMNestedItemId
+	return validate.NestedItemId
 }
 
 func expandKeyVaultMHSMRolePermissions(perms []Permission) *[]keyvault.Permission {

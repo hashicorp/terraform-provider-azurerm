@@ -5,12 +5,12 @@ package validate
 
 import (
 	"fmt"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func MHSMNestedItemId(i interface{}, k string) (warnings []string, errors []error) {
+func NestedItemId(i interface{}, k string) (warnings []string, errors []error) {
 	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
 		return warnings, errors
 	}
@@ -21,7 +21,7 @@ func MHSMNestedItemId(i interface{}, k string) (warnings []string, errors []erro
 		return warnings, errors
 	}
 
-	if _, err := parse.MHSMNestedItemID(v); err != nil {
+	if _, err := parse.NestedItemID(v); err != nil {
 		errors = append(errors, fmt.Errorf("parsing %q: %s", v, err))
 		return warnings, errors
 	}

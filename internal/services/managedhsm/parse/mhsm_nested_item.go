@@ -11,23 +11,25 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = MHSMNestedItemId{}
+var _ resourceids.Id = NestedItemId{}
 
 type MHSMResourceType string
 
 const (
+	// TODO: this should be extended to support the other types of Nested Items available for a Managed HSM
+
 	RoleDefinitionType MHSMResourceType = "RoleDefinition"
 	RoleAssignmentType MHSMResourceType = "RoleAssignment"
 )
 
-type MHSMNestedItemId struct {
+type NestedItemId struct {
 	VaultBaseUrl string
 	Scope        string
 	Type         MHSMResourceType
 	Name         string
 }
 
-func NewMHSMNestedItemID(hsmBaseUrl, scope string, typ MHSMResourceType, name string) (*MHSMNestedItemId, error) {
+func NewNestedItemID(hsmBaseUrl, scope string, typ MHSMResourceType, name string) (*NestedItemId, error) {
 	keyVaultUrl, err := url.Parse(hsmBaseUrl)
 	if err != nil || hsmBaseUrl == "" {
 		return nil, fmt.Errorf("parsing managedHSM nested itemID %q: %+v", hsmBaseUrl, err)
@@ -37,7 +39,7 @@ func NewMHSMNestedItemID(hsmBaseUrl, scope string, typ MHSMResourceType, name st
 		keyVaultUrl.Host = hostParts[0]
 	}
 
-	return &MHSMNestedItemId{
+	return &NestedItemId{
 		VaultBaseUrl: keyVaultUrl.String(),
 		Scope:        scope,
 		Type:         typ,
@@ -45,7 +47,7 @@ func NewMHSMNestedItemID(hsmBaseUrl, scope string, typ MHSMResourceType, name st
 	}, nil
 }
 
-func (n MHSMNestedItemId) ID() string {
+func (n NestedItemId) ID() string {
 	// example: https://tharvey-keyvault.managedhsm.azure.net///uuid-idshifds-fks
 	segments := []string{
 		strings.TrimSuffix(n.VaultBaseUrl, "/"),
@@ -56,16 +58,12 @@ func (n MHSMNestedItemId) ID() string {
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
 }
 
-func (n MHSMNestedItemId) String() string {
+func (n NestedItemId) String() string {
 	return n.ID()
 }
 
-func MHSMNestedItemID(input string) (*MHSMNestedItemId, error) {
-	return parseMHSMNestedItemId(input)
-}
-
-func parseMHSMNestedItemId(id string) (*MHSMNestedItemId, error) {
-	idURL, err := url.ParseRequestURI(id)
+func NestedItemID(input string) (*NestedItemId, error) {
+	idURL, err := url.ParseRequestURI(input)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot parse Azure KeyVault Child Id: %s", err)
 	}
@@ -77,17 +75,17 @@ func parseMHSMNestedItemId(id string) (*MHSMNestedItemId, error) {
 
 	nameSep := strings.LastIndex(path, "/")
 	if nameSep <= 0 {
-		return nil, fmt.Errorf("no name speparate exist in %s", id)
+		return nil, fmt.Errorf("no name speparate exist in %s", input)
 	}
 	scope, name := path[:nameSep], path[nameSep+1:]
 
 	typeSep := strings.LastIndex(scope, "/")
 	if typeSep <= 0 {
-		return nil, fmt.Errorf("no type speparate exist in %s", id)
+		return nil, fmt.Errorf("no type speparate exist in %s", input)
 	}
 	scope, typ := scope[:typeSep], scope[typeSep+1:]
 
-	childId := MHSMNestedItemId{
+	childId := NestedItemId{
 		VaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
 		Scope:        scope,
 		Type:         MHSMResourceType(typ),

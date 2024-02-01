@@ -6,12 +6,12 @@ package managedhsm
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -137,7 +137,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id, err := parse.NewMHSMNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
+			id, err := parse.NewNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
 			if err != nil {
 				return err
 			}

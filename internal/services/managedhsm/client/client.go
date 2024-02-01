@@ -20,7 +20,7 @@ type Client struct {
 	// TODO: rename these once this is ported over
 
 	ManagedHsmClient          *managedhsms.ManagedHsmsClient
-	ManagementClient          *dataplane.BaseClient
+	DataPlaneClient           *dataplane.BaseClient
 	MHSMSDClient              *dataplane.HSMSecurityDomainClient
 	MHSMRoleClient            *dataplane.RoleDefinitionsClient
 	MHSMRoleAssignmentsClient *dataplane.RoleAssignmentsClient
@@ -44,7 +44,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		ManagedHsmClient:          &managedHsmClient,
-		ManagementClient:          &managementClient,
+		DataPlaneClient:           &managementClient,
 		MHSMSDClient:              &sdClient,
 		MHSMRoleClient:            &mhsmRoleDefineClient,
 		MHSMRoleAssignmentsClient: &mhsmRoleAssignClient,

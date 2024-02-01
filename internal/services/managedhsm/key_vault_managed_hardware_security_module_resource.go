@@ -23,10 +23,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	keyVaultValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
+	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -60,7 +61,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedHardwareSecurityModuleName,
+				ValidateFunc: managedHSMValidation.ManagedHardwareSecurityModuleName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -154,7 +155,7 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				RequiredWith: []string{"security_domain_quorum"},
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: validate.NestedItemId,
+					ValidateFunc: keyVaultValidation.NestedItemId,
 				},
 			},
 
@@ -445,7 +446,7 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 
 func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
 	sdClient := cli.MHSMSDClient
-	keyClient := cli.ManagementClient
+	keyClient := cli.DataPlaneClient
 
 	var param kv74.CertificateInfoObject
 
@@ -456,7 +457,10 @@ func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUr
 		if !ok {
 			continue
 		}
-		keyID, _ := parse.ParseNestedItemID(certIDStr)
+		keyID, err := keyVaultParse.ParseNestedItemID(certIDStr)
+		if err != nil {
+			return "", fmt.Errorf("parsing %q: %+v", certIDStr, err)
+		}
 		certRes, err := keyClient.GetCertificate(ctx, keyID.KeyVaultBaseUrl, keyID.Name, keyID.Version)
 		if err != nil {
 			return "", fmt.Errorf("retrieving key %s: %v", certID, err)
