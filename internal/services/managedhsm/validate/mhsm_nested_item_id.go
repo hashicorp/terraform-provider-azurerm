@@ -5,7 +5,7 @@ package validate
 
 import (
 	"fmt"
-	
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
