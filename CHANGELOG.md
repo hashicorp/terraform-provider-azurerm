@@ -16,8 +16,8 @@ ENHANCEMENTS:
 * provider: registering the Resource Provider `Microsoft.SignalRService` [GH-24645]
 * provider: the Provider is now built using Go 1.21.6 [GH-24653]
 * dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
-* dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24695]
-* dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24695]
+* dependencies: updating to ``v0.20240201.1064937` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24738]
+* dependencies: updating to `v0.20240201.1064937` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24738]
 * `appservice`:  update to `go-azure-sdk` and API version `2023-01-01` [GH-24688]
 * `datafactory`: updating to use `tombuildsstuff/kermit` [GH-24675]
 * `hdinsight`: refactoring to use `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24011]
@@ -27,6 +27,7 @@ ENHANCEMENTS:
 * `servicefabricmanagedcluster`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24654]
 * `springcloud`: updating to use API Version `2023-11-01-preview` [GH-24690]
 * `subscriptions`: refactoring to use `hashicorp/go-azure-sdk` [GH-24663]
+* Data Source: `azurerm_stream_analytics_job` - support for User Assigned Identities [GH-24738]
 * `azurerm_cosmosdb_account` - support for the `gremlin_database` and `tables_to_restore` properties [GH-24627]
 * `azurerm_bot_channel_email` - support for the `magic_code` property [GH-23129]
 * `azurerm_cosmosdb_account` - support new property `partition_merge_enabled` [GH-24615]
@@ -35,8 +36,10 @@ ENHANCEMENTS:
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama` - support for the `trusted_address_ranges` property [GH-24459]
 * `azurerm_servicebus_namespace` - updating to use API Version `2022-10-01-preview` [GH-24650]
 * `azurerm_spring_cloud_api_portal` - support for the `api_try_out_enabled` property [GH-24696]
+* `azurerm_stream_analytics_job` - support for User Assigned Identities [GH-24738]
 * `azurerm_subscription` - refactoring to use `hashicorp/go-azure-sdk` to set tags on the subscription [GH-24734]
 * `azurerm_virtual_desktop_workspace` - correctly validate the `name` property [GH-24668]
+
 
 BUG FIXES:
 
