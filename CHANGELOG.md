@@ -1,27 +1,51 @@
 ## 3.90.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* provider - The provider will now automatically register the `AppConfiguration`, `DataFactory`, and `SignalRService` Resource Providers. When running Terraform with limited permissions, note that you [must disable automatic Resource Provider Registration and ensure that any Resource Providers Terraform requires are registered]([XXX](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#skip_provider_registration)). [GH-24645]
+  
 FEATURES:
 
 * **New Data Source**: `azurerm_nginx_configuration` [GH-24642]
-
+* **New Resource**: `azurerm_site_recovery_vmware_replicated_vm` [GH-22477]
+  
 ENHANCEMENTS:
 
-* dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
-* dependencies: updating to `v0.20240126.1105227` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24654]
-* dependencies: updating to `v0.20240126.1105227` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24654]
+* provider: registering the Resource Provider `Microsoft.AppConfiguration` [GH-24645]
+* provider: registering the Resource Provider `Microsoft.DataFactory` [GH-24645]
+* provider: registering the Resource Provider `Microsoft.SignalRService` [GH-24645]
 * provider: the Provider is now built using Go 1.21.6 [GH-24653]
+* dependencies: the dependency `github.com/hashicorp/go-azure-sdk` has been split into multiple Go Modules - and as such will be referred to by those paths going forwards [GH-24636]
+* dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24695]
+* dependencies: updating to `v0.20240130.1054849` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24695]
+* `appservice`:  update to `go-azure-sdk` and API version `2023-01-01` [GH-24688]
+* `datafactory`: updating to use `tombuildsstuff/kermit` [GH-24675]
 * `hdinsight`: refactoring to use `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24011]
 * `hdinsight`: updating to API Version `2021-06-01` [GH-24011]
 * `loadbalancer`: updating to use `hashicorp/go-azure-sdk` [GH-24291]
 * `nginx`: updating to API Version `2023-09-01` [GH-24640]
 * `servicefabricmanagedcluster`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24654]
+* `springcloud`: updating to use API Version `2023-11-01-preview` [GH-24690]
+* `subscriptions`: refactoring to use `hashicorp/go-azure-sdk` [GH-24663]
+* `azurerm_cosmosdb_account` - support for the `gremlin_database` and `tables_to_restore` properties [GH-24627]
+* `azurerm_bot_channel_email` - support for the `magic_code` property [GH-23129]
+* `azurerm_cosmosdb_account` - support new property `partition_merge_enabled` [GH-24615]
+* `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` - support for the `trusted_address_ranges` property [GH-24459]
+* `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` - support for the `trusted_address_ranges` property [GH-24459]
+* `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama` - support for the `trusted_address_ranges` property [GH-24459]
 * `azurerm_servicebus_namespace` - updating to use API Version `2022-10-01-preview` [GH-24650]
+* `azurerm_spring_cloud_api_portal` - support for the `api_try_out_enabled` property [GH-24696]
+* `azurerm_subscription` - refactoring to use `hashicorp/go-azure-sdk` to set tags on the subscription [GH-24734]
+* `azurerm_virtual_desktop_workspace` - correctly validate the `name` property [GH-24668]
 
 BUG FIXES:
 
 * provider: skip registration for resource providers that are unavailable [GH-24571]
+* `azurerm_app_configuration` - no longer require `lifecycle_ignore_changes` for the `value` property when using a key vault reference [GH-24702]
+* `azurerm_app_service_managed_certificate` - fix casing issue in `app_service_plan_id` by parsing insensitively [GH-24664]
 * `azurerm_dns_cname_record` - fix casing issue in `target_resource_id` by parsing the ID insensitively
 * `azurerm_mssql_managed_instance_failover_group` - fixed issue when trying to create a failover group with a managed instance from a different subscription [GH-24646]
+* `azurerm_storage_account` - conditionally update properties only if needed [GH-24669]
 * `azurerm_storage_account` - change update order for `access_tier`to prevent errors when uploading blobs to the archive tier [GH-22250]
 
 ## 3.89.0 (January 25, 2024)
@@ -288,7 +312,7 @@ BUG FIXES:
 
 ## 3.83.0 (November 30, 2023)
 
-UPGRADE NOTES
+UPGRADE NOTES:
 
 * Key Vaults are now loaded using [the `ListBySubscription` API within the Key Vault Resource Provider](https://learn.microsoft.com/en-us/rest/api/keyvault/keyvault/vaults/list-by-subscription?view=rest-keyvault-keyvault-2022-07-01&tabs=HTTP) rather than [the Resources API](https://learn.microsoft.com/en-us/rest/api/keyvault/keyvault/vaults/list?view=rest-keyvault-keyvault-2022-07-01&tabs=HTTP). This change means that the Provider now caches the list of Key Vaults available within a Subscription, rather than loading these piecemeal to workaround stale data returned from the Resources API ([#24019](https://github.com/hashicorp/terraform-provider-azurerm/issues/24019))
 

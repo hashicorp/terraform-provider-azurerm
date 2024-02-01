@@ -5,6 +5,7 @@ package containers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -90,11 +91,27 @@ func (r ContainerRegistryTaskScheduleResource) Create() sdk.ResourceFunc {
 			scheduleResp, err := registryClient.ScheduleRun(ctx, registryId, req)
 			if err != nil {
 				return fmt.Errorf("scheduling the task: %+v", err)
-
 			}
 			if scheduleResp.Model == nil {
-				return fmt.Errorf("ScheduleRun model was nil for taskID %s", taskId)
+				// If the SDK didn't parse the response body, try parsing it on our side.
+				if scheduleResp.HttpResponse != nil {
+					scheduleRunModel := registries.Run{}
+					err = json.
+						NewDecoder(scheduleResp.HttpResponse.Body).
+						Decode(&scheduleRunModel)
+					if err != nil {
+						return fmt.Errorf("can't decode ScheduleRun model, err: %w for taskID %s", err, taskId)
+					}
+
+					scheduleResp.Model = &scheduleRunModel
+				}
+
+				// If parsing on our side didn't work as well - throw error.
+				if scheduleResp.Model == nil {
+					return fmt.Errorf("ScheduleRun model was nil (status: %d) for taskID %s", scheduleResp.HttpResponse.StatusCode, taskId)
+				}
 			}
+
 			runName := pointer.From(scheduleResp.Model.Name)
 			if runName == "" {
 				return fmt.Errorf("unexpected nil scheduled run name")

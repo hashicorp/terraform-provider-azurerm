@@ -163,6 +163,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"high_business_impact": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"sku_name": {
