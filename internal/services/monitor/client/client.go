@@ -7,10 +7,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
-	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"          // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	scheduledqueryrules2018 "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
@@ -43,7 +43,7 @@ type Client struct {
 
 	// Monitor
 	ActionGroupsClient                   *actiongroupsapis.ActionGroupsAPIsClient
-	ActivityLogsClient                   *classic.ActivityLogsClient
+	ActivityLogsClient                   *activitylogs.ActivityLogsClient
 	ActivityLogAlertsClient              *activitylogalertsapis.ActivityLogAlertsAPIsClient
 	AlertPrometheusRuleGroupClient       *prometheusrulegroups.PrometheusRuleGroupsClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
@@ -85,7 +85,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ActionGroupsClient := actiongroupsapis.NewActionGroupsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	activityLogsClient := classic.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	activityLogsClient := activitylogs.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&activityLogsClient.Client, o.ResourceManagerAuthorizer)
 
 	ActivityLogAlertsClient := activitylogalertsapis.NewActivityLogAlertsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
