@@ -105,7 +105,9 @@ A `job_storage_account` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Stream Analytics Job. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Stream Analytics Job. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) The identity id of the user assigned identity to use when type is `UserAssigned`
 
 ## Attributes Reference
 
@@ -114,8 +116,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Stream Analytics Job.
 
 * `job_id` - The Job ID assigned by the Stream Analytics Job.
-  
-* `identity` - (Optional) An `identity` block as defined below.
 
 ---
 
