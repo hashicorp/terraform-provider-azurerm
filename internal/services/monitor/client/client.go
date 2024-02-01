@@ -46,7 +46,6 @@ type Client struct {
 	ActivityLogsClient                   *classic.ActivityLogsClient
 	ActivityLogAlertsClient              *activitylogalertsapis.ActivityLogAlertsAPIsClient
 	AlertPrometheusRuleGroupClient       *prometheusrulegroups.PrometheusRuleGroupsClient
-	AlertRulesClient                     *classic.AlertRulesClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
 	DataCollectionRuleAssociationsClient *datacollectionruleassociations.DataCollectionRuleAssociationsClient
 	DataCollectionRulesClient            *datacollectionrules.DataCollectionRulesClient
@@ -98,9 +97,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(alertPrometheusRuleGroupClient.Client, o.Authorizers.ResourceManager)
 
-	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
-
 	DataCollectionEndpointsClient := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataCollectionEndpointsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -146,7 +142,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ActivityLogsClient:                   &activityLogsClient,
 		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
 		AlertPrometheusRuleGroupClient:       alertPrometheusRuleGroupClient,
-		AlertRulesClient:                     &AlertRulesClient,
 		AlertProcessingRulesClient:           alertProcessingRulesClient,
 		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,
 		DataCollectionRuleAssociationsClient: &DataCollectionRuleAssociationsClient,
