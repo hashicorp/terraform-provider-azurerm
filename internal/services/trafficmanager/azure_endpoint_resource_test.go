@@ -227,13 +227,13 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_traffic_manager_azure_endpoint" "test" {
-  name               = "acctestend-azure%[2]d"
-  target_resource_id = azurerm_public_ip.test.id
-  weight             = 5
-  profile_id         = azurerm_traffic_manager_profile.test.id
-  enabled            = false
-  always_serve       = "Enabled"
-  priority           = 4
+  name                 = "acctestend-azure%[2]d"
+  target_resource_id   = azurerm_public_ip.test.id
+  weight               = 5
+  profile_id           = azurerm_traffic_manager_profile.test.id
+  enabled              = false
+  always_serve_enabled = "Enabled"
+  priority             = 4
 
   geo_mappings = ["WORLD"]
 

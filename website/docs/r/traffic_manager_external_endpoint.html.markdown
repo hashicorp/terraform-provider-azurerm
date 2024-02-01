@@ -43,11 +43,11 @@ resource "azurerm_traffic_manager_profile" "example" {
 }
 
 resource "azurerm_traffic_manager_external_endpoint" "example" {
-  name         = "example-endpoint"
-  profile_id   = azurerm_traffic_manager_profile.example.id
-  always_serve = "Enabled"
-  weight       = 100
-  target       = "www.example.com"
+  name                 = "example-endpoint"
+  profile_id           = azurerm_traffic_manager_profile.example.id
+  always_serve_enabled = "Enabled"
+  weight               = 100
+  target               = "www.example.com"
 }
 ```
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 ---
 
-* `always_serve` - (Optional) If Always Serve is enabled, probing for endpoint health will be disabled and endpoints will be included in the traffic routing method.
+* `always_serve_enabled` - (Optional) If Always Serve is enabled, probing for endpoint health will be disabled and endpoints will be included in the traffic routing method.
 
 * `custom_header` - (Optional) One or more `custom_header` blocks as defined below.
 

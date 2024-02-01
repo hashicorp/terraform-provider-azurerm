@@ -82,7 +82,7 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"always_serve": {
+			"always_serve_enabled": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(endpoints.PossibleValuesForAlwaysServe(), false),
@@ -177,13 +177,11 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		status = endpoints.EndpointStatusDisabled
 	}
 
-	alwaysServe := endpoints.AlwaysServe(d.Get("always_serve").(string))
-
 	params := endpoints.Endpoint{
 		Name: utils.String(id.EndpointName),
 		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeAzureEndpoints)),
 		Properties: &endpoints.EndpointProperties{
-			AlwaysServe:      &alwaysServe,
+			AlwaysServe:      pointer.To(endpoints.AlwaysServe(d.Get("always_serve_enabled").(string))),
 			CustomHeaders:    expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus:   &status,
 			TargetResourceId: utils.String(d.Get("target_resource_id").(string)),
@@ -245,7 +243,7 @@ func resourceAzureEndpointRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				enabled = false
 			}
 			d.Set("enabled", enabled)
-			d.Set("always_serve", props.AlwaysServe)
+			d.Set("always_serve_enabled", props.AlwaysServe)
 			d.Set("target_resource_id", props.TargetResourceId)
 			d.Set("weight", props.Weight)
 			d.Set("priority", props.Priority)
@@ -294,9 +292,8 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		params.Properties.EndpointStatus = pointer.To(status)
 	}
 
-	if d.HasChange("always_serve") {
-		alwaysServe := endpoints.AlwaysServe(d.Get("always_serve").(string))
-		params.Properties.AlwaysServe = &alwaysServe
+	if d.HasChange("always_serve_enabled") {
+		params.Properties.AlwaysServe = pointer.To(endpoints.AlwaysServe(d.Get("always_serve_enabled").(string)))
 	}
 
 	if d.HasChange("custom_header") {

@@ -214,14 +214,14 @@ provider "azurerm" {
 %s
 
 resource "azurerm_traffic_manager_external_endpoint" "test" {
-  name              = "acctestend-azure%d"
-  target            = "www.example.com"
-  weight            = 5
-  profile_id        = azurerm_traffic_manager_profile.test.id
-  enabled           = false
-  always_serve      = "Enabled"
-  priority          = 4
-  endpoint_location = azurerm_resource_group.test.location
+  name                 = "acctestend-azure%d"
+  target               = "www.example.com"
+  weight               = 5
+  profile_id           = azurerm_traffic_manager_profile.test.id
+  enabled              = false
+  always_serve_enabled = "Enabled"
+  priority             = 4
+  endpoint_location    = azurerm_resource_group.test.location
 
   geo_mappings = ["WORLD"]
 
