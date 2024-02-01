@@ -43,6 +43,7 @@ resource "azurerm_spring_cloud_api_portal" "example" {
   https_only_enabled            = false
   public_network_access_enabled = true
   instance_count                = 1
+  api_try_out_enabled           = true
   sso {
     client_id     = "test"
     client_secret = "secret"
@@ -61,6 +62,8 @@ The following arguments are supported:
 * `spring_cloud_service_id` - (Required) The ID of the Spring Cloud Service. Changing this forces a new Spring Cloud API Portal to be created.
 
 ---
+
+* `api_try_out_enabled` - (Optional) Specifies whether the API try-out feature is enabled. When enabled, users can try out the API by sending requests and viewing responses in API portal.
 
 * `gateway_ids` - (Optional) Specifies a list of Spring Cloud Gateway.
 
