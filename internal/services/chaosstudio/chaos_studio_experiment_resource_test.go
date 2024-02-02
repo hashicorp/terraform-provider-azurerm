@@ -135,11 +135,11 @@ resource "azurerm_chaos_studio_experiment" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   identity {
-   type         = "SystemAssigned"
+    type = "SystemAssigned"
   }
 
   selectors {
-	name = "Selector1"
+    name                    = "Selector1"
     chaos_studio_target_ids = [azurerm_chaos_studio_target.test.id]
   }
 
@@ -148,13 +148,13 @@ resource "azurerm_chaos_studio_experiment" "test" {
     branch {
       name = "acctestcse-${var.random_string}"
       actions {
-		urn = azurerm_chaos_studio_capability.test.urn
+        urn           = azurerm_chaos_studio_capability.test.urn
         selector_name = "Selector1"
-		parameters = { 
-			abruptShutdown = "false"
-		  }
+        parameters = {
+          abruptShutdown = "false"
+        }
         action_type = "continuous"
-  		duration = "PT10M"
+        duration    = "PT10M"
       }
     }
   }
@@ -170,9 +170,9 @@ resource "azurerm_chaos_studio_experiment" "import" {
   location            = azurerm_chaos_studio_experiment.test.location
   name                = azurerm_chaos_studio_experiment.test.name
   resource_group_name = azurerm_chaos_studio_experiment.test.resource_group_name
-  
+
   selectors {
-	name = "Selector1"
+    name                    = "Selector1"
     chaos_studio_target_ids = [azurerm_chaos_studio_target.test.id]
   }
 
@@ -181,13 +181,13 @@ resource "azurerm_chaos_studio_experiment" "import" {
     branch {
       name = "acctestcse-${var.random_string}"
       actions {
-		urn = azurerm_chaos_studio_capability.test.urn
+        urn           = azurerm_chaos_studio_capability.test.urn
         selector_name = "Selector1"
-		parameters = { 
-			abruptShutdown = "false"
-		  }
+        parameters = {
+          abruptShutdown = "false"
+        }
         action_type = "continuous"
-  		duration = "PT10M"
+        duration    = "PT10M"
       }
     }
   }
@@ -214,7 +214,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
   }
 
   selectors {
-	name = "Selector1"
+    name                    = "Selector1"
     chaos_studio_target_ids = [azurerm_chaos_studio_target.test.id]
   }
 
@@ -223,18 +223,18 @@ resource "azurerm_chaos_studio_experiment" "test" {
     branch {
       name = "acctestcse-${var.random_string}"
       actions {
-		urn = azurerm_chaos_studio_capability.test.urn
+        urn           = azurerm_chaos_studio_capability.test.urn
         selector_name = "Selector1"
-		parameters = { 
-			abruptShutdown = "false"
-		  }
+        parameters = {
+          abruptShutdown = "false"
+        }
         action_type = "continuous"
-  		duration = "PT10M"
+        duration    = "PT10M"
       }
       actions {
-		urn = azurerm_chaos_studio_capability.test2.urn
+        urn           = azurerm_chaos_studio_capability.test2.urn
         selector_name = "Selector1"
-        action_type = "discrete"
+        action_type   = "discrete"
       }
     }
   }
