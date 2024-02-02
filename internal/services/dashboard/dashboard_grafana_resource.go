@@ -582,7 +582,7 @@ func expandLegacySystemAndUserAssignedMap(input []interface{}) *identity.LegacyS
 
 func flattenSMTPConfigurationModel(input *grafanaresource.Smtp, data *schema.ResourceData) []SMTPConfigurationModel {
 	var outputList []SMTPConfigurationModel
-	if input == nil || pointer.From(input.Enabled) == false {
+	if input == nil || !pointer.From(input.Enabled) {
 		return outputList
 	}
 
