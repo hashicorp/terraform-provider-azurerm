@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package web_test
+package appservice_test
 
 import (
 	"context"
@@ -185,6 +185,7 @@ resource "azurerm_app_service_environment_v3" "test" {
   resource_group_name          = azurerm_resource_group.test2.name
   subnet_id                    = azurerm_subnet.test.id
   internal_load_balancing_mode = "Web, Publishing"
+  remote_debugging_enabled     = true
 
   cluster_setting {
     name  = "InternalEncryption"

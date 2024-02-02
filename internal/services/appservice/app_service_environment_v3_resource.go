@@ -1,20 +1,20 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package web
+package appservice
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -35,15 +35,16 @@ type AppServiceEnvironmentV3Model struct {
 	SubnetId                           string                            `tfschema:"subnet_id"`
 	AllowNewPrivateEndpointConnections bool                              `tfschema:"allow_new_private_endpoint_connections"`
 	ClusterSetting                     []ClusterSettingModel             `tfschema:"cluster_setting"`
-	DedicatedHostCount                 int                               `tfschema:"dedicated_host_count"`
+	DedicatedHostCount                 int64                             `tfschema:"dedicated_host_count"`
 	InternalLoadBalancingMode          string                            `tfschema:"internal_load_balancing_mode"`
+	RemoteDebuggingEnabled             bool                              `tfschema:"remote_debugging_enabled"`
 	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
 	Tags                               map[string]string                 `tfschema:"tags"`
 	DnsSuffix                          string                            `tfschema:"dns_suffix"`
 	ExternalInboundIPAddresses         []string                          `tfschema:"external_inbound_ip_addresses"`
 	InboundNetworkDependencies         []AppServiceV3InboundDependencies `tfschema:"inbound_network_dependencies"`
 	InternalInboundIPAddresses         []string                          `tfschema:"internal_inbound_ip_addresses"`
-	IpSSLAddressCount                  int                               `tfschema:"ip_ssl_address_count"`
+	IpSSLAddressCount                  int64                             `tfschema:"ip_ssl_address_count"`
 	LinuxOutboundIPAddresses           []string                          `tfschema:"linux_outbound_ip_addresses"`
 	Location                           string                            `tfschema:"location"`
 	PricingTier                        string                            `tfschema:"pricing_tier"`
@@ -123,11 +124,17 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			Default:  string(web.LoadBalancingModeNone),
+			Default:  string(appserviceenvironments.LoadBalancingModeNone),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(web.LoadBalancingModeNone),
-				string(web.LoadBalancingModeWebPublishing),
+				string(appserviceenvironments.LoadBalancingModeNone),
+				string(appserviceenvironments.LoadBalancingModeWebPublishing),
 			}, false),
+		},
+
+		"remote_debugging_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"zone_redundant": {
@@ -241,7 +248,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 6 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Web.AppServiceEnvironmentsClient
+			client := metadata.Client.AppService.AppServiceEnvironmentClient
 			networksClient := metadata.Client.Network.VnetClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
@@ -265,65 +272,43 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("determining Location from Virtual Network %q (Resource Group %q): `location` was missing", subnet.VirtualNetworkName, subnet.ResourceGroupName)
 			}
 
-			id := parse.NewAppServiceEnvironmentID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+			id := commonids.NewAppServiceEnvironmentID(subscriptionId, model.ResourceGroup, model.Name)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			envelope := web.AppServiceEnvironmentResource{
+			envelope := appserviceenvironments.AppServiceEnvironmentResource{
 				Kind:     utils.String(KindASEV3),
-				Location: utils.String(vnetLoc),
-				AppServiceEnvironment: &web.AppServiceEnvironment{
-					DedicatedHostCount:        utils.Int32(int32(model.DedicatedHostCount)),
+				Location: location.Normalize(vnetLoc),
+				Properties: &appserviceenvironments.AppServiceEnvironment{
+					DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
 					ClusterSettings:           expandClusterSettingsModel(model.ClusterSetting),
-					InternalLoadBalancingMode: web.LoadBalancingMode(model.InternalLoadBalancingMode),
-					VirtualNetwork: &web.VirtualNetworkProfile{
-						ID: utils.String(model.SubnetId),
+					InternalLoadBalancingMode: pointer.To(appserviceenvironments.LoadBalancingMode(model.InternalLoadBalancingMode)),
+					VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
+						Id: model.SubnetId,
 					},
 					ZoneRedundant: utils.Bool(model.ZoneRedundant),
 				},
-				Tags: tags.FromTypedObject(model.Tags),
+				Tags: pointer.To(model.Tags),
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, envelope)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, envelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %q: %+v", id, err)
-			}
 
-			createWait := pluginsdk.StateChangeConf{
-				Pending: []string{
-					string(web.ProvisioningStateInProgress),
-				},
-				Target: []string{
-					string(web.ProvisioningStateSucceeded),
-				},
-				MinTimeout:     1 * time.Minute,
-				NotFoundChecks: 20,
-				Refresh:        appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.HostingEnvironmentName),
-			}
-
-			timeout, _ := ctx.Deadline()
-			createWait.Timeout = time.Until(timeout)
-
-			if _, err := createWait.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
-			}
-
-			aseNetworkConfig := web.AseV3NetworkingConfiguration{
-				AseV3NetworkingConfigurationProperties: &web.AseV3NetworkingConfigurationProperties{
-					AllowNewPrivateEndpointConnections: utils.Bool(model.AllowNewPrivateEndpointConnections),
+			aseNetworkConfig := appserviceenvironments.AseV3NetworkingConfiguration{
+				Properties: &appserviceenvironments.AseV3NetworkingConfigurationProperties{
+					AllowNewPrivateEndpointConnections: pointer.To(model.AllowNewPrivateEndpointConnections),
+					RemoteDebugEnabled:                 pointer.To(model.RemoteDebuggingEnabled),
 				},
 			}
-			if _, err := client.UpdateAseNetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName, aseNetworkConfig); err != nil {
+			if _, err := client.UpdateAseNetworkingConfiguration(ctx, id, aseNetworkConfig); err != nil {
 				return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
 			}
 
@@ -338,60 +323,64 @@ func (r AppServiceEnvironmentV3Resource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Web.AppServiceEnvironmentsClient
-			id, err := parse.AppServiceEnvironmentID(metadata.ResourceData.Id())
+			client := metadata.Client.AppService.AppServiceEnvironmentClient
+			id, err := commonids.ParseAppServiceEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := AppServiceEnvironmentV3Model{
+			state := AppServiceEnvironmentV3Model{
 				Name:          id.HostingEnvironmentName,
-				ResourceGroup: id.ResourceGroup,
-				Location:      location.NormalizeNilable(existing.Location),
+				ResourceGroup: id.ResourceGroupName,
 			}
 
-			if props := existing.AppServiceEnvironment; props != nil {
-				if props.VirtualNetwork != nil {
-					model.SubnetId = utils.NormalizeNilableString(props.VirtualNetwork.ID)
+			if model := existing.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				if props := model.Properties; props != nil {
+					state.SubnetId = props.VirtualNetwork.Id
+					state.InternalLoadBalancingMode = string(pointer.From(props.InternalLoadBalancingMode))
+					state.DedicatedHostCount = pointer.From(props.DedicatedHostCount)
+					state.PricingTier = pointer.From(props.MultiSize)
+					state.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
+					state.DnsSuffix = pointer.From(props.DnsSuffix)
+					state.IpSSLAddressCount = pointer.From(props.IPsslAddressCount)
+					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 				}
-				model.InternalLoadBalancingMode = string(props.InternalLoadBalancingMode)
-				model.DedicatedHostCount = int(utils.NormaliseNilableInt32(props.DedicatedHostCount))
-				model.PricingTier = utils.NormalizeNilableString(props.MultiSize)
-				model.ClusterSetting = flattenClusterSettingsModel(props.ClusterSettings)
-				model.DnsSuffix = utils.NormalizeNilableString(props.DNSSuffix)
-				model.IpSSLAddressCount = int(utils.NormaliseNilableInt32(existing.IpsslAddressCount))
-				model.ZoneRedundant = *props.ZoneRedundant
+
+				existingNetwork, err := client.GetAseV3NetworkingConfiguration(ctx, *id)
+				if err != nil {
+					return fmt.Errorf("reading network configuration for %s: %+v", *id, err)
+				}
+
+				if networkModel := existingNetwork.Model; networkModel != nil {
+					if props := networkModel.Properties; props != nil {
+						state.WindowsOutboundIPAddresses = pointer.From(props.WindowsOutboundIPAddresses)
+						state.LinuxOutboundIPAddresses = pointer.From(props.LinuxOutboundIPAddresses)
+						state.InternalInboundIPAddresses = pointer.From(props.InternalInboundIPAddresses)
+						state.ExternalInboundIPAddresses = pointer.From(props.ExternalInboundIPAddresses)
+						state.AllowNewPrivateEndpointConnections = pointer.From(props.AllowNewPrivateEndpointConnections)
+						state.RemoteDebuggingEnabled = pointer.From(props.RemoteDebugEnabled)
+					}
+				}
+				inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
+				if err != nil {
+					return err
+				}
+
+				state.InboundNetworkDependencies = *inboundNetworkDependencies
+
+				state.Tags = pointer.From(model.Tags)
 			}
 
-			existingNetwork, err := client.GetAseV3NetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName)
-			if err != nil {
-				return fmt.Errorf("reading network configuration for %s: %+v", id, err)
-			}
-
-			if props := existingNetwork.AseV3NetworkingConfigurationProperties; props != nil {
-				model.WindowsOutboundIPAddresses = *props.WindowsOutboundIPAddresses
-				model.LinuxOutboundIPAddresses = *props.LinuxOutboundIPAddresses
-				model.InternalInboundIPAddresses = *props.InternalInboundIPAddresses
-				model.ExternalInboundIPAddresses = *props.ExternalInboundIPAddresses
-				model.AllowNewPrivateEndpointConnections = utils.NormaliseNilableBool(props.AllowNewPrivateEndpointConnections)
-			}
-
-			inboundNetworkDependencies, err := flattenInboundNetworkDependencies(ctx, client, id)
-			if err != nil {
-				return err
-			}
-			model.InboundNetworkDependencies = *inboundNetworkDependencies
-			model.Tags = tags.ToTypedObject(existing.Tags)
-
-			return metadata.Encode(&model)
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -400,23 +389,19 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 6 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Web.AppServiceEnvironmentsClient
+			client := metadata.Client.AppService.AppServiceEnvironmentClient
 
-			id, err := parse.AppServiceEnvironmentID(metadata.ResourceData.Id())
+			id, err := commonids.ParseAppServiceEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.HostingEnvironmentName, utils.Bool(false))
-			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+			deleteOpts := appserviceenvironments.DeleteOperationOptions{
+				ForceDelete: pointer.To(false),
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				// This future can return a 404 for the polling check if the ASE is successfully deleted but this raises an error in the SDK
-				if !response.WasNotFound(future.Response()) {
-					return fmt.Errorf("waiting for removal of %s: %+v", id, err)
-				}
+			if err := client.DeleteThenPoll(ctx, *id, deleteOpts); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
@@ -432,9 +417,9 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 6 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Web.AppServiceEnvironmentsClient
+			client := metadata.Client.AppService.AppServiceEnvironmentClient
 
-			id, err := parse.AppServiceEnvironmentID(metadata.ResourceData.Id())
+			id, err := commonids.ParseAppServiceEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -445,36 +430,39 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			model := existing.Model
+			if model == nil {
+				return fmt.Errorf("reading %s for update: model was nil", *id)
 			}
 
 			metadata.Logger.Infof("updating %s", id)
 
 			if metadata.ResourceData.HasChange("cluster_setting") {
-				existing.AppServiceEnvironment.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
+				model.Properties.ClusterSettings = expandClusterSettingsModel(state.ClusterSetting)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Tags = tags.FromTypedObject(state.Tags)
+				model.Tags = pointer.To(state.Tags)
 			}
 
-			aseNetworkConfig := web.AseV3NetworkingConfiguration{
-				AseV3NetworkingConfigurationProperties: &web.AseV3NetworkingConfigurationProperties{
-					AllowNewPrivateEndpointConnections: utils.Bool(state.AllowNewPrivateEndpointConnections),
+			aseNetworkConfig := appserviceenvironments.AseV3NetworkingConfiguration{
+				Properties: &appserviceenvironments.AseV3NetworkingConfigurationProperties{
+					AllowNewPrivateEndpointConnections: pointer.To(state.AllowNewPrivateEndpointConnections),
+					RemoteDebugEnabled:                 pointer.To(state.RemoteDebuggingEnabled),
 				},
 			}
-			if _, err := client.UpdateAseNetworkingConfiguration(ctx, id.ResourceGroup, id.HostingEnvironmentName, aseNetworkConfig); err != nil {
+
+			if _, err := client.UpdateAseNetworkingConfiguration(ctx, *id, aseNetworkConfig); err != nil {
 				return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.HostingEnvironmentName, existing)
-			if err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %q: %+v", id, err)
 			}
 
 			return nil
@@ -482,7 +470,7 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 	}
 }
 
-func flattenClusterSettingsModel(input *[]web.NameValuePair) []ClusterSettingModel {
+func flattenClusterSettingsModel(input *[]appserviceenvironments.NameValuePair) []ClusterSettingModel {
 	var output []ClusterSettingModel
 	if input == nil || len(*input) == 0 {
 		return output
@@ -501,14 +489,14 @@ func flattenClusterSettingsModel(input *[]web.NameValuePair) []ClusterSettingMod
 	return output
 }
 
-func expandClusterSettingsModel(input []ClusterSettingModel) *[]web.NameValuePair {
-	var clusterSettings []web.NameValuePair
+func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenvironments.NameValuePair {
+	var clusterSettings []appserviceenvironments.NameValuePair
 	if input == nil {
 		return &clusterSettings
 	}
 
 	for _, v := range input {
-		clusterSettings = append(clusterSettings, web.NameValuePair{
+		clusterSettings = append(clusterSettings, appserviceenvironments.NameValuePair{
 			Name:  utils.String(v.Name),
 			Value: utils.String(v.Value),
 		})
@@ -517,32 +505,29 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]web.NameValuePai
 	return &clusterSettings
 }
 
-func flattenInboundNetworkDependencies(ctx context.Context, client *web.AppServiceEnvironmentsClient, id *parse.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
+func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id *commonids.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
 	var results []AppServiceV3InboundDependencies
-	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, id.ResourceGroup, id.HostingEnvironmentName)
-	for inboundNetworking.NotDone() {
+	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("reading paged results for Inbound Network Dependencies for %s: %+v", id, err)
+	}
+	for _, v := range inboundNetworking.Items {
 		if err != nil {
 			return nil, fmt.Errorf("reading Inbound Network dependencies for %s: %+v", id, err)
 		}
-		value := inboundNetworking.Value()
 		result := AppServiceV3InboundDependencies{
-			Description: utils.NormalizeNilableString(value.Description),
+			Description: pointer.From(v.Description),
 		}
 
-		if value.Endpoints != nil {
-			result.IPAddresses = *value.Endpoints
+		if v.Endpoints != nil {
+			result.IPAddresses = *v.Endpoints
 		}
 
-		if value.Ports != nil {
-			result.Ports = *value.Ports
+		if v.Ports != nil {
+			result.Ports = *v.Ports
 		}
 
 		results = append(results, result)
-
-		err = inboundNetworking.NextWithContext(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("reading paged results for Inbound Network Dependencies for %s: %+v", id, err)
-		}
 	}
 
 	return &results, nil
