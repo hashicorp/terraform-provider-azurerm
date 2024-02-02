@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -22,6 +24,12 @@ import (
 var _ sdk.Resource = ChaosStudioExperimentResource{}
 var _ sdk.ResourceWithUpdate = ChaosStudioExperimentResource{}
 
+const (
+	continuousActionType = "continuous"
+	delayActionType      = "delay"
+	discreteActionType   = "discrete"
+)
+
 type ChaosStudioExperimentResource struct{}
 
 func (r ChaosStudioExperimentResource) ModelObject() interface{} {
@@ -29,38 +37,37 @@ func (r ChaosStudioExperimentResource) ModelObject() interface{} {
 }
 
 type ChaosStudioExperimentResourceSchema struct {
-	Identity          []identity.ModelSystemAssignedUserAssigned    `tfschema:"identity"`
-	Location          string                                        `tfschema:"location"`
-	Name              string                                        `tfschema:"name"`
-	ResourceGroupName string                                        `tfschema:"resource_group_name"`
-	Selector          []ChaosStudioExperimentResourceSelectorSchema `tfschema:"selector"`
-	Step              []ChaosStudioExperimentResourceStepSchema     `tfschema:"step"`
-	Tags              map[string]interface{}                        `tfschema:"tags"`
+	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Location          string                                     `tfschema:"location"`
+	Name              string                                     `tfschema:"name"`
+	ResourceGroupName string                                     `tfschema:"resource_group_name"`
+	Selectors         []SelectorSchema                           `tfschema:"selectors"`
+	Steps             []StepSchema                               `tfschema:"steps"`
+	// tags are not fully supported yet, you can send them to the API but they won't be returned
+	// Tags              map[string]interface{}                     `tfschema:"tags"`
 }
 
-type ChaosStudioExperimentResourceSelectorSchema struct {
-	//Filter []ChaosStudioExperimentResourceFilterSchema `tfschema:"filter"`
-	Id   string `tfschema:"id"`
-	Type string `tfschema:"type"`
+type SelectorSchema struct {
+	Name      string   `tfschema:"name"`
+	TargetIds []string `tfschema:"chaos_studio_target_ids"`
 }
 
-type ChaosStudioExperimentResourceStepSchema struct {
-	Branch []ChaosStudioExperimentResourceBranchSchema `tfschema:"branch"`
-	Name   string                                      `tfschema:"name"`
+type StepSchema struct {
+	Branch []BranchSchema `tfschema:"branch"`
+	Name   string         `tfschema:"name"`
 }
 
-type ChaosStudioExperimentResourceBranchSchema struct {
-	Action []ChaosStudioExperimentResourceActionSchema `tfschema:"action"`
-	Name   string                                      `tfschema:"name"`
+type BranchSchema struct {
+	Actions []ActionSchema `tfschema:"actions"`
+	Name    string         `tfschema:"name"`
 }
 
-type ChaosStudioExperimentResourceActionSchema struct {
-	Name string `tfschema:"name"`
-	Type string `tfschema:"type"`
-}
-
-type ChaosStudioExperimentResourceFilterSchema struct {
-	Type string `tfschema:"type"`
+type ActionSchema struct {
+	ActionType   string            `tfschema:"action_type"`
+	SelectorName string            `tfschema:"selector_name"`
+	Duration     string            `tfschema:"duration"`
+	Urn          string            `tfschema:"urn"`
+	Parameters   map[string]string `tfschema:"parameters"`
 }
 
 func (r ChaosStudioExperimentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -78,79 +85,85 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"selector": {
+		"selectors": {
 			Required: true,
 			Type:     pluginsdk.TypeList,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"id": {
-						Required: true,
-						Type:     pluginsdk.TypeString,
+					"name": {
+						Required:     true,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"type": {
+					"chaos_studio_target_ids": {
 						Required: true,
-						Type:     pluginsdk.TypeString,
-						ValidateFunc: validation.StringInSlice([]string{
-							"List",
-							"Query",
-						}, false),
-					},
-					"filter": {
-						MaxItems: 1,
-						Optional: true,
 						Type:     pluginsdk.TypeList,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"type": {
-									Required: true,
-									Type:     pluginsdk.TypeString,
-									ValidateFunc: validation.StringInSlice([]string{
-										"Simple",
-									}, false),
-								},
-							},
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: commonids.ValidateChaosStudioTargetID,
 						},
 					},
 				},
 			},
 		},
-		"step": {
+		"steps": {
 			Required: true,
 			Type:     pluginsdk.TypeList,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Required: true,
-						Type:     pluginsdk.TypeString,
+						Required:     true,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"branch": {
 						Required: true,
 						Type:     pluginsdk.TypeList,
+						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"name": {
-									Required: true,
-									Type:     pluginsdk.TypeString,
+									Required:     true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								// split into three types of actions?
-								"action": {
+								"actions": {
 									Required: true,
 									Type:     pluginsdk.TypeList,
+									MinItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											// urn?
-											"name": {
-												Required: true,
-												Type:     pluginsdk.TypeString,
-											},
-											"type": {
+											"action_type": {
 												Required: true,
 												Type:     pluginsdk.TypeString,
 												ValidateFunc: validation.StringInSlice([]string{
-													"continuous",
-													"delay",
-													"discrete",
+													continuousActionType,
+													delayActionType,
+													discreteActionType,
 												}, false),
+											},
+											// the different types of actions require different properties to be set
+											// which is why the validation for these is done in expandActions
+											"urn": {
+												Optional: true,
+												Type:     pluginsdk.TypeString,
+											},
+											"selector_name": {
+												Optional: true,
+												Type:     pluginsdk.TypeString,
+											},
+											"duration": {
+												Optional: true,
+												Type:     pluginsdk.TypeString,
+											},
+											"parameters": {
+												Type:     pluginsdk.TypeMap,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
 											},
 										},
 									},
@@ -162,7 +175,6 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 			},
 		},
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
-		"tags":     commonschema.Tags(),
 	}
 }
 func (r ChaosStudioExperimentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -173,6 +185,7 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ChaosStudio.V20231101.Experiments
+			targetsClient := metadata.Client.ChaosStudio.V20231101.Targets
 
 			var config ChaosStudioExperimentResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -202,19 +215,22 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 			payload.Identity = expandedIdentity
 
 			payload.Location = location.Normalize(config.Location)
-			payload.Tags = tags.Expand(config.Tags)
 
 			var experimentProperties experiments.ExperimentProperties
-			//selector, err := expandSelector(config.Selector)
 
-			if err := r.mapChaosStudioExperimentResourceSchemaToExperimentProperties(config, &experimentProperties); err != nil {
-				return fmt.Errorf("flattening steps")
+			selectors, err := expandSelectors(ctx, targetsClient, config.Selectors)
+			if err != nil {
+				return fmt.Errorf("expanding `selectors`: %+v", err)
 			}
+			experimentProperties.Selectors = *selectors
+
+			steps, err := expandSteps(config.Steps)
+			if err != nil {
+				return fmt.Errorf("expanding `steps`: %+v", err)
+			}
+			experimentProperties.Steps = *steps
 
 			payload.Properties = experimentProperties
-			//if err := r.mapChaosStudioExperimentResourceSchemaToExperiment(config, &payload); err != nil {
-			//	return fmt.Errorf("mapping schema model to sdk model: %+v", err)
-			//}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -225,20 +241,6 @@ func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
-
-//func expandSelector(input []ChaosStudioExperimentResourceSelectorSchema) ([]experiments.Selector, error) {
-//	output := make([]experiments.Selector, 0)
-//
-//	for _, v := range input {
-//		output = append(output, experiments.Selector{
-//			Filter: nil,
-//			Id:     v.Id,
-//			Type:   experiments.SelectorType(v.Type),
-//		})
-//	}
-//
-//	return output, nil
-//}
 
 func (r ChaosStudioExperimentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
@@ -263,9 +265,28 @@ func (r ChaosStudioExperimentResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Name = id.ExperimentName
 				schema.ResourceGroupName = id.ResourceGroupName
-				if err := r.mapExperimentToChaosStudioExperimentResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
+				schema.Location = location.Normalize(model.Location)
+
+				props := model.Properties
+
+				selectors, err := flattenSelector(props.Selectors)
+				if err != nil {
+					return fmt.Errorf("flattening `selectors`: %+v", err)
 				}
+				schema.Selectors = pointer.From(selectors)
+
+				steps, err := flattenSteps(props.Steps)
+				if err != nil {
+					return fmt.Errorf("flattening `steps`: %+v", err)
+				}
+				schema.Steps = pointer.From(steps)
+
+				flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				schema.Identity = *flattenedIdentity
 			}
 
 			return metadata.Encode(&schema)
@@ -291,11 +312,13 @@ func (r ChaosStudioExperimentResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ChaosStudio.V20231101.Experiments
+			targetsClient := metadata.Client.ChaosStudio.V20231101.Targets
 
 			id, err := experiments.ParseExperimentID(metadata.ResourceData.Id())
 			if err != nil {
@@ -316,8 +339,28 @@ func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 			}
 			payload := *existing.Model
 
-			if err := r.mapChaosStudioExperimentResourceSchemaToExperiment(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandSystemOrUserAssignedMapFromModel(config.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
+				}
+				payload.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("selectors") {
+				selectors, err := expandSelectors(ctx, targetsClient, config.Selectors)
+				if err != nil {
+					return fmt.Errorf("expanding `selectors`: %+v", err)
+				}
+				payload.Properties.Selectors = *selectors
+			}
+
+			if metadata.ResourceData.HasChange("steps") {
+				steps, err := expandSteps(config.Steps)
+				if err != nil {
+					return fmt.Errorf("expanding `steps`: %+v", err)
+				}
+				payload.Properties.Steps = *steps
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
@@ -329,198 +372,205 @@ func (r ChaosStudioExperimentResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceActionSchemaToAction(input ChaosStudioExperimentResourceActionSchema, output *experiments.Action) error {
-	output.Name = input.Name
-	output.Type = input.Type
-	return nil
-}
+func expandSelectors(ctx context.Context, client *targets.TargetsClient, input []SelectorSchema) (*[]experiments.Selector, error) {
+	output := make([]experiments.Selector, 0)
 
-func (r ChaosStudioExperimentResource) mapActionToChaosStudioExperimentResourceActionSchema(input experiments.Action, output *ChaosStudioExperimentResourceActionSchema) error {
-	output.Name = input.Name
-	output.Type = input.Type
-	return nil
-}
-
-func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceBranchSchemaToBranch(input ChaosStudioExperimentResourceBranchSchema, output *experiments.Branch) error {
-
-	actions := make([]experiments.Action, 0)
-	for i, v := range input.Action {
-		item := experiments.Action{}
-		if err := r.mapChaosStudioExperimentResourceActionSchemaToAction(v, &item); err != nil {
-			return fmt.Errorf("mapping ChaosStudioExperimentResourceActionSchema item %d to Action: %+v", i, err)
+	for _, v := range input {
+		targetsOutput := make([]experiments.TargetReference, 0)
+		for _, t := range v.TargetIds {
+			var targetName string
+			targetId, err := commonids.ParseChaosStudioTargetID(t)
+			if err != nil {
+				return nil, err
+			}
+			targetResp, err := client.Get(ctx, *targetId)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s", targetId)
+			}
+			if model := targetResp.Model; model != nil {
+				targetName = *model.Name
+			}
+			targetsOutput = append(targetsOutput, experiments.TargetReference{
+				Id:   targetId.ID(),
+				Type: experiments.TargetReferenceType(targetName),
+			})
 		}
-		actions = append(actions, item)
+		output = append(output, experiments.ListSelector{
+			Targets: targetsOutput,
+			Filter:  nil,
+			Id:      v.Name,
+		})
 	}
-	output.Actions = actions
-
-	output.Name = input.Name
-	return nil
+	return &output, nil
 }
 
-func (r ChaosStudioExperimentResource) mapBranchToChaosStudioExperimentResourceBranchSchema(input experiments.Branch, output *ChaosStudioExperimentResourceBranchSchema) error {
+func expandSteps(input []StepSchema) (*[]experiments.Step, error) {
+	output := make([]experiments.Step, 0)
 
-	actions := make([]ChaosStudioExperimentResourceActionSchema, 0)
-	for i, v := range input.Actions {
-		item := ChaosStudioExperimentResourceActionSchema{}
-		if err := r.mapActionToChaosStudioExperimentResourceActionSchema(v, &item); err != nil {
-			return fmt.Errorf("mapping ChaosStudioExperimentResourceActionSchema item %d to Action: %+v", i, err)
+	for _, step := range input {
+		branches := make([]experiments.Branch, 0)
+		for _, branch := range step.Branch {
+			actions, err := expandActions(branch.Actions)
+			if err != nil {
+				return nil, fmt.Errorf("expanding `actions`: %+v", err)
+			}
+			branches = append(branches, experiments.Branch{
+				Actions: *actions,
+				Name:    branch.Name,
+			})
 		}
-		actions = append(actions, item)
-	}
-	output.Action = actions
-
-	output.Name = input.Name
-	return nil
-}
-
-func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceFilterSchemaToFilter(input ChaosStudioExperimentResourceFilterSchema, output *experiments.Filter) error {
-	output.Type = experiments.FilterType(input.Type)
-	return nil
-}
-
-func (r ChaosStudioExperimentResource) mapFilterToChaosStudioExperimentResourceFilterSchema(input experiments.Filter, output *ChaosStudioExperimentResourceFilterSchema) error {
-	output.Type = string(input.Type)
-	return nil
-}
-
-func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceSchemaToExperiment(input ChaosStudioExperimentResourceSchema, output *experiments.Experiment) error {
-
-	identity, err := identity.ExpandSystemOrUserAssignedMapFromModel(input.Identity)
-	if err != nil {
-		return fmt.Errorf("expanding SystemOrUserAssigned Identity: %+v", err)
-	}
-	output.Identity = identity
-
-	output.Location = location.Normalize(input.Location)
-	output.Tags = tags.Expand(input.Tags)
-
-	if err := r.mapChaosStudioExperimentResourceSchemaToExperimentProperties(input, &output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "ExperimentProperties", "Properties", err)
+		output = append(output, experiments.Step{
+			Name:     step.Name,
+			Branches: branches,
+		})
 	}
 
-	return nil
+	return &output, nil
 }
 
-func (r ChaosStudioExperimentResource) mapExperimentToChaosStudioExperimentResourceSchema(input experiments.Experiment, output *ChaosStudioExperimentResourceSchema) error {
+func expandActions(input []ActionSchema) (*[]experiments.Action, error) {
+	output := make([]experiments.Action, 0)
 
-	flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMapToModel(input.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening SystemOrUserAssigned Identity: %+v", err)
-	}
-	output.Identity = *flattenedIdentity
-
-	output.Location = location.Normalize(input.Location)
-	output.Tags = tags.Flatten(input.Tags)
-
-	if err := r.mapExperimentPropertiesToChaosStudioExperimentResourceSchema(input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "ExperimentProperties", "Properties", err)
-	}
-
-	return nil
-}
-
-func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceSchemaToExperimentProperties(input ChaosStudioExperimentResourceSchema, output *experiments.ExperimentProperties) error {
-
-	selectors := make([]experiments.Selector, 0)
-	for i, v := range input.Selector {
-		item := experiments.Selector{}
-		if err := r.mapChaosStudioExperimentResourceSelectorSchemaToSelector(v, &item); err != nil {
-			return fmt.Errorf("mapping ChaosStudioExperimentResourceSelectorSchema item %d to Selector: %+v", i, err)
+	for _, action := range input {
+		parameters := make([]experiments.KeyValuePair, 0)
+		if len(action.Parameters) > 0 {
+			for k, v := range action.Parameters {
+				parameters = append(parameters, experiments.KeyValuePair{
+					Key:   k,
+					Value: v,
+				})
+			}
 		}
-		selectors = append(selectors, item)
-	}
-	output.Selectors = selectors
 
-	steps := make([]experiments.Step, 0)
-	for i, v := range input.Step {
-		item := experiments.Step{}
-		if err := r.mapChaosStudioExperimentResourceStepSchemaToStep(v, &item); err != nil {
-			return fmt.Errorf("mapping ChaosStudioExperimentResourceStepSchema item %d to Step: %+v", i, err)
+		switch action.ActionType {
+		case continuousActionType:
+			if action.Duration == "" || action.SelectorName == "" || action.Urn == "" {
+				return nil, fmt.Errorf("`duration`, `selector_name` and `urn` must be set for actions with `action_type` of `continuous`")
+			}
+			output = append(output, experiments.ContinuousAction{
+				Duration:   action.Duration,
+				Parameters: parameters,
+				SelectorId: action.SelectorName,
+				Name:       action.Urn,
+			})
+		case delayActionType:
+			if action.Duration == "" {
+				return nil, fmt.Errorf("`duration` must be set for actions with `action_type` of `delay`")
+			}
+			output = append(output, experiments.DelayAction{
+				Duration: action.Duration,
+				Name:     "urn:csci:microsoft:chaosStudio:timedDelay/1.0",
+			})
+		case discreteActionType:
+			if action.SelectorName == "" || action.Urn == "" {
+				return nil, fmt.Errorf("`selector_name` and `urn` must be set for actions with `action_type` of `discrete`")
+			}
+			output = append(output, experiments.DiscreteAction{
+				Parameters: parameters,
+				SelectorId: action.SelectorName,
+				Name:       action.Urn,
+			})
 		}
-		steps = append(steps, item)
 	}
-	output.Steps = steps
 
-	return nil
+	return &output, nil
 }
 
-func (r ChaosStudioExperimentResource) mapExperimentPropertiesToChaosStudioExperimentResourceSchema(input experiments.ExperimentProperties, output *ChaosStudioExperimentResourceSchema) error {
+func flattenSelector(input []experiments.Selector) (*[]SelectorSchema, error) {
+	output := make([]SelectorSchema, 0)
 
-	selectors := make([]ChaosStudioExperimentResourceSelectorSchema, 0)
-	for i, v := range input.Selectors {
-		item := ChaosStudioExperimentResourceSelectorSchema{}
-		if err := r.mapSelectorToChaosStudioExperimentResourceSelectorSchema(v, &item); err != nil {
-			return fmt.Errorf("mapping ChaosStudioExperimentResourceSelectorSchema item %d to Selector: %+v", i, err)
-		}
-		selectors = append(selectors, item)
+	if input == nil || len(input) == 0 {
+		return &output, nil
 	}
-	output.Selector = selectors
 
-	steps := make([]ChaosStudioExperimentResourceStepSchema, 0)
-	for i, v := range input.Steps {
-		item := ChaosStudioExperimentResourceStepSchema{}
-		if err := r.mapStepToChaosStudioExperimentResourceStepSchema(v, &item); err != nil {
-			return fmt.Errorf("mapping ChaosStudioExperimentResourceStepSchema item %d to Step: %+v", i, err)
+	for _, selector := range input {
+		targetIds := make([]string, 0)
+		ls, ok := selector.(experiments.ListSelector)
+		if !ok {
+			return nil, fmt.Errorf("selector is not of type ListSelector")
 		}
-		steps = append(steps, item)
+		for _, t := range ls.Targets {
+			targetIds = append(targetIds, t.Id)
+		}
+		output = append(output, SelectorSchema{
+			Name:      ls.Id,
+			TargetIds: targetIds,
+		})
 	}
-	output.Step = steps
 
-	return nil
+	return &output, nil
 }
 
-func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceSelectorSchemaToSelector(input ChaosStudioExperimentResourceSelectorSchema, output *experiments.Selector) error {
-	//if len(input.Filter) > 0 {
-	//	if err := r.mapChaosStudioExperimentResourceFilterSchemaToSelector(input.Filter[0], output); err != nil {
-	//		return err
-	//	}
-	//}
-	output.Id = input.Id
-	output.Type = experiments.SelectorType(input.Type)
-	return nil
-}
+func flattenSteps(input []experiments.Step) (*[]StepSchema, error) {
+	output := make([]StepSchema, 0)
 
-func (r ChaosStudioExperimentResource) mapSelectorToChaosStudioExperimentResourceSelectorSchema(input experiments.Selector, output *ChaosStudioExperimentResourceSelectorSchema) error {
-	//tmpFilter := &ChaosStudioExperimentResourceFilterSchema{}
-	//if err := r.mapSelectorToChaosStudioExperimentResourceFilterSchema(input, tmpFilter); err != nil {
-	//	return err
-	//} else {
-	//	output.Filter = make([]ChaosStudioExperimentResourceFilterSchema, 0)
-	//	output.Filter = append(output.Filter, *tmpFilter)
-	//}
-	output.Id = input.Id
-	output.Type = string(input.Type)
-	return nil
-}
-
-func (r ChaosStudioExperimentResource) mapChaosStudioExperimentResourceStepSchemaToStep(input ChaosStudioExperimentResourceStepSchema, output *experiments.Step) error {
-
-	branches := make([]experiments.Branch, 0)
-	for i, v := range input.Branch {
-		item := experiments.Branch{}
-		if err := r.mapChaosStudioExperimentResourceBranchSchemaToBranch(v, &item); err != nil {
-			return fmt.Errorf("mapping ChaosStudioExperimentResourceBranchSchema item %d to Branch: %+v", i, err)
-		}
-		branches = append(branches, item)
+	if input == nil || len(input) == 0 {
+		return &output, nil
 	}
-	output.Branches = branches
 
-	output.Name = input.Name
-	return nil
+	for _, step := range input {
+		branches := make([]BranchSchema, 0)
+		for _, branch := range step.Branches {
+			actions, err := flattenActions(branch.Actions)
+			if err != nil {
+				return nil, fmt.Errorf("flattening `actions`: %+v", err)
+			}
+			branches = append(branches, BranchSchema{
+				Actions: *actions,
+				Name:    branch.Name,
+			})
+		}
+		output = append(output, StepSchema{
+			Branch: branches,
+			Name:   step.Name,
+		})
+	}
+
+	return &output, nil
 }
 
-func (r ChaosStudioExperimentResource) mapStepToChaosStudioExperimentResourceStepSchema(input experiments.Step, output *ChaosStudioExperimentResourceStepSchema) error {
+func flattenActions(input []experiments.Action) (*[]ActionSchema, error) {
+	output := make([]ActionSchema, 0)
 
-	branches := make([]ChaosStudioExperimentResourceBranchSchema, 0)
-	for i, v := range input.Branches {
-		item := ChaosStudioExperimentResourceBranchSchema{}
-		if err := r.mapBranchToChaosStudioExperimentResourceBranchSchema(v, &item); err != nil {
-			return fmt.Errorf("mapping ChaosStudioExperimentResourceBranchSchema item %d to Branch: %+v", i, err)
-		}
-		branches = append(branches, item)
+	if input == nil || len(input) == 0 {
+		return &output, nil
 	}
-	output.Branch = branches
 
-	output.Name = input.Name
-	return nil
+	for _, action := range input {
+		actionOutput := ActionSchema{}
+
+		switch action.(type) {
+		case experiments.ContinuousAction:
+			a, _ := action.(experiments.ContinuousAction)
+			parameters := make(map[string]string)
+			for _, p := range a.Parameters {
+				parameters[p.Key] = p.Value
+			}
+			actionOutput.Parameters = parameters
+			actionOutput.SelectorName = a.SelectorId
+			actionOutput.Urn = a.Name
+			actionOutput.Duration = a.Duration
+			actionOutput.ActionType = continuousActionType
+		case experiments.DelayAction:
+			a, _ := action.(experiments.DelayAction)
+			actionOutput.Duration = a.Duration
+			actionOutput.ActionType = delayActionType
+		case experiments.DiscreteAction:
+			a, _ := action.(experiments.DiscreteAction)
+			parameters := make(map[string]string)
+			for _, p := range a.Parameters {
+				parameters[p.Key] = p.Value
+			}
+			actionOutput.Parameters = parameters
+			actionOutput.SelectorName = a.SelectorId
+			actionOutput.Urn = a.Name
+			actionOutput.ActionType = discreteActionType
+		default:
+			return nil, fmt.Errorf("action is not of type `continuous`, `delay` or `discrete`")
+		}
+
+		output = append(output, actionOutput)
+	}
+
+	return &output, nil
 }
