@@ -32,6 +32,7 @@ type AppServiceEnvironmentV3DataSourceModel struct {
 	ClusterSetting                     []ClusterSettingModel             `tfschema:"cluster_setting"`
 	DedicatedHostCount                 int64                             `tfschema:"dedicated_host_count"`
 	InternalLoadBalancingMode          string                            `tfschema:"internal_load_balancing_mode"`
+	RemoteDebuggingEnabled             bool                              `tfschema:"remote_debugging_enabled"`
 	ZoneRedundant                      bool                              `tfschema:"zone_redundant"`
 	Tags                               map[string]string                 `tfschema:"tags"`
 	DnsSuffix                          string                            `tfschema:"dns_suffix"`
@@ -165,6 +166,11 @@ func (r AppServiceEnvironmentV3DataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed: true,
 		},
 
+		"remote_debugging_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -243,6 +249,7 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 						state.InternalInboundIPAddresses = pointer.From(props.InternalInboundIPAddresses)
 						state.ExternalInboundIPAddresses = pointer.From(props.ExternalInboundIPAddresses)
 						state.AllowNewPrivateEndpointConnections = pointer.From(props.AllowNewPrivateEndpointConnections)
+						state.RemoteDebuggingEnabled = pointer.From(props.RemoteDebugEnabled)
 					}
 				}
 
