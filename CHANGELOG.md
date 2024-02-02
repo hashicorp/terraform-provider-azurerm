@@ -31,6 +31,8 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - support for the `gremlin_database` and `tables_to_restore` properties [GH-24627]
 * `azurerm_bot_channel_email` - support for the `magic_code` property [GH-23129]
 * `azurerm_cosmosdb_account` - support new property `partition_merge_enabled` [GH-24615]
+* `azurerm_mssql_managed_database` - support for the immutable_backups_enabled property [GH-24745]
+* `azurerm_mssql_database` - support for the immutable_backups_enabled property [GH-24745]
 * `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` - support for the `trusted_address_ranges` property [GH-24459]
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` - support for the `trusted_address_ranges` property [GH-24459]
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama` - support for the `trusted_address_ranges` property [GH-24459]
