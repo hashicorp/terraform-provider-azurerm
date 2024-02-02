@@ -8,6 +8,7 @@ FEATURES:
 
 * **New Data Source**: `azurerm_nginx_configuration` [GH-24642]
 * **New Data Source**: `azurerm_virtual_desktop_workspace` [GH-24732]
+* **New Resource**: `azurerm_kubernetes_fleet_update_strategy` [GH-24328]
 * **New Resource**: `azurerm_site_recovery_vmware_replicated_vm` [GH-22477]
 * **New Resource**: `azurerm_spring_cloud_new_relic_application_performance_monitoring` [GH-24699]
 
