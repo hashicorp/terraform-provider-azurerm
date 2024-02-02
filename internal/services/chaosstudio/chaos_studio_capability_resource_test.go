@@ -68,7 +68,7 @@ func (r ChaosStudioCapabilityTestResource) Exists(ctx context.Context, clients *
 
 	resp, err := clients.ChaosStudio.V20231101.Capabilities.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil

@@ -73,9 +73,11 @@ type ActionSchema struct {
 func (r ChaosStudioExperimentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return experiments.ValidateExperimentID
 }
+
 func (r ChaosStudioExperimentResource) ResourceType() string {
 	return "azurerm_chaos_studio_experiment"
 }
+
 func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
@@ -177,9 +179,11 @@ func (r ChaosStudioExperimentResource) Arguments() map[string]*pluginsdk.Schema 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 	}
 }
+
 func (r ChaosStudioExperimentResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (r ChaosStudioExperimentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -293,6 +297,7 @@ func (r ChaosStudioExperimentResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r ChaosStudioExperimentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
