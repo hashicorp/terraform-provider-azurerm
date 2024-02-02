@@ -5,7 +5,7 @@ package client
 
 import (
 	"fmt"
-	
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
