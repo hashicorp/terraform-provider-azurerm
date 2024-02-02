@@ -26,6 +26,7 @@ func (r ChaosStudioCapabilityResource) ModelObject() interface{} {
 type ChaosStudioCapabilityResourceSchema struct {
 	CapabilityType      string `tfschema:"capability_type"`
 	ChaosStudioTargetId string `tfschema:"chaos_studio_target_id"`
+	Urn                 string `tfschema:"urn"`
 }
 
 func (r ChaosStudioCapabilityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -53,7 +54,12 @@ func (r ChaosStudioCapabilityResource) Arguments() map[string]*pluginsdk.Schema 
 }
 
 func (r ChaosStudioCapabilityResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"urn": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r ChaosStudioCapabilityResource) Create() sdk.ResourceFunc {
@@ -159,6 +165,12 @@ func (r ChaosStudioCapabilityResource) Read() sdk.ResourceFunc {
 
 			schema.ChaosStudioTargetId = targetId.ID()
 			schema.CapabilityType = id.CapabilityName
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					schema.Urn = pointer.From(props.Urn)
+				}
+			}
 
 			return metadata.Encode(&schema)
 		},
