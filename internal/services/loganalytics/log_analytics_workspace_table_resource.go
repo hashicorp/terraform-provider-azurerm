@@ -30,7 +30,7 @@ type LogAnalyticsWorkspaceTableResourceModel struct {
 	WorkspaceId          string `tfschema:"workspace_id"`
 	Plan                 string `tfschema:"plan"`
 	RetentionInDays      int64  `tfschema:"retention_in_days"`
-	TotalRetentionInDays int64  `tfschema:"total_retention_in_datys"`
+	TotalRetentionInDays int64  `tfschema:"total_retention_in_days"`
 }
 
 func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
