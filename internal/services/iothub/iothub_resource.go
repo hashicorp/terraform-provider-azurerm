@@ -988,9 +988,10 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			return resp, strconv.Itoa(resp.StatusCode), nil
 		},
-		Delay:        1 * time.Minute,
-		PollInterval: 1 * time.Minute,
-		Timeout:      time.Until(timeout),
+		Delay:                     1 * time.Minute,
+		PollInterval:              1 * time.Minute,
+		Timeout:                   time.Until(timeout),
+		ContinuousTargetOccurence: 5,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
