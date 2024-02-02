@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package keyvault
+package managedhsm
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -95,7 +95,7 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.KeyVault.MHSMRoleAssignmentsClient
+			client := meta.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
 
 			var model KeyVaultManagedHSMRoleAssignmentModel
 			if err := meta.Decode(&model); err != nil {
@@ -105,7 +105,7 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 			locks.ByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 
-			id, err := parse.NewMHSMNestedItemID(model.VaultBaseUrl, model.Scope, parse.RoleAssignmentType, model.Name)
+			id, err := parse.NewNestedItemID(model.VaultBaseUrl, model.Scope, parse.RoleAssignmentType, model.Name)
 			if err != nil {
 				return err
 			}
@@ -138,9 +138,9 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.KeyVault.MHSMRoleAssignmentsClient
+			client := meta.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
 
-			id, err := parse.MHSMNestedItemID(meta.ResourceData.Id())
+			id, err := parse.NestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -179,7 +179,7 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := parse.MHSMNestedItemID(meta.ResourceData.Id())
+			id, err := parse.NestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -188,7 +188,7 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 
 			locks.ByName(id.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(id.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
-			if _, err := meta.Client.KeyVault.MHSMRoleAssignmentsClient.Delete(ctx, id.VaultBaseUrl, id.Scope, id.Name); err != nil {
+			if _, err := meta.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient.Delete(ctx, id.VaultBaseUrl, id.Scope, id.Name); err != nil {
 				return fmt.Errorf("deleting %s: %v", id.ID(), err)
 			}
 			return nil
@@ -197,5 +197,5 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 }
 
 func (m KeyVaultManagedHSMRoleAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.MHSMNestedItemId
+	return validate.NestedItemId
 }

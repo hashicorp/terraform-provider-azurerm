@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package keyvault_test
+package managedhsm_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,11 +19,11 @@ type KeyVaultMHSMRoleDefinitionResource struct{}
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
 func (k KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	baseURL := state.Attributes["vault_base_url"]
-	id, err := parse.MHSMNestedItemID(state.ID)
+	id, err := parse.NestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.KeyVault.MHSMRoleClient.Get(ctx, baseURL, "/", id.Name)
+	resp, err := client.ManagedHSMs.DataPlaneRoleDefinitionsClient.Get(ctx, baseURL, "/", id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Type %s: %+v", id, err)
 	}
