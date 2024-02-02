@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
@@ -24,16 +24,16 @@ type SiteConfigWindowsFunctionAppSlot struct {
 	ApiManagementConfigId         string                               `tfschema:"api_management_api_id"`
 	AppInsightsInstrumentationKey string                               `tfschema:"application_insights_key"` // App Insights Instrumentation Key
 	AppInsightsConnectionString   string                               `tfschema:"application_insights_connection_string"`
-	AppScaleLimit                 int                                  `tfschema:"app_scale_limit"`
+	AppScaleLimit                 int64                                `tfschema:"app_scale_limit"`
 	AppServiceLogs                []FunctionAppAppServiceLogs          `tfschema:"app_service_logs"`
 	AutoSwapSlotName              string                               `tfschema:"auto_swap_slot_name"`
 	DefaultDocuments              []string                             `tfschema:"default_documents"`
-	ElasticInstanceMinimum        int                                  `tfschema:"elastic_instance_minimum"`
+	ElasticInstanceMinimum        int64                                `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                                 `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                      `tfschema:"ip_restriction"`
 	LoadBalancing                 string                               `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                               `tfschema:"managed_pipeline_mode"`
-	PreWarmedInstanceCount        int                                  `tfschema:"pre_warmed_instance_count"`
+	PreWarmedInstanceCount        int64                                `tfschema:"pre_warmed_instance_count"`
 	RemoteDebugging               bool                                 `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion        string                               `tfschema:"remote_debugging_version"`
 	RuntimeScaleMonitoring        bool                                 `tfschema:"runtime_scale_monitoring_enabled"`
@@ -44,8 +44,8 @@ type SiteConfigWindowsFunctionAppSlot struct {
 	WebSockets                    bool                                 `tfschema:"websockets_enabled"`
 	FtpsState                     string                               `tfschema:"ftps_state"`
 	HealthCheckPath               string                               `tfschema:"health_check_path"`
-	HealthCheckEvictionTime       int                                  `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers               int                                  `tfschema:"worker_count"`
+	HealthCheckEvictionTime       int64                                `tfschema:"health_check_eviction_time_in_min"`
+	NumberOfWorkers               int64                                `tfschema:"worker_count"`
 	ApplicationStack              []ApplicationStackWindowsFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                               `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                               `tfschema:"scm_minimum_tls_version"`
@@ -326,18 +326,18 @@ type SiteConfigLinuxFunctionAppSlot struct {
 	ApiManagementConfigId         string                             `tfschema:"api_management_api_id"`
 	AppInsightsInstrumentationKey string                             `tfschema:"application_insights_key"` // App Insights Instrumentation Key
 	AppInsightsConnectionString   string                             `tfschema:"application_insights_connection_string"`
-	AppScaleLimit                 int                                `tfschema:"app_scale_limit"`
+	AppScaleLimit                 int64                              `tfschema:"app_scale_limit"`
 	AppServiceLogs                []FunctionAppAppServiceLogs        `tfschema:"app_service_logs"`
 	AutoSwapSlotName              string                             `tfschema:"auto_swap_slot_name"`
 	UseManagedIdentityACR         bool                               `tfschema:"container_registry_use_managed_identity"`
 	ContainerRegistryMSI          string                             `tfschema:"container_registry_managed_identity_client_id"`
 	DefaultDocuments              []string                           `tfschema:"default_documents"`
-	ElasticInstanceMinimum        int                                `tfschema:"elastic_instance_minimum"`
+	ElasticInstanceMinimum        int64                              `tfschema:"elastic_instance_minimum"`
 	Http2Enabled                  bool                               `tfschema:"http2_enabled"`
 	IpRestriction                 []IpRestriction                    `tfschema:"ip_restriction"`
 	LoadBalancing                 string                             `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
 	ManagedPipelineMode           string                             `tfschema:"managed_pipeline_mode"`
-	PreWarmedInstanceCount        int                                `tfschema:"pre_warmed_instance_count"`
+	PreWarmedInstanceCount        int64                              `tfschema:"pre_warmed_instance_count"`
 	RemoteDebugging               bool                               `tfschema:"remote_debugging_enabled"`
 	RemoteDebuggingVersion        string                             `tfschema:"remote_debugging_version"`
 	RuntimeScaleMonitoring        bool                               `tfschema:"runtime_scale_monitoring_enabled"`
@@ -348,8 +348,8 @@ type SiteConfigLinuxFunctionAppSlot struct {
 	WebSockets                    bool                               `tfschema:"websockets_enabled"`
 	FtpsState                     string                             `tfschema:"ftps_state"`
 	HealthCheckPath               string                             `tfschema:"health_check_path"`
-	HealthCheckEvictionTime       int                                `tfschema:"health_check_eviction_time_in_min"`
-	WorkerCount                   int                                `tfschema:"worker_count"`
+	HealthCheckEvictionTime       int64                              `tfschema:"health_check_eviction_time_in_min"`
+	WorkerCount                   int64                              `tfschema:"worker_count"`
 	ApplicationStack              []ApplicationStackLinuxFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                             `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                             `tfschema:"scm_minimum_tls_version"`
@@ -637,40 +637,40 @@ func SiteConfigSchemaLinuxFunctionAppSlot() *pluginsdk.Schema {
 	}
 }
 
-func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFunctionAppSlot, existing *web.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*web.SiteConfig, error) {
+func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFunctionAppSlot, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*webapps.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
-	expanded := &web.SiteConfig{}
+	expanded := &webapps.SiteConfig{}
 	if existing != nil {
 		expanded = existing
 		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
-		expanded.WindowsFxVersion = utils.String("")
+		expanded.WindowsFxVersion = pointer.To("")
 	}
 
-	appSettings := make([]web.NameValuePair, 0)
+	appSettings := make([]webapps.NameValuePair, 0)
 
-	appSettings = append(appSettings, web.NameValuePair{
-		Name:  utils.String("FUNCTIONS_EXTENSION_VERSION"),
-		Value: utils.String(version),
+	appSettings = append(appSettings, webapps.NameValuePair{
+		Name:  pointer.To("FUNCTIONS_EXTENSION_VERSION"),
+		Value: pointer.To(version),
 	})
 
 	if storageUsesMSI {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("AzureWebJobsStorage__accountName"),
-			Value: utils.String(storageString),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("AzureWebJobsStorage__accountName"),
+			Value: pointer.To(storageString),
 		})
 	} else {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("AzureWebJobsStorage"),
-			Value: utils.String(storageString),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("AzureWebJobsStorage"),
+			Value: pointer.To(storageString),
 		})
 	}
 
 	windowsSlotSiteConfig := siteConfig[0]
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-		v := strconv.Itoa(windowsSlotSiteConfig.HealthCheckEvictionTime)
+		v := strconv.Itoa(int(windowsSlotSiteConfig.HealthCheckEvictionTime))
 		if v == "0" || windowsSlotSiteConfig.HealthCheckPath == "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 		} else {
@@ -678,44 +678,44 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		}
 	}
 
-	expanded.AlwaysOn = utils.Bool(windowsSlotSiteConfig.AlwaysOn)
+	expanded.AlwaysOn = pointer.To(windowsSlotSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
-		expanded.AutoSwapSlotName = utils.String(windowsSlotSiteConfig.AutoSwapSlotName)
+		expanded.AutoSwapSlotName = pointer.To(windowsSlotSiteConfig.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_scale_limit") {
-		expanded.FunctionAppScaleLimit = utils.Int32(int32(windowsSlotSiteConfig.AppScaleLimit))
+		expanded.FunctionAppScaleLimit = pointer.To(windowsSlotSiteConfig.AppScaleLimit)
 	}
 
 	if windowsSlotSiteConfig.AppInsightsConnectionString != "" {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("APPLICATIONINSIGHTS_CONNECTION_STRING"),
-			Value: utils.String(windowsSlotSiteConfig.AppInsightsConnectionString),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("APPLICATIONINSIGHTS_CONNECTION_STRING"),
+			Value: pointer.To(windowsSlotSiteConfig.AppInsightsConnectionString),
 		})
 	}
 
 	if windowsSlotSiteConfig.AppInsightsInstrumentationKey != "" {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("APPINSIGHTS_INSTRUMENTATIONKEY"),
-			Value: utils.String(windowsSlotSiteConfig.AppInsightsInstrumentationKey),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("APPINSIGHTS_INSTRUMENTATIONKEY"),
+			Value: pointer.To(windowsSlotSiteConfig.AppInsightsInstrumentationKey),
 		})
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
-		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: utils.String(windowsSlotSiteConfig.ApiManagementConfigId),
+		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
+			Id: pointer.To(windowsSlotSiteConfig.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
-		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: utils.String(windowsSlotSiteConfig.ApiDefinition),
+		expanded.ApiDefinition = &webapps.ApiDefinitionInfo{
+			Url: pointer.To(windowsSlotSiteConfig.ApiDefinition),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
-		expanded.AppCommandLine = utils.String(windowsSlotSiteConfig.AppCommandLine)
+		expanded.AppCommandLine = pointer.To(windowsSlotSiteConfig.AppCommandLine)
 	}
 
 	if len(windowsSlotSiteConfig.ApplicationStack) > 0 {
@@ -746,20 +746,20 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 
 		if windowsAppStack.CustomHandler {
 			appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "custom", false)
-			expanded.WindowsFxVersion = utils.String("") // Custom needs an explicit empty string here
+			expanded.WindowsFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 	} else {
 		appSettings = updateOrAppendAppSettings(appSettings, "FUNCTIONS_WORKER_RUNTIME", "", true)
-		expanded.WindowsFxVersion = utils.String("")
+		expanded.WindowsFxVersion = pointer.To("")
 	}
 
-	expanded.VnetRouteAllEnabled = utils.Bool(windowsSlotSiteConfig.VnetRouteAllEnabled)
+	expanded.VnetRouteAllEnabled = pointer.To(windowsSlotSiteConfig.VnetRouteAllEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
 		expanded.DefaultDocuments = &windowsSlotSiteConfig.DefaultDocuments
 	}
 
-	expanded.HTTP20Enabled = utils.Bool(windowsSlotSiteConfig.Http2Enabled)
+	expanded.HTTP20Enabled = pointer.To(windowsSlotSiteConfig.Http2Enabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(windowsSlotSiteConfig.IpRestriction)
@@ -769,7 +769,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(windowsSlotSiteConfig.ScmUseMainIpRestriction)
+	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(windowsSlotSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(windowsSlotSiteConfig.ScmIpRestriction)
@@ -780,47 +780,47 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = web.SiteLoadBalancing(windowsSlotSiteConfig.LoadBalancing)
+		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(windowsSlotSiteConfig.LoadBalancing))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = web.ManagedPipelineMode(windowsSlotSiteConfig.ManagedPipelineMode)
+		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(windowsSlotSiteConfig.ManagedPipelineMode))
 	}
 
-	expanded.RemoteDebuggingEnabled = utils.Bool(windowsSlotSiteConfig.RemoteDebugging)
+	expanded.RemoteDebuggingEnabled = pointer.To(windowsSlotSiteConfig.RemoteDebugging)
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
-		expanded.RemoteDebuggingVersion = utils.String(windowsSlotSiteConfig.RemoteDebuggingVersion)
+		expanded.RemoteDebuggingVersion = pointer.To(windowsSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
-		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(windowsSlotSiteConfig.RuntimeScaleMonitoring)
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(windowsSlotSiteConfig.RuntimeScaleMonitoring)
 	}
 
-	expanded.Use32BitWorkerProcess = utils.Bool(windowsSlotSiteConfig.Use32BitWorker)
+	expanded.Use32BitWorkerProcess = pointer.To(windowsSlotSiteConfig.Use32BitWorker)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
-		expanded.WebSocketsEnabled = utils.Bool(windowsSlotSiteConfig.WebSockets)
+		expanded.WebSocketsEnabled = pointer.To(windowsSlotSiteConfig.WebSockets)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = web.FtpsState(windowsSlotSiteConfig.FtpsState)
+		expanded.FtpsState = pointer.To(webapps.FtpsState(windowsSlotSiteConfig.FtpsState))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		expanded.HealthCheckPath = utils.String(windowsSlotSiteConfig.HealthCheckPath)
+		expanded.HealthCheckPath = pointer.To(windowsSlotSiteConfig.HealthCheckPath)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = utils.Int32(int32(windowsSlotSiteConfig.NumberOfWorkers))
+		expanded.NumberOfWorkers = pointer.To(windowsSlotSiteConfig.NumberOfWorkers)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTLSVersion = web.SupportedTLSVersions(windowsSlotSiteConfig.MinTlsVersion)
+		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(windowsSlotSiteConfig.MinTlsVersion))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(windowsSlotSiteConfig.ScmMinTlsVersion)
+		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(windowsSlotSiteConfig.ScmMinTlsVersion))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
@@ -829,7 +829,7 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
-		expanded.PreWarmedInstanceCount = utils.Int32(int32(windowsSlotSiteConfig.PreWarmedInstanceCount))
+		expanded.PreWarmedInstanceCount = pointer.To(windowsSlotSiteConfig.PreWarmedInstanceCount)
 	}
 
 	expanded.AppSettings = &appSettings
@@ -837,45 +837,45 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 	return expanded, nil
 }
 
-func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
+func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.SiteConfig) (*SiteConfigWindowsFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
 
 	result := &SiteConfigWindowsFunctionAppSlot{
-		AlwaysOn:                utils.NormaliseNilableBool(functionAppSlotSiteConfig.AlwaysOn),
-		AppCommandLine:          utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
-		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
-		AutoSwapSlotName:        utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
+		AlwaysOn:                pointer.From(functionAppSlotSiteConfig.AlwaysOn),
+		AppCommandLine:          pointer.From(functionAppSlotSiteConfig.AppCommandLine),
+		AppScaleLimit:           pointer.From(functionAppSlotSiteConfig.FunctionAppScaleLimit),
+		AutoSwapSlotName:        pointer.From(functionAppSlotSiteConfig.AutoSwapSlotName),
 		Cors:                    FlattenCorsSettings(functionAppSlotSiteConfig.Cors),
-		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
-		HealthCheckPath:         utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
-		Http2Enabled:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
-		WindowsFxVersion:        utils.NormalizeNilableString(functionAppSlotSiteConfig.WindowsFxVersion),
-		LoadBalancing:           string(functionAppSlotSiteConfig.LoadBalancing),
-		ManagedPipelineMode:     string(functionAppSlotSiteConfig.ManagedPipelineMode),
-		NumberOfWorkers:         int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.NumberOfWorkers)),
-		ScmType:                 string(functionAppSlotSiteConfig.ScmType),
-		FtpsState:               string(functionAppSlotSiteConfig.FtpsState),
-		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:           string(functionAppSlotSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:        string(functionAppSlotSiteConfig.ScmMinTLSVersion),
-		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.PreWarmedInstanceCount)),
-		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.MinimumElasticInstanceCount)),
-		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSlotSiteConfig.Use32BitWorkerProcess),
-		WebSockets:              utils.NormaliseNilableBool(functionAppSlotSiteConfig.WebSocketsEnabled),
-		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSlotSiteConfig.VnetRouteAllEnabled),
+		DetailedErrorLogging:    pointer.From(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:         pointer.From(functionAppSlotSiteConfig.HealthCheckPath),
+		Http2Enabled:            pointer.From(functionAppSlotSiteConfig.HTTP20Enabled),
+		WindowsFxVersion:        pointer.From(functionAppSlotSiteConfig.WindowsFxVersion),
+		LoadBalancing:           string(pointer.From(functionAppSlotSiteConfig.LoadBalancing)),
+		ManagedPipelineMode:     string(pointer.From(functionAppSlotSiteConfig.ManagedPipelineMode)),
+		NumberOfWorkers:         pointer.From(functionAppSlotSiteConfig.NumberOfWorkers),
+		ScmType:                 string(pointer.From(functionAppSlotSiteConfig.ScmType)),
+		FtpsState:               string(pointer.From(functionAppSlotSiteConfig.FtpsState)),
+		RuntimeScaleMonitoring:  pointer.From(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:           string(pointer.From(functionAppSlotSiteConfig.MinTlsVersion)),
+		ScmMinTlsVersion:        string(pointer.From(functionAppSlotSiteConfig.ScmMinTlsVersion)),
+		PreWarmedInstanceCount:  pointer.From(functionAppSlotSiteConfig.PreWarmedInstanceCount),
+		ElasticInstanceMinimum:  pointer.From(functionAppSlotSiteConfig.MinimumElasticInstanceCount),
+		Use32BitWorker:          pointer.From(functionAppSlotSiteConfig.Use32BitWorkerProcess),
+		WebSockets:              pointer.From(functionAppSlotSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction: pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		RemoteDebugging:         pointer.From(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:     pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
 	}
 
-	if v := functionAppSlotSiteConfig.APIDefinition; v != nil && v.URL != nil {
-		result.ApiDefinition = *v.URL
+	if v := functionAppSlotSiteConfig.ApiDefinition; v != nil && v.Url != nil {
+		result.ApiDefinition = *v.Url
 	}
 
-	if v := functionAppSlotSiteConfig.APIManagementConfig; v != nil && v.ID != nil {
-		result.ApiManagementConfigId = *v.ID
+	if v := functionAppSlotSiteConfig.ApiManagementConfig; v != nil && v.Id != nil {
+		result.ApiManagementConfigId = *v.Id
 	}
 
 	if functionAppSlotSiteConfig.IPSecurityRestrictions != nil {
@@ -910,41 +910,41 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *web.Site
 	return result, nil
 }
 
-func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAppSlot, existing *web.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*web.SiteConfig, error) {
+func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAppSlot, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, version string, storageString string, storageUsesMSI bool) (*webapps.SiteConfig, error) {
 	if len(siteConfig) == 0 {
 		return nil, nil
 	}
 
-	expanded := &web.SiteConfig{}
+	expanded := &webapps.SiteConfig{}
 	if existing != nil {
 		expanded = existing
 		// need to zero fxversion to re-calculate based on changes below or removing app_stack doesn't apply
-		expanded.LinuxFxVersion = utils.String("")
+		expanded.LinuxFxVersion = pointer.To("")
 	}
 
-	appSettings := make([]web.NameValuePair, 0)
+	appSettings := make([]webapps.NameValuePair, 0)
 
-	appSettings = append(appSettings, web.NameValuePair{
-		Name:  utils.String("FUNCTIONS_EXTENSION_VERSION"),
-		Value: utils.String(version),
+	appSettings = append(appSettings, webapps.NameValuePair{
+		Name:  pointer.To("FUNCTIONS_EXTENSION_VERSION"),
+		Value: pointer.To(version),
 	})
 
 	if storageUsesMSI {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("AzureWebJobsStorage__accountName"),
-			Value: utils.String(storageString),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("AzureWebJobsStorage__accountName"),
+			Value: pointer.To(storageString),
 		})
 	} else {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("AzureWebJobsStorage"),
-			Value: utils.String(storageString),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("AzureWebJobsStorage"),
+			Value: pointer.To(storageString),
 		})
 	}
 
 	linuxSlotSiteConfig := siteConfig[0]
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-		v := strconv.Itoa(linuxSlotSiteConfig.HealthCheckEvictionTime)
+		v := strconv.Itoa(int(linuxSlotSiteConfig.HealthCheckEvictionTime))
 		if v == "0" || linuxSlotSiteConfig.HealthCheckPath == "" {
 			appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 		} else {
@@ -952,145 +952,145 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		}
 	}
 
-	expanded.AlwaysOn = utils.Bool(linuxSlotSiteConfig.AlwaysOn)
+	expanded.AlwaysOn = pointer.To(linuxSlotSiteConfig.AlwaysOn)
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_swap_slot_name") {
-		expanded.AutoSwapSlotName = utils.String(linuxSlotSiteConfig.AutoSwapSlotName)
+		expanded.AutoSwapSlotName = pointer.To(linuxSlotSiteConfig.AutoSwapSlotName)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_scale_limit") {
-		expanded.FunctionAppScaleLimit = utils.Int32(int32(linuxSlotSiteConfig.AppScaleLimit))
+		expanded.FunctionAppScaleLimit = pointer.To(linuxSlotSiteConfig.AppScaleLimit)
 	}
 
 	if linuxSlotSiteConfig.AppInsightsConnectionString != "" {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("APPLICATIONINSIGHTS_CONNECTION_STRING"),
-			Value: utils.String(linuxSlotSiteConfig.AppInsightsConnectionString),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("APPLICATIONINSIGHTS_CONNECTION_STRING"),
+			Value: pointer.To(linuxSlotSiteConfig.AppInsightsConnectionString),
 		})
 	}
 
 	if linuxSlotSiteConfig.AppInsightsInstrumentationKey != "" {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("APPINSIGHTS_INSTRUMENTATIONKEY"),
-			Value: utils.String(linuxSlotSiteConfig.AppInsightsInstrumentationKey),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("APPINSIGHTS_INSTRUMENTATIONKEY"),
+			Value: pointer.To(linuxSlotSiteConfig.AppInsightsInstrumentationKey),
 		})
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
-		expanded.APIManagementConfig = &web.APIManagementConfig{
-			ID: utils.String(linuxSlotSiteConfig.ApiManagementConfigId),
+		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
+			Id: pointer.To(linuxSlotSiteConfig.ApiManagementConfigId),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.api_definition_url") {
-		expanded.APIDefinition = &web.APIDefinitionInfo{
-			URL: utils.String(linuxSlotSiteConfig.ApiDefinition),
+		expanded.ApiDefinition = &webapps.ApiDefinitionInfo{
+			Url: pointer.To(linuxSlotSiteConfig.ApiDefinition),
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.app_command_line") {
-		expanded.AppCommandLine = utils.String(linuxSlotSiteConfig.AppCommandLine)
+		expanded.AppCommandLine = pointer.To(linuxSlotSiteConfig.AppCommandLine)
 	}
 
 	if len(linuxSlotSiteConfig.ApplicationStack) > 0 {
 		linuxAppStack := linuxSlotSiteConfig.ApplicationStack[0]
 		if linuxAppStack.DotNetVersion != "" {
 			if linuxAppStack.DotNetIsolated {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("dotnet-isolated"),
+				appSettings = append(appSettings, webapps.NameValuePair{
+					Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+					Value: pointer.To("dotnet-isolated"),
 				})
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET-ISOLATED|%s", linuxAppStack.DotNetVersion))
 			} else {
-				appSettings = append(appSettings, web.NameValuePair{
-					Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-					Value: utils.String("dotnet"),
+				appSettings = append(appSettings, webapps.NameValuePair{
+					Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+					Value: pointer.To("dotnet"),
 				})
-				expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
+				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOTNET|%s", linuxAppStack.DotNetVersion))
 			}
 		}
 
 		if linuxAppStack.NodeVersion != "" {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("node"),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+				Value: pointer.To("node"),
 			})
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("WEBSITE_NODE_DEFAULT_VERSION"),
-				Value: utils.String(linuxAppStack.NodeVersion),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("WEBSITE_NODE_DEFAULT_VERSION"),
+				Value: pointer.To(linuxAppStack.NodeVersion),
 			})
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("NODE|%s", linuxAppStack.NodeVersion))
 		}
 
 		if linuxAppStack.PythonVersion != "" {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("python"),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+				Value: pointer.To("python"),
 			})
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("Python|%s", linuxAppStack.PythonVersion))
 		}
 
 		if linuxAppStack.JavaVersion != "" {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("java"),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+				Value: pointer.To("java"),
 			})
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("Java|%s", linuxAppStack.JavaVersion))
 		}
 
 		if linuxAppStack.PowerShellCoreVersion != "" {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("powershell"),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+				Value: pointer.To("powershell"),
 			})
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("PowerShell|%s", linuxAppStack.PowerShellCoreVersion))
 		}
 
 		if linuxAppStack.CustomHandler {
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-				Value: utils.String("custom"),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+				Value: pointer.To("custom"),
 			})
-			expanded.LinuxFxVersion = utils.String("") // Custom needs an explicit empty string here
+			expanded.LinuxFxVersion = pointer.To("") // Custom needs an explicit empty string here
 		}
 
 		if linuxAppStack.Docker != nil && len(linuxAppStack.Docker) == 1 {
 			dockerConfig := linuxAppStack.Docker[0]
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("DOCKER_REGISTRY_SERVER_URL"),
-				Value: utils.String(dockerConfig.RegistryURL),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("DOCKER_REGISTRY_SERVER_URL"),
+				Value: pointer.To(dockerConfig.RegistryURL),
 			})
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("DOCKER_REGISTRY_SERVER_USERNAME"),
-				Value: utils.String(dockerConfig.RegistryUsername),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("DOCKER_REGISTRY_SERVER_USERNAME"),
+				Value: pointer.To(dockerConfig.RegistryUsername),
 			})
-			appSettings = append(appSettings, web.NameValuePair{
-				Name:  utils.String("DOCKER_REGISTRY_SERVER_PASSWORD"),
-				Value: utils.String(dockerConfig.RegistryPassword),
+			appSettings = append(appSettings, webapps.NameValuePair{
+				Name:  pointer.To("DOCKER_REGISTRY_SERVER_PASSWORD"),
+				Value: pointer.To(dockerConfig.RegistryPassword),
 			})
-			expanded.LinuxFxVersion = utils.String(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
+			expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", dockerConfig.RegistryURL, dockerConfig.ImageName, dockerConfig.ImageTag))
 		}
 	} else {
-		appSettings = append(appSettings, web.NameValuePair{
-			Name:  utils.String("FUNCTIONS_WORKER_RUNTIME"),
-			Value: utils.String(""),
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("FUNCTIONS_WORKER_RUNTIME"),
+			Value: pointer.To(""),
 		})
-		expanded.LinuxFxVersion = utils.String("")
+		expanded.LinuxFxVersion = pointer.To("")
 	}
 
-	expanded.AcrUseManagedIdentityCreds = utils.Bool(linuxSlotSiteConfig.UseManagedIdentityACR)
+	expanded.AcrUseManagedIdentityCreds = pointer.To(linuxSlotSiteConfig.UseManagedIdentityACR)
 
-	expanded.VnetRouteAllEnabled = utils.Bool(linuxSlotSiteConfig.VnetRouteAllEnabled)
+	expanded.VnetRouteAllEnabled = pointer.To(linuxSlotSiteConfig.VnetRouteAllEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.container_registry_managed_identity_client_id") {
-		expanded.AcrUserManagedIdentityID = utils.String(linuxSlotSiteConfig.ContainerRegistryMSI)
+		expanded.AcrUserManagedIdentityID = pointer.To(linuxSlotSiteConfig.ContainerRegistryMSI)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
 		expanded.DefaultDocuments = &linuxSlotSiteConfig.DefaultDocuments
 	}
 
-	expanded.HTTP20Enabled = utils.Bool(linuxSlotSiteConfig.Http2Enabled)
+	expanded.HTTP20Enabled = pointer.To(linuxSlotSiteConfig.Http2Enabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(linuxSlotSiteConfig.IpRestriction)
@@ -1100,7 +1100,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	expanded.ScmIPSecurityRestrictionsUseMain = utils.Bool(linuxSlotSiteConfig.ScmUseMainIpRestriction)
+	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(linuxSlotSiteConfig.ScmUseMainIpRestriction)
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(linuxSlotSiteConfig.ScmIpRestriction)
@@ -1111,47 +1111,47 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.load_balancing_mode") {
-		expanded.LoadBalancing = web.SiteLoadBalancing(linuxSlotSiteConfig.LoadBalancing)
+		expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(linuxSlotSiteConfig.LoadBalancing))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.managed_pipeline_mode") {
-		expanded.ManagedPipelineMode = web.ManagedPipelineMode(linuxSlotSiteConfig.ManagedPipelineMode)
+		expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(linuxSlotSiteConfig.ManagedPipelineMode))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_enabled") {
-		expanded.RemoteDebuggingEnabled = utils.Bool(linuxSlotSiteConfig.RemoteDebugging)
+		expanded.RemoteDebuggingEnabled = pointer.To(linuxSlotSiteConfig.RemoteDebugging)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.remote_debugging_version") {
-		expanded.RemoteDebuggingVersion = utils.String(linuxSlotSiteConfig.RemoteDebuggingVersion)
+		expanded.RemoteDebuggingVersion = pointer.To(linuxSlotSiteConfig.RemoteDebuggingVersion)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.runtime_scale_monitoring_enabled") {
-		expanded.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(linuxSlotSiteConfig.RuntimeScaleMonitoring)
+		expanded.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(linuxSlotSiteConfig.RuntimeScaleMonitoring)
 	}
 
-	expanded.Use32BitWorkerProcess = utils.Bool(linuxSlotSiteConfig.Use32BitWorker)
+	expanded.Use32BitWorkerProcess = pointer.To(linuxSlotSiteConfig.Use32BitWorker)
 
-	expanded.WebSocketsEnabled = utils.Bool(linuxSlotSiteConfig.WebSockets)
+	expanded.WebSocketsEnabled = pointer.To(linuxSlotSiteConfig.WebSockets)
 
 	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
-		expanded.FtpsState = web.FtpsState(linuxSlotSiteConfig.FtpsState)
+		expanded.FtpsState = pointer.To(webapps.FtpsState(linuxSlotSiteConfig.FtpsState))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
-		expanded.HealthCheckPath = utils.String(linuxSlotSiteConfig.HealthCheckPath)
+		expanded.HealthCheckPath = pointer.To(linuxSlotSiteConfig.HealthCheckPath)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
-		expanded.NumberOfWorkers = utils.Int32(int32(linuxSlotSiteConfig.WorkerCount))
+		expanded.NumberOfWorkers = pointer.To(linuxSlotSiteConfig.WorkerCount)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {
-		expanded.MinTLSVersion = web.SupportedTLSVersions(linuxSlotSiteConfig.MinTlsVersion)
+		expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(linuxSlotSiteConfig.MinTlsVersion))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_minimum_tls_version") {
-		expanded.ScmMinTLSVersion = web.SupportedTLSVersions(linuxSlotSiteConfig.ScmMinTlsVersion)
+		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(linuxSlotSiteConfig.ScmMinTlsVersion))
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
@@ -1160,7 +1160,7 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.pre_warmed_instance_count") {
-		expanded.PreWarmedInstanceCount = utils.Int32(int32(linuxSlotSiteConfig.PreWarmedInstanceCount))
+		expanded.PreWarmedInstanceCount = pointer.To(linuxSlotSiteConfig.PreWarmedInstanceCount)
 	}
 
 	expanded.AppSettings = &appSettings
@@ -1168,47 +1168,47 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	return expanded, nil
 }
 
-func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *web.SiteConfig) (*SiteConfigLinuxFunctionAppSlot, error) {
+func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.SiteConfig) (*SiteConfigLinuxFunctionAppSlot, error) {
 	if functionAppSlotSiteConfig == nil {
 		return nil, fmt.Errorf("flattening site config: SiteConfig was nil")
 	}
 
 	result := &SiteConfigLinuxFunctionAppSlot{
-		AlwaysOn:                utils.NormaliseNilableBool(functionAppSlotSiteConfig.AlwaysOn),
-		AppCommandLine:          utils.NormalizeNilableString(functionAppSlotSiteConfig.AppCommandLine),
-		AppScaleLimit:           int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.FunctionAppScaleLimit)),
-		AutoSwapSlotName:        utils.NormalizeNilableString(functionAppSlotSiteConfig.AutoSwapSlotName),
-		ContainerRegistryMSI:    utils.NormalizeNilableString(functionAppSlotSiteConfig.AcrUserManagedIdentityID),
+		AlwaysOn:                pointer.From(functionAppSlotSiteConfig.AlwaysOn),
+		AppCommandLine:          pointer.From(functionAppSlotSiteConfig.AppCommandLine),
+		AppScaleLimit:           pointer.From(functionAppSlotSiteConfig.FunctionAppScaleLimit),
+		AutoSwapSlotName:        pointer.From(functionAppSlotSiteConfig.AutoSwapSlotName),
+		ContainerRegistryMSI:    pointer.From(functionAppSlotSiteConfig.AcrUserManagedIdentityID),
 		Cors:                    FlattenCorsSettings(functionAppSlotSiteConfig.Cors),
-		DetailedErrorLogging:    utils.NormaliseNilableBool(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
-		HealthCheckPath:         utils.NormalizeNilableString(functionAppSlotSiteConfig.HealthCheckPath),
-		Http2Enabled:            utils.NormaliseNilableBool(functionAppSlotSiteConfig.HTTP20Enabled),
-		LinuxFxVersion:          utils.NormalizeNilableString(functionAppSlotSiteConfig.LinuxFxVersion),
-		LoadBalancing:           string(functionAppSlotSiteConfig.LoadBalancing),
-		ManagedPipelineMode:     string(functionAppSlotSiteConfig.ManagedPipelineMode),
-		WorkerCount:             int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.NumberOfWorkers)),
-		ScmType:                 string(functionAppSlotSiteConfig.ScmType),
-		FtpsState:               string(functionAppSlotSiteConfig.FtpsState),
-		RuntimeScaleMonitoring:  utils.NormaliseNilableBool(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
-		MinTlsVersion:           string(functionAppSlotSiteConfig.MinTLSVersion),
-		ScmMinTlsVersion:        string(functionAppSlotSiteConfig.ScmMinTLSVersion),
-		PreWarmedInstanceCount:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.PreWarmedInstanceCount)),
-		ElasticInstanceMinimum:  int(utils.NormaliseNilableInt32(functionAppSlotSiteConfig.MinimumElasticInstanceCount)),
-		Use32BitWorker:          utils.NormaliseNilableBool(functionAppSlotSiteConfig.Use32BitWorkerProcess),
-		WebSockets:              utils.NormaliseNilableBool(functionAppSlotSiteConfig.WebSocketsEnabled),
-		ScmUseMainIpRestriction: utils.NormaliseNilableBool(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
-		UseManagedIdentityACR:   utils.NormaliseNilableBool(functionAppSlotSiteConfig.AcrUseManagedIdentityCreds),
-		RemoteDebugging:         utils.NormaliseNilableBool(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
-		RemoteDebuggingVersion:  strings.ToUpper(utils.NormalizeNilableString(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
-		VnetRouteAllEnabled:     utils.NormaliseNilableBool(functionAppSlotSiteConfig.VnetRouteAllEnabled),
+		DetailedErrorLogging:    pointer.From(functionAppSlotSiteConfig.DetailedErrorLoggingEnabled),
+		HealthCheckPath:         pointer.From(functionAppSlotSiteConfig.HealthCheckPath),
+		Http2Enabled:            pointer.From(functionAppSlotSiteConfig.HTTP20Enabled),
+		LinuxFxVersion:          pointer.From(functionAppSlotSiteConfig.LinuxFxVersion),
+		LoadBalancing:           string(pointer.From(functionAppSlotSiteConfig.LoadBalancing)),
+		ManagedPipelineMode:     string(pointer.From(functionAppSlotSiteConfig.ManagedPipelineMode)),
+		WorkerCount:             pointer.From(functionAppSlotSiteConfig.NumberOfWorkers),
+		ScmType:                 string(pointer.From(functionAppSlotSiteConfig.ScmType)),
+		FtpsState:               string(pointer.From(functionAppSlotSiteConfig.FtpsState)),
+		RuntimeScaleMonitoring:  pointer.From(functionAppSlotSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
+		MinTlsVersion:           string(pointer.From(functionAppSlotSiteConfig.MinTlsVersion)),
+		ScmMinTlsVersion:        string(pointer.From(functionAppSlotSiteConfig.ScmMinTlsVersion)),
+		PreWarmedInstanceCount:  pointer.From(functionAppSlotSiteConfig.PreWarmedInstanceCount),
+		ElasticInstanceMinimum:  pointer.From(functionAppSlotSiteConfig.MinimumElasticInstanceCount),
+		Use32BitWorker:          pointer.From(functionAppSlotSiteConfig.Use32BitWorkerProcess),
+		WebSockets:              pointer.From(functionAppSlotSiteConfig.WebSocketsEnabled),
+		ScmUseMainIpRestriction: pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsUseMain),
+		UseManagedIdentityACR:   pointer.From(functionAppSlotSiteConfig.AcrUseManagedIdentityCreds),
+		RemoteDebugging:         pointer.From(functionAppSlotSiteConfig.RemoteDebuggingEnabled),
+		RemoteDebuggingVersion:  strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
+		VnetRouteAllEnabled:     pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
 	}
 
-	if v := functionAppSlotSiteConfig.APIDefinition; v != nil && v.URL != nil {
-		result.ApiDefinition = *v.URL
+	if v := functionAppSlotSiteConfig.ApiDefinition; v != nil && v.Url != nil {
+		result.ApiDefinition = *v.Url
 	}
 
-	if v := functionAppSlotSiteConfig.APIManagementConfig; v != nil && v.ID != nil {
-		result.ApiManagementConfigId = *v.ID
+	if v := functionAppSlotSiteConfig.ApiManagementConfig; v != nil && v.Id != nil {
+		result.ApiManagementConfigId = *v.Id
 	}
 
 	if functionAppSlotSiteConfig.IPSecurityRestrictions != nil {

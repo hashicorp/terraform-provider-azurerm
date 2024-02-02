@@ -63,9 +63,18 @@ func resourceBotChannelEmail() *pluginsdk.Resource {
 
 			"email_password": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"email_password", "magic_code"},
+			},
+
+			"magic_code": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"email_password", "magic_code"},
 			},
 		},
 	}
@@ -90,11 +99,10 @@ func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	channel := channel.BotChannel{
+	parameters := channel.BotChannel{
 		Properties: channel.EmailChannel{
 			Properties: &channel.EmailChannelProperties{
 				EmailAddress: d.Get("email_address").(string),
-				Password:     utils.String(d.Get("email_password").(string)),
 				IsEnabled:    true,
 			},
 		},
@@ -102,7 +110,19 @@ func resourceBotChannelEmailCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     pointer.To(channel.KindBot),
 	}
 
-	if _, err := client.Create(ctx, resourceId, channel); err != nil {
+	if v, ok := d.GetOk("email_password"); ok {
+		channelProps := parameters.Properties.(channel.EmailChannel)
+		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodZero)
+		channelProps.Properties.Password = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("magic_code"); ok {
+		channelProps := parameters.Properties.(channel.EmailChannel)
+		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodOne)
+		channelProps.Properties.MagicCode = utils.String(v.(string))
+	}
+
+	if _, err := client.Create(ctx, resourceId, parameters); err != nil {
 		return fmt.Errorf("creating Email Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroupName, err)
 	}
 
@@ -159,11 +179,10 @@ func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	channel := channel.BotChannel{
+	parameters := channel.BotChannel{
 		Properties: channel.EmailChannel{
 			Properties: &channel.EmailChannelProperties{
 				EmailAddress: d.Get("email_address").(string),
-				Password:     utils.String(d.Get("email_password").(string)),
 				IsEnabled:    true,
 			},
 		},
@@ -171,7 +190,19 @@ func resourceBotChannelEmailUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     pointer.To(channel.KindBot),
 	}
 
-	if _, err := client.Update(ctx, *id, channel); err != nil {
+	if v, ok := d.GetOk("email_password"); ok {
+		channelProps := parameters.Properties.(channel.EmailChannel)
+		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodZero)
+		channelProps.Properties.Password = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("magic_code"); ok {
+		channelProps := parameters.Properties.(channel.EmailChannel)
+		channelProps.Properties.AuthMethod = pointer.To(channel.EmailChannelAuthMethodOne)
+		channelProps.Properties.MagicCode = utils.String(v.(string))
+	}
+
+	if _, err := client.Update(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating Email Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroupName, id.BotServiceName, err)
 	}
 
