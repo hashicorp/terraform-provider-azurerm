@@ -86,5 +86,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Kubernetes Fleet Update Strategies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kubernetes_fleet_update_strategy.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/ContainerService/fleets/fleet1/updateStrategies/updateStrategy1
+terraform import azurerm_kubernetes_fleet_update_strategy.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/fleets/fleet1/updateStrategies/updateStrategy1
 ```
