@@ -33,9 +33,9 @@ ENHANCEMENTS:
 * Data Source: `azurerm_stream_analytics_job` - support for User Assigned Identities [GH-24738]
 * `azurerm_cosmosdb_account` - support for the `gremlin_database` and `tables_to_restore` properties [GH-24627]
 * `azurerm_bot_channel_email` - support for the `magic_code` property [GH-23129]
-* `azurerm_cosmosdb_account` - support new property `partition_merge_enabled` [GH-24615]
-* `azurerm_mssql_managed_database` - support for the immutable_backups_enabled property [GH-24745]
-* `azurerm_mssql_database` - support for the immutable_backups_enabled property [GH-24745]
+* `azurerm_cosmosdb_account` - support for the `partition_merge_enabled` property [GH-24615]
+* `azurerm_mssql_managed_database` - support for the `immutable_backups_enabled` property [GH-24745]
+* `azurerm_mssql_database` - support for the `immutable_backups_enabled` property [GH-24745]
 * `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` - support for the `trusted_address_ranges` property [GH-24459]
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack` - support for the `trusted_address_ranges` property [GH-24459]
 * `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama` - support for the `trusted_address_ranges` property [GH-24459]
@@ -53,9 +53,9 @@ BUG FIXES:
 * `azurerm_app_configuration` - no longer require `lifecycle_ignore_changes` for the `value` property when using a key vault reference [GH-24702]
 * `azurerm_app_service_managed_certificate` - fix casing issue in `app_service_plan_id` by parsing insensitively [GH-24664]
 * `azurerm_cognitive_deployment` - updates now include the `version` property [GH-24700]
-* `azurerm_dns_cname_record` - fix casing issue in `target_resource_id` by parsing the ID insensitively
-* `azurerm_mssql_managed_instance_failover_group` - fixed issue when trying to create a failover group with a managed instance from a different subscription [GH-24646]
-* `azurerm_storage_account` - conditionally update properties only if needed [GH-24669]
+* `azurerm_dns_cname_record` - prevent casing issue in `target_resource_id` by parsing the ID insensitively [GH-24181]
+* `azurerm_mssql_managed_instance_failover_group` - prevent an issue when trying to create a failover group with a managed instance from a different subscription [GH-24646]
+* `azurerm_storage_account` - conditionally update properties only when needed [GH-24669]
 * `azurerm_storage_account` - change update order for `access_tier`to prevent errors when uploading blobs to the archive tier [GH-22250]
 
 ## 3.89.0 (January 25, 2024)
