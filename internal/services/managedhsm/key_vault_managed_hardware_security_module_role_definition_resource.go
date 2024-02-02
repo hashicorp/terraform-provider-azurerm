@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package keyvault
+package managedhsm
 
 import (
 	"context"
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -158,7 +158,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.KeyVault.MHSMRoleClient
+			client := meta.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
 
 			var model KeyVaultMHSMRoleDefinitionModel
 			if err = meta.Decode(&model); err != nil {
@@ -170,7 +170,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 			locks.ByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 
-			id, err := parse.NewMHSMNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
+			id, err := parse.NewNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
 			if err != nil {
 				return err
 			}
@@ -207,7 +207,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			// import has no model data but only id
-			id, err := parse.MHSMNestedItemID(meta.ResourceData.Id())
+			id, err := parse.NestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -217,7 +217,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := meta.Client.KeyVault.MHSMRoleClient
+			client := meta.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
 			result, err := client.Get(ctx, id.VaultBaseUrl, id.Scope, id.Name)
 			if err != nil {
 				if response.WasNotFound(result.Response.Response) {
@@ -251,14 +251,14 @@ func (k KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: time.Minute * 10,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.KeyVault.MHSMRoleClient
+			client := meta.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
 
 			var model KeyVaultMHSMRoleDefinitionModel
 			if err = meta.Decode(&model); err != nil {
 				return err
 			}
 
-			id, err := parse.NewMHSMNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
+			id, err := parse.NewNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
 			if err != nil {
 				return err
 			}
@@ -297,7 +297,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := parse.MHSMNestedItemID(meta.ResourceData.Id())
+			id, err := parse.NestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -305,7 +305,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 
 			locks.ByName(id.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(id.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
-			if _, err = meta.Client.KeyVault.MHSMRoleClient.Delete(ctx, id.VaultBaseUrl, id.Scope, id.Name); err != nil {
+			if _, err = meta.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient.Delete(ctx, id.VaultBaseUrl, id.Scope, id.Name); err != nil {
 				return fmt.Errorf("deleting %+v: %v", id, err)
 			}
 			return nil
@@ -314,7 +314,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 }
 
 func (k KeyVaultMHSMRoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.MHSMNestedItemId
+	return validate.NestedItemId
 }
 
 func expandKeyVaultMHSMRolePermissions(perms []Permission) *[]keyvault.Permission {

@@ -200,7 +200,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   identity {
     type = "SystemAssigned"
   }
-
+  soft_delete_setting = "Off"
   tags = {
     ENV = "Test"
   }

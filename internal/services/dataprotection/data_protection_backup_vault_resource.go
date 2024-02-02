@@ -72,6 +72,13 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
+			"soft_delete_setting": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      backupvaults.SoftDeleteStateOn,
+				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForSoftDeleteState(), false),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -144,6 +151,11 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 					Type:          &storageSettingType,
 				},
 			},
+			SecuritySettings: &backupvaults.SecuritySettings{
+				SoftDeleteSettings: &backupvaults.SoftDeleteSettings{
+					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete_setting").(string))),
+				},
+			},
 		},
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
@@ -185,6 +197,11 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {
 			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
+		}
+		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
+			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
+				d.Set("soft_delete_setting", string(pointer.From(softDelete.State)))
+			}
 		}
 
 		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {

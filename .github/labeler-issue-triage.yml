@@ -175,7 +175,7 @@ service/iot-time-series:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iot_time_series_insights_((.|\n)*)###'
 
 service/key-vault:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_key_vault((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(key_vault\W+|key_vault_access_policy\W+|key_vault_certificate\W+|key_vault_certificate_contacts\W+|key_vault_certificate_data\W+|key_vault_certificate_issuer\W+|key_vault_certificates\W+|key_vault_encrypted_value\W+|key_vault_key\W+|key_vault_managed_storage_account\W+|key_vault_managed_storage_account_sas_token_definition\W+|key_vault_secret\W+|key_vault_secrets\W+)((.|\n)*)###'
 
 service/kusto:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_kusto_((.|\n)*)###'
@@ -209,6 +209,9 @@ service/maintenance:
 
 service/managed-apps:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_application((.|\n)*)###'
+
+service/managed-hsm:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_key_vault_managed_hardware_security_module((.|\n)*)###'
 
 service/management-groups:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(management_group\W+|management_group_subscription_association\W+)((.|\n)*)###'

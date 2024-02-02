@@ -47,6 +47,10 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `soft_delete_setting` - (Optional) The state of soft delete for this Backup Vault. Possible values are `AlwaysOn`, `Off` and `On`. Defaults to `On`.
+
+-> **Note:** Once the `soft_delete_setting` is set to `AlwaysOn`, the setting cannot be changed.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Backup Vault.
 
 ---
