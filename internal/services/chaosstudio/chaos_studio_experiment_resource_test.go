@@ -261,7 +261,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
   }
 
   selectors {
-	name = "Selector1"
+    name                    = "Selector1"
     chaos_studio_target_ids = [azurerm_chaos_studio_target.test.id]
   }
 
@@ -270,18 +270,16 @@ resource "azurerm_chaos_studio_experiment" "test" {
     branch {
       name = "acctestcse-${var.random_string}"
       actions {
-        discrete {
-          urn = azurerm_chaos_studio_capability.test.urn
-          selector = "Selector1"
-		  parameters = { 
-			jsonSpec = "{\"action\":\"delay\",\"mode\":\"one\",\"selector\":{\"namespaces\":[\"default\"]},\"delay\":{\"latency\":\"200ms\",\"correlation\":\"100\",\"jitter\":\"0ms\"}}}"
-		  }
+        urn      = azurerm_chaos_studio_capability.test.urn
+        selector = "Selector1"
+        parameters = {
+          jsonSpec = "{\"action\":\"delay\",\"mode\":\"one\",\"selector\":{\"namespaces\":[\"default\"]},\"delay\":{\"latency\":\"200ms\",\"correlation\":\"100\",\"jitter\":\"0ms\"}}}"
         }
-		delay {
-		  duration = "PT10M"
-        }
+        action_type = "discrete"
       }
-    }
+      actions {
+        duration    = "PT10M"
+        action_type = "delay"
       }
     }
   }
