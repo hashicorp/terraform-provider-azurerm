@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleetmembers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
@@ -28,6 +29,7 @@ type Client struct {
 	ContainerRegistryClient_v2021_08_01_preview *containerregistry_v2021_08_01_preview.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
+	FleetMembersClient                          *fleetmembers.FleetMembersClient
 	FleetUpdateStrategiesClient                 *fleetupdatestrategies.FleetUpdateStrategiesClient
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
 	KubernetesExtensionsClient                  *extensions.ExtensionsClient
@@ -57,6 +59,9 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	// AKS
+	fleetMembersClient := fleetmembers.NewFleetMembersClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&fleetMembersClient.Client, o.ResourceManagerAuthorizer)
+
 	fleetUpdateStrategiesClient := fleetupdatestrategies.NewFleetUpdateStrategiesClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&fleetUpdateStrategiesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -92,6 +97,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		ContainerInstanceClient:                     &containerInstanceClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
+		FleetMembersClient:                          &fleetMembersClient,
 		FleetUpdateStrategiesClient:                 &fleetUpdateStrategiesClient,
 		KubernetesClustersClient:                    &kubernetesClustersClient,
 		KubernetesExtensionsClient:                  kubernetesExtensionsClient,
