@@ -653,9 +653,9 @@ resource "azurerm_virtual_machine" "test" {
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    publisher = "OpenLogic"
-    offer     = "CentOS"
-    sku       = "7.5"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts"
     version   = "latest"
   }
 
