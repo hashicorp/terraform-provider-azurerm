@@ -149,6 +149,20 @@ func TestAccServicePlan_maxElasticWorkerCount(t *testing.T) {
 	})
 }
 
+func TestAccServicePlan_premiumElasticScaling(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumElasticScale(data, 5, "P1v3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccServicePlan_memoryOptimized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 	r := ServicePlanResource{}
@@ -389,6 +403,34 @@ resource "azurerm_service_plan" "test" {
   sku_name                     = "%[3]s"
   os_type                      = "Linux"
   maximum_elastic_worker_count = %[4]d
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, sku, count)
+}
+
+func (r ServicePlanResource) premiumElasticScale(data acceptance.TestData, count int, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                                 = "acctest-SP-%[1]d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  sku_name                             = "%[3]s"
+  os_type                              = "Linux"
+  premium_site_elastic_scaling_enabled = true
+  maximum_elastic_worker_count         = %[4]d
 
   tags = {
     environment = "AccTest"

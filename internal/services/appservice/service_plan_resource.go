@@ -199,7 +199,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 			}
 
 			if servicePlan.MaximumElasticWorkerCount > 0 {
-				if !isServicePlanSupportScaleOut(servicePlan.Sku) || (helpers.PlanIsPremiumV2AndV3(servicePlan.Sku) && servicePlan.PremiumElasticScaling) {
+				if !isServicePlanSupportScaleOut(servicePlan.Sku) && (helpers.PlanIsPremiumV2AndV3(servicePlan.Sku) && !servicePlan.PremiumElasticScaling) {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or Premium V2 and V3 plan with `premium_site_elastic_scaling_enabled` set to true")
 				}
 				if helpers.PlanIsPremiumV2AndV3(servicePlan.Sku) {
