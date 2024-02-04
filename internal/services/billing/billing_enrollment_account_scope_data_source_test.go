@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type BillingEnrollmentAccountDataSource struct{}
+type BillingEnrollmentAccountScopeDataSource struct{}
 
-func TestAccBillingEnrollmentAccountDataSource_basic(t *testing.T) {
+func TestAccBillingEnrollmentAccountScopeDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_billing_enrollment_account_scope", "test")
 
-	r := BillingEnrollmentAccountDataSource{}
+	r := BillingEnrollmentAccountScopeDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -27,7 +27,7 @@ func TestAccBillingEnrollmentAccountDataSource_basic(t *testing.T) {
 	})
 }
 
-func (BillingEnrollmentAccountDataSource) basic() string {
+func (BillingEnrollmentAccountScopeDataSource) basic() string {
 	return `
 provider "azurerm" {
   features {}
