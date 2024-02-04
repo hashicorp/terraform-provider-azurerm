@@ -991,7 +991,7 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		Delay:                     1 * time.Minute,
 		PollInterval:              1 * time.Minute,
 		Timeout:                   time.Until(timeout),
-		ContinuousTargetOccurence: 5,
+		ContinuousTargetOccurence: 12,
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
