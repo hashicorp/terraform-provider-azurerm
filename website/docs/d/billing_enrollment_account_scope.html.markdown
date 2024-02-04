@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing Enrollment Account Billing Scope.
 
+!> **Note:** The `azurerm_billing_enrollment_account_scope` data source is deprecated and will be removed in version 4.0 of the AzureRM Provider. Please use the [`azurerm_billing_enrollment_account`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/billing_enrollment_account) data source instead.
+
 ## Example Usage
 
 ```hcl
@@ -27,18 +29,18 @@ output "id" {
 
 The following arguments are supported:
 
-* `billing_account_name` - (Required) The Billing Account Name of the Enterprise Account.
+- `billing_account_name` - (Required) The Billing Account Name of the Enterprise Account.
 
-* `enrollment_account_name` - (Required) The Enrollment Account Name in the above Enterprise Account.
+- `enrollment_account_name` - (Required) The Enrollment Account Name in the above Enterprise Account.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Enrollment Account Billing Scope.
+- `id` - The ID of the Enrollment Account Billing Scope.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Enrollment Account Billing Scope.
+- `read` - (Defaults to 5 minutes) Used when retrieving the Enrollment Account Billing Scope.

@@ -15,6 +15,8 @@ func dataSourceBillingEnrollmentAccountScope() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceBillingEnrollemntAccountRead,
 
+		DeprecationMessage: "The `azurerm_billing_enrollment_account_scope` data source is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use the `azurerm_billing_enrollment_account` data source instead.",
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
 		},
