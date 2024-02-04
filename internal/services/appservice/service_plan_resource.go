@@ -49,6 +49,7 @@ type ServicePlanModel struct {
 	Sku                       string            `tfschema:"sku_name"`
 	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
 	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
+	PremiumElasticScaling     bool              `tfschema:"premium_site_elastic_scaling_enabled"`
 	Reserved                  bool              `tfschema:"reserved"`
 	WorkerCount               int               `tfschema:"worker_count"`
 	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
@@ -95,6 +96,12 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"per_site_scaling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"premium_site_elastic_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -192,8 +199,11 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 			}
 
 			if servicePlan.MaximumElasticWorkerCount > 0 {
-				if !isServicePlanSupportScaleOut(servicePlan.Sku) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
+				if !isServicePlanSupportScaleOut(servicePlan.Sku) || (helpers.PlanIsPremiumV2AndV3(servicePlan.Sku) && servicePlan.PremiumElasticScaling) {
+					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or Premium V2 and V3 plan with `premium_site_elastic_scaling_enabled` set to true")
+				}
+				if helpers.PlanIsPremiumV2AndV3(servicePlan.Sku) {
+					appServicePlan.Properties.ElasticScaleEnabled = pointer.To(servicePlan.PremiumElasticScaling)
 				}
 				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(int64(servicePlan.MaximumElasticWorkerCount))
 			}
@@ -271,6 +281,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 					state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
 
 					state.MaximumElasticWorkerCount = int(pointer.From(props.MaximumElasticWorkerCount))
+					state.PremiumElasticScaling = pointer.From(props.ElasticScaleEnabled)
 				}
 				state.Tags = pointer.From(model.Tags)
 			}
@@ -345,10 +356,17 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
-				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !isServicePlanSupportScaleOut(state.Sku) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
+				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && (!isServicePlanSupportScaleOut(state.Sku) || helpers.PlanIsPremiumV2AndV3(state.Sku) && !state.PremiumElasticScaling) {
+					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or Premium v2, v3 with `premium_site_elastic_scaling_enabled` set to true")
 				}
 				model.Properties.MaximumElasticWorkerCount = pointer.To(int64(state.MaximumElasticWorkerCount))
+			}
+
+			if metadata.ResourceData.HasChange("premium_site_elastic_scaling_enabled") {
+				if state.PremiumElasticScaling && (!isServicePlanSupportScaleOut(state.Sku) || !helpers.PlanIsPremiumV2AndV3(state.Sku)) {
+					return fmt.Errorf("`premium_site_elastic_scaling_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus")
+				}
+				model.Properties.ElasticScaleEnabled = pointer.To(state.PremiumElasticScaling)
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
