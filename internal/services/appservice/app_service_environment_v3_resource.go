@@ -284,7 +284,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 			}
 
 			envelope := appserviceenvironments.AppServiceEnvironmentResource{
-				Kind:     utils.String(KindASEV3),
+				Kind:     pointer.To(KindASEV3),
 				Location: location.Normalize(vnetLoc),
 				Properties: &appserviceenvironments.AppServiceEnvironment{
 					DedicatedHostCount:        pointer.To(model.DedicatedHostCount),
@@ -293,7 +293,7 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 					VirtualNetwork: appserviceenvironments.VirtualNetworkProfile{
 						Id: model.SubnetId,
 					},
-					ZoneRedundant: utils.Bool(model.ZoneRedundant),
+					ZoneRedundant: pointer.To(model.ZoneRedundant),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -302,14 +302,35 @@ func (r AppServiceEnvironmentV3Resource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// Networking config cannot be sent in the initial create and must be updated post-creation.
 			aseNetworkConfig := appserviceenvironments.AseV3NetworkingConfiguration{
 				Properties: &appserviceenvironments.AseV3NetworkingConfigurationProperties{
 					AllowNewPrivateEndpointConnections: pointer.To(model.AllowNewPrivateEndpointConnections),
 					RemoteDebugEnabled:                 pointer.To(model.RemoteDebuggingEnabled),
 				},
 			}
+
 			if _, err := client.UpdateAseNetworkingConfiguration(ctx, id, aseNetworkConfig); err != nil {
 				return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
+			}
+
+			// Updating Network Config returns quickly, but is actually async on some properties.
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("the Network Configuration Update request context had no deadline")
+			}
+
+			updateWait := &pluginsdk.StateChangeConf{
+				Pending:      []string{"Pending"},
+				Target:       []string{"Succeeded"},
+				PollInterval: 10 * time.Second,
+				Delay:        10 * time.Second,
+				Timeout:      time.Until(deadline),
+				Refresh:      checkNetworkConfigUpdate(ctx, client, id, *aseNetworkConfig.Properties),
+			}
+
+			if _, err := updateWait.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for Network Update for %s to complete: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -461,8 +482,27 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("setting Allow New Private Endpoint Connections on %s: %+v", id, err)
 			}
 
+			// Updating Network Config returns quickly, but is actually async on some properties. e.g. `RemoteDebuggingEnabled`
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("the Network Configuration Update request context had no deadline")
+			}
+
+			updateWait := &pluginsdk.StateChangeConf{
+				Pending:      []string{"Pending"},
+				Target:       []string{"Succeeded"},
+				PollInterval: 10 * time.Second,
+				Delay:        10 * time.Second,
+				Timeout:      time.Until(deadline),
+				Refresh:      checkNetworkConfigUpdate(ctx, client, *id, *aseNetworkConfig.Properties),
+			}
+
+			if _, err := updateWait.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for Network Update for %s to complete: %+v", *id, err)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -531,4 +571,27 @@ func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceen
 	}
 
 	return &results, nil
+}
+
+func checkNetworkConfigUpdate(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id commonids.AppServiceEnvironmentId, values appserviceenvironments.AseV3NetworkingConfigurationProperties) pluginsdk.StateRefreshFunc {
+	return func() (result interface{}, state string, err error) {
+		resp, err := client.GetAseV3NetworkingConfiguration(ctx, id)
+		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
+			return nil, "", err
+		}
+
+		props := *resp.Model.Properties
+
+		debugEnabledReq := pointer.From(values.RemoteDebugEnabled)
+		newPECReq := pointer.From(values.AllowNewPrivateEndpointConnections)
+
+		debugEnableResp := pointer.From(props.RemoteDebugEnabled)
+		newPECResp := pointer.From(props.AllowNewPrivateEndpointConnections)
+
+		if debugEnableResp != debugEnabledReq || newPECResp != newPECReq {
+			return props, "Pending", nil
+		}
+
+		return props, "Succeeded", nil
+	}
 }
