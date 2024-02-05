@@ -107,6 +107,35 @@ func TestAccChaosStudioExperiment_exampleAKS(t *testing.T) {
 	})
 }
 
+func TestAccChaosStudioExperiment_multipleSelectors(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_chaos_studio_experiment", "test")
+	r := ChaosStudioExperimentTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleSelectors(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ChaosStudioExperimentTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := experiments.ParseExperimentID(state.ID)
 	if err != nil {
@@ -246,6 +275,55 @@ func (r ChaosStudioExperimentTestResource) exampleAKS(data acceptance.TestData) 
 	return fmt.Sprintf(`
 %s
 
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_chaos_studio_experiment" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestcse-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  selectors {
+    name                    = "Selector1"
+    chaos_studio_target_ids = [azurerm_chaos_studio_target.aks.id]
+  }
+
+  steps {
+    name = "acctestcse-${var.random_string}"
+    branch {
+      name = "acctestcse-${var.random_string}"
+      actions {
+        urn      = azurerm_chaos_studio_capability.network.urn
+        selector_name = "Selector1"
+        parameters = {
+          jsonSpec = "{\"action\":\"delay\",\"mode\":\"one\",\"selector\":{\"namespaces\":[\"default\"]},\"delay\":{\"latency\":\"200ms\",\"correlation\":\"100\",\"jitter\":\"0ms\"}}}"
+        }
+        action_type = "discrete"
+      }
+      actions {
+        duration    = "PT10M"
+        action_type = "delay"
+      }
+    }
+  }
+}
+`, r.templateBase(data), r.templateAKS(data))
+}
+
+func (r ChaosStudioExperimentTestResource) multipleSelectors(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+%s
+
 provider "azurerm" {
   features {}
 }
@@ -264,52 +342,49 @@ resource "azurerm_chaos_studio_experiment" "test" {
     name                    = "Selector1"
     chaos_studio_target_ids = [azurerm_chaos_studio_target.test.id]
   }
+  selectors {
+    name                    = "Selector2"
+    chaos_studio_target_ids = [azurerm_chaos_studio_target.aks.id]
+  }
 
   steps {
     name = "acctestcse-${var.random_string}"
     branch {
       name = "acctestcse-${var.random_string}"
       actions {
-        urn      = azurerm_chaos_studio_capability.test.urn
-        selector = "Selector1"
+        urn           = azurerm_chaos_studio_capability.test.urn
+        selector_name = "Selector1"
         parameters = {
+          abruptShutdown = "false"
+        }
+        action_type = "continuous"
+        duration    = "PT10M"
+      }
+      actions {
+        urn           = azurerm_chaos_studio_capability.test2.urn
+        selector_name = "Selector1"
+        action_type   = "discrete"
+      }
+    }
+	branch {
+	  name = "acctestcse-aks${var.random_string}"
+ 	  actions {
+		urn = azurerm_chaos_studio_capability.network.urn
+		selector_name = "Selector2"
+		parameters = {
           jsonSpec = "{\"action\":\"delay\",\"mode\":\"one\",\"selector\":{\"namespaces\":[\"default\"]},\"delay\":{\"latency\":\"200ms\",\"correlation\":\"100\",\"jitter\":\"0ms\"}}}"
         }
         action_type = "discrete"
-      }
-      actions {
-        duration    = "PT10M"
-        action_type = "delay"
-      }
-    }
+	  }
+	}
   }
 }
-`, r.templateAKS(data))
+`, r.templateVM(data), r.templateAKS(data))
 }
 
 func (r ChaosStudioExperimentTestResource) templateVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "primary_location" {
-  default = %q
-}
-variable "random_integer" {
-  default = %d
-}
-variable "random_string" {
-  default = %q
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-${var.random_integer}"
-  location = var.primary_location
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  name = "acctests${var.random_string}"
-}
+%s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-${var.random_integer}"
@@ -379,10 +454,48 @@ resource "azurerm_chaos_studio_capability" "test2" {
   chaos_studio_target_id = azurerm_chaos_studio_target.test.id
   capability_type        = "Redeploy-1.0"
 }
-`, data.Locations.Primary, data.RandomInteger, data.RandomString)
+`, r.templateBase(data))
 }
 
 func (r ChaosStudioExperimentTestResource) templateAKS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks${var.random_string}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks${var.random_string}"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_chaos_studio_target" "aks" {
+  location           = azurerm_resource_group.test.location
+  target_resource_id = azurerm_kubernetes_cluster.test.id
+  target_type        = "Microsoft-AzureKubernetesServiceChaosMesh"
+}
+
+resource "azurerm_chaos_studio_capability" "network" {
+  chaos_studio_target_id = azurerm_chaos_studio_target.aks.id
+  capability_type        = "NetworkChaos-2.0"
+}
+
+resource "azurerm_chaos_studio_capability" "pod" {
+  chaos_studio_target_id = azurerm_chaos_studio_target.aks.id
+  capability_type        = "PodChaos-2.1"
+}
+
+`)
+}
+
+func (r ChaosStudioExperimentTestResource) templateBase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q
@@ -405,39 +518,5 @@ resource "azurerm_user_assigned_identity" "test" {
 
   name = "acctests${var.random_string}"
 }
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks${var.random_string}"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks${var.random_string}"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_chaos_studio_target" "test" {
-  location           = azurerm_resource_group.test.location
-  target_resource_id = azurerm_kubernetes_cluster.test.id
-  target_type        = "Microsoft-AzureKubernetesServiceChaosMesh"
-}
-
-resource "azurerm_chaos_studio_capability" "test" {
-  chaos_studio_target_id = azurerm_chaos_studio_target.test.id
-  capability_type        = "NetworkChaos-2.0"
-}
-
-resource "azurerm_chaos_studio_capability" "test2" {
-  chaos_studio_target_id = azurerm_chaos_studio_target.test.id
-  capability_type        = "PodChaos-2.1"
-}
-
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
