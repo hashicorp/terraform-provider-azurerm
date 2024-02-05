@@ -6,8 +6,6 @@ package chaosstudio
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/custompollers"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/experiments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/targets"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -494,7 +494,7 @@ func expandActions(input []ActionSchema) (*[]experiments.Action, error) {
 func flattenSelector(input []experiments.Selector) (*[]SelectorSchema, error) {
 	output := make([]SelectorSchema, 0)
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &output, nil
 	}
 
@@ -519,7 +519,7 @@ func flattenSelector(input []experiments.Selector) (*[]SelectorSchema, error) {
 func flattenSteps(input []experiments.Step) (*[]StepSchema, error) {
 	output := make([]StepSchema, 0)
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &output, nil
 	}
 
@@ -547,16 +547,15 @@ func flattenSteps(input []experiments.Step) (*[]StepSchema, error) {
 func flattenActions(input []experiments.Action) (*[]ActionSchema, error) {
 	output := make([]ActionSchema, 0)
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &output, nil
 	}
 
 	for _, action := range input {
 		actionOutput := ActionSchema{}
 
-		switch action.(type) {
+		switch a := action.(type) {
 		case experiments.ContinuousAction:
-			a, _ := action.(experiments.ContinuousAction)
 			parameters := make(map[string]string)
 			for _, p := range a.Parameters {
 				parameters[p.Key] = p.Value
@@ -567,11 +566,9 @@ func flattenActions(input []experiments.Action) (*[]ActionSchema, error) {
 			actionOutput.Duration = a.Duration
 			actionOutput.ActionType = continuousActionType
 		case experiments.DelayAction:
-			a, _ := action.(experiments.DelayAction)
 			actionOutput.Duration = a.Duration
 			actionOutput.ActionType = delayActionType
 		case experiments.DiscreteAction:
-			a, _ := action.(experiments.DiscreteAction)
 			parameters := make(map[string]string)
 			for _, p := range a.Parameters {
 				parameters[p.Key] = p.Value

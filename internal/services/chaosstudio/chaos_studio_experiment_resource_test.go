@@ -315,7 +315,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
     }
   }
 }
-`, r.templateBase(data), r.templateAKS(data))
+`, r.templateBase(data), r.templateAKS())
 }
 
 func (r ChaosStudioExperimentTestResource) multipleSelectors(data acceptance.TestData) string {
@@ -379,7 +379,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
     }
   }
 }
-`, r.templateVM(data), r.templateAKS(data))
+`, r.templateVM(data), r.templateAKS())
 }
 
 func (r ChaosStudioExperimentTestResource) templateVM(data acceptance.TestData) string {
@@ -457,8 +457,8 @@ resource "azurerm_chaos_studio_capability" "test2" {
 `, r.templateBase(data))
 }
 
-func (r ChaosStudioExperimentTestResource) templateAKS(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (r ChaosStudioExperimentTestResource) templateAKS() string {
+	return `
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks${var.random_string}"
   location            = azurerm_resource_group.test.location
@@ -491,8 +491,7 @@ resource "azurerm_chaos_studio_capability" "pod" {
   chaos_studio_target_id = azurerm_chaos_studio_target.aks.id
   capability_type        = "PodChaos-2.1"
 }
-
-`)
+`
 }
 
 func (r ChaosStudioExperimentTestResource) templateBase(data acceptance.TestData) string {
