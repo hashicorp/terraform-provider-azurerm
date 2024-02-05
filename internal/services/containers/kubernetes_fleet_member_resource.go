@@ -94,8 +94,11 @@ func (r KubernetesFleetMemberResource) Create() sdk.ResourceFunc {
 			payload := fleetmembers.FleetMember{
 				Properties: &fleetmembers.FleetMemberProperties{
 					ClusterResourceId: config.KubernetesClusterId,
-					Group:             pointer.To(config.Group),
 				},
+			}
+
+			if config.Group != "" {
+				payload.Properties.Group = pointer.To(config.Group)
 			}
 
 			if err := client.CreateThenPoll(ctx, id, payload, fleetmembers.DefaultCreateOperationOptions()); err != nil {
