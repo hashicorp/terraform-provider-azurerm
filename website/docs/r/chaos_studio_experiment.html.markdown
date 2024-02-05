@@ -42,7 +42,7 @@ resource "azurerm_network_interface" "example" {
   name                = "example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  
+
   ip_configuration {
     name                          = "example"
     subnet_id                     = azurerm_subnet.example.id
@@ -61,12 +61,12 @@ resource "azurerm_linux_virtual_machine" "example" {
   network_interface_ids = [
     azurerm_network_interface.example.id,
   ]
-  
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
-  
+
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -90,16 +90,16 @@ resource "azurerm_chaos_studio_experiment" "example" {
   location            = azurerm_resource_group.example.location
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  
+
   identity {
     type = "SystemAssigned"
   }
-  
+
   selectors {
     name                    = "Selector1"
     chaos_studio_target_ids = [azurerm_chaos_studio_target.example.id]
   }
-  
+
   steps {
     name = "example"
     branch {
