@@ -301,7 +301,7 @@ resource "azurerm_chaos_studio_experiment" "test" {
     branch {
       name = "acctestcse-${var.random_string}"
       actions {
-        urn      = azurerm_chaos_studio_capability.network.urn
+        urn           = azurerm_chaos_studio_capability.network.urn
         selector_name = "Selector1"
         parameters = {
           jsonSpec = "{\"action\":\"delay\",\"mode\":\"one\",\"selector\":{\"namespaces\":[\"default\"]},\"delay\":{\"latency\":\"200ms\",\"correlation\":\"100\",\"jitter\":\"0ms\"}}}"
@@ -366,17 +366,17 @@ resource "azurerm_chaos_studio_experiment" "test" {
         action_type   = "discrete"
       }
     }
-	branch {
-	  name = "acctestcse-aks${var.random_string}"
- 	  actions {
-		urn = azurerm_chaos_studio_capability.network.urn
-		selector_name = "Selector2"
-		parameters = {
+    branch {
+      name = "acctestcse-aks${var.random_string}"
+      actions {
+        urn           = azurerm_chaos_studio_capability.network.urn
+        selector_name = "Selector2"
+        parameters = {
           jsonSpec = "{\"action\":\"delay\",\"mode\":\"one\",\"selector\":{\"namespaces\":[\"default\"]},\"delay\":{\"latency\":\"200ms\",\"correlation\":\"100\",\"jitter\":\"0ms\"}}}"
         }
         action_type = "discrete"
-	  }
-	}
+      }
+    }
   }
 }
 `, r.templateVM(data), r.templateAKS(data))
