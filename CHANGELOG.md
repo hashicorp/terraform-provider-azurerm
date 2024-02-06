@@ -1,3 +1,10 @@
+## 3.91.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` [GH-24760]
+* `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
+
 ## 3.90.0 (February 01, 2024)
 
 UPGRADE NOTES:
