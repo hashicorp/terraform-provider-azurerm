@@ -24,7 +24,7 @@ func (r DevCenterGalleryResource) ModelObject() interface{} {
 
 type DevCenterGalleryResourceSchema struct {
 	DevCenterId       string `tfschema:"dev_center_id"`
-	GalleryResourceId string `tfschema:"gallery_resource_id"`
+	GalleryResourceId string `tfschema:"shared_gallery_id"`
 	Name              string `tfschema:"name"`
 }
 
@@ -41,7 +41,7 @@ func (r DevCenterGalleryResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
-		"gallery_resource_id": {
+		"shared_gallery_id": {
 			ForceNew: true,
 			Required: true,
 			Type:     pluginsdk.TypeString,

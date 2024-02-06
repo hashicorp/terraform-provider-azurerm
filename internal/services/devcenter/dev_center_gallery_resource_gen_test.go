@@ -113,9 +113,9 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center_gallery" "test" {
-  dev_center_id       = azurerm_dev_center.test.id
-  gallery_resource_id = azurerm_shared_image_gallery.test.id
-  name                = "acctestdcg${var.random_string}"
+  dev_center_id     = azurerm_dev_center.test.id
+  shared_gallery_id = azurerm_shared_image_gallery.test.id
+  name              = "acctestdcg${var.random_string}"
 }
 `, r.template(data))
 }
@@ -125,9 +125,9 @@ func (r DevCenterGalleryTestResource) requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_dev_center_gallery" "import" {
-  dev_center_id       = azurerm_dev_center_gallery.test.dev_center_id
-  gallery_resource_id = azurerm_dev_center_gallery.test.gallery_resource_id
-  name                = azurerm_dev_center_gallery.test.name
+  dev_center_id     = azurerm_dev_center_gallery.test.dev_center_id
+  shared_gallery_id = azurerm_dev_center_gallery.test.shared_gallery_id
+  name              = azurerm_dev_center_gallery.test.name
 }
 `, r.basic(data))
 }
@@ -141,9 +141,9 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center_gallery" "test" {
-  dev_center_id       = azurerm_dev_center.test.id
-  gallery_resource_id = azurerm_shared_image_gallery.test.id
-  name                = "acctestdcg${var.random_string}"
+  dev_center_id     = azurerm_dev_center.test.id
+  shared_gallery_id = azurerm_shared_image_gallery.test.id
+  name              = "acctestdcg${var.random_string}"
 }
 `, r.template(data))
 }

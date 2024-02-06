@@ -33,9 +33,9 @@ resource "azurerm_shared_image_gallery" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 resource "azurerm_dev_center_gallery" "example" {
-  dev_center_id       = azurerm_dev_center.example.id
-  gallery_resource_id = azurerm_shared_image_gallery.example.id
-  name                = "example"
+  dev_center_id     = azurerm_dev_center.example.id
+  shared_gallery_id = azurerm_shared_image_gallery.example.id
+  name              = "example"
 }
 ```
 
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `dev_center_id` - (Required) Specifies the Dev Center Id within which this Dev Center Gallery should exist. Changing this forces a new Dev Center Gallery to be created.
 
-* `gallery_resource_id` - (Required) The resource ID of the backing Azure Compute Gallery. Changing this forces a new Dev Center Gallery to be created.
+* `shared_gallery_id` - (Required) The resource ID of the backing Azure Compute Gallery. Changing this forces a new Dev Center Gallery to be created.
 
 * `name` - (Required) Specifies the name of this Dev Center Gallery. Changing this forces a new Dev Center Gallery to be created.
 
