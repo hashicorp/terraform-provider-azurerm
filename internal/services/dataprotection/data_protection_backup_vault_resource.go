@@ -4,6 +4,7 @@
 package dataprotection
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -72,6 +73,12 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
+			"retention_duration_in_days": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				ValidateFunc: validation.FloatBetween(14, 180),
+			},
+
 			"soft_delete_setting": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -81,6 +88,20 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("soft_delete_setting", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
+			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				state := d.Get("soft_delete_setting").(string)
+				_, ok := d.GetOk("retention_duration_in_days")
+				if state == string(backupvaults.SoftDeleteStateOn) && !ok {
+					return fmt.Errorf("`retention_duration_in_days` is required when the `soft_delete_setting` is `On`.")
+				}
+				return nil
+			}),
+		),
 	}
 
 	// Confirmed with the service team that `SnapshotStore` has been replaced with `OperationalStore`.
@@ -160,6 +181,11 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
+
+	if v, ok := d.GetOk("retention_duration_in_days"); ok {
+		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
+	}
+
 	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating DataProtection BackupVault (%q): %+v", id, err)
@@ -201,6 +227,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
 			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
 				d.Set("soft_delete_setting", string(pointer.From(softDelete.State)))
+				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
 		}
 
