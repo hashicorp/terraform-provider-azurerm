@@ -730,16 +730,16 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                      = "acctest-kv-%[3]s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
 
   access_policy {
-	tenant_id = data.azurerm_client_config.current.tenant_id
-	object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
     key_permissions = [
       "Create",
       "Get",
@@ -753,8 +753,8 @@ resource "azurerm_key_vault" "test" {
     ]
   }
   access_policy {
-	tenant_id = data.azurerm_client_config.current.tenant_id
-	object_id = azurerm_user_assigned_identity.test.principal_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
     secret_permissions = [
       "Get",
     ]
@@ -822,17 +822,17 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                      = "acctest-kv-%[3]s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
 
   access_policy {
-	tenant_id = data.azurerm_client_config.current.tenant_id
-	object_id = data.azurerm_client_config.current.object_id
-	key_permissions = [
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
       "Create",
       "Get",
     ]
@@ -845,8 +845,8 @@ resource "azurerm_key_vault" "test" {
     ]
   }
   access_policy {
-	tenant_id = data.azurerm_client_config.current.tenant_id
-	object_id = azurerm_user_assigned_identity.test.principal_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
     secret_permissions = [
       "Get",
     ]
@@ -914,10 +914,10 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                      = "acctest-kv-%[3]s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
 }
@@ -938,16 +938,16 @@ resource "azurerm_key_vault_access_policy" "self_key_vault_admin" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-      "Create",
-      "Get",
+    "Create",
+    "Get",
   ]
 
   secret_permissions = [
-      "Set",
-      "Get",
-      "Delete",
-      "Purge",
-      "Recover"
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
   ]
 }
 
@@ -957,7 +957,7 @@ resource "azurerm_key_vault_access_policy" "mi_key_vault_secrets" {
   object_id    = azurerm_container_app.test.identity[0].principal_id
 
   secret_permissions = [
-      "Get",
+    "Get",
   ]
 }
 
@@ -967,7 +967,7 @@ resource "azurerm_key_vault_access_policy" "user_mi_key_vault_secrets" {
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
   secret_permissions = [
-      "Get",
+    "Get",
   ]
 }
 
@@ -1026,10 +1026,10 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                      = "acctest-kv-%[3]s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
 }
@@ -1050,16 +1050,16 @@ resource "azurerm_key_vault_access_policy" "self_key_vault_admin" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-      "Create",
-      "Get",
+    "Create",
+    "Get",
   ]
 
   secret_permissions = [
-      "Set",
-      "Get",
-      "Delete",
-      "Purge",
-      "Recover"
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
   ]
 }
 
@@ -1069,7 +1069,7 @@ resource "azurerm_key_vault_access_policy" "mi_key_vault_secrets" {
   object_id    = azurerm_container_app.test.identity[0].principal_id
 
   secret_permissions = [
-      "Get",
+    "Get",
   ]
 }
 
@@ -1079,7 +1079,7 @@ resource "azurerm_key_vault_access_policy" "user_mi_key_vault_secrets" {
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
   secret_permissions = [
-      "Get",
+    "Get",
   ]
 }
 
@@ -1152,10 +1152,10 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                      = "acctest-kv-%[3]s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  name                       = "acctest-kv-%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "premium"
   soft_delete_retention_days = 7
 }
@@ -1176,16 +1176,16 @@ resource "azurerm_key_vault_access_policy" "self_key_vault_admin" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-      "Create",
-      "Get",
+    "Create",
+    "Get",
   ]
 
   secret_permissions = [
-      "Set",
-      "Get",
-      "Delete",
-      "Purge",
-      "Recover"
+    "Set",
+    "Get",
+    "Delete",
+    "Purge",
+    "Recover"
   ]
 }
 
@@ -1195,7 +1195,7 @@ resource "azurerm_key_vault_access_policy" "mi_key_vault_secrets" {
   object_id    = azurerm_container_app.test.identity[0].principal_id
 
   secret_permissions = [
-      "Get",
+    "Get",
   ]
 }
 
@@ -2779,29 +2779,29 @@ resource "azurerm_container_app" "test" {
 
 func (r ContainerAppResource) trafficBlockMoreThanOne() string {
 	return `
-    traffic_weight {
-      percentage      = 50
-    }
-    traffic_weight {
-      percentage      = 50
-    }
+traffic_weight {
+  percentage = 50
+}
+traffic_weight {
+  percentage = 50
+}
 `
 }
 
 func (r ContainerAppResource) trafficBlockLatestRevisionNotSet() string {
 	return `
-    traffic_weight {
-      percentage      = 100
-    }
+traffic_weight {
+  percentage = 100
+}
 `
 }
 
 func (r ContainerAppResource) trafficBlockRevisionSuffixSet() string {
 	return `
-    traffic_weight {
-      percentage      = 100
-	  latest_revision = true
-	  revision_suffix = "foo"
-    }
+traffic_weight {
+  percentage      = 100
+  latest_revision = true
+  revision_suffix = "foo"
+}
 `
 }
