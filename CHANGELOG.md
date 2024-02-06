@@ -1,5 +1,9 @@
 ## 3.91.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_dev_center_gallery` [GH-23760]
+
 ENHANCEMENTS:
 
 * dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` [GH-24760]
