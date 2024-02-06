@@ -2574,7 +2574,7 @@ func SecretsSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-					Description:  "The id of the key vault secret.",
+					Description:  "The Key Vault Secret ID. Could be either one of `id` or `versionless_id`.",
 				},
 
 				"name": {
@@ -2781,27 +2781,6 @@ func ExpandDaprSecrets(input []DaprSecret) *[]daprcomponents.Secret {
 	}
 
 	return &result
-}
-
-func FlattenSecrets(input []interface{}) []DaprSecret {
-	secrets := make([]DaprSecret, 0)
-	for _, s := range input {
-		secret := s.(map[string]interface{})
-		name, ok := secret["name"].(string)
-		if !ok {
-			continue
-		}
-		value := ""
-		if val, ok := secret["value"].(string); ok {
-			value = val
-		}
-		secrets = append(secrets, DaprSecret{
-			Name:  name,
-			Value: value,
-		})
-	}
-
-	return secrets
 }
 
 func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret {
