@@ -97,7 +97,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				state := d.Get("soft_delete_setting").(string)
 				_, ok := d.GetOk("retention_duration_in_days")
 				if state == string(backupvaults.SoftDeleteStateOn) && !ok {
-					return fmt.Errorf("`retention_duration_in_days` is required when the `soft_delete_setting` is `On`.")
+					return fmt.Errorf("`retention_duration_in_days` is required when the `soft_delete_setting` is `On`")
 				}
 				return nil
 			}),
