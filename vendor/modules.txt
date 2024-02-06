@@ -1043,7 +1043,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceprovid
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240201.1064937
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240206.1080438
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
