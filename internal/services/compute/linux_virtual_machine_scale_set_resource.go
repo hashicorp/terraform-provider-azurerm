@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -55,6 +56,17 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
 		Schema: resourceLinuxVirtualMachineScaleSetSchema(),
+
+		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+			overprovision := diff.Get("overprovision").(bool)
+			maxSurgeEnabled := diff.Get("rolling_upgrade_policy.0.max_surge_enabled").(bool)
+
+			if overprovision && maxSurgeEnabled {
+				return fmt.Errorf("'overprovision' and 'max_surge_enabled' cannot be set to 'true' simultaneously")
+			}
+
+			return nil
+		},
 	}
 }
 

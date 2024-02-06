@@ -1796,6 +1796,11 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeInt,
 					Required: true,
 				},
+				"max_surge_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 				"max_unhealthy_instance_percent": {
 					Type:     pluginsdk.TypeInt,
 					Required: true,
@@ -1827,6 +1832,7 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 
 	rollingUpgradePolicy := &compute.RollingUpgradePolicy{
 		MaxBatchInstancePercent:             utils.Int32(int32(raw["max_batch_instance_percent"].(int))),
+		MaxSurge:                            utils.Bool(raw["max_surge_enabled"].(bool)),
 		MaxUnhealthyInstancePercent:         utils.Int32(int32(raw["max_unhealthy_instance_percent"].(int))),
 		MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             utils.String(raw["pause_time_between_batches"].(string)),
@@ -1859,6 +1865,11 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 		maxBatchInstancePercent = int(*input.MaxBatchInstancePercent)
 	}
 
+	maxSurgeEnabled := false
+	if input.MaxSurge != nil {
+		maxSurgeEnabled = *input.MaxSurge
+	}
+
 	maxUnhealthyInstancePercent := 0
 	if input.MaxUnhealthyInstancePercent != nil {
 		maxUnhealthyInstancePercent = int(*input.MaxUnhealthyInstancePercent)
@@ -1883,6 +1894,7 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 		map[string]interface{}{
 			"cross_zone_upgrades_enabled":             enableCrossZoneUpgrade,
 			"max_batch_instance_percent":              maxBatchInstancePercent,
+			"max_surge_enabled":                       maxSurgeEnabled,
 			"max_unhealthy_instance_percent":          maxUnhealthyInstancePercent,
 			"max_unhealthy_upgraded_instance_percent": maxUnhealthyUpgradedInstancePercent,
 			"pause_time_between_batches":              pauseTimeBetweenBatches,

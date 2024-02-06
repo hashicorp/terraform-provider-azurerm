@@ -662,20 +662,32 @@ func TestAccLinuxVirtualMachineScaleSet_otherPlatformFaultDomainCount(t *testing
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_otherOverProvisionNotSupportMaxSurge(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.otherOverProvisionNotSupportMaxSurge(data),
+			ExpectError: regexp.MustCompile("'overprovision' and 'max_surge_enabled' cannot be set to 'true' simultaneously"),
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, true, 10, 10, 10, "PT0S", true),
+			Config: r.otherRollingUpgradePolicyUpdate(data, true, 10, 10, 10, "PT0S", true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, false, 20, 20, 20, "PT1S", false),
+			Config: r.otherRollingUpgradePolicyUpdate(data, false, 20, 20, 20, "PT1S", false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2704,7 +2716,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool) string {
+func (r LinuxVirtualMachineScaleSetResource) otherOverProvisionNotSupportMaxSurge(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2765,8 +2777,110 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   health_probe_id = azurerm_lb_probe.test.id
 
   rolling_upgrade_policy {
+    cross_zone_upgrades_enabled             = true
+    max_batch_instance_percent              = 10
+    max_surge_enabled                       = true
+    max_unhealthy_instance_percent          = 10
+    max_unhealthy_upgraded_instance_percent = 10
+    pause_time_between_batches              = "PT0S"
+    prioritize_unhealthy_instances_enabled  = true
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      primary                                = true
+    }
+  }
+
+  depends_on = [azurerm_lb_rule.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, max_surge_enabled bool, prioritize_unhealthy_instances_enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  frontend_ip_configuration_name = "internal"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "actestvmsslb-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name      = local.frontend_ip_configuration_name
+    subnet_id = azurerm_subnet.test.id
+    zones     = ["1"]
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "backend"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_probe" "test" {
+  name            = "ssh-running-probe"
+  loadbalancer_id = azurerm_lb.test.id
+  port            = 22
+  protocol        = "Tcp"
+}
+
+resource "azurerm_lb_rule" "test" {
+  loadbalancer_id                = azurerm_lb.test.id
+  probe_id                       = azurerm_lb_probe.test.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
+  frontend_ip_configuration_name = local.frontend_ip_configuration_name
+  name                           = "LBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  zones = ["1"]
+
+  upgrade_mode    = "Rolling"
+  health_probe_id = azurerm_lb_probe.test.id
+
+  overprovision = false
+
+  rolling_upgrade_policy {
     cross_zone_upgrades_enabled             = %t
     max_batch_instance_percent              = %d
+    max_surge_enabled                       = %t
     max_unhealthy_instance_percent          = %d
     max_unhealthy_upgraded_instance_percent = %d
     pause_time_between_batches              = "%s"
@@ -2799,7 +2913,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = [azurerm_lb_rule.test]
 }
-`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
+`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_surge_enabled, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherHealthProbe(data acceptance.TestData) string {
