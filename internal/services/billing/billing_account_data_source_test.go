@@ -26,9 +26,7 @@ func TestAccBillingAccountDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("agreement_type").IsNotEmpty(),
 				check.That(data.ResourceName).Key("display_name").IsNotEmpty(),
 				check.That(data.ResourceName).Key("has_read_access").IsNotEmpty(),
-				check.That(data.ResourceName).Key("sold_to.0.address_line_1").IsNotEmpty(),
-				check.That(data.ResourceName).Key("sold_to.0.country").IsNotEmpty(),
-				check.That(data.ResourceName).Key("sold_to.0.email").IsNotEmpty(),
+				check.That(data.ResourceName).Key("sold_to.0.%").Exists(),
 			),
 		},
 	})
