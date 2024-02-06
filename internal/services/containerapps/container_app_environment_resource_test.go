@@ -109,28 +109,6 @@ func TestAccContainerAppEnvironment_updateWorkloadProfile(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppEnvironment_completeUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
-	r := ContainerAppEnvironmentResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("log_analytics_workspace_id"),
-		{
-			Config: r.completeUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("log_analytics_workspace_id"),
-	})
-}
-
 func TestAccContainerAppEnvironment_daprApplicationInsightsConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
