@@ -22,6 +22,9 @@ func TestAccBillingEnrollmentAccountDataSource_basic(t *testing.T) {
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Billing/billingAccounts/12345678/enrollmentAccounts/123456"),
+				check.That(data.ResourceName).Key("billing_account_name").HasValue("12345678"),
+				check.That(data.ResourceName).Key("enrollment_account_name").HasValue("123456"),
+				check.That(data.ResourceName).Key("status").IsNotEmpty(),
 			),
 		},
 	})

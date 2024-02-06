@@ -24,7 +24,6 @@ type BillingEnrollmentAccountDataSource struct {
 	AccountName           string `tfschema:"account_name"`
 	AccountOwner          string `tfschema:"account_owner"`
 	CostCenter            string `tfschema:"cost_center"`
-	Department            string `tfschema:"department"`
 	EndDate               string `tfschema:"end_date"`
 	StartDate             string `tfschema:"start_date"`
 	Status                string `tfschema:"status"`
@@ -58,11 +57,6 @@ func (BillingEnrollmentAccountDataSource) Attributes() map[string]*pluginsdk.Sch
 		"cost_center": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		},
-		"department": {
-			Type:        pluginsdk.TypeString,
-			Computed:    true,
-			Description: "The ID of the department this Enrollment Account belongs to",
 		},
 		"end_date": {
 			Type:     pluginsdk.TypeString,
@@ -122,7 +116,6 @@ func (BillingEnrollmentAccountDataSource) Read() sdk.ResourceFunc {
 					state.AccountName = string(pointer.From(props.AccountName))
 					state.AccountOwner = string(pointer.From(props.AccountOwner))
 					state.CostCenter = string(pointer.From(props.CostCenter))
-					state.Department = string(pointer.From(props.Department.Id))
 					state.EndDate = string(pointer.From(props.EndDate))
 					state.StartDate = string(pointer.From(props.StartDate))
 					state.Status = string(pointer.From(props.Status))
