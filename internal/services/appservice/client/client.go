@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceplans"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
@@ -14,7 +15,7 @@ import (
 )
 
 type Client struct {
-	AppServiceEnvironmentClient *web.AppServiceEnvironmentsClient
+	AppServiceEnvironmentClient *appserviceenvironments.AppServiceEnvironmentsClient
 	BaseClient                  *web.BaseClient
 	ResourceProvidersClient     *resourceproviders.ResourceProvidersClient
 	ServicePlanClient           *appserviceplans.AppServicePlansClient
@@ -22,8 +23,11 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	appServiceEnvironmentClient := web.NewAppServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&appServiceEnvironmentClient.Client, o.ResourceManagerAuthorizer)
+	appServiceEnvironmentClient, err := appserviceenvironments.NewAppServiceEnvironmentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AppServiceEnvironments client: %+v", err)
+	}
+	o.Configure(appServiceEnvironmentClient.Client, o.Authorizers.ResourceManager)
 
 	baseClient := web.NewWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&baseClient.Client, o.ResourceManagerAuthorizer)
@@ -47,7 +51,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(servicePlanClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AppServiceEnvironmentClient: &appServiceEnvironmentClient,
+		AppServiceEnvironmentClient: appServiceEnvironmentClient,
 		BaseClient:                  &baseClient,
 		ResourceProvidersClient:     resourceProvidersClient,
 		ServicePlanClient:           servicePlanClient,
