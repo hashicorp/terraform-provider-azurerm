@@ -193,16 +193,16 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
-				return fmt.Errorf("retirving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 			if resp.Model == nil {
-				return fmt.Errorf("retirving %s: `Model` was nil", id)
+				return fmt.Errorf("retrieving %s: `Model` was nil", id)
 			}
 
 			role = *resp.Model
 
 			if role.Id == nil {
-				return fmt.Errorf("retirving %s: `Id` was nil", id)
+				return fmt.Errorf("retrieving %s: `Id` was nil", id)
 			}
 
 			state := RoleDefinitionDataSourceModel{
