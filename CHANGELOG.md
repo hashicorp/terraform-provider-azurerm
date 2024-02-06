@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Resource**: `azurerm_chaos_studio_capability` [GH-24779]
+* **New Resource**: `azurerm_chaos_studio_experiment` [GH-24779]
 * **New Resource**: `azurerm_dev_center_gallery` [GH-23760]
 
 ENHANCEMENTS:
