@@ -112,7 +112,7 @@ func (r KubernetesFleetUpdateStrategyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			fleetId, err := commonids.ParseFleetID(config.KubernetesFleetManagerId)
+			fleetId, err := commonids.ParseKubernetesFleetID(config.KubernetesFleetManagerId)
 			if err != nil {
 				return err
 			}
