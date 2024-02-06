@@ -10,7 +10,7 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var _ sdk.TypedServiceRegistration = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/billing"
@@ -36,6 +36,17 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	}
 }
 
+func (Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		BillingAccountDataSource{},
+		BillingEnrollmentAccountDataSource{},
+	}
+}
+
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{}
+}
+
+func (Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{}
 }
