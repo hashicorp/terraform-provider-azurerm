@@ -21,6 +21,7 @@ func TestAccBillingAccountDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Billing/billingAccounts/12345678"),
 				check.That(data.ResourceName).Key("account_status").IsNotEmpty(),
 				check.That(data.ResourceName).Key("account_type").IsNotEmpty(),
 				check.That(data.ResourceName).Key("agreement_type").IsNotEmpty(),
