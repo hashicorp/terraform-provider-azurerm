@@ -867,6 +867,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"local_user_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"primary_location": {
@@ -1264,12 +1265,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
-				if d.Get("local_user_enabled").(bool) {
-					if !d.Get("sftp_enabled").(bool) {
-						return fmt.Errorf("`local_user_enabled` support requires `sftp_enabled` to be `true`")
-					}
-				}
-
 				if d.Get("access_tier") != "" {
 					if accountKind := d.Get("account_kind").(string); !slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
 						return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
@@ -1363,6 +1358,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowCrossTenantReplication:  &crossTenantReplication,
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 			IsSftpEnabled:                &isSftpEnabled,
+			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
 		},
 	}
 
@@ -1452,11 +1448,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if v.(bool) {
 			parameters.LargeFileSharesState = storage.LargeFileSharesStateEnabled
 		}
-	}
-
-	// isLocalUserEnabled is only available when SFTP is enabled
-	if isSftpEnabled {
-		parameters.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("routing"); ok {
@@ -2313,7 +2304,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
 		}
 
-		var isLocalEnabled bool
+		// local_user_enabled defaults to true at service side when not specified in the API request.
+		isLocalEnabled := true
 		if props.IsLocalUserEnabled != nil {
 			isLocalEnabled = *props.IsLocalUserEnabled
 		}
