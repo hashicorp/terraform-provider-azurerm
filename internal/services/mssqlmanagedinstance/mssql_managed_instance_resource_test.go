@@ -484,6 +484,41 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger, storageAccountType)
 }
 
+func (r MsSqlManagedInstanceResource) withoutMeAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
 func (r MsSqlManagedInstanceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -526,6 +561,11 @@ resource "azurerm_mssql_managed_instance" "test" {
   tags = {
     environment = "staging"
     database    = "test"
+  }
+
+  # Changing microsoft_entra_administrator is ignored because API returns the values of microsoft_entra_administrator even if it is not specified in the config when microsoft entra authentication only is enabled
+  lifecycle {
+    ignore_changes = [microsoft_entra_administrator]
   }
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
@@ -845,8 +885,337 @@ resource "azurerm_mssql_managed_instance" "secondary_2" {
 `, r.basic(data), r.templateSecondary(data), r.templateExtraSecondary(data), data.RandomInteger)
 }
 
+func TestAccMsSqlManagedInstance_meAdmin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.meAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlManagedInstance_meAdminWithMeAuthOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.meAdminWithMeAuthOnlyEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlManagedInstance_meAdminUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withoutMeAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.grantDirectoryReaderPermission(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.setMeAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.withoutMeAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.grantDirectoryReaderPermission(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.meAdminWithMeAuthOnlyEnabledUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func (r MsSqlManagedInstanceResource) meAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  microsoft_entra_administrator {
+    login_username = "AzureME Admin2"
+    object_id      = data.azurerm_client_config.test.object_id
+    tenant_id      = data.azurerm_client_config.test.tenant_id
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) grantDirectoryReaderPermission(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestmeAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestmeAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+`, r.withoutMeAdmin(data), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) meAdminWithMeAuthOnlyEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  microsoft_entra_administrator {
+    login_username                              = "AzureME Admin2"
+    object_id                                   = data.azurerm_client_config.test.object_id
+    tenant_id                                   = data.azurerm_client_config.test.tenant_id
+    microsoft_entra_authentication_only_enabled = true
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+  # Changing administrator_login is ignored because API returns the value of administrator_login even if it is not specified in the config when microsoft_entra_authentication_only_enabled is set to true
+  lifecycle {
+    ignore_changes = [administrator_login]
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) setMeAdmin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestmeAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestmeAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  microsoft_entra_administrator {
+    login_username = azuread_user.test.user_principal_name
+    object_id      = azuread_user.test.object_id
+    tenant_id      = data.azurerm_client_config.test.tenant_id
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) meAdminWithMeAuthOnlyEnabledUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestmeAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestmeAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  microsoft_entra_administrator {
+    login_username                              = azuread_user.test.user_principal_name
+    object_id                                   = azuread_user.test.object_id
+    tenant_id                                   = data.azurerm_client_config.test.tenant_id
+    microsoft_entra_authentication_only_enabled = true
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
 func (r MsSqlManagedInstanceResource) template(data acceptance.TestData, location string) string {
 	return fmt.Sprintf(`
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG1-sql-%[1]d"
   location = "%[2]s"
