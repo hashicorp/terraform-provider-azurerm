@@ -11,6 +11,10 @@ type Registration struct{}
 
 var _ sdk.TypedServiceRegistration = Registration{}
 
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/service-connector"
+}
+
 func (r Registration) WebsiteCategories() []string {
 	return []string{}
 }
@@ -23,6 +27,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AppServiceConnectorResource{},
 		SpringCloudConnectorResource{},
+		FunctionAppConnectorResource{},
 	}
 }
 

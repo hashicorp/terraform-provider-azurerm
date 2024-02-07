@@ -11,7 +11,7 @@ import (
 var _ MetricAlertCriteria = MetricAlertSingleResourceMultipleMetricCriteria{}
 
 type MetricAlertSingleResourceMultipleMetricCriteria struct {
-	AllOf *[]MultiMetricCriteria `json:"allOf,omitempty"`
+	AllOf *[]MetricCriteria `json:"allOf,omitempty"`
 
 	// Fields inherited from MetricAlertCriteria
 }
@@ -38,32 +38,4 @@ func (s MetricAlertSingleResourceMultipleMetricCriteria) MarshalJSON() ([]byte, 
 	}
 
 	return encoded, nil
-}
-
-var _ json.Unmarshaler = &MetricAlertSingleResourceMultipleMetricCriteria{}
-
-func (s *MetricAlertSingleResourceMultipleMetricCriteria) UnmarshalJSON(bytes []byte) error {
-
-	var temp map[string]json.RawMessage
-	if err := json.Unmarshal(bytes, &temp); err != nil {
-		return fmt.Errorf("unmarshaling MetricAlertSingleResourceMultipleMetricCriteria into map[string]json.RawMessage: %+v", err)
-	}
-
-	if v, ok := temp["allOf"]; ok {
-		var listTemp []json.RawMessage
-		if err := json.Unmarshal(v, &listTemp); err != nil {
-			return fmt.Errorf("unmarshaling AllOf into list []json.RawMessage: %+v", err)
-		}
-
-		output := make([]MultiMetricCriteria, 0)
-		for i, val := range listTemp {
-			impl, err := unmarshalMultiMetricCriteriaImplementation(val)
-			if err != nil {
-				return fmt.Errorf("unmarshaling index %d field 'AllOf' for 'MetricAlertSingleResourceMultipleMetricCriteria': %+v", i, err)
-			}
-			output = append(output, impl)
-		}
-		s.AllOf = &output
-	}
-	return nil
 }

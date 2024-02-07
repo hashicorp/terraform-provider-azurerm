@@ -4,6 +4,7 @@
 package batch
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -859,16 +860,26 @@ func expandBatchPoolExtension(ref map[string]interface{}) (*pool.VmExtension, er
 		result.AutoUpgradeMinorVersion = utils.Bool(autoUpgradeMinorVersion.(bool))
 	}
 
+	if autoUpgradeEnabled, ok := ref["automatic_upgrade_enabled"]; ok {
+		result.EnableAutomaticUpgrade = utils.Bool(autoUpgradeEnabled.(bool))
+	}
+
 	if typeHandlerVersion, ok := ref["type_handler_version"]; ok {
 		result.TypeHandlerVersion = utils.String(typeHandlerVersion.(string))
 	}
 
 	if settings, ok := ref["settings_json"]; ok {
-		result.Settings = pointer.To(settings)
+		err := json.Unmarshal([]byte(settings.(string)), &result.Settings)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshaling `settings_json`: %+v", err)
+		}
 	}
 
 	if protectedSettings, ok := ref["protected_settings"]; ok {
-		result.ProtectedSettings = pointer.To(protectedSettings)
+		err := json.Unmarshal([]byte(protectedSettings.(string)), &result.ProtectedSettings)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
+		}
 	}
 
 	if tmpItem, ok := ref["provision_after_extensions"]; ok {
@@ -1110,6 +1121,10 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 		networkConfiguration.DynamicVnetAssignmentScope = pointer.To(pool.DynamicVNetAssignmentScope(v.(string)))
 	}
 
+	if v, ok := networkConfigValue["accelerated_networking_enabled"]; ok {
+		networkConfiguration.EnableAcceleratedNetworking = pointer.FromBool(v.(bool))
+	}
+
 	if v, ok := networkConfigValue["subnet_id"]; ok {
 		if value := v.(string); value != "" {
 			networkConfiguration.SubnetId = &value
@@ -1307,6 +1322,7 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 	return []interface{}{
 		map[string]interface{}{
 			"dynamic_vnet_assignment_scope":    dynamicVNetAssignmentScope,
+			"accelerated_networking_enabled":   pointer.From(input.EnableAcceleratedNetworking),
 			"endpoint_configuration":           endpointConfigs,
 			"public_address_provisioning_type": publicAddressProvisioningType,
 			"public_ips":                       pluginsdk.NewSet(pluginsdk.HashString, publicIPAddressIds),

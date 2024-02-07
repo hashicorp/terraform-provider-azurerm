@@ -20,7 +20,7 @@ type AssetFiltersCreateOrUpdateOperationResponse struct {
 // AssetFiltersCreateOrUpdate ...
 func (c AssetsAndAssetFiltersClient) AssetFiltersCreateOrUpdate(ctx context.Context, id AssetFilterId, input AssetFilter) (result AssetFiltersCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type FluidRelayServersClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewFluidRelayServersClientWithBaseURI(api environments.Api) (*FluidRelayServersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "fluidrelayservers", defaultApiVersion)
+func NewFluidRelayServersClientWithBaseURI(sdkApi sdkEnv.Api) (*FluidRelayServersClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "fluidrelayservers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FluidRelayServersClient: %+v", err)
 	}

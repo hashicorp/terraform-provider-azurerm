@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DnsForwardingRulesetId{}
+var _ resourceids.ResourceId = &DnsForwardingRulesetId{}
 
 // DnsForwardingRulesetId is a struct representing the Resource ID for a Dns Forwarding Ruleset
 type DnsForwardingRulesetId struct {
@@ -30,25 +30,15 @@ func NewDnsForwardingRulesetID(subscriptionId string, resourceGroupName string, 
 
 // ParseDnsForwardingRulesetID parses 'input' into a DnsForwardingRulesetId
 func ParseDnsForwardingRulesetID(input string) (*DnsForwardingRulesetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DnsForwardingRulesetId{})
+	parser := resourceids.NewParserFromResourceIdType(&DnsForwardingRulesetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DnsForwardingRulesetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsForwardingRulesetName, ok = parsed.Parsed["dnsForwardingRulesetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseDnsForwardingRulesetID(input string) (*DnsForwardingRulesetId, error) 
 // ParseDnsForwardingRulesetIDInsensitively parses 'input' case-insensitively into a DnsForwardingRulesetId
 // note: this method should only be used for API response data and not user input
 func ParseDnsForwardingRulesetIDInsensitively(input string) (*DnsForwardingRulesetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DnsForwardingRulesetId{})
+	parser := resourceids.NewParserFromResourceIdType(&DnsForwardingRulesetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DnsForwardingRulesetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DnsForwardingRulesetName, ok = parsed.Parsed["dnsForwardingRulesetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DnsForwardingRulesetId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DnsForwardingRulesetName, ok = input.Parsed["dnsForwardingRulesetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dnsForwardingRulesetName", input)
+	}
+
+	return nil
 }
 
 // ValidateDnsForwardingRulesetID checks that 'input' can be parsed as a Dns Forwarding Ruleset ID

@@ -18,6 +18,7 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *InboundEndpoint
 }
 
 type UpdateOperationOptions struct {
@@ -50,7 +51,7 @@ func (o UpdateOperationOptions) ToQuery() *client.QueryParams {
 // Update ...
 func (c InboundEndpointsClient) Update(ctx context.Context, id InboundEndpointId, input InboundEndpointPatch, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

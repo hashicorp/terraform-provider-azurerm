@@ -21,7 +21,7 @@ type CopeRepetitionsListOperationResponse struct {
 // CopeRepetitionsList ...
 func (c WorkflowRunActionsClient) CopeRepetitionsList(ctx context.Context, id ActionId) (result CopeRepetitionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

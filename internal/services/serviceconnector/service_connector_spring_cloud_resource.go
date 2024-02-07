@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -133,8 +133,8 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 				AuthInfo: authInfo,
 			}
 
-			if _, err := parse.StorageAccountID(model.TargetResourceId); err == nil {
-				targetResourceId := model.TargetResourceId + "/blobServices/default"
+			if storageAccountId, err := commonids.ParseStorageAccountID(model.TargetResourceId); err == nil {
+				targetResourceId := fmt.Sprintf("%s/blobServices/default", storageAccountId.ID())
 				serviceConnectorProperties.TargetService = servicelinker.AzureResource{
 					Id: &targetResourceId,
 				}

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labplan"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -188,7 +187,7 @@ func (r LabServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 		"shared_gallery_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: galleries.ValidateGalleryID,
+			ValidateFunc: commonids.ValidateSharedImageGalleryID,
 		},
 
 		"support": {

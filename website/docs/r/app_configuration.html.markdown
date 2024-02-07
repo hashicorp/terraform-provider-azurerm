@@ -13,7 +13,7 @@ Manages an Azure App Configuration.
 
 ## Disclaimers
 
--> **Note:** Version 3.27.0 and later of the Azure Provider include a Feature Toggle which will purge an App Configuration resource on destroy, rather than the default soft-delete. The Provider will automatically recover a soft-deleted App Configuration during creation if one is found. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features) for more information on Feature Toggles within Terraform.
+-> **Note:** Version 3.27.0 and later of the Azure Provider include a Feature Toggle which will purge an App Configuration resource on destroy, rather than the default soft-delete. The Provider will automatically recover a soft-deleted App Configuration during creation if one is found. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
 
 -> **Note:** Reading and purging soft-deleted App Configurations requires the `Microsoft.AppConfiguration/locations/deletedConfigurationStores/read` and `Microsoft.AppConfiguration/locations/deletedConfigurationStores/purge/action` permission on Subscription scope. Recovering a soft-deleted App Configuration requires the `Microsoft.AppConfiguration/configurationStores/write` permission on Subscription or Resource Group scope. [More information can be found in the Azure Documentation for App Configuration](https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-soft-delete#permissions-to-recover-a-deleted-store). See the following links for more information on assigning [Azure custom roles](https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles) or using the [`azurerm_role_assignment`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) resource to assign a custom role.
 
@@ -127,6 +127,11 @@ resource "azurerm_app_configuration" "example" {
     identity_client_id       = azurerm_user_assigned_identity.example.client_id
   }
 
+  replica {
+    name     = "replica1"
+    location = "West US"
+  }
+
   tags = {
     environment = "development"
   }
@@ -164,6 +169,8 @@ The following arguments are supported:
 
 !> **Note:** Once Purge Protection has been enabled it's not possible to disable it. Deleting the App Configuration with Purge Protection enabled will schedule the App Configuration to be deleted (which will happen by Azure in the configured number of days).
 
+* `replica` - (Optional) One or more `replica` blocks as defined below.
+
 * `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free` and `standard`. Defaults to `free`.
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
@@ -192,6 +199,14 @@ An `identity` block supports the following:
 
 ---
 
+A `replica` block supports the following:
+
+* `location` - (Required) Specifies the supported Azure location where the replica exists.
+
+* `name` - (Required) Specifies the name of the replica.
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -217,6 +232,14 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+A `replica` block exports the following:
+
+* `id` - The ID of the App Configuration Replica.
+
+* `endpoint` - The URL of the App Configuration Replica.
 
 ---
 
@@ -262,10 +285,10 @@ A `secondary_write_key` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the App Configuration.
-* `update` - (Defaults to 30 minutes) Used when updating the App Configuration.
+* `create` - (Defaults to 60 minutes) Used when creating the App Configuration.
+* `update` - (Defaults to 60 minutes) Used when updating the App Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
-* `delete` - (Defaults to 30 minutes) Used when deleting the App Configuration.
+* `delete` - (Defaults to 60 minutes) Used when deleting the App Configuration.
 
 ## Import
 

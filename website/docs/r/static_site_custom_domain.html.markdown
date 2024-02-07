@@ -59,7 +59,7 @@ resource "azurerm_static_site" "example" {
 
 resource "azurerm_static_site_custom_domain" "example" {
   static_site_id  = azurerm_static_site.example.id
-  domain_name     = "my-domain.${azurerm_dns_txt_record.example.zone_name}"
+  domain_name     = "my-domain.contoso.com"
   validation_type = "dns-txt-token"
 }
 
@@ -98,7 +98,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Site Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Site Custom Domain.
-* `update` - (Defaults to 30 minutes) Used when updating the Static Site Custom Domain.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Static Site Custom Domain.
 
 ## Import

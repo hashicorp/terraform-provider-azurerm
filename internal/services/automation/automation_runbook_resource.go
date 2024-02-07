@@ -4,9 +4,7 @@
 package automation
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"time"
 
@@ -14,15 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/runbook"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/jobschedule"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbookdraft"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -127,9 +126,11 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(runbook.RunbookTypeEnumGraphPowerShell),
 					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
 					string(runbook.RunbookTypeEnumPowerShell),
+					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
 					string(runbook.RunbookTypeEnumPythonTwo),
 					string(runbook.RunbookTypeEnumPythonThree),
 					string(runbook.RunbookTypeEnumPowerShellWorkflow),
+					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
 					string(runbook.RunbookTypeEnumScript),
 				}, false),
 			},
@@ -240,15 +241,15 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	autoCli := meta.(*clients.Client).Automation
-	client := autoCli.RunbookClient
-	jsClient := autoCli.JobScheduleClient
+	client := autoCli.Runbook
+	jsClient := autoCli.JobSchedule
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -309,32 +310,19 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
-		reader := io.NopCloser(bytes.NewBufferString(content))
-
-		// need to use preview version DraftClient
-		// move to stable RunbookDraftClient once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
-		_, err := autoCli.RunbookDraftClient.ReplaceContent(ctx, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName, reader)
-		if err != nil {
+		draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+		if err := autoCli.RunbookDraft.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(content)); err != nil {
 			return fmt.Errorf("setting the draft for %s: %+v", id, err)
 		}
-		// Uncomment below once https://github.com/Azure/azure-sdk-for-go/issues/17196 is resolved.
-		// if err := f1.WaitForCompletionRef(ctx, draftClient.Client); err != nil {
-		// 	return fmt.Errorf("waiting for set the draft for %s: %+v", id, err)
-		// }
 
-		f2, err := client.Publish(ctx, id)
-		if err != nil {
+		if err := autoCli.Runbook.PublishThenPoll(ctx, id); err != nil {
 			return fmt.Errorf("publishing the updated %s: %+v", id, err)
-		}
-		if err := f2.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for publish the updated %s: %+v", id, err)
 		}
 	}
 
 	d.SetId(id.ID())
 
 	automationAccountId := jobschedule.NewAutomationAccountID(subscriptionID, id.ResourceGroupName, id.AutomationAccountName)
-
 	jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, automationAccountId, jobschedule.ListByAutomationAccountOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
@@ -374,8 +362,8 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	autoCli := meta.(*clients.Client).Automation
-	client := autoCli.RunbookClient
-	jsClient := autoCli.JobScheduleClient
+	client := autoCli.Runbook
+	jsClient := autoCli.JobSchedule
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -411,23 +399,18 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	// GetContent need to use preview version client RunbookClientHack
-	// move to stable RunbookClient once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
-	contentResp, err := autoCli.RunbookClientHack.GetContent(ctx, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+	// move to stable Runbook once this issue fixed: https://github.com/Azure/azure-sdk-for-go/issues/17591#issuecomment-1233676539
+	contentResp, err := autoCli.Runbook.GetContent(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(contentResp.Response) {
+		if response.WasNotFound(contentResp.HttpResponse) {
 			d.Set("content", "")
 		} else {
 			return fmt.Errorf("retrieving content for Automation Runbook %s: %+v", id, err)
 		}
 	}
 
-	if v := contentResp.Value; v != nil && *v != nil {
-		buf := new(bytes.Buffer)
-		if _, err := buf.ReadFrom(*v); err != nil {
-			return fmt.Errorf("reading from Automation Runbook buffer %q: %+v", id.RunbookName, err)
-		}
-		content := buf.String()
-		d.Set("content", content)
+	if v := contentResp.Model; v != nil && *v != nil {
+		d.Set("content", string(*v))
 	}
 
 	jsMap := make(map[uuid.UUID]jobschedule.JobScheduleProperties)
@@ -457,15 +440,15 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("setting `job_schedule`: %+v", err)
 	}
 
-	if t := model.Tags; t != nil {
-		return flattenAndSetTags(d, *t)
+	if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func resourceAutomationRunbookDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.RunbookClient
+	client := meta.(*clients.Client).Automation.Runbook
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

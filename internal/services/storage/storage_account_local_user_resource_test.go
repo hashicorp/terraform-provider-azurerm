@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -169,7 +169,7 @@ func TestAccLocalUser_requiresImport(t *testing.T) {
 }
 
 func (r LocalUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Storage.LocalUsersClient
+	client := clients.Storage.ResourceManager.LocalUsers
 
 	id, err := localusers.ParseLocalUserID(state.ID)
 	if err != nil {

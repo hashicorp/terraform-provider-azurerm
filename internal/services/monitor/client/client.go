@@ -4,11 +4,13 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"                                           // nolint: staticcheck
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
-	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"          // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	scheduledqueryrules2018 "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
@@ -29,7 +31,7 @@ import (
 
 type Client struct {
 	// AAD
-	AADDiagnosticSettingsClient *aad.DiagnosticSettingsClient
+	AADDiagnosticSettingsClient *diagnosticsettings.DiagnosticSettingsClient
 
 	// Autoscale Settings
 	AutoscaleSettingsClient *autoscalesettings.AutoScaleSettingsClient
@@ -41,10 +43,9 @@ type Client struct {
 
 	// Monitor
 	ActionGroupsClient                   *actiongroupsapis.ActionGroupsAPIsClient
-	ActivityLogsClient                   *classic.ActivityLogsClient
+	ActivityLogsClient                   *activitylogs.ActivityLogsClient
 	ActivityLogAlertsClient              *activitylogalertsapis.ActivityLogAlertsAPIsClient
 	AlertPrometheusRuleGroupClient       *prometheusrulegroups.PrometheusRuleGroupsClient
-	AlertRulesClient                     *classic.AlertRulesClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
 	DataCollectionRuleAssociationsClient *datacollectionruleassociations.DataCollectionRuleAssociationsClient
 	DataCollectionRulesClient            *datacollectionrules.DataCollectionRulesClient
@@ -59,9 +60,12 @@ type Client struct {
 	WorkspacesClient                     *azuremonitorworkspaces.AzureMonitorWorkspacesClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	AADDiagnosticSettingsClient := aad.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AADDiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	aadDiagnosticSettingsClient, err := diagnosticsettings.NewDiagnosticSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AAD DiagnosticsSettings client: %+v", err)
+	}
+	o.Configure(aadDiagnosticSettingsClient.Client, o.Authorizers.ResourceManager)
 
 	AutoscaleSettingsClient := autoscalesettings.NewAutoScaleSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&AutoscaleSettingsClient.Client, o.ResourceManagerAuthorizer)
@@ -69,8 +73,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	ActionRulesClient := alertsmanagement.NewActionRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActionRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	AlertProcessingRulesClient := alertprocessingrules.NewAlertProcessingRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AlertProcessingRulesClient.Client, o.ResourceManagerAuthorizer)
+	alertProcessingRulesClient, err := alertprocessingrules.NewAlertProcessingRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AlertProcessingRules client: %+v", err)
+	}
+	o.Configure(alertProcessingRulesClient.Client, o.Authorizers.ResourceManager)
 
 	SmartDetectorAlertRulesClient := alertsmanagement.NewSmartDetectorAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SmartDetectorAlertRulesClient.Client, o.ResourceManagerAuthorizer)
@@ -78,17 +85,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	ActionGroupsClient := actiongroupsapis.NewActionGroupsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	activityLogsClient := classic.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	activityLogsClient := activitylogs.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&activityLogsClient.Client, o.ResourceManagerAuthorizer)
 
 	ActivityLogAlertsClient := activitylogalertsapis.NewActivityLogAlertsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ActivityLogAlertsClient.Client, o.ResourceManagerAuthorizer)
 
-	AlertPrometheusRuleGroupClient := prometheusrulegroups.NewPrometheusRuleGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AlertPrometheusRuleGroupClient.Client, o.ResourceManagerAuthorizer)
-
-	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
+	alertPrometheusRuleGroupClient, err := prometheusrulegroups.NewPrometheusRuleGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PrometheusRuleGroups client: %+v", err)
+	}
+	o.Configure(alertPrometheusRuleGroupClient.Client, o.Authorizers.ResourceManager)
 
 	DataCollectionEndpointsClient := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataCollectionEndpointsClient.Client, o.ResourceManagerAuthorizer)
@@ -127,16 +134,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AADDiagnosticSettingsClient:          &AADDiagnosticSettingsClient,
+		AADDiagnosticSettingsClient:          aadDiagnosticSettingsClient,
 		AutoscaleSettingsClient:              &AutoscaleSettingsClient,
 		ActionRulesClient:                    &ActionRulesClient,
 		SmartDetectorAlertRulesClient:        &SmartDetectorAlertRulesClient,
 		ActionGroupsClient:                   &ActionGroupsClient,
 		ActivityLogsClient:                   &activityLogsClient,
 		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
-		AlertPrometheusRuleGroupClient:       &AlertPrometheusRuleGroupClient,
-		AlertRulesClient:                     &AlertRulesClient,
-		AlertProcessingRulesClient:           &AlertProcessingRulesClient,
+		AlertPrometheusRuleGroupClient:       alertPrometheusRuleGroupClient,
+		AlertProcessingRulesClient:           alertProcessingRulesClient,
 		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,
 		DataCollectionRuleAssociationsClient: &DataCollectionRuleAssociationsClient,
 		DataCollectionRulesClient:            &DataCollectionRulesClient,
@@ -149,5 +155,5 @@ func NewClient(o *common.ClientOptions) *Client {
 		ScheduledQueryRulesClient:            &ScheduledQueryRulesClient,
 		ScheduledQueryRulesV2Client:          &ScheduledQueryRulesV2Client,
 		WorkspacesClient:                     &WorkspacesClient,
-	}
+	}, nil
 }

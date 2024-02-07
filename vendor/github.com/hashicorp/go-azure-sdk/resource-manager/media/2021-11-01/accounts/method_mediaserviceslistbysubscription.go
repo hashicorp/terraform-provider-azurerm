@@ -20,13 +20,14 @@ type MediaservicesListBySubscriptionOperationResponse struct {
 }
 
 type MediaservicesListBySubscriptionCompleteResult struct {
-	Items []MediaService
+	LatestHttpResponse *http.Response
+	Items              []MediaService
 }
 
 // MediaservicesListBySubscription ...
 func (c AccountsClient) MediaservicesListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result MediaservicesListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c AccountsClient) MediaservicesListBySubscriptionCompleteMatchingPredicate
 	}
 
 	result = MediaservicesListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

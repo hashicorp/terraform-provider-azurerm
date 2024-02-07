@@ -10,6 +10,8 @@ description: |-
 
 Manages a NetApp Volume.
 
+!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+
 ## NetApp Volume Usage
 
 ```hcl
@@ -57,10 +59,6 @@ resource "azurerm_netapp_pool" "example" {
 }
 
 resource "azurerm_netapp_volume" "example" {
-  lifecycle {
-    prevent_destroy = true
-  }
-
   name                       = "example-netappvolume"
   location                   = azurerm_resource_group.example.location
   zone                       = "1"
@@ -72,7 +70,7 @@ resource "azurerm_netapp_volume" "example" {
   subnet_id                  = azurerm_subnet.example.id
   network_features           = "Basic"
   protocols                  = ["NFSv4.1"]
-  security_style             = "Unix"
+  security_style             = "unix"
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
 
@@ -92,6 +90,11 @@ resource "azurerm_netapp_volume" "example" {
   # Note: this cannot be used in conjunction with data_protection_replication when endpoint_type is dst
   data_protection_snapshot_policy {
     snapshot_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1"
+  }
+
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = true
   }
 }
 ```
@@ -120,7 +123,7 @@ The following arguments are supported:
 
 * `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost. Dual protocol scenario is supported for CIFS and NFSv3, for more information, please refer to [Create a dual-protocol volume for Azure NetApp Files](https://docs.microsoft.com/azure/azure-netapp-files/create-volumes-dual-protocol) document.
 
-* `security_style` - (Optional) Volume security style, accepted values are `Unix` or `Ntfs`. If not provided, single-protocol volume is created defaulting to `Unix` if it is `NFSv3` or `NFSv4.1` volume, if `CIFS`, it will default to `Ntfs`. In a dual-protocol volume, if not provided, its value will be `Ntfs`. Changing this forces a new resource to be created.
+* `security_style` - (Optional) Volume security style, accepted values are `unix` or `ntfs`. If not provided, single-protocol volume is created defaulting to `unix` if it is `NFSv3` or `NFSv4.1` volume, if `CIFS`, it will default to `ntfs`. In a dual-protocol volume, if not provided, its value will be `ntfs`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
@@ -139,6 +142,10 @@ The following arguments are supported:
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
 * `throughput_in_mibps` - (Optional) Throughput of this volume in Mibps.
+
+* `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`.
+
+* `key_vault_private_endpoint_id` - (Optional) The Private Endpoint ID for Key Vault, which is required when using customer-managed keys. This is required with `encryption_key_source`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

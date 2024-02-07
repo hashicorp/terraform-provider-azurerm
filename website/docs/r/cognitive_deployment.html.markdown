@@ -52,9 +52,11 @@ The following arguments are supported:
 
 * `model` - (Required) A `model` block as defined below. Changing this forces a new resource to be created.
 
-* `scale` - (Required) A `scale` block as defined below. Changing this forces a new resource to be created.
+* `scale` - (Required) A `scale` block as defined below.
 
-* `rai_policy_name` - (Optional) The name of RAI policy. Changing this forces a new resource to be created.
+* `rai_policy_name` - (Optional) The name of RAI policy.
+
+* `version_upgrade_option` - (Optional) Deployment model version upgrade option. Possible values are `OnceNewDefaultVersionAvailable`, `OnceCurrentVersionExpired`, and `NoAutoUpgrade`. Defaults to `OnceNewDefaultVersionAvailable`. Changing this forces a new resource to be created.
 
 ---
 
@@ -64,7 +66,7 @@ A `model` block supports the following:
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version of Cognitive Services Account Deployment model.
+* `version` - (Optional) The version of Cognitive Services Account Deployment model. If `version` is not specified, the default version of the model at the time will be assigned.
 
 ---
 
@@ -78,7 +80,7 @@ A `scale` block supports the following:
 
 * `family` - (Optional) If the service has different generations of hardware, for the same SKU, then that can be captured here. Changing this forces a new resource to be created.
 
-* `capacity` - (Optional) If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted. Possible values are between `1` and `10000` and the default value is `1`. Changing this forces a new resource to be created.
+* `capacity` - (Optional) Tokens-per-Minute (TPM). The unit of measure for this field is in the thousands of Tokens-per-Minute. Defaults to `1` which means that the limitation is `1000` tokens per minute. If the resources SKU supports scale in/out then the capacity field should be included in the resources' configuration. If the scale in/out is not supported by the resources SKU then this field can be safely omitted. For more information about TPM please see the [product documentation](https://learn.microsoft.com/azure/ai-services/openai/how-to/quota?tabs=rest).
 
 ## Attributes Reference
 

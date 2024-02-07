@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExtensionId{}
+var _ resourceids.ResourceId = &ExtensionId{}
 
 // ExtensionId is a struct representing the Resource ID for a Extension
 type ExtensionId struct {
@@ -32,29 +32,15 @@ func NewExtensionID(subscriptionId string, resourceGroupName string, machineName
 
 // ParseExtensionID parses 'input' into a ExtensionId
 func ParseExtensionID(input string) (*ExtensionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExtensionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExtensionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExtensionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MachineName, ok = parsed.Parsed["machineName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "machineName", *parsed)
-	}
-
-	if id.ExtensionName, ok = parsed.Parsed["extensionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "extensionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseExtensionID(input string) (*ExtensionId, error) {
 // ParseExtensionIDInsensitively parses 'input' case-insensitively into a ExtensionId
 // note: this method should only be used for API response data and not user input
 func ParseExtensionIDInsensitively(input string) (*ExtensionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExtensionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExtensionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExtensionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MachineName, ok = parsed.Parsed["machineName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "machineName", *parsed)
-	}
-
-	if id.ExtensionName, ok = parsed.Parsed["extensionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "extensionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ExtensionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MachineName, ok = input.Parsed["machineName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "machineName", input)
+	}
+
+	if id.ExtensionName, ok = input.Parsed["extensionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "extensionName", input)
+	}
+
+	return nil
 }
 
 // ValidateExtensionID checks that 'input' can be parsed as a Extension ID

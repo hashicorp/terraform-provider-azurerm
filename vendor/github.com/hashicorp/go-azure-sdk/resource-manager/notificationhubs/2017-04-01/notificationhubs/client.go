@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type NotificationHubsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewNotificationHubsClientWithBaseURI(api environments.Api) (*NotificationHubsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "notificationhubs", defaultApiVersion)
+func NewNotificationHubsClientWithBaseURI(sdkApi sdkEnv.Api) (*NotificationHubsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "notificationhubs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NotificationHubsClient: %+v", err)
 	}

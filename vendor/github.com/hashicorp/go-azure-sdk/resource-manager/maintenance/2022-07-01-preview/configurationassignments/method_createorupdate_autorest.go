@@ -17,7 +17,7 @@ type CreateOrUpdateOperationResponse struct {
 }
 
 // CreateOrUpdate ...
-func (c ConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context, id ConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context, id ScopedConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateOperationResponse, err error) {
 	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationassignments.ConfigurationAssignmentsClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context, id C
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c ConfigurationAssignmentsClient) preparerForCreateOrUpdate(ctx context.Context, id ConfigurationAssignmentId, input ConfigurationAssignment) (*http.Request, error) {
+func (c ConfigurationAssignmentsClient) preparerForCreateOrUpdate(ctx context.Context, id ScopedConfigurationAssignmentId, input ConfigurationAssignment) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

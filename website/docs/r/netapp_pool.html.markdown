@@ -48,7 +48,9 @@ The following arguments are supported:
 
 * `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, or `Ultra`. Changing this forces a new resource to be created.
 
-* `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `4` and `500`.
+* `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `2` and `500`.
+
+~> **NOTE** `2` TB capacity pool sizing is currently in preview. You can only take advantage of the `2` TB minimum if all the volumes in the capacity pool are using `Standard` network features. If any volume is using `Basic` network features, the minimum size is `4` TB. Please see the product [documentation](https://learn.microsoft.com/azure/azure-netapp-files/azure-netapp-files-set-up-capacity-pool) for more information.
 
 * `qos_type` - (Optional) QoS Type of the pool. Valid values include `Auto` or `Manual`.
 

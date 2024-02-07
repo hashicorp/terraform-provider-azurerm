@@ -19,7 +19,7 @@ type TransformsDeleteOperationResponse struct {
 // TransformsDelete ...
 func (c EncodingsClient) TransformsDelete(ctx context.Context, id TransformId) (result TransformsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

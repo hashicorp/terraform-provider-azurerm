@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []IntegrationServiceEnvironment
+	LatestHttpResponse *http.Response
+	Items              []IntegrationServiceEnvironment
 }
 
 type ListByResourceGroupOperationOptions struct {
@@ -53,7 +54,7 @@ func (o ListByResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 // ListByResourceGroup ...
 func (c IntegrationServiceEnvironmentsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListByResourceGroupOperationOptions) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c IntegrationServiceEnvironmentsClient) ListByResourceGroupCompleteMatchin
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

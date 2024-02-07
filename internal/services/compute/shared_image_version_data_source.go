@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -196,8 +197,17 @@ func obtainImage(client *compute.GalleryImageVersionsClient, ctx context.Context
 					return nil, fmt.Errorf("parsing version(s): %v", errs)
 				}
 			}
-			image := images[len(images)-1]
-			return &image, nil
+
+			if !features.FourPointOhBeta() {
+				image := images[len(images)-1]
+				return &image, nil
+			}
+
+			for i := len(images) - 1; i >= 0; i-- {
+				if prop := images[i].GalleryImageVersionProperties; prop == nil || prop.PublishingProfile == nil || prop.PublishingProfile.ExcludeFromLatest == nil || !*prop.PublishingProfile.ExcludeFromLatest {
+					return &(images[i]), nil
+				}
+			}
 		}
 		return nil, notFoundError
 

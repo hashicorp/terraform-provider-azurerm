@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PolicyAssignmentIdId{}
+var _ resourceids.ResourceId = &PolicyAssignmentIdId{}
 
 // PolicyAssignmentIdId is a struct representing the Resource ID for a Policy Assignment Id
 type PolicyAssignmentIdId struct {
@@ -26,17 +26,15 @@ func NewPolicyAssignmentIdID(policyAssignmentId string) PolicyAssignmentIdId {
 
 // ParsePolicyAssignmentIdID parses 'input' into a PolicyAssignmentIdId
 func ParsePolicyAssignmentIdID(input string) (*PolicyAssignmentIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PolicyAssignmentIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&PolicyAssignmentIdId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PolicyAssignmentIdId{}
-
-	if id.PolicyAssignmentId, ok = parsed.Parsed["policyAssignmentId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +43,28 @@ func ParsePolicyAssignmentIdID(input string) (*PolicyAssignmentIdId, error) {
 // ParsePolicyAssignmentIdIDInsensitively parses 'input' case-insensitively into a PolicyAssignmentIdId
 // note: this method should only be used for API response data and not user input
 func ParsePolicyAssignmentIdIDInsensitively(input string) (*PolicyAssignmentIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PolicyAssignmentIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&PolicyAssignmentIdId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PolicyAssignmentIdId{}
-
-	if id.PolicyAssignmentId, ok = parsed.Parsed["policyAssignmentId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PolicyAssignmentIdId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.PolicyAssignmentId, ok = input.Parsed["policyAssignmentId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "policyAssignmentId", input)
+	}
+
+	return nil
 }
 
 // ValidatePolicyAssignmentIdID checks that 'input' can be parsed as a Policy Assignment Id ID

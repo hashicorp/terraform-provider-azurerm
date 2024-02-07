@@ -177,7 +177,7 @@ resource "azurerm_private_dns_cname_record" "test" {
   name                = "acctestcname%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  ttl                 = 0
   record              = "test.contoso.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

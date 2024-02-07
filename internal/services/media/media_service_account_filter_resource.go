@@ -218,7 +218,7 @@ func (r AccountFilterResource) Create() sdk.ResourceFunc {
 			id := accountfilters.NewAccountFilterID(subscriptionId, state.ResourceGroupName, state.MediaServicesAccountName, state.Name)
 			metadata.Logger.Infof("creating %s", id)
 
-			existing, err := client.AccountFiltersGet(ctx, id)
+			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
 			}
@@ -239,7 +239,7 @@ func (r AccountFilterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err = client.AccountFiltersCreateOrUpdate(ctx, id, input); err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, input); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -260,7 +260,7 @@ func (r AccountFilterResource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("retrieving %s", *id)
-			resp, err := client.AccountFiltersGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					metadata.Logger.Infof("%s was not found - removing from state!", *id)
@@ -307,7 +307,7 @@ func (r AccountFilterResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.AccountFiltersGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -330,7 +330,7 @@ func (r AccountFilterResource) Update() sdk.ResourceFunc {
 				existing.Properties.Tracks = expandAccountFilterTrackSelections(state.TrackSelection)
 			}
 
-			if _, err := client.AccountFiltersCreateOrUpdate(ctx, *id, *existing); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
@@ -349,7 +349,7 @@ func (r AccountFilterResource) Delete() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("deleting %s..", *id)
-			resp, err := client.AccountFiltersDelete(ctx, *id)
+			resp, err := client.Delete(ctx, *id)
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}

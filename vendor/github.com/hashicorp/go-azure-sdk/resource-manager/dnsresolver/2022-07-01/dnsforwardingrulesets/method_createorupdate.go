@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DnsForwardingRuleset
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -54,7 +55,7 @@ func (o CreateOrUpdateOperationOptions) ToQuery() *client.QueryParams {
 // CreateOrUpdate ...
 func (c DnsForwardingRulesetsClient) CreateOrUpdate(ctx context.Context, id DnsForwardingRulesetId, input DnsForwardingRuleset, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,

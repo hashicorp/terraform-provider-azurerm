@@ -19,13 +19,14 @@ type SubAccountTagRulesListOperationResponse struct {
 }
 
 type SubAccountTagRulesListCompleteResult struct {
-	Items []MonitoringTagRules
+	LatestHttpResponse *http.Response
+	Items              []MonitoringTagRules
 }
 
 // SubAccountTagRulesList ...
 func (c TagRulesClient) SubAccountTagRulesList(ctx context.Context, id AccountId) (result SubAccountTagRulesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c TagRulesClient) SubAccountTagRulesListCompleteMatchingPredicate(ctx cont
 	}
 
 	result = SubAccountTagRulesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

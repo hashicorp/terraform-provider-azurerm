@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ConfigurationStoresClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewConfigurationStoresClientWithBaseURI(api environments.Api) (*ConfigurationStoresClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "configurationstores", defaultApiVersion)
+func NewConfigurationStoresClientWithBaseURI(sdkApi sdkEnv.Api) (*ConfigurationStoresClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "configurationstores", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ConfigurationStoresClient: %+v", err)
 	}

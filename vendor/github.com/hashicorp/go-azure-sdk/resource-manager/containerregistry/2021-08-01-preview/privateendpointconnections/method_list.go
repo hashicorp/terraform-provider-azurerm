@@ -19,13 +19,14 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []PrivateEndpointConnection
+	LatestHttpResponse *http.Response
+	Items              []PrivateEndpointConnection
 }
 
 // List ...
 func (c PrivateEndpointConnectionsClient) List(ctx context.Context, id RegistryId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c PrivateEndpointConnectionsClient) ListCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksCreateOrUpdate`
+### Example Usage: `QueryPacksClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := querypacks.LogAnalyticsQueryPack{
 }
 
 
-read, err := client.QueryPacksCreateOrUpdate(ctx, id, payload)
+read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -41,7 +41,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksCreateOrUpdateWithoutName`
+### Example Usage: `QueryPacksClient.CreateOrUpdateWithoutName`
 
 ```go
 ctx := context.TODO()
@@ -52,7 +52,7 @@ payload := querypacks.LogAnalyticsQueryPack{
 }
 
 
-read, err := client.QueryPacksCreateOrUpdateWithoutName(ctx, id, payload)
+read, err := client.CreateOrUpdateWithoutName(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -62,13 +62,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksDelete`
+### Example Usage: `QueryPacksClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
 
-read, err := client.QueryPacksDelete(ctx, id)
+read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -78,13 +78,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksGet`
+### Example Usage: `QueryPacksClient.Get`
 
 ```go
 ctx := context.TODO()
 id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
 
-read, err := client.QueryPacksGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -94,14 +94,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksList`
+### Example Usage: `QueryPacksClient.List`
 
 ```go
 ctx := context.TODO()
 id := querypacks.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-// alternatively `client.QueryPacksList(ctx, id)` can be used to do batched pagination
-items, err := client.QueryPacksListComplete(ctx, id)
+// alternatively `client.List(ctx, id)` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -111,14 +111,14 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksListByResourceGroup`
+### Example Usage: `QueryPacksClient.ListByResourceGroup`
 
 ```go
 ctx := context.TODO()
 id := querypacks.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
-// alternatively `client.QueryPacksListByResourceGroup(ctx, id)` can be used to do batched pagination
-items, err := client.QueryPacksListByResourceGroupComplete(ctx, id)
+// alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.ListByResourceGroupComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -128,7 +128,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `QueryPacksClient.QueryPacksUpdateTags`
+### Example Usage: `QueryPacksClient.UpdateTags`
 
 ```go
 ctx := context.TODO()
@@ -139,7 +139,7 @@ payload := querypacks.TagsResource{
 }
 
 
-read, err := client.QueryPacksUpdateTags(ctx, id, payload)
+read, err := client.UpdateTags(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

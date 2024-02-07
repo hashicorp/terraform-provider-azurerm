@@ -1,18 +1,26 @@
 package policyassignments
 
-import "github.com/Azure/go-autorest/autorest"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PolicyAssignmentsClient struct {
-	Client  autorest.Client
-	baseUri string
+	Client *resourcemanager.Client
 }
 
-func NewPolicyAssignmentsClientWithBaseURI(endpoint string) PolicyAssignmentsClient {
-	return PolicyAssignmentsClient{
-		Client:  autorest.NewClientWithUserAgent(userAgent()),
-		baseUri: endpoint,
+func NewPolicyAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*PolicyAssignmentsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "policyassignments", defaultApiVersion)
+	if err != nil {
+		return nil, fmt.Errorf("instantiating PolicyAssignmentsClient: %+v", err)
 	}
+
+	return &PolicyAssignmentsClient{
+		Client: client,
+	}, nil
 }

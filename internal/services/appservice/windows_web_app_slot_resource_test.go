@@ -6,13 +6,15 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -30,7 +32,7 @@ func TestAccWindowsWebAppSlot_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -60,11 +62,11 @@ func TestAccWindowsWebAppSlot_autoSwap(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
-func TestAccWidowsWebAppSlot_separateStandardPlan(t *testing.T) {
+func TestAccWindowsWebAppSlot_separateStandardPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
 
@@ -75,7 +77,7 @@ func TestAccWidowsWebAppSlot_separateStandardPlan(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -90,14 +92,37 @@ func TestAccWindowsWebAppSlot_separateStandardPlanUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.separatePlanUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsWebAppSlot_parentStandardPlanError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.parentStandardPlanError(data),
+			ExpectError: regexp.MustCompile("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App"),
+		},
+		{
+			Config: r.separatePlan(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config:      r.parentStandardPlanError(data),
+			ExpectError: regexp.MustCompile("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App"),
+		},
 	})
 }
 
@@ -114,7 +139,7 @@ func TestAccWindowsWebAppSlot_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -129,21 +154,21 @@ func TestAccWindowsWebAppSlot_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basicWithStorage(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -160,7 +185,7 @@ func TestAccWindowsWebAppSlot_backup(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -175,21 +200,21 @@ func TestAccWindowsWebAppSlot_backupUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withBackup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basicWithStorage(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -204,7 +229,7 @@ func TestAccWindowsWebAppSlot_withConnectionStrings(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -219,35 +244,35 @@ func TestAccWindowsWebAppSlot_withConnectionStringsUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withConnectionStringsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withConnectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -262,7 +287,7 @@ func TestAccWindowsWebAppSlot_withIPRestrictions(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -277,21 +302,21 @@ func TestAccWindowsWebAppSlot_withIPRestrictionsUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withIPRestrictionsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withIPRestrictions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -306,7 +331,7 @@ func TestAccWindowsWebAppSlot_withAuthSettings(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -321,35 +346,35 @@ func TestAccWindowsWebAppSlot_withAuthSettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withAuthSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withAuthSettingsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withAuthSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -392,28 +417,28 @@ func TestAccWindowsWebAppSlot_withAutoHealRulesUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.autoHealRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.autoHealRulesUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -430,7 +455,7 @@ func TestAccWindowsWebAppSlot_appSettings(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.secret").HasValue("sauce"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -445,28 +470,28 @@ func TestAccWindowsWebAppSlot_identity(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.identityUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.identitySystemAssignedUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -481,7 +506,7 @@ func TestAccWindowsWebAppSlot_identityKeyVault(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -498,7 +523,7 @@ func TestAccWindowsWebAppSlot_loadBalancing(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -513,7 +538,7 @@ func TestAccWindowsWebAppSlot_detailedLogging(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -528,7 +553,7 @@ func TestAccWindowsWebAppSlot_withLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withDetailedLogging(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -537,7 +562,7 @@ func TestAccWindowsWebAppSlot_withLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withLogsHttpBlob(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -546,7 +571,7 @@ func TestAccWindowsWebAppSlot_withLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("false"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.withLoggingComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -555,14 +580,14 @@ func TestAccWindowsWebAppSlot_withLoggingUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("logs.0.detailed_error_messages").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -579,7 +604,7 @@ func TestAccWindowsWebAppSlot_withDotNet3(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -594,7 +619,7 @@ func TestAccWindowsWebAppSlot_withDotNet4(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -609,7 +634,7 @@ func TestAccWindowsWebAppSlot_withDotNet5(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -624,7 +649,7 @@ func TestAccWindowsWebAppSlot_withDotNet6(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -639,7 +664,22 @@ func TestAccWindowsWebAppSlot_withDotNet7(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsWebAppSlot_withDotNet8(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dotNet(data, "v8.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -654,7 +694,7 @@ func TestAccWindowsWebAppSlot_withPhp74(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -669,7 +709,7 @@ func TestAccWindowsWebAppSlot_withPython(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -684,7 +724,7 @@ func TestAccWindowsWebAppSlot_withNode12(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -699,7 +739,7 @@ func TestAccWindowsWebAppSlot_withNode14(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -714,7 +754,7 @@ func TestAccWindowsWebAppSlot_withNode18(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -729,14 +769,14 @@ func TestAccWindowsWebAppSlot_withNodeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.node(data, "~18"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -751,7 +791,7 @@ func TestAccWindowsWebAppSlot_withJava8Embedded(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -766,7 +806,7 @@ func TestAccWindowsWebAppSlot_withJava11Embedded(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -781,7 +821,7 @@ func TestAccWindowsWebAppSlot_withJava1702Embedded(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -796,7 +836,7 @@ func TestAccWindowsWebAppSlot_withJava17Tomcat10(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -811,7 +851,7 @@ func TestAccWindowsWebAppSlot_withJava11014Tomcat9(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -837,7 +877,8 @@ func TestAccWindowsWebAppSlot_withDockerHub(t *testing.T) {
 			"site_config.0.application_stack.0.docker_registry_url",
 			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
 			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_credential.0.password"),
 	})
 }
 
@@ -864,15 +905,16 @@ func TestAccWindowsWebAppSlot_withDockerDeprecatedUpgrade(t *testing.T) {
 			"site_config.0.application_stack.0.docker_registry_url",
 			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
 			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME"),
+			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
+			"site_credential.0.password"),
 		{
-			Config: r.dockerImageName(data, "https://index.docker.io", "hello-world:latest"),
+			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|hello-world:latest"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -887,7 +929,7 @@ func TestAccWindowsWebAppSlot_withDockerImageMCR(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|mcr.microsoft.com/azure-app-service/windows/parkingpage:latest"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -897,13 +939,13 @@ func TestAccWindowsWebAppSlot_withDockerImageDockerHub(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:windowsservercore-1809"),
+			Config: r.dockerImageName(data, "https://index.docker.io", "traefik:v3.0-windowsservercore-1809"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:windowsservercore-1809"),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|traefik:v3.0-windowsservercore-1809"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -919,7 +961,8 @@ func TestAccWindowsWebAppSlot_zipDeploy(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("zip_deploy_file"),
+		data.ImportStep("zip_deploy_file",
+			"site_credential.0.password"),
 	})
 }
 
@@ -937,7 +980,7 @@ func TestAccWindowsWebAppSlot_vNetIntegration(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -952,7 +995,7 @@ func TestAccWindowsWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.vNetIntegrationWebApp_subnet1(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -962,7 +1005,7 @@ func TestAccWindowsWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.vNetIntegrationWebApp_subnet2(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -972,14 +1015,14 @@ func TestAccWindowsWebAppSlot_vNetIntegrationUpdate(t *testing.T) {
 				),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.vNetIntegrationWebApp_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -995,7 +1038,7 @@ func TestAccWindowsWebAppSlot_publicNetworkAccessDisabled(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1011,7 +1054,7 @@ func TestAccWindowsWebAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.publicNetworkAccessDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1019,7 +1062,7 @@ func TestAccWindowsWebAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1027,27 +1070,27 @@ func TestAccWindowsWebAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
 // Exists
 
 func (r WindowsWebAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.WebAppSlotID(state.ID)
+	id, err := webapps.ParseSlotID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.AppService.WebAppsClient.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	resp, err := client.AppService.WebAppsClient.GetSlot(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
-	if utils.ResponseWasNotFound(resp.Response) {
+	if response.WasNotFound(resp.HttpResponse) {
 		return utils.Bool(false), nil
 	}
 
@@ -1428,6 +1471,9 @@ resource "azurerm_windows_web_app_slot" "test" {
     access_key   = azurerm_storage_account.test.primary_access_key
     mount_path   = "/mounts/files"
   }
+
+  ftp_publish_basic_authentication_enabled       = false
+  webdeploy_publish_basic_authentication_enabled = false
 
   tags = {
     Environment = "AccTest"
@@ -2196,6 +2242,32 @@ resource "azurerm_windows_web_app_slot" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan, SkuPremiumPlan)
+}
+
+func (r WindowsWebAppSlotResource) parentStandardPlanError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_service_plan" "test2" {
+  name                = "acctestASP2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "%[3]s"
+}
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name            = "acctestWAS-%[2]d"
+  app_service_id  = azurerm_windows_web_app.test.id
+  service_plan_id = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, r.baseTemplate(data), data.RandomInteger, SkuStandardPlan)
 }
 
 func (r WindowsWebAppSlotResource) publicNetworkAccessDisabled(data acceptance.TestData) string {

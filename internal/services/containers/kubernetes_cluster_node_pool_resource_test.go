@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -387,6 +387,38 @@ func TestAccKubernetesClusterNodePool_modeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+	taints1 := []string{"key=value:NoSchedule"}
+	taints2 := []string{"key=value:NoSchedule", "key2=value2:NoSchedule"}
+	taints3 := []string{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeTaintsConfig(data, taints1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_taints.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_taints.0").HasValue("key=value:NoSchedule"),
+			),
+		},
+		{
+			Config: r.nodeTaintsConfig(data, taints2),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_taints.#").HasValue("2"),
+				check.That(data.ResourceName).Key("node_taints.0").HasValue("key=value:NoSchedule"),
+				check.That(data.ResourceName).Key("node_taints.1").HasValue("key2=value2:NoSchedule"),
+			),
+		},
+		{
+			Config: r.nodeTaintsConfig(data, taints3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_taints.#").HasValue("0"),
+			),
+		},
+	})
+}
+
 func TestAccKubernetesClusterNodePool_nodeLabels(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -425,21 +457,6 @@ func TestAccKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nodePublicIPConfig(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_nodeTaints(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.nodeTaintsConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -975,6 +992,50 @@ func TestAccKubernetesClusterNodePool_nodeIPTags(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_networkProfileComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkProfileComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_networkProfileUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeIPTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nodeIPTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -1031,6 +1092,21 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 				}, "azurerm_kubernetes_cluster_node_pool.source"),
 			),
 		},
+	})
+}
+
+func TestAccKubernetesClusterNodePool_gpuInstance(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gpuInstance(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1676,6 +1752,31 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data), labelsStr)
 }
 
+func (r KubernetesClusterNodePoolResource) nodeTaintsConfig(data acceptance.TestData, taints []string) string {
+	taintsSlice := make([]string, 0, len(taints))
+	for _, v := range taints {
+		taintsSlice = append(taintsSlice, fmt.Sprintf("\"%s\"", v))
+	}
+	taintsStr := strings.Join(taintsSlice, ",")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  node_taints = [
+%s
+  ]
+}
+`, r.templateConfig(data), taintsStr)
+}
+
 func (r KubernetesClusterNodePoolResource) nodePublicIPConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1700,26 +1801,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 `, r.templateConfig(data), data.RandomInteger)
-}
-
-func (r KubernetesClusterNodePoolResource) nodeTaintsConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
-  node_count            = 1
-  node_taints = [
-    "key=value:NoSchedule"
-  ]
-}
-`, r.templateConfig(data))
 }
 
 func (r KubernetesClusterNodePoolResource) podSubnet(data acceptance.TestData) string {
@@ -2376,7 +2457,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%[1]d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 0
 }
 
@@ -2594,6 +2675,12 @@ resource "azurerm_resource_group" "test" {
   location = "%[1]s"
 }
 
+resource "azurerm_application_security_group" "test" {
+  name                = "acctestasg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
@@ -2615,6 +2702,58 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_D2s_v3"
   enable_node_public_ip = true
   node_network_profile {
+    node_public_ip_tags = {
+      RoutingPreference = "Internet"
+    }
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) networkProfileComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_application_security_group" "test" {
+  name                = "acctestasg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  enable_node_public_ip = true
+  node_network_profile {
+    allowed_host_ports {
+      port_start = 8001
+      port_end   = 8002
+      protocol   = "UDP"
+    }
+    application_security_group_ids = [azurerm_application_security_group.test.id]
     node_public_ip_tags = {
       RoutingPreference = "Internet"
     }
@@ -2705,4 +2844,39 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   ]
 }
  `, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (KubernetesClusterNodePoolResource) gpuInstance(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_NC24ads_A100_v4"
+  gpu_instance          = "MIG1g"
+}
+ `, data.Locations.Primary, data.RandomInteger)
 }

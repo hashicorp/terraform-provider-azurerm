@@ -12,6 +12,10 @@ var _ sdk.UntypedServiceRegistration = Registration{}
 
 type Registration struct{}
 
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/connections"
+}
+
 func (r Registration) Name() string {
 	return "Connections"
 }

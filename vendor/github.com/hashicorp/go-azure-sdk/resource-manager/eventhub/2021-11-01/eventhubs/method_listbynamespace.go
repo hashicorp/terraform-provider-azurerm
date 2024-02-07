@@ -19,7 +19,8 @@ type ListByNamespaceOperationResponse struct {
 }
 
 type ListByNamespaceCompleteResult struct {
-	Items []Eventhub
+	LatestHttpResponse *http.Response
+	Items              []Eventhub
 }
 
 type ListByNamespaceOperationOptions struct {
@@ -56,7 +57,7 @@ func (o ListByNamespaceOperationOptions) ToQuery() *client.QueryParams {
 // ListByNamespace ...
 func (c EventHubsClient) ListByNamespace(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (result ListByNamespaceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -115,7 +116,8 @@ func (c EventHubsClient) ListByNamespaceCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListByNamespaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

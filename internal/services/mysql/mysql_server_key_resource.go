@@ -9,17 +9,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2020-01-01/serverkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -33,7 +32,7 @@ func resourceMySQLServerKey() *pluginsdk.Resource {
 		Delete: resourceMySQLServerKeyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.KeyID(id)
+			_, err := serverkeys.ParseKeyID(id)
 			return err
 		}),
 
@@ -49,7 +48,7 @@ func resourceMySQLServerKey() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServerID,
+				ValidateFunc: servers.ValidateServerID,
 			},
 
 			"key_vault_key_id": {
@@ -61,12 +60,13 @@ func resourceMySQLServerKey() *pluginsdk.Resource {
 	}
 }
 
-func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, keyVaultKeyURI string) (*string, error) {
+func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, subscriptionId string, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyID.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -78,38 +78,40 @@ func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, 
 }
 
 func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
+	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient.ServerKeys
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverID, err := parse.ServerID(d.Get("server_id").(string))
+	serverID, err := serverkeys.ParseServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(serverID.Name, mySQLServerResourceName)
-	defer locks.UnlockByName(serverID.Name, mySQLServerResourceName)
+	locks.ByName(serverID.ServerName, mySQLServerResourceName)
+	defer locks.UnlockByName(serverID.ServerName, mySQLServerResourceName)
 
 	if d.IsNewResource() {
 		// This resource is a singleton, but its name can be anything.
 		// If you create a new key with different name with the old key, the service will not give you any warning but directly replace the old key with the new key.
 		// Therefore sometimes you cannot get the old key using the GET API since you may not know the name of the old key
-		resp, err := keysClient.List(ctx, serverID.ResourceGroup, serverID.Name)
+		resp, err := keysClient.List(ctx, *serverID)
 		if err != nil {
-			return fmt.Errorf("listing existing MySQL Server Keys in Resource Group %q / Server %q: %+v", serverID.ResourceGroup, serverID.Name, err)
+			return fmt.Errorf("listing existing MySQL Server Keys in %s: %s", serverID, err)
 		}
-		keys := resp.Values()
+		if resp.Model == nil {
+			return fmt.Errorf("model was nil for %s", serverID)
+		}
+		keys := *resp.Model
 		if len(keys) > 0 {
 			if len(keys) > 1 {
 				return fmt.Errorf("expecting at most one MySQL Server Key, but got %q", len(keys))
 			}
-			if keys[0].ID == nil || *keys[0].ID == "" {
+			if keys[0].Id == nil || *keys[0].Id == "" {
 				return fmt.Errorf("missing ID for existing MySQL Server Key")
 			}
 
-			id, err := parse.KeyID(*keys[0].ID)
+			id, err := serverkeys.ParseKeyID(*keys[0].Id)
 			if err != nil {
 				return err
 			}
@@ -119,25 +121,21 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
-	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
+	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, serverID.SubscriptionId, keyVaultKeyURI)
 	if err != nil {
-		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroupName, serverID.ServerName, err)
 	}
 
-	id := parse.NewKeyID(serverID.SubscriptionId, serverID.ResourceGroup, serverID.Name, *name)
-	param := mysql.ServerKey{
-		ServerKeyProperties: &mysql.ServerKeyProperties{
-			ServerKeyType: utils.String("AzureKeyVault"),
-			URI:           &keyVaultKeyURI,
+	id := serverkeys.NewKeyID(serverID.SubscriptionId, serverID.ResourceGroupName, serverID.ServerName, *name)
+	param := serverkeys.ServerKey{
+		Properties: &serverkeys.ServerKeyProperties{
+			ServerKeyType: serverkeys.ServerKeyTypeAzureKeyVault,
+			Uri:           &keyVaultKeyURI,
 		},
 	}
 
-	future, err := keysClient.CreateOrUpdate(ctx, id.ServerName, id.Name, param, id.ResourceGroup)
-	if err != nil {
+	if err = keysClient.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-	if err := future.WaitForCompletionRef(ctx, keysClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -145,18 +143,18 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceMySQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
+	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient.ServerKeys
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KeyID(d.Id())
+	id, err := serverkeys.ParseKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := keysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := keysClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[WARN] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -165,21 +163,23 @@ func resourceMySQLServerKeyRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	serverId := servers.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 	d.Set("server_id", serverId.ID())
-	if props := resp.ServerKeyProperties; props != nil {
-		d.Set("key_vault_key_id", props.URI)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("key_vault_key_id", props.Uri)
+		}
 	}
 
 	return nil
 }
 
 func resourceMySQLServerKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MySQL.ServerKeysClient
+	client := meta.(*clients.Client).MySQL.ServerKeysClient.ServerKeys
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KeyID(d.Id())
+	id, err := serverkeys.ParseKeyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,13 +187,8 @@ func resourceMySQLServerKeyDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.ByName(id.ServerName, mySQLServerResourceName)
 	defer locks.UnlockByName(id.ServerName, mySQLServerResourceName)
 
-	future, err := client.Delete(ctx, id.ServerName, id.Name, id.ResourceGroup)
-	if err != nil {
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

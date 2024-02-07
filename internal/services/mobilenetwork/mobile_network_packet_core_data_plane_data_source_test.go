@@ -15,9 +15,6 @@ type MobileNetworkPacketCoreDataPlaneDataSource struct{}
 
 func TestAccMobileNetworkPacketCoreDataPlaneDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mobile_network_packet_core_data_plane", "test")
-	// Limited regional availability for Mobile Network
-	data.Locations.Primary = "eastus"
-
 	d := MobileNetworkPacketCoreDataPlaneDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{

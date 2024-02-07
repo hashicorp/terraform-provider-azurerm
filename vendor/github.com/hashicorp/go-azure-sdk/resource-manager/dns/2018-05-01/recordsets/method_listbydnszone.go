@@ -19,7 +19,8 @@ type ListByDnsZoneOperationResponse struct {
 }
 
 type ListByDnsZoneCompleteResult struct {
-	Items []RecordSet
+	LatestHttpResponse *http.Response
+	Items              []RecordSet
 }
 
 type ListByDnsZoneOperationOptions struct {
@@ -56,7 +57,7 @@ func (o ListByDnsZoneOperationOptions) ToQuery() *client.QueryParams {
 // ListByDnsZone ...
 func (c RecordSetsClient) ListByDnsZone(ctx context.Context, id DnsZoneId, options ListByDnsZoneOperationOptions) (result ListByDnsZoneOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -115,7 +116,8 @@ func (c RecordSetsClient) ListByDnsZoneCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = ListByDnsZoneCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

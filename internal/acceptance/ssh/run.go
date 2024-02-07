@@ -10,7 +10,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -23,14 +24,14 @@ type Runner struct {
 }
 
 func (r Runner) Run(ctx context.Context) error {
-	if err := resource.RetryContext(ctx, 5*time.Minute, r.tryRun); err != nil {
+	if err := retry.RetryContext(ctx, 5*time.Minute, r.tryRun); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r Runner) tryRun() *resource.RetryError {
+func (r Runner) tryRun() *pluginsdk.RetryError {
 	config := &ssh.ClientConfig{
 		User: r.Username,
 		Auth: []ssh.AuthMethod{
@@ -43,12 +44,12 @@ func (r Runner) tryRun() *resource.RetryError {
 	log.Printf("[INFO] SSHing to %q...", hostAddress)
 	client, err := ssh.Dial("tcp", hostAddress, config)
 	if err != nil {
-		return resource.RetryableError(fmt.Errorf("connecting to host: %+v", err))
+		return pluginsdk.RetryableError(fmt.Errorf("connecting to host: %+v", err))
 	}
 
 	session, err := client.NewSession()
 	if err != nil {
-		return resource.RetryableError(fmt.Errorf("creating session: %+v", err))
+		return pluginsdk.RetryableError(fmt.Errorf("creating session: %+v", err))
 	}
 	defer session.Close()
 
@@ -57,7 +58,7 @@ func (r Runner) tryRun() *resource.RetryError {
 		var b bytes.Buffer
 		session.Stdout = &b
 		if err := session.Run(cmd); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("failure running command %q: %+v", cmd, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("failure running command %q: %+v", cmd, err))
 		}
 	}
 

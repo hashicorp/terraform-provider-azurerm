@@ -20,7 +20,7 @@ type ValidateByLocationOperationResponse struct {
 // ValidateByLocation ...
 func (c WorkflowsClient) ValidateByLocation(ctx context.Context, id LocationWorkflowId, input Workflow) (result ValidateByLocationOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

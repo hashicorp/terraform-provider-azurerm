@@ -11,15 +11,15 @@ type ProviderShareSubscriptionOperationPredicate struct {
 
 func (p ProviderShareSubscriptionOperationPredicate) Matches(input ProviderShareSubscription) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -34,15 +34,15 @@ type ShareOperationPredicate struct {
 
 func (p ShareOperationPredicate) Matches(input Share) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -63,39 +63,39 @@ type ShareSynchronizationOperationPredicate struct {
 
 func (p ShareSynchronizationOperationPredicate) Matches(input ShareSynchronization) bool {
 
-	if p.ConsumerEmail != nil && (input.ConsumerEmail == nil && *p.ConsumerEmail != *input.ConsumerEmail) {
+	if p.ConsumerEmail != nil && (input.ConsumerEmail == nil || *p.ConsumerEmail != *input.ConsumerEmail) {
 		return false
 	}
 
-	if p.ConsumerName != nil && (input.ConsumerName == nil && *p.ConsumerName != *input.ConsumerName) {
+	if p.ConsumerName != nil && (input.ConsumerName == nil || *p.ConsumerName != *input.ConsumerName) {
 		return false
 	}
 
-	if p.ConsumerTenantName != nil && (input.ConsumerTenantName == nil && *p.ConsumerTenantName != *input.ConsumerTenantName) {
+	if p.ConsumerTenantName != nil && (input.ConsumerTenantName == nil || *p.ConsumerTenantName != *input.ConsumerTenantName) {
 		return false
 	}
 
-	if p.DurationMs != nil && (input.DurationMs == nil && *p.DurationMs != *input.DurationMs) {
+	if p.DurationMs != nil && (input.DurationMs == nil || *p.DurationMs != *input.DurationMs) {
 		return false
 	}
 
-	if p.EndTime != nil && (input.EndTime == nil && *p.EndTime != *input.EndTime) {
+	if p.EndTime != nil && (input.EndTime == nil || *p.EndTime != *input.EndTime) {
 		return false
 	}
 
-	if p.Message != nil && (input.Message == nil && *p.Message != *input.Message) {
+	if p.Message != nil && (input.Message == nil || *p.Message != *input.Message) {
 		return false
 	}
 
-	if p.StartTime != nil && (input.StartTime == nil && *p.StartTime != *input.StartTime) {
+	if p.StartTime != nil && (input.StartTime == nil || *p.StartTime != *input.StartTime) {
 		return false
 	}
 
-	if p.Status != nil && (input.Status == nil && *p.Status != *input.Status) {
+	if p.Status != nil && (input.Status == nil || *p.Status != *input.Status) {
 		return false
 	}
 
-	if p.SynchronizationId != nil && (input.SynchronizationId == nil && *p.SynchronizationId != *input.SynchronizationId) {
+	if p.SynchronizationId != nil && (input.SynchronizationId == nil || *p.SynchronizationId != *input.SynchronizationId) {
 		return false
 	}
 
@@ -121,59 +121,59 @@ type SynchronizationDetailsOperationPredicate struct {
 
 func (p SynchronizationDetailsOperationPredicate) Matches(input SynchronizationDetails) bool {
 
-	if p.DataSetId != nil && (input.DataSetId == nil && *p.DataSetId != *input.DataSetId) {
+	if p.DataSetId != nil && (input.DataSetId == nil || *p.DataSetId != *input.DataSetId) {
 		return false
 	}
 
-	if p.DurationMs != nil && (input.DurationMs == nil && *p.DurationMs != *input.DurationMs) {
+	if p.DurationMs != nil && (input.DurationMs == nil || *p.DurationMs != *input.DurationMs) {
 		return false
 	}
 
-	if p.EndTime != nil && (input.EndTime == nil && *p.EndTime != *input.EndTime) {
+	if p.EndTime != nil && (input.EndTime == nil || *p.EndTime != *input.EndTime) {
 		return false
 	}
 
-	if p.FilesRead != nil && (input.FilesRead == nil && *p.FilesRead != *input.FilesRead) {
+	if p.FilesRead != nil && (input.FilesRead == nil || *p.FilesRead != *input.FilesRead) {
 		return false
 	}
 
-	if p.FilesWritten != nil && (input.FilesWritten == nil && *p.FilesWritten != *input.FilesWritten) {
+	if p.FilesWritten != nil && (input.FilesWritten == nil || *p.FilesWritten != *input.FilesWritten) {
 		return false
 	}
 
-	if p.Message != nil && (input.Message == nil && *p.Message != *input.Message) {
+	if p.Message != nil && (input.Message == nil || *p.Message != *input.Message) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.RowsCopied != nil && (input.RowsCopied == nil && *p.RowsCopied != *input.RowsCopied) {
+	if p.RowsCopied != nil && (input.RowsCopied == nil || *p.RowsCopied != *input.RowsCopied) {
 		return false
 	}
 
-	if p.RowsRead != nil && (input.RowsRead == nil && *p.RowsRead != *input.RowsRead) {
+	if p.RowsRead != nil && (input.RowsRead == nil || *p.RowsRead != *input.RowsRead) {
 		return false
 	}
 
-	if p.SizeRead != nil && (input.SizeRead == nil && *p.SizeRead != *input.SizeRead) {
+	if p.SizeRead != nil && (input.SizeRead == nil || *p.SizeRead != *input.SizeRead) {
 		return false
 	}
 
-	if p.SizeWritten != nil && (input.SizeWritten == nil && *p.SizeWritten != *input.SizeWritten) {
+	if p.SizeWritten != nil && (input.SizeWritten == nil || *p.SizeWritten != *input.SizeWritten) {
 		return false
 	}
 
-	if p.StartTime != nil && (input.StartTime == nil && *p.StartTime != *input.StartTime) {
+	if p.StartTime != nil && (input.StartTime == nil || *p.StartTime != *input.StartTime) {
 		return false
 	}
 
-	if p.Status != nil && (input.Status == nil && *p.Status != *input.Status) {
+	if p.Status != nil && (input.Status == nil || *p.Status != *input.Status) {
 		return false
 	}
 
-	if p.VCore != nil && (input.VCore == nil && *p.VCore != *input.VCore) {
+	if p.VCore != nil && (input.VCore == nil || *p.VCore != *input.VCore) {
 		return false
 	}
 

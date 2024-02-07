@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -120,7 +120,7 @@ func (r ManagerDeploymentResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	client := clients.Network.ManagersClient
+	client := clients.Network.NetworkManagers
 	listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
 		Regions:         &[]string{azure.NormalizeLocation(id.Location)},
 		DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},

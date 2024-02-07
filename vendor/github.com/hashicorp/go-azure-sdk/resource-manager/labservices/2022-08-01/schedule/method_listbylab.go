@@ -19,13 +19,14 @@ type ListByLabOperationResponse struct {
 }
 
 type ListByLabCompleteResult struct {
-	Items []Schedule
+	LatestHttpResponse *http.Response
+	Items              []Schedule
 }
 
 // ListByLab ...
 func (c ScheduleClient) ListByLab(ctx context.Context, id LabId) (result ListByLabOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c ScheduleClient) ListByLabCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = ListByLabCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

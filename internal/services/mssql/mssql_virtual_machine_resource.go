@@ -13,13 +13,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	parseCompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -55,7 +55,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: computeValidate.VirtualMachineID,
+				ValidateFunc: commonids.ValidateVirtualMachineID,
 			},
 
 			"sql_license_type": {
@@ -431,6 +431,40 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
+			"sql_virtual_machine_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: sqlvirtualmachinegroups.ValidateSqlVirtualMachineGroupID,
+			},
+
+			"wsfc_domain_credential": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"cluster_bootstrap_account_password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"cluster_operator_account_password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"sql_service_account_password": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -464,11 +498,11 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vmId, err := parseCompute.VirtualMachineID(d.Get("virtual_machine_id").(string))
+	vmId, err := commonids.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
 		return err
 	}
-	id := sqlvirtualmachines.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroup, vmId.Name)
+	id := sqlvirtualmachines.NewSqlVirtualMachineID(vmId.SubscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})
@@ -491,6 +525,14 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if *respvm.Location == "" {
 		return fmt.Errorf("location is empty from making Read request on Azure Virtual Machine %s: %+v", id.SqlVirtualMachineName, err)
 	}
+	sqlVmGroupId := ""
+	if sqlVmGroupId = d.Get("sql_virtual_machine_group_id").(string); sqlVmGroupId != "" {
+		parsedVmGroupId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
+		if err != nil {
+			return err
+		}
+		sqlVmGroupId = parsedVmGroupId.ID()
+	}
 
 	sqlInstance, err := expandSqlVirtualMachineSQLInstance(d.Get("sql_instance").([]interface{}))
 	if err != nil {
@@ -508,10 +550,12 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	parameters := sqlvirtualmachines.SqlVirtualMachine{
 		Location: *respvm.Location,
 		Properties: &sqlvirtualmachines.SqlVirtualMachineProperties{
-			AutoBackupSettings:         autoBackupSettings,
-			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
-			AssessmentSettings:         expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
-			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
+			AutoBackupSettings:               autoBackupSettings,
+			AutoPatchingSettings:             expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
+			AssessmentSettings:               expandSqlVirtualMachineAssessmentSettings(d.Get("assessment").([]interface{})),
+			KeyVaultCredentialSettings:       expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
+			WsfcDomainCredentials:            expandSqlVirtualMachineWsfcDomainCredentials(d.Get("wsfc_domain_credential").([]interface{})),
+			SqlVirtualMachineGroupResourceId: pointer.To(sqlVmGroupId),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachines.ServerConfigurationsManagementSettings{
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachines.AdditionalFeaturesServerConfigurations{
 					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
@@ -637,7 +681,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 				if scus := mgmtSettings.SqlConnectivityUpdateSettings; scus != nil {
 					d.Set("sql_connectivity_port", mgmtSettings.SqlConnectivityUpdateSettings.Port)
-					d.Set("sql_connectivity_type", string(pointer.From(mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType)))
+					d.Set("sql_connectivity_type", pointer.From(mgmtSettings.SqlConnectivityUpdateSettings.ConnectivityType))
 				}
 
 				d.Set("sql_instance", flattenSqlVirtualMachineSQLInstance(mgmtSettings.SqlInstanceSettings))
@@ -653,6 +697,19 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("storage_configuration", flattenSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
 				return fmt.Errorf("setting `storage_configuration`: %+v", err)
 			}
+
+			sqlVirtualMachineGroupId := ""
+			if props.SqlVirtualMachineGroupResourceId != nil {
+				parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(*props.SqlVirtualMachineGroupResourceId)
+				if err != nil {
+					return err
+				}
+
+				// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
+				sqlVirtualMachineGroupId = sqlvirtualmachines.NewSqlVirtualMachineGroupID(id.SubscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineGroupName).ID()
+			}
+			d.Set("sql_virtual_machine_group_id", sqlVirtualMachineGroupId)
+
 			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 				return err
 			}
@@ -1378,5 +1435,18 @@ func flattenSqlVirtualMachineSQLInstance(input *sqlvirtualmachines.SQLInstanceSe
 			"max_server_memory_mb":                 maxServerMemoryMB,
 			"min_server_memory_mb":                 minServerMemoryMB,
 		},
+	}
+}
+
+func expandSqlVirtualMachineWsfcDomainCredentials(input []interface{}) *sqlvirtualmachines.WsfcDomainCredentials {
+	if len(input) == 0 {
+		return nil
+	}
+	wsfcDomainCredentials := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachines.WsfcDomainCredentials{
+		ClusterBootstrapAccountPassword: pointer.To(wsfcDomainCredentials["cluster_bootstrap_account_password"].(string)),
+		ClusterOperatorAccountPassword:  pointer.To(wsfcDomainCredentials["cluster_operator_account_password"].(string)),
+		SqlServiceAccountPassword:       pointer.To(wsfcDomainCredentials["sql_service_account_password"].(string)),
 	}
 }

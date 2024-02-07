@@ -17,7 +17,7 @@ type GetParentOperationResponse struct {
 }
 
 // GetParent ...
-func (c ConfigurationAssignmentsClient) GetParent(ctx context.Context, id Providers2ConfigurationAssignmentId) (result GetParentOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) GetParent(ctx context.Context, id ScopedConfigurationAssignmentId) (result GetParentOperationResponse, err error) {
 	req, err := c.preparerForGetParent(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationassignments.ConfigurationAssignmentsClient", "GetParent", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ConfigurationAssignmentsClient) GetParent(ctx context.Context, id Provid
 }
 
 // preparerForGetParent prepares the GetParent request.
-func (c ConfigurationAssignmentsClient) preparerForGetParent(ctx context.Context, id Providers2ConfigurationAssignmentId) (*http.Request, error) {
+func (c ConfigurationAssignmentsClient) preparerForGetParent(ctx context.Context, id ScopedConfigurationAssignmentId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

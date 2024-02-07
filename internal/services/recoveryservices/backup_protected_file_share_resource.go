@@ -14,6 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotectableitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	recoveryServicesValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -104,12 +104,12 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 	vaultId := backupprotectableitems.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string))
 
 	// get storage account name from id
-	parsedStorageAccountID, err := storageParse.StorageAccountID(storageAccountID)
+	parsedStorageAccountID, err := commonids.ParseStorageAccountID(storageAccountID)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse source_storage_account_id '%s': %+v", storageAccountID, err)
 	}
 
-	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, parsedStorageAccountID.Name)
+	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroupName, parsedStorageAccountID.StorageAccountName)
 	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
 
 	// the fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
@@ -121,15 +121,19 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 
 	protectionContainerId := protectioncontainers.NewProtectionContainerID(subscriptionId, resourceGroup, vaultName, "Azure", containerName)
 
-	// There is an issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11184 (When a new file share is added to an exist storage account,
+	// There is an issue https://github.com/hashicorp/terraform-provider-azurerm/issues/11184 (When a new file share is added to an existing storage account,
 	// it cannot be listed by Backup Protectable Items - List API after the storage account is registered with a RSV).
 	// After confirming with the service team, whenever new file shares are added, we need to run an 'inquire' API. but inquiry APIs are long running APIs and hence can't be included in GET API's (Backup Protectable Items - List) response.
 	// Therefore, add 'inquire' API to inquire all unprotected files shares under a storage account to fix this usecase.
 	respContainer, err := protectionContainerClient.Inquire(ctx, protectionContainerId, protectioncontainers.InquireOperationOptions{Filter: pointer.To(filter)})
 	if err != nil {
-		return fmt.Errorf("inquire all unprotected files shares under a storage account %q (Resource Group %q): %+v", parsedStorageAccountID.Name, resourceGroup, err)
+		return fmt.Errorf("inquire all unprotected files shares for %s: %+v", parsedStorageAccountID, err)
 	}
 
+	// TODO: @tombuildsstuff: this manual LRO is not needed and should be removed - the existing Azure SDK has logic to handle this as does hashicorp/go-azure-sdk
+	// therefore we should not be invoking the Future by hand, there's already logic to do that for us:
+	// When using `Azure/go-autorest`: https://github.com/hashicorp/go-azure-helpers/blob/8045457c83689876d4c63fecebd4753925ea73ab/polling/poller.go#L30
+	// When using `hashicorp/go-azure-sdk`: https://github.com/hashicorp/go-azure-sdk/blob/02376e1c45321faa0a561e0c9b43463f1acbc3bb/sdk/client/resourcemanager/poller.go#L16
 	locationURL, err := respContainer.HttpResponse.Location()
 	if err != nil || locationURL == nil {
 		return fmt.Errorf("inquire all unprotected files shares %q (Vault %q): Location header missing or empty", containerName, vaultName)
@@ -180,7 +184,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 			azureFileShareProtectableItem, check := protectableItem.Properties.(backupprotectableitems.AzureFileShareProtectableItem)
 
 			// check if protected item has the same fileshare name and is from the same storage account
-			if check && *azureFileShareProtectableItem.FriendlyName == fileShareName && *azureFileShareProtectableItem.ParentContainerFriendlyName == parsedStorageAccountID.Name {
+			if check && *azureFileShareProtectableItem.FriendlyName == fileShareName && *azureFileShareProtectableItem.ParentContainerFriendlyName == parsedStorageAccountID.StorageAccountName {
 				fileShareSystemName = *protectableItem.Name
 				break
 			}
@@ -211,7 +215,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 	if fileShareSystemName == "" {
-		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure Storage Account %q is registered with Recovery Service Vault %q (Resource Group %q)", fileShareName, parsedStorageAccountID.Name, vaultName, resourceGroup)
+		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure Storage Account %q is registered with Recovery Service Vault %q (Resource Group %q)", fileShareName, parsedStorageAccountID.StorageAccountName, vaultName, resourceGroup)
 	}
 
 	id := protecteditems.NewProtectedItemID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), "Azure", containerName, fileShareSystemName)

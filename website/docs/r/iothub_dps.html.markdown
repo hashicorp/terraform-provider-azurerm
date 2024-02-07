@@ -87,7 +87,7 @@ An `ip_filter_rule` block supports the following:
 
 * `action` - (Required) The desired action for requests captured by this rule. Possible values are `Accept`, `Reject`
 
-* `target` - (Optional) Target for requests captured by this rule. Possible values are `All`, `DeviceApi` and `ServiceApi`.
+* `target` - (Optional) Target for requests captured by this rule. Possible values are `all`, `deviceApi` and `serviceApi`.
 
 ## Attributes Reference
 

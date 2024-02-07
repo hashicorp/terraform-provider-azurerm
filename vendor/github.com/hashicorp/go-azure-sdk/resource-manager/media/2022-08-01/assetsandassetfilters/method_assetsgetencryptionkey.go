@@ -21,7 +21,7 @@ type AssetsGetEncryptionKeyOperationResponse struct {
 // AssetsGetEncryptionKey ...
 func (c AssetsAndAssetFiltersClient) AssetsGetEncryptionKey(ctx context.Context, id AssetId) (result AssetsGetEncryptionKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

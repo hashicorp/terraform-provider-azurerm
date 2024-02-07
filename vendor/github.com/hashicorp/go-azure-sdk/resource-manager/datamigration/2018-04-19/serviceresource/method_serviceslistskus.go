@@ -19,13 +19,14 @@ type ServicesListSkusOperationResponse struct {
 }
 
 type ServicesListSkusCompleteResult struct {
-	Items []AvailableServiceSku
+	LatestHttpResponse *http.Response
+	Items              []AvailableServiceSku
 }
 
 // ServicesListSkus ...
 func (c ServiceResourceClient) ServicesListSkus(ctx context.Context, id ServiceId) (result ServicesListSkusOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c ServiceResourceClient) ServicesListSkusCompleteMatchingPredicate(ctx con
 	}
 
 	result = ServicesListSkusCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

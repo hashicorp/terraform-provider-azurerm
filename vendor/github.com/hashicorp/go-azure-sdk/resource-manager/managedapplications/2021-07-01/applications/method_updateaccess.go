@@ -18,12 +18,13 @@ type UpdateAccessOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *UpdateAccessDefinition
 }
 
 // UpdateAccess ...
 func (c ApplicationsClient) UpdateAccess(ctx context.Context, id ApplicationId, input UpdateAccessDefinition) (result UpdateAccessOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

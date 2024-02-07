@@ -19,13 +19,14 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []Webhook
+	LatestHttpResponse *http.Response
+	Items              []Webhook
 }
 
 // List ...
 func (c WebHooksClient) List(ctx context.Context, id RegistryId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c WebHooksClient) ListCompleteMatchingPredicate(ctx context.Context, id Re
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

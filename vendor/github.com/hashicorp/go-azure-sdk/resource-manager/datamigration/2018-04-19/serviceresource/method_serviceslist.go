@@ -20,13 +20,14 @@ type ServicesListOperationResponse struct {
 }
 
 type ServicesListCompleteResult struct {
-	Items []DataMigrationService
+	LatestHttpResponse *http.Response
+	Items              []DataMigrationService
 }
 
 // ServicesList ...
 func (c ServiceResourceClient) ServicesList(ctx context.Context, id commonids.SubscriptionId) (result ServicesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c ServiceResourceClient) ServicesListCompleteMatchingPredicate(ctx context
 	}
 
 	result = ServicesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

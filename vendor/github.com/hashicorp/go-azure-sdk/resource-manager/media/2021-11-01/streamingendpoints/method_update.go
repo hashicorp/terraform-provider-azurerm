@@ -18,12 +18,13 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *StreamingEndpoint
 }
 
 // Update ...
 func (c StreamingEndpointsClient) Update(ctx context.Context, id StreamingEndpointId, input StreamingEndpoint) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

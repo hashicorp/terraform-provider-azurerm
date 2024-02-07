@@ -47,7 +47,7 @@ func (o ProjectsDeleteOperationOptions) ToQuery() *client.QueryParams {
 // ProjectsDelete ...
 func (c ProjectResourceClient) ProjectsDelete(ctx context.Context, id ProjectId, options ProjectsDeleteOperationOptions) (result ProjectsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

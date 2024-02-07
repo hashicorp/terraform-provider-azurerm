@@ -1,6 +1,10 @@
 package remediations
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForResourceDiscoveryMode() []string {
 		string(ResourceDiscoveryModeExistingNonCompliant),
 		string(ResourceDiscoveryModeReEvaluateCompliance),
 	}
+}
+
+func (s *ResourceDiscoveryMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseResourceDiscoveryMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseResourceDiscoveryMode(input string) (*ResourceDiscoveryMode, error) {

@@ -20,13 +20,14 @@ type ResourceSkusListOperationResponse struct {
 }
 
 type ResourceSkusListCompleteResult struct {
-	Items []ResourceSku
+	LatestHttpResponse *http.Response
+	Items              []ResourceSku
 }
 
 // ResourceSkusList ...
 func (c CognitiveServicesAccountsClient) ResourceSkusList(ctx context.Context, id commonids.SubscriptionId) (result ResourceSkusListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c CognitiveServicesAccountsClient) ResourceSkusListCompleteMatchingPredica
 	}
 
 	result = ResourceSkusListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

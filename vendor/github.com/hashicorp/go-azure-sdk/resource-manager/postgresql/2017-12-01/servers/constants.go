@@ -1,6 +1,10 @@
 package servers
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForCreateMode() []string {
 		string(CreateModePointInTimeRestore),
 		string(CreateModeReplica),
 	}
+}
+
+func (s *CreateMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCreateMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCreateMode(input string) (*CreateMode, error) {
@@ -53,6 +70,19 @@ func PossibleValuesForGeoRedundantBackup() []string {
 	}
 }
 
+func (s *GeoRedundantBackup) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseGeoRedundantBackup(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseGeoRedundantBackup(input string) (*GeoRedundantBackup, error) {
 	vals := map[string]GeoRedundantBackup{
 		"disabled": GeoRedundantBackupDisabled,
@@ -79,6 +109,19 @@ func PossibleValuesForInfrastructureEncryption() []string {
 		string(InfrastructureEncryptionDisabled),
 		string(InfrastructureEncryptionEnabled),
 	}
+}
+
+func (s *InfrastructureEncryption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInfrastructureEncryption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseInfrastructureEncryption(input string) (*InfrastructureEncryption, error) {
@@ -111,6 +154,19 @@ func PossibleValuesForMinimalTlsVersionEnum() []string {
 		string(MinimalTlsVersionEnumTLSOneTwo),
 		string(MinimalTlsVersionEnumTLSOneZero),
 	}
+}
+
+func (s *MinimalTlsVersionEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMinimalTlsVersionEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseMinimalTlsVersionEnum(input string) (*MinimalTlsVersionEnum, error) {
@@ -149,6 +205,19 @@ func PossibleValuesForPrivateEndpointProvisioningState() []string {
 	}
 }
 
+func (s *PrivateEndpointProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateEndpointProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePrivateEndpointProvisioningState(input string) (*PrivateEndpointProvisioningState, error) {
 	vals := map[string]PrivateEndpointProvisioningState{
 		"approving": PrivateEndpointProvisioningStateApproving,
@@ -176,6 +245,19 @@ func PossibleValuesForPrivateLinkServiceConnectionStateActionsRequire() []string
 	return []string{
 		string(PrivateLinkServiceConnectionStateActionsRequireNone),
 	}
+}
+
+func (s *PrivateLinkServiceConnectionStateActionsRequire) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateLinkServiceConnectionStateActionsRequire(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrivateLinkServiceConnectionStateActionsRequire(input string) (*PrivateLinkServiceConnectionStateActionsRequire, error) {
@@ -209,6 +291,19 @@ func PossibleValuesForPrivateLinkServiceConnectionStateStatus() []string {
 	}
 }
 
+func (s *PrivateLinkServiceConnectionStateStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateLinkServiceConnectionStateStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePrivateLinkServiceConnectionStateStatus(input string) (*PrivateLinkServiceConnectionStateStatus, error) {
 	vals := map[string]PrivateLinkServiceConnectionStateStatus{
 		"approved":     PrivateLinkServiceConnectionStateStatusApproved,
@@ -237,6 +332,19 @@ func PossibleValuesForPublicNetworkAccessEnum() []string {
 		string(PublicNetworkAccessEnumDisabled),
 		string(PublicNetworkAccessEnumEnabled),
 	}
+}
+
+func (s *PublicNetworkAccessEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicNetworkAccessEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePublicNetworkAccessEnum(input string) (*PublicNetworkAccessEnum, error) {
@@ -269,6 +377,19 @@ func PossibleValuesForServerState() []string {
 		string(ServerStateInaccessible),
 		string(ServerStateReady),
 	}
+}
+
+func (s *ServerState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseServerState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseServerState(input string) (*ServerState, error) {
@@ -309,6 +430,19 @@ func PossibleValuesForServerVersion() []string {
 	}
 }
 
+func (s *ServerVersion) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseServerVersion(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseServerVersion(input string) (*ServerVersion, error) {
 	vals := map[string]ServerVersion{
 		"9.5":  ServerVersionNinePointFive,
@@ -343,6 +477,19 @@ func PossibleValuesForSkuTier() []string {
 	}
 }
 
+func (s *SkuTier) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSkuTier(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSkuTier(input string) (*SkuTier, error) {
 	vals := map[string]SkuTier{
 		"basic":           SkuTierBasic,
@@ -372,6 +519,19 @@ func PossibleValuesForSslEnforcementEnum() []string {
 	}
 }
 
+func (s *SslEnforcementEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSslEnforcementEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSslEnforcementEnum(input string) (*SslEnforcementEnum, error) {
 	vals := map[string]SslEnforcementEnum{
 		"disabled": SslEnforcementEnumDisabled,
@@ -398,6 +558,19 @@ func PossibleValuesForStorageAutogrow() []string {
 		string(StorageAutogrowDisabled),
 		string(StorageAutogrowEnabled),
 	}
+}
+
+func (s *StorageAutogrow) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageAutogrow(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStorageAutogrow(input string) (*StorageAutogrow, error) {

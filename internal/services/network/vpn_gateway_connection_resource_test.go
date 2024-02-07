@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type VPNGatewayConnectionResource struct{}
@@ -128,14 +127,14 @@ func TestAccVpnGatewayConnection_updateConnectionMode(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateConnectionMode(data, network.VpnLinkConnectionModeDefault),
+			Config: r.updateConnectionMode(data, "Default"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateConnectionMode(data, network.VpnLinkConnectionModeInitiatorOnly),
+			Config: r.updateConnectionMode(data, "InitiatorOnly"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -255,17 +254,17 @@ func TestAccVpnGatewayConnection_routeMap(t *testing.T) {
 }
 
 func (t VPNGatewayConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VpnConnectionID(state.ID)
+	id, err := commonids.ParseVPNConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VpnConnectionsClient.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.Name)
+	resp, err := clients.Network.VirtualWANs.VpnConnectionsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading VPN Gateway Connnection (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r VPNGatewayConnectionResource) basic(data acceptance.TestData) string {
@@ -420,7 +419,7 @@ resource "azurerm_vpn_gateway_connection" "import" {
 `, r.basic(data))
 }
 
-func (r VPNGatewayConnectionResource) updateConnectionMode(data acceptance.TestData, connectionMode network.VpnLinkConnectionMode) string {
+func (r VPNGatewayConnectionResource) updateConnectionMode(data acceptance.TestData, connectionMode string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -438,7 +437,7 @@ resource "azurerm_vpn_gateway_connection" "test" {
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
 }
-`, r.template(data), data.RandomInteger, string(connectionMode))
+`, r.template(data), data.RandomInteger, connectionMode)
 }
 
 func (r VPNGatewayConnectionResource) updateTrafficSelectorPolicy(data acceptance.TestData, localAddressRange string, remoteAddressRange string) string {

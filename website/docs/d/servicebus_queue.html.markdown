@@ -14,9 +14,8 @@ Use this data source to access information about an existing Service Bus Queue.
 
 ```hcl
 data "azurerm_servicebus_queue" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
-  namespace_name      = "existing"
+  name         = "existing"
+  namespace_id = "existing"
 }
 
 output "id" {
@@ -33,6 +32,10 @@ The following arguments are supported:
 * `namespace_name` - (Required) The name of the ServiceBus Namespace.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Service Bus Queue exists.
+
+~> **Note:** `namespace_name` and `resource_group_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `namespace_id`.
+
+* `namespace_id` - (Required) The ID of the ServiceBus Namespace where the Service Bus Queue exists.
 
 ## Attributes Reference
 

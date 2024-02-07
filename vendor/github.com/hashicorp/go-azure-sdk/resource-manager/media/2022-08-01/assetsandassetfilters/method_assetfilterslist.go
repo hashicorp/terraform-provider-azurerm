@@ -19,13 +19,14 @@ type AssetFiltersListOperationResponse struct {
 }
 
 type AssetFiltersListCompleteResult struct {
-	Items []AssetFilter
+	LatestHttpResponse *http.Response
+	Items              []AssetFilter
 }
 
 // AssetFiltersList ...
 func (c AssetsAndAssetFiltersClient) AssetFiltersList(ctx context.Context, id AssetId) (result AssetFiltersListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c AssetsAndAssetFiltersClient) AssetFiltersListCompleteMatchingPredicate(c
 	}
 
 	result = AssetFiltersListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,7 @@ newgrp docker << END
 
 #install golang and kind
 sudo snap install go --classic
-sudo go install sigs.k8s.io/kind@latest
+go install sigs.k8s.io/kind@latest
 
 #create a new cluster
 export PATH="$HOME/go/bin:$PATH"

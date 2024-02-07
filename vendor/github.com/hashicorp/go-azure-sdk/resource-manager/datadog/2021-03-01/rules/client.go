@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type RulesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewRulesClientWithBaseURI(api environments.Api) (*RulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "rules", defaultApiVersion)
+func NewRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*RulesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "rules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RulesClient: %+v", err)
 	}

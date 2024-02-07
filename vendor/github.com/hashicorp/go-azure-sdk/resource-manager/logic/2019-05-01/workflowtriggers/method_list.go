@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []WorkflowTrigger
+	LatestHttpResponse *http.Response
+	Items              []WorkflowTrigger
 }
 
 type ListOperationOptions struct {
@@ -56,7 +57,7 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 // List ...
 func (c WorkflowTriggersClient) List(ctx context.Context, id WorkflowId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -115,7 +116,8 @@ func (c WorkflowTriggersClient) ListCompleteMatchingPredicate(ctx context.Contex
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

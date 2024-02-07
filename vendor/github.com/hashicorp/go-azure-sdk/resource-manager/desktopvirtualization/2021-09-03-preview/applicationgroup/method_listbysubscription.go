@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []ApplicationGroup
+	LatestHttpResponse *http.Response
+	Items              []ApplicationGroup
 }
 
 type ListBySubscriptionOperationOptions struct {
@@ -53,7 +54,7 @@ func (o ListBySubscriptionOperationOptions) ToQuery() *client.QueryParams {
 // ListBySubscription ...
 func (c ApplicationGroupClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId, options ListBySubscriptionOperationOptions) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c ApplicationGroupClient) ListBySubscriptionCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

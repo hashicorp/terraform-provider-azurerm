@@ -11,12 +11,14 @@ import (
 	"strings"
 )
 
+// ConsistencyLevel is included in the API request headers when making advanced data queries
 type ConsistencyLevel string
 
 const (
 	ConsistencyLevelEventual ConsistencyLevel = "eventual"
 )
 
+// Metadata specifies the level of control information desired in the response for an API request and is appended to the Accept header
 type Metadata string
 
 const (
@@ -25,6 +27,7 @@ const (
 	MetadataNone    Metadata = "none"
 )
 
+// Query describes OData query parameters that can be included in an API request.
 type Query struct {
 	// ConsistencyLevel sets the corresponding http header
 	ConsistencyLevel ConsistencyLevel
@@ -63,7 +66,7 @@ type Query struct {
 	DeltaToken string
 }
 
-// Headers returns an http.Header map containing OData specific headers
+// Headers returns a http.Header map containing OData specific headers
 func (q Query) Headers() http.Header {
 	// Take extra care over canonicalization of header names
 	headers := http.Header{}
@@ -186,4 +189,12 @@ func (o OrderBy) String() (val string) {
 		val = fmt.Sprintf("%s %s", val, o.Direction)
 	}
 	return
+}
+
+// EscapeSingleQuote replaces all occurrences of single quote, with 2 single quotes.
+// For requests that use single quotes, if any parameter values also contain single quotes,
+// those must be double escaped; otherwise, the request will fail due to invalid syntax.
+// https://docs.microsoft.com/en-us/graph/query-parameters#escaping-single-quotes
+func EscapeSingleQuote(qparam string) string {
+	return strings.ReplaceAll(qparam, `'`, `''`)
 }

@@ -65,6 +65,21 @@ func TestAccMonitorDataCollectionRule_kindDirectToStore(t *testing.T) {
 	})
 }
 
+func TestAccMonitorDataCollectionRule_kindWorkspaceTransforms(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	r := MonitorDataCollectionRuleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kindWorkspaceTransforms(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDataCollectionRule_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
 	r := MonitorDataCollectionRuleResource{}
@@ -104,6 +119,8 @@ func TestAccMonitorDataCollectionRule_requiresImport(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -140,6 +157,8 @@ func TestAccMonitorDataCollectionRule_update(t *testing.T) {
 
 func TestAccMonitorDataCollectionRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_data_collection_rule", "test")
+	// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/ingest-logs-event-hub#supported-regions
+	data.Locations.Primary = "westeurope"
 	r := MonitorDataCollectionRuleResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -261,6 +280,39 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       name    = "test-datasource-syslog"
       streams = ["Microsoft-Syslog", "Microsoft-CiscoAsa"]
     }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MonitorDataCollectionRuleResource) kindWorkspaceTransforms(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-law-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_monitor_data_collection_rule" "test" {
+  name                = "acctestmdcr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "WorkspaceTransforms"
+  destinations {
+    log_analytics {
+      workspace_resource_id = azurerm_log_analytics_workspace.test.id
+      name                  = "test-destination-log"
+    }
+  }
+
+  data_flow {
+    streams       = ["Microsoft-Table-LAQueryLogs"]
+    destinations  = ["test-destination-log"]
+    transform_kql = "source | where QueryText !contains 'LAQueryLogs' | extend Context = parse_json(RequestContext) | extend Resources_CF = tostring(Context['workspaces'])"
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
@@ -407,7 +459,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     }
   }
 
-  kind        = "Linux"
   description = "acc test monitor_data_collection_rule"
   tags = {
     ENV = "test"

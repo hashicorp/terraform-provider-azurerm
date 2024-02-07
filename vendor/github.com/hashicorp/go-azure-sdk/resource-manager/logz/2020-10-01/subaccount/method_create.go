@@ -18,12 +18,13 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *LogzMonitorResource
 }
 
 // Create ...
 func (c SubAccountClient) Create(ctx context.Context, id AccountId, input LogzMonitorResource) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

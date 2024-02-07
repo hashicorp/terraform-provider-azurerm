@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/connectivityconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/connectivityconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -166,7 +166,7 @@ func (r ManagerConnectivityConfigurationResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerConnectivityConfigurationsClient
+			client := metadata.Client.Network.ConnectivityConfigurations
 			networkManagerId, err := connectivityconfigurations.ParseNetworkManagerID(model.NetworkManagerId)
 			if err != nil {
 				return err
@@ -210,7 +210,7 @@ func (r ManagerConnectivityConfigurationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerConnectivityConfigurationsClient
+			client := metadata.Client.Network.ConnectivityConfigurations
 
 			id, err := connectivityconfigurations.ParseConnectivityConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
@@ -273,7 +273,7 @@ func (r ManagerConnectivityConfigurationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerConnectivityConfigurationsClient
+			client := metadata.Client.Network.ConnectivityConfigurations
 
 			id, err := connectivityconfigurations.ParseConnectivityConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
@@ -320,7 +320,7 @@ func (r ManagerConnectivityConfigurationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerConnectivityConfigurationsClient
+			client := metadata.Client.Network.ConnectivityConfigurations
 
 			id, err := connectivityconfigurations.ParseConnectivityConfigurationID(metadata.ResourceData.Id())
 			if err != nil {

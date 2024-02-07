@@ -20,13 +20,14 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []AccessConnector
+	LatestHttpResponse *http.Response
+	Items              []AccessConnector
 }
 
 // ListBySubscription ...
 func (c AccessConnectorClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c AccessConnectorClient) ListBySubscriptionCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `scope` - (Required) The ID of the managed subscription. Changing this forces a new resource to be created.
 
-* `authorization` - (Required) An authorization block as defined below.
+* `authorization` - (Required) An `authorization` block as defined below.
   
 * `description` - (Optional) A description of the Lighthouse Definition.
 

@@ -20,7 +20,7 @@ type CreateOrUpdateAuthorizationRuleOperationResponse struct {
 // CreateOrUpdateAuthorizationRule ...
 func (c NotificationHubsClient) CreateOrUpdateAuthorizationRule(ctx context.Context, id NotificationHubAuthorizationRuleId, input SharedAccessAuthorizationRuleCreateOrUpdateParameters) (result CreateOrUpdateAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

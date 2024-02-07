@@ -18,12 +18,13 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *TaskRun
 }
 
 // Create ...
 func (c TaskRunsClient) Create(ctx context.Context, id TaskRunId, input TaskRun) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

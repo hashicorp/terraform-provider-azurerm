@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -115,7 +116,7 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := contactprofile.NewContactProfileID(subscriptionId, model.ResourceGroup, model.Name)
-			existing, err := client.ContactProfilesGet(ctx, id)
+			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -136,11 +137,11 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 			}
 
 			contactProfilesProperties := contactprofile.ContactProfilesProperties{
-				AutoTrackingConfiguration:    &autoTrackingConfiguration,
-				EventHubUri:                  &model.EventHubUri,
+				AutoTrackingConfiguration:    pointer.To(autoTrackingConfiguration),
+				EventHubUri:                  pointer.To(model.EventHubUri),
 				Links:                        links,
-				MinimumElevationDegrees:      &model.MinimumElevationDegrees,
-				MinimumViableContactDuration: &model.MinimumVariableContactDuration,
+				MinimumElevationDegrees:      pointer.To(model.MinimumElevationDegrees),
+				MinimumViableContactDuration: pointer.To(model.MinimumVariableContactDuration),
 				NetworkConfiguration:         networkConfiguration,
 			}
 
@@ -149,10 +150,10 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 				Location:   model.Location,
 				Name:       utils.String(model.Name),
 				Properties: contactProfilesProperties,
-				Tags:       &model.Tags,
+				Tags:       pointer.To(model.Tags),
 			}
 
-			if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, contactProfile); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -172,7 +173,7 @@ func (r ContactProfileResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.ContactProfilesGet(ctx, *id)
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -186,14 +187,14 @@ func (r ContactProfileResource) Read() sdk.ResourceFunc {
 					Name:                           id.ContactProfileName,
 					ResourceGroup:                  id.ResourceGroupName,
 					Location:                       model.Location,
-					MinimumVariableContactDuration: *props.MinimumViableContactDuration,
-					MinimumElevationDegrees:        *props.MinimumElevationDegrees,
-					AutoTrackingConfiguration:      string(*props.AutoTrackingConfiguration),
-					EventHubUri:                    *props.EventHubUri,
+					MinimumVariableContactDuration: pointer.From(props.MinimumViableContactDuration),
+					MinimumElevationDegrees:        pointer.From(props.MinimumElevationDegrees),
+					AutoTrackingConfiguration:      string(pointer.From(props.AutoTrackingConfiguration)),
+					EventHubUri:                    pointer.From(props.EventHubUri),
 					NetworkConfigurationSubnetId:   props.NetworkConfiguration.SubnetId,
 				}
 				if model.Tags != nil {
-					state.Tags = *model.Tags
+					state.Tags = pointer.From(model.Tags)
 				}
 				links, err := flattenContactProfileLinks(props.Links)
 				if err != nil {
@@ -220,7 +221,7 @@ func (r ContactProfileResource) Delete() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if err := client.ContactProfilesDeleteThenPoll(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -263,17 +264,17 @@ func (r ContactProfileResource) Update() sdk.ResourceFunc {
 				contactProfile := contactprofile.ContactProfile{
 					Location: state.Location,
 					Properties: contactprofile.ContactProfilesProperties{
-						AutoTrackingConfiguration:    &autoTrackingConfiguration,
-						EventHubUri:                  &state.EventHubUri,
+						AutoTrackingConfiguration:    pointer.To(autoTrackingConfiguration),
+						EventHubUri:                  pointer.To(state.EventHubUri),
 						Links:                        contactProfileLinks,
-						MinimumElevationDegrees:      &state.MinimumElevationDegrees,
-						MinimumViableContactDuration: &state.MinimumVariableContactDuration,
+						MinimumElevationDegrees:      pointer.To(state.MinimumElevationDegrees),
+						MinimumViableContactDuration: pointer.To(state.MinimumVariableContactDuration),
 						NetworkConfiguration:         networkConfiguration,
 					},
-					Tags: &state.Tags,
+					Tags: pointer.To(state.Tags),
 				}
 
-				if err := client.ContactProfilesCreateOrUpdateThenPoll(ctx, *id, contactProfile); err != nil {
+				if err := client.CreateOrUpdateThenPoll(ctx, *id, contactProfile); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

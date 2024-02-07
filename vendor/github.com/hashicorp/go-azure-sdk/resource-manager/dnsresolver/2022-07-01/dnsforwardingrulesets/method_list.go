@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []DnsForwardingRuleset
+	LatestHttpResponse *http.Response
+	Items              []DnsForwardingRuleset
 }
 
 type ListOperationOptions struct {
@@ -53,7 +54,7 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 // List ...
 func (c DnsForwardingRulesetsClient) List(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c DnsForwardingRulesetsClient) ListCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

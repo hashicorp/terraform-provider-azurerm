@@ -228,9 +228,6 @@ EOF
     severity   = 2
     action {
       action_group_id = azurerm_monitor_action_group.test.id
-      action_properties = {
-        actionName = "actionValue"
-      }
     }
     alert_resolution {
       auto_resolved   = true
@@ -332,15 +329,9 @@ EOF
     severity   = 1
     action {
       action_group_id = azurerm_monitor_action_group.test2.id
-      action_properties = {
-        actionName2 = "actionValue2"
-      }
     }
     action {
       action_group_id = azurerm_monitor_action_group.test.id
-      action_properties = {
-        actionName3 = "actionValue3"
-      }
     }
     alert_resolution {
       auto_resolved   = false

@@ -19,13 +19,14 @@ type ListMonitoredResourcesOperationResponse struct {
 }
 
 type ListMonitoredResourcesCompleteResult struct {
-	Items []MonitoredResource
+	LatestHttpResponse *http.Response
+	Items              []MonitoredResource
 }
 
 // ListMonitoredResources ...
 func (c SubAccountClient) ListMonitoredResources(ctx context.Context, id AccountId) (result ListMonitoredResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c SubAccountClient) ListMonitoredResourcesCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListMonitoredResourcesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

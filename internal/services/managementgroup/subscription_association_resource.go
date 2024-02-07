@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups" // nolint: staticcheck
@@ -87,7 +88,7 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 
 	if props.Children != nil {
 		for _, v := range *props.Children {
-			if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && *v.Name == id.SubscriptionId {
+			if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
 				return tf.ImportAsExistsError("azurerm_management_group_subscription_association", id.ID())
 			}
 		}
@@ -119,13 +120,9 @@ func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceDat
 	}
 	found := false
 	if props := managementGroup.Properties; props != nil {
-		if props.Children == nil {
-			return fmt.Errorf("could not read properties for Management Group %q", id.ManagementGroup)
-		}
-
-		for _, v := range *props.Children {
-			if v.Type == managementgroups.Type1Subscriptions {
-				if v.Name != nil && *v.Name == id.SubscriptionId {
+		if props.Children != nil {
+			for _, v := range *props.Children {
+				if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
 					found = true
 				}
 			}
@@ -196,7 +193,7 @@ func subscriptionAssociationRefreshFunc(ctx context.Context, client *managementg
 		if props := managementGroup.Properties; props != nil && props.Children != nil {
 			for _, v := range *props.Children {
 				if v.Type == managementgroups.Type1Subscriptions {
-					if v.Name != nil && *v.Name == id.SubscriptionId {
+					if v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
 						return managementGroup, "Exists", nil
 					}
 				}

@@ -20,13 +20,14 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []BatchAccount
+	LatestHttpResponse *http.Response
+	Items              []BatchAccount
 }
 
 // ListByResourceGroup ...
 func (c BatchAccountClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c BatchAccountClient) ListByResourceGroupCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

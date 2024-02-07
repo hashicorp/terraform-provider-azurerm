@@ -31,9 +31,9 @@ resource "azurerm_virtual_machine" "vm" {
   network_interface_ids = [azurerm_network_interface.vm.id]
 
   storage_image_reference {
-    publisher = "OpenLogic"
-    offer     = "CentOS"
-    sku       = "7.5"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -223,16 +223,14 @@ resource "azurerm_site_recovery_replication_recovery_plan" "example" {
   source_recovery_fabric_id = azurerm_site_recovery_fabric.primary.id
   target_recovery_fabric_id = azurerm_site_recovery_fabric.secondary.id
 
-  recovery_group {
-    type                       = "Boot"
+  shutdown_recovery_group {}
+
+  failover_recovery_group {}
+
+  boot_recovery_group {
     replicated_protected_items = [azurerm_site_recovery_replicated_vm.vm-replication.id]
   }
-  recovery_group {
-    type = "Failover"
-  }
-  recovery_group {
-    type = "Shutdown"
-  }
+
 }
 ```
 
@@ -250,13 +248,53 @@ The following arguments are supported:
 
 * `recovery_group` - (Optional) Three or more `recovery_group` block defined as below.
 
-* `azure_to_azure_settings` - (Optional) An `azure_to_azure_settings` block defined as block.
+~> **Note:** The `recovery_group` block is deprecated in favor of `shutdown_recovery_group`, `failover_recovery_group` and `boot_recovery_group`. It will be removed in v4.0 of the Azure Provider.
+
+* `shutdown_recovery_group` - (Optional) One `shutdown_recovery_group` block as defined below.
+
+-> **NOTE:** `shutdown_recovery_group` will be required in the next major version of the AzureRM Provider.
+
+* `failover_recovery_group` - (Optional) One `failover_recovery_group` block as defined below.
+
+-> **NOTE:** `failover_recovery_group` will be required in the next major version of the AzureRM Provider.
+
+* `boot_recovery_group` - (Optional) One or more `boot_recovery_group` blocks as defined below.
+
+-> **NOTE:** At least one `boot_recovery_group` block will be required in the next major version of the AzureRM Provider.
+
+* `azure_to_azure_settings` - (Optional) An `azure_to_azure_settings` block as defined below.
 
 ---
 
 A `recovery_group` block supports the following:
 
 * `type` - (Required) The Recovery Plan Group Type. Possible values are `Boot`, `Failover` and `Shutdown`.
+
+* `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
+
+* `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
+
+* `post_action` - (Optional) one or more `action` block as defined below. which will be executed after the group recovery.
+
+---
+
+A `shutdown_recovery_group` block supports the following:
+
+* `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
+
+* `post_action` - (Optional) one or more `action` block as defined below. which will be executed after the group recovery.
+
+---
+
+A `failover_recovery_group` block supports the following:
+
+* `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
+
+* `post_action` - (Optional) one or more `action` block as defined below. which will be executed after the group recovery.
+
+---
+
+A `boot_recovery_group` block supports the following:
 
 * `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
 

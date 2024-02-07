@@ -20,7 +20,8 @@ type ListForScopeOperationResponse struct {
 }
 
 type ListForScopeCompleteResult struct {
-	Items []RoleAssignmentScheduleInstance
+	LatestHttpResponse *http.Response
+	Items              []RoleAssignmentScheduleInstance
 }
 
 type ListForScopeOperationOptions struct {
@@ -53,7 +54,7 @@ func (o ListForScopeOperationOptions) ToQuery() *client.QueryParams {
 // ListForScope ...
 func (c RoleAssignmentScheduleInstancesClient) ListForScope(ctx context.Context, id commonids.ScopeId, options ListForScopeOperationOptions) (result ListForScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c RoleAssignmentScheduleInstancesClient) ListForScopeCompleteMatchingPredi
 	}
 
 	result = ListForScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,13 +19,14 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []NotificationHubResource
+	LatestHttpResponse *http.Response
+	Items              []NotificationHubResource
 }
 
 // List ...
 func (c NotificationHubsClient) List(ctx context.Context, id NamespaceId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c NotificationHubsClient) ListCompleteMatchingPredicate(ctx context.Contex
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

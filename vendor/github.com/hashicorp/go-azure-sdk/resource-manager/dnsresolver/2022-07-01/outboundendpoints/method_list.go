@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []OutboundEndpoint
+	LatestHttpResponse *http.Response
+	Items              []OutboundEndpoint
 }
 
 type ListOperationOptions struct {
@@ -52,7 +53,7 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 // List ...
 func (c OutboundEndpointsClient) List(ctx context.Context, id DnsResolverId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -111,7 +112,8 @@ func (c OutboundEndpointsClient) ListCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

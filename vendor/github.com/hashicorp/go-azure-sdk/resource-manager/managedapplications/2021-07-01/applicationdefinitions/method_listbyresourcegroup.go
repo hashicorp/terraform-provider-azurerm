@@ -20,13 +20,14 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []ApplicationDefinition
+	LatestHttpResponse *http.Response
+	Items              []ApplicationDefinition
 }
 
 // ListByResourceGroup ...
 func (c ApplicationDefinitionsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c ApplicationDefinitionsClient) ListByResourceGroupCompleteMatchingPredica
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

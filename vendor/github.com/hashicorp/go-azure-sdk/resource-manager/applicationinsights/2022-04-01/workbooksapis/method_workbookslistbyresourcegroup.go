@@ -20,7 +20,8 @@ type WorkbooksListByResourceGroupOperationResponse struct {
 }
 
 type WorkbooksListByResourceGroupCompleteResult struct {
-	Items []Workbook
+	LatestHttpResponse *http.Response
+	Items              []Workbook
 }
 
 type WorkbooksListByResourceGroupOperationOptions struct {
@@ -65,7 +66,7 @@ func (o WorkbooksListByResourceGroupOperationOptions) ToQuery() *client.QueryPar
 // WorkbooksListByResourceGroup ...
 func (c WorkbooksAPIsClient) WorkbooksListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options WorkbooksListByResourceGroupOperationOptions) (result WorkbooksListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -124,7 +125,8 @@ func (c WorkbooksAPIsClient) WorkbooksListByResourceGroupCompleteMatchingPredica
 	}
 
 	result = WorkbooksListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

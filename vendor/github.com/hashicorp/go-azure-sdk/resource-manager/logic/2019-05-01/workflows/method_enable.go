@@ -20,7 +20,7 @@ type EnableOperationResponse struct {
 // Enable ...
 func (c WorkflowsClient) Enable(ctx context.Context, id WorkflowId) (result EnableOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

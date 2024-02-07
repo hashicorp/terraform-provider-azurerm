@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -61,7 +62,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"certificate": {
 				Type:     pluginsdk.TypeList,
@@ -92,7 +93,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				AtLeastOneOf: []string{
 					"certificate_policy",
 					"certificate",
@@ -109,7 +109,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"name": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -124,7 +123,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
 										Computed: true,
-										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(keyvault.JSONWebKeyCurveNameP256),
 											string(keyvault.JSONWebKeyCurveNameP256K),
@@ -135,13 +133,11 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"exportable": {
 										Type:     pluginsdk.TypeBool,
 										Required: true,
-										ForceNew: true,
 									},
 									"key_size": {
 										Type:     pluginsdk.TypeInt,
 										Optional: true,
 										Computed: true,
-										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
 											256,
 											384,
@@ -154,7 +150,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"key_type": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(keyvault.JSONWebKeyTypeEC),
 											string(keyvault.JSONWebKeyTypeECHSM),
@@ -166,7 +161,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"reuse_key": {
 										Type:     pluginsdk.TypeBool,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -185,7 +179,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 												"action_type": {
 													Type:     pluginsdk.TypeString,
 													Required: true,
-													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(keyvault.CertificatePolicyActionAutoRenew),
 														string(keyvault.CertificatePolicyActionEmailContacts),
@@ -204,12 +197,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 												"days_before_expiry": {
 													Type:     pluginsdk.TypeInt,
 													Optional: true,
-													ForceNew: true,
 												},
 												"lifetime_percentage": {
 													Type:     pluginsdk.TypeInt,
 													Optional: true,
-													ForceNew: true,
 												},
 											},
 										},
@@ -226,7 +217,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"content_type": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -243,7 +233,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Computed: true,
-										ForceNew: true,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
@@ -252,7 +241,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"key_usage": {
 										Type:     pluginsdk.TypeSet,
 										Required: true,
-										ForceNew: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -271,12 +259,10 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"subject": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ForceNew: true,
 									},
 									"subject_alternative_names": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
-										ForceNew: true,
 										Computed: true,
 										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
@@ -284,7 +270,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 												"emails": {
 													Type:     pluginsdk.TypeSet,
 													Optional: true,
-													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -298,7 +283,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 												"dns_names": {
 													Type:     pluginsdk.TypeSet,
 													Optional: true,
-													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -312,7 +296,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 												"upns": {
 													Type:     pluginsdk.TypeSet,
 													Optional: true,
-													ForceNew: true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 													},
@@ -329,7 +312,6 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 									"validity_in_months": {
 										Type:     pluginsdk.TypeInt,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -427,6 +409,64 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 	}
 }
 
+func createCertificate(d *pluginsdk.ResourceData, meta interface{}) (keyvault.CertificateBundle, error) {
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	client := meta.(*clients.Client).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	keyVaultId, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
+	if err != nil {
+		return keyvault.CertificateBundle{}, err
+	}
+
+	keyVaultBaseUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultId)
+	if err != nil {
+		return keyvault.CertificateBundle{}, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", name, *keyVaultId, err)
+	}
+
+	t := d.Get("tags").(map[string]interface{})
+
+	policy, err := expandKeyVaultCertificatePolicy(d)
+	if err != nil {
+		return keyvault.CertificateBundle{}, fmt.Errorf("expanding certificate policy: %s", err)
+	}
+
+	parameters := keyvault.CertificateCreateParameters{
+		CertificatePolicy: policy,
+		Tags:              tags.Expand(t),
+	}
+
+	result, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters)
+	if err != nil {
+		return keyvault.CertificateBundle{
+			Response: result.Response,
+		}, err
+	}
+
+	log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, *keyVaultBaseUrl)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Provisioning"},
+		Target:     []string{"Ready"},
+		Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, *keyVaultBaseUrl, name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	}
+	// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
+	// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
+	// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
+	if policy != nil && policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+		stateConf.PollInterval = 30 * time.Second
+		stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return keyvault.CertificateBundle{}, fmt.Errorf("waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
+	}
+	return client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
+}
+
 func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
@@ -461,6 +501,7 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("expanding certificate policy: %s", err)
 	}
 
+	var newCert keyvault.CertificateBundle
 	if v, ok := d.GetOk("certificate"); ok {
 		// Import
 		certificate := expandKeyVaultCertificate(v)
@@ -470,10 +511,15 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 			CertificatePolicy:        policy,
 			Tags:                     tags.Expand(t),
 		}
-		if resp, err := client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters); err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(resp.Response) {
+		newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
+		if err != nil {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
-					return err
+					return fmt.Errorf("recover deleted certificate: %+v", err)
+				}
+				newCert, err = client.ImportCertificate(ctx, *keyVaultBaseUrl, name, importParameters)
+				if err != nil {
+					return fmt.Errorf("update recovered certificate: %+v", err)
 				}
 			} else {
 				return err
@@ -481,50 +527,24 @@ func resourceKeyVaultCertificateCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	} else {
 		// Generate new
-		parameters := keyvault.CertificateCreateParameters{
-			CertificatePolicy: policy,
-			Tags:              tags.Expand(t),
-		}
-		if resp, err := client.CreateCertificate(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
-			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(resp.Response) {
+		newCert, err = createCertificate(d, meta)
+		if err != nil {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedCerts && utils.ResponseWasConflict(newCert.Response) {
 				if err = recoverDeletedCertificate(ctx, d, meta, *keyVaultBaseUrl, name); err != nil {
-					return err
+					return fmt.Errorf("recover deleted certificate: %+v", err)
+				}
+				// after we recovered the existing certificate we still have to apply our changes
+				newCert, err = createCertificate(d, meta)
+				if err != nil {
+					return fmt.Errorf("update recovered certificate: %+v", err)
 				}
 			} else {
 				return err
 			}
 		}
-
-		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, *keyVaultBaseUrl)
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{"Provisioning"},
-			Target:     []string{"Ready"},
-			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, *keyVaultBaseUrl, name),
-			MinTimeout: 15 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-		}
-		// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
-		// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
-		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
-		if policy != nil && policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
-			stateConf.PollInterval = 30 * time.Second
-			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
-		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for Certificate %q in Vault %q to become available: %s", name, *keyVaultBaseUrl, err)
-		}
 	}
 
-	resp, err := client.GetCertificate(ctx, *keyVaultBaseUrl, name, "")
-	if err != nil {
-		return err
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read KeyVault Certificate '%s' (in key vault '%s')", name, *keyVaultBaseUrl)
-	}
-
-	certificateId, err := parse.ParseNestedItemID(*resp.ID)
+	certificateId, err := parse.ParseNestedItemID(*newCert.ID)
 	if err != nil {
 		return err
 	}
@@ -588,10 +608,28 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			if err != nil {
 				return err
 			}
-			if resp.ID != nil {
-				d.SetId(id.ID())
+
+			if resp.ID == nil {
+				return fmt.Errorf("error: Certificate %q in Vault %q get nil ID from server", id.Name, id.KeyVaultBaseUrl)
 			}
+
+			certificateId, err := parse.ParseNestedItemID(*resp.ID)
+			if err != nil {
+				return err
+			}
+			d.SetId(certificateId.ID())
 		}
+	}
+	if d.HasChange("certificate_policy") {
+		newCert, err := createCertificate(d, meta)
+		if err != nil {
+			return err
+		}
+		certificateId, err := parse.ParseNestedItemID(*newCert.ID)
+		if err != nil {
+			return err
+		}
+		d.SetId(certificateId.ID())
 	}
 
 	if d.HasChange("tags") {
@@ -609,30 +647,36 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+		operation, err := client.GetCertificateOperation(ctx, keyVaultBaseUrl, name)
 		if err != nil {
-			return nil, "", fmt.Errorf("issuing read request in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
+			return nil, "", fmt.Errorf("failed to read CertificateOperation in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
+		}
+		if operation.Status == nil {
+			return nil, "", fmt.Errorf("missing status in certificate operation")
 		}
 
-		if res.Policy != nil &&
-			res.Policy.IssuerParameters != nil &&
-			res.Policy.IssuerParameters.Name != nil &&
-			strings.EqualFold(*(res.Policy.IssuerParameters.Name), "unknown") {
-			return res, "Ready", nil
+		if strings.EqualFold(*operation.Status, "inProgress") {
+			if issuer := operation.IssuerParameters; issuer != nil {
+				if strings.EqualFold(pointer.From(issuer.Name), "unknown") {
+					return operation, "Ready", nil
+				}
+			}
+
+			return operation, "Provisioning", nil
 		}
 
-		if res.Sid == nil || *res.Sid == "" {
-			return nil, "Provisioning", nil
+		if strings.EqualFold(*operation.Status, "completed") {
+			return operation, "Ready", nil
 		}
 
-		return res, "Ready", nil
+		return nil, "", fmt.Errorf("certifcate creation faild in state '%s'", *operation.Status)
 	}
 }
 
 func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -641,7 +685,8 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -733,7 +778,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -742,7 +787,8 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}

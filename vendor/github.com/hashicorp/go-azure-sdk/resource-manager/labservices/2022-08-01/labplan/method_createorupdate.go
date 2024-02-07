@@ -18,12 +18,13 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *LabPlan
 }
 
 // CreateOrUpdate ...
 func (c LabPlanClient) CreateOrUpdate(ctx context.Context, id LabPlanId, input LabPlan) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,

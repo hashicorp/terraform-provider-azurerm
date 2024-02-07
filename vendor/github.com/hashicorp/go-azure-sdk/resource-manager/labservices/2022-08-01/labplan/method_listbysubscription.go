@@ -20,13 +20,14 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []LabPlan
+	LatestHttpResponse *http.Response
+	Items              []LabPlan
 }
 
 // ListBySubscription ...
 func (c LabPlanClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c LabPlanClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

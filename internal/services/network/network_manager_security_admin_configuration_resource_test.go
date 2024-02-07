@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/securityadminconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/securityadminconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -95,7 +95,7 @@ func (r ManagerSecurityAdminConfigurationResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	client := clients.Network.ManagerSecurityAdminConfigurationsClient
+	client := clients.Network.SecurityAdminConfigurations
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

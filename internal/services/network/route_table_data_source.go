@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,6 +35,11 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+			"bgp_route_propagation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
 			"location": commonschema.LocationComputed(),
 
@@ -78,7 +84,7 @@ func dataSourceRouteTable() *pluginsdk.Resource {
 }
 
 func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,11 +115,13 @@ func dataSourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 			if err := d.Set("subnets", flattenRouteTableDataSourceSubnets(props.Subnets)); err != nil {
 				return err
 			}
-		}
 
+			if err := d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation)); err != nil {
+				return err
+			}
+		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}
-
 	return nil
 }
 

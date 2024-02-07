@@ -19,13 +19,14 @@ type ListByFluidRelayServersOperationResponse struct {
 }
 
 type ListByFluidRelayServersCompleteResult struct {
-	Items []FluidRelayContainer
+	LatestHttpResponse *http.Response
+	Items              []FluidRelayContainer
 }
 
 // ListByFluidRelayServers ...
 func (c FluidRelayContainersClient) ListByFluidRelayServers(ctx context.Context, id FluidRelayServerId) (result ListByFluidRelayServersOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c FluidRelayContainersClient) ListByFluidRelayServersCompleteMatchingPredi
 	}
 
 	result = ListByFluidRelayServersCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

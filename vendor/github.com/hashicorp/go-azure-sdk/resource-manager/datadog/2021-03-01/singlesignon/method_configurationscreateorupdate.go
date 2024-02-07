@@ -18,12 +18,13 @@ type ConfigurationsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DatadogSingleSignOnResource
 }
 
 // ConfigurationsCreateOrUpdate ...
 func (c SingleSignOnClient) ConfigurationsCreateOrUpdate(ctx context.Context, id SingleSignOnConfigurationId, input DatadogSingleSignOnResource) (result ConfigurationsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

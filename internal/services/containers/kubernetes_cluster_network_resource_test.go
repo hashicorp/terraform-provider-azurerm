@@ -36,10 +36,22 @@ func TestAccKubernetesCluster_serviceMeshProfile(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.serviceMeshProfile(data),
+			Config: r.serviceMeshProfile(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceMeshProfile(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -55,15 +67,19 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 			Config: r.serviceMeshProfileDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.serviceMeshProfile(data),
+			Config: r.serviceMeshProfile(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -71,7 +87,9 @@ func TestAccKubernetesCluster_serviceMeshProfileLifeCycle(t *testing.T) {
 			Config: r.serviceMeshProfileDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").DoesNotExist(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -198,6 +216,43 @@ func TestAccKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_advancedNetworkingAzureCiliumPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingWithCiliumPolicyConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_advancedNetworkingAzureCiliumPolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingWithOverlayConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.advancedNetworkingWithCiliumPolicyConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -758,6 +813,38 @@ func TestAccKubernetesCluster_httpProxyConfig(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_httpProxyConfigUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+	noProxy := "\"localhost\", \"127.0.0.1\", \"mcr.microsoft.com\""
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.httpProxyConfig(data, noProxy),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		data.ImportStep(),
+		{
+			Config: r.httpProxyConfigUpdate(data, noProxy),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		data.ImportStep(),
+		{
+			Config: r.httpProxyConfig(data, noProxy),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectNonEmptyPlan: true,
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_httpProxyConfigWithTrustedCa(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -793,20 +880,13 @@ func TestAccKubernetesCluster_httpProxyConfigWithSubnet(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_publicNetworkAccess(t *testing.T) {
+func TestAccKubernetesCluster_networkPluginMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccess(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.publicNetworkAccess(data, false),
+			Config: r.networkPluginMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -815,11 +895,18 @@ func TestAccKubernetesCluster_publicNetworkAccess(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_networkPluginMode(t *testing.T) {
+func TestAccKubernetesCluster_networkPluginModeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkPluginBase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.networkPluginMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -836,7 +923,14 @@ func TestAccKubernetesCluster_ebpfDataPlane(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.ebpfDataPlane(data),
+			Config: r.ebpfDataPlane(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ebpfDataPlane(data, "cilium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -880,6 +974,50 @@ func TestAccKubernetesCluster_clusterPoolNodePublicIPTags(t *testing.T) {
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clusterPoolNodePublicIPTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_clusterPoolNetworkProfileComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clusterPoolNetworkProfileComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_clusterPoolNetworkProfileUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.clusterPoolNodePublicIPTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.clusterPoolNetworkProfileComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.clusterPoolNodePublicIPTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1088,7 +1226,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
-func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData) string {
+func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1145,10 +1283,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   service_mesh_profile {
-    mode = "Istio"
+    mode                             = "Istio"
+    internal_ingress_gateway_enabled = %[3]t
+    external_ingress_gateway_enabled = %[4]t
   }
+
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, internalIngressEnabled, externalIngressEnabled)
 }
 
 func (KubernetesClusterResource) serviceMeshProfileDisabled(data acceptance.TestData) string {
@@ -1398,6 +1539,109 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, networkPolicy)
+}
+
+func (KubernetesClusterResource) advancedNetworkingWithOverlayConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin      = "azure"
+    ebpf_data_plane     = "cilium"
+    network_plugin_mode = "overlay"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) advancedNetworkingWithCiliumPolicyConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin      = "azure"
+    network_policy      = "cilium"
+    ebpf_data_plane     = "cilium"
+    network_plugin_mode = "overlay"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 // nolint unparam
@@ -3023,6 +3267,173 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) httpProxyConfigUpdate(data acceptance.TestData, noProxy string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_public_ip" "test_proxy" {
+  name                = "acceptanceTestPublicIp1"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_public_ip" "test_proxy2" {
+  name                = "acceptanceTestPublicIp3"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_public_ip" "test_aks" {
+  name                = "acceptanceTestPublicIp2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  security_rule {
+    name                       = "AllowProxyAccessOn8888"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8888"
+    source_address_prefix      = "${azurerm_public_ip.test_aks.ip_address}/32"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "test-nic%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test_proxy2.id
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "test" {
+  network_interface_id      = azurerm_network_interface.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+locals {
+  custom_data = <<CUSTOM_DATA
+  #!/bin/sh
+  echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
+  sudo apt-get update
+  sudo apt-get install tinyproxy -y
+  sudo echo "Allow ${azurerm_public_ip.test_aks.ip_address}/32" >> /etc/tinyproxy/tinyproxy.conf
+  systemctl restart tinyproxy
+  CUSTOM_DATA
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "vm-test-proxy%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_B1s"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssW0RD1234"
+  custom_data                     = base64encode(local.custom_data)
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "%s"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "azure"
+    load_balancer_sku = "standard"
+    load_balancer_profile {
+      outbound_ip_address_ids = [azurerm_public_ip.test_aks.id]
+    }
+  }
+
+  http_proxy_config {
+    http_proxy  = "http://${azurerm_public_ip.test_proxy2.ip_address}:8888/"
+    https_proxy = "http://${azurerm_public_ip.test_proxy2.ip_address}:8888/"
+    no_proxy    = [%s]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, noProxy)
+}
+
 func (KubernetesClusterResource) httpProxyConfig(data acceptance.TestData, noProxy string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3054,6 +3465,14 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test_proxy" {
   name                = "acceptanceTestPublicIp1"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_public_ip" "test_proxy2" {
+  name                = "acceptanceTestPublicIp3"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   allocation_method   = "Static"
@@ -3135,8 +3554,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts-gen2"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 }
@@ -3296,8 +3715,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts-gen2"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 }
@@ -3408,8 +3827,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts-gen2"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 }
@@ -3461,41 +3880,12 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) publicNetworkAccess(data acceptance.TestData, enabled bool) string {
-	authorizedIPConfig := ""
-	if !enabled {
-		authorizedIPConfig = `api_server_access_profile {
-	authorized_ip_ranges = ["0.0.0.0/32"]
-  }`
+func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData, ebpfDataPlane string) string {
+	ebpfDataPlaneValue := "null"
+	if ebpfDataPlane != "" {
+		ebpfDataPlaneValue = fmt.Sprintf(`"%s"`, ebpfDataPlane)
 	}
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D2s_v3"
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  public_network_access_enabled = %t
-  %s
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled, authorizedIPConfig)
-}
 
-func (KubernetesClusterResource) ebpfDataPlane(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3537,8 +3927,54 @@ resource "azurerm_kubernetes_cluster" "test" {
   network_profile {
     pod_cidr            = "192.168.0.0/16"
     network_plugin      = "azure"
-    ebpf_data_plane     = "cilium"
+    ebpf_data_plane     = %[3]s
     network_plugin_mode = "overlay"
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, ebpfDataPlaneValue)
+}
+
+func (KubernetesClusterResource) networkPluginBase(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestRG-vnet-%[2]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestRG-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.10.0.0/16"]
+
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  network_profile {
+    network_plugin = "azure"
   }
 }
 `, "westcentralus", data.RandomInteger)
@@ -3603,6 +4039,12 @@ resource "azurerm_resource_group" "test" {
   location = "%[1]s"
 }
 
+resource "azurerm_application_security_group" "test" {
+  name                = "acctestasg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
@@ -3614,6 +4056,52 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size               = "Standard_DS2_v2"
     enable_node_public_ip = true
     node_network_profile {
+      node_public_ip_tags = {
+        RoutingPreference = "Internet"
+      }
+    }
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) clusterPoolNetworkProfileComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_application_security_group" "test" {
+  name                = "acctestasg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name                  = "default"
+    node_count            = 1
+    vm_size               = "Standard_DS2_v2"
+    enable_node_public_ip = true
+    node_network_profile {
+      allowed_host_ports {
+        port_start = 8001
+        port_end   = 8002
+        protocol   = "UDP"
+      }
+      application_security_group_ids = [azurerm_application_security_group.test.id]
       node_public_ip_tags = {
         RoutingPreference = "Internet"
       }

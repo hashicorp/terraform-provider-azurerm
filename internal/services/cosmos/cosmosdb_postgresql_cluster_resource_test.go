@@ -201,8 +201,8 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   node_server_edition           = "MemoryOptimized"
   sql_version                   = "14"
   preferred_primary_zone        = 1
-  node_storage_quota_in_mb      = 131072
-  node_vcores                   = 2
+  node_storage_quota_in_mb      = 524288
+  node_vcores                   = 4
   shards_on_coordinator_enabled = true
 
   tags = {
@@ -222,11 +222,11 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
   location            = azurerm_resource_group.test.location
 
   administrator_login_password    = "H@Sh1CoR4!"
-  coordinator_storage_quota_in_mb = 262144
+  coordinator_storage_quota_in_mb = 524288
   coordinator_vcore_count         = 4
   node_count                      = 2
 
-  citus_version                        = "11.3"
+  citus_version                        = "12.1"
   coordinator_public_ip_access_enabled = false
   ha_enabled                           = true
   coordinator_server_edition           = "MemoryOptimized"
@@ -239,9 +239,9 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test" {
 
   node_public_ip_access_enabled = true
   node_server_edition           = "GeneralPurpose"
-  sql_version                   = "15"
+  sql_version                   = "16"
   preferred_primary_zone        = 2
-  node_storage_quota_in_mb      = 262144
+  node_storage_quota_in_mb      = 524288
   node_vcores                   = 4
   shards_on_coordinator_enabled = false
 
@@ -263,11 +263,11 @@ resource "azurerm_cosmosdb_postgresql_cluster" "test2" {
   source_location      = azurerm_cosmosdb_postgresql_cluster.test.location
   source_resource_id   = azurerm_cosmosdb_postgresql_cluster.test.id
   point_in_time_in_utc = azurerm_cosmosdb_postgresql_cluster.test.earliest_restore_time
+  node_count           = 0
 
-  administrator_login_password    = "H@Sh1CoR3!"
-  coordinator_storage_quota_in_mb = 131072
-  coordinator_vcore_count         = 2
-  node_count                      = 0
+  lifecycle {
+    ignore_changes = ["coordinator_storage_quota_in_mb", "coordinator_vcore_count"]
+  }
 }
 `, r.basic(data), data.RandomInteger)
 }

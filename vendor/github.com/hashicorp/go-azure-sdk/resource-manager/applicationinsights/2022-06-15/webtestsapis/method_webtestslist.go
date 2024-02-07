@@ -20,13 +20,14 @@ type WebTestsListOperationResponse struct {
 }
 
 type WebTestsListCompleteResult struct {
-	Items []WebTest
+	LatestHttpResponse *http.Response
+	Items              []WebTest
 }
 
 // WebTestsList ...
 func (c WebTestsAPIsClient) WebTestsList(ctx context.Context, id commonids.SubscriptionId) (result WebTestsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c WebTestsAPIsClient) WebTestsListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = WebTestsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

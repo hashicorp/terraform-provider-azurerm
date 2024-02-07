@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -96,6 +96,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO rename to bgp_route_propagation_enabled in 4.0
 			"disable_bgp_route_propagation": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -115,7 +116,7 @@ func resourceRouteTable() *pluginsdk.Resource {
 }
 
 func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,7 +160,7 @@ func resourceRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -201,7 +202,7 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.RouteTablesClient
+	client := meta.(*clients.Client).Network.RouteTables
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

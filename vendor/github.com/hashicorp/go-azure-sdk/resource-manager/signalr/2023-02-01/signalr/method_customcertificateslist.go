@@ -19,13 +19,14 @@ type CustomCertificatesListOperationResponse struct {
 }
 
 type CustomCertificatesListCompleteResult struct {
-	Items []CustomCertificate
+	LatestHttpResponse *http.Response
+	Items              []CustomCertificate
 }
 
 // CustomCertificatesList ...
 func (c SignalRClient) CustomCertificatesList(ctx context.Context, id SignalRId) (result CustomCertificatesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c SignalRClient) CustomCertificatesListCompleteMatchingPredicate(ctx conte
 	}
 
 	result = CustomCertificatesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

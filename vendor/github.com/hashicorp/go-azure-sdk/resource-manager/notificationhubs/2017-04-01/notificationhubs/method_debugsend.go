@@ -21,7 +21,7 @@ type DebugSendOperationResponse struct {
 // DebugSend ...
 func (c NotificationHubsClient) DebugSend(ctx context.Context, id NotificationHubId, input interface{}) (result DebugSendOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

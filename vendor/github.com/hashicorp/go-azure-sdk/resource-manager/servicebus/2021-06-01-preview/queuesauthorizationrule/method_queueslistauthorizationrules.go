@@ -19,13 +19,14 @@ type QueuesListAuthorizationRulesOperationResponse struct {
 }
 
 type QueuesListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
 }
 
 // QueuesListAuthorizationRules ...
 func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRules(ctx context.Context, id QueueId) (result QueuesListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c QueuesAuthorizationRuleClient) QueuesListAuthorizationRulesCompleteMatch
 	}
 
 	result = QueuesListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

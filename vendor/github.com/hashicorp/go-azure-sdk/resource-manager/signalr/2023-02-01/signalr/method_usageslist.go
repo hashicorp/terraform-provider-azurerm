@@ -19,13 +19,14 @@ type UsagesListOperationResponse struct {
 }
 
 type UsagesListCompleteResult struct {
-	Items []SignalRUsage
+	LatestHttpResponse *http.Response
+	Items              []SignalRUsage
 }
 
 // UsagesList ...
 func (c SignalRClient) UsagesList(ctx context.Context, id LocationId) (result UsagesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c SignalRClient) UsagesListCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = UsagesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

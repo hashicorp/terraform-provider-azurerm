@@ -485,7 +485,7 @@ func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	id := contentkeypolicies.NewContentKeyPolicyID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.ContentKeyPoliciesGet(ctx, id)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of %s: %+v", id, err)
@@ -512,7 +512,7 @@ func resourceMediaContentKeyPolicyCreateUpdate(d *pluginsdk.ResourceData, meta i
 		payload.Properties.Options = *options
 	}
 
-	if _, err := client.ContentKeyPoliciesCreateOrUpdate(ctx, id, payload); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -531,7 +531,7 @@ func resourceMediaContentKeyPolicyRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.ContentKeyPoliciesGetPolicyPropertiesWithSecrets(ctx, *id)
+	resp, err := client.GetPolicyPropertiesWithSecrets(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
@@ -570,7 +570,7 @@ func resourceMediaContentKeyPolicyDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	if _, err = client.ContentKeyPoliciesDelete(ctx, *id); err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

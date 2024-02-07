@@ -18,12 +18,13 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Registry
 }
 
 // Update ...
 func (c RegistriesClient) Update(ctx context.Context, id RegistryId, input RegistryUpdateParameters) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

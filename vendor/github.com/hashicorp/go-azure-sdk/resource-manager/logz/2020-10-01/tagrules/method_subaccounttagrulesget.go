@@ -20,7 +20,7 @@ type SubAccountTagRulesGetOperationResponse struct {
 // SubAccountTagRulesGet ...
 func (c TagRulesClient) SubAccountTagRulesGet(ctx context.Context, id AccountTagRuleId) (result SubAccountTagRulesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

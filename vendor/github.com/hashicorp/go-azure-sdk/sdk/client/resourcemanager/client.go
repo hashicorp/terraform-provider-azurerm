@@ -28,7 +28,10 @@ func NewResourceManagerClient(api environments.Api, serviceName, apiVersion stri
 	if !ok {
 		return nil, fmt.Errorf("no `endpoint` was returned for this environment")
 	}
+
 	baseClient := client.NewClient(*endpoint, serviceName, apiVersion)
+	baseClient.AuthorizeRequest = AuthorizeResourceManagerRequest
+
 	return &Client{
 		Client:     baseClient,
 		apiVersion: apiVersion,
@@ -36,11 +39,15 @@ func NewResourceManagerClient(api environments.Api, serviceName, apiVersion stri
 }
 
 func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*client.Request, error) {
+	// TODO move these validations to base client method
 	if _, ok := ctx.Deadline(); !ok {
 		return nil, fmt.Errorf("the context used must have a deadline attached for polling purposes, but got no deadline")
 	}
 	if err := input.Validate(); err != nil {
 		return nil, fmt.Errorf("pre-validating request payload: %+v", err)
+	}
+	if input.ContentType == "" {
+		return nil, fmt.Errorf("pre-validating request payload: missing `ContentType`")
 	}
 
 	req, err := c.Client.NewRequest(ctx, input)
@@ -78,6 +85,7 @@ func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*
 	}
 
 	req.URL.RawQuery = query.Encode()
+	req.Pager = input.Pager
 	req.RetryFunc = client.RequestRetryAny(defaultRetryFunctions...)
 	req.ValidStatusCodes = input.ExpectedStatusCodes
 

@@ -19,13 +19,14 @@ type ProjectsListByResourceGroupOperationResponse struct {
 }
 
 type ProjectsListByResourceGroupCompleteResult struct {
-	Items []Project
+	LatestHttpResponse *http.Response
+	Items              []Project
 }
 
 // ProjectsListByResourceGroup ...
 func (c ProjectResourceClient) ProjectsListByResourceGroup(ctx context.Context, id ServiceId) (result ProjectsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c ProjectResourceClient) ProjectsListByResourceGroupCompleteMatchingPredic
 	}
 
 	result = ProjectsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

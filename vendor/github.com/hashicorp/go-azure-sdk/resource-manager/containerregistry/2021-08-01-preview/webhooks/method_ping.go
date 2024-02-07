@@ -21,7 +21,7 @@ type PingOperationResponse struct {
 // Ping ...
 func (c WebHooksClient) Ping(ctx context.Context, id WebHookId) (result PingOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

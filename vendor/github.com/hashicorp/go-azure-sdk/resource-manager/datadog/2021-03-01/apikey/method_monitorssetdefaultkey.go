@@ -20,7 +20,7 @@ type MonitorsSetDefaultKeyOperationResponse struct {
 // MonitorsSetDefaultKey ...
 func (c ApiKeyClient) MonitorsSetDefaultKey(ctx context.Context, id MonitorId, input DatadogApiKey) (result MonitorsSetDefaultKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

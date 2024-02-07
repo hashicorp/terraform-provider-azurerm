@@ -23,7 +23,7 @@ type InviteOperationResponse struct {
 // Invite ...
 func (c UserClient) Invite(ctx context.Context, id UserId, input InviteBody) (result InviteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

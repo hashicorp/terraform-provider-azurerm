@@ -18,12 +18,13 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ConnectedRegistry
 }
 
 // Create ...
 func (c ConnectedRegistriesClient) Create(ctx context.Context, id ConnectedRegistryId, input ConnectedRegistry) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

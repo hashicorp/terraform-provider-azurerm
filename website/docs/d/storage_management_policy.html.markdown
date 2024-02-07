@@ -71,6 +71,9 @@ The following arguments are supported:
 * `tier_to_archive_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to archive storage.
 * `tier_to_archive_after_days_since_creation_greater_than` - The age in days after creation to archive storage.
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archved.
+* `tier_to_cold_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cold storage. Supports blob currently at Hot tier.
+* `tier_to_cold_after_days_since_last_access_time_greater_than` - The age in days after last access time to tier blobs to cold storage. Supports blob currently at Hot tier.
+* `tier_to_cold_after_days_since_creation_greater_than` - Optional The age in days after creation to cold storage. Supports blob currently at Hot tier.
 * `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob.
 * `delete_after_days_since_last_access_time_greater_than` - The age in days after last access time to delete the blob.
 * `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob.
@@ -82,6 +85,7 @@ The following arguments are supported:
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob snapshot to archive storage.
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archived.
 * `change_tier_to_cool_after_days_since_creation` - The age in days after creation to tier blob snapshot to cool storage.
+* `tier_to_cold_after_days_since_creation_greater_than` - Optional The age in days after creation to cold storage. Supports blob currently at Hot tier.
 * `delete_after_days_since_creation_greater_than` - The age in days after creation to delete the blob snapshot.
 
 ---
@@ -91,6 +95,7 @@ The following arguments are supported:
 * `change_tier_to_archive_after_days_since_creation` - The age in days after creation to tier blob version to archive storage.
 * `tier_to_archive_after_days_since_last_tier_change_greater_than` - The age in days after last tier change to the blobs to skip to be archived.
 * `change_tier_to_cool_after_days_since_creation` - The age in days after creation to tier blob version to cool storage.
+* `tier_to_cold_after_days_since_creation_greater_than` - Optional The age in days after creation to cold storage. Supports blob currently at Hot tier.
 * `delete_after_days_since_creation` - The age in days after creation to delete the blob version.
 
 ---

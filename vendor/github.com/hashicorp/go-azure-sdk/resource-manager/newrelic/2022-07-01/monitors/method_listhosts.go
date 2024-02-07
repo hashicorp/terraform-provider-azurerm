@@ -19,13 +19,14 @@ type ListHostsOperationResponse struct {
 }
 
 type ListHostsCompleteResult struct {
-	Items []VMInfo
+	LatestHttpResponse *http.Response
+	Items              []VMInfo
 }
 
 // ListHosts ...
 func (c MonitorsClient) ListHosts(ctx context.Context, id MonitorId, input HostsGetRequest) (result ListHostsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c MonitorsClient) ListHostsCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = ListHostsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

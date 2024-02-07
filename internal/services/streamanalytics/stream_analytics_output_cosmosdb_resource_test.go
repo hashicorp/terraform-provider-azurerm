@@ -157,7 +157,7 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
   cosmosdb_sql_database_id = azurerm_cosmosdb_sql_database.test.id
   container_name           = azurerm_cosmosdb_sql_container.test.name
   document_id              = "exampledocumentid"
-  partition_key            = "exmaplekey"
+  partition_key            = "examplekey"
 }
 `, template, data.RandomString, data.RandomInteger)
 }

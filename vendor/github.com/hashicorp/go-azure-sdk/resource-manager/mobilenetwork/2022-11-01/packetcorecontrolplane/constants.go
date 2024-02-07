@@ -1,6 +1,10 @@
 package packetcorecontrolplane
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAuthenticationType() []string {
 		string(AuthenticationTypeAAD),
 		string(AuthenticationTypePassword),
 	}
+}
+
+func (s *AuthenticationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAuthenticationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAuthenticationType(input string) (*AuthenticationType, error) {
@@ -53,6 +70,19 @@ func PossibleValuesForBillingSku() []string {
 	}
 }
 
+func (s *BillingSku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBillingSku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseBillingSku(input string) (*BillingSku, error) {
 	vals := map[string]BillingSku{
 		"g5":  BillingSkuGFive,
@@ -86,6 +116,19 @@ func PossibleValuesForCertificateProvisioningState() []string {
 	}
 }
 
+func (s *CertificateProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCertificateProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseCertificateProvisioningState(input string) (*CertificateProvisioningState, error) {
 	vals := map[string]CertificateProvisioningState{
 		"failed":         CertificateProvisioningStateFailed,
@@ -113,6 +156,19 @@ func PossibleValuesForCoreNetworkType() []string {
 		string(CoreNetworkTypeEPC),
 		string(CoreNetworkTypeFiveGC),
 	}
+}
+
+func (s *CoreNetworkType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCoreNetworkType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCoreNetworkType(input string) (*CoreNetworkType, error) {
@@ -157,6 +213,19 @@ func PossibleValuesForInstallationState() []string {
 	}
 }
 
+func (s *InstallationState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInstallationState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseInstallationState(input string) (*InstallationState, error) {
 	vals := map[string]InstallationState{
 		"failed":       InstallationStateFailed,
@@ -190,6 +259,19 @@ func PossibleValuesForPlatformType() []string {
 		string(PlatformTypeAKSNegativeHCI),
 		string(PlatformTypeThreePNegativeAZURENegativeSTACKNegativeHCI),
 	}
+}
+
+func (s *PlatformType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePlatformType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePlatformType(input string) (*PlatformType, error) {
@@ -228,6 +310,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateSucceeded),
 		string(ProvisioningStateUnknown),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {

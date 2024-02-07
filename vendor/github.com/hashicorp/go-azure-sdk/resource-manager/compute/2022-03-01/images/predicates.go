@@ -12,7 +12,7 @@ type ImageOperationPredicate struct {
 
 func (p ImageOperationPredicate) Matches(input Image) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
@@ -20,11 +20,11 @@ func (p ImageOperationPredicate) Matches(input Image) bool {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

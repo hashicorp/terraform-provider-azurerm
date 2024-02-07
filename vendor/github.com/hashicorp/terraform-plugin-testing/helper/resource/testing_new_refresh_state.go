@@ -67,7 +67,7 @@ func testStepNewRefreshState(ctx context.Context, t testing.T, wd *plugintest.Wo
 		return wd.CreatePlan(ctx)
 	}, wd, providers)
 	if err != nil {
-		return fmt.Errorf("Error running post-apply plan: %w", err)
+		return fmt.Errorf("Error running post-refresh plan: %w", err)
 	}
 
 	var plan *tfjson.Plan
@@ -77,7 +77,15 @@ func testStepNewRefreshState(ctx context.Context, t testing.T, wd *plugintest.Wo
 		return err
 	}, wd, providers)
 	if err != nil {
-		return fmt.Errorf("Error retrieving post-apply plan: %w", err)
+		return fmt.Errorf("Error retrieving post-refresh plan: %w", err)
+	}
+
+	// Run post-refresh plan checks
+	if len(step.RefreshPlanChecks.PostRefresh) > 0 {
+		err = runPlanChecks(ctx, t, plan, step.RefreshPlanChecks.PostRefresh)
+		if err != nil {
+			return fmt.Errorf("Post-refresh plan check(s) failed:\n%w", err)
+		}
 	}
 
 	if !planIsEmpty(plan) && !step.ExpectNonEmptyPlan {

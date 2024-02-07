@@ -19,7 +19,7 @@ type SubAccountTagRulesDeleteOperationResponse struct {
 // SubAccountTagRulesDelete ...
 func (c TagRulesClient) SubAccountTagRulesDelete(ctx context.Context, id AccountTagRuleId) (result SubAccountTagRulesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

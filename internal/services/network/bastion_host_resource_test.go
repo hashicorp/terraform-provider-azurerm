@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -124,17 +124,17 @@ func TestAccBastionHost_sku(t *testing.T) {
 }
 
 func (BastionHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BastionHostID(state.ID)
+	id, err := bastionhosts.ParseBastionHostID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.BastionHostsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.BastionHosts.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Bastion Host (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (BastionHostResource) basic(data acceptance.TestData) string {

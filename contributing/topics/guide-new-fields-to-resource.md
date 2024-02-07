@@ -118,8 +118,6 @@ Schema: map[string]*pluginsdk.Schema{
 
 After deprecation the schema might look like the example below.
 
-TODO: how is this done for typed resources?
-
 ```go
 func resource() *pluginsdk.Resource {
     resource := &pluginsdk.Resource{
@@ -183,5 +181,15 @@ func read() {
 		d.Set("enable_public_network_access", props.PublicNetworkAccess)
     }   
 	...
+}
+```
+
+When deprecating a property in a Typed Resource it is important to ensure that the Go struct representing the schema is correctly tagged to prevent the SDK decoding the removed property when the major version beta / feature flag is in use. In these cases the struct tags must be updated to include `,removedInNextMajorVersion`.  
+
+```go
+type ExampleResourceModel struct {
+	Name                       string `tfschema:"name"`
+	EnablePublicNetworkAccess  bool   `tfschema:"enable_public_network_access,removedInNextMajorVersion"`
+	PublicNetworkAccessEnabled bool   `tfschema:"public_network_access_enabled"`
 }
 ```

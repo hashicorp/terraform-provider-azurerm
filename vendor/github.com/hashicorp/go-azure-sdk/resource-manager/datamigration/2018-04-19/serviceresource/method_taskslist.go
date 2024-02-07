@@ -19,7 +19,8 @@ type TasksListOperationResponse struct {
 }
 
 type TasksListCompleteResult struct {
-	Items []ProjectTask
+	LatestHttpResponse *http.Response
+	Items              []ProjectTask
 }
 
 type TasksListOperationOptions struct {
@@ -52,7 +53,7 @@ func (o TasksListOperationOptions) ToQuery() *client.QueryParams {
 // TasksList ...
 func (c ServiceResourceClient) TasksList(ctx context.Context, id ProjectId, options TasksListOperationOptions) (result TasksListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -111,7 +112,8 @@ func (c ServiceResourceClient) TasksListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = TasksListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

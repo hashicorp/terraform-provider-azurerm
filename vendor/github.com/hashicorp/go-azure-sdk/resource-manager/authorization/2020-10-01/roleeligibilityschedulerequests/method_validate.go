@@ -21,7 +21,7 @@ type ValidateOperationResponse struct {
 // Validate ...
 func (c RoleEligibilityScheduleRequestsClient) Validate(ctx context.Context, id ScopedRoleEligibilityScheduleRequestId, input RoleEligibilityScheduleRequest) (result ValidateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -11,9 +11,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,12 +93,30 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 					"id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validate.DdosProtectionPlanID,
+						ValidateFunc: ddosprotectionplans.ValidateDdosProtectionPlanID,
 					},
 
 					"enable": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
+					},
+				},
+			},
+		},
+
+		"encryption": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enforcement": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string((network.VirtualNetworkEncryptionEnforcementDropUnencrypted)),
+							string(network.VirtualNetworkEncryptionEnforcementAllowUnencrypted),
+						}, false),
 					},
 				},
 			},
@@ -282,6 +302,10 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("setting `ddos_protection_plan`: %+v", err)
 		}
 
+		if err := d.Set("encryption", flattenVirtualNetworkEncryption(props.Encryption)); err != nil {
+			return fmt.Errorf("setting `encryption`: %+v", err)
+		}
+
 		if err := d.Set("subnet", flattenVirtualNetworkSubnets(props.Subnets)); err != nil {
 			return fmt.Errorf("setting `subnets`: %+v", err)
 		}
@@ -406,6 +430,16 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 		}
 	}
 
+	if v, ok := d.GetOk("encryption"); ok {
+		if vList := v.([]interface{}); len(vList) > 0 && vList[0] != nil {
+			encryptionConf := vList[0].(map[string]interface{})
+			properties.Encryption = &network.VirtualNetworkEncryption{
+				Enabled:     pointer.To(true),
+				Enforcement: network.VirtualNetworkEncryptionEnforcement(encryptionConf["enforcement"].(string)),
+			}
+		}
+	}
+
 	if v, ok := d.GetOk("bgp_community"); ok {
 		properties.BgpCommunities = &network.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: utils.String(v.(string))}
 	}
@@ -426,6 +460,18 @@ func flattenVirtualNetworkDDoSProtectionPlan(input *network.VirtualNetworkProper
 		map[string]interface{}{
 			"id":     *input.DdosProtectionPlan.ID,
 			"enable": *input.EnableDdosProtection,
+		},
+	}
+}
+
+func flattenVirtualNetworkEncryption(encryption *network.VirtualNetworkEncryption) interface{} {
+	if encryption == nil || encryption.Enabled == nil || !*encryption.Enabled {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enforcement": encryption.Enforcement,
 		},
 	}
 }

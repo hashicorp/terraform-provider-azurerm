@@ -5,6 +5,7 @@ package environments
 
 type Api interface {
 	AppId() (*string, bool)
+	Available() bool
 	DomainSuffix() (*string, bool)
 	Endpoint() (*string, bool)
 	Name() string

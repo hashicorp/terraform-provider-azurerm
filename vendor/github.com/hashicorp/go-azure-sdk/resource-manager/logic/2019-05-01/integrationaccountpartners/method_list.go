@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []IntegrationAccountPartner
+	LatestHttpResponse *http.Response
+	Items              []IntegrationAccountPartner
 }
 
 type ListOperationOptions struct {
@@ -56,7 +57,7 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 // List ...
 func (c IntegrationAccountPartnersClient) List(ctx context.Context, id IntegrationAccountId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -115,7 +116,8 @@ func (c IntegrationAccountPartnersClient) ListCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

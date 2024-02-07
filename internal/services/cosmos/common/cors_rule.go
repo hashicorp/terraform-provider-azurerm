@@ -6,7 +6,8 @@ package common
 import (
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -72,19 +73,19 @@ func SchemaCorsRule() *pluginsdk.Schema {
 
 				"max_age_in_seconds": {
 					Type:         pluginsdk.TypeInt,
-					Required:     true,
-					ValidateFunc: validation.IntBetween(1, 2000000000),
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 2147483647),
 				},
 			},
 		},
 	}
 }
 
-func ExpandCosmosCorsRule(input []interface{}) *[]documentdb.CorsPolicy {
+func ExpandCosmosCorsRule(input []interface{}) *[]cosmosdb.CorsPolicy {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	corsRules := make([]documentdb.CorsPolicy, 0)
+	corsRules := make([]cosmosdb.CorsPolicy, 0)
 
 	if len(input) == 0 {
 		return &corsRules
@@ -92,12 +93,15 @@ func ExpandCosmosCorsRule(input []interface{}) *[]documentdb.CorsPolicy {
 
 	for _, attr := range input {
 		corsRuleAttr := attr.(map[string]interface{})
-		corsRule := documentdb.CorsPolicy{}
-		corsRule.AllowedOrigins = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ","))
+		corsRule := cosmosdb.CorsPolicy{}
+		corsRule.AllowedOrigins = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ",")
 		corsRule.ExposedHeaders = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ","))
 		corsRule.AllowedHeaders = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ","))
 		corsRule.AllowedMethods = utils.String(strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ","))
-		corsRule.MaxAgeInSeconds = utils.Int64(int64(corsRuleAttr["max_age_in_seconds"].(int)))
+
+		if corsRuleAttr["max_age_in_seconds"].(int) != 0 {
+			corsRule.MaxAgeInSeconds = utils.Int64(int64(corsRuleAttr["max_age_in_seconds"].(int)))
+		}
 
 		corsRules = append(corsRules, corsRule)
 	}
@@ -105,7 +109,7 @@ func ExpandCosmosCorsRule(input []interface{}) *[]documentdb.CorsPolicy {
 	return &corsRules
 }
 
-func FlattenCosmosCorsRule(input *[]documentdb.CorsPolicy) []interface{} {
+func FlattenCosmosCorsRule(input *[]cosmosdb.CorsPolicy) []interface{} {
 	corsRules := make([]interface{}, 0)
 
 	if input == nil || len(*input) == 0 {
@@ -121,7 +125,7 @@ func FlattenCosmosCorsRule(input *[]documentdb.CorsPolicy) []interface{} {
 
 		corsRules = append(corsRules, map[string]interface{}{
 			"allowed_headers":    flattenCorsProperty(corsRule.AllowedHeaders),
-			"allowed_origins":    flattenCorsProperty(corsRule.AllowedOrigins),
+			"allowed_origins":    flattenCorsProperty(pointer.To(corsRule.AllowedOrigins)),
 			"allowed_methods":    flattenCorsProperty(corsRule.AllowedMethods),
 			"exposed_headers":    flattenCorsProperty(corsRule.ExposedHeaders),
 			"max_age_in_seconds": maxAgeInSeconds,

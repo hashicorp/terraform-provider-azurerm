@@ -5,9 +5,9 @@ package network
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type networkInterfaceIPConfigurationLockingDetails struct {
@@ -25,7 +25,7 @@ func (details networkInterfaceIPConfigurationLockingDetails) unlock() {
 	locks.UnlockMultipleByName(&details.virtualNetworkNamesToLock, VirtualNetworkResourceName)
 }
 
-func determineResourcesToLockFromIPConfiguration(input *[]network.InterfaceIPConfiguration) (*networkInterfaceIPConfigurationLockingDetails, error) {
+func determineResourcesToLockFromIPConfiguration(input *[]networkinterfaces.NetworkInterfaceIPConfiguration) (*networkInterfaceIPConfigurationLockingDetails, error) {
 	if input == nil {
 		return &networkInterfaceIPConfigurationLockingDetails{
 			subnetNamesToLock:         []string{},
@@ -37,11 +37,11 @@ func determineResourcesToLockFromIPConfiguration(input *[]network.InterfaceIPCon
 	virtualNetworkNamesToLock := make([]string, 0)
 
 	for _, config := range *input {
-		if config.Subnet == nil || config.Subnet.ID == nil {
+		if config.Properties == nil || config.Properties.Subnet == nil || config.Properties.Subnet.Id == nil {
 			continue
 		}
 
-		id, err := commonids.ParseSubnetID(*config.Subnet.ID)
+		id, err := commonids.ParseSubnetID(*config.Properties.Subnet.Id)
 		if err != nil {
 			return nil, err
 		}

@@ -68,12 +68,16 @@ The following arguments are supported:
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
-  
-~> **Note:** for runtime related settings, please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, terraform will assign the values to the key `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting.
+
+~> **Note:** For runtime related settings, please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, terraform will assign the values to the key `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting.
+
 ~> **Note:** For storage related settings, please use related properties that are available such as `storage_account_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
-~> **Note:** for application insight related settings, please use `application_insights_connection_string` and `application_insights_key`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
-~> **Note:** for health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
-~> **NOTE:** Please create a predefined share if you are restricting your storage account to a virtual network by setting `WEBSITE_CONTENTOVERVNET` to 1 in app_setting.
+
+~> **Note:** For application insight related settings, please use `application_insights_connection_string` and `application_insights_key`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
+
+~> **Note:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
+
+~> **Note:** Please create a predefined share if you are restricting your storage account to a virtual network by setting `WEBSITE_CONTENTOVERVNET` to 1 in app_setting.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
@@ -85,7 +89,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
 
-* `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
+* `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. Defaults to `Optional`.
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 
@@ -97,11 +101,13 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Function App enabled? Defaults to `true`.
 
+* `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
+
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
 
-* `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
+* `https_only` - (Optional) Can the Function App only be accessed via HTTPS?. Defaults to `false`.
 
-* `public_network_access_enabled` - Should public network access be enabled for the Function App. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
@@ -133,8 +139,12 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+* `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
+
+~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
+
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Windows Function App.
-			
+
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
 
 ---
@@ -155,7 +165,7 @@ An `active_directory` block supports the following:
 
 A `application_stack` block supports the following:
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `v3.0`, `v4.0` `v6.0` and `v7.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `v3.0`, `v4.0` `v6.0`, `v7.0` and `v8.0`. Defaults to `v4.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
@@ -227,7 +237,7 @@ An `auth_settings_v2` block supports the following:
 
 * `config_file_path` - (Optional) The path to the App Auth settings.
 
-* ~> **Note:** Relative Paths are evaluated from the Site Root directory.
+~> **Note:** Relative Paths are evaluated from the Site Root directory.
 
 * `require_authentication` - (Optional) Should the authentication flow be used for all requests.
 
@@ -239,11 +249,13 @@ An `auth_settings_v2` block supports the following:
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 
+~> **NOTE:** This list should be used instead of setting `WEBSITE_WARMUP_PATH` in `app_settings` as it takes priority.
+
 * `require_https` - (Optional) Should HTTPS be required on connections? Defaults to `true`.
 
 * `http_route_api_prefix` - (Optional) The prefix that should precede all the authentication and authorisation paths. Defaults to `/.auth`.
 
-* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `ForwardProxyConventionNoProxy`, `ForwardProxyConventionStandard`, `ForwardProxyConventionCustom`. Defaults to `ForwardProxyConventionNoProxy`.
+* `forward_proxy_convention` - (Optional) The convention used to determine the url of the request made. Possible values include `NoProxy`, `Standard`, `Custom`. Defaults to `NoProxy`.
 
 * `forward_proxy_custom_host_header_name` - (Optional) The name of the custom header containing the host of the request.
 
@@ -267,7 +279,7 @@ An `auth_settings_v2` block supports the following:
 
 * `twitter_v2` - (Optional) A `twitter_v2` block as defined below.
 
-* `login` - (Optional) A `login` block as defined below.
+* `login` - (Required) A `login` block as defined below.
 
 ---
 
@@ -297,13 +309,13 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
 * `jwt_allowed_client_applications` - (Optional) A list of Allowed Client Applications in the JWT Claim.
 
-* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`
+* `www_authentication_disabled` - (Optional) Should the www-authenticate provider should be omitted from the request? Defaults to `false`.
 
 * `allowed_groups` - (Optional) The list of allowed Group Names for the Default Authorisation Policy.
 
@@ -469,7 +481,7 @@ A `connection_string` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Required) Specifies a list of origins that should be allowed to make cross-origin calls.
+* `allowed_origins` - (Optional) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Are credentials allowed in CORS requests? Defaults to `false`.
 
@@ -537,7 +549,7 @@ An `identity` block supports the following:
 
 An `ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) A `headers` block as defined above.
 
@@ -585,7 +597,7 @@ A `schedule` block supports the following:
 
 A `scm_ip_restriction` block supports the following:
 
-* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`.
+* `action` - (Optional) The action to take. Possible values are `Allow` or `Deny`. Defaults to `Allow`.
 
 * `headers` - (Optional) A `headers` block as defined above.
 

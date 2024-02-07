@@ -46,7 +46,27 @@ func (r ArcKubernetesClusterExtensionResource) ModelObject() interface{} {
 }
 
 func (r ArcKubernetesClusterExtensionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return extensions.ValidateExtensionID
+	return func(val interface{}, key string) (warns []string, errs []error) {
+		idRaw, ok := val.(string)
+		if !ok {
+			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
+			return
+		}
+
+		id, err := extensions.ParseScopedExtensionID(idRaw)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
+			return
+		}
+
+		// validate the scope is a connected cluster id
+		if _, err := arckubernetes.ParseConnectedClusterID(id.Scope); err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", idRaw, err))
+			return
+		}
+
+		return
+	}
 }
 
 func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -97,12 +117,11 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		},
 
 		"release_train": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"version"},
-			ValidateFunc:  validation.StringIsNotEmpty,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"release_namespace": {
@@ -124,11 +143,10 @@ func (r ArcKubernetesClusterExtensionResource) Arguments() map[string]*pluginsdk
 		},
 
 		"version": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ConflictsWith: []string{"release_train"},
-			ValidateFunc:  validation.StringIsNotEmpty,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 
@@ -160,7 +178,8 @@ func (r ArcKubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 			}
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
-			id := extensions.NewExtensionID(subscriptionId, clusterID.ResourceGroupName, "Microsoft.Kubernetes", "connectedClusters", clusterID.ConnectedClusterName, model.Name)
+			connectedClusterId := arckubernetes.NewConnectedClusterID(subscriptionId, clusterID.ResourceGroupName, clusterID.ConnectedClusterName)
+			id := extensions.NewScopedExtensionID(connectedClusterId.ID(), model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -234,7 +253,7 @@ func (r ArcKubernetesClusterExtensionResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ExtensionsClient
 
-			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
+			id, err := extensions.ParseScopedExtensionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -271,7 +290,7 @@ func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ExtensionsClient
 
-			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
+			id, err := extensions.ParseScopedExtensionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -285,9 +304,14 @@ func (r ArcKubernetesClusterExtensionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			clusterId, err := arckubernetes.ParseConnectedClusterID(id.Scope)
+			if err != nil {
+				return fmt.Errorf("parsing %q as a Connected Cluster ID: %+v", id.Scope, err)
+			}
+
 			state := ArcKubernetesClusterExtensionModel{
 				Name:      id.ExtensionName,
-				ClusterID: arckubernetes.NewConnectedClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
+				ClusterID: clusterId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -332,7 +356,7 @@ func (r ArcKubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ArcKubernetes.ExtensionsClient
 
-			id, err := extensions.ParseExtensionID(metadata.ResourceData.Id())
+			id, err := extensions.ParseScopedExtensionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}

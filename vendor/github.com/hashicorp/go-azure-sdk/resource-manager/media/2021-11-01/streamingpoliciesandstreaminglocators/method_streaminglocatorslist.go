@@ -19,7 +19,8 @@ type StreamingLocatorsListOperationResponse struct {
 }
 
 type StreamingLocatorsListCompleteResult struct {
-	Items []StreamingLocator
+	LatestHttpResponse *http.Response
+	Items              []StreamingLocator
 }
 
 type StreamingLocatorsListOperationOptions struct {
@@ -60,7 +61,7 @@ func (o StreamingLocatorsListOperationOptions) ToQuery() *client.QueryParams {
 // StreamingLocatorsList ...
 func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsList(ctx context.Context, id MediaServiceId, options StreamingLocatorsListOperationOptions) (result StreamingLocatorsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -119,7 +120,8 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingLocatorsListComple
 	}
 
 	result = StreamingLocatorsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

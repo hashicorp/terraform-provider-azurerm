@@ -1,6 +1,10 @@
 package endpoints
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -25,6 +29,19 @@ func PossibleValuesForEndpointMonitorStatus() []string {
 		string(EndpointMonitorStatusOnline),
 		string(EndpointMonitorStatusStopped),
 	}
+}
+
+func (s *EndpointMonitorStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEndpointMonitorStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEndpointMonitorStatus(input string) (*EndpointMonitorStatus, error) {
@@ -59,6 +76,19 @@ func PossibleValuesForEndpointStatus() []string {
 	}
 }
 
+func (s *EndpointStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEndpointStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEndpointStatus(input string) (*EndpointStatus, error) {
 	vals := map[string]EndpointStatus{
 		"disabled": EndpointStatusDisabled,
@@ -87,6 +117,19 @@ func PossibleValuesForEndpointType() []string {
 		string(EndpointTypeExternalEndpoints),
 		string(EndpointTypeNestedEndpoints),
 	}
+}
+
+func (s *EndpointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEndpointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEndpointType(input string) (*EndpointType, error) {

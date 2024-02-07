@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type ForwardingRulesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewForwardingRulesClientWithBaseURI(api environments.Api) (*ForwardingRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "forwardingrules", defaultApiVersion)
+func NewForwardingRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*ForwardingRulesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "forwardingrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ForwardingRulesClient: %+v", err)
 	}

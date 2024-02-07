@@ -127,6 +127,33 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
+		"connection_setting": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"client_rdp_access": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypePublic),
+						}, false),
+						AtLeastOneOf: []string{"connection_setting.0.client_rdp_access", "connection_setting.0.client_ssh_access"},
+					},
+
+					"client_ssh_access": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(lab.ConnectionTypePublic),
+						}, false),
+						AtLeastOneOf: []string{"connection_setting.0.client_rdp_access", "connection_setting.0.client_ssh_access"},
+					},
+				},
+			},
+		},
+
 		"security": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -347,31 +374,6 @@ func (r LabServiceLabResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							string(lab.ShutdownOnIdleModeLowUsage),
 							string(lab.ShutdownOnIdleModeUserAbsence),
-						}, false),
-					},
-				},
-			},
-		},
-
-		"connection_setting": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_rdp_access": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypePublic),
-						}, false),
-					},
-
-					"client_ssh_access": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(lab.ConnectionTypePublic),
 						}, false),
 					},
 				},
@@ -628,7 +630,7 @@ func (r LabServiceLabResource) Read() sdk.ResourceFunc {
 				state.Network = flattenNetworkProfile(props.NetworkProfile)
 				state.Roster = flattenRosterProfile(props.RosterProfile)
 				state.Security = flattenSecurityProfile(props.SecurityProfile)
-				state.VirtualMachine = flattenVirtualMachineProfile(props.VirtualMachineProfile, metadata.ResourceData)
+				state.VirtualMachine = flattenVirtualMachineProfile(props.VirtualMachineProfile, metadata.ResourceData.Get("virtual_machine.0.admin_user.0.password").(string))
 
 				if props.Description != nil {
 					state.Description = *props.Description
@@ -968,11 +970,11 @@ func expandSku(input []Sku) lab.Sku {
 	return result
 }
 
-func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, d *pluginsdk.ResourceData) []VirtualMachine {
+func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, password string) []VirtualMachine {
 	var virtualMachineProfiles []VirtualMachine
 
 	virtualMachineProfile := VirtualMachine{
-		AdminUser:      flattenCredential(&input.AdminUser, d.Get("virtual_machine.0.admin_user.0.password").(string)),
+		AdminUser:      flattenCredential(&input.AdminUser, password),
 		CreateOption:   input.CreateOption,
 		ImageReference: flattenImageReference(&input.ImageReference),
 		Sku:            flattenSku(&input.Sku),
@@ -984,7 +986,7 @@ func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, d *pluginsdk.
 	}
 
 	if input.NonAdminUser != nil {
-		virtualMachineProfile.NonAdminUser = flattenCredential(input.NonAdminUser, d.Get("virtual_machine.0.non_admin_user.0.password").(string))
+		virtualMachineProfile.NonAdminUser = flattenCredential(input.NonAdminUser, password)
 	}
 
 	if input.UseSharedPassword != nil {

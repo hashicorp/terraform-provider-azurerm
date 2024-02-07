@@ -72,6 +72,12 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0`, `S0` and `E0`. Defaults to `S0`. Changing this forces a new resource to be created.
 
+* `sku_tier` - (Optional) Specifies the SKU Tier for this Spring Cloud Service. Possible values are `Basic`, `Enterprise`, `Standard` and `StandardGen2`. The attribute is automatically computed from API response except when `managed_environment_id` is defined. Changing this forces a new resource to be created.
+
+* `managed_environment_id` - (Optional) The resource Id of the Managed Environment that the Spring Apps instance builds on. Can only be specified when `sku_tier` is set to `StandardGen2`.
+
+* `marketplace` - (Optional) A `marketplace` block as defined below. Can only be specified when `sku` is set to `E0`.
+
 * `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
 
 * `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below. This field is applicable only for Spring Cloud Service with basic and standard tier.
@@ -95,6 +101,8 @@ The `network` block supports the following:
 * `cidr_ranges` - (Required) A list of (at least 3) CIDR ranges (at least /16) which are used to host the Spring Cloud infrastructure, which must not overlap with any existing CIDR ranges in the Subnet. Changing this forces a new resource to be created.
 
 * `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps. Changing this forces a new resource to be created.
+
+* `outbound_type` - (Optional) Specifies the egress traffic type of the Spring Cloud Service. Possible values are `loadBalancer` and `userDefinedRouting`. Defaults to `loadBalancer`. Changing this forces a new resource to be created.
 
 * `read_timeout_seconds` - (Optional) Ingress read time out in seconds.
 
@@ -133,6 +141,16 @@ The `container_registry` block supports the following:
 The `default_build_service` block supports the following:
 
 * `container_registry_name` - (Optional) Specifies the name of the container registry used in the default build service.
+
+---
+
+The `marketplace` block supports the following:
+
+* `plan` - (Required) Specifies the plan ID of the 3rd Party Artifact that is being procured.
+
+* `publisher` - (Required) Specifies the publisher ID of the 3rd Party Artifact that is being procured.
+
+* `product` - (Required) Specifies the 3rd Party artifact that is being procured.
 
 ---
 

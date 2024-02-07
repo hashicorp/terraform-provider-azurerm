@@ -19,7 +19,8 @@ type StreamingPoliciesListOperationResponse struct {
 }
 
 type StreamingPoliciesListCompleteResult struct {
-	Items []StreamingPolicy
+	LatestHttpResponse *http.Response
+	Items              []StreamingPolicy
 }
 
 type StreamingPoliciesListOperationOptions struct {
@@ -60,7 +61,7 @@ func (o StreamingPoliciesListOperationOptions) ToQuery() *client.QueryParams {
 // StreamingPoliciesList ...
 func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingPoliciesList(ctx context.Context, id MediaServiceId, options StreamingPoliciesListOperationOptions) (result StreamingPoliciesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -119,7 +120,8 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingPoliciesListComple
 	}
 
 	result = StreamingPoliciesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

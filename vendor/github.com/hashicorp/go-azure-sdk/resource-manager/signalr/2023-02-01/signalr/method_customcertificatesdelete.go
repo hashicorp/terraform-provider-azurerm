@@ -19,7 +19,7 @@ type CustomCertificatesDeleteOperationResponse struct {
 // CustomCertificatesDelete ...
 func (c SignalRClient) CustomCertificatesDelete(ctx context.Context, id CustomCertificateId) (result CustomCertificatesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2021-06-22/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,6 +67,34 @@ func TestAccAutomationAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAutomationAccount_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("local_authentication_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -186,12 +214,12 @@ func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.
 		return nil, err
 	}
 
-	resp, err := clients.Automation.AccountClient.Get(ctx, *id)
+	resp, err := clients.Automation.AutomationAccount.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Automation Account %q (resource group: %q): %+v", id.AutomationAccountName, id.ResourceGroupName, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (AutomationAccountResource) basic(data acceptance.TestData) string {
@@ -206,10 +234,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctest-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Basic"
+  name                         = "acctest-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku_name                     = "Basic"
+  local_authentication_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -246,6 +275,7 @@ resource "azurerm_automation_account" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   sku_name                      = "Basic"
   public_network_access_enabled = false
+  local_authentication_enabled  = true
   tags = {
     "hello" = "world"
   }

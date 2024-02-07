@@ -18,12 +18,13 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ExportPipeline
 }
 
 // Create ...
 func (c ExportPipelinesClient) Create(ctx context.Context, id ExportPipelineId, input ExportPipeline) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -21,7 +21,7 @@ type ListSwaggerOperationResponse struct {
 // ListSwagger ...
 func (c WorkflowsClient) ListSwagger(ctx context.Context, id WorkflowId) (result ListSwaggerOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

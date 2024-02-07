@@ -20,13 +20,14 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []NamespaceResource
+	LatestHttpResponse *http.Response
+	Items              []NamespaceResource
 }
 
 // List ...
 func (c NamespacesClient) List(ctx context.Context, id commonids.ResourceGroupId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c NamespacesClient) ListCompleteMatchingPredicate(ctx context.Context, id 
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

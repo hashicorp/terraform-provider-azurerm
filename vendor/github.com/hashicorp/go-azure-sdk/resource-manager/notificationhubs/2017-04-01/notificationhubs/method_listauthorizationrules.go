@@ -19,13 +19,14 @@ type ListAuthorizationRulesOperationResponse struct {
 }
 
 type ListAuthorizationRulesCompleteResult struct {
-	Items []SharedAccessAuthorizationRuleResource
+	LatestHttpResponse *http.Response
+	Items              []SharedAccessAuthorizationRuleResource
 }
 
 // ListAuthorizationRules ...
 func (c NotificationHubsClient) ListAuthorizationRules(ctx context.Context, id NotificationHubId) (result ListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c NotificationHubsClient) ListAuthorizationRulesCompleteMatchingPredicate(
 	}
 
 	result = ListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

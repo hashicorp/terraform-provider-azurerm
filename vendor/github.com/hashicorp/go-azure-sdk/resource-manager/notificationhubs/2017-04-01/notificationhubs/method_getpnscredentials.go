@@ -21,7 +21,7 @@ type GetPnsCredentialsOperationResponse struct {
 // GetPnsCredentials ...
 func (c NotificationHubsClient) GetPnsCredentials(ctx context.Context, id NotificationHubId) (result GetPnsCredentialsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

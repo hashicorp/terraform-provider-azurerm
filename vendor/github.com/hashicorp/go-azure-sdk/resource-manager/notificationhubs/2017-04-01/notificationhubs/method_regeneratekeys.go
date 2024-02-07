@@ -21,7 +21,7 @@ type RegenerateKeysOperationResponse struct {
 // RegenerateKeys ...
 func (c NotificationHubsClient) RegenerateKeys(ctx context.Context, id NotificationHubAuthorizationRuleId, input PolicykeyResource) (result RegenerateKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

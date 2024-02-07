@@ -20,13 +20,14 @@ type ListByScopeOperationResponse struct {
 }
 
 type ListByScopeCompleteResult struct {
-	Items []View
+	LatestHttpResponse *http.Response
+	Items              []View
 }
 
 // ListByScope ...
 func (c ViewsClient) ListByScope(ctx context.Context, id commonids.ScopeId) (result ListByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c ViewsClient) ListByScopeCompleteMatchingPredicate(ctx context.Context, i
 	}
 
 	result = ListByScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

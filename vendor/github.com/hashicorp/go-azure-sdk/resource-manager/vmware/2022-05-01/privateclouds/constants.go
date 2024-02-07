@@ -1,6 +1,10 @@
 package privateclouds
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAvailabilityStrategy() []string {
 		string(AvailabilityStrategyDualZone),
 		string(AvailabilityStrategySingleZone),
 	}
+}
+
+func (s *AvailabilityStrategy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAvailabilityStrategy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAvailabilityStrategy(input string) (*AvailabilityStrategy, error) {
@@ -55,6 +72,19 @@ func PossibleValuesForClusterProvisioningState() []string {
 	}
 }
 
+func (s *ClusterProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseClusterProvisioningState(input string) (*ClusterProvisioningState, error) {
 	vals := map[string]ClusterProvisioningState{
 		"canceled":  ClusterProvisioningStateCanceled,
@@ -87,6 +117,19 @@ func PossibleValuesForEncryptionKeyStatus() []string {
 	}
 }
 
+func (s *EncryptionKeyStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionKeyStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEncryptionKeyStatus(input string) (*EncryptionKeyStatus, error) {
 	vals := map[string]EncryptionKeyStatus{
 		"accessdenied": EncryptionKeyStatusAccessDenied,
@@ -113,6 +156,19 @@ func PossibleValuesForEncryptionState() []string {
 		string(EncryptionStateDisabled),
 		string(EncryptionStateEnabled),
 	}
+}
+
+func (s *EncryptionState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEncryptionState(input string) (*EncryptionState, error) {
@@ -143,6 +199,19 @@ func PossibleValuesForEncryptionVersionType() []string {
 	}
 }
 
+func (s *EncryptionVersionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEncryptionVersionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEncryptionVersionType(input string) (*EncryptionVersionType, error) {
 	vals := map[string]EncryptionVersionType{
 		"autodetected": EncryptionVersionTypeAutoDetected,
@@ -171,6 +240,19 @@ func PossibleValuesForInternetEnum() []string {
 	}
 }
 
+func (s *InternetEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInternetEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseInternetEnum(input string) (*InternetEnum, error) {
 	vals := map[string]InternetEnum{
 		"disabled": InternetEnumDisabled,
@@ -197,6 +279,19 @@ func PossibleValuesForNsxPublicIPQuotaRaisedEnum() []string {
 		string(NsxPublicIPQuotaRaisedEnumDisabled),
 		string(NsxPublicIPQuotaRaisedEnumEnabled),
 	}
+}
+
+func (s *NsxPublicIPQuotaRaisedEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNsxPublicIPQuotaRaisedEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNsxPublicIPQuotaRaisedEnum(input string) (*NsxPublicIPQuotaRaisedEnum, error) {
@@ -239,6 +334,19 @@ func PossibleValuesForPrivateCloudProvisioningState() []string {
 	}
 }
 
+func (s *PrivateCloudProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateCloudProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePrivateCloudProvisioningState(input string) (*PrivateCloudProvisioningState, error) {
 	vals := map[string]PrivateCloudProvisioningState{
 		"building":  PrivateCloudProvisioningStateBuilding,
@@ -271,6 +379,19 @@ func PossibleValuesForSslEnum() []string {
 		string(SslEnumDisabled),
 		string(SslEnumEnabled),
 	}
+}
+
+func (s *SslEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSslEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSslEnum(input string) (*SslEnum, error) {

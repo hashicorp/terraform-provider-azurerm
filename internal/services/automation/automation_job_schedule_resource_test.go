@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,7 +99,7 @@ func (t AutomationJobScheduleResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Automation.JobScheduleClient.Get(ctx, *id)
+	resp, err := clients.Automation.JobSchedule.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", *id, err)
 	}

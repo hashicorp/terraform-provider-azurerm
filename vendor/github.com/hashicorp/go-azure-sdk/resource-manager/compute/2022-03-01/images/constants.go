@@ -1,6 +1,10 @@
 package images
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForCachingTypes() []string {
 		string(CachingTypesReadOnly),
 		string(CachingTypesReadWrite),
 	}
+}
+
+func (s *CachingTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCachingTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCachingTypes(input string) (*CachingTypes, error) {
@@ -50,6 +67,19 @@ func PossibleValuesForHyperVGenerationTypes() []string {
 	}
 }
 
+func (s *HyperVGenerationTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHyperVGenerationTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseHyperVGenerationTypes(input string) (*HyperVGenerationTypes, error) {
 	vals := map[string]HyperVGenerationTypes{
 		"v1": HyperVGenerationTypesVOne,
@@ -78,6 +108,19 @@ func PossibleValuesForOperatingSystemStateTypes() []string {
 	}
 }
 
+func (s *OperatingSystemStateTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperatingSystemStateTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseOperatingSystemStateTypes(input string) (*OperatingSystemStateTypes, error) {
 	vals := map[string]OperatingSystemStateTypes{
 		"generalized": OperatingSystemStateTypesGeneralized,
@@ -104,6 +147,19 @@ func PossibleValuesForOperatingSystemTypes() []string {
 		string(OperatingSystemTypesLinux),
 		string(OperatingSystemTypesWindows),
 	}
+}
+
+func (s *OperatingSystemTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperatingSystemTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOperatingSystemTypes(input string) (*OperatingSystemTypes, error) {
@@ -142,6 +198,19 @@ func PossibleValuesForStorageAccountTypes() []string {
 		string(StorageAccountTypesStandardSSDZRS),
 		string(StorageAccountTypesUltraSSDLRS),
 	}
+}
+
+func (s *StorageAccountTypes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageAccountTypes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStorageAccountTypes(input string) (*StorageAccountTypes, error) {

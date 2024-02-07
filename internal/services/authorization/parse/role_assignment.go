@@ -111,6 +111,14 @@ func ConstructRoleAssignmentId(azureResourceId, tenantId string) string {
 	return fmt.Sprintf("%s|%s", azureResourceId, tenantId)
 }
 
+func DestructRoleAssignmentId(id string) (string, string) {
+	parts := strings.Split(id, "|")
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return id, ""
+}
+
 func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("Role Assignment ID is empty string")

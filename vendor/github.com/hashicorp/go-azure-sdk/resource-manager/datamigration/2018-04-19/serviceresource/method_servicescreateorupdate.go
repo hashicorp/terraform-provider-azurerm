@@ -18,12 +18,13 @@ type ServicesCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DataMigrationService
 }
 
 // ServicesCreateOrUpdate ...
 func (c ServiceResourceClient) ServicesCreateOrUpdate(ctx context.Context, id ServiceId, input DataMigrationService) (result ServicesCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,

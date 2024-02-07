@@ -20,7 +20,7 @@ type LedgerGetOperationResponse struct {
 // LedgerGet ...
 func (c ConfidentialLedgerClient) LedgerGet(ctx context.Context, id LedgerId) (result LedgerGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/clusters"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -312,21 +312,6 @@ func TestAccKustoCluster_optimizedAutoScale(t *testing.T) {
 	})
 }
 
-func TestAccKustoCluster_engineV3(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
-	r := KustoClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.engineV3(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
@@ -385,7 +370,7 @@ func TestAccKustoCluster_newSkus(t *testing.T) {
 }
 
 func (KustoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := clusters.ParseClusterID(state.ID)
+	id, err := commonids.ParseKustoClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -985,31 +970,6 @@ resource "azurerm_kusto_cluster" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
-}
-
-func (KustoClusterResource) engineV3(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_kusto_cluster" "test" {
-  name                = "acctestkc%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    name     = "Dev(No SLA)_Standard_D11_v2"
-    capacity = 1
-  }
-  engine = "V3"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KustoClusterResource) newSkus(data acceptance.TestData) string {

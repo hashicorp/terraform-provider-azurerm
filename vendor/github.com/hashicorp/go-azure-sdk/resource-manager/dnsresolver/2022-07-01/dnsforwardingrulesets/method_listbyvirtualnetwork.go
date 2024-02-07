@@ -20,7 +20,8 @@ type ListByVirtualNetworkOperationResponse struct {
 }
 
 type ListByVirtualNetworkCompleteResult struct {
-	Items []VirtualNetworkDnsForwardingRuleset
+	LatestHttpResponse *http.Response
+	Items              []VirtualNetworkDnsForwardingRuleset
 }
 
 type ListByVirtualNetworkOperationOptions struct {
@@ -53,7 +54,7 @@ func (o ListByVirtualNetworkOperationOptions) ToQuery() *client.QueryParams {
 // ListByVirtualNetwork ...
 func (c DnsForwardingRulesetsClient) ListByVirtualNetwork(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (result ListByVirtualNetworkOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c DnsForwardingRulesetsClient) ListByVirtualNetworkCompleteMatchingPredica
 	}
 
 	result = ListByVirtualNetworkCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

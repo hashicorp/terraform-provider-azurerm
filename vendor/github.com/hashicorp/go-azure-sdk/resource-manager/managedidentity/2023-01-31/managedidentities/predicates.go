@@ -11,15 +11,15 @@ type FederatedIdentityCredentialOperationPredicate struct {
 
 func (p FederatedIdentityCredentialOperationPredicate) Matches(input FederatedIdentityCredential) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -35,7 +35,7 @@ type IdentityOperationPredicate struct {
 
 func (p IdentityOperationPredicate) Matches(input Identity) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
@@ -43,11 +43,11 @@ func (p IdentityOperationPredicate) Matches(input Identity) bool {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

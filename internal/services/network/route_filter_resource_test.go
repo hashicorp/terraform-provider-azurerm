@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routefilters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -139,7 +139,7 @@ func (t RouteFilterResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, err
 	}
 
-	resp, err := clients.Network.RouteFiltersClient.Get(ctx, *id, routefilters.DefaultGetOperationOptions())
+	resp, err := clients.Network.RouteFilters.Get(ctx, *id, routefilters.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Route Filter (%s): %+v", id, err)
 	}
@@ -153,7 +153,7 @@ func (RouteFilterResource) Destroy(ctx context.Context, client *clients.Client, 
 		return nil, err
 	}
 
-	if err = client.Network.RouteFiltersClient.DeleteThenPoll(ctx, *id); err != nil {
+	if err = client.Network.RouteFilters.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Route Filter %q: %+v", id, err)
 	}
 

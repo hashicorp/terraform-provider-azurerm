@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []DnsForwardingRuleset
+	LatestHttpResponse *http.Response
+	Items              []DnsForwardingRuleset
 }
 
 type ListByResourceGroupOperationOptions struct {
@@ -53,7 +54,7 @@ func (o ListByResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 // ListByResourceGroup ...
 func (c DnsForwardingRulesetsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListByResourceGroupOperationOptions) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c DnsForwardingRulesetsClient) ListByResourceGroupCompleteMatchingPredicat
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

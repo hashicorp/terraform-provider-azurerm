@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type CreatorsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewCreatorsClientWithBaseURI(api environments.Api) (*CreatorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "creators", defaultApiVersion)
+func NewCreatorsClientWithBaseURI(sdkApi sdkEnv.Api) (*CreatorsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "creators", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CreatorsClient: %+v", err)
 	}

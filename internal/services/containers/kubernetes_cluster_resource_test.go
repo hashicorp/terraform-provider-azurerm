@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,10 +21,10 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.24.9"
-	currentKubernetesVersion      = "1.25.5"
-	olderKubernetesVersionAlias   = "1.24"
-	currentKubernetesVersionAlias = "1.25"
+	olderKubernetesVersion        = "1.25.11"
+	currentKubernetesVersion      = "1.26.6"
+	olderKubernetesVersionAlias   = "1.25"
+	currentKubernetesVersionAlias = "1.26"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
@@ -538,13 +538,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, maxSurge)
 }
 
-func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotNine(t *testing.T) {
+func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotNine(data, ""),
+			Config: r.roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config.0.host").IsSet(),

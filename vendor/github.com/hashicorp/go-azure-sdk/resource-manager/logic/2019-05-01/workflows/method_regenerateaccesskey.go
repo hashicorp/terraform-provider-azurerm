@@ -20,7 +20,7 @@ type RegenerateAccessKeyOperationResponse struct {
 // RegenerateAccessKey ...
 func (c WorkflowsClient) RegenerateAccessKey(ctx context.Context, id WorkflowId, input RegenerateActionParameter) (result RegenerateAccessKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

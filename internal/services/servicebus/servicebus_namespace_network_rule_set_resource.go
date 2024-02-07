@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
@@ -29,6 +29,8 @@ func resourceServiceBusNamespaceNetworkRuleSet() *pluginsdk.Resource {
 		Read:   resourceServiceBusNamespaceNetworkRuleSetRead,
 		Update: resourceServiceBusNamespaceNetworkRuleSetCreateUpdate,
 		Delete: resourceServiceBusNamespaceNetworkRuleSetDelete,
+
+		DeprecationMessage: "The `azurerm_servicebus_namespace_network_rule_set` resource is deprecated and will be removed in version 4.0 of the AzureRM provider. Please use `network_rule_set` inside the `azurerm_servicebus_namespace` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := namespaces.ParseNamespaceID(id)

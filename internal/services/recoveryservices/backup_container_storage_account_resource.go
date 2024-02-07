@@ -12,13 +12,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2021-12-01/backup" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectioncontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -27,7 +27,6 @@ func resourceBackupProtectionContainerStorageAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceBackupProtectionContainerStorageAccountCreate,
 		Read:   resourceBackupProtectionContainerStorageAccountRead,
-		Update: nil,
 		Delete: resourceBackupProtectionContainerStorageAccountDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := protectioncontainers.ParseProtectionContainerID(id)
@@ -37,7 +36,6 @@ func resourceBackupProtectionContainerStorageAccount() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -68,12 +66,12 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	defer cancel()
 
 	storageAccountID := d.Get("storage_account_id").(string)
-	parsedStorageAccountID, err := storageParse.StorageAccountID(storageAccountID)
+	parsedStorageAccountID, err := commonids.ParseStorageAccountID(storageAccountID)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to parse storage_account_id '%s': %+v", storageAccountID, err)
 	}
 
-	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, parsedStorageAccountID.Name)
+	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroupName, parsedStorageAccountID.StorageAccountName)
 
 	id := protectioncontainers.NewProtectionContainerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("recovery_vault_name").(string), "Azure", containerName)
 	if d.IsNewResource() {
@@ -92,7 +90,7 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 	parameters := protectioncontainers.ProtectionContainerResource{
 		Properties: &protectioncontainers.AzureStorageContainer{
 			SourceResourceId:     &storageAccountID,
-			FriendlyName:         &parsedStorageAccountID.Name,
+			FriendlyName:         &parsedStorageAccountID.StorageAccountName,
 			BackupManagementType: pointer.To(protectioncontainers.BackupManagementTypeAzureStorage),
 		},
 	}

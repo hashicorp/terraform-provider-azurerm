@@ -189,7 +189,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestsw%[1]d"
+  name     = "acctestRG-synapse-%[1]d"
   location = "%[2]s"
 }
 

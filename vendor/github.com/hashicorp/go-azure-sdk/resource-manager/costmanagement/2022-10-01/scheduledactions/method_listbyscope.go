@@ -20,7 +20,8 @@ type ListByScopeOperationResponse struct {
 }
 
 type ListByScopeCompleteResult struct {
-	Items []ScheduledAction
+	LatestHttpResponse *http.Response
+	Items              []ScheduledAction
 }
 
 type ListByScopeOperationOptions struct {
@@ -53,7 +54,7 @@ func (o ListByScopeOperationOptions) ToQuery() *client.QueryParams {
 // ListByScope ...
 func (c ScheduledActionsClient) ListByScope(ctx context.Context, id commonids.ScopeId, options ListByScopeOperationOptions) (result ListByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c ScheduledActionsClient) ListByScopeCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListByScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

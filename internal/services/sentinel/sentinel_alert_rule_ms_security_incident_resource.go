@@ -143,7 +143,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
 	if d.IsNewResource() {
-		resp, err := client.AlertRulesGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
@@ -178,7 +178,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 	}
 
 	if !d.IsNewResource() {
-		resp, err := client.AlertRulesGet(ctx, id)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 		}
@@ -188,7 +188,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *pluginsdk.Resour
 		}
 	}
 
-	if _, err := client.AlertRulesCreateOrUpdate(ctx, id, param); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 	}
 
@@ -207,7 +207,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	resp, err := client.AlertRulesGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Sentinel Alert Rule Ms Security Incident %q was not found - removing from state!", id)
@@ -262,7 +262,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *pluginsdk.ResourceData
 		return err
 	}
 
-	if _, err := client.AlertRulesDelete(ctx, *id); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Ms Security Incident %q: %+v", id, err)
 	}
 

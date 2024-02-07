@@ -19,13 +19,14 @@ type ListKeysOperationResponse struct {
 }
 
 type ListKeysCompleteResult struct {
-	Items []ApiKey
+	LatestHttpResponse *http.Response
+	Items              []ApiKey
 }
 
 // ListKeys ...
 func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id ConfigurationStoreId) (result ListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListKeysCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,7 @@ type ValidateByResourceGroupOperationResponse struct {
 // ValidateByResourceGroup ...
 func (c WorkflowsClient) ValidateByResourceGroup(ctx context.Context, id WorkflowId, input Workflow) (result ValidateByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

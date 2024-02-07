@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
-	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -118,7 +117,27 @@ func (r KubernetesFluxConfigurationResource) ModelObject() interface{} {
 }
 
 func (r KubernetesFluxConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return fluxconfiguration.ValidateFluxConfigurationID
+	return func(val interface{}, key string) (warns []string, errs []error) {
+		idRaw, ok := val.(string)
+		if !ok {
+			errs = append(errs, fmt.Errorf("expected `id` to be a string but got %+v", val))
+			return
+		}
+
+		id, err := fluxconfiguration.ParseScopedFluxConfigurationID(idRaw)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
+			return
+		}
+
+		// validate the scope is a connected cluster id
+		if _, err := commonids.ParseKubernetesClusterID(id.Scope); err != nil {
+			errs = append(errs, fmt.Errorf("parsing %q as a Kubernetes Cluster ID: %+v", idRaw, err))
+			return
+		}
+
+		return
+	}
 }
 
 func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -239,7 +258,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"local_auth_reference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azValidate.LocalAuthReference,
+						ValidateFunc: validate.LocalAuthReference,
 						ExactlyOneOf: []string{"blob_storage.0.account_key", "blob_storage.0.local_auth_reference", "blob_storage.0.managed_identity", "blob_storage.0.sas_token", "blob_storage.0.service_principal"},
 					},
 
@@ -377,7 +396,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"local_auth_reference": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: azValidate.LocalAuthReference,
+						ValidateFunc: validate.LocalAuthReference,
 						ExactlyOneOf: []string{"bucket.0.access_key", "bucket.0.local_auth_reference"},
 					},
 
@@ -461,7 +480,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"local_auth_reference": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
-						ValidateFunc:  azValidate.LocalAuthReference,
+						ValidateFunc:  validate.LocalAuthReference,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.ssh_private_key_base64", "git_repository.0.ssh_known_hosts_base64"},
 					},
 
@@ -532,14 +551,13 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			clusterID, err := commonids.ParseKubernetesClusterID(model.ClusterID)
 			if err != nil {
 				return err
 			}
 
 			// defined as strings because they're not enums in the swagger https://github.com/Azure/azure-rest-api-specs/pull/23545
-			id := fluxconfiguration.NewFluxConfigurationID(subscriptionId, clusterID.ResourceGroupName, "Microsoft.ContainerService", "managedClusters", clusterID.ManagedClusterName, model.Name)
+			id := fluxconfiguration.NewScopedFluxConfigurationID(clusterID.ID(), model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -599,7 +617,7 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -666,6 +684,12 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
 			}
 
+			if properties.Properties.ConfigurationProtectedSettings == nil {
+				if err := setConfigurationProtectedSettings(metadata, model, properties); err != nil {
+					return err
+				}
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -681,7 +705,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -700,9 +724,13 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			clusterId, err := commonids.ParseKubernetesClusterID(id.Scope)
+			if err != nil {
+				return err
+			}
 			state := KubernetesFluxConfigurationModel{
 				Name:      id.FluxConfigurationName,
-				ClusterID: commonids.NewKubernetesClusterID(metadata.Client.Account.SubscriptionId, id.ResourceGroupName, id.ClusterName).ID(),
+				ClusterID: clusterId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -738,7 +766,7 @@ func (r KubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesFluxConfigurationClient
 
-			id, err := fluxconfiguration.ParseFluxConfigurationID(metadata.ResourceData.Id())
+			id, err := fluxconfiguration.ParseScopedFluxConfigurationID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -1154,5 +1182,18 @@ func validateKubernetesFluxConfigurationModel(model *KubernetesFluxConfiguration
 		allKeys[k.Name] = true
 	}
 
+	return nil
+}
+
+func setConfigurationProtectedSettings(metadata sdk.ResourceMetaData, model KubernetesFluxConfigurationModel, properties *fluxconfiguration.FluxConfiguration) error {
+	if _, exists := metadata.ResourceData.GetOk("git_repository"); exists {
+		_, configurationProtectedSettings, err := expandGitRepositoryDefinitionModel(model.GitRepository)
+		if err != nil {
+			return err
+		}
+		properties.Properties.ConfigurationProtectedSettings = configurationProtectedSettings
+	} else if _, exists = metadata.ResourceData.GetOk("bucket"); exists {
+		_, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
+	}
 	return nil
 }

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LockId{}
+var _ resourceids.ResourceId = &LockId{}
 
 // LockId is a struct representing the Resource ID for a Lock
 type LockId struct {
@@ -28,21 +28,15 @@ func NewLockID(subscriptionId string, lockName string) LockId {
 
 // ParseLockID parses 'input' into a LockId
 func ParseLockID(input string) (*LockId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LockId{})
+	parser := resourceids.NewParserFromResourceIdType(&LockId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LockId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LockName, ok = parsed.Parsed["lockName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "lockName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParseLockID(input string) (*LockId, error) {
 // ParseLockIDInsensitively parses 'input' case-insensitively into a LockId
 // note: this method should only be used for API response data and not user input
 func ParseLockIDInsensitively(input string) (*LockId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LockId{})
+	parser := resourceids.NewParserFromResourceIdType(&LockId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LockId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LockName, ok = parsed.Parsed["lockName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "lockName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LockId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LockName, ok = input.Parsed["lockName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "lockName", input)
+	}
+
+	return nil
 }
 
 // ValidateLockID checks that 'input' can be parsed as a Lock ID

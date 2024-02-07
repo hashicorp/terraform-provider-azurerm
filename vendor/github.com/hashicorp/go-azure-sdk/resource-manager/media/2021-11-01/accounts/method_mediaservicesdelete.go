@@ -19,7 +19,7 @@ type MediaservicesDeleteOperationResponse struct {
 // MediaservicesDelete ...
 func (c AccountsClient) MediaservicesDelete(ctx context.Context, id MediaServiceId) (result MediaservicesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

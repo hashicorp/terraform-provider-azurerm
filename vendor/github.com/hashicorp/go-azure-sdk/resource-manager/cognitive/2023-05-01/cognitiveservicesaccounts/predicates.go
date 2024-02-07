@@ -14,27 +14,27 @@ type AccountOperationPredicate struct {
 
 func (p AccountOperationPredicate) Matches(input Account) bool {
 
-	if p.Etag != nil && (input.Etag == nil && *p.Etag != *input.Etag) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.Kind != nil && (input.Kind == nil && *p.Kind != *input.Kind) {
+	if p.Kind != nil && (input.Kind == nil || *p.Kind != *input.Kind) {
 		return false
 	}
 
-	if p.Location != nil && (input.Location == nil && *p.Location != *input.Location) {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -52,27 +52,27 @@ type AccountModelOperationPredicate struct {
 
 func (p AccountModelOperationPredicate) Matches(input AccountModel) bool {
 
-	if p.Format != nil && (input.Format == nil && *p.Format != *input.Format) {
+	if p.Format != nil && (input.Format == nil || *p.Format != *input.Format) {
 		return false
 	}
 
-	if p.IsDefaultVersion != nil && (input.IsDefaultVersion == nil && *p.IsDefaultVersion != *input.IsDefaultVersion) {
+	if p.IsDefaultVersion != nil && (input.IsDefaultVersion == nil || *p.IsDefaultVersion != *input.IsDefaultVersion) {
 		return false
 	}
 
-	if p.MaxCapacity != nil && (input.MaxCapacity == nil && *p.MaxCapacity != *input.MaxCapacity) {
+	if p.MaxCapacity != nil && (input.MaxCapacity == nil || *p.MaxCapacity != *input.MaxCapacity) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Source != nil && (input.Source == nil && *p.Source != *input.Source) {
+	if p.Source != nil && (input.Source == nil || *p.Source != *input.Source) {
 		return false
 	}
 
-	if p.Version != nil && (input.Version == nil && *p.Version != *input.Version) {
+	if p.Version != nil && (input.Version == nil || *p.Version != *input.Version) {
 		return false
 	}
 
@@ -88,19 +88,19 @@ type ResourceSkuOperationPredicate struct {
 
 func (p ResourceSkuOperationPredicate) Matches(input ResourceSku) bool {
 
-	if p.Kind != nil && (input.Kind == nil && *p.Kind != *input.Kind) {
+	if p.Kind != nil && (input.Kind == nil || *p.Kind != *input.Kind) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.ResourceType != nil && (input.ResourceType == nil && *p.ResourceType != *input.ResourceType) {
+	if p.ResourceType != nil && (input.ResourceType == nil || *p.ResourceType != *input.ResourceType) {
 		return false
 	}
 
-	if p.Tier != nil && (input.Tier == nil && *p.Tier != *input.Tier) {
+	if p.Tier != nil && (input.Tier == nil || *p.Tier != *input.Tier) {
 		return false
 	}
 

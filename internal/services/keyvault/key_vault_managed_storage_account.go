@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -51,7 +50,7 @@ func resourceKeyVaultManagedStorageAccount() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"storage_account_key": {
 				Type:     pluginsdk.TypeString,
@@ -65,7 +64,7 @@ func resourceKeyVaultManagedStorageAccount() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"regenerate_key_automatically": {
@@ -170,7 +169,12 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 		return fmt.Errorf("cannot read Managed Storage Account ID %q (Key Vault %q)", name, *keyVaultId)
 	}
 
-	d.SetId(*read.ID)
+	storageId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(storageId.ID())
 
 	return resourceKeyVaultManagedStorageAccountRead(d, meta)
 }
@@ -178,7 +182,7 @@ func resourceKeyVaultManagedStorageAccountCreateUpdate(d *pluginsdk.ResourceData
 func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -187,7 +191,8 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID of the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -235,7 +240,7 @@ func resourceKeyVaultManagedStorageAccountRead(d *pluginsdk.ResourceData, meta i
 func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -244,7 +249,8 @@ func resourceKeyVaultManagedStorageAccountDelete(d *pluginsdk.ResourceData, meta
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}

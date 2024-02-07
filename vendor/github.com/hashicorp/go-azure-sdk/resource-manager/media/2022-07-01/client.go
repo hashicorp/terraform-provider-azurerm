@@ -8,15 +8,15 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2022-07-01/encodings"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
 	Encodings *encodings.EncodingsClient
 }
 
-func NewClientWithBaseURI(api environments.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
-	encodingsClient, err := encodings.NewEncodingsClientWithBaseURI(api)
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	encodingsClient, err := encodings.NewEncodingsClientWithBaseURI(sdkApi)
 	if err != nil {
 		return nil, fmt.Errorf("building Encodings client: %+v", err)
 	}

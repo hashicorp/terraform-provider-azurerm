@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type NamespacesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewNamespacesClientWithBaseURI(api environments.Api) (*NamespacesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "namespaces", defaultApiVersion)
+func NewNamespacesClientWithBaseURI(sdkApi sdkEnv.Api) (*NamespacesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "namespaces", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NamespacesClient: %+v", err)
 	}

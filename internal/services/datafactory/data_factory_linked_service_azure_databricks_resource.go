@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
@@ -52,7 +53,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryID,
+				ValidateFunc: factories.ValidateFactoryID,
 			},
 
 			// Authentication types
@@ -260,12 +261,12 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	dataFactoryId, err := parse.DataFactoryID(d.Get("data_factory_id").(string))
+	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroup, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
@@ -395,7 +396,7 @@ func resourceDataFactoryLinkedServiceDatabricksCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		databricksLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		databricksLinkedService.Parameters = expandLinkedServiceParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
@@ -434,7 +435,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	dataFactoryId := parse.NewDataFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
@@ -559,7 +560,7 @@ func resourceDataFactoryLinkedServiceDatabricksRead(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(databricks.Parameters)
+	parameters := flattenLinkedServiceParameters(databricks.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("setting `parameters`: %+v", err)
 	}

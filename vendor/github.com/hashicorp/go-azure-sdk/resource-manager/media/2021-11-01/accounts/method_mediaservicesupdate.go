@@ -18,12 +18,13 @@ type MediaservicesUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *MediaService
 }
 
 // MediaservicesUpdate ...
 func (c AccountsClient) MediaservicesUpdate(ctx context.Context, id MediaServiceId, input MediaServiceUpdate) (result MediaservicesUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 		},

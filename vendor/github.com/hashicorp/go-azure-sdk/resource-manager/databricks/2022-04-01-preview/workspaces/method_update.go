@@ -18,12 +18,13 @@ type UpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Workspace
 }
 
 // Update ...
 func (c WorkspacesClient) Update(ctx context.Context, id WorkspaceId, input WorkspaceUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

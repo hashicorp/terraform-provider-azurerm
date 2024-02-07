@@ -21,7 +21,7 @@ type MonitorsGetDefaultKeyOperationResponse struct {
 // MonitorsGetDefaultKey ...
 func (c ApiKeyClient) MonitorsGetDefaultKey(ctx context.Context, id MonitorId) (result MonitorsGetDefaultKeyOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

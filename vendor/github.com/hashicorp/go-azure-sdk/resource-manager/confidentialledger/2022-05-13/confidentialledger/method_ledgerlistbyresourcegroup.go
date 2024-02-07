@@ -20,7 +20,8 @@ type LedgerListByResourceGroupOperationResponse struct {
 }
 
 type LedgerListByResourceGroupCompleteResult struct {
-	Items []ConfidentialLedger
+	LatestHttpResponse *http.Response
+	Items              []ConfidentialLedger
 }
 
 type LedgerListByResourceGroupOperationOptions struct {
@@ -53,7 +54,7 @@ func (o LedgerListByResourceGroupOperationOptions) ToQuery() *client.QueryParams
 // LedgerListByResourceGroup ...
 func (c ConfidentialLedgerClient) LedgerListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options LedgerListByResourceGroupOperationOptions) (result LedgerListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c ConfidentialLedgerClient) LedgerListByResourceGroupCompleteMatchingPredi
 	}
 
 	result = LedgerListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

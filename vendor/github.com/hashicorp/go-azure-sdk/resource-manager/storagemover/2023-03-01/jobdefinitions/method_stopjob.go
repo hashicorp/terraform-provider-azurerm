@@ -21,7 +21,7 @@ type StopJobOperationResponse struct {
 // StopJob ...
 func (c JobDefinitionsClient) StopJob(ctx context.Context, id JobDefinitionId) (result StopJobOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

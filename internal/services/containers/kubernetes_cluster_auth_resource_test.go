@@ -815,26 +815,26 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotNine(data acceptance.TestData, tenantId string) string {
+func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data acceptance.TestData, tenantId string) string {
 	return fmt.Sprintf(`
 variable "tenant_id" {
-  default = "%s"
+  default = "%[1]s"
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[3]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[3]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.24.9"
+  dns_prefix          = "acctestaks%[3]d"
+  kubernetes_version  = "%[4]s"
 
   linux_profile {
-    admin_username = "acctestuser%d"
+    admin_username = "acctestuser%[3]d"
 
     ssh_key {
       key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
@@ -857,7 +857,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     azure_rbac_enabled = false
   }
 }
-`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, tenantId, data.Locations.Primary, data.RandomInteger, olderKubernetesVersion)
 }
 
 func (KubernetesClusterResource) roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data acceptance.TestData, tenantId string) string {

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2022-08-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -39,6 +39,8 @@ func TestAccNginxDeployment_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capacity").HasValue("10"),
+				check.That(data.ResourceName).Key("email").HasValue("test@test.com"),
 			),
 		},
 		data.ImportStep(),
@@ -66,12 +68,26 @@ func TestAccNginxDeployment_update(t *testing.T) {
 	})
 }
 
-func TestAccNginxDeployment_identity(t *testing.T) {
+func TestAccNginxDeployment_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
 	r := DeploymentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identityUser(data),
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNginxDeployment_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
+	r := DeploymentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -82,6 +98,8 @@ func TestAccNginxDeployment_identity(t *testing.T) {
 
 func (a DeploymentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+
 
 
 %s
@@ -100,6 +118,11 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
+  capacity = 10
+
+  email = "test@test.com"
+
   tags = {
     foo = "bar"
   }
@@ -128,6 +151,10 @@ resource "azurerm_nginx_deployment" "test" {
     subnet_id = azurerm_subnet.test.id
   }
 
+  capacity = 20
+
+  email = "testing@test.com"
+
   tags = {
     foo = "bar2"
   }
@@ -135,7 +162,38 @@ resource "azurerm_nginx_deployment" "test" {
 `, a.template(data), data.RandomInteger)
 }
 
-func (a DeploymentResource) identityUser(data acceptance.TestData) string {
+func (a DeploymentResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standard_Monthly"
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  capacity = 10
+
+  email = "test@test.com"
+}
+`, a.template(data), data.RandomInteger)
+}
+
+func (a DeploymentResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -165,6 +223,10 @@ resource "azurerm_nginx_deployment" "test" {
   network_interface {
     subnet_id = azurerm_subnet.test.id
   }
+
+  capacity = 10
+
+  email = "test@test.com"
 }
 `, a.template(data), data.RandomInteger)
 }

@@ -19,7 +19,8 @@ type AssetsListOperationResponse struct {
 }
 
 type AssetsListCompleteResult struct {
-	Items []Asset
+	LatestHttpResponse *http.Response
+	Items              []Asset
 }
 
 type AssetsListOperationOptions struct {
@@ -60,7 +61,7 @@ func (o AssetsListOperationOptions) ToQuery() *client.QueryParams {
 // AssetsList ...
 func (c AssetsAndAssetFiltersClient) AssetsList(ctx context.Context, id MediaServiceId, options AssetsListOperationOptions) (result AssetsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -119,7 +120,8 @@ func (c AssetsAndAssetFiltersClient) AssetsListCompleteMatchingPredicate(ctx con
 	}
 
 	result = AssetsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

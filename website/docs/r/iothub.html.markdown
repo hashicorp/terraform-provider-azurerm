@@ -66,9 +66,10 @@ resource "azurerm_eventhub_authorization_rule" "example" {
 }
 
 resource "azurerm_iothub" "example" {
-  name                = "Example-IoTHub"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  name                         = "Example-IoTHub"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  local_authentication_enabled = false
 
   sku {
     name     = "S1"
@@ -142,6 +143,8 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `local_authentication_enabled` - (Optional) If false, SAS tokens with Iot hub scoped SAS keys cannot be used for authentication. Defaults to `true`.
+
 * `event_hub_partition_count` - (Optional) The number of device-to-cloud partitions used by backing event hubs. Must be between `2` and `128`.
 
 * `event_hub_retention_in_days` - (Optional) The event hub retention to use in days. Must be between `1` and `7`.
@@ -210,7 +213,7 @@ An `endpoint` block supports the following:
 
 * `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are `Avro`, `AvroDeflate` and `JSON`. Default value is `Avro`. This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`. Changing this forces a new resource to be created.
 
-* `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`.
+* `file_name_format` - (Optional) File name format for the blob. All parameters are mandatory but can be reordered. This attribute is applicable for endpoint type `AzureIotHub.StorageContainer`. Defaults to `{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}`.
 
 * `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
 
@@ -272,7 +275,7 @@ An `enrichment` block supports the following:
 
 A `fallback_route` block supports the following:
 
-* `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents` and `DigitalTwinChangeEvents`.
+* `source` - (Optional) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `Invalid`, `DeviceMessages`, `TwinChangeEvents`, `DeviceLifecycleEvents`, `DeviceConnectionStateEvents`, `DeviceJobLifecycleEvents` and `DigitalTwinChangeEvents`. Defaults to `DeviceMessages`.
 
 * `condition` - (Optional) The condition that is evaluated to apply the routing rule. Defaults to `true`. For grammar, see: <https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language>.
 

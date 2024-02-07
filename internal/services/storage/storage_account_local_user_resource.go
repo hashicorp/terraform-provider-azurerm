@@ -11,11 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute"
 	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -66,7 +66,7 @@ func (r LocalUserResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StorageAccountID,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 		"ssh_key_enabled": {
 			Type:         pluginsdk.TypeBool,
@@ -212,7 +212,7 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.LocalUsersClient
+			client := metadata.Client.Storage.ResourceManager.LocalUsers
 
 			var plan LocalUserModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -228,12 +228,12 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			accountId, err := parse.StorageAccountID(plan.StorageAccountId)
+			accountId, err := commonids.ParseStorageAccountID(plan.StorageAccountId)
 			if err != nil {
 				return err
 			}
 
-			id := localusers.NewLocalUserID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, plan.Name)
+			id := localusers.NewLocalUserID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, plan.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -289,7 +289,7 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.LocalUsersClient
+			client := metadata.Client.Storage.ResourceManager.LocalUsers
 			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -310,7 +310,7 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 
 			model := LocalUserModel{
 				Name:             id.LocalUserName,
-				StorageAccountId: parse.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID(),
+				StorageAccountId: commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID(),
 				// Password is only accessible during creation
 				Password: state.Password,
 				// SshAuthorizedKey is only accessible during creation, whilst this should be returned as it is not a secret.
@@ -354,7 +354,7 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Storage.LocalUsersClient
+			client := metadata.Client.Storage.ResourceManager.LocalUsers
 
 			params, err := client.Get(ctx, *id)
 			if err != nil {
@@ -430,7 +430,7 @@ func (r LocalUserResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.LocalUsersClient
+			client := metadata.Client.Storage.ResourceManager.LocalUsers
 
 			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {

@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -308,29 +309,29 @@ func TestAccDataFactory_managedVirtualNetworkUpdated(t *testing.T) {
 }
 
 func (t DataFactoryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataFactoryID(state.ID)
+	id, err := factories.ParseFactoryID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataFactory.FactoriesClient.Get(ctx, id.ResourceGroup, id.FactoryName, "")
+	resp, err := clients.DataFactory.Factories.Get(ctx, *id, factories.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Data Factory (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (DataFactoryResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataFactoryID(state.ID)
+	id, err := factories.ParseFactoryID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.DataFactory.FactoriesClient.Delete(ctx, id.ResourceGroup, id.FactoryName)
+	resp, err := client.DataFactory.Factories.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return nil, fmt.Errorf("delete on dataFactoryClient: %+v", err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
@@ -407,12 +408,13 @@ resource "azurerm_data_factory" "test" {
   purview_id          = azurerm_purview_account.test.id
 
   vsts_configuration {
-    account_name    = "test account name"
-    branch_name     = "test branch name"
-    project_name    = "test project name"
-    repository_name = "test repository name"
-    root_folder     = "/"
-    tenant_id       = "00000000-0000-0000-0000-000000000000"
+    account_name       = "test account name"
+    branch_name        = "test branch name"
+    project_name       = "test project name"
+    repository_name    = "test repository name"
+    root_folder        = "/"
+    tenant_id          = "00000000-0000-0000-0000-000000000000"
+    publishing_enabled = false
   }
 
   tags = {
@@ -486,11 +488,12 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   github_configuration {
-    git_url         = "https://github.com/hashicorp/"
-    repository_name = "terraform-provider-azurerm"
-    branch_name     = "main"
-    root_folder     = "/"
-    account_name    = "acctestGH-%d"
+    git_url            = "https://github.com/hashicorp/"
+    repository_name    = "terraform-provider-azurerm"
+    branch_name        = "main"
+    root_folder        = "/"
+    account_name       = "acctestGH-%d"
+    publishing_enabled = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -513,11 +516,12 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   github_configuration {
-    git_url         = "https://github.com/hashicorp/"
-    repository_name = "terraform-provider-azuread"
-    branch_name     = "stable-website"
-    root_folder     = "/azuread"
-    account_name    = "acctestGitHub-%d"
+    git_url            = "https://github.com/hashicorp/"
+    repository_name    = "terraform-provider-azuread"
+    branch_name        = "stable-website"
+    root_folder        = "/azuread"
+    account_name       = "acctestGitHub-%d"
+    publishing_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

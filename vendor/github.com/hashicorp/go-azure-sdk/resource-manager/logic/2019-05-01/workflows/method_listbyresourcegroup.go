@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []Workflow
+	LatestHttpResponse *http.Response
+	Items              []Workflow
 }
 
 type ListByResourceGroupOperationOptions struct {
@@ -57,7 +58,7 @@ func (o ListByResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 // ListByResourceGroup ...
 func (c WorkflowsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListByResourceGroupOperationOptions) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -116,7 +117,8 @@ func (c WorkflowsClient) ListByResourceGroupCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DnsResolver
 }
 
 type CreateOrUpdateOperationOptions struct {
@@ -54,7 +55,7 @@ func (o CreateOrUpdateOperationOptions) ToQuery() *client.QueryParams {
 // CreateOrUpdate ...
 func (c DnsResolversClient) CreateOrUpdate(ctx context.Context, id DnsResolverId, input DnsResolver, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusCreated,

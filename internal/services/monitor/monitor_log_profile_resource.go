@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,6 +31,8 @@ func resourceMonitorLogProfile() *pluginsdk.Resource {
 		Read:   resourceLogProfileRead,
 		Update: resourceLogProfileCreateUpdate,
 		Delete: resourceLogProfileDelete,
+
+		DeprecationMessage: "Azure Log Profiles will be retired on 30th September 2026 and will be removed in v4.0 of the AzureRM Provider. More information on the deprecation can be found at https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log?tabs=powershell#legacy-collection-methods",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := logprofiles.ParseLogProfileID(id)
@@ -59,7 +61,7 @@ func resourceMonitorLogProfile() *pluginsdk.Resource {
 			"storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 			"servicebus_rule_id": {
 				Type:         pluginsdk.TypeString,

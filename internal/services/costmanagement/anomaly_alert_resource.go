@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -102,7 +103,7 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 			schedule.SetStartDateAsTime(time.Now())
 
 			param := scheduledactions.ScheduledAction{
-				Kind: utils.ToPtr(scheduledactions.ScheduledActionKindInsightAlert),
+				Kind: pointer.To(scheduledactions.ScheduledActionKindInsightAlert),
 				Properties: &scheduledactions.ScheduledActionProperties{
 					DisplayName: metadata.ResourceData.Get("display_name").(string),
 					Status:      scheduledactions.ScheduledActionStatusEnabled,
@@ -163,7 +164,7 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 			schedule.SetStartDateAsTime(time.Now())
 
 			param := scheduledactions.ScheduledAction{
-				Kind: utils.ToPtr(scheduledactions.ScheduledActionKindInsightAlert),
+				Kind: pointer.To(scheduledactions.ScheduledActionKindInsightAlert),
 				ETag: resp.Model.ETag,
 				Properties: &scheduledactions.ScheduledActionProperties{
 					DisplayName: metadata.ResourceData.Get("display_name").(string),

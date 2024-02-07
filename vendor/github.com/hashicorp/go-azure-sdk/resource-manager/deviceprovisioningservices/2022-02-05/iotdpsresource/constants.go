@@ -1,6 +1,10 @@
 package iotdpsresource
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -25,6 +29,19 @@ func PossibleValuesForAccessRightsDescription() []string {
 		string(AccessRightsDescriptionRegistrationStatusWrite),
 		string(AccessRightsDescriptionServiceConfig),
 	}
+}
+
+func (s *AccessRightsDescription) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAccessRightsDescription(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAccessRightsDescription(input string) (*AccessRightsDescription, error) {
@@ -61,6 +78,19 @@ func PossibleValuesForAllocationPolicy() []string {
 	}
 }
 
+func (s *AllocationPolicy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAllocationPolicy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAllocationPolicy(input string) (*AllocationPolicy, error) {
 	vals := map[string]AllocationPolicy{
 		"geolatency": AllocationPolicyGeoLatency,
@@ -88,6 +118,19 @@ func PossibleValuesForIPFilterActionType() []string {
 		string(IPFilterActionTypeAccept),
 		string(IPFilterActionTypeReject),
 	}
+}
+
+func (s *IPFilterActionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIPFilterActionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseIPFilterActionType(input string) (*IPFilterActionType, error) {
@@ -120,6 +163,19 @@ func PossibleValuesForIPFilterTargetType() []string {
 	}
 }
 
+func (s *IPFilterTargetType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIPFilterTargetType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseIPFilterTargetType(input string) (*IPFilterTargetType, error) {
 	vals := map[string]IPFilterTargetType{
 		"all":        IPFilterTargetTypeAll,
@@ -147,6 +203,19 @@ func PossibleValuesForIotDpsSku() []string {
 	}
 }
 
+func (s *IotDpsSku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIotDpsSku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseIotDpsSku(input string) (*IotDpsSku, error) {
 	vals := map[string]IotDpsSku{
 		"s1": IotDpsSkuSOne,
@@ -172,6 +241,19 @@ func PossibleValuesForNameUnavailabilityReason() []string {
 		string(NameUnavailabilityReasonAlreadyExists),
 		string(NameUnavailabilityReasonInvalid),
 	}
+}
+
+func (s *NameUnavailabilityReason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNameUnavailabilityReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNameUnavailabilityReason(input string) (*NameUnavailabilityReason, error) {
@@ -206,6 +288,19 @@ func PossibleValuesForPrivateLinkServiceConnectionStatus() []string {
 	}
 }
 
+func (s *PrivateLinkServiceConnectionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateLinkServiceConnectionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePrivateLinkServiceConnectionStatus(input string) (*PrivateLinkServiceConnectionStatus, error) {
 	vals := map[string]PrivateLinkServiceConnectionStatus{
 		"approved":     PrivateLinkServiceConnectionStatusApproved,
@@ -234,6 +329,19 @@ func PossibleValuesForPublicNetworkAccess() []string {
 		string(PublicNetworkAccessDisabled),
 		string(PublicNetworkAccessEnabled),
 	}
+}
+
+func (s *PublicNetworkAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicNetworkAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
@@ -282,6 +390,19 @@ func PossibleValuesForState() []string {
 		string(StateSuspending),
 		string(StateTransitioning),
 	}
+}
+
+func (s *State) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseState(input string) (*State, error) {

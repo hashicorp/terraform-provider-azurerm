@@ -21,7 +21,7 @@ type RegenerateKeysOperationResponse struct {
 // RegenerateKeys ...
 func (c NamespacesClient) RegenerateKeys(ctx context.Context, id AuthorizationRuleId, input PolicykeyResource) (result RegenerateKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

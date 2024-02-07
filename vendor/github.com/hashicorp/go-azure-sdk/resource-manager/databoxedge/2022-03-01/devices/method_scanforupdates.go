@@ -23,7 +23,7 @@ type ScanForUpdatesOperationResponse struct {
 // ScanForUpdates ...
 func (c DevicesClient) ScanForUpdates(ctx context.Context, id DataBoxEdgeDeviceId) (result ScanForUpdatesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `use_extension_bundle` - (Optional) Should the logic app use the bundled extension package? If true, then application settings for `AzureFunctionsJobHost__extensionBundle__id` and `AzureFunctionsJobHost__extensionBundle__version` will be created. Defaults to `true`.
 
-* `bundle_version` - (Optional) If `use_extension_bundle` then controls the allowed range for bundle versions. Default `[1.*, 2.0.0)`
+* `bundle_version` - (Optional) If `use_extension_bundle` then controls the allowed range for bundle versions. Defaults to `[1.*, 2.0.0)`.
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
@@ -151,7 +151,9 @@ The following arguments are supported:
 
 ~> **Note:**  When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
-* `version` - (Optional) The runtime version associated with the Logic App Defaults to `~3`.
+* `version` - (Optional) The runtime version associated with the Logic App. Defaults to `~3`.
+
+~> **Note:**  Logic App version `3.x` will be out of support from December 3 2022. For more details refer [Logic Apps Standard Support for Functions Runtime V4](https://azure.microsoft.com/en-us/updates/logic-apps-standard-support-for-functions-runtime-v4/)
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this resource for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
@@ -191,11 +193,11 @@ The `site_config` block supports the following:
 
 * `http2_enabled` - (Optional) Specifies whether or not the HTTP2 protocol should be enabled. Defaults to `false`.
 
-* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing IP restrictions as defined below.
+* `ip_restriction` - (Optional) A list of `ip_restriction` objects representing IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing SCM IP restrictions as defined below.
+* `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
@@ -210,6 +212,8 @@ The `site_config` block supports the following:
 * `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Logic Apps.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this Logic App Only affects apps on the Premium plan.
+
+* `public_network_access_enabled` - (Optional) Is public network access enabled? Defaults to `true`.
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Runtime Scale Monitoring be enabled?. Only applicable to apps on the Premium plan. Defaults to `false`.
 
@@ -258,7 +262,7 @@ A `ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`. 
 
-* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+* `headers` - (Optional) The `headers` block for this specific as a `ip_restriction` block as defined below.
 
 ---
 
@@ -278,7 +282,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.
 
-* `headers` - (Optional) The headers for this specific `ip_restriction` as defined below.
+* `headers` - (Optional) The `headers` block for this specific `ip_restriction` as defined below.
 
 ---
 
@@ -329,6 +333,12 @@ The `site_credential` block exports the following:
 * `username` - The username which can be used to publish to this App Service
 
 * `password` - The password associated with the username, which can be used to publish to this App Service.
+
+---
+
+The `site_config` block exports the following:
+
+* `auto_swap_slot_name` - The Auto-swap slot name.
 
 ## Timeouts
 

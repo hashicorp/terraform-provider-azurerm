@@ -21,7 +21,7 @@ type ListOperationResponse struct {
 // List ...
 func (c IntegrationAccountAssembliesClient) List(ctx context.Context, id IntegrationAccountId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

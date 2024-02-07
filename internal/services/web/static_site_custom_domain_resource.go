@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
@@ -26,7 +27,7 @@ const (
 
 func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStaticSiteCustomDomainCreateOrUpdate,
+		Create: resourceStaticSiteCustomDomainCreate,
 		Read:   resourceStaticSiteCustomDomainRead,
 		Delete: resourceStaticSiteCustomDomainDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -37,7 +38,6 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -75,7 +75,7 @@ func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 	}
 }
 
-func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceStaticSiteCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.StaticSitesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,6 +161,15 @@ func resourceStaticSiteCustomDomainCreateOrUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
+	// we set `validation_token` into state here since it's removed from the API once it's been validated
+	// setting it in the read would overwrite the value with an empty string and cause a diff, since this
+	// is not a user specifiable field we don't need to be concerned with it at import time either
+	resp, err := client.GetStaticSiteCustomDomain(ctx, staticSiteId.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	d.Set("validation_token", pointer.From(resp.ValidationToken))
+
 	d.SetId(id.ID())
 
 	return resourceStaticSiteCustomDomainRead(d, meta)
@@ -187,10 +196,6 @@ func resourceStaticSiteCustomDomainRead(d *pluginsdk.ResourceData, meta interfac
 	}
 	d.Set("domain_name", id.CustomDomainName)
 	d.Set("static_site_id", parse.NewStaticSiteID(id.SubscriptionId, id.ResourceGroup, id.StaticSiteName).ID())
-
-	if props := resp.StaticSiteCustomDomainOverviewARMResourceProperties; props != nil {
-		d.Set("validation_token", resp.ValidationToken)
-	}
 
 	return nil
 }

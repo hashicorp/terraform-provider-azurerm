@@ -41,38 +41,6 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AccountsClient.MediaServicesOperationResultsGet`
-
-```go
-ctx := context.TODO()
-id := accounts.NewMediaServicesOperationResultID("12345678-1234-9876-4563-123456789012", "locationValue", "operationIdValue")
-
-read, err := client.MediaServicesOperationResultsGet(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
-### Example Usage: `AccountsClient.MediaServicesOperationStatusesGet`
-
-```go
-ctx := context.TODO()
-id := accounts.NewMediaServicesOperationStatusID("12345678-1234-9876-4563-123456789012", "locationValue", "operationIdValue")
-
-read, err := client.MediaServicesOperationStatusesGet(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
 ### Example Usage: `AccountsClient.MediaservicesCreateOrUpdate`
 
 ```go

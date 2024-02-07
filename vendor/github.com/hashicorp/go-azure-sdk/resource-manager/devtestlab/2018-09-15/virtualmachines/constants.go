@@ -1,6 +1,10 @@
 package virtualmachines
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForEnableStatus() []string {
 		string(EnableStatusDisabled),
 		string(EnableStatusEnabled),
 	}
+}
+
+func (s *EnableStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnableStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEnableStatus(input string) (*EnableStatus, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForHostCachingOptions() []string {
 		string(HostCachingOptionsReadOnly),
 		string(HostCachingOptionsReadWrite),
 	}
+}
+
+func (s *HostCachingOptions) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseHostCachingOptions(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseHostCachingOptions(input string) (*HostCachingOptions, error) {
@@ -80,6 +110,19 @@ func PossibleValuesForStorageType() []string {
 	}
 }
 
+func (s *StorageType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseStorageType(input string) (*StorageType, error) {
 	vals := map[string]StorageType{
 		"premium":     StorageTypePremium,
@@ -107,6 +150,19 @@ func PossibleValuesForTransportProtocol() []string {
 		string(TransportProtocolTcp),
 		string(TransportProtocolUdp),
 	}
+}
+
+func (s *TransportProtocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTransportProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTransportProtocol(input string) (*TransportProtocol, error) {
@@ -137,6 +193,19 @@ func PossibleValuesForVirtualMachineCreationSource() []string {
 		string(VirtualMachineCreationSourceFromGalleryImage),
 		string(VirtualMachineCreationSourceFromSharedGalleryImage),
 	}
+}
+
+func (s *VirtualMachineCreationSource) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVirtualMachineCreationSource(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVirtualMachineCreationSource(input string) (*VirtualMachineCreationSource, error) {

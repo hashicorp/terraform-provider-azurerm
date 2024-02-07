@@ -22,7 +22,7 @@ type CheckDomainAvailabilityOperationResponse struct {
 // CheckDomainAvailability ...
 func (c CognitiveServicesAccountsClient) CheckDomainAvailability(ctx context.Context, id commonids.SubscriptionId, input CheckDomainAvailabilityParameter) (result CheckDomainAvailabilityOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

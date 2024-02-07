@@ -19,13 +19,14 @@ type AccountsListModelsOperationResponse struct {
 }
 
 type AccountsListModelsCompleteResult struct {
-	Items []AccountModel
+	LatestHttpResponse *http.Response
+	Items              []AccountModel
 }
 
 // AccountsListModels ...
 func (c CognitiveServicesAccountsClient) AccountsListModels(ctx context.Context, id AccountId) (result AccountsListModelsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c CognitiveServicesAccountsClient) AccountsListModelsCompleteMatchingPredi
 	}
 
 	result = AccountsListModelsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

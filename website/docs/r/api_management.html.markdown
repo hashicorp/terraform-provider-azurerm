@@ -14,7 +14,7 @@ Manages an API Management Service.
 
 -> When creating a new API Management resource in version 3.0 of the AzureRM Provider and later, please be aware that the AzureRM Provider will now clean up any sample APIs and Products created by the Azure API during the creation of the API Management resource.
 
--> **Note:** Version 2.77 and later of the Azure Provider include a Feature Toggle which will purge an API Management resource on destroy, rather than the default soft-delete. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features) for more information on Feature Toggles within Terraform.
+-> **Note:** Version 2.77 and later of the Azure Provider include a Feature Toggle which will purge an API Management resource on destroy, rather than the default soft-delete. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
 
 ~> **Note:** It's possible to define Custom Domains both within [the `azurerm_api_management` resource](api_management.html) via the `hostname_configurations` block and by using [the `azurerm_api_management_custom_domain` resource](api_management_custom_domain.html). However it's not possible to use both methods to manage Custom Domains within an API Management Service, since there'll be conflicts.
 
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `additional_location` - (Optional) One or more `additional_location` blocks as defined below.
 
-* `certificate` - (Optional) One or more (up to 10) `certificate` blocks as defined below.
+* `certificate` - (Optional) One or more `certificate` blocks (up to 10) as defined below.
 
 * `client_certificate_enabled` - (Optional) Enforce a client certificate to be presented on each request to the gateway? This is only supported when SKU type is `Consumption`.
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `min_api_version` - (Optional) The version which the control plane API calls to API Management service are limited with version equal to or newer than.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located. Changing this forces a new API Management service to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located.
 
 ~> **NOTE:** Availability zones are only supported in the Premium tier.
 
@@ -97,9 +97,11 @@ The following arguments are supported:
 
 ~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
 
-* `public_network_access_enabled` - (Optional) Is public access to the service allowed?. Defaults to `true`
+* `public_network_access_enabled` - (Optional) Is public access to the service allowed? Defaults to `true`.
 
-* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
+~> **NOTE:** This option is applicable only to the Management plane, not the API gateway or Developer portal. It is required to be `true` on the creation.
+
+* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. Defaults to `None`.
 
 > **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://learn.microsoft.com/azure/api-management/virtual-network-reference).
 

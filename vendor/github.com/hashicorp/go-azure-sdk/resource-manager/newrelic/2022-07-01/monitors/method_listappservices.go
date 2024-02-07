@@ -19,13 +19,14 @@ type ListAppServicesOperationResponse struct {
 }
 
 type ListAppServicesCompleteResult struct {
-	Items []AppServiceInfo
+	LatestHttpResponse *http.Response
+	Items              []AppServiceInfo
 }
 
 // ListAppServices ...
 func (c MonitorsClient) ListAppServices(ctx context.Context, id MonitorId, input AppServicesGetRequest) (result ListAppServicesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c MonitorsClient) ListAppServicesCompleteMatchingPredicate(ctx context.Con
 	}
 
 	result = ListAppServicesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

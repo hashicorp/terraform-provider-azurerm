@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrometheusRuleGroupId{}
+var _ resourceids.ResourceId = &PrometheusRuleGroupId{}
 
 // PrometheusRuleGroupId is a struct representing the Resource ID for a Prometheus Rule Group
 type PrometheusRuleGroupId struct {
@@ -30,25 +30,15 @@ func NewPrometheusRuleGroupID(subscriptionId string, resourceGroupName string, p
 
 // ParsePrometheusRuleGroupID parses 'input' into a PrometheusRuleGroupId
 func ParsePrometheusRuleGroupID(input string) (*PrometheusRuleGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrometheusRuleGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrometheusRuleGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrometheusRuleGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrometheusRuleGroupName, ok = parsed.Parsed["prometheusRuleGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "prometheusRuleGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParsePrometheusRuleGroupID(input string) (*PrometheusRuleGroupId, error) {
 // ParsePrometheusRuleGroupIDInsensitively parses 'input' case-insensitively into a PrometheusRuleGroupId
 // note: this method should only be used for API response data and not user input
 func ParsePrometheusRuleGroupIDInsensitively(input string) (*PrometheusRuleGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrometheusRuleGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrometheusRuleGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrometheusRuleGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrometheusRuleGroupName, ok = parsed.Parsed["prometheusRuleGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "prometheusRuleGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrometheusRuleGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PrometheusRuleGroupName, ok = input.Parsed["prometheusRuleGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "prometheusRuleGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidatePrometheusRuleGroupID checks that 'input' can be parsed as a Prometheus Rule Group ID

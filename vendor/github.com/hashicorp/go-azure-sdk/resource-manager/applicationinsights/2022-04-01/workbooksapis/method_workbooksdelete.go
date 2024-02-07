@@ -19,7 +19,7 @@ type WorkbooksDeleteOperationResponse struct {
 // WorkbooksDelete ...
 func (c WorkbooksAPIsClient) WorkbooksDelete(ctx context.Context, id WorkbookId) (result WorkbooksDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

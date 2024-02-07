@@ -16,6 +16,7 @@ import (
 type TableResourcesCreateUpdateTableOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *TableGetResults
 }
 
 // TableResourcesCreateUpdateTable ...

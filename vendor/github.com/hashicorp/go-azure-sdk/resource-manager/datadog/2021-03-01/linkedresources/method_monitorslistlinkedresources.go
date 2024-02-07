@@ -19,13 +19,14 @@ type MonitorsListLinkedResourcesOperationResponse struct {
 }
 
 type MonitorsListLinkedResourcesCompleteResult struct {
-	Items []LinkedResource
+	LatestHttpResponse *http.Response
+	Items              []LinkedResource
 }
 
 // MonitorsListLinkedResources ...
 func (c LinkedResourcesClient) MonitorsListLinkedResources(ctx context.Context, id MonitorId) (result MonitorsListLinkedResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c LinkedResourcesClient) MonitorsListLinkedResourcesCompleteMatchingPredic
 	}
 
 	result = MonitorsListLinkedResourcesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

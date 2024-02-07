@@ -7,6 +7,10 @@ import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 type Registration struct{}
 
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/fluid-relay"
+}
+
 func (r Registration) Name() string {
 	return "Fluid Relay"
 }

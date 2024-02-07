@@ -68,6 +68,10 @@ resource "azurerm_nginx_deployment" "example" {
   network_interface {
     subnet_id = azurerm_subnet.example.id
   }
+
+  capacity = 20
+
+  email = "user@test.com"
 }
 ```
 
@@ -87,7 +91,13 @@ The following arguments are supported:
 
 ---
 
+* `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment. Defaults to `20`.
+
+-> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
+
 * `diagnose_support_enabled` - (Optional) Should the diagnosis support be enabled?
+
+* `email` - (Optional) Specify the preferred support contact email address of the user used for sending alerts and notification.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -105,15 +115,17 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values is `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field.
+* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values are `UserAssigned`, `SystemAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
 A `frontend_private` block supports the following:
 
-* `allocation_method` - (Required) Specify the methos of allocating the private IP. Possible values are `Static` and `Dynamic`.
+* `allocation_method` - (Required) Specify the method of allocating the private IP. Possible values are `Static` and `Dynamic`.
 
 * `ip_address` - (Required) Specify the IP Address of this private IP.
 
@@ -129,7 +141,7 @@ A `frontend_public` block supports the following:
 
 A `logging_storage_account` block supports the following:
 
-* `container_name` - (Optional) Specify the container name of Stoage Account for logging.
+* `container_name` - (Optional) Specify the container name of Storage Account for logging.
 
 * `name` - (Optional) The account name of the StorageAccount for Nginx Logging.
 
@@ -138,6 +150,7 @@ A `logging_storage_account` block supports the following:
 A `network_interface` block supports the following:
 
 * `subnet_id` - (Required) Specify The SubNet Resource ID to this Nginx Deployment.
+
 
 ## Attributes Reference
 

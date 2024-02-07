@@ -21,7 +21,7 @@ type StopResizeOperationResponse struct {
 // StopResize ...
 func (c PoolClient) StopResize(ctx context.Context, id PoolId) (result StopResizeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

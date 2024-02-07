@@ -19,7 +19,8 @@ type ListByEventHubOperationResponse struct {
 }
 
 type ListByEventHubCompleteResult struct {
-	Items []ConsumerGroup
+	LatestHttpResponse *http.Response
+	Items              []ConsumerGroup
 }
 
 type ListByEventHubOperationOptions struct {
@@ -56,7 +57,7 @@ func (o ListByEventHubOperationOptions) ToQuery() *client.QueryParams {
 // ListByEventHub ...
 func (c ConsumerGroupsClient) ListByEventHub(ctx context.Context, id EventhubId, options ListByEventHubOperationOptions) (result ListByEventHubOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -115,7 +116,8 @@ func (c ConsumerGroupsClient) ListByEventHubCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByEventHubCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

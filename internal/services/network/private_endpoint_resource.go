@@ -12,14 +12,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/privateendpoints"
 	postgresqlServers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-04-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -27,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
-	mysqlParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -291,7 +292,7 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 }
 
 func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	client := meta.(*clients.Client).Network.PrivateEndpoints
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -453,7 +454,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 }
 
 func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	client := meta.(*clients.Client).Network.PrivateEndpoints
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -580,7 +581,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	client := meta.(*clients.Client).Network.PrivateEndpoints
 	nicsClient := meta.(*clients.Client).Network.InterfacesClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -686,7 +687,7 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	client := meta.(*clients.Client).Network.PrivateEndpoints
 	dnsZoneGroupsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -702,15 +703,27 @@ func resourcePrivateEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 	log.Printf("[DEBUG] Deleted the Private DNS Zone Group associated with %s.", id)
 
-	subnetId := d.Get("subnet_id").(string)
-	privateServiceConnections := d.Get("private_service_connection").([]interface{})
-	parameters := privateendpoints.PrivateEndpoint{
-		Properties: &privateendpoints.PrivateEndpointProperties{
-			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
-			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
-		},
+	existing, err := client.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 	}
-	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(parameters.Properties)
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
+	}
+	subnetId := ""
+	if model := existing.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if subnet := props.Subnet; subnet != nil && subnet.Id != nil {
+				subnetId = *subnet.Id
+			}
+		}
+	}
+	if subnetId == "" {
+		// this also captures `model.Properties` being nil below, since otherwise we wouldn't get the Subnet
+		return fmt.Errorf("retrieving existing %s: `model.Properties.Subnet.Id` was nil", *id)
+	}
+
+	cosmosDbResIds := getCosmosDbResIdInPrivateServiceConnections(existing.Model.Properties)
 	for _, cosmosDbResId := range cosmosDbResIds {
 		locks.ByName(cosmosDbResId, "azurerm_private_endpoint")
 		//goland:noinspection GoDeferInLoop
@@ -1145,13 +1158,18 @@ func normalizePrivateConnectionId(privateConnectionId string) string {
 		}
 	}
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformysql") {
-		if serverId, err := mysqlParse.ServerIDInsensitively(privateConnectionId); err == nil {
+		if serverId, err := servers.ParseServerIDInsensitively(privateConnectionId); err == nil {
 			privateConnectionId = serverId.ID()
 		}
 	}
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.dbformariadb") {
 		if serverId, err := mariadbServers.ParseServerIDInsensitively(privateConnectionId); err == nil {
 			privateConnectionId = serverId.ID()
+		}
+	}
+	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.kusto") {
+		if clusterId, err := commonids.ParseKustoClusterIDInsensitively(privateConnectionId); err == nil {
+			privateConnectionId = clusterId.ID()
 		}
 	}
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.signalrservice") {

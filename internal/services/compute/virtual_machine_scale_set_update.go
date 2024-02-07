@@ -9,8 +9,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
@@ -27,7 +27,7 @@ type virtualMachineScaleSetUpdateMetaData struct {
 
 	Client   *client.Client
 	Existing compute.VirtualMachineScaleSet
-	ID       *parse.VirtualMachineScaleSetId
+	ID       *commonids.VirtualMachineScaleSetId
 	OSType   compute.OperatingSystemTypes
 }
 
@@ -89,17 +89,17 @@ func (metadata virtualMachineScaleSetUpdateMetaData) updateVmss(ctx context.Cont
 	client := metadata.Client.VMScaleSetClient
 	id := metadata.ID
 
-	log.Printf("[DEBUG] Updating %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
+	log.Printf("[DEBUG] Updating %s %s", metadata.OSType, id)
+	future, err := client.Update(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, update)
 	if err != nil {
-		return fmt.Errorf("updating %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating %s %s: %+v", metadata.OSType, id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for update of %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for update of %s %s", metadata.OSType, id)
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of %s %s: %+v", metadata.OSType, id, err)
 	}
-	log.Printf("[DEBUG] Updated %s Virtual Machine Scale Set %q (Resource Group %q).", metadata.OSType, id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Updated %s %s", metadata.OSType, id)
 
 	return nil
 }
@@ -109,17 +109,17 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForAutomati
 	rollingUpgradesClient := metadata.Client.VMScaleSetRollingUpgradesClient
 	id := metadata.ID
 
-	log.Printf("[DEBUG] Updating instances for %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
-	future, err := rollingUpgradesClient.StartOSUpgrade(ctx, id.ResourceGroup, id.Name)
+	log.Printf("[DEBUG] Updating instances for %s %s", metadata.OSType, id)
+	future, err := rollingUpgradesClient.StartOSUpgrade(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName)
 	if err != nil {
-		return fmt.Errorf("updating instances for %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating instances for %s %s: %+v", metadata.OSType, id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for update of instances for %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for update of instances for %s %s", metadata.OSType, id)
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of instances for %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of instances for %s %s: %+v", metadata.OSType, id, err)
 	}
-	log.Printf("[DEBUG] Updated instances for %s Virtual Machine Scale Set %q (Resource Group %q).", metadata.OSType, id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Updated instances for %s %s.", metadata.OSType, id)
 
 	return nil
 }
@@ -128,11 +128,11 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 	client := metadata.Client.VMScaleSetClient
 	id := metadata.ID
 
-	log.Printf("[DEBUG] Rolling the VM Instances for %s Virtual Machine Scale Set %q (Resource Group %q)..", metadata.OSType, id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Rolling the VM Instances for %s %s", metadata.OSType, id)
 	instancesClient := metadata.Client.VMScaleSetVMsClient
-	instances, err := instancesClient.ListComplete(ctx, id.ResourceGroup, id.Name, "", "", "")
+	instances, err := instancesClient.ListComplete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, "", "", "")
 	if err != nil {
-		return fmt.Errorf("listing VM Instances for %s Virtual Machine Scale Set %q (Resource Group %q): %+v", metadata.OSType, id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("listing VM Instances for %s %s: %+v", metadata.OSType, id, err)
 	}
 
 	log.Printf("[DEBUG] Determining instances to roll..")
@@ -160,13 +160,13 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 		ids := compute.VirtualMachineScaleSetVMInstanceRequiredIDs{
 			InstanceIds: &instanceIds,
 		}
-		future, err := client.UpdateInstances(ctx, id.ResourceGroup, id.Name, ids)
+		future, err := client.UpdateInstances(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, ids)
 		if err != nil {
-			return fmt.Errorf("updating Instance %q (%s VM Scale Set %q / Resource Group %q) to the Latest Configuration: %+v", instanceId, metadata.OSType, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Instance %q (%s %s) to the Latest Configuration: %+v", instanceId, metadata.OSType, id, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for update of Instance %q (%s VM Scale Set %q / Resource Group %q) to the Latest Configuration: %+v", instanceId, metadata.OSType, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Instance %q (%s %s) to the Latest Configuration: %+v", instanceId, metadata.OSType, id, err)
 		}
 		log.Printf("[DEBUG] Updated Instance %q to the Latest Configuration.", instanceId)
 
@@ -175,18 +175,18 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 		reimageInput := &compute.VirtualMachineScaleSetReimageParameters{
 			InstanceIds: &instanceIds,
 		}
-		reimageFuture, err := client.Reimage(ctx, id.ResourceGroup, id.Name, reimageInput)
+		reimageFuture, err := client.Reimage(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, reimageInput)
 		if err != nil {
-			return fmt.Errorf("reimaging Instance %q (%s VM Scale Set %q / Resource Group %q): %+v", instanceId, metadata.OSType, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("reimaging Instance %q (%s %s): %+v", instanceId, metadata.OSType, id, err)
 		}
 
 		if err = reimageFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for reimage of Instance %q (%s VM Scale Set %q / Resource Group %q): %+v", instanceId, metadata.OSType, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for reimage of Instance %q (%s %s): %+v", instanceId, metadata.OSType, id, err)
 		}
 		log.Printf("[DEBUG] Reimaged Instance %q..", instanceId)
 	}
 
-	log.Printf("[DEBUG] Rolled the VM Instances for %s Virtual Machine Scale Set %q (Resource Group %q).", metadata.OSType, id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Rolled the VM Instances for %s %s.", metadata.OSType, id)
 	return nil
 }
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SingleSignOnConfigurationId{}
+var _ resourceids.ResourceId = &SingleSignOnConfigurationId{}
 
 // SingleSignOnConfigurationId is a struct representing the Resource ID for a Single Sign On Configuration
 type SingleSignOnConfigurationId struct {
@@ -32,29 +32,15 @@ func NewSingleSignOnConfigurationID(subscriptionId string, resourceGroupName str
 
 // ParseSingleSignOnConfigurationID parses 'input' into a SingleSignOnConfigurationId
 func ParseSingleSignOnConfigurationID(input string) (*SingleSignOnConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SingleSignOnConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&SingleSignOnConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SingleSignOnConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MonitorName, ok = parsed.Parsed["monitorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "monitorName", *parsed)
-	}
-
-	if id.SingleSignOnConfigurationName, ok = parsed.Parsed["singleSignOnConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "singleSignOnConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseSingleSignOnConfigurationID(input string) (*SingleSignOnConfigurationI
 // ParseSingleSignOnConfigurationIDInsensitively parses 'input' case-insensitively into a SingleSignOnConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseSingleSignOnConfigurationIDInsensitively(input string) (*SingleSignOnConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SingleSignOnConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&SingleSignOnConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SingleSignOnConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MonitorName, ok = parsed.Parsed["monitorName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "monitorName", *parsed)
-	}
-
-	if id.SingleSignOnConfigurationName, ok = parsed.Parsed["singleSignOnConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "singleSignOnConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SingleSignOnConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MonitorName, ok = input.Parsed["monitorName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "monitorName", input)
+	}
+
+	if id.SingleSignOnConfigurationName, ok = input.Parsed["singleSignOnConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "singleSignOnConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateSingleSignOnConfigurationID checks that 'input' can be parsed as a Single Sign On Configuration ID

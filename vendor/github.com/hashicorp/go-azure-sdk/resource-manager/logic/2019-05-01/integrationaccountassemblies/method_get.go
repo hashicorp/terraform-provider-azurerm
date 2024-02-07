@@ -20,7 +20,7 @@ type GetOperationResponse struct {
 // Get ...
 func (c IntegrationAccountAssembliesClient) Get(ctx context.Context, id AssemblyId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

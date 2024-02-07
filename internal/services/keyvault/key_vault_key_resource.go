@@ -65,7 +65,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"key_type": {
 				Type:     pluginsdk.TypeString,
@@ -256,6 +256,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("expiration_date", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) != "" && new.(string) == ""
+			}),
+		),
 	}
 }
 
@@ -454,7 +460,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -463,7 +469,8 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -612,7 +619,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -621,7 +628,8 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -719,7 +727,7 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy
 				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
 			},
 			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.KeyRotationPolicyActionNotify,
+				Type: keyvault.ActionTypeNotify,
 			},
 		}
 		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
@@ -728,7 +736,7 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy
 	if autoRotationList := policy["automatic"].([]interface{}); len(autoRotationList) == 1 && autoRotationList[0] != nil {
 		lifetimeActionRotate := keyvault.LifetimeActions{
 			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.KeyRotationPolicyActionRotate,
+				Type: keyvault.ActionTypeRotate,
 			},
 			Trigger: &keyvault.LifetimeActionsTrigger{},
 		}
@@ -780,7 +788,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 			action := ltAction.Action
 			trigger := ltAction.Trigger
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.ActionTypeNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
 				// Somehow a default is set after creation for notify_before_expiry
 				// Submitting this set value in the next run will not work though..
 				if policy["expire_after"] != nil {
@@ -788,7 +796,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 				}
 			}
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionRotate)) {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.ActionTypeRotate)) {
 				autoRotation := make(map[string]interface{}, 0)
 				autoRotation["time_after_creation"] = pointer.From(trigger.TimeAfterCreate)
 				autoRotation["time_before_expiry"] = pointer.From(trigger.TimeBeforeExpiry)

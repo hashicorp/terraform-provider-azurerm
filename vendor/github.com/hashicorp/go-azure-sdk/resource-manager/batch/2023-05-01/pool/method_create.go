@@ -52,7 +52,7 @@ func (o CreateOperationOptions) ToQuery() *client.QueryParams {
 // Create ...
 func (c PoolClient) Create(ctx context.Context, id PoolId, input Pool, options CreateOperationOptions) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

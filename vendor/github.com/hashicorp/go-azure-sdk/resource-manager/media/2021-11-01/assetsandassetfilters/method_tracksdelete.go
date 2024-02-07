@@ -23,7 +23,7 @@ type TracksDeleteOperationResponse struct {
 // TracksDelete ...
 func (c AssetsAndAssetFiltersClient) TracksDelete(ctx context.Context, id TrackId) (result TracksDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,

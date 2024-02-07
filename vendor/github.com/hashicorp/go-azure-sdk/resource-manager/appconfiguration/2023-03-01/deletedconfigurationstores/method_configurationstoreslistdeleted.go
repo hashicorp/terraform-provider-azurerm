@@ -20,13 +20,14 @@ type ConfigurationStoresListDeletedOperationResponse struct {
 }
 
 type ConfigurationStoresListDeletedCompleteResult struct {
-	Items []DeletedConfigurationStore
+	LatestHttpResponse *http.Response
+	Items              []DeletedConfigurationStore
 }
 
 // ConfigurationStoresListDeleted ...
 func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeleted(ctx context.Context, id commonids.SubscriptionId) (result ConfigurationStoresListDeletedOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeletedComplete
 	}
 
 	result = ConfigurationStoresListDeletedCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

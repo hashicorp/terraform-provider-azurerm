@@ -16,8 +16,8 @@ Use this data source to access information about a Platform Image.
 data "azurerm_platform_image" "example" {
   location  = "West Europe"
   publisher = "Canonical"
-  offer     = "UbuntuServer"
-  sku       = "20.04-LTS"
+  offer     = "0001-com-ubuntu-server-focal"
+  sku       = "20_04-lts"
 }
 
 output "id" {

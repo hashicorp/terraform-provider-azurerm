@@ -20,7 +20,7 @@ type CreateOrUpdateOperationResponse struct {
 // CreateOrUpdate ...
 func (c IntegrationAccountPartnersClient) CreateOrUpdate(ctx context.Context, id PartnerId, input IntegrationAccountPartner) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

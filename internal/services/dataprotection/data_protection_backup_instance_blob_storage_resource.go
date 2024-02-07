@@ -9,15 +9,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -63,7 +62,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"backup_policy_id": {
@@ -97,9 +96,15 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		}
 	}
 
-	storageAccountId, _ := storageParse.StorageAccountID(d.Get("storage_account_id").(string))
+	storageAccountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
+	if err != nil {
+		return err
+	}
 	location := location.Normalize(d.Get("location").(string))
-	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
+	policyId, err := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
+	if err != nil {
+		return err
+	}
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
@@ -108,7 +113,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 				ObjectType:       utils.String("Datasource"),
 				ResourceID:       storageAccountId.ID(),
 				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(storageAccountId.Name),
+				ResourceName:     utils.String(storageAccountId.StorageAccountName),
 				ResourceType:     utils.String("Microsoft.Storage/storageAccounts"),
 				ResourceUri:      utils.String(storageAccountId.ID()),
 			},
@@ -119,8 +124,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 		},
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
 	}
 

@@ -40,7 +40,7 @@ type Contact struct {
 
 func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 		"contact": {
 			Type:     pluginsdk.TypeSet,
@@ -148,14 +148,15 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			vaultClient := metadata.Client.KeyVault
 			client := metadata.Client.KeyVault.ManagementClient
-			resourcesClient := metadata.Client.Resource
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := parse.CertificateContactsID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			keyVaultIdRaw, err := vaultClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+			subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+			keyVaultIdRaw, err := vaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 			if err != nil {
 				return fmt.Errorf("retrieving resource ID of the Key Vault at URL %s: %+v", id.KeyVaultBaseUrl, err)
 			}

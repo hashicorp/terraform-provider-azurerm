@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskencryptionsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -43,6 +44,13 @@ func dataSourceDiskEncryptionSet() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"key_vault_key_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -54,7 +62,7 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := diskencryptionsets.NewDiskEncryptionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewDiskEncryptionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id)
 	model := resp.Model
@@ -74,6 +82,19 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 
 	if props := model.Properties; props != nil {
 		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
+
+		if props.ActiveKey != nil && props.ActiveKey.KeyUrl != "" {
+			d.Set("key_vault_key_url", props.ActiveKey.KeyUrl)
+		}
+	}
+
+	flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+
+	if err := d.Set("identity", flattenedIdentity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, model.Tags)

@@ -20,7 +20,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c DashboardClient) Update(ctx context.Context, id DashboardId, input PatchableDashboard) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

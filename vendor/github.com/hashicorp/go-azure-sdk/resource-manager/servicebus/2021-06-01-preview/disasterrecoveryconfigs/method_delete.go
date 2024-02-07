@@ -19,7 +19,7 @@ type DeleteOperationResponse struct {
 // Delete ...
 func (c DisasterRecoveryConfigsClient) Delete(ctx context.Context, id DisasterRecoveryConfigId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

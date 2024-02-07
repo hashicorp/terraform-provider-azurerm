@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/objectreplicationpolicies"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/objectreplicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -47,14 +48,14 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"destination_storage_account_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountID,
+				ValidateFunc: commonids.ValidateStorageAccountID,
 			},
 
 			"rules": {
@@ -119,11 +120,11 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	srcAccount, err := objectreplicationpolicies.ParseStorageAccountID(d.Get("source_storage_account_id").(string))
+	srcAccount, err := commonids.ParseStorageAccountID(d.Get("source_storage_account_id").(string))
 	if err != nil {
 		return err
 	}
-	dstAccount, err := objectreplicationpolicies.ParseStorageAccountID(d.Get("destination_storage_account_id").(string))
+	dstAccount, err := commonids.ParseStorageAccountID(d.Get("destination_storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -205,8 +206,8 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	srcAccount := objectreplicationpolicies.NewStorageAccountID(id.Src.SubscriptionId, id.Src.ResourceGroupName, id.Src.StorageAccountName)
-	dstAccount := objectreplicationpolicies.NewStorageAccountID(id.Dst.SubscriptionId, id.Dst.ResourceGroupName, id.Dst.StorageAccountName)
+	srcAccount := commonids.NewStorageAccountID(id.Src.SubscriptionId, id.Src.ResourceGroupName, id.Src.StorageAccountName)
+	dstAccount := commonids.NewStorageAccountID(id.Dst.SubscriptionId, id.Dst.ResourceGroupName, id.Dst.StorageAccountName)
 
 	props := objectreplicationpolicies.ObjectReplicationPolicy{
 		Properties: &objectreplicationpolicies.ObjectReplicationPolicyProperties{
@@ -269,8 +270,8 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 
 	if model := dstResp.Model; model != nil {
 		if props := dstResp.Model.Properties; props != nil {
-			d.Set("source_storage_account_id", parse.NewStorageAccountID(id.Src.SubscriptionId, id.Src.ResourceGroupName, id.Src.StorageAccountName).ID())
-			d.Set("destination_storage_account_id", parse.NewStorageAccountID(id.Dst.SubscriptionId, id.Dst.ResourceGroupName, id.Dst.StorageAccountName).ID())
+			d.Set("source_storage_account_id", commonids.NewStorageAccountID(id.Src.SubscriptionId, id.Src.ResourceGroupName, id.Src.StorageAccountName).ID())
+			d.Set("destination_storage_account_id", commonids.NewStorageAccountID(id.Dst.SubscriptionId, id.Dst.ResourceGroupName, id.Dst.StorageAccountName).ID())
 			if err := d.Set("rules", flattenObjectReplicationRules(props.Rules)); err != nil {
 				return fmt.Errorf("setting `rules`: %+v", err)
 			}
