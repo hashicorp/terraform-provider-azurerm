@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SubscriptionId{}
+var _ resourceids.ResourceId = &SubscriptionId{}
 
 // SubscriptionId is a struct representing the Resource ID for a Subscription
 type SubscriptionId struct {
@@ -26,7 +26,7 @@ func NewSubscriptionID(subscriptionId string) SubscriptionId {
 
 // ParseSubscriptionID parses 'input' into a SubscriptionId
 func ParseSubscriptionID(input string) (*SubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&SubscriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -43,14 +43,14 @@ func ParseSubscriptionID(input string) (*SubscriptionId, error) {
 // ParseSubscriptionIDInsensitively parses 'input' case-insensitively into a SubscriptionId
 // note: this method should only be used for API response data and not user input
 func ParseSubscriptionIDInsensitively(input string) (*SubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&SubscriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := SubscriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

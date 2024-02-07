@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = Providers2RemediationId{}
+var _ resourceids.ResourceId = &Providers2RemediationId{}
 
 // Providers2RemediationId is a struct representing the Resource ID for a Providers 2 Remediation
 type Providers2RemediationId struct {
@@ -28,7 +28,7 @@ func NewProviders2RemediationID(managementGroupId string, remediationName string
 
 // ParseProviders2RemediationID parses 'input' into a Providers2RemediationId
 func ParseProviders2RemediationID(input string) (*Providers2RemediationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(Providers2RemediationId{})
+	parser := resourceids.NewParserFromResourceIdType(&Providers2RemediationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseProviders2RemediationID(input string) (*Providers2RemediationId, error
 // ParseProviders2RemediationIDInsensitively parses 'input' case-insensitively into a Providers2RemediationId
 // note: this method should only be used for API response data and not user input
 func ParseProviders2RemediationIDInsensitively(input string) (*Providers2RemediationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(Providers2RemediationId{})
+	parser := resourceids.NewParserFromResourceIdType(&Providers2RemediationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeletedConfigurationStoreId{}
+var _ resourceids.ResourceId = &DeletedConfigurationStoreId{}
 
 // DeletedConfigurationStoreId is a struct representing the Resource ID for a Deleted Configuration Store
 type DeletedConfigurationStoreId struct {
@@ -30,7 +30,7 @@ func NewDeletedConfigurationStoreID(subscriptionId string, locationName string, 
 
 // ParseDeletedConfigurationStoreID parses 'input' into a DeletedConfigurationStoreId
 func ParseDeletedConfigurationStoreID(input string) (*DeletedConfigurationStoreId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedConfigurationStoreId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedConfigurationStoreId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseDeletedConfigurationStoreID(input string) (*DeletedConfigurationStoreI
 // ParseDeletedConfigurationStoreIDInsensitively parses 'input' case-insensitively into a DeletedConfigurationStoreId
 // note: this method should only be used for API response data and not user input
 func ParseDeletedConfigurationStoreIDInsensitively(input string) (*DeletedConfigurationStoreId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedConfigurationStoreId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedConfigurationStoreId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

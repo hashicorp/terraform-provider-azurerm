@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SubnetId{}
+var _ resourceids.ResourceId = &SubnetId{}
 
 // SubnetId is a struct representing the Resource ID for a Subnet
 type SubnetId struct {
@@ -32,7 +32,7 @@ func NewSubnetID(subscriptionId string, resourceGroupName string, virtualNetwork
 
 // ParseSubnetID parses 'input' into a SubnetId
 func ParseSubnetID(input string) (*SubnetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SubnetId{})
+	parser := resourceids.NewParserFromResourceIdType(&SubnetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseSubnetID(input string) (*SubnetId, error) {
 // ParseSubnetIDInsensitively parses 'input' case-insensitively into a SubnetId
 // note: this method should only be used for API response data and not user input
 func ParseSubnetIDInsensitively(input string) (*SubnetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SubnetId{})
+	parser := resourceids.NewParserFromResourceIdType(&SubnetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := SubnetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

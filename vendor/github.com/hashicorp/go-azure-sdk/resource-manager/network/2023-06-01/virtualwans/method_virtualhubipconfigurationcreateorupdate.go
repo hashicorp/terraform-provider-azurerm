@@ -19,6 +19,7 @@ type VirtualHubIPConfigurationCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *HubIPConfiguration
 }
 
 // VirtualHubIPConfigurationCreateOrUpdate ...

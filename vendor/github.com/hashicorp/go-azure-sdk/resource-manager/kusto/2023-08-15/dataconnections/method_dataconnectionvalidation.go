@@ -19,6 +19,7 @@ type DataConnectionValidationOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *DataConnectionValidationListResult
 }
 
 // DataConnectionValidation ...

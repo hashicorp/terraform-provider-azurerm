@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RuleCollectionId{}
+var _ resourceids.ResourceId = &RuleCollectionId{}
 
 // RuleCollectionId is a struct representing the Resource ID for a Rule Collection
 type RuleCollectionId struct {
@@ -34,7 +34,7 @@ func NewRuleCollectionID(subscriptionId string, resourceGroupName string, networ
 
 // ParseRuleCollectionID parses 'input' into a RuleCollectionId
 func ParseRuleCollectionID(input string) (*RuleCollectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RuleCollectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RuleCollectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseRuleCollectionID(input string) (*RuleCollectionId, error) {
 // ParseRuleCollectionIDInsensitively parses 'input' case-insensitively into a RuleCollectionId
 // note: this method should only be used for API response data and not user input
 func ParseRuleCollectionIDInsensitively(input string) (*RuleCollectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RuleCollectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RuleCollectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

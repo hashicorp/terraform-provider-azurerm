@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck // nolint: staticcheck
+	// To swap sdk for `azurerm_role_definition` without changing API version
+	oldRoleDefinitions "github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentscheduleinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedulerequests"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
@@ -18,7 +20,7 @@ import (
 
 type Client struct {
 	RoleAssignmentsClient                  *authorization.RoleAssignmentsClient
-	RoleDefinitionsClient                  *authorization.RoleDefinitionsClient
+	RoleDefinitionsClient                  *oldRoleDefinitions.RoleDefinitionsClient
 	RoleAssignmentScheduleRequestClient    *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient
 	RoleAssignmentScheduleInstancesClient  *roleassignmentscheduleinstances.RoleAssignmentScheduleInstancesClient
 	RoleEligibilityScheduleRequestClient   *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient
@@ -31,8 +33,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	roleAssignmentsClient := authorization.NewRoleAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&roleAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	roleDefinitionsClient := authorization.NewRoleDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&roleDefinitionsClient.Client, o.ResourceManagerAuthorizer)
+	roleDefinitionsClient, err := oldRoleDefinitions.NewRoleDefinitionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("creating roleDefinitionsClient: %+v", err)
+	}
+	o.Configure(roleDefinitionsClient.Client, o.Authorizers.ResourceManager)
 
 	roleAssignmentScheduleRequestsClient, err := roleassignmentschedulerequests.NewRoleAssignmentScheduleRequestsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -73,7 +78,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		RoleAssignmentsClient:                  &roleAssignmentsClient,
-		RoleDefinitionsClient:                  &roleDefinitionsClient,
+		RoleDefinitionsClient:                  roleDefinitionsClient,
 		RoleAssignmentScheduleRequestClient:    roleAssignmentScheduleRequestsClient,
 		RoleAssignmentScheduleInstancesClient:  roleAssignmentScheduleInstancesClient,
 		RoleEligibilityScheduleRequestClient:   roleEligibilityScheduleRequestClient,

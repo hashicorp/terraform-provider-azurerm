@@ -16,6 +16,7 @@ import (
 type CassandraDataCentersCreateUpdateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *DataCenterResource
 }
 
 // CassandraDataCentersCreateUpdate ...

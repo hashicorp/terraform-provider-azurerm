@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TopicAuthorizationRuleId{}
+var _ resourceids.ResourceId = &TopicAuthorizationRuleId{}
 
 // TopicAuthorizationRuleId is a struct representing the Resource ID for a Topic Authorization Rule
 type TopicAuthorizationRuleId struct {
@@ -34,7 +34,7 @@ func NewTopicAuthorizationRuleID(subscriptionId string, resourceGroupName string
 
 // ParseTopicAuthorizationRuleID parses 'input' into a TopicAuthorizationRuleId
 func ParseTopicAuthorizationRuleID(input string) (*TopicAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TopicAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&TopicAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseTopicAuthorizationRuleID(input string) (*TopicAuthorizationRuleId, err
 // ParseTopicAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a TopicAuthorizationRuleId
 // note: this method should only be used for API response data and not user input
 func ParseTopicAuthorizationRuleIDInsensitively(input string) (*TopicAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TopicAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&TopicAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

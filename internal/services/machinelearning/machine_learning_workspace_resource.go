@@ -138,7 +138,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+						"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 						"key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -163,6 +163,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"high_business_impact": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"sku_name": {

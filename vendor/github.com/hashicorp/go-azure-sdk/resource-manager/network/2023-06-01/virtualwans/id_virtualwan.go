@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualWANId{}
+var _ resourceids.ResourceId = &VirtualWANId{}
 
 // VirtualWANId is a struct representing the Resource ID for a Virtual W A N
 type VirtualWANId struct {
@@ -30,7 +30,7 @@ func NewVirtualWANID(subscriptionId string, resourceGroupName string, virtualWan
 
 // ParseVirtualWANID parses 'input' into a VirtualWANId
 func ParseVirtualWANID(input string) (*VirtualWANId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualWANId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualWANId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseVirtualWANID(input string) (*VirtualWANId, error) {
 // ParseVirtualWANIDInsensitively parses 'input' case-insensitively into a VirtualWANId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualWANIDInsensitively(input string) (*VirtualWANId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualWANId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualWANId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

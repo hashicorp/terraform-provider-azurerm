@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VerifiedPartnerId{}
+var _ resourceids.ResourceId = &VerifiedPartnerId{}
 
 // VerifiedPartnerId is a struct representing the Resource ID for a Verified Partner
 type VerifiedPartnerId struct {
@@ -26,7 +26,7 @@ func NewVerifiedPartnerID(verifiedPartnerName string) VerifiedPartnerId {
 
 // ParseVerifiedPartnerID parses 'input' into a VerifiedPartnerId
 func ParseVerifiedPartnerID(input string) (*VerifiedPartnerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VerifiedPartnerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VerifiedPartnerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -43,7 +43,7 @@ func ParseVerifiedPartnerID(input string) (*VerifiedPartnerId, error) {
 // ParseVerifiedPartnerIDInsensitively parses 'input' case-insensitively into a VerifiedPartnerId
 // note: this method should only be used for API response data and not user input
 func ParseVerifiedPartnerIDInsensitively(input string) (*VerifiedPartnerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VerifiedPartnerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VerifiedPartnerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

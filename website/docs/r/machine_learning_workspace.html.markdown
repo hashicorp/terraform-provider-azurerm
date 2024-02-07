@@ -376,7 +376,7 @@ The following arguments are supported:
 
 * `friendly_name` - (Optional) Display name for this Machine Learning Workspace.
 
-* `high_business_impact` - (Optional) Flag to signal High Business Impact (HBI) data in the workspace and reduce diagnostic data collected by the service
+* `high_business_impact` - (Optional) Flag to signal High Business Impact (HBI) data in the workspace and reduce diagnostic data collected by the service. Changing this forces a new resource to be created.
 
 * `primary_user_assigned_identity` - (Optional) The user assigned identity id that represents the workspace identity.
 

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VPNConnectionId{}
+var _ resourceids.ResourceId = &VPNConnectionId{}
 
 // VPNConnectionId is a struct representing the Resource ID for a V P N Connection
 type VPNConnectionId struct {
@@ -32,7 +32,7 @@ func NewVPNConnectionID(subscriptionId string, resourceGroupName string, gateway
 
 // ParseVPNConnectionID parses 'input' into a VPNConnectionId
 func ParseVPNConnectionID(input string) (*VPNConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VPNConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&VPNConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseVPNConnectionID(input string) (*VPNConnectionId, error) {
 // ParseVPNConnectionIDInsensitively parses 'input' case-insensitively into a VPNConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseVPNConnectionIDInsensitively(input string) (*VPNConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VPNConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&VPNConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := VPNConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PeeringId{}
+var _ resourceids.ResourceId = &PeeringId{}
 
 // PeeringId is a struct representing the Resource ID for a Peering
 type PeeringId struct {
@@ -32,7 +32,7 @@ func NewPeeringID(subscriptionId string, resourceGroupName string, expressRouteC
 
 // ParsePeeringID parses 'input' into a PeeringId
 func ParsePeeringID(input string) (*PeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&PeeringId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParsePeeringID(input string) (*PeeringId, error) {
 // ParsePeeringIDInsensitively parses 'input' case-insensitively into a PeeringId
 // note: this method should only be used for API response data and not user input
 func ParsePeeringIDInsensitively(input string) (*PeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&PeeringId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

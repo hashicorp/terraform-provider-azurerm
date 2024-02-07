@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = StorageAccountId{}
+var _ resourceids.ResourceId = &StorageAccountId{}
 
 // StorageAccountId is a struct representing the Resource ID for a Storage Account
 type StorageAccountId struct {
@@ -30,7 +30,7 @@ func NewStorageAccountID(subscriptionId string, resourceGroupName string, storag
 
 // ParseStorageAccountID parses 'input' into a StorageAccountId
 func ParseStorageAccountID(input string) (*StorageAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseStorageAccountID(input string) (*StorageAccountId, error) {
 // ParseStorageAccountIDInsensitively parses 'input' case-insensitively into a StorageAccountId
 // note: this method should only be used for API response data and not user input
 func ParseStorageAccountIDInsensitively(input string) (*StorageAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := StorageAccountId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LiveEventId{}
+var _ resourceids.ResourceId = &LiveEventId{}
 
 // LiveEventId is a struct representing the Resource ID for a Live Event
 type LiveEventId struct {
@@ -32,7 +32,7 @@ func NewLiveEventID(subscriptionId string, resourceGroupName string, mediaServic
 
 // ParseLiveEventID parses 'input' into a LiveEventId
 func ParseLiveEventID(input string) (*LiveEventId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LiveEventId{})
+	parser := resourceids.NewParserFromResourceIdType(&LiveEventId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseLiveEventID(input string) (*LiveEventId, error) {
 // ParseLiveEventIDInsensitively parses 'input' case-insensitively into a LiveEventId
 // note: this method should only be used for API response data and not user input
 func ParseLiveEventIDInsensitively(input string) (*LiveEventId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LiveEventId{})
+	parser := resourceids.NewParserFromResourceIdType(&LiveEventId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

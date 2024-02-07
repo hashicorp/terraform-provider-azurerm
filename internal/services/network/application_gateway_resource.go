@@ -1124,7 +1124,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 												"components": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
-													Computed: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														"path_only",
 														"query_string_only",
@@ -3849,6 +3848,7 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 						if actionSet.URLConfiguration != nil {
 							config := *actionSet.URLConfiguration
 							components := ""
+
 							path := ""
 							if config.ModifiedPath != nil {
 								path = *config.ModifiedPath
@@ -3859,12 +3859,17 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 								queryString = *config.ModifiedQueryString
 							}
 
-							if path != queryString {
-								if path != "" && queryString == "" {
-									components = "path_only"
-								} else if queryString != "" && path == "" {
-									components = "query_string_only"
-								}
+							// `components` doesn't exist in the API - it appears to be purely a UI state in the Portal
+							// as such we should consider removing this field in the future.
+							if path == queryString {
+								// used to represent `both`
+								components = ""
+							}
+							if config.ModifiedQueryString != nil && config.ModifiedPath == nil {
+								components = "query_string_only"
+							}
+							if config.ModifiedQueryString == nil && config.ModifiedPath != nil {
+								components = "path_only"
 							}
 
 							reroute := false

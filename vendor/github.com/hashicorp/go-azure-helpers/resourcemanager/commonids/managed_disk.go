@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ManagedDiskId{}
+var _ resourceids.ResourceId = &ManagedDiskId{}
 
 // ManagedDiskId is a struct representing the Resource ID for a Managed Disk
 type ManagedDiskId struct {
@@ -30,7 +30,7 @@ func NewManagedDiskID(subscriptionId string, resourceGroupName string, diskName 
 
 // ParseManagedDiskID parses 'input' into a ManagedDiskId
 func ParseManagedDiskID(input string) (*ManagedDiskId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedDiskId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedDiskId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseManagedDiskID(input string) (*ManagedDiskId, error) {
 // ParseManagedDiskIDInsensitively parses 'input' case-insensitively into a ManagedDiskId
 // note: this method should only be used for API response data and not user input
 func ParseManagedDiskIDInsensitively(input string) (*ManagedDiskId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagedDiskId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagedDiskId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := ManagedDiskId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

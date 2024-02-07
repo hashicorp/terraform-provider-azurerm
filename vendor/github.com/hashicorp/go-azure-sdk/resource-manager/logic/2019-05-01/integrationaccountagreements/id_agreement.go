@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AgreementId{}
+var _ resourceids.ResourceId = &AgreementId{}
 
 // AgreementId is a struct representing the Resource ID for a Agreement
 type AgreementId struct {
@@ -32,7 +32,7 @@ func NewAgreementID(subscriptionId string, resourceGroupName string, integration
 
 // ParseAgreementID parses 'input' into a AgreementId
 func ParseAgreementID(input string) (*AgreementId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AgreementId{})
+	parser := resourceids.NewParserFromResourceIdType(&AgreementId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseAgreementID(input string) (*AgreementId, error) {
 // ParseAgreementIDInsensitively parses 'input' case-insensitively into a AgreementId
 // note: this method should only be used for API response data and not user input
 func ParseAgreementIDInsensitively(input string) (*AgreementId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AgreementId{})
+	parser := resourceids.NewParserFromResourceIdType(&AgreementId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

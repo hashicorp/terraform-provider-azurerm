@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FirewallId{}
+var _ resourceids.ResourceId = &FirewallId{}
 
 // FirewallId is a struct representing the Resource ID for a Firewall
 type FirewallId struct {
@@ -30,7 +30,7 @@ func NewFirewallID(subscriptionId string, resourceGroupName string, firewallName
 
 // ParseFirewallID parses 'input' into a FirewallId
 func ParseFirewallID(input string) (*FirewallId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FirewallId{})
+	parser := resourceids.NewParserFromResourceIdType(&FirewallId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseFirewallID(input string) (*FirewallId, error) {
 // ParseFirewallIDInsensitively parses 'input' case-insensitively into a FirewallId
 // note: this method should only be used for API response data and not user input
 func ParseFirewallIDInsensitively(input string) (*FirewallId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FirewallId{})
+	parser := resourceids.NewParserFromResourceIdType(&FirewallId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

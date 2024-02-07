@@ -16,6 +16,7 @@ import (
 type MongoDBResourcesUpdateMongoDBDatabaseThroughputOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // MongoDBResourcesUpdateMongoDBDatabaseThroughput ...

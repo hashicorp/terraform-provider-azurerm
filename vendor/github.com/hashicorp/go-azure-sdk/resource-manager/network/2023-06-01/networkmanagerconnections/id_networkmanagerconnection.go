@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkManagerConnectionId{}
+var _ resourceids.ResourceId = &NetworkManagerConnectionId{}
 
 // NetworkManagerConnectionId is a struct representing the Resource ID for a Network Manager Connection
 type NetworkManagerConnectionId struct {
@@ -28,7 +28,7 @@ func NewNetworkManagerConnectionID(subscriptionId string, networkManagerConnecti
 
 // ParseNetworkManagerConnectionID parses 'input' into a NetworkManagerConnectionId
 func ParseNetworkManagerConnectionID(input string) (*NetworkManagerConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkManagerConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkManagerConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseNetworkManagerConnectionID(input string) (*NetworkManagerConnectionId,
 // ParseNetworkManagerConnectionIDInsensitively parses 'input' case-insensitively into a NetworkManagerConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkManagerConnectionIDInsensitively(input string) (*NetworkManagerConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkManagerConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkManagerConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
