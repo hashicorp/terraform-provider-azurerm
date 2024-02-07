@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` [GH-24760]
 * dependencies: refactor `azurerm_role_definition` to use `go-azure-sdk` [GH-24266]
 * `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
+* `azurerm_storage_account` - Support `local_user_enabled` [GH-24800]
 
 BUG FIXES:
 
