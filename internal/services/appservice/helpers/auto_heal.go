@@ -564,7 +564,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	}
 
 	if triggers.PrivateMemoryKB != 0 {
-		result.Triggers.PrivateBytesInKB = pointer.To(int64(triggers.PrivateMemoryKB))
+		result.Triggers.PrivateBytesInKB = pointer.To(triggers.PrivateMemoryKB)
 	}
 
 	if len(triggers.StatusCodes) > 0 {
