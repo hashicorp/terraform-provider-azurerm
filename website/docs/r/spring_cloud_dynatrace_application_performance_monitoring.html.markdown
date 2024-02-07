@@ -58,8 +58,6 @@ The following arguments are supported:
 
 * `connection_point` - (Required) Specifies the endpoint to connect to the Dynatrace environment.
 
----
-
 * `globally_enabled` - (Optional) Specifies whether the Spring Cloud Application Performance Monitoring resource for Application Insights is enabled globally. Defaults to `false`.
 
 * `api_url` - (Optional) Specifies the API Url of the Dynatrace environment.
