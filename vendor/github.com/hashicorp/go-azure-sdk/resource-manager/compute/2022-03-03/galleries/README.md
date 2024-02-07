@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := galleries.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
+id := commonids.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
 
 payload := galleries.Gallery{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := galleries.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
+id := commonids.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := galleries.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
+id := commonids.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
 
 read, err := client.Get(ctx, id, galleries.DefaultGetOperationOptions())
 if err != nil {
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := galleries.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -86,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := galleries.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -103,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := galleries.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
+id := commonids.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
 
 payload := galleries.GalleryUpdate{
 	// ...
