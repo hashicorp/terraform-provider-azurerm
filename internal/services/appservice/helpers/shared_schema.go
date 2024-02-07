@@ -1175,7 +1175,7 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]webapps.IPSecurityRe
 			restriction.Description = utils.String(v.Description)
 		}
 
-		restriction.Priority = utils.Int32(int32(v.Priority))
+		restriction.Priority = utils.Int64(v.Priority)
 
 		restriction.Action = pointer.To(v.Action)
 
@@ -1517,7 +1517,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]webapps.IPSecurityRestriction) 
 			ipRestriction.Description = *v.Description
 		}
 
-		ipRestriction.Headers = flattenIpRestrictionHeaders(v.Headers)
+		ipRestriction.Headers = flattenIpRestrictionHeaders(pointer.From(v.Headers))
 
 		ipRestrictions = append(ipRestrictions, ipRestriction)
 	}
