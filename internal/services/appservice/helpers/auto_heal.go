@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type AutoHealSettingWindows struct {
@@ -23,7 +22,7 @@ type AutoHealSettingWindows struct {
 
 type AutoHealTriggerWindows struct {
 	Requests             []AutoHealRequestTrigger      `tfschema:"requests"`
-	PrivateMemoryKB      int                           `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
+	PrivateMemoryKB      int64                         `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
 	StatusCodes          []AutoHealStatusCodeTrigger   `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
 	SlowRequests         []AutoHealSlowRequest         `tfschema:"slow_request"`
 	SlowRequestsWithPath []AutoHealSlowRequestWithPath `tfschema:"slow_request_with_path"`
@@ -549,12 +548,12 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	}
 
 	if len(triggers.SlowRequestsWithPath) > 0 {
-		slowRequestWithPathTriggers := make([]web.SlowRequestsBasedTrigger, 0)
+		slowRequestWithPathTriggers := make([]webapps.SlowRequestsBasedTrigger, 0)
 		for _, sr := range triggers.SlowRequestsWithPath {
-			trigger := web.SlowRequestsBasedTrigger{
+			trigger := webapps.SlowRequestsBasedTrigger{
 				TimeTaken:    pointer.To(sr.TimeTaken),
 				TimeInterval: pointer.To(sr.Interval),
-				Count:        pointer.To(int32(sr.Count)),
+				Count:        pointer.To(int64(sr.Count)),
 			}
 			if sr.Path != "" {
 				trigger.Path = pointer.To(sr.Path)
@@ -565,7 +564,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	}
 
 	if triggers.PrivateMemoryKB != 0 {
-		result.Triggers.PrivateBytesInKB = pointer.To(triggers.PrivateMemoryKB)
+		result.Triggers.PrivateBytesInKB = pointer.To(int64(triggers.PrivateMemoryKB))
 	}
 
 	if len(triggers.StatusCodes) > 0 {
