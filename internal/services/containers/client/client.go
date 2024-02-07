@@ -11,10 +11,11 @@ import (
 	containerregistry_v2019_06_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview"
 	containerregistry_v2021_08_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -27,6 +28,7 @@ type Client struct {
 	ContainerRegistryClient_v2021_08_01_preview *containerregistry_v2021_08_01_preview.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
+	FleetUpdateStrategiesClient                 *fleetupdatestrategies.FleetUpdateStrategiesClient
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
 	KubernetesExtensionsClient                  *extensions.ExtensionsClient
 	KubernetesFluxConfigurationClient           *fluxconfiguration.FluxConfigurationClient
@@ -55,6 +57,9 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	// AKS
+	fleetUpdateStrategiesClient := fleetupdatestrategies.NewFleetUpdateStrategiesClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&fleetUpdateStrategiesClient.Client, o.ResourceManagerAuthorizer)
+
 	kubernetesClustersClient := managedclusters.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&kubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
 
@@ -87,6 +92,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		ContainerInstanceClient:                     &containerInstanceClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
+		FleetUpdateStrategiesClient:                 &fleetUpdateStrategiesClient,
 		KubernetesClustersClient:                    &kubernetesClustersClient,
 		KubernetesExtensionsClient:                  kubernetesExtensionsClient,
 		KubernetesFluxConfigurationClient:           fluxConfigurationClient,

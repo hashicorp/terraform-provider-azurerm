@@ -49,7 +49,7 @@ func resourceWebpubsubNetworkACL() *pluginsdk.Resource {
 		}),
 
 		Schema: map[string]*pluginsdk.Schema{
-			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(webpubsub.WebPubSubId{}),
+			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}),
 
 			"default_action": {
 				Type:     pluginsdk.TypeString,

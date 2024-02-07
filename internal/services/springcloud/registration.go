@@ -69,6 +69,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		SpringCloudDynatraceApplicationPerformanceMonitoringResource{},
 		SpringCloudGatewayResource{},
 		SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{},
 		SpringCloudAPIPortalResource{},
@@ -76,5 +77,7 @@ func (r Registration) Resources() []sdk.Resource {
 		SpringCloudApplicationLiveViewResource{},
 		SpringCloudDevToolPortalResource{},
 		SpringCloudCustomizedAcceleratorResource{},
+		SpringCloudElasticApplicationPerformanceMonitoringResource{},
+		SpringCloudNewRelicApplicationPerformanceMonitoringResource{},
 	}
 }

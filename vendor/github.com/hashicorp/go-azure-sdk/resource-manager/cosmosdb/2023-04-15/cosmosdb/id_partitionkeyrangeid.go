@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PartitionKeyRangeIdId{}
+var _ resourceids.ResourceId = &PartitionKeyRangeIdId{}
 
 // PartitionKeyRangeIdId is a struct representing the Resource ID for a Partition Key Range Id
 type PartitionKeyRangeIdId struct {
@@ -36,7 +36,7 @@ func NewPartitionKeyRangeIdID(subscriptionId string, resourceGroupName string, d
 
 // ParsePartitionKeyRangeIdID parses 'input' into a PartitionKeyRangeIdId
 func ParsePartitionKeyRangeIdID(input string) (*PartitionKeyRangeIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartitionKeyRangeIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartitionKeyRangeIdId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParsePartitionKeyRangeIdID(input string) (*PartitionKeyRangeIdId, error) {
 // ParsePartitionKeyRangeIdIDInsensitively parses 'input' case-insensitively into a PartitionKeyRangeIdId
 // note: this method should only be used for API response data and not user input
 func ParsePartitionKeyRangeIdIDInsensitively(input string) (*PartitionKeyRangeIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PartitionKeyRangeIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&PartitionKeyRangeIdId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LocalNetworkGatewayId{}
+var _ resourceids.ResourceId = &LocalNetworkGatewayId{}
 
 // LocalNetworkGatewayId is a struct representing the Resource ID for a Local Network Gateway
 type LocalNetworkGatewayId struct {
@@ -30,7 +30,7 @@ func NewLocalNetworkGatewayID(subscriptionId string, resourceGroupName string, l
 
 // ParseLocalNetworkGatewayID parses 'input' into a LocalNetworkGatewayId
 func ParseLocalNetworkGatewayID(input string) (*LocalNetworkGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalNetworkGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocalNetworkGatewayId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseLocalNetworkGatewayID(input string) (*LocalNetworkGatewayId, error) {
 // ParseLocalNetworkGatewayIDInsensitively parses 'input' case-insensitively into a LocalNetworkGatewayId
 // note: this method should only be used for API response data and not user input
 func ParseLocalNetworkGatewayIDInsensitively(input string) (*LocalNetworkGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalNetworkGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocalNetworkGatewayId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

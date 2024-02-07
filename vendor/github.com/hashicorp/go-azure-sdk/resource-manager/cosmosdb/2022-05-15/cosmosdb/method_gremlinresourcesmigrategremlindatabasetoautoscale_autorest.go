@@ -16,6 +16,7 @@ import (
 type GremlinResourcesMigrateGremlinDatabaseToAutoscaleOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // GremlinResourcesMigrateGremlinDatabaseToAutoscale ...

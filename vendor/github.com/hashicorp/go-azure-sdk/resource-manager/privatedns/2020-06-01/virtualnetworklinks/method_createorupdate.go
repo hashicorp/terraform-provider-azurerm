@@ -18,6 +18,7 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VirtualNetworkLink
 }
 
 type CreateOrUpdateOperationOptions struct {

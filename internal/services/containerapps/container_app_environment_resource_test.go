@@ -295,6 +295,27 @@ provider "azurerm" {
 
 %[1]s
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "control" {
+  name                 = "control-plane"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+  delegation {
+    name = "acctestdelegation%[2]d"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.App/environments"
+    }
+  }
+}
+
 resource "azurerm_container_app_environment" "test" {
   name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
@@ -316,7 +337,7 @@ resource "azurerm_container_app_environment" "test" {
     Foo = "test"
   }
 }
-`, r.templateVNet(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) completeZoneRedundant(data acceptance.TestData) string {

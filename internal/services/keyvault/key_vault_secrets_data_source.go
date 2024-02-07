@@ -28,7 +28,7 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 
 			"names": {
 				Type:     pluginsdk.TypeList,

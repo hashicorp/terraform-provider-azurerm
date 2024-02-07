@@ -16,6 +16,7 @@ import (
 type GremlinResourcesCreateUpdateGremlinGraphOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *GremlinGraphGetResults
 }
 
 // GremlinResourcesCreateUpdateGremlinGraph ...

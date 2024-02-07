@@ -23,6 +23,7 @@ import (
 
 var _ sdk.Resource = ElasticSANResource{}
 var _ sdk.ResourceWithUpdate = ElasticSANResource{}
+var _ sdk.ResourceWithCustomizeDiff = ElasticSANResource{}
 
 type ElasticSANResource struct{}
 

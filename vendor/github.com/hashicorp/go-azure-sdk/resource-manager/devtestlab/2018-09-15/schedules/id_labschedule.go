@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LabScheduleId{}
+var _ resourceids.ResourceId = &LabScheduleId{}
 
 // LabScheduleId is a struct representing the Resource ID for a Lab Schedule
 type LabScheduleId struct {
@@ -32,7 +32,7 @@ func NewLabScheduleID(subscriptionId string, resourceGroupName string, labName s
 
 // ParseLabScheduleID parses 'input' into a LabScheduleId
 func ParseLabScheduleID(input string) (*LabScheduleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LabScheduleId{})
+	parser := resourceids.NewParserFromResourceIdType(&LabScheduleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseLabScheduleID(input string) (*LabScheduleId, error) {
 // ParseLabScheduleIDInsensitively parses 'input' case-insensitively into a LabScheduleId
 // note: this method should only be used for API response data and not user input
 func ParseLabScheduleIDInsensitively(input string) (*LabScheduleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LabScheduleId{})
+	parser := resourceids.NewParserFromResourceIdType(&LabScheduleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

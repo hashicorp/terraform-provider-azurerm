@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ApplicationId{}
+var _ resourceids.ResourceId = &ApplicationId{}
 
 // ApplicationId is a struct representing the Resource ID for a Application
 type ApplicationId struct {
@@ -32,7 +32,7 @@ func NewApplicationID(subscriptionId string, resourceGroupName string, batchAcco
 
 // ParseApplicationID parses 'input' into a ApplicationId
 func ParseApplicationID(input string) (*ApplicationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseApplicationID(input string) (*ApplicationId, error) {
 // ParseApplicationIDInsensitively parses 'input' case-insensitively into a ApplicationId
 // note: this method should only be used for API response data and not user input
 func ParseApplicationIDInsensitively(input string) (*ApplicationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ApplicationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ApplicationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

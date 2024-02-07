@@ -265,6 +265,8 @@ An `ingress` block supports the following:
 
 * `external_enabled` - Is this an external Ingress.
 
+* `ip_security_restriction` - One or more `ip_security_restriction` blocks for IP-filtering rules as defined below.
+
 * `target_port` - The target port on the container for the Ingress traffic.
 
 * `traffic_weight` - A `traffic_weight` block as detailed below.
@@ -280,6 +282,18 @@ A `custom_domain` block supports the following:
 * `certificate_id` - The ID of the Container App Environment Certificate.
 
 * `name` - The hostname of the Certificate. Must be the CN or a named SAN in the certificate.
+
+---
+
+A `ip_security_restriction` block exports the following:
+
+* `action` - The IP-filter action.
+
+* `description` - Description of the IP restriction rule that is being sent to the container-app.
+
+* `ip_address_range` - CIDR notation that matches the incoming IP address.
+
+* `name` - Name for the IP restriction rule.
 
 ---
 

@@ -48,7 +48,7 @@ func resourceWebPubSubSharedPrivateLinkService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(webpubsub.WebPubSubId{}),
+			"web_pubsub_id": commonschema.ResourceIDReferenceRequiredForceNew(&webpubsub.WebPubSubId{}),
 
 			"subresource_name": {
 				Type:         pluginsdk.TypeString,

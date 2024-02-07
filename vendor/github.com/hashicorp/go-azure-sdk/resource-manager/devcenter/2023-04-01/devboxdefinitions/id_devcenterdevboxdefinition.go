@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DevCenterDevBoxDefinitionId{}
+var _ resourceids.ResourceId = &DevCenterDevBoxDefinitionId{}
 
 // DevCenterDevBoxDefinitionId is a struct representing the Resource ID for a Dev Center Dev Box Definition
 type DevCenterDevBoxDefinitionId struct {
@@ -32,7 +32,7 @@ func NewDevCenterDevBoxDefinitionID(subscriptionId string, resourceGroupName str
 
 // ParseDevCenterDevBoxDefinitionID parses 'input' into a DevCenterDevBoxDefinitionId
 func ParseDevCenterDevBoxDefinitionID(input string) (*DevCenterDevBoxDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DevCenterDevBoxDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DevCenterDevBoxDefinitionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDevCenterDevBoxDefinitionID(input string) (*DevCenterDevBoxDefinitionI
 // ParseDevCenterDevBoxDefinitionIDInsensitively parses 'input' case-insensitively into a DevCenterDevBoxDefinitionId
 // note: this method should only be used for API response data and not user input
 func ParseDevCenterDevBoxDefinitionIDInsensitively(input string) (*DevCenterDevBoxDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DevCenterDevBoxDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DevCenterDevBoxDefinitionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

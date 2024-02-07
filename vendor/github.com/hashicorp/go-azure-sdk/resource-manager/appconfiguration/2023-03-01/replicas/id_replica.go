@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicaId{}
+var _ resourceids.ResourceId = &ReplicaId{}
 
 // ReplicaId is a struct representing the Resource ID for a Replica
 type ReplicaId struct {
@@ -32,7 +32,7 @@ func NewReplicaID(subscriptionId string, resourceGroupName string, configuration
 
 // ParseReplicaID parses 'input' into a ReplicaId
 func ParseReplicaID(input string) (*ReplicaId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicaId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicaId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseReplicaID(input string) (*ReplicaId, error) {
 // ParseReplicaIDInsensitively parses 'input' case-insensitively into a ReplicaId
 // note: this method should only be used for API response data and not user input
 func ParseReplicaIDInsensitively(input string) (*ReplicaId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicaId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicaId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

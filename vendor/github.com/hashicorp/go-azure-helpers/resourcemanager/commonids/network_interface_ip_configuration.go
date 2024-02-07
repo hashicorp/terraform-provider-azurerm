@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = NetworkInterfaceIPConfigurationId{}
+var _ resourceids.ResourceId = &NetworkInterfaceIPConfigurationId{}
 
 // NetworkInterfaceIPConfigurationId is a struct representing the Resource ID for a Network Interface I P Configuration
 type NetworkInterfaceIPConfigurationId struct {
@@ -32,7 +32,7 @@ func NewNetworkInterfaceIPConfigurationID(subscriptionId string, resourceGroupNa
 
 // ParseNetworkInterfaceIPConfigurationID parses 'input' into a NetworkInterfaceIPConfigurationId
 func ParseNetworkInterfaceIPConfigurationID(input string) (*NetworkInterfaceIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkInterfaceIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkInterfaceIPConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseNetworkInterfaceIPConfigurationID(input string) (*NetworkInterfaceIPCo
 // ParseNetworkInterfaceIPConfigurationIDInsensitively parses 'input' case-insensitively into a NetworkInterfaceIPConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkInterfaceIPConfigurationIDInsensitively(input string) (*NetworkInterfaceIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkInterfaceIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkInterfaceIPConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := NetworkInterfaceIPConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

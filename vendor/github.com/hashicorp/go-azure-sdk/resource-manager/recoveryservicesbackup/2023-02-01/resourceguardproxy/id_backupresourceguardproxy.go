@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BackupResourceGuardProxyId{}
+var _ resourceids.ResourceId = &BackupResourceGuardProxyId{}
 
 // BackupResourceGuardProxyId is a struct representing the Resource ID for a Backup Resource Guard Proxy
 type BackupResourceGuardProxyId struct {
@@ -32,7 +32,7 @@ func NewBackupResourceGuardProxyID(subscriptionId string, resourceGroupName stri
 
 // ParseBackupResourceGuardProxyID parses 'input' into a BackupResourceGuardProxyId
 func ParseBackupResourceGuardProxyID(input string) (*BackupResourceGuardProxyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackupResourceGuardProxyId{})
+	parser := resourceids.NewParserFromResourceIdType(&BackupResourceGuardProxyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseBackupResourceGuardProxyID(input string) (*BackupResourceGuardProxyId,
 // ParseBackupResourceGuardProxyIDInsensitively parses 'input' case-insensitively into a BackupResourceGuardProxyId
 // note: this method should only be used for API response data and not user input
 func ParseBackupResourceGuardProxyIDInsensitively(input string) (*BackupResourceGuardProxyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackupResourceGuardProxyId{})
+	parser := resourceids.NewParserFromResourceIdType(&BackupResourceGuardProxyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
 ```
 
@@ -56,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := privatelinkassociation.NewManagementGroupID("groupIdValue")
+id := commonids.NewManagementGroupID("groupIdValue")
 
 read, err := client.List(ctx, id)
 if err != nil {

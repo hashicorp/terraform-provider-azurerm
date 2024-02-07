@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PlanId{}
+var _ resourceids.ResourceId = &PlanId{}
 
 // PlanId is a struct representing the Resource ID for a Plan
 type PlanId struct {
@@ -32,7 +32,7 @@ func NewPlanID(subscriptionId string, publisherId string, offerId string, planId
 
 // ParsePlanID parses 'input' into a PlanId
 func ParsePlanID(input string) (*PlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&PlanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParsePlanID(input string) (*PlanId, error) {
 // ParsePlanIDInsensitively parses 'input' case-insensitively into a PlanId
 // note: this method should only be used for API response data and not user input
 func ParsePlanIDInsensitively(input string) (*PlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&PlanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

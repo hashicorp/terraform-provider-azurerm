@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PublisherId{}
+var _ resourceids.ResourceId = &PublisherId{}
 
 // PublisherId is a struct representing the Resource ID for a Publisher
 type PublisherId struct {
@@ -32,7 +32,7 @@ func NewPublisherID(subscriptionId string, resourceGroupName string, clusterName
 
 // ParsePublisherID parses 'input' into a PublisherId
 func ParsePublisherID(input string) (*PublisherId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PublisherId{})
+	parser := resourceids.NewParserFromResourceIdType(&PublisherId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParsePublisherID(input string) (*PublisherId, error) {
 // ParsePublisherIDInsensitively parses 'input' case-insensitively into a PublisherId
 // note: this method should only be used for API response data and not user input
 func ParsePublisherIDInsensitively(input string) (*PublisherId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PublisherId{})
+	parser := resourceids.NewParserFromResourceIdType(&PublisherId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateEndpointId{}
+var _ resourceids.ResourceId = &PrivateEndpointId{}
 
 // PrivateEndpointId is a struct representing the Resource ID for a Private Endpoint
 type PrivateEndpointId struct {
@@ -30,7 +30,7 @@ func NewPrivateEndpointID(subscriptionId string, resourceGroupName string, priva
 
 // ParsePrivateEndpointID parses 'input' into a PrivateEndpointId
 func ParsePrivateEndpointID(input string) (*PrivateEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParsePrivateEndpointID(input string) (*PrivateEndpointId, error) {
 // ParsePrivateEndpointIDInsensitively parses 'input' case-insensitively into a PrivateEndpointId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateEndpointIDInsensitively(input string) (*PrivateEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

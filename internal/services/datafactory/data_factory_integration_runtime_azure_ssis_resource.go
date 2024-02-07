@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -22,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
@@ -105,6 +105,12 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 16),
+			},
+
+			"credential_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"edition": {
@@ -564,6 +570,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 			return fmt.Errorf("setting `catalog_info`: %+v", err)
 		}
 
+		if err := d.Set("credential_name", flattenDataFactoryIntegrationRuntimeUserAssignedCredential(ssisProps.Credential)); err != nil {
+			return fmt.Errorf("setting `credential_name`: %+v", err)
+		}
+
 		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
 			return fmt.Errorf("setting `custom_setup_script`: %+v", err)
 		}
@@ -646,6 +656,13 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *pluginsdk.Resourc
 		Edition:                      datafactory.IntegrationRuntimeEdition(d.Get("edition").(string)),
 		ExpressCustomSetupProperties: expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(d.Get("express_custom_setup").([]interface{})),
 		PackageStores:                expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(d.Get("package_store").([]interface{})),
+	}
+
+	if credentialName := d.Get("credential_name"); credentialName.(string) != "" {
+		ssisProperties.Credential = &datafactory.CredentialReference{
+			ReferenceName: utils.String(credentialName.(string)),
+			Type:          utils.String("CredentialReference"),
+		}
 	}
 
 	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
@@ -935,6 +952,14 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisProxy(input *datafactory.Integ
 			"staging_storage_linked_service_name":  stagingStorageLinkedServiceName,
 		},
 	}
+}
+
+func flattenDataFactoryIntegrationRuntimeUserAssignedCredential(credentialProperties *datafactory.CredentialReference) *string {
+	if credentialProperties == nil {
+		return nil
+	}
+
+	return credentialProperties.ReferenceName
 }
 
 func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *pluginsdk.ResourceData) []interface{} {

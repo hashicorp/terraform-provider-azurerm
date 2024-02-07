@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScalingPlanId{}
+var _ resourceids.ResourceId = &ScalingPlanId{}
 
 // ScalingPlanId is a struct representing the Resource ID for a Scaling Plan
 type ScalingPlanId struct {
@@ -30,7 +30,7 @@ func NewScalingPlanID(subscriptionId string, resourceGroupName string, scalingPl
 
 // ParseScalingPlanID parses 'input' into a ScalingPlanId
 func ParseScalingPlanID(input string) (*ScalingPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScalingPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScalingPlanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseScalingPlanID(input string) (*ScalingPlanId, error) {
 // ParseScalingPlanIDInsensitively parses 'input' case-insensitively into a ScalingPlanId
 // note: this method should only be used for API response data and not user input
 func ParseScalingPlanIDInsensitively(input string) (*ScalingPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScalingPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScalingPlanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
