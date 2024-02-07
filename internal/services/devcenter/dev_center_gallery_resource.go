@@ -1,8 +1,8 @@
 package devcenter
 
-// NOTE: this file is generated - manual changes will be overwritten.
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 import (
 	"context"
 	"fmt"
@@ -86,11 +86,11 @@ func (r DevCenterGalleryResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			var payload galleries.Gallery
-			if err := r.mapDevCenterGalleryResourceSchemaToGallery(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+			payload := galleries.Gallery{
+				Properties: &galleries.GalleryProperties{
+					GalleryResourceId: config.GalleryResourceId,
+				},
 			}
-
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -125,8 +125,9 @@ func (r DevCenterGalleryResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.DevCenterId = devCenterId.ID()
 				schema.Name = id.GalleryName
-				if err := r.mapGalleryToDevCenterGalleryResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
+
+				if props := model.Properties; props != nil {
+					schema.GalleryResourceId = props.GalleryResourceId
 				}
 			}
 
@@ -152,38 +153,4 @@ func (r DevCenterGalleryResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func (r DevCenterGalleryResource) mapDevCenterGalleryResourceSchemaToGalleryProperties(input DevCenterGalleryResourceSchema, output *galleries.GalleryProperties) error {
-	output.GalleryResourceId = input.GalleryResourceId
-	return nil
-}
-
-func (r DevCenterGalleryResource) mapGalleryPropertiesToDevCenterGalleryResourceSchema(input galleries.GalleryProperties, output *DevCenterGalleryResourceSchema) error {
-	output.GalleryResourceId = input.GalleryResourceId
-	return nil
-}
-
-func (r DevCenterGalleryResource) mapDevCenterGalleryResourceSchemaToGallery(input DevCenterGalleryResourceSchema, output *galleries.Gallery) error {
-
-	if output.Properties == nil {
-		output.Properties = &galleries.GalleryProperties{}
-	}
-	if err := r.mapDevCenterGalleryResourceSchemaToGalleryProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "GalleryProperties", "Properties", err)
-	}
-
-	return nil
-}
-
-func (r DevCenterGalleryResource) mapGalleryToDevCenterGalleryResourceSchema(input galleries.Gallery, output *DevCenterGalleryResourceSchema) error {
-
-	if input.Properties == nil {
-		input.Properties = &galleries.GalleryProperties{}
-	}
-	if err := r.mapGalleryPropertiesToDevCenterGalleryResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "GalleryProperties", "Properties", err)
-	}
-
-	return nil
 }
