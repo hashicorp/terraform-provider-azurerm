@@ -148,6 +148,10 @@ The following arguments are supported:
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
+* `local_user_enabled` - (Optional) Is Local User Enabled?
+
+~> **NOTE:** `local_user_enabled` support requires `sftp_enabled` to be `true`.
+
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
 * `routing` - (Optional) A `routing` block as defined below.

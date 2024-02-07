@@ -15,6 +15,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -863,6 +864,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"local_user_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"primary_location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1258,6 +1264,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
+				if d.Get("local_user_enabled").(bool) {
+					if !d.Get("sftp_enabled").(bool) {
+						return fmt.Errorf("`local_user_enabled` support requires `sftp_enabled` to be `true`")
+					}
+				}
+
 				if d.Get("access_tier") != "" {
 					if accountKind := d.Get("account_kind").(string); !slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
 						return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
@@ -1440,6 +1452,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if v.(bool) {
 			parameters.LargeFileSharesState = storage.LargeFileSharesStateEnabled
 		}
+	}
+
+	// isLocalUserEnabled is only available when SFTP is enabled
+	if isSftpEnabled {
+		parameters.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("routing"); ok {
@@ -1816,6 +1833,17 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
 			return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+		}
+	}
+
+	if d.HasChange("local_user_enabled") {
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				IsLocalUserEnabled: pointer.To(d.Get("local_user_enabled").(bool)),
+			},
+		}
+		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
+			return fmt.Errorf("updating `local_user_enabled` for %s: %+v", *id, err)
 		}
 	}
 
@@ -2284,6 +2312,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props.LargeFileSharesState != "" {
 			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
 		}
+
+		var isLocalEnabled bool
+		if props.IsLocalUserEnabled != nil {
+			isLocalEnabled = *props.IsLocalUserEnabled
+		}
+		d.Set("local_user_enabled", isLocalEnabled)
 
 		allowSharedKeyAccess := true
 		if props.AllowSharedKeyAccess != nil {
