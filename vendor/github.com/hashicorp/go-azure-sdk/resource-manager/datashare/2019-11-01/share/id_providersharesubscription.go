@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProviderShareSubscriptionId{}
+var _ resourceids.ResourceId = &ProviderShareSubscriptionId{}
 
 // ProviderShareSubscriptionId is a struct representing the Resource ID for a Provider Share Subscription
 type ProviderShareSubscriptionId struct {
@@ -34,7 +34,7 @@ func NewProviderShareSubscriptionID(subscriptionId string, resourceGroupName str
 
 // ParseProviderShareSubscriptionID parses 'input' into a ProviderShareSubscriptionId
 func ParseProviderShareSubscriptionID(input string) (*ProviderShareSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderShareSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderShareSubscriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseProviderShareSubscriptionID(input string) (*ProviderShareSubscriptionI
 // ParseProviderShareSubscriptionIDInsensitively parses 'input' case-insensitively into a ProviderShareSubscriptionId
 // note: this method should only be used for API response data and not user input
 func ParseProviderShareSubscriptionIDInsensitively(input string) (*ProviderShareSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderShareSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderShareSubscriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

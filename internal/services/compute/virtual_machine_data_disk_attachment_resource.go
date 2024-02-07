@@ -47,7 +47,7 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     disks.ValidateDiskID,
+				ValidateFunc:     commonids.ValidateManagedDiskID,
 			},
 
 			"virtual_machine_id": {
@@ -175,6 +175,8 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	virtualMachine.Identity = nil
 	// fixes #1600
 	virtualMachine.Resources = nil
+	// fixes #24145
+	virtualMachine.ApplicationProfile = nil
 
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
@@ -284,6 +286,8 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	virtualMachine.Identity = nil
 	// fixes #1600
 	virtualMachine.Resources = nil
+	// fixes #24145
+	virtualMachine.ApplicationProfile = nil
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, virtualMachine)
 	if err != nil {
@@ -302,7 +306,7 @@ func retrieveDataDiskAttachmentManagedDisk(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedId, err := disks.ParseDiskID(id)
+	parsedId, err := commonids.ParseManagedDiskID(id)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Managed Disk ID %q: %+v", id, err)
 	}

@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []Policy
+	LatestHttpResponse *http.Response
+	Items              []Policy
 }
 
 type ListOperationOptions struct {
@@ -123,7 +124,8 @@ func (c PoliciesClient) ListCompleteMatchingPredicate(ctx context.Context, id Po
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListByNamespaceOperationResponse struct {
 }
 
 type ListByNamespaceCompleteResult struct {
-	Items []HybridConnection
+	LatestHttpResponse *http.Response
+	Items              []HybridConnection
 }
 
 // ListByNamespace ...
@@ -83,7 +84,8 @@ func (c HybridConnectionsClient) ListByNamespaceCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByNamespaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AccountTagRuleId{}
+var _ resourceids.ResourceId = &AccountTagRuleId{}
 
 // AccountTagRuleId is a struct representing the Resource ID for a Account Tag Rule
 type AccountTagRuleId struct {
@@ -34,7 +34,7 @@ func NewAccountTagRuleID(subscriptionId string, resourceGroupName string, monito
 
 // ParseAccountTagRuleID parses 'input' into a AccountTagRuleId
 func ParseAccountTagRuleID(input string) (*AccountTagRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccountTagRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccountTagRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseAccountTagRuleID(input string) (*AccountTagRuleId, error) {
 // ParseAccountTagRuleIDInsensitively parses 'input' case-insensitively into a AccountTagRuleId
 // note: this method should only be used for API response data and not user input
 func ParseAccountTagRuleIDInsensitively(input string) (*AccountTagRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccountTagRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccountTagRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -278,11 +278,6 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityID.(string))
 	}
 
-	// NOTE: If you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
-	if props.Properties.KeyId != nil && props.Properties.PrimaryUserAssignedIdentityId == nil {
-		return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
-	}
-
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
 		props.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
 	}
@@ -364,11 +359,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
 			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityID.(string))
-		}
-
-		// if you pass the Key ID you must also define the PrimaryUserAssignedIdentityID...
-		if payload.Properties.KeyId != nil && payload.Properties.PrimaryUserAssignedIdentityId == nil {
-			return fmt.Errorf("the `primary_user_assigned_identity_id` field must be specified to use the 'transparent_data_encryption_key_vault_key_id' in %s", id)
 		}
 
 		payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)

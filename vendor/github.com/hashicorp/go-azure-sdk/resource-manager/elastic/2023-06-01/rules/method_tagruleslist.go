@@ -19,7 +19,8 @@ type TagRulesListOperationResponse struct {
 }
 
 type TagRulesListCompleteResult struct {
-	Items []MonitoringTagRules
+	LatestHttpResponse *http.Response
+	Items              []MonitoringTagRules
 }
 
 // TagRulesList ...
@@ -83,7 +84,8 @@ func (c RulesClient) TagRulesListCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = TagRulesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

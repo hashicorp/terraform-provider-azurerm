@@ -19,7 +19,8 @@ type ListByServiceOperationResponse struct {
 }
 
 type ListByServiceCompleteResult struct {
-	Items []OpenidConnectProviderContract
+	LatestHttpResponse *http.Response
+	Items              []OpenidConnectProviderContract
 }
 
 type ListByServiceOperationOptions struct {
@@ -119,7 +120,8 @@ func (c OpenidConnectProviderClient) ListByServiceCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

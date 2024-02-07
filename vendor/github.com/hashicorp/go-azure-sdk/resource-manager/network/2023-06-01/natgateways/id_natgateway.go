@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NatGatewayId{}
+var _ resourceids.ResourceId = &NatGatewayId{}
 
 // NatGatewayId is a struct representing the Resource ID for a Nat Gateway
 type NatGatewayId struct {
@@ -30,7 +30,7 @@ func NewNatGatewayID(subscriptionId string, resourceGroupName string, natGateway
 
 // ParseNatGatewayID parses 'input' into a NatGatewayId
 func ParseNatGatewayID(input string) (*NatGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NatGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&NatGatewayId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseNatGatewayID(input string) (*NatGatewayId, error) {
 // ParseNatGatewayIDInsensitively parses 'input' case-insensitively into a NatGatewayId
 // note: this method should only be used for API response data and not user input
 func ParseNatGatewayIDInsensitively(input string) (*NatGatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NatGatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&NatGatewayId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

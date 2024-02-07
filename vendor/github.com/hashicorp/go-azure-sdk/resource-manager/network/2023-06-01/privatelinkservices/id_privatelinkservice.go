@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateLinkServiceId{}
+var _ resourceids.ResourceId = &PrivateLinkServiceId{}
 
 // PrivateLinkServiceId is a struct representing the Resource ID for a Private Link Service
 type PrivateLinkServiceId struct {
@@ -30,7 +30,7 @@ func NewPrivateLinkServiceID(subscriptionId string, resourceGroupName string, pr
 
 // ParsePrivateLinkServiceID parses 'input' into a PrivateLinkServiceId
 func ParsePrivateLinkServiceID(input string) (*PrivateLinkServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateLinkServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateLinkServiceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParsePrivateLinkServiceID(input string) (*PrivateLinkServiceId, error) {
 // ParsePrivateLinkServiceIDInsensitively parses 'input' case-insensitively into a PrivateLinkServiceId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateLinkServiceIDInsensitively(input string) (*PrivateLinkServiceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateLinkServiceId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateLinkServiceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

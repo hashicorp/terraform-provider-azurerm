@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []IntegrationAccount
+	LatestHttpResponse *http.Response
+	Items              []IntegrationAccount
 }
 
 type ListByResourceGroupOperationOptions struct {
@@ -112,7 +113,8 @@ func (c IntegrationAccountsClient) ListByResourceGroupCompleteMatchingPredicate(
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

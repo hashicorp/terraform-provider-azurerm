@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []ExpressRouteCrossConnection
+	LatestHttpResponse *http.Response
+	Items              []ExpressRouteCrossConnection
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c ExpressRouteCrossConnectionsClient) ListByResourceGroupCompleteMatchingP
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type LinkedServerListOperationResponse struct {
 }
 
 type LinkedServerListCompleteResult struct {
-	Items []RedisLinkedServerWithProperties
+	LatestHttpResponse *http.Response
+	Items              []RedisLinkedServerWithProperties
 }
 
 // LinkedServerList ...
@@ -83,7 +84,8 @@ func (c RedisClient) LinkedServerListCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = LinkedServerListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

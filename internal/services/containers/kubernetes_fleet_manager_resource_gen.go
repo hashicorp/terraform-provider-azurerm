@@ -225,23 +225,27 @@ func (r KubernetesFleetManagerResource) mapFleetHubProfileToKubernetesFleetManag
 	return nil
 }
 
-func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceSchemaToFleetProperties(input KubernetesFleetManagerResourceSchema, output *fleets.FleetProperties) error {
-	if len(input.HubProfile) > 0 {
-		if err := r.mapKubernetesFleetManagerResourceFleetHubProfileSchemaToFleetProperties(input.HubProfile[0], output); err != nil {
-			return err
-		}
+func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceFleetHubProfileSchemaToFleetProperties(input KubernetesFleetManagerResourceFleetHubProfileSchema, output *fleets.FleetProperties) error {
+
+	if output.HubProfile == nil {
+		output.HubProfile = &fleets.FleetHubProfile{}
 	}
+	if err := r.mapKubernetesFleetManagerResourceFleetHubProfileSchemaToFleetHubProfile(input, output.HubProfile); err != nil {
+		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "FleetHubProfile", "HubProfile", err)
+	}
+
 	return nil
 }
 
-func (r KubernetesFleetManagerResource) mapFleetPropertiesToKubernetesFleetManagerResourceSchema(input fleets.FleetProperties, output *KubernetesFleetManagerResourceSchema) error {
-	tmpHubProfile := &KubernetesFleetManagerResourceFleetHubProfileSchema{}
-	if err := r.mapFleetPropertiesToKubernetesFleetManagerResourceFleetHubProfileSchema(input, tmpHubProfile); err != nil {
-		return err
-	} else {
-		output.HubProfile = make([]KubernetesFleetManagerResourceFleetHubProfileSchema, 0)
-		output.HubProfile = append(output.HubProfile, *tmpHubProfile)
+func (r KubernetesFleetManagerResource) mapFleetPropertiesToKubernetesFleetManagerResourceFleetHubProfileSchema(input fleets.FleetProperties, output *KubernetesFleetManagerResourceFleetHubProfileSchema) error {
+
+	if input.HubProfile == nil {
+		input.HubProfile = &fleets.FleetHubProfile{}
 	}
+	if err := r.mapFleetHubProfileToKubernetesFleetManagerResourceFleetHubProfileSchema(*input.HubProfile, output); err != nil {
+		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "FleetHubProfile", "HubProfile", err)
+	}
+
 	return nil
 }
 
@@ -273,26 +277,22 @@ func (r KubernetesFleetManagerResource) mapFleetToKubernetesFleetManagerResource
 	return nil
 }
 
-func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceFleetHubProfileSchemaToFleetProperties(input KubernetesFleetManagerResourceFleetHubProfileSchema, output *fleets.FleetProperties) error {
-
-	if output.HubProfile == nil {
-		output.HubProfile = &fleets.FleetHubProfile{}
+func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceSchemaToFleetProperties(input KubernetesFleetManagerResourceSchema, output *fleets.FleetProperties) error {
+	if len(input.HubProfile) > 0 {
+		if err := r.mapKubernetesFleetManagerResourceFleetHubProfileSchemaToFleetProperties(input.HubProfile[0], output); err != nil {
+			return err
+		}
 	}
-	if err := r.mapKubernetesFleetManagerResourceFleetHubProfileSchemaToFleetHubProfile(input, output.HubProfile); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "FleetHubProfile", "HubProfile", err)
-	}
-
 	return nil
 }
 
-func (r KubernetesFleetManagerResource) mapFleetPropertiesToKubernetesFleetManagerResourceFleetHubProfileSchema(input fleets.FleetProperties, output *KubernetesFleetManagerResourceFleetHubProfileSchema) error {
-
-	if input.HubProfile == nil {
-		input.HubProfile = &fleets.FleetHubProfile{}
+func (r KubernetesFleetManagerResource) mapFleetPropertiesToKubernetesFleetManagerResourceSchema(input fleets.FleetProperties, output *KubernetesFleetManagerResourceSchema) error {
+	tmpHubProfile := &KubernetesFleetManagerResourceFleetHubProfileSchema{}
+	if err := r.mapFleetPropertiesToKubernetesFleetManagerResourceFleetHubProfileSchema(input, tmpHubProfile); err != nil {
+		return err
+	} else {
+		output.HubProfile = make([]KubernetesFleetManagerResourceFleetHubProfileSchema, 0)
+		output.HubProfile = append(output.HubProfile, *tmpHubProfile)
 	}
-	if err := r.mapFleetHubProfileToKubernetesFleetManagerResourceFleetHubProfileSchema(*input.HubProfile, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "FleetHubProfile", "HubProfile", err)
-	}
-
 	return nil
 }

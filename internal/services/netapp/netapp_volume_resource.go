@@ -112,7 +112,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
@@ -284,6 +283,23 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ForceNew: true,
 				Optional: true,
 				Default:  false,
+			},
+
+			"encryption_key_source": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
+			},
+
+			"key_vault_private_endpoint_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: azure.ValidateResourceID,
+				RequiredWith: []string{"encryption_key_source"},
 			},
 		},
 	}
@@ -464,6 +480,19 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		parameters.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
+	if encryptionKeySource, ok := d.GetOk("encryption_key_source"); ok {
+		// Validating Microsoft.KeyVault encryption key provider is enabled only on Standard network features
+		if volumes.EncryptionKeySource(encryptionKeySource.(string)) == volumes.EncryptionKeySourceMicrosoftPointKeyVault && networkFeatures == volumes.NetworkFeaturesBasic {
+			return fmt.Errorf("volume encryption cannot be enabled when network features is set to basic: %s", id.ID())
+		}
+
+		parameters.Properties.EncryptionKeySource = pointer.To(volumes.EncryptionKeySource(encryptionKeySource.(string)))
+	}
+
+	if keyVaultPrivateEndpointID, ok := d.GetOk("key_vault_private_endpoint_id"); ok {
+		parameters.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(keyVaultPrivateEndpointID.(string))
+	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -619,6 +648,8 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
+		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
+		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 
 		avsDataStore := false
 		if props.AvsDataStore != nil {

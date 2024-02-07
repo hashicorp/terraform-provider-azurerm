@@ -19,7 +19,8 @@ type ListHostsOperationResponse struct {
 }
 
 type ListHostsCompleteResult struct {
-	Items []VMInfo
+	LatestHttpResponse *http.Response
+	Items              []VMInfo
 }
 
 // ListHosts ...
@@ -83,7 +84,8 @@ func (c MonitorsClient) ListHostsCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = ListHostsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

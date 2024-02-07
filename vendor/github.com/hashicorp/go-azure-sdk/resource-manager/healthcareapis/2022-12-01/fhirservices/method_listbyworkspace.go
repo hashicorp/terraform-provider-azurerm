@@ -19,7 +19,8 @@ type ListByWorkspaceOperationResponse struct {
 }
 
 type ListByWorkspaceCompleteResult struct {
-	Items []FhirService
+	LatestHttpResponse *http.Response
+	Items              []FhirService
 }
 
 // ListByWorkspace ...
@@ -83,7 +84,8 @@ func (c FhirServicesClient) ListByWorkspaceCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type MonitorsListApiKeysOperationResponse struct {
 }
 
 type MonitorsListApiKeysCompleteResult struct {
-	Items []DatadogApiKey
+	LatestHttpResponse *http.Response
+	Items              []DatadogApiKey
 }
 
 // MonitorsListApiKeys ...
@@ -83,7 +84,8 @@ func (c ApiKeyClient) MonitorsListApiKeysCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = MonitorsListApiKeysCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

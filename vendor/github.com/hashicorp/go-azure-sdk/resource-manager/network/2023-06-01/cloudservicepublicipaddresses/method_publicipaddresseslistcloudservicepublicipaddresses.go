@@ -19,7 +19,8 @@ type PublicIPAddressesListCloudServicePublicIPAddressesOperationResponse struct 
 }
 
 type PublicIPAddressesListCloudServicePublicIPAddressesCompleteResult struct {
-	Items []PublicIPAddress
+	LatestHttpResponse *http.Response
+	Items              []PublicIPAddress
 }
 
 // PublicIPAddressesListCloudServicePublicIPAddresses ...
@@ -83,7 +84,8 @@ func (c CloudServicePublicIPAddressesClient) PublicIPAddressesListCloudServicePu
 	}
 
 	result = PublicIPAddressesListCloudServicePublicIPAddressesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

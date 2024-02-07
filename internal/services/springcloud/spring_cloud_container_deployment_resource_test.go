@@ -69,14 +69,14 @@ func TestAccSpringCloudContainerDeployment_addon(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addon(data, "app/dev"),
+			Config: r.addon(data, "auth-service"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addon(data, "app/prod"),
+			Config: r.addon(data, "gateway"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -206,8 +206,8 @@ func (SpringCloudContainerDeploymentResource) template(data acceptance.TestData)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-    application_insights {
-      disable_generated_rule = true
+    resource_group {
+      prevent_deletion_if_contains_resources = false
     }
   }
 }

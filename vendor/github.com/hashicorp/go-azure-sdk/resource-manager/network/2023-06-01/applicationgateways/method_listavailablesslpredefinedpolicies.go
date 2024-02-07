@@ -20,7 +20,8 @@ type ListAvailableSslPredefinedPoliciesOperationResponse struct {
 }
 
 type ListAvailableSslPredefinedPoliciesCompleteResult struct {
-	Items []ApplicationGatewaySslPredefinedPolicy
+	LatestHttpResponse *http.Response
+	Items              []ApplicationGatewaySslPredefinedPolicy
 }
 
 // ListAvailableSslPredefinedPolicies ...
@@ -84,7 +85,8 @@ func (c ApplicationGatewaysClient) ListAvailableSslPredefinedPoliciesCompleteMat
 	}
 
 	result = ListAvailableSslPredefinedPoliciesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -158,21 +159,21 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	props := outputs.Output{
-		Name: utils.String(id.OutputName),
+		Name: pointer.To(id.OutputName),
 		Properties: &outputs.OutputProperties{
 			Datasource: &outputs.BlobOutputDataSource{
 				Properties: &outputs.BlobOutputDataSourceProperties{
 					StorageAccounts: &[]outputs.StorageAccount{
 						{
 							AccountKey:  getStorageAccountKey(d.Get("storage_account_key").(string)),
-							AccountName: utils.String(storageAccountName),
+							AccountName: pointer.To(storageAccountName),
 						},
 					},
-					Container:          utils.String(containerName),
-					DateFormat:         utils.String(dateFormat),
-					PathPattern:        utils.String(pathPattern),
-					TimeFormat:         utils.String(timeFormat),
-					AuthenticationMode: utils.ToPtr(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
+					Container:          pointer.To(containerName),
+					DateFormat:         pointer.To(dateFormat),
+					PathPattern:        pointer.To(pathPattern),
+					TimeFormat:         pointer.To(timeFormat),
+					AuthenticationMode: pointer.To(outputs.AuthenticationMode(d.Get("authentication_mode").(string))),
 				},
 			},
 			Serialization: serialization,
@@ -180,7 +181,7 @@ func resourceStreamAnalyticsOutputBlobCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if batchMaxWaitTime, ok := d.GetOk("batch_max_wait_time"); ok {
-		props.Properties.TimeWindow = utils.String(batchMaxWaitTime.(string))
+		props.Properties.TimeWindow = pointer.To(batchMaxWaitTime.(string))
 	}
 
 	if batchMinRows, ok := d.GetOk("batch_min_rows"); ok {
@@ -309,5 +310,5 @@ func getStorageAccountKey(input string) *string {
 		return nil
 	}
 
-	return utils.String(input)
+	return pointer.To(input)
 }

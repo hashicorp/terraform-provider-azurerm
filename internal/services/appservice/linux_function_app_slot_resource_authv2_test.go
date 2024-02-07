@@ -23,7 +23,23 @@ func TestAccLinuxFunctionAppSlot_authV2AzureActiveDirectory(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxFunctionAppSlot_authV2AzureActiveDirectoryNoSecretName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2AzureActiveDirectoryNoSecretName(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -39,7 +55,7 @@ func TestAccLinuxFunctionAppSlot_authV2Apple(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -55,7 +71,7 @@ func TestAccLinuxFunctionAppSlot_authV2AppleCustomSettingName(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -71,7 +87,7 @@ func TestAccLinuxFunctionAppSlot_authV2CustomOIDC(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -87,7 +103,7 @@ func TestAccLinuxFunctionAppSlot_authV2Facebook(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -103,7 +119,7 @@ func TestAccLinuxFunctionAppSlot_authV2Github(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -119,7 +135,7 @@ func TestAccLinuxFunctionAppSlot_authV2Google(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -135,7 +151,7 @@ func TestAccLinuxFunctionAppSlot_authV2Microsoft(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -151,7 +167,7 @@ func TestAccLinuxFunctionAppSlot_authV2Twitter(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -167,7 +183,7 @@ func TestAccLinuxFunctionAppSlot_authV2MultipleAuths(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -183,7 +199,7 @@ func TestAccLinuxFunctionAppSlot_authV2Update(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.authV2Google(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -191,7 +207,7 @@ func TestAccLinuxFunctionAppSlot_authV2Update(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -207,7 +223,7 @@ func TestAccLinuxFunctionAppSlot_authV2UpgradeFromV1(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.completeAuthV2(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -215,7 +231,7 @@ func TestAccLinuxFunctionAppSlot_authV2UpgradeFromV1(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -256,6 +272,38 @@ resource "azurerm_linux_function_app_slot" "test" {
   }
 }
 `, r.template(data, planSku), data.RandomInteger, secretSettingName, secretSettingValue, data.Client().TenantID)
+}
+
+func (r LinuxFunctionAppSlotResource) authV2AzureActiveDirectoryNoSecretName(data acceptance.TestData, planSku string) string {
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "Return401"
+    active_directory_v2 {
+      client_id            = data.azurerm_client_config.current.client_id
+      tenant_auth_endpoint = "https://sts.windows.net/%[3]s/v2.0"
+    }
+    login {}
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
 
 func (r LinuxFunctionAppSlotResource) authV2Apple(data acceptance.TestData, planSku string) string {

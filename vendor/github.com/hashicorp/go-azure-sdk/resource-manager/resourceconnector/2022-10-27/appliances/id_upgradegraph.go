@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = UpgradeGraphId{}
+var _ resourceids.ResourceId = &UpgradeGraphId{}
 
 // UpgradeGraphId is a struct representing the Resource ID for a Upgrade Graph
 type UpgradeGraphId struct {
@@ -32,7 +32,7 @@ func NewUpgradeGraphID(subscriptionId string, resourceGroupName string, applianc
 
 // ParseUpgradeGraphID parses 'input' into a UpgradeGraphId
 func ParseUpgradeGraphID(input string) (*UpgradeGraphId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UpgradeGraphId{})
+	parser := resourceids.NewParserFromResourceIdType(&UpgradeGraphId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseUpgradeGraphID(input string) (*UpgradeGraphId, error) {
 // ParseUpgradeGraphIDInsensitively parses 'input' case-insensitively into a UpgradeGraphId
 // note: this method should only be used for API response data and not user input
 func ParseUpgradeGraphIDInsensitively(input string) (*UpgradeGraphId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UpgradeGraphId{})
+	parser := resourceids.NewParserFromResourceIdType(&UpgradeGraphId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

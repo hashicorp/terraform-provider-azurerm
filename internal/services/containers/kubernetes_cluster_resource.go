@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
@@ -1749,8 +1749,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
-			Name: utils.ToPtr(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
-			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
+			Name: pointer.To(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
+			Tier: pointer.To(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
 			ApiServerAccessProfile:    apiAccessProfile,
@@ -2415,7 +2415,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.kubelet_config",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
-			"default_node_pool.0.node_taints",
 			"default_node_pool.0.only_critical_addons_enabled",
 			"default_node_pool.0.os_disk_size_gb",
 			"default_node_pool.0.os_disk_type",
@@ -3270,19 +3269,19 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 	}
 
 	networkProfile := managedclusters.ContainerServiceNetworkProfile{
-		NetworkPlugin:   utils.ToPtr(managedclusters.NetworkPlugin(networkPlugin)),
-		NetworkMode:     utils.ToPtr(managedclusters.NetworkMode(networkMode)),
-		NetworkPolicy:   utils.ToPtr(managedclusters.NetworkPolicy(networkPolicy)),
-		LoadBalancerSku: utils.ToPtr(managedclusters.LoadBalancerSku(loadBalancerSku)),
-		OutboundType:    utils.ToPtr(managedclusters.OutboundType(outboundType)),
+		NetworkPlugin:   pointer.To(managedclusters.NetworkPlugin(networkPlugin)),
+		NetworkMode:     pointer.To(managedclusters.NetworkMode(networkMode)),
+		NetworkPolicy:   pointer.To(managedclusters.NetworkPolicy(networkPolicy)),
+		LoadBalancerSku: pointer.To(managedclusters.LoadBalancerSku(loadBalancerSku)),
+		OutboundType:    pointer.To(managedclusters.OutboundType(outboundType)),
 		IPFamilies:      ipVersions,
 	}
 
 	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
-		networkProfile.NetworkDataplane = utils.ToPtr(managedclusters.NetworkDataplane(ebpfDataPlane))
+		networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
 	}
 	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
-		networkProfile.NetworkPluginMode = utils.ToPtr(managedclusters.NetworkPluginMode(networkPluginMode))
+		networkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -3929,7 +3928,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 
 	return &managedclusters.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
-		Expander:                      utils.ToPtr(managedclusters.Expander(expander)),
+		Expander:                      pointer.To(managedclusters.Expander(expander)),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
 		MaxNodeProvisionTime:          utils.String(maxNodeProvisionTime),
 		MaxTotalUnreadyPercentage:     utils.String(maxUnreadyPercentage),
@@ -4130,8 +4129,8 @@ func expandKubernetesClusterMaintenanceConfigurationTimeSpans(input []interface{
 		start, _ := time.Parse(time.RFC3339, v["start"].(string))
 		end, _ := time.Parse(time.RFC3339, v["end"].(string))
 		results = append(results, maintenanceconfigurations.TimeSpan{
-			Start: utils.ToPtr(start.Format("2006-01-02T15:04:05Z07:00")),
-			End:   utils.ToPtr(end.Format("2006-01-02T15:04:05Z07:00")),
+			Start: pointer.To(start.Format("2006-01-02T15:04:05Z07:00")),
+			End:   pointer.To(end.Format("2006-01-02T15:04:05Z07:00")),
 		})
 	}
 	return &results
@@ -4156,7 +4155,7 @@ func expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(input []interfac
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, maintenanceconfigurations.TimeInWeek{
-			Day:       utils.ToPtr(maintenanceconfigurations.WeekDay(v["day"].(string))),
+			Day:       pointer.To(maintenanceconfigurations.WeekDay(v["day"].(string))),
 			HourSlots: utils.ExpandInt64Slice(v["hours"].(*pluginsdk.Set).List()),
 		})
 	}

@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []RedisFirewallRule
+	LatestHttpResponse *http.Response
+	Items              []RedisFirewallRule
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c FirewallRulesClient) ListCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

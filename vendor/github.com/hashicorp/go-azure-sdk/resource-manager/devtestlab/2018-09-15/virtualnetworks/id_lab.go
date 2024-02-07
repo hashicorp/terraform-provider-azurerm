@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LabId{}
+var _ resourceids.ResourceId = &LabId{}
 
 // LabId is a struct representing the Resource ID for a Lab
 type LabId struct {
@@ -30,7 +30,7 @@ func NewLabID(subscriptionId string, resourceGroupName string, labName string) L
 
 // ParseLabID parses 'input' into a LabId
 func ParseLabID(input string) (*LabId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LabId{})
+	parser := resourceids.NewParserFromResourceIdType(&LabId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseLabID(input string) (*LabId, error) {
 // ParseLabIDInsensitively parses 'input' case-insensitively into a LabId
 // note: this method should only be used for API response data and not user input
 func ParseLabIDInsensitively(input string) (*LabId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LabId{})
+	parser := resourceids.NewParserFromResourceIdType(&LabId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

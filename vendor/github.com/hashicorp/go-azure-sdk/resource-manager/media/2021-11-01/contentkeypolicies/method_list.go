@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ContentKeyPolicy
+	LatestHttpResponse *http.Response
+	Items              []ContentKeyPolicy
 }
 
 type ListOperationOptions struct {
@@ -119,7 +120,8 @@ func (c ContentKeyPoliciesClient) ListCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

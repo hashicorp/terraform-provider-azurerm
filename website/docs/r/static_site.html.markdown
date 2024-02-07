@@ -15,10 +15,15 @@ Manages an App Service Static Site.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
 resource "azurerm_static_site" "example" {
   name                = "example"
-  resource_group_name = "example"
-  location            = "West Europe"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 ```
 

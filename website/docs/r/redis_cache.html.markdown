@@ -158,6 +158,8 @@ redis_configuration {
 
 ~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
 
+* `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
+
 ```hcl
 resource "azurerm_redis_cache" "example" {
   # ...

@@ -19,7 +19,8 @@ type PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesOperationRespon
 }
 
 type PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesCompleteResult struct {
-	Items []PublicIPAddress
+	LatestHttpResponse *http.Response
+	Items              []PublicIPAddress
 }
 
 // PublicIPAddressesListVirtualMachineScaleSetPublicIPAddresses ...
@@ -83,7 +84,8 @@ func (c VMSSPublicIPAddressesClient) PublicIPAddressesListVirtualMachineScaleSet
 	}
 
 	result = PublicIPAddressesListVirtualMachineScaleSetPublicIPAddressesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

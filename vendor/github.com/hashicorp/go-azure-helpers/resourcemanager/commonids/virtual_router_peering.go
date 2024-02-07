@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = VirtualRouterPeeringId{}
+var _ resourceids.ResourceId = &VirtualRouterPeeringId{}
 
 // VirtualRouterPeeringId is a struct representing the Resource ID for a Virtual Router Peering
 type VirtualRouterPeeringId struct {
@@ -32,29 +32,15 @@ func NewVirtualRouterPeeringID(subscriptionId string, resourceGroupName string, 
 
 // ParseVirtualRouterPeeringID parses 'input' into a VirtualRouterPeeringId
 func ParseVirtualRouterPeeringID(input string) (*VirtualRouterPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualRouterPeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualRouterPeeringId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualRouterPeeringId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualRouterName, ok = parsed.Parsed["virtualRouterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualRouterName", *parsed)
-	}
-
-	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "peeringName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseVirtualRouterPeeringID(input string) (*VirtualRouterPeeringId, error) 
 // ParseVirtualRouterPeeringIDInsensitively parses 'input' case-insensitively into a VirtualRouterPeeringId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualRouterPeeringIDInsensitively(input string) (*VirtualRouterPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualRouterPeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualRouterPeeringId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualRouterPeeringId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualRouterName, ok = parsed.Parsed["virtualRouterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualRouterName", *parsed)
-	}
-
-	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "peeringName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualRouterPeeringId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualRouterName, ok = input.Parsed["virtualRouterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualRouterName", input)
+	}
+
+	if id.PeeringName, ok = input.Parsed["peeringName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "peeringName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualRouterPeeringID checks that 'input' can be parsed as a Virtual Router Peering ID

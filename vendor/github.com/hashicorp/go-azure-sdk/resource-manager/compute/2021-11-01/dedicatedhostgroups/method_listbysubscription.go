@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []DedicatedHostGroup
+	LatestHttpResponse *http.Response
+	Items              []DedicatedHostGroup
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c DedicatedHostGroupsClient) ListBySubscriptionCompleteMatchingPredicate(c
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
