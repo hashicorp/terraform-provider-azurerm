@@ -9,6 +9,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `dependencies: updating to `v0.20240206.1080438` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24794]
+* `dependencies: updating to `v0.20240206.1080438` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24794]
 * dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` [GH-24760]
 * dependencies: refactor `azurerm_role_definition` to use `go-azure-sdk` [GH-24266]
 * `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
