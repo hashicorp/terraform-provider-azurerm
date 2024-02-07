@@ -12,6 +12,8 @@ Manages a Microsoft SQL Azure Managed Instance.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
+~> **Note:** SQL Managed Instance needs permission to read Microsoft Entra ID when configuring the Microsoft Entra admin. [Read more about provision Microsoft Entra admin](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure?view=azuresql&tabs=azure-powershell#provision-azure-ad-admin-sql-managed-instance).
+
 ## Example Usage
 
 ```hcl
@@ -207,10 +209,6 @@ resource "azurerm_mssql_managed_instance" "example" {
 
 The following arguments are supported:
 
-* `administrator_login` - (Required) The administrator login name for the new SQL Managed Instance. Changing this forces a new resource to be created.
-
-* `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
-
 * `license_type` - (Required) What type of license the Managed Instance will use. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
@@ -226,6 +224,12 @@ The following arguments are supported:
 * `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with. Changing this forces a new resource to be created.
 
 * `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `6`, `8`, `10`, `12`, `16`, `20`, `24`, `32`, `40`, `48`, `56`, `64`, `80`, `96` or `128` for Gen5 SKUs.
+
+* `administrator_login` - (Optional) The administrator login name for the new SQL Managed Instance. Changing this forces a new resource to be created.
+
+* `administrator_login_password` - (Optional) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
+
+* `microsoft_entra_administrator` - (Optional) An `microsoft_entra_administrator` block as defined below.
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
@@ -248,6 +252,18 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `timezone_id` - (Optional) The TimeZone ID that the SQL Managed Instance will be operating in. Default value is `UTC`. Changing this forces a new resource to be created.
+
+---
+
+An `microsoft_entra_administrator` block supports the following:
+
+* `login_username` - (Required) The login username of the Azure AD Administrator of this SQL Managed Instance.
+
+* `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Managed Instance.
+
+* `microsoft_entra_authentication_only_enabled` - (Optional) Specifies whether only Microsoft Entra authentication and administrator (e.g. `microsoft_entra_administrator.0.login_username`), or Managed Instance administrator (e.g. `administrator_login`) can be used to log in to this SQL Managed Instance. When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted. Defaults to `false`.
+
+* `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Managed Instance.
 
 ---
 
