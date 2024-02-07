@@ -16,8 +16,9 @@ import (
 )
 
 var (
-	_ sdk.Resource           = ElasticSANVolumeResource{}
-	_ sdk.ResourceWithUpdate = ElasticSANVolumeResource{}
+	_ sdk.Resource                  = ElasticSANVolumeResource{}
+	_ sdk.ResourceWithUpdate        = ElasticSANVolumeResource{}
+	_ sdk.ResourceWithCustomizeDiff = ElasticSANVolumeResource{}
 )
 
 type ElasticSANVolumeResource struct{}
