@@ -1287,12 +1287,12 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 	}
 
 	if len(triggers.SlowRequestsWithPath) > 0 {
-		slowRequestWithPathTriggers := make([]web.SlowRequestsBasedTrigger, 0)
+		slowRequestWithPathTriggers := make([]webapps.SlowRequestsBasedTrigger, 0)
 		for _, sr := range triggers.SlowRequestsWithPath {
-			trigger := web.SlowRequestsBasedTrigger{
+			trigger := webapps.SlowRequestsBasedTrigger{
 				TimeTaken:    pointer.To(sr.TimeTaken),
 				TimeInterval: pointer.To(sr.Interval),
-				Count:        pointer.To(int32(sr.Count)),
+				Count:        pointer.To(int64(sr.Count)),
 			}
 			if sr.Path != "" {
 				trigger.Path = pointer.To(sr.Path)
@@ -1324,9 +1324,9 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 				}
 				statusCodeTrigger.Count = pointer.To(s.Count)
 				if s.Win32Status != 0 {
-					statusCodeTrigger.Win32Status = pointer.To(int32(s.Win32Status))
+					statusCodeTrigger.Win32Status = pointer.To(s.Win32Status)
 				}
-				statusCodeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeTrigger.Count = pointer.To(s.Count)
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
@@ -1384,7 +1384,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 				}
 
 				if s.Win32Status != nil {
-					t.Win32Status = int(pointer.From(s.Win32Status))
+					t.Win32Status = pointer.From(s.Win32Status)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
