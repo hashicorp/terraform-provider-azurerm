@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 	"strconv"
 	"strings"
 
@@ -532,8 +533,8 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
-	expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
-	expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
@@ -631,11 +632,11 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 	}
 
 	if !s.IpAccessEnabled {
-		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 	}
 
 	if !s.ScmIpAccessEnabled {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 	}
 
 	if len(s.IpRestriction) != 0 {
@@ -695,16 +696,16 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_access_enabled") {
-		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 		if !s.IpAccessEnabled {
-			expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+			expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_access_enabled") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 		if !s.ScmIpAccessEnabled {
-			expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+			expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 		}
 	}
 
@@ -881,16 +882,22 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 
 	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
 		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id
-	if strings.EqualFold(string(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
-		s.IpAccessEnabled = false
+
+	}
+	if appSiteSlotConfig.IPSecurityRestrictionsDefaultAction != nil {
+		if strings.EqualFold(string(*appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+			s.IpAccessEnabled = false
+		}
 	}
 
-	if strings.EqualFold(string(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
-		s.ScmIpAccessEnabled = false
+	if appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
+		if strings.EqualFold(string(*appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+			s.ScmIpAccessEnabled = false
+		}
 	}
 
-	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
-		s.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID
+	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
+		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id
 	}
 
 	if appSiteSlotConfig.ApiDefinition != nil && appSiteSlotConfig.ApiDefinition.Url != nil {
@@ -908,7 +915,6 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 		linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
 		s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 	}
-
 }
 
 func (s *SiteConfigLinuxWebAppSlot) SetHealthCheckEvictionTime(input map[string]string) {
@@ -989,12 +995,12 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
 	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
-	expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
-	expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
-	expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
-	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
-	expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
-	expanded.MinTLSVersion = web.SupportedTLSVersions(s.MinTlsVersion)
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
+	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
+	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
+	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
@@ -1098,11 +1104,11 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 	}
 
 	if !s.IpAccessEnabled {
-		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 	}
 
 	if !s.ScmIpAccessEnabled {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 	}
 
 	if len(s.IpRestriction) != 0 {
@@ -1367,16 +1373,22 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 
 	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
 		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id
-	if strings.EqualFold(string(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
-		s.IpAccessEnabled = false
 	}
 
-	if strings.EqualFold(string(appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
-		s.ScmIpAccessEnabled = false
+	if appSiteSlotConfig.IPSecurityRestrictionsDefaultAction != nil {
+		if strings.EqualFold(string(*appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+			s.IpAccessEnabled = false
+		}
 	}
 
-	if appSiteSlotConfig.APIManagementConfig != nil && appSiteSlotConfig.APIManagementConfig.ID != nil {
-		s.ApiManagementConfigId = *appSiteSlotConfig.APIManagementConfig.ID
+	if appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
+		if strings.EqualFold(string(*appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+			s.ScmIpAccessEnabled = false
+		}
+	}
+
+	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
+		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id
 	}
 
 	if appSiteSlotConfig.ApiDefinition != nil && appSiteSlotConfig.ApiDefinition.Url != nil {
@@ -1415,7 +1427,6 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	winAppStack.CurrentStack = currentStack
 
 	s.ApplicationStack = []ApplicationStackWindows{winAppStack}
-
 }
 
 func (s *SiteConfigWindowsWebAppSlot) SetHealthCheckEvictionTime(input map[string]string) {

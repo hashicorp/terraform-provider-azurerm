@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type SiteConfigLinux struct {
@@ -741,8 +740,8 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
-	expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
-	expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
@@ -834,11 +833,11 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	}
 
 	if !s.IpAccessEnabled {
-		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 	}
 
 	if !s.ScmIpAccessEnabled {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 	}
 
 	if len(s.IpRestriction) != 0 {
@@ -902,16 +901,16 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_access_enabled") {
-		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 		if !s.IpAccessEnabled {
-			expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+			expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_access_enabled") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 		if !s.ScmIpAccessEnabled {
-			expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+			expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 		}
 	}
 
@@ -1085,31 +1084,35 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		s.Cors = FlattenCorsSettings(appSiteConfig.Cors)
 
-		if strings.EqualFold(string(appSiteConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
-			s.IpAccessEnabled = false
+		if appSiteConfig.IPSecurityRestrictionsDefaultAction != nil {
+			if strings.EqualFold(string(*appSiteConfig.IPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
+				s.IpAccessEnabled = false
+			}
+		}
+		if appSiteConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
+			if strings.EqualFold(string(*appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
+				s.ScmIpAccessEnabled = false
+			}
 		}
 
-		if strings.EqualFold(string(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
-			s.ScmIpAccessEnabled = false
-		}
-
-		if appSiteConfig.APIManagementConfig != nil {
-			s.ApiManagementConfigId = pointer.From(appSiteConfig.APIManagementConfig.ID)
+		if appSiteConfig.ApiManagementConfig != nil {
+			s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
 
 			if appSiteConfig.ApiManagementConfig != nil {
-			s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
-		}
+				s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
+			}
 
-		if appSiteConfig.ApiDefinition != nil {
-			s.ApiDefinition = pointer.From(appSiteConfig.ApiDefinition.Url)
-		}
+			if appSiteConfig.ApiDefinition != nil {
+				s.ApiDefinition = pointer.From(appSiteConfig.ApiDefinition.Url)
+			}
 
-		if appSiteConfig.LinuxFxVersion != nil {
-			var linuxAppStack ApplicationStackLinux
-			s.LinuxFxVersion = pointer.From(appSiteConfig.LinuxFxVersion)
+			if appSiteConfig.LinuxFxVersion != nil {
+				var linuxAppStack ApplicationStackLinux
+				s.LinuxFxVersion = pointer.From(appSiteConfig.LinuxFxVersion)
 
-			linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
-			s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
+				linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
+				s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
+			}
 		}
 	}
 }
