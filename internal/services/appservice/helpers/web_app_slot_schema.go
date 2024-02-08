@@ -5,7 +5,6 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 	"strconv"
 	"strings"
 
@@ -885,13 +884,13 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 
 	}
 	if appSiteSlotConfig.IPSecurityRestrictionsDefaultAction != nil {
-		if strings.EqualFold(string(*appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+		if strings.EqualFold(string(*appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
 			s.IpAccessEnabled = false
 		}
 	}
 
 	if appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
-		if strings.EqualFold(string(*appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+		if strings.EqualFold(string(*appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
 			s.ScmIpAccessEnabled = false
 		}
 	}
@@ -1376,13 +1375,13 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	}
 
 	if appSiteSlotConfig.IPSecurityRestrictionsDefaultAction != nil {
-		if strings.EqualFold(string(*appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+		if strings.EqualFold(string(*appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
 			s.IpAccessEnabled = false
 		}
 	}
 
 	if appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
-		if strings.EqualFold(string(*appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+		if strings.EqualFold(string(*appSiteSlotConfig.ScmIPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
 			s.ScmIpAccessEnabled = false
 		}
 	}

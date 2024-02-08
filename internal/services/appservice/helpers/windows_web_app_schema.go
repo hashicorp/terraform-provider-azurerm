@@ -5,7 +5,6 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 	"strconv"
 	"strings"
 
@@ -847,13 +846,13 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 
 		if appSiteConfig.IPSecurityRestrictionsDefaultAction != nil {
-			if strings.EqualFold(string(*appSiteConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+			if strings.EqualFold(string(*appSiteConfig.IPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
 				s.IpAccessEnabled = false
 			}
 		}
 
 		if appSiteConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
-			if strings.EqualFold(string(*appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+			if strings.EqualFold(string(*appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
 				s.ScmIpAccessEnabled = false
 			}
 		}
