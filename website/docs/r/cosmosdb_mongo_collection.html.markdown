@@ -72,8 +72,6 @@ The `index` block supports the following:
 
 * `unique` - (Optional) Is the index unique or not? Defaults to `false`.
 
-~> **Note:** An index with an "_id" key must be specified.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
