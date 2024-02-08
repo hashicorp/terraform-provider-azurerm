@@ -6,7 +6,8 @@ FEATURES:
 * **New Resource**: `azurerm_chaos_studio_experiment` [GH-24779]
 * **New Resource**: `azurerm_dev_center_gallery` [GH-23760]
 * **New Resource:** `azurerm_kubernetes_fleet_member` [GH-24792]
-
+* **New Resource:** `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` [GH-24750]
+  
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24819]
