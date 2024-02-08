@@ -114,9 +114,9 @@ resource "azurerm_kubernetes_fleet_update_run" "test" {
     }
   }
   fleet_update_strategy_id = azurerm_kubernetes_fleet_update_strategy.test.id
-  
+
   lifecycle {
-	ignore_changes = [stage]
+    ignore_changes = [stage]
   }
   depends_on = [azurerm_kubernetes_fleet_member.test]
 }
