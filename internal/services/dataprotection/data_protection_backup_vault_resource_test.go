@@ -174,7 +174,6 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
-  soft_delete_setting = "Off"
 }
 `, template, data.RandomInteger)
 }
@@ -190,7 +189,6 @@ resource "azurerm_data_protection_backup_vault" "import" {
   location            = azurerm_data_protection_backup_vault.test.location
   datastore_type      = azurerm_data_protection_backup_vault.test.datastore_type
   redundancy          = azurerm_data_protection_backup_vault.test.redundancy
-  soft_delete_setting = azurerm_data_protection_backup_vault.test.soft_delete_setting
 }
 `, config)
 }
@@ -209,7 +207,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   identity {
     type = "SystemAssigned"
   }
-  soft_delete_setting        = "On"
+  soft_delete_setting        = "Off"
   retention_duration_in_days = 14
   tags = {
     ENV = "Test"
@@ -252,7 +250,6 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
-  soft_delete_setting = "Off"
   tags = {
     ENV = "Test"
   }
@@ -271,7 +268,6 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "ZoneRedundant"
-  soft_delete_setting = "Off"
 }
 `, template, data.RandomInteger)
 }

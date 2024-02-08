@@ -76,6 +76,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			"retention_duration_in_days": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
+				Default:      14,
 				ValidateFunc: validation.FloatBetween(14, 180),
 			},
 
@@ -92,14 +93,6 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("soft_delete_setting", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
-			}),
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				state := d.Get("soft_delete_setting").(string)
-				_, ok := d.GetOk("retention_duration_in_days")
-				if state == string(backupvaults.SoftDeleteStateOn) && !ok {
-					return fmt.Errorf("`retention_duration_in_days` is required when the `soft_delete_setting` is `On`")
-				}
-				return nil
 			}),
 		),
 	}
