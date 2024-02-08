@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags"
 ```
 
@@ -40,7 +41,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tags.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 payload := tags.TagsResource{
 	// ...
@@ -89,7 +90,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tags.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 if err := client.DeleteAtScopeThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -117,7 +118,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tags.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.GetAtScope(ctx, id)
 if err != nil {
@@ -133,7 +134,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := tags.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -150,7 +151,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := tags.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 payload := tags.TagsPatchResource{
 	// ...

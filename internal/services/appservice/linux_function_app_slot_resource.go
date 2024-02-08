@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -412,16 +411,16 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
 					nameSuffix := "appserviceenvironment.net"
 					if ase.Id != nil {
-						aseId, err := parse.AppServiceEnvironmentID(*ase.Id)
+						aseId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*ase.Id)
 						nameSuffix = fmt.Sprintf("%s.%s", aseId.HostingEnvironmentName, nameSuffix)
 						if err != nil {
 							metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
 						} else {
-							existingASE, err := aseClient.Get(ctx, aseId.ResourceGroup, aseId.HostingEnvironmentName)
-							if err != nil {
+							existingASE, err := aseClient.Get(ctx, *aseId)
+							if err != nil || existingASE.Model == nil {
 								metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", functionAppSlot.Name, servicePlanId)
-							} else if props := existingASE.AppServiceEnvironment; props != nil && props.DNSSuffix != nil && *props.DNSSuffix != "" {
-								nameSuffix = *props.DNSSuffix
+							} else if props := existingASE.Model.Properties; props != nil && props.DnsSuffix != nil && *props.DnsSuffix != "" {
+								nameSuffix = *props.DnsSuffix
 							}
 						}
 					}

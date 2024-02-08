@@ -608,16 +608,17 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.Sql = sql.NewClient(o)
 	if client.Storage, err = storage.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for StorageMover: %+v", err)
+		return fmt.Errorf("building clients for Storage: %+v", err)
 	}
 	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Storage Cache: %+v", err)
 	}
 	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
-		return fmt.Errorf("building Storage for StorageMover: %+v", err)
+		return fmt.Errorf("building clients for StorageMover: %+v", err)
 	}
-	client.StreamAnalytics = streamAnalytics.NewClient(o)
-
+	if client.StreamAnalytics, err = streamAnalytics.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for StreamAnalytics: %+v", err)
+	}
 	if client.Subscription, err = subscription.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Subscription: %+v", err)
 	}

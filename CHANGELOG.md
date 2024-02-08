@@ -1,3 +1,28 @@
+## 3.91.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: `azurerm_chaos_studio_capability` [GH-24779]
+* **New Resource**: `azurerm_chaos_studio_experiment` [GH-24779]
+* **New Resource**: `azurerm_dev_center_gallery` [GH-23760]
+* **New Resource:** `azurerm_kubernetes_fleet_member` [GH-24792]
+* **New Resource:** `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` [GH-24750]
+  
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24819]
+* dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24819]
+* dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` [GH-24760]
+* dependencies: refactor `azurerm_role_definition` to use `go-azure-sdk` [GH-24266]
+* `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
+* `azurerm_storage_account` - Support `local_user_enabled` [GH-24800]
+* `streamanalytics`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
+* `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties [GH-24716]
+
+BUG FIXES:
+
+* `azurerm_api_management` -  `virtual_network_configuration` now updates correctly outside of `virtual_network_type` [GH-24569]
+
 ## 3.90.0 (February 01, 2024)
 
 UPGRADE NOTES:
