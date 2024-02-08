@@ -15,7 +15,8 @@ ENHANCEMENTS:
 * dependencies: refactor `azurerm_role_definition` to use `go-azure-sdk` [GH-24266]
 * `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
 * `azurerm_storage_account` - Support `local_user_enabled` [GH-24800]
-* * `streamanalytics`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
+* `streamanalytics`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
+* `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties [GH-24716]
 
 BUG FIXES:
 
