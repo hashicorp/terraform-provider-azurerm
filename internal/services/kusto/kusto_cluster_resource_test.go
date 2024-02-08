@@ -246,7 +246,17 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("0"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
 			),
 		},
 		data.ImportStep(),
