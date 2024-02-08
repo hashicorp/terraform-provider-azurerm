@@ -27,16 +27,29 @@ resource "azurerm_kubernetes_fleet_manager" "example" {
   }
 }
 
-resource "azurerm_kubernetes_fleet_update_strategy" "example" {
-  name                        = "example"
-  kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.example.id
-  stage {
-    name = "example-stage-1"
-    group {
-      name = "example-group-1"
-    }
-    after_stage_wait_in_seconds = 21
+
+resource "azurerm_kubernetes_cluster" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  dns_prefix          = "example"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_fleet_member" "example" {
+  name                  = "example"
+  kubernetes_fleet_id   = azurerm_kubernetes_fleet_manager.example.id
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.example.id
+  group                 = "example-group"
 }
 
 resource "azurerm_kubernetes_fleet_update_run" "example" {
@@ -51,7 +64,13 @@ resource "azurerm_kubernetes_fleet_update_run" "example" {
       type = "Latest"
     }
   }
-  fleet_update_strategy_id = azurerm_kubernetes_fleet_update_strategy.example.id
+  stage {
+    name = "example"
+    group {
+      name = "example-group"
+    }
+    after_stage_wait_in_seconds = 21
+  }
 }
 ```
 
@@ -65,7 +84,7 @@ The following arguments are supported:
 
 * `managed_cluster_update` - (Required) A `managed_cluster_update` block as defined below.
 
-* `fleet_update_strategy_id` - (Optional) The ID of the Fleet Update Strategy. Only one of `fleet_update_strategy_id` or `fleet_update_strategy` can be specified. 
+* `fleet_update_strategy_id` - (Optional) The ID of the Fleet Update Strategy. Only one of `fleet_update_strategy_id` or `stage` can be specified. 
 
 * `stage` - (Optional) One or more `stage` blocks as defined below. Only one of `stage` or `fleet_update_strategy_id` can be specified.
 
