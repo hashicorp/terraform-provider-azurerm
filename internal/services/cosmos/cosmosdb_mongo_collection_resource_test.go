@@ -280,11 +280,6 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
-  index {
-    keys   = ["uid"]
-    unique = true
-  }
-
   shard_key           = "seven"
   default_ttl_seconds = 707
 }
@@ -300,11 +295,6 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
-
-  index {
-    keys   = ["uid"]
-    unique = true
-  }
 
   shard_key           = "seven"
   default_ttl_seconds = 70707
@@ -342,11 +332,6 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
   shard_key           = "seven"
-
-  index {
-    keys   = ["uid"]
-    unique = true
-  }
 
   autoscale_settings {
     max_throughput = %[3]d
