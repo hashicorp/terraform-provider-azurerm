@@ -5,6 +5,7 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 	"strconv"
 	"strings"
 
@@ -462,12 +463,12 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
 	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
-	expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
-	expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
-	expanded.LoadBalancing = web.SiteLoadBalancing(s.LoadBalancing)
-	expanded.LocalMySQLEnabled = pointer.To(s.LocalMysql)
-	expanded.ManagedPipelineMode = web.ManagedPipelineMode(s.ManagedPipelineMode)
-	expanded.MinTLSVersion = web.SupportedTLSVersions(s.MinTlsVersion)
+	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
+	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
+	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
+	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
+	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
+	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
@@ -564,11 +565,11 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	}
 
 	if !s.IpAccessEnabled {
-		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 	}
 
 	if !s.ScmIpAccessEnabled {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 	}
 
 	if len(s.IpRestriction) != 0 {
@@ -633,16 +634,16 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_access_enabled") {
-		expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 		if !s.IpAccessEnabled {
-			expanded.IPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+			expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_access_enabled") {
-		expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionAllow
+		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 		if !s.ScmIpAccessEnabled {
-			expanded.ScmIPSecurityRestrictionsDefaultAction = web.DefaultActionDeny
+			expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 		}
 	}
 
@@ -845,12 +846,16 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 
-		if strings.EqualFold(string(appSiteConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
-			s.IpAccessEnabled = false
+		if appSiteConfig.IPSecurityRestrictionsDefaultAction != nil {
+			if strings.EqualFold(string(*appSiteConfig.IPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+				s.IpAccessEnabled = false
+			}
 		}
 
-		if strings.EqualFold(string(appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
-			s.ScmIpAccessEnabled = false
+		if appSiteConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
+			if strings.EqualFold(string(*appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(web.DefaultActionDeny)) {
+				s.ScmIpAccessEnabled = false
+			}
 		}
 	}
 
