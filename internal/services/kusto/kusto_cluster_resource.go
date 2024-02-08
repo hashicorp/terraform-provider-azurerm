@@ -432,7 +432,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
 			if sku.Capacity == nil {
-				return fmt.Errorf("sku.capacity could not be empty")
+				return fmt.Errorf("sku.capacity cannot be empty")
 			}
 			// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
 			if *sku.Capacity < optimizedAutoScale.Minimum {
