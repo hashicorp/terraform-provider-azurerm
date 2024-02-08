@@ -9,12 +9,13 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240206.1080438` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24794]
-* dependencies: updating to `v0.20240206.1080438` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24794]
+* dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24819]
+* dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24819]
 * dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` [GH-24760]
 * dependencies: refactor `azurerm_role_definition` to use `go-azure-sdk` [GH-24266]
 * `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
 * `azurerm_storage_account` - Support `local_user_enabled` [GH-24800]
+* * `streamanalytics`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
 
 BUG FIXES:
 
