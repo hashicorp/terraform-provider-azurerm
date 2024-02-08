@@ -263,7 +263,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 }
@@ -281,7 +281,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 
@@ -302,7 +302,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 
@@ -323,7 +323,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 
@@ -344,7 +344,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   shard_key           = "seven"
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 
@@ -382,7 +382,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   }
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 }
@@ -406,7 +406,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 }
@@ -430,7 +430,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 }
@@ -454,7 +454,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 
@@ -472,7 +472,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = azurerm_cosmosdb_mongo_database.test.account_name
   database_name       = azurerm_cosmosdb_mongo_database.test.name
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
   autoscale_settings {
@@ -493,7 +493,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = azurerm_cosmosdb_mongo_database.test.name
 
   index {
-    keys   = ["_id"]
+    keys   = ["uid"]
     unique = true
   }
 
