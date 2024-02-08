@@ -329,18 +329,8 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 			for k := range res.ShardKey {
 				d.Set("shard_key", k)
 			}
-			accountIsVersion36 := false
-			if accProps := accResp.DatabaseAccountGetProperties; accProps != nil {
-				if capabilities := accProps.Capabilities; capabilities != nil {
-					for _, v := range *capabilities {
-						if v.Name != nil && *v.Name == "EnableMongo" {
-							accountIsVersion36 = true
-						}
-					}
-				}
-			}
 
-			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, accountIsVersion36)
+			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes)
 			// In fact, the Azure API does not return `ExpireAfterSeconds` aka `default_ttl_seconds` when `default_ttl_seconds` is not set in tf the config.
 			// When "default_ttl_seconds" is set to nil, it will be set to 0 in state file. 0 is invalid value for `default_ttl_seconds` and could not pass tf validation.
 			// So when `default_ttl_seconds` is not set in tf config, we should not set the value of `default_ttl_seconds` but keep null in the state file.
@@ -435,7 +425,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 	return &results
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
 	indexes := make([]map[string]interface{}, 0)
 	systemIndexes := make([]map[string]interface{}, 0)
 	var ttl *int32
@@ -458,12 +448,6 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, accountIs
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
-
-				if accountIsVersion36 {
-					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
-					index["unique"] = true
-					indexes = append(indexes, index)
-				}
 
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
