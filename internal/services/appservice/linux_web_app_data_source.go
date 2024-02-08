@@ -346,7 +346,6 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 
 			webApp.PublishingFTPBasicAuthEnabled = basicAuthFTP
 			webApp.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
-			webApp.AuthSettings = helpers.FlattenAuthSettings(auth.Model)
 			webApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 			webApp.Backup = helpers.FlattenBackupConfig(backup.Model)
 			webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig.Model)
@@ -397,13 +396,13 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 				if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
 					userSetDefault = true
 				}
-				webApp.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
+				webApp.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
 
 				webApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
-				webApp.Backup = helpers.FlattenBackupConfig(backup)
+				webApp.Backup = helpers.FlattenBackupConfig(backup.Model)
 
-				webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
+				webApp.LogsConfig = helpers.FlattenLogsConfig(logsConfig.Model)
 
 				siteConfig := helpers.SiteConfigLinux{}
 				siteConfig.Flatten(webAppSiteConfig.Model.Properties)

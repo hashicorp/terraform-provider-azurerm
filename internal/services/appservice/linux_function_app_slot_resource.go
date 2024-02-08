@@ -717,7 +717,6 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
-					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),
 					StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
@@ -773,7 +772,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 
 					state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata)
 
-					state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+					state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
 
 					state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
@@ -781,7 +780,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
 						userSetDefault = true
 					}
-					state.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
+					state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
 
 					state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
@@ -799,210 +798,210 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("encoding: %+v", err)
 					}
 				}
-					}
-
-					return nil
-				},
 			}
-		}
 
-		func(r LinuxFunctionAppSlotResource) Delete() sdk.ResourceFunc {
-		return sdk.ResourceFunc{
+			return nil
+		},
+	}
+}
+
+func (r LinuxFunctionAppSlotResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func (ctx context.Context, metadata sdk.ResourceMetaData) error {
-		client := metadata.Client.AppService.WebAppsClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppService.WebAppsClient
 			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
-		if err != nil {
-		return err
-		}
+			if err != nil {
+				return err
+			}
 
-		metadata.Logger.Infof("deleting Linux %s", *id)
+			metadata.Logger.Infof("deleting Linux %s", *id)
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
 				DeleteMetrics:         pointer.To(false),
 			}
 
 			if _, err := client.DeleteSlot(ctx, *id, delOpts); err != nil {
-		return fmt.Errorf("deleting Linux %s: %+v", id, err)
-		}
-		return nil
+				return fmt.Errorf("deleting Linux %s: %+v", id, err)
+			}
+			return nil
 		},
-		}
-		}
+	}
+}
 
-		func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
-		return sdk.ResourceFunc{
+func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func (ctx context.Context, metadata sdk.ResourceMetaData) error {
-		storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
-		if !ok {
-		return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
-		}
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
 
-		client := metadata.Client.AppService.WebAppsClient
+			client := metadata.Client.AppService.WebAppsClient
 
 			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
-		if err != nil {
-		return err
-		}
+			if err != nil {
+				return err
+			}
 
-		var state LinuxFunctionAppSlotModel
-		if err := metadata.Decode(&state); err != nil {
-		return fmt.Errorf("decoding: %+v", err)
-		}
+			var state LinuxFunctionAppSlotModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
 			existing, err := client.GetSlot(ctx, *id)
 			if err != nil || existing.Model == nil {
-		return fmt.Errorf("reading Linux %s: %v", id, err)
-		}
+				return fmt.Errorf("reading Linux %s: %v", id, err)
+			}
 
 			model := *existing.Model
 
 			_, planSKU, err := helpers.ServicePlanInfoForAppSlot(ctx, metadata, *id)
-		if err != nil {
-		return err
-		}
+			if err != nil {
+				return err
+			}
 
-		if metadata.ResourceData.HasChange("service_plan_id") {
-		o, n := metadata.ResourceData.GetChange("service_plan_id")
+			if metadata.ResourceData.HasChange("service_plan_id") {
+				o, n := metadata.ResourceData.GetChange("service_plan_id")
 				oldPlan, err := commonids.ParseAppServicePlanID(o.(string))
-		if err != nil {
-		return err
-		}
+				if err != nil {
+					return err
+				}
 
 				newPlan, err := commonids.ParseAppServicePlanID(n.(string))
-		if err != nil {
-		return err
-		}
-		locks.ByID(oldPlan.ID())
-		defer locks.UnlockByID(oldPlan.ID())
-		locks.ByID(newPlan.ID())
-		defer locks.UnlockByID(newPlan.ID())
+				if err != nil {
+					return err
+				}
+				locks.ByID(oldPlan.ID())
+				defer locks.UnlockByID(oldPlan.ID())
+				locks.ByID(newPlan.ID())
+				defer locks.UnlockByID(newPlan.ID())
 				if model.Properties == nil {
-		return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
-		}
+					return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
+				}
 				model.Properties.ServerFarmId = pointer.To(newPlan.ID())
-		}
+			}
 
-		sendContentSettings := helpers.PlanIsElastic(planSKU) && !state.ForceDisableContentShare
+			sendContentSettings := helpers.PlanIsElastic(planSKU) && !state.ForceDisableContentShare
 
-		if metadata.ResourceData.HasChange("enabled") {
+			if metadata.ResourceData.HasChange("enabled") {
 				model.Properties.Enabled = pointer.To(state.Enabled)
-		}
+			}
 
-		if metadata.ResourceData.HasChange("https_only") {
+			if metadata.ResourceData.HasChange("https_only") {
 				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
-		}
+			}
 
-		if metadata.ResourceData.HasChange("client_certificate_enabled") {
+			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
-		}
+			}
 
-		if metadata.ResourceData.HasChange("client_certificate_mode") {
+			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
-		}
+			}
 
-		if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
-		}
+			}
 
-		if metadata.ResourceData.HasChange("identity") {
+			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
-		if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-		}
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
 				model.Identity = expandedIdentity
-		}
+			}
 
-		if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
 				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
-		}
+			}
 
-		if metadata.ResourceData.HasChange("tags") {
+			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = pointer.To(state.Tags)
-		}
+			}
 
-		if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
-		subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
-		if subnetId == "" {
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
 					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, *id); err != nil {
-		return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
-		}
-		var empty *string
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
 					model.Properties.VirtualNetworkSubnetId = empty
-		} else {
+				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
-		}
-		}
+				}
+			}
 
-		storageString := state.StorageAccountName
-		if !state.StorageUsesMSI {
-		if state.StorageKeyVaultSecretID != "" {
-		storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
-		} else {
-		storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
-		}
-		}
+			storageString := state.StorageAccountName
+			if !state.StorageUsesMSI {
+				if state.StorageKeyVaultSecretID != "" {
+					storageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
+				} else {
+					storageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountKey, *storageDomainSuffix)
+				}
+			}
 
-		if metadata.ResourceData.HasChange("storage_account") {
-		storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, *id, *storageAccountUpdate); err != nil {
-		return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
-		}
-		}
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
 
-		if sendContentSettings {
+			if sendContentSettings {
 				appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, *id)
-		if err != nil {
-		return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
-		}
-		if state.AppSettings == nil {
-		state.AppSettings = make(map[string]string)
-		}
+				if err != nil {
+					return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
+				}
+				if state.AppSettings == nil {
+					state.AppSettings = make(map[string]string)
+				}
 				state.AppSettings = helpers.ParseContentSettings(appSettingsResp.Model, state.AppSettings)
-		}
+			}
 
-		// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
+			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
 			siteConfig, err := helpers.ExpandSiteConfigLinuxFunctionAppSlot(state.SiteConfig, model.Properties.SiteConfig, metadata, state.FunctionExtensionsVersion, storageString, state.StorageUsesMSI)
-		if state.BuiltinLogging {
-		if state.AppSettings == nil && !state.StorageUsesMSI {
-		state.AppSettings = make(map[string]string)
-		}
-		if !state.StorageUsesMSI {
-		state.AppSettings["AzureWebJobsDashboard"] = storageString
-		} else {
-		state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
-		}
-		}
+			if state.BuiltinLogging {
+				if state.AppSettings == nil && !state.StorageUsesMSI {
+					state.AppSettings = make(map[string]string)
+				}
+				if !state.StorageUsesMSI {
+					state.AppSettings["AzureWebJobsDashboard"] = storageString
+				} else {
+					state.AppSettings["AzureWebJobsDashboard__accountName"] = state.StorageAccountName
+				}
+			}
 
-		if metadata.ResourceData.HasChange("site_config") {
-		if err != nil {
-		return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
-		}
+			if metadata.ResourceData.HasChange("site_config") {
+				if err != nil {
+					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
+				}
 				model.Properties.SiteConfig = siteConfig
 				model.Properties.VnetRouteAllEnabled = model.Properties.SiteConfig.VnetRouteAllEnabled
-		}
+			}
 
-		if metadata.ResourceData.HasChange("site_config.0.application_stack") {
+			if metadata.ResourceData.HasChange("site_config.0.application_stack") {
 				model.Properties.SiteConfig.LinuxFxVersion = helpers.EncodeFunctionAppLinuxFxVersion(state.SiteConfig[0].ApplicationStack)
-		}
+			}
 
 			model.Properties.SiteConfig.AppSettings = helpers.MergeUserAppSettings(siteConfig.AppSettings, state.AppSettings)
 
-		if metadata.ResourceData.HasChange("public_network_access_enabled") {
-		pan := helpers.PublicNetworkAccessEnabled
-		if !state.PublicNetworkAccess {
-		pan = helpers.PublicNetworkAccessDisabled
-		}
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pan := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pan = helpers.PublicNetworkAccessDisabled
+				}
 
-		// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pan)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
-		}
+			}
 
 			if err := client.CreateOrUpdateSlotThenPoll(ctx, *id, model); err != nil {
-		return fmt.Errorf("updating Linux %s: %+v", id, err)
-		}
+				return fmt.Errorf("updating Linux %s: %+v", id, err)
+			}
 
 			if metadata.ResourceData.HasChange("ftp_publish_basic_authentication_enabled") {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
@@ -1013,7 +1012,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				if _, err := client.UpdateFtpAllowedSlot(ctx, *id, sitePolicy); err != nil {
 					return fmt.Errorf("setting basic auth for ftp publishing credentials for %s: %+v", id, err)
 				}
-		}
+			}
 
 			if metadata.ResourceData.HasChange("webdeploy_publish_basic_authentication_enabled") {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
@@ -1027,84 +1026,84 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			if _, err := client.UpdateConfigurationSlot(ctx, *id, webapps.SiteConfigResource{Properties: siteConfig}); err != nil {
-		return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
-		}
+				return fmt.Errorf("updating Site Config for Linux %s: %+v", id, err)
+			}
 
-		if metadata.ResourceData.HasChange("connection_string") {
-		connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
-		if connectionStringUpdate.Properties == nil {
+			if metadata.ResourceData.HasChange("connection_string") {
+				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
+				if connectionStringUpdate.Properties == nil {
 					connectionStrings := make(map[string]webapps.ConnStringValueTypePair)
 					connectionStringUpdate.Properties = pointer.To(connectionStrings)
-		}
+				}
 				if _, err := client.UpdateConnectionStringsSlot(ctx, *id, *connectionStringUpdate); err != nil {
-		return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
-		}
-		}
+					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
 
-		if metadata.ResourceData.HasChange("auth_settings") {
-		authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
-		// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
+			if metadata.ResourceData.HasChange("auth_settings") {
+				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
 					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-		Enabled:                           pointer.To(false),
-		ClientSecret:                      pointer.To(""),
-		ClientSecretSettingName:           pointer.To(""),
-		ClientSecretCertificateThumbprint: pointer.To(""),
-		GoogleClientSecret:                pointer.To(""),
-		FacebookAppSecret:                 pointer.To(""),
-		GitHubClientSecret:                pointer.To(""),
-		TwitterConsumerSecret:             pointer.To(""),
-		MicrosoftAccountClientSecret:      pointer.To(""),
-		}
-		}
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, *id, *authUpdate); err != nil {
-		return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
-		}
-		}
+					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+				}
+			}
 
-		if metadata.ResourceData.HasChange("auth_settings_v2") {
-		authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
-		return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
-		}
-		}
+					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+				}
+			}
 
-		if metadata.ResourceData.HasChange("backup") {
-		backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
-		if err != nil {
-		return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
-		}
+			if metadata.ResourceData.HasChange("backup") {
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
+				}
 				if backupUpdate.Properties == nil {
 					if _, err := client.DeleteBackupConfigurationSlot(ctx, *id); err != nil {
-		return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)
-		}
-		} else {
+						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)
+					}
+				} else {
 					if _, err := client.UpdateBackupConfigurationSlot(ctx, *id, *backupUpdate); err != nil {
-		return fmt.Errorf("updating Backup Settings for Linux %s: %+v", id, err)
-		}
-		}
-		}
+						return fmt.Errorf("updating Backup Settings for Linux %s: %+v", id, err)
+					}
+				}
+			}
 
-		if metadata.ResourceData.HasChange("site_config.0.app_service_logs") {
-		appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(state.SiteConfig[0].AppServiceLogs)
+			if metadata.ResourceData.HasChange("site_config.0.app_service_logs") {
+				appServiceLogs := helpers.ExpandFunctionAppAppServiceLogs(state.SiteConfig[0].AppServiceLogs)
 				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, *id, appServiceLogs); err != nil {
-		return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
-		}
-		}
+					return fmt.Errorf("updating App Service Log Settings for %s: %+v", id, err)
+				}
+			}
 
-		return nil
+			return nil
 		},
-		}
-		}
+	}
+}
 
 func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps.StringDictionary, metadata sdk.ResourceMetaData) {
-		if input.Properties == nil {
+	if input.Properties == nil {
 		return
-		}
+	}
 
-		appSettings := make(map[string]string)
-		var dockerSettings helpers.ApplicationStackDocker
-		m.BuiltinLogging = false
+	appSettings := make(map[string]string)
+	var dockerSettings helpers.ApplicationStackDocker
+	m.BuiltinLogging = false
 
 	for k, v := range *input.Properties {
 		switch k {
@@ -1113,25 +1112,25 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 
 		case "WEBSITE_NODE_DEFAULT_VERSION": // Note - This is only set if it's not the default of 12, but we collect it from LinuxFxVersion so can discard it here
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
-		if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"); ok {
 				appSettings[k] = v
-		}
+			}
 
 		case "WEBSITE_CONTENTSHARE":
-		if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_CONTENTSHARE"); ok {
 				appSettings[k] = v
-		}
+			}
 
 		case "WEBSITE_HTTPLOGGING_RETENTION_DAYS":
 		case "FUNCTIONS_WORKER_RUNTIME":
-		if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) == 0 {
+			if len(m.SiteConfig) > 0 && len(m.SiteConfig[0].ApplicationStack) == 0 {
 				if strings.EqualFold(v, "custom") {
-		m.SiteConfig[0].ApplicationStack = []helpers.ApplicationStackLinuxFunctionApp{{CustomHandler: true}}
-		}
-		}
-		if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
+					m.SiteConfig[0].ApplicationStack = []helpers.ApplicationStackLinuxFunctionApp{{CustomHandler: true}}
+				}
+			}
+			if _, ok := metadata.ResourceData.GetOk("app_settings.FUNCTIONS_WORKER_RUNTIME"); ok {
 				appSettings[k] = v
-		}
+			}
 
 		case "DOCKER_REGISTRY_SERVER_URL":
 			dockerSettings.RegistryURL = v
@@ -1153,29 +1152,29 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
 				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-		m.StorageKeyVaultSecretID = trimmed
-		} else {
-		m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
-		}
+				m.StorageKeyVaultSecretID = trimmed
+			} else {
+				m.StorageAccountName, m.StorageAccountKey = helpers.ParseWebJobsStorageString(v)
+			}
 
 		case "AzureWebJobsDashboard":
-		m.BuiltinLogging = true
+			m.BuiltinLogging = true
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(v)
 			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
 		case "AzureWebJobsStorage__accountName":
-		m.StorageUsesMSI = true
+			m.StorageUsesMSI = true
 			m.StorageAccountName = v
 
 		case "AzureWebJobsDashboard__accountName":
-		m.BuiltinLogging = true
+			m.BuiltinLogging = true
 
 		case "WEBSITE_RUN_FROM_PACKAGE":
-		if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
+			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
 				appSettings[k] = v
-		}
+			}
 
 		case "WEBSITE_VNET_ROUTE_ALL":
 		// Filter out - handled by site_config setting `vnet_route_all_enabled`
@@ -1183,17 +1182,17 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 		default:
 			appSettings[k] = v
 		}
-		}
+	}
 
-		if dockerSettings.RegistryURL != "" {
+	if dockerSettings.RegistryURL != "" {
 		appStack := make([]helpers.ApplicationStackLinuxFunctionApp, 0)
 		docker, _ := helpers.DecodeFunctionAppDockerFxString(m.SiteConfig[0].LinuxFxVersion, dockerSettings)
 		appStack = append(appStack, helpers.ApplicationStackLinuxFunctionApp{Docker: docker})
 		m.SiteConfig[0].ApplicationStack = appStack
-		}
+	}
 
-		m.AppSettings = appSettings
-		}
+	m.AppSettings = appSettings
+}
 
 func (r LinuxFunctionAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{

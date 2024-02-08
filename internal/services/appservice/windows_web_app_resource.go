@@ -621,7 +621,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 			state := WindowsWebAppModel{
 				Name:              id.SiteName,
 				ResourceGroup:     id.ResourceGroupName,
-				AuthSettings:      helpers.FlattenAuthSettings(auth.Model),
 				AuthV2Settings:    helpers.FlattenAuthV2Settings(authV2),
 				Backup:            helpers.FlattenBackupConfig(backup.Model),
 				ConnectionStrings: helpers.FlattenConnectionStrings(connectionStrings.Model),
@@ -655,16 +654,14 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return fmt.Errorf("parsing Service Plan ID for %s: %+v", id, err)
 					}
+
+					state.ServicePlanId = serverFarmId.ID()
+
 					userSetDefault := false
 					if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
 						userSetDefault = true
 					}
-					state.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
-
-					serverFarmId, err := parse.ServicePlanID(pointer.From(props.ServerFarmID))
-					if err != nil {
-						return fmt.Errorf("parsing Service Plan ID for %s: %+v", id, err)
-					}
+					state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
 
 					state.ServicePlanId = serverFarmId.ID()
 

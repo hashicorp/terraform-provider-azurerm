@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type LinuxFunctionAppResource struct{}
@@ -202,11 +201,11 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"client_certificate_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  web.ClientCertModeOptional,
+			Default:  webapps.ClientCertModeOptional,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(web.ClientCertModeOptional),
-				string(web.ClientCertModeRequired),
-				string(web.ClientCertModeOptionalInteractiveUser),
+				string(webapps.ClientCertModeOptional),
+				string(webapps.ClientCertModeRequired),
+				string(webapps.ClientCertModeOptionalInteractiveUser),
 			}, false),
 			Description: "The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser` ",
 		},
@@ -743,7 +742,6 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 					StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
 					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
-					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),
 					PublishingFTPBasicAuthEnabled:    basicAuthFTP,
@@ -801,7 +799,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 
 					state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata)
 
-					state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings)
+					state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
 
 					state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
 
@@ -809,7 +807,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
 						userSetDefault = true
 					}
-					state.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
+					state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
 
 					state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 

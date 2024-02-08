@@ -6,6 +6,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -579,7 +579,6 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					Kind:                             pointer.From(model.Kind),
 					Tags:                             pointer.From(model.Tags),
 					AppSettings:                      helpers.FlattenWebStringDictionary(appSettings.Model),
-					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),
 					LogsConfig:                       helpers.FlattenLogsConfig(logsConfig.Model),
@@ -631,7 +630,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
+				state.AppSettings = helpers.FlattenWebStringDictionary(appSettings.Model)
 				if err != nil {
 					return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
 				}
@@ -640,11 +639,11 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
 					userSetDefault = true
 				}
-				state.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
+				state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
 
 				state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
-				state.Backup = helpers.FlattenBackupConfig(backup)
+				state.Backup = helpers.FlattenBackupConfig(backup.Model)
 
 				siteConfig := helpers.SiteConfigLinuxWebAppSlot{}
 				siteConfig.Flatten(webAppSiteSlotConfig.Model.Properties)
@@ -684,25 +683,24 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("encoding: %+v", err)
 				}
 
-				}
+			}
 
-				return nil
-			},
+			return nil
 		},
 	}
+}
 
-	func(r LinuxWebAppSlotResource) Delete()
-	sdk.ResourceFunc{
-		return sdk.ResourceFunc{
+func (r LinuxWebAppSlotResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func (ctx context.Context, metadata sdk.ResourceMetaData) error{
-		client := metadata.Client.AppService.WebAppsClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppService.WebAppsClient
 			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
-		if err != nil{
-		return err
-	}
+			if err != nil {
+				return err
+			}
 
-		metadata.Logger.Infof("deleting %s", *id)
+			metadata.Logger.Infof("deleting %s", *id)
 
 			delOpts := webapps.DeleteSlotOperationOptions{
 				DeleteEmptyServerFarm: pointer.To(false),
@@ -710,39 +708,38 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 			}
 
 			if _, err := client.DeleteSlot(ctx, *id, delOpts); err != nil {
-		return fmt.Errorf("deleting Linux %s: %+v", id, err)
+				return fmt.Errorf("deleting Linux %s: %+v", id, err)
+			}
+			return nil
+		},
 	}
-		return nil
-	},
-	}
-	}
+}
 
-	func(r LinuxWebAppSlotResource) Update()
-	sdk.ResourceFunc{
-		return sdk.ResourceFunc{
+func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func (ctx context.Context, metadata sdk.ResourceMetaData) error{
-		client := metadata.Client.AppService.WebAppsClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppService.WebAppsClient
 
 			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
-		if err != nil{
-		return err
-	}
+			if err != nil {
+				return err
+			}
 
-		var state LinuxWebAppSlotModel
-		if err := metadata.Decode(&state); err != nil{
-		return fmt.Errorf("decoding: %+v", err)
-	}
+			var state LinuxWebAppSlotModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
 			existing, err := client.GetSlot(ctx, *id)
-		if err != nil{
-		return fmt.Errorf("reading Linux %s: %v", id, err)
-	}
+			if err != nil {
+				return fmt.Errorf("reading Linux %s: %v", id, err)
+			}
 
 			model := *existing.Model
 
 			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
-		if metadata.ResourceData.HasChange("service_plan_id"){
+			if metadata.ResourceData.HasChange("service_plan_id") {
 				webApp, err := client.Get(ctx, appId)
 				if err != nil {
 					return fmt.Errorf("reading parent Windows Web App for %s: %+v", id, err)
@@ -755,16 +752,16 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					return err
 				}
 
-		o, n := metadata.ResourceData.GetChange("service_plan_id")
+				o, n := metadata.ResourceData.GetChange("service_plan_id")
 				oldPlan, err := commonids.ParseAppServicePlanID(o.(string))
-		if err != nil{
-		return err
-	}
+				if err != nil {
+					return err
+				}
 
 				newPlan, err := commonids.ParseAppServicePlanID(n.(string))
-		if err != nil{
-		return err
-	}
+				if err != nil {
+					return err
+				}
 
 				// we only set `service_plan_id` when it differs from the parent `service_plan_id` which is causing issues
 				// https://github.com/hashicorp/terraform-provider-azurerm/issues/21024
@@ -772,90 +769,90 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				if strings.EqualFold(newPlan.ID(), parentServicePlanId.ID()) {
 					return fmt.Errorf("`service_plan_id` should only be specified when it differs from the `service_plan_id` of the associated Web App")
 				}
-		locks.ByID(oldPlan.ID())
-		defer locks.UnlockByID(oldPlan.ID())
-		locks.ByID(newPlan.ID())
-		defer locks.UnlockByID(newPlan.ID())
+				locks.ByID(oldPlan.ID())
+				defer locks.UnlockByID(oldPlan.ID())
+				locks.ByID(newPlan.ID())
+				defer locks.UnlockByID(newPlan.ID())
 				if model.Properties == nil {
-		return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
-	}
+					return fmt.Errorf("updating Service Plan for Linux %s: Slot SiteProperties was nil", *id)
+				}
 				model.Properties.ServerFarmId = pointer.To(newPlan.ID())
-	}
+			}
 
-		if metadata.ResourceData.HasChange("enabled"){
+			if metadata.ResourceData.HasChange("enabled") {
 				model.Properties.Enabled = pointer.To(state.Enabled)
-	}
-		if metadata.ResourceData.HasChange("https_only"){
+			}
+			if metadata.ResourceData.HasChange("https_only") {
 				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
-	}
-		if metadata.ResourceData.HasChange("client_affinity_enabled"){
+			}
+			if metadata.ResourceData.HasChange("client_affinity_enabled") {
 				model.Properties.ClientAffinityEnabled = pointer.To(state.ClientAffinityEnabled)
-	}
-		if metadata.ResourceData.HasChange("client_certificate_enabled"){
+			}
+			if metadata.ResourceData.HasChange("client_certificate_enabled") {
 				model.Properties.ClientCertEnabled = pointer.To(state.ClientCertEnabled)
-	}
-		if metadata.ResourceData.HasChange("client_certificate_mode"){
+			}
+			if metadata.ResourceData.HasChange("client_certificate_mode") {
 				model.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(state.ClientCertMode))
-	}
-		if metadata.ResourceData.HasChange("client_certificate_exclusion_paths"){
+			}
+			if metadata.ResourceData.HasChange("client_certificate_exclusion_paths") {
 				model.Properties.ClientCertExclusionPaths = pointer.To(state.ClientCertExclusionPaths)
-	}
+			}
 
-		if metadata.ResourceData.HasChange("identity"){
+			if metadata.ResourceData.HasChange("identity") {
 				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
-		if err != nil{
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
 				model.Identity = expandedIdentity
-	}
+			}
 
-		if metadata.ResourceData.HasChange("key_vault_reference_identity_id"){
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
 				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
-	}
+			}
 
-		if metadata.ResourceData.HasChange("tags"){
+			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = pointer.To(state.Tags)
-	}
+			}
 
 			if metadata.ResourceData.HasChanges("site_config", "app_settings") {
-		sc := state.SiteConfig[0]
+				sc := state.SiteConfig[0]
 				siteConfig, err := sc.ExpandForUpdate(metadata, model.Properties.SiteConfig, state.AppSettings)
-		if err != nil{
-		return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
-	}
+				if err != nil {
+					return fmt.Errorf("expanding Site Config for Linux %s: %+v", id, err)
+				}
 				model.Properties.SiteConfig = siteConfig
 				model.Properties.VnetRouteAllEnabled = model.Properties.SiteConfig.VnetRouteAllEnabled
-	}
+			}
 
-		if metadata.ResourceData.HasChange("public_network_access_enabled"){
-		pna := helpers.PublicNetworkAccessEnabled
-		if !state.PublicNetworkAccess{
-		pna = helpers.PublicNetworkAccessDisabled
-	}
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				pna := helpers.PublicNetworkAccessEnabled
+				if !state.PublicNetworkAccess {
+					pna = helpers.PublicNetworkAccessDisabled
+				}
 
-		// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
-	}
+			}
 
-		if metadata.ResourceData.HasChange("virtual_network_subnet_id"){
-		subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
-		if subnetId == ""{
+			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
+				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
+				if subnetId == "" {
 					if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, *id); err != nil {
-		return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
-	}
-		var empty *string
+						return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
+					}
+					var empty *string
 					model.Properties.VirtualNetworkSubnetId = empty
-	} else{
+				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
-	}
-	}
+				}
+			}
 
 			if err := client.CreateOrUpdateSlotThenPoll(ctx, *id, model); err != nil {
-		return fmt.Errorf("updating Linux %s: %+v", id, err)
-	}
+				return fmt.Errorf("updating Linux %s: %+v", id, err)
+			}
 
-		// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
+			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChanges("app_settings", "site_config") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(model.Properties.SiteConfig.AppSettings)
 				appSettingsProps := *appSettingsUpdate.Properties
@@ -863,89 +860,89 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				appSettingsUpdate.Properties = &appSettingsProps
 
 				if _, err := client.UpdateApplicationSettingsSlot(ctx, *id, *appSettingsUpdate); err != nil {
-		return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
-	}
-	}
+					return fmt.Errorf("updating App Settings for Linux %s: %+v", id, err)
+				}
+			}
 
-		if metadata.ResourceData.HasChange("connection_string"){
-		connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
-		if connectionStringUpdate.Properties == nil{
+			if metadata.ResourceData.HasChange("connection_string") {
+				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
+				if connectionStringUpdate.Properties == nil {
 					connectionStringUpdate.Properties = &map[string]webapps.ConnStringValueTypePair{}
-	}
+				}
 				if _, err := client.UpdateConnectionStringsSlot(ctx, *id, *connectionStringUpdate); err != nil {
-		return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
-	}
-	}
+					return fmt.Errorf("updating Connection Strings for Linux %s: %+v", id, err)
+				}
+			}
 
-		updateLogs := false
+			updateLogs := false
 
-		if metadata.ResourceData.HasChange("auth_settings"){
-		authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
+			if metadata.ResourceData.HasChange("auth_settings") {
+				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				if authUpdate.Properties == nil {
 					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-		Enabled:                           pointer.To(false),
-		ClientSecret:                      pointer.To(""),
-		ClientSecretSettingName:           pointer.To(""),
-		ClientSecretCertificateThumbprint: pointer.To(""),
-		GoogleClientSecret:                pointer.To(""),
-		FacebookAppSecret:                 pointer.To(""),
-		GitHubClientSecret:                pointer.To(""),
-		TwitterConsumerSecret:             pointer.To(""),
-		MicrosoftAccountClientSecret:      pointer.To(""),
-	}
-		updateLogs = true
-	}
+						Enabled:                           pointer.To(false),
+						ClientSecret:                      pointer.To(""),
+						ClientSecretSettingName:           pointer.To(""),
+						ClientSecretCertificateThumbprint: pointer.To(""),
+						GoogleClientSecret:                pointer.To(""),
+						FacebookAppSecret:                 pointer.To(""),
+						GitHubClientSecret:                pointer.To(""),
+						TwitterConsumerSecret:             pointer.To(""),
+						MicrosoftAccountClientSecret:      pointer.To(""),
+					}
+					updateLogs = true
+				}
 				if _, err := client.UpdateAuthSettingsSlot(ctx, *id, *authUpdate); err != nil {
-		return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
-	}
-	}
+					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)
+				}
+			}
 
-		if metadata.ResourceData.HasChange("auth_settings_v2"){
-		authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+			if metadata.ResourceData.HasChange("auth_settings_v2") {
+				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
-		return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
-	}
-		updateLogs = true
-	}
+					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+				}
+				updateLogs = true
+			}
 
-		if metadata.ResourceData.HasChange("backup"){
-		backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
-		if err != nil{
-		return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
-	}
+			if metadata.ResourceData.HasChange("backup") {
+				backupUpdate, err := helpers.ExpandBackupConfig(state.Backup)
+				if err != nil {
+					return fmt.Errorf("expanding backup configuration for Linux %s: %+v", *id, err)
+				}
 				if backupUpdate.Properties == nil {
 					if _, err := client.DeleteBackupConfigurationSlot(ctx, *id); err != nil {
-		return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)
-	}
-	} else{
+						return fmt.Errorf("removing Backup Settings for Linux %s: %+v", id, err)
+					}
+				} else {
 					if _, err := client.UpdateBackupConfigurationSlot(ctx, *id, *backupUpdate); err != nil {
-		return fmt.Errorf("updating Backup Settings for Linux %s: %+v", id, err)
-	}
-	}
-	}
+						return fmt.Errorf("updating Backup Settings for Linux %s: %+v", id, err)
+					}
+				}
+			}
 
-		if metadata.ResourceData.HasChange("logs") || updateLogs{
-		logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
+			if metadata.ResourceData.HasChange("logs") || updateLogs {
+				logsUpdate := helpers.ExpandLogsConfig(state.LogsConfig)
 				if logsUpdate.Properties == nil {
-		logsUpdate = helpers.DisabledLogsConfig() // The API is update only, so we need to send an update with everything switched of when a user removes the "logs" block
-	}
+					logsUpdate = helpers.DisabledLogsConfig() // The API is update only, so we need to send an update with everything switched of when a user removes the "logs" block
+				}
 				if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, *id, *logsUpdate); err != nil {
-		return fmt.Errorf("updating Logs Config for Linux %s: %+v", id, err)
-	}
-	}
+					return fmt.Errorf("updating Logs Config for Linux %s: %+v", id, err)
+				}
+			}
 
-		if metadata.ResourceData.HasChange("storage_account"){
-		storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, *id, *storageAccountUpdate); err != nil {
-		return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
-	}
-	}
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
 
-		if metadata.ResourceData.HasChange("zip_deploy_file"){
+			if metadata.ResourceData.HasChange("zip_deploy_file") {
 				if err = helpers.GetCredentialsAndPublishSlot(ctx, client, *id, state.ZipDeployFile); err != nil {
-		return err
-	}
-	}
+					return err
+				}
+			}
 
 			if metadata.ResourceData.HasChange("ftp_publish_basic_authentication_enabled") {
 				sitePolicy := webapps.CsmPublishingCredentialsPoliciesEntity{
@@ -969,10 +966,10 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-		return nil
-	},
+			return nil
+		},
 	}
-	}
+}
 
 func (r LinuxWebAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{

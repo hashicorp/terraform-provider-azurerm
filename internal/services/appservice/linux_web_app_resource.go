@@ -602,7 +602,6 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					ResourceGroup:     id.ResourceGroupName,
 					Location:          location.Normalize(model.Location),
 					AppSettings:       helpers.FlattenWebStringDictionary(appSettings.Model),
-					AuthSettings:      helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:    helpers.FlattenAuthV2Settings(authV2),
 					Backup:            helpers.FlattenBackupConfig(backup.Model),
 					Kind:              pointer.From(model.Kind),
@@ -649,19 +648,19 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				state.AppSettings = helpers.FlattenWebStringDictionary(appSettings)
+				state.AppSettings = helpers.FlattenWebStringDictionary(appSettings.Model)
 
 				userSetDefault := false
 				if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
 					userSetDefault = true
 				}
-				state.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
+				state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
 
 				state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
-				state.Backup = helpers.FlattenBackupConfig(backup)
+				state.Backup = helpers.FlattenBackupConfig(backup.Model)
 
-				state.LogsConfig = helpers.FlattenLogsConfig(logsConfig)
+				state.LogsConfig = helpers.FlattenLogsConfig(logsConfig.Model)
 				state.PublishingFTPBasicAuthEnabled = basicAuthFTP
 				state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 

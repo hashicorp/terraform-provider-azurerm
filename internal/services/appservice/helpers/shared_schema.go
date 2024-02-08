@@ -1298,7 +1298,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 }
 
 func FlattenAuthSettings(auth *webapps.SiteAuthSettings, userSetDefault bool) []AuthSettings {
-	if auth == nil || auth.Properties == nil || !pointer.From(auth.Properties.Enabled) || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
+	if auth == nil || auth.Properties == nil || (!pointer.From(auth.Properties.Enabled) && !userSetDefault) || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
 		return []AuthSettings{}
 	}
 

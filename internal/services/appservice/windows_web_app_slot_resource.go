@@ -599,7 +599,6 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 			state := WindowsWebAppSlotModel{
 				Name:              id.SlotName,
 				AppServiceId:      appId.ID(),
-				AuthSettings:      helpers.FlattenAuthSettings(auth.Model),
 				AuthV2Settings:    helpers.FlattenAuthV2Settings(authV2),
 				Backup:            helpers.FlattenBackupConfig(backup.Model),
 				ConnectionStrings: helpers.FlattenConnectionStrings(connectionStrings.Model),
@@ -627,11 +626,11 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
-				userSetDefault := false
-				if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
-					userSetDefault = true
-				}
-				state.AuthSettings = helpers.FlattenAuthSettings(auth, userSetDefault)
+					userSetDefault := false
+					if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+						userSetDefault = true
+					}
+					state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
