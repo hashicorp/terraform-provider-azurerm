@@ -739,6 +739,8 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 	dataManagementPublicIPID := vnet["data_management_public_ip_id"].(string)
 
 	return &clusters.VirtualNetworkConfiguration{
+		// 'State' is hardcoded to 'Enabled' for the 'None' pattern.
+		// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
 		SubnetId:                 subnetID,
 		EnginePublicIPId:         enginePublicIPID,
 		DataManagementPublicIPId: dataManagementPublicIPID,
