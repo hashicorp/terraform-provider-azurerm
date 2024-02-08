@@ -352,12 +352,11 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
-
-			userSetDefault := false
-			if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
-				userSetDefault = true
-			}
-			webApp.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
+				userSetDefault := false
+				if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+					userSetDefault = true
+				}
+				webApp.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
 				basicAuthFTP := true
 				if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil || basicAuthFTPResp.Model == nil {
 					return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
@@ -374,7 +373,6 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 
 				webApp.PublishingFTPBasicAuthEnabled = basicAuthFTP
 				webApp.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
-
 
 				webApp.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
