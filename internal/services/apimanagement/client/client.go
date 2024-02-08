@@ -4,225 +4,429 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2021-08-01/apimanagement" // nolint: staticcheck
-	pandoraAPIMGlobalSchema "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/schema"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apidiagnostic"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationtag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apipolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apirelease"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apischema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apitag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apitagdescription"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apiversionset"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apiversionsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/authorizationserver"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/cache"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/diagnostic"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/emailtemplates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayapi"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewaycertificateauthority"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayhostnameconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/group"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/groupuser"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/identityprovider"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/namedvalue"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientemail"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientuser"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/openidconnectprovider"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productapi"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/producttag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signinsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/subscription"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tag"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ApiClient                          *apimanagement.APIClient
-	ApiDiagnosticClient                *apimanagement.APIDiagnosticClient
-	ApiOperationPoliciesClient         *apimanagement.APIOperationPolicyClient
-	ApiOperationsClient                *apimanagement.APIOperationClient
-	ApiPoliciesClient                  *apimanagement.APIPolicyClient
-	ApiReleasesClient                  *apimanagement.APIReleaseClient
-	ApiSchemasClient                   *apimanagement.APISchemaClient
-	ApiTagDescriptionClient            *apimanagement.APITagDescriptionClient
-	ApiVersionSetClient                *apimanagement.APIVersionSetClient
-	AuthorizationServersClient         *apimanagement.AuthorizationServerClient
-	BackendClient                      *apimanagement.BackendClient
-	CacheClient                        *apimanagement.CacheClient
-	CertificatesClient                 *apimanagement.CertificateClient
-	DelegationSettingsClient           *apimanagement.DelegationSettingsClient
-	DeletedServicesClient              *apimanagement.DeletedServicesClient
-	DiagnosticClient                   *apimanagement.DiagnosticClient
-	EmailTemplateClient                *apimanagement.EmailTemplateClient
-	GatewayApisClient                  *apimanagement.GatewayAPIClient
-	GatewayCertificateAuthorityClient  *apimanagement.GatewayCertificateAuthorityClient
-	GatewayClient                      *apimanagement.GatewayClient
-	GatewayHostNameConfigurationClient *apimanagement.GatewayHostnameConfigurationClient
-	GlobalSchemaClient                 *pandoraAPIMGlobalSchema.SchemaClient
-	GroupClient                        *apimanagement.GroupClient
-	GroupUsersClient                   *apimanagement.GroupUserClient
-	IdentityProviderClient             *apimanagement.IdentityProviderClient
-	LoggerClient                       *apimanagement.LoggerClient
-	NamedValueClient                   *apimanagement.NamedValueClient
-	NotificationRecipientEmailClient   *apimanagement.NotificationRecipientEmailClient
-	NotificationRecipientUserClient    *apimanagement.NotificationRecipientUserClient
-	OpenIdConnectClient                *apimanagement.OpenIDConnectProviderClient
-	PolicyClient                       *apimanagement.PolicyClient
-	ProductApisClient                  *apimanagement.ProductAPIClient
-	ProductGroupsClient                *apimanagement.ProductGroupClient
-	ProductPoliciesClient              *apimanagement.ProductPolicyClient
-	ProductsClient                     *apimanagement.ProductClient
-	ServiceClient                      *apimanagement.ServiceClient
-	SignInClient                       *apimanagement.SignInSettingsClient
-	SignUpClient                       *apimanagement.SignUpSettingsClient
-	SubscriptionsClient                *apimanagement.SubscriptionClient
-	TagClient                          *apimanagement.TagClient
-	TenantAccessClient                 *apimanagement.TenantAccessClient
-	UsersClient                        *apimanagement.UserClient
+	ApiClient                          *api.ApiClient
+	ApiDiagnosticClient                *apidiagnostic.ApiDiagnosticClient
+	ApiOperationPoliciesClient         *apioperationpolicy.ApiOperationPolicyClient
+	ApiOperationsClient                *apioperation.ApiOperationClient
+	ApiOperationTagClient              *apioperationtag.ApiOperationTagClient
+	ApiPoliciesClient                  *apipolicy.ApiPolicyClient
+	ApiReleasesClient                  *apirelease.ApiReleaseClient
+	ApiSchemasClient                   *apischema.ApiSchemaClient
+	ApiTagClient                       *apitag.ApiTagClient
+	ApiTagDescriptionClient            *apitagdescription.ApiTagDescriptionClient
+	ApiVersionSetClient                *apiversionset.ApiVersionSetClient
+	ApiVersionSetsClient               *apiversionsets.ApiVersionSetsClient
+	AuthorizationServersClient         *authorizationserver.AuthorizationServerClient
+	BackendClient                      *backend.BackendClient
+	CacheClient                        *cache.CacheClient
+	CertificatesClient                 *certificate.CertificateClient
+	DelegationSettingsClient           *delegationsettings.DelegationSettingsClient
+	DeletedServicesClient              *deletedservice.DeletedServiceClient
+	DiagnosticClient                   *diagnostic.DiagnosticClient
+	EmailTemplatesClient               *emailtemplates.EmailTemplatesClient
+	GatewayApisClient                  *gatewayapi.GatewayApiClient
+	GatewayCertificateAuthorityClient  *gatewaycertificateauthority.GatewayCertificateAuthorityClient
+	GatewayClient                      *gateway.GatewayClient
+	GatewayHostNameConfigurationClient *gatewayhostnameconfiguration.GatewayHostnameConfigurationClient
+	GlobalSchemaClient                 *schema.SchemaClient
+	GroupClient                        *group.GroupClient
+	GroupUsersClient                   *groupuser.GroupUserClient
+	IdentityProviderClient             *identityprovider.IdentityProviderClient
+	LoggerClient                       *logger.LoggerClient
+	NamedValueClient                   *namedvalue.NamedValueClient
+	NotificationRecipientEmailClient   *notificationrecipientemail.NotificationRecipientEmailClient
+	NotificationRecipientUserClient    *notificationrecipientuser.NotificationRecipientUserClient
+	OpenIdConnectClient                *openidconnectprovider.OpenidConnectProviderClient
+	PolicyClient                       *policy.PolicyClient
+	ProductApisClient                  *productapi.ProductApiClient
+	ProductGroupsClient                *productgroup.ProductGroupClient
+	ProductPoliciesClient              *productpolicy.ProductPolicyClient
+	ProductsClient                     *product.ProductClient
+	ProductTagClient                   *producttag.ProductTagClient
+	ServiceClient                      *apimanagementservice.ApiManagementServiceClient
+	SignInClient                       *signinsettings.SignInSettingsClient
+	SignUpClient                       *signupsettings.SignUpSettingsClient
+	SubscriptionsClient                *subscription.SubscriptionClient
+	TagClient                          *tag.TagClient
+	TenantAccessClient                 *tenantaccess.TenantAccessClient
+	UsersClient                        *user.UserClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	apiClient := apimanagement.NewAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	apiClient, err := api.NewApiClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api client: %+v", err)
+	}
+	o.Configure(apiClient.Client, o.Authorizers.ResourceManager)
 
-	apiDiagnosticClient := apimanagement.NewAPIDiagnosticClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiDiagnosticClient.Client, o.ResourceManagerAuthorizer)
+	apiDiagnosticClient, err := apidiagnostic.NewApiDiagnosticClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Diagnostic client: %+v", err)
+	}
+	o.Configure(apiDiagnosticClient.Client, o.Authorizers.ResourceManager)
 
-	apiPoliciesClient := apimanagement.NewAPIPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	apiPoliciesClient, err := apipolicy.NewApiPolicyClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Policies client: %+v", err)
+	}
+	o.Configure(apiPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	apiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiOperationsClient.Client, o.ResourceManagerAuthorizer)
+	apiOperationsClient, err := apioperation.NewApiOperationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Operations client: %+v", err)
+	}
+	o.Configure(apiOperationsClient.Client, o.Authorizers.ResourceManager)
 
-	apiOperationPoliciesClient := apimanagement.NewAPIOperationPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiOperationPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	apiOperationTagClient, err := apioperationtag.NewApiOperationTagClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Operation Tag client: %+v", err)
+	}
+	o.Configure(apiOperationTagClient.Client, o.Authorizers.ResourceManager)
 
-	apiReleasesClient := apimanagement.NewAPIReleaseClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiReleasesClient.Client, o.ResourceManagerAuthorizer)
+	apiOperationPoliciesClient, err := apioperationpolicy.NewApiOperationPolicyClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Operation Policies client: %+v", err)
+	}
+	o.Configure(apiOperationPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	apiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiSchemasClient.Client, o.ResourceManagerAuthorizer)
+	apiReleasesClient, err := apirelease.NewApiReleaseClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Releases client: %+v", err)
+	}
+	o.Configure(apiReleasesClient.Client, o.Authorizers.ResourceManager)
 
-	apiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiVersionSetClient.Client, o.ResourceManagerAuthorizer)
+	apiSchemasClient, err := apischema.NewApiSchemaClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Schemas client: %+v", err)
+	}
+	o.Configure(apiSchemasClient.Client, o.Authorizers.ResourceManager)
 
-	apiTagDescriptionClient := apimanagement.NewAPITagDescriptionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiTagDescriptionClient.Client, o.ResourceManagerAuthorizer)
+	apiTagClient, err := apitag.NewApiTagClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Tag client: %+v", err)
+	}
+	o.Configure(apiTagClient.Client, o.Authorizers.ResourceManager)
 
-	authorizationServersClient := apimanagement.NewAuthorizationServerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&authorizationServersClient.Client, o.ResourceManagerAuthorizer)
+	apiVersionSetClient, err := apiversionset.NewApiVersionSetClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Version Set client: %+v", err)
+	}
+	o.Configure(apiVersionSetClient.Client, o.Authorizers.ResourceManager)
 
-	backendClient := apimanagement.NewBackendClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&backendClient.Client, o.ResourceManagerAuthorizer)
+	apiVersionSetsClient, err := apiversionsets.NewApiVersionSetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Version Sets client: %+v", err)
+	}
+	o.Configure(apiVersionSetsClient.Client, o.Authorizers.ResourceManager)
 
-	cacheClient := apimanagement.NewCacheClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&cacheClient.Client, o.ResourceManagerAuthorizer)
+	apiTagDescriptionClient, err := apitagdescription.NewApiTagDescriptionClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Tag Description client: %+v", err)
+	}
+	o.Configure(apiTagDescriptionClient.Client, o.Authorizers.ResourceManager)
 
-	certificatesClient := apimanagement.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&certificatesClient.Client, o.ResourceManagerAuthorizer)
+	authorizationServersClient, err := authorizationserver.NewAuthorizationServerClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Authorization Servers client: %+v", err)
+	}
+	o.Configure(authorizationServersClient.Client, o.Authorizers.ResourceManager)
 
-	diagnosticClient := apimanagement.NewDiagnosticClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&diagnosticClient.Client, o.ResourceManagerAuthorizer)
+	backendClient, err := backend.NewBackendClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building backend client: %+v", err)
+	}
+	o.Configure(backendClient.Client, o.Authorizers.ResourceManager)
 
-	delegationSettingsClient := apimanagement.NewDelegationSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&delegationSettingsClient.Client, o.ResourceManagerAuthorizer)
+	cacheClient, err := cache.NewCacheClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building cache client: %+v", err)
+	}
+	o.Configure(cacheClient.Client, o.Authorizers.ResourceManager)
 
-	deletedServicesClient := apimanagement.NewDeletedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&deletedServicesClient.Client, o.ResourceManagerAuthorizer)
+	certificatesClient, err := certificate.NewCertificateClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building certificates client: %+v", err)
+	}
+	o.Configure(certificatesClient.Client, o.Authorizers.ResourceManager)
 
-	emailTemplateClient := apimanagement.NewEmailTemplateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&emailTemplateClient.Client, o.ResourceManagerAuthorizer)
+	diagnosticClient, err := diagnostic.NewDiagnosticClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building diagnostic client: %+v", err)
+	}
+	o.Configure(diagnosticClient.Client, o.Authorizers.ResourceManager)
 
-	gatewayClient := apimanagement.NewGatewayClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
+	delegationSettingsClient, err := delegationsettings.NewDelegationSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Delegation Settings client: %+v", err)
+	}
+	o.Configure(delegationSettingsClient.Client, o.Authorizers.ResourceManager)
 
-	gatewayCertificateAuthorityClient := apimanagement.NewGatewayCertificateAuthorityClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&gatewayCertificateAuthorityClient.Client, o.ResourceManagerAuthorizer)
+	deletedServicesClient, err := deletedservice.NewDeletedServiceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Deleted Services client: %+v", err)
+	}
+	o.Configure(deletedServicesClient.Client, o.Authorizers.ResourceManager)
 
-	gatewayApisClient := apimanagement.NewGatewayAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&gatewayApisClient.Client, o.ResourceManagerAuthorizer)
+	emailTemplatesClient, err := emailtemplates.NewEmailTemplatesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Email Templates client: %+v", err)
+	}
+	o.Configure(emailTemplatesClient.Client, o.Authorizers.ResourceManager)
 
-	gatewayHostnameConfigurationClient := apimanagement.NewGatewayHostnameConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&gatewayHostnameConfigurationClient.Client, o.ResourceManagerAuthorizer)
+	gatewayClient, err := gateway.NewGatewayClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Gateway client: %+v", err)
+	}
+	o.Configure(gatewayClient.Client, o.Authorizers.ResourceManager)
 
-	globalSchemaClient := pandoraAPIMGlobalSchema.NewSchemaClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&globalSchemaClient.Client, o.ResourceManagerAuthorizer)
+	gatewayCertificateAuthorityClient, err := gatewaycertificateauthority.NewGatewayCertificateAuthorityClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Gateway Certificate Authority client: %+v", err)
+	}
+	o.Configure(gatewayCertificateAuthorityClient.Client, o.Authorizers.ResourceManager)
 
-	groupClient := apimanagement.NewGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&groupClient.Client, o.ResourceManagerAuthorizer)
+	gatewayApisClient, err := gatewayapi.NewGatewayApiClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Gateway Apis client: %+v", err)
+	}
+	o.Configure(gatewayApisClient.Client, o.Authorizers.ResourceManager)
 
-	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&groupUsersClient.Client, o.ResourceManagerAuthorizer)
+	gatewayHostnameConfigurationClient, err := gatewayhostnameconfiguration.NewGatewayHostnameConfigurationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Gateway Hostname Configuration client: %+v", err)
+	}
+	o.Configure(gatewayHostnameConfigurationClient.Client, o.Authorizers.ResourceManager)
 
-	identityProviderClient := apimanagement.NewIdentityProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&identityProviderClient.Client, o.ResourceManagerAuthorizer)
+	globalSchemaClient, err := schema.NewSchemaClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Schema client: %+v", err)
+	}
+	o.Configure(globalSchemaClient.Client, o.Authorizers.ResourceManager)
 
-	namedValueClient := apimanagement.NewNamedValueClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&namedValueClient.Client, o.ResourceManagerAuthorizer)
+	groupClient, err := group.NewGroupClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Group client: %+v", err)
+	}
+	o.Configure(groupClient.Client, o.Authorizers.ResourceManager)
 
-	notificationRecipientEmailClient := apimanagement.NewNotificationRecipientEmailClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&notificationRecipientEmailClient.Client, o.ResourceManagerAuthorizer)
+	groupUsersClient, err := groupuser.NewGroupUserClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Group Users client: %+v", err)
+	}
+	o.Configure(groupUsersClient.Client, o.Authorizers.ResourceManager)
 
-	notificationRecipientUserClient := apimanagement.NewNotificationRecipientUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&notificationRecipientUserClient.Client, o.ResourceManagerAuthorizer)
+	identityProviderClient, err := identityprovider.NewIdentityProviderClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Identity Provider client: %+v", err)
+	}
+	o.Configure(identityProviderClient.Client, o.Authorizers.ResourceManager)
 
-	loggerClient := apimanagement.NewLoggerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&loggerClient.Client, o.ResourceManagerAuthorizer)
+	namedValueClient, err := namedvalue.NewNamedValueClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Named Value client: %+v", err)
+	}
+	o.Configure(namedValueClient.Client, o.Authorizers.ResourceManager)
 
-	openIdConnectClient := apimanagement.NewOpenIDConnectProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&openIdConnectClient.Client, o.ResourceManagerAuthorizer)
+	notificationRecipientEmailClient, err := notificationrecipientemail.NewNotificationRecipientEmailClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Notification Recipient Email client: %+v", err)
+	}
+	o.Configure(notificationRecipientEmailClient.Client, o.Authorizers.ResourceManager)
 
-	policyClient := apimanagement.NewPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&policyClient.Client, o.ResourceManagerAuthorizer)
+	notificationRecipientUserClient, err := notificationrecipientuser.NewNotificationRecipientUserClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Notification Recipient User client: %+v", err)
+	}
+	o.Configure(notificationRecipientUserClient.Client, o.Authorizers.ResourceManager)
 
-	productsClient := apimanagement.NewProductClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&productsClient.Client, o.ResourceManagerAuthorizer)
+	loggerClient, err := logger.NewLoggerClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Logger client: %+v", err)
+	}
+	o.Configure(loggerClient.Client, o.Authorizers.ResourceManager)
 
-	productApisClient := apimanagement.NewProductAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&productApisClient.Client, o.ResourceManagerAuthorizer)
+	openIdConnectClient, err := openidconnectprovider.NewOpenidConnectProviderClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building OpenId Connect client: %+v", err)
+	}
+	o.Configure(openIdConnectClient.Client, o.Authorizers.ResourceManager)
 
-	productGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&productGroupsClient.Client, o.ResourceManagerAuthorizer)
+	policyClient, err := policy.NewPolicyClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Policy client: %+v", err)
+	}
+	o.Configure(policyClient.Client, o.Authorizers.ResourceManager)
 
-	productPoliciesClient := apimanagement.NewProductPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&productPoliciesClient.Client, o.ResourceManagerAuthorizer)
+	productsClient, err := product.NewProductClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Products client: %+v", err)
+	}
+	o.Configure(productsClient.Client, o.Authorizers.ResourceManager)
 
-	serviceClient := apimanagement.NewServiceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&serviceClient.Client, o.ResourceManagerAuthorizer)
+	productTagClient, err := producttag.NewProductTagClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Product Tag client: %+v", err)
+	}
+	o.Configure(productTagClient.Client, o.Authorizers.ResourceManager)
 
-	signInClient := apimanagement.NewSignInSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&signInClient.Client, o.ResourceManagerAuthorizer)
+	productApisClient, err := productapi.NewProductApiClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Product Apis client: %+v", err)
+	}
+	o.Configure(productApisClient.Client, o.Authorizers.ResourceManager)
 
-	signUpClient := apimanagement.NewSignUpSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&signUpClient.Client, o.ResourceManagerAuthorizer)
+	productGroupsClient, err := productgroup.NewProductGroupClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Product Groups client: %+v", err)
+	}
+	o.Configure(productGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	subscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&subscriptionsClient.Client, o.ResourceManagerAuthorizer)
+	productPoliciesClient, err := productpolicy.NewProductPolicyClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Product Policies client: %+v", err)
+	}
+	o.Configure(productPoliciesClient.Client, o.Authorizers.ResourceManager)
 
-	tagClient := apimanagement.NewTagClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&tagClient.Client, o.ResourceManagerAuthorizer)
+	serviceClient, err := apimanagementservice.NewApiManagementServiceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Service client: %+v", err)
+	}
+	o.Configure(serviceClient.Client, o.Authorizers.ResourceManager)
 
-	tenantAccessClient := apimanagement.NewTenantAccessClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&tenantAccessClient.Client, o.ResourceManagerAuthorizer)
+	signInClient, err := signinsettings.NewSignInSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SignIn client: %+v", err)
+	}
+	o.Configure(signInClient.Client, o.Authorizers.ResourceManager)
 
-	usersClient := apimanagement.NewUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&usersClient.Client, o.ResourceManagerAuthorizer)
+	signUpClient, err := signupsettings.NewSignUpSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SignUp client: %+v", err)
+	}
+	o.Configure(signUpClient.Client, o.Authorizers.ResourceManager)
+
+	subscriptionsClient, err := subscription.NewSubscriptionClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Subscriptions client: %+v", err)
+	}
+	o.Configure(subscriptionsClient.Client, o.Authorizers.ResourceManager)
+
+	tagClient, err := tag.NewTagClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building tag client: %+v", err)
+	}
+	o.Configure(tagClient.Client, o.Authorizers.ResourceManager)
+
+	tenantAccessClient, err := tenantaccess.NewTenantAccessClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Tenant Access client: %+v", err)
+	}
+	o.Configure(tenantAccessClient.Client, o.Authorizers.ResourceManager)
+
+	usersClient, err := user.NewUserClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building users client: %+v", err)
+	}
+	o.Configure(usersClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		ApiClient:                          &apiClient,
-		ApiDiagnosticClient:                &apiDiagnosticClient,
-		ApiOperationPoliciesClient:         &apiOperationPoliciesClient,
-		ApiOperationsClient:                &apiOperationsClient,
-		ApiPoliciesClient:                  &apiPoliciesClient,
-		ApiReleasesClient:                  &apiReleasesClient,
-		ApiSchemasClient:                   &apiSchemasClient,
-		ApiTagDescriptionClient:            &apiTagDescriptionClient,
-		ApiVersionSetClient:                &apiVersionSetClient,
-		AuthorizationServersClient:         &authorizationServersClient,
-		BackendClient:                      &backendClient,
-		CacheClient:                        &cacheClient,
-		CertificatesClient:                 &certificatesClient,
-		DelegationSettingsClient:           &delegationSettingsClient,
-		DeletedServicesClient:              &deletedServicesClient,
-		DiagnosticClient:                   &diagnosticClient,
-		EmailTemplateClient:                &emailTemplateClient,
-		GatewayApisClient:                  &gatewayApisClient,
-		GatewayCertificateAuthorityClient:  &gatewayCertificateAuthorityClient,
-		GatewayClient:                      &gatewayClient,
-		GatewayHostNameConfigurationClient: &gatewayHostnameConfigurationClient,
-		GlobalSchemaClient:                 &globalSchemaClient,
-		GroupClient:                        &groupClient,
-		GroupUsersClient:                   &groupUsersClient,
-		IdentityProviderClient:             &identityProviderClient,
-		LoggerClient:                       &loggerClient,
-		NamedValueClient:                   &namedValueClient,
-		NotificationRecipientEmailClient:   &notificationRecipientEmailClient,
-		NotificationRecipientUserClient:    &notificationRecipientUserClient,
-		OpenIdConnectClient:                &openIdConnectClient,
-		PolicyClient:                       &policyClient,
-		ProductApisClient:                  &productApisClient,
-		ProductGroupsClient:                &productGroupsClient,
-		ProductPoliciesClient:              &productPoliciesClient,
-		ProductsClient:                     &productsClient,
-		ServiceClient:                      &serviceClient,
-		SignInClient:                       &signInClient,
-		SignUpClient:                       &signUpClient,
-		SubscriptionsClient:                &subscriptionsClient,
-		TagClient:                          &tagClient,
-		TenantAccessClient:                 &tenantAccessClient,
-		UsersClient:                        &usersClient,
-	}
+		ApiClient:                          apiClient,
+		ApiDiagnosticClient:                apiDiagnosticClient,
+		ApiOperationPoliciesClient:         apiOperationPoliciesClient,
+		ApiOperationsClient:                apiOperationsClient,
+		ApiOperationTagClient:              apiOperationTagClient,
+		ApiPoliciesClient:                  apiPoliciesClient,
+		ApiReleasesClient:                  apiReleasesClient,
+		ApiSchemasClient:                   apiSchemasClient,
+		ApiTagClient:                       apiTagClient,
+		ApiTagDescriptionClient:            apiTagDescriptionClient,
+		ApiVersionSetClient:                apiVersionSetClient,
+		ApiVersionSetsClient:               apiVersionSetsClient,
+		AuthorizationServersClient:         authorizationServersClient,
+		BackendClient:                      backendClient,
+		CacheClient:                        cacheClient,
+		CertificatesClient:                 certificatesClient,
+		DelegationSettingsClient:           delegationSettingsClient,
+		DeletedServicesClient:              deletedServicesClient,
+		DiagnosticClient:                   diagnosticClient,
+		EmailTemplatesClient:               emailTemplatesClient,
+		GatewayApisClient:                  gatewayApisClient,
+		GatewayCertificateAuthorityClient:  gatewayCertificateAuthorityClient,
+		GatewayClient:                      gatewayClient,
+		GatewayHostNameConfigurationClient: gatewayHostnameConfigurationClient,
+		GlobalSchemaClient:                 globalSchemaClient,
+		GroupClient:                        groupClient,
+		GroupUsersClient:                   groupUsersClient,
+		IdentityProviderClient:             identityProviderClient,
+		LoggerClient:                       loggerClient,
+		NamedValueClient:                   namedValueClient,
+		NotificationRecipientEmailClient:   notificationRecipientEmailClient,
+		NotificationRecipientUserClient:    notificationRecipientUserClient,
+		OpenIdConnectClient:                openIdConnectClient,
+		PolicyClient:                       policyClient,
+		ProductApisClient:                  productApisClient,
+		ProductGroupsClient:                productGroupsClient,
+		ProductPoliciesClient:              productPoliciesClient,
+		ProductsClient:                     productsClient,
+		ProductTagClient:                   productTagClient,
+		ServiceClient:                      serviceClient,
+		SignInClient:                       signInClient,
+		SignUpClient:                       signUpClient,
+		SubscriptionsClient:                subscriptionsClient,
+		TagClient:                          tagClient,
+		TenantAccessClient:                 tenantAccessClient,
+		UsersClient:                        usersClient,
+	}, nil
 }

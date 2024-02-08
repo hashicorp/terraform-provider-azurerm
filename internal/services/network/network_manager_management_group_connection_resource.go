@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagerconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagerconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	managementParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	managementValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
@@ -91,7 +91,7 @@ func (r ManagerManagementGroupConnectionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerConnectionsClient
+			client := metadata.Client.Network.NetworkManagerConnections
 			managementGroupId, err := managementParse.ManagementGroupID(model.ManagementGroupId)
 			if err != nil {
 				return err
@@ -133,7 +133,7 @@ func (r ManagerManagementGroupConnectionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerConnectionsClient
+			client := metadata.Client.Network.NetworkManagerConnections
 
 			id, err := networkmanagerconnections.ParseProviders2NetworkManagerConnectionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -182,7 +182,7 @@ func (r ManagerManagementGroupConnectionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerConnectionsClient
+			client := metadata.Client.Network.NetworkManagerConnections
 
 			id, err := networkmanagerconnections.ParseProviders2NetworkManagerConnectionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -231,7 +231,7 @@ func (r ManagerManagementGroupConnectionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerConnectionsClient
+			client := metadata.Client.Network.NetworkManagerConnections
 
 			id, err := networkmanagerconnections.ParseProviders2NetworkManagerConnectionID(metadata.ResourceData.Id())
 			if err != nil {

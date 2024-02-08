@@ -169,6 +169,37 @@ func TestAccAzureStaticSite_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStaticSite_appSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
+	r := StaticSiteResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appSettingsUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StaticSiteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StaticSiteID(state.ID)
 	if err != nil {
@@ -337,4 +368,51 @@ resource "azurerm_static_site" "import" {
   resource_group_name = azurerm_static_site.test.resource_group_name
 }
 `, template)
+}
+
+func (r StaticSiteResource) appSettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_static_site" "test" {
+  name                = "acctestSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  app_settings = {
+    "foo" = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+}
+
+func (r StaticSiteResource) appSettingsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_static_site" "test" {
+  name                = "acctestSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  app_settings = {
+    "foo" = "bar"
+    "baz" = "foo"
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }

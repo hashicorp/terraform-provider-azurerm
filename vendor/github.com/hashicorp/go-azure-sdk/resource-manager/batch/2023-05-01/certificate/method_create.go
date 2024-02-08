@@ -52,7 +52,7 @@ func (o CreateOperationOptions) ToQuery() *client.QueryParams {
 // Create ...
 func (c CertificateClient) Create(ctx context.Context, id CertificateId, input CertificateCreateOrUpdateParameters, options CreateOperationOptions) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

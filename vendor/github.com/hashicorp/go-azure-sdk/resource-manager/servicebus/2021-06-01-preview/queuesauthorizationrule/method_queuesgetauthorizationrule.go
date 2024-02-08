@@ -20,7 +20,7 @@ type QueuesGetAuthorizationRuleOperationResponse struct {
 // QueuesGetAuthorizationRule ...
 func (c QueuesAuthorizationRuleClient) QueuesGetAuthorizationRule(ctx context.Context, id QueueAuthorizationRuleId) (result QueuesGetAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

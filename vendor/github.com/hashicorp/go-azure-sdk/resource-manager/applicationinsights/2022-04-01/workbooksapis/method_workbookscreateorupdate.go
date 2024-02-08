@@ -48,7 +48,7 @@ func (o WorkbooksCreateOrUpdateOperationOptions) ToQuery() *client.QueryParams {
 // WorkbooksCreateOrUpdate ...
 func (c WorkbooksAPIsClient) WorkbooksCreateOrUpdate(ctx context.Context, id WorkbookId, input Workbook, options WorkbooksCreateOrUpdateOperationOptions) (result WorkbooksCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

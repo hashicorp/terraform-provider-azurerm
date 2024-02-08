@@ -19,13 +19,14 @@ type NamespacesListAuthorizationRulesOperationResponse struct {
 }
 
 type NamespacesListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
 }
 
 // NamespacesListAuthorizationRules ...
 func (c NamespacesAuthorizationRuleClient) NamespacesListAuthorizationRules(ctx context.Context, id NamespaceId) (result NamespacesListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c NamespacesAuthorizationRuleClient) NamespacesListAuthorizationRulesCompl
 	}
 
 	result = NamespacesListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

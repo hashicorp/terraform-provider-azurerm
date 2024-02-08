@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type DicomServicesClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewDicomServicesClientWithBaseURI(api environments.Api) (*DicomServicesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "dicomservices", defaultApiVersion)
+func NewDicomServicesClientWithBaseURI(sdkApi sdkEnv.Api) (*DicomServicesClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dicomservices", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DicomServicesClient: %+v", err)
 	}

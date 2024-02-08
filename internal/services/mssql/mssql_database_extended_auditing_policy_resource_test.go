@@ -352,12 +352,20 @@ resource "azurerm_mssql_database" "test" {
   server_id = azurerm_mssql_server.test.id
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
   database_id = azurerm_mssql_database.test.id
   enabled     = false
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r MsSqlDatabaseExtendedAuditingPolicyResource) update(data acceptance.TestData) string {

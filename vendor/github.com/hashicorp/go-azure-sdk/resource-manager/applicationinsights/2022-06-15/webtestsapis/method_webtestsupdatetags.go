@@ -20,7 +20,7 @@ type WebTestsUpdateTagsOperationResponse struct {
 // WebTestsUpdateTags ...
 func (c WebTestsAPIsClient) WebTestsUpdateTags(ctx context.Context, id WebTestId, input TagsResource) (result WebTestsUpdateTagsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

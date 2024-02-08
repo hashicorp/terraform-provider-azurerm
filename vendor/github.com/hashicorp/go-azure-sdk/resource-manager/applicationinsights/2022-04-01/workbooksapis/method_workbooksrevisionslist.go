@@ -19,13 +19,14 @@ type WorkbooksRevisionsListOperationResponse struct {
 }
 
 type WorkbooksRevisionsListCompleteResult struct {
-	Items []Workbook
+	LatestHttpResponse *http.Response
+	Items              []Workbook
 }
 
 // WorkbooksRevisionsList ...
 func (c WorkbooksAPIsClient) WorkbooksRevisionsList(ctx context.Context, id WorkbookId) (result WorkbooksRevisionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c WorkbooksAPIsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx
 	}
 
 	result = WorkbooksRevisionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

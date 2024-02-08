@@ -95,21 +95,24 @@ func TestAccVirtualMachineExtension_concurrent(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("hostname")),
-				acceptance.TestMatchResourceAttr(secondResourceName, "settings", regexp.MustCompile("whoami")),
+				acceptance.TestMatchResourceAttr(secondResourceName, "type", regexp.MustCompile("NetworkWatcherAgentLinux")),
 			),
 		},
 	})
 }
 
-func TestAccVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
+func TestAccVirtualMachineExtension_provisionAfterExtensions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
 	r := VirtualMachineExtensionResource{}
+	secondResourceName := "azurerm_virtual_machine_extension.test2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.linuxDiagnostics(data),
+			Config: r.provisionAfterExtensions(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				acceptance.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("hostname")),
+				acceptance.TestMatchResourceAttr(secondResourceName, "type", regexp.MustCompile("NetworkWatcherAgentLinux")),
 			),
 		},
 	})
@@ -215,8 +218,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -339,8 +342,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -448,8 +451,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -487,23 +490,20 @@ SETTINGS
 }
 
 resource "azurerm_virtual_machine_extension" "test2" {
-  name                 = "acctvme-%d-2"
-  virtual_machine_id   = azurerm_virtual_machine.test.id
-  publisher            = "Microsoft.OSTCExtensions"
-  type                 = "CustomScriptForLinux"
-  type_handler_version = "1.5"
-
-  settings = <<SETTINGS
-	{
-		"commandToExecute": "whoami"
-	}
-SETTINGS
-
+  name                       = "acctvme-%d-2"
+  virtual_machine_id         = azurerm_virtual_machine.test.id
+  publisher                  = "Microsoft.Azure.NetworkWatcher"
+  type                       = "NetworkWatcherAgentLinux"
+  type_handler_version       = "1.4"
+  auto_upgrade_minor_version = true
+  provision_after_extensions = [azurerm_virtual_machine_extension.test.name]
 }
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (VirtualMachineExtensionResource) linuxDiagnostics(data acceptance.TestData) string {
+func (VirtualMachineExtensionResource) provisionAfterExtensions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -567,8 +567,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -593,23 +593,28 @@ resource "azurerm_virtual_machine" "test" {
 resource "azurerm_virtual_machine_extension" "test" {
   name                 = "acctvme-%d"
   virtual_machine_id   = azurerm_virtual_machine.test.id
-  publisher            = "Microsoft.OSTCExtensions"
-  type                 = "LinuxDiagnostic"
-  type_handler_version = "2.3"
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
 
-  protected_settings = <<SETTINGS
+  settings = <<SETTINGS
 	{
-		"storageAccountName": "${azurerm_storage_account.test.name}",
-        "storageAccountKey": "${azurerm_storage_account.test.primary_access_key}"
+		"commandToExecute": "hostname"
 	}
 SETTINGS
 
-
-  tags = {
-    environment = "Production"
-  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_virtual_machine_extension" "test2" {
+  name                       = "acctvme-%d-2"
+  virtual_machine_id         = azurerm_virtual_machine.test.id
+  publisher                  = "Microsoft.Azure.NetworkWatcher"
+  type                       = "NetworkWatcherAgentLinux"
+  type_handler_version       = "1.4"
+  auto_upgrade_minor_version = true
+  provision_after_extensions = [azurerm_virtual_machine_extension.test.name]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (VirtualMachineExtensionResource) basicWithFailureSuppressionEnabledUpdated(data acceptance.TestData) string {
@@ -676,8 +681,8 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -764,8 +769,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }

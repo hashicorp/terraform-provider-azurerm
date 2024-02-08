@@ -23,7 +23,7 @@ type DownloadUpdatesOperationResponse struct {
 // DownloadUpdates ...
 func (c DevicesClient) DownloadUpdates(ctx context.Context, id DataBoxEdgeDeviceId) (result DownloadUpdatesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

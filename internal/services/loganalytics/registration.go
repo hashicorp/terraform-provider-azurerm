@@ -27,6 +27,8 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		LogAnalyticsQueryPackResource{},
 		LogAnalyticsQueryPackQueryResource{},
+		LogAnalyticsSolutionResource{},
+		LogAnalyticsWorkspaceTableResource{},
 	}
 }
 
@@ -60,7 +62,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_log_analytics_linked_service":                         resourceLogAnalyticsLinkedService(),
 		"azurerm_log_analytics_linked_storage_account":                 resourceLogAnalyticsLinkedStorageAccount(),
 		"azurerm_log_analytics_saved_search":                           resourceLogAnalyticsSavedSearch(),
-		"azurerm_log_analytics_solution":                               resourceLogAnalyticsSolution(),
 		"azurerm_log_analytics_storage_insights":                       resourceLogAnalyticsStorageInsights(),
 		"azurerm_log_analytics_workspace":                              resourceLogAnalyticsWorkspace(),
 	}

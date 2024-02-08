@@ -20,13 +20,14 @@ type ClustersListBySubscriptionOperationResponse struct {
 }
 
 type ClustersListBySubscriptionCompleteResult struct {
-	Items []Cluster
+	LatestHttpResponse *http.Response
+	Items              []Cluster
 }
 
 // ClustersListBySubscription ...
 func (c EventHubsClustersClient) ClustersListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ClustersListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c EventHubsClustersClient) ClustersListBySubscriptionCompleteMatchingPredi
 	}
 
 	result = ClustersListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

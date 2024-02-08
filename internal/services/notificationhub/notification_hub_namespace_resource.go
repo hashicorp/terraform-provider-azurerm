@@ -215,8 +215,8 @@ func resourceNotificationHubNamespaceDelete(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if err := future.Poller.PollUntilDone(); err != nil {
-		if !response.WasNotFound(future.Poller.HttpResponse) {
+	if err := future.Poller.PollUntilDone(ctx); err != nil {
+		if !response.WasNotFound(future.HttpResponse) {
 			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 		}
 	}

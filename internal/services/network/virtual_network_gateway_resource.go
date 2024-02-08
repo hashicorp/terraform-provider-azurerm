@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -37,7 +38,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -170,6 +171,63 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"policy_group": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.PolicyGroupName,
+					},
+
+					"policy_member": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.VpnPolicyMemberAttributeTypeAADGroupID),
+										string(network.VpnPolicyMemberAttributeTypeCertificateGroupID),
+										string(network.VpnPolicyMemberAttributeTypeRadiusAzureGroupID),
+									}, false),
+								},
+
+								"value": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+
+					"is_default": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"priority": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+			},
+		},
+
 		"vpn_client_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -209,6 +267,146 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 						},
 					},
 
+					"virtual_network_gateway_client_connection": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"policy_group_names": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validate.PolicyGroupName,
+									},
+								},
+
+								"address_prefixes": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									Elem: &pluginsdk.Schema{
+										Type:         pluginsdk.TypeString,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+
+					"ipsec_policy": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"dh_group": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.DhGroupDHGroup1),
+										string(network.DhGroupDHGroup14),
+										string(network.DhGroupDHGroup2),
+										string(network.DhGroupDHGroup2048),
+										string(network.DhGroupDHGroup24),
+										string(network.DhGroupECP256),
+										string(network.DhGroupECP384),
+										string(network.DhGroupNone),
+									}, false),
+								},
+
+								"ike_encryption": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.IkeEncryptionAES128),
+										string(network.IkeEncryptionAES192),
+										string(network.IkeEncryptionAES256),
+										string(network.IkeEncryptionDES),
+										string(network.IkeEncryptionDES3),
+										string(network.IkeEncryptionGCMAES128),
+										string(network.IkeEncryptionGCMAES256),
+									}, false),
+								},
+
+								"ike_integrity": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.IkeIntegrityGCMAES128),
+										string(network.IkeIntegrityGCMAES256),
+										string(network.IkeIntegrityMD5),
+										string(network.IkeIntegritySHA1),
+										string(network.IkeIntegritySHA256),
+										string(network.IkeIntegritySHA384),
+									}, false),
+								},
+
+								"ipsec_encryption": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.IpsecEncryptionAES128),
+										string(network.IpsecEncryptionAES192),
+										string(network.IpsecEncryptionAES256),
+										string(network.IpsecEncryptionDES),
+										string(network.IpsecEncryptionDES3),
+										string(network.IpsecEncryptionGCMAES128),
+										string(network.IpsecEncryptionGCMAES192),
+										string(network.IpsecEncryptionGCMAES256),
+										string(network.IpsecEncryptionNone),
+									}, false),
+								},
+
+								"ipsec_integrity": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.IpsecIntegrityGCMAES128),
+										string(network.IpsecIntegrityGCMAES192),
+										string(network.IpsecIntegrityGCMAES256),
+										string(network.IpsecIntegrityMD5),
+										string(network.IpsecIntegritySHA1),
+										string(network.IpsecIntegritySHA256),
+									}, false),
+								},
+
+								"pfs_group": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(network.PfsGroupECP256),
+										string(network.PfsGroupECP384),
+										string(network.PfsGroupNone),
+										string(network.PfsGroupPFS1),
+										string(network.PfsGroupPFS14),
+										string(network.PfsGroupPFS2),
+										string(network.PfsGroupPFS2048),
+										string(network.PfsGroupPFS24),
+										string(network.PfsGroupPFSMM),
+									}, false),
+								},
+
+								"sa_lifetime_in_seconds": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(300, 172799),
+								},
+
+								"sa_data_size_in_kilobytes": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(1024, 2147483647),
+								},
+							},
+						},
+					},
+
 					"root_certificate": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
@@ -243,6 +441,33 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 							},
 						},
 						Set: hashVirtualNetworkGatewayRevokedCert,
+					},
+
+					"radius_server": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"address": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.IsIPv4Address,
+								},
+
+								"secret": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringLenBetween(1, 128),
+									Sensitive:    true,
+								},
+
+								"score": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(1, 30),
+								},
+							},
+						},
 					},
 
 					"radius_server_address": {
@@ -315,7 +540,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					//lintignore:XS003
+					// lintignore:XS003
 					"peering_addresses": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -365,7 +590,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"custom_route": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -387,6 +612,35 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.LocalNetworkGatewayID,
+		},
+
+		"bgp_route_translation_for_nat_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"dns_forwarding_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"ip_sec_replay_protection_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"remote_vnet_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"virtual_wan_traffic_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"tags": tags.Schema(),
@@ -475,6 +729,11 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("enable_bgp", gw.EnableBgp)
 		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
 		d.Set("active_active", gw.ActiveActive)
+		d.Set("bgp_route_translation_for_nat_enabled", gw.EnableBgpRouteTranslationForNat)
+		d.Set("dns_forwarding_enabled", gw.EnableDNSForwarding)
+		d.Set("ip_sec_replay_protection_enabled", !*gw.DisableIPSecReplayProtection)
+		d.Set("remote_vnet_traffic_enabled", gw.AllowRemoteVnetTraffic)
+		d.Set("virtual_wan_traffic_enabled", gw.AllowVirtualWanTraffic)
 		d.Set("generation", string(gw.VpnGatewayGeneration))
 
 		if string(gw.VpnType) != "" {
@@ -493,7 +752,15 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
-		if err := d.Set("vpn_client_configuration", flattenVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)); err != nil {
+		if err := d.Set("policy_group", flattenVirtualNetworkGatewayPolicyGroups(gw.VirtualNetworkGatewayPolicyGroups)); err != nil {
+			return fmt.Errorf("setting `policy_group`: %+v", err)
+		}
+
+		vpnClientConfig, err := flattenVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("vpn_client_configuration", vpnClientConfig); err != nil {
 			return fmt.Errorf("setting `vpn_client_configuration`: %+v", err)
 		}
 
@@ -543,17 +810,29 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *plu
 	activeActive := d.Get("active_active").(bool)
 	generation := network.VpnGatewayGeneration(d.Get("generation").(string))
 	customRoute := d.Get("custom_route").([]interface{})
+	bgpRouteTranslationForNatEnabled := d.Get("bgp_route_translation_for_nat_enabled").(bool)
+	ipSecReplayProtectionEnabled := d.Get("ip_sec_replay_protection_enabled").(bool)
+	remoteVnetTrafficEnabled := d.Get("remote_vnet_traffic_enabled").(bool)
+	virtualWanTrafficEnabled := d.Get("virtual_wan_traffic_enabled").(bool)
 
 	props := &network.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:            gatewayType,
-		VpnType:                vpnType,
-		EnableBgp:              &enableBgp,
-		EnablePrivateIPAddress: &enablePrivateIpAddress,
-		ActiveActive:           &activeActive,
-		VpnGatewayGeneration:   generation,
-		Sku:                    expandVirtualNetworkGatewaySku(d),
-		IPConfigurations:       expandVirtualNetworkGatewayIPConfigurations(d),
-		CustomRoutes:           expandVirtualNetworkGatewayAddressSpace(customRoute),
+		GatewayType:                     gatewayType,
+		VpnType:                         vpnType,
+		EnableBgp:                       &enableBgp,
+		EnablePrivateIPAddress:          &enablePrivateIpAddress,
+		ActiveActive:                    &activeActive,
+		VpnGatewayGeneration:            generation,
+		EnableBgpRouteTranslationForNat: utils.Bool(bgpRouteTranslationForNatEnabled),
+		DisableIPSecReplayProtection:    utils.Bool(!ipSecReplayProtectionEnabled),
+		AllowRemoteVnetTraffic:          utils.Bool(remoteVnetTrafficEnabled),
+		AllowVirtualWanTraffic:          utils.Bool(virtualWanTrafficEnabled),
+		Sku:                             expandVirtualNetworkGatewaySku(d),
+		IPConfigurations:                expandVirtualNetworkGatewayIPConfigurations(d),
+		CustomRoutes:                    expandVirtualNetworkGatewayAddressSpace(customRoute),
+	}
+
+	if v, ok := d.GetOk("dns_forwarding_enabled"); ok {
+		props.EnableDNSForwarding = utils.Bool(v.(bool))
 	}
 
 	if gatewayDefaultSiteID := d.Get("default_local_network_gateway_id").(string); gatewayDefaultSiteID != "" {
@@ -562,8 +841,12 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *plu
 		}
 	}
 
+	if v, ok := d.GetOk("policy_group"); ok {
+		props.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(v.([]interface{}))
+	}
+
 	if _, ok := d.GetOk("vpn_client_configuration"); ok {
-		props.VpnClientConfiguration = expandVirtualNetworkGatewayVpnClientConfig(d)
+		props.VpnClientConfiguration = expandVirtualNetworkGatewayVpnClientConfig(d, id)
 	}
 
 	if _, ok := d.GetOk("bgp_settings"); ok {
@@ -714,7 +997,7 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]n
 	return &ipConfigs
 }
 
-func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *network.VpnClientConfiguration {
+func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetGatewayId parse.VirtualNetworkGatewayId) *network.VpnClientConfiguration {
 	configSets := d.Get("vpn_client_configuration").([]interface{})
 	conf := configSets[0].(map[string]interface{})
 
@@ -775,15 +1058,18 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData) *netw
 		VpnClientAddressPool: &network.AddressSpace{
 			AddressPrefixes: &addresses,
 		},
-		AadTenant:                    &confAadTenant,
-		AadAudience:                  &confAadAudience,
-		AadIssuer:                    &confAadIssuer,
-		VpnClientRootCertificates:    &rootCerts,
-		VpnClientRevokedCertificates: &revokedCerts,
-		VpnClientProtocols:           &vpnClientProtocols,
-		RadiusServerAddress:          &confRadiusServerAddress,
-		RadiusServerSecret:           &confRadiusServerSecret,
-		VpnAuthenticationTypes:       &vpnAuthTypes,
+		AadTenant:                         &confAadTenant,
+		AadAudience:                       &confAadAudience,
+		AadIssuer:                         &confAadIssuer,
+		VngClientConnectionConfigurations: expandVirtualNetworkGatewayClientConnections(conf["virtual_network_gateway_client_connection"].([]interface{}), vnetGatewayId),
+		VpnClientIpsecPolicies:            expandVirtualNetworkGatewayIpsecPolicies(conf["ipsec_policy"].([]interface{})),
+		VpnClientRootCertificates:         &rootCerts,
+		VpnClientRevokedCertificates:      &revokedCerts,
+		VpnClientProtocols:                &vpnClientProtocols,
+		RadiusServers:                     expandVirtualNetworkGatewayRadiusServers(conf["radius_server"].([]interface{})),
+		RadiusServerAddress:               &confRadiusServerAddress,
+		RadiusServerSecret:                &confRadiusServerSecret,
+		VpnAuthenticationTypes:            &vpnAuthTypes,
 	}
 }
 
@@ -804,6 +1090,143 @@ func expandVirtualNetworkGatewayAddressSpace(input []interface{}) *network.Addre
 	return &network.AddressSpace{
 		AddressPrefixes: utils.ExpandStringSlice(v["address_prefixes"].(*pluginsdk.Set).List()),
 	}
+}
+
+func expandVirtualNetworkGatewayIpsecPolicies(input []interface{}) *[]network.IpsecPolicy {
+	results := make([]network.IpsecPolicy, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, network.IpsecPolicy{
+			DhGroup:             network.DhGroup(v["dh_group"].(string)),
+			IkeEncryption:       network.IkeEncryption(v["ike_encryption"].(string)),
+			IkeIntegrity:        network.IkeIntegrity(v["ike_integrity"].(string)),
+			IpsecEncryption:     network.IpsecEncryption(v["ipsec_encryption"].(string)),
+			IpsecIntegrity:      network.IpsecIntegrity(v["ipsec_integrity"].(string)),
+			PfsGroup:            network.PfsGroup(v["pfs_group"].(string)),
+			SaLifeTimeSeconds:   utils.Int32(int32(v["sa_lifetime_in_seconds"].(int))),
+			SaDataSizeKilobytes: utils.Int32(int32(v["sa_data_size_in_kilobytes"].(int))),
+		})
+	}
+
+	return &results
+}
+
+func expandVirtualNetworkGatewayRadiusServers(input []interface{}) *[]network.RadiusServer {
+	results := make([]network.RadiusServer, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, network.RadiusServer{
+			RadiusServerAddress: utils.String(v["address"].(string)),
+			RadiusServerScore:   utils.Int64(int64(v["score"].(int))),
+			RadiusServerSecret:  utils.String(v["secret"].(string)),
+		})
+	}
+
+	return &results
+}
+
+func expandVirtualNetworkGatewayPolicyGroups(input []interface{}) *[]network.VirtualNetworkGatewayPolicyGroup {
+	results := make([]network.VirtualNetworkGatewayPolicyGroup, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		policyGroup := item.(map[string]interface{})
+
+		results = append(results, network.VirtualNetworkGatewayPolicyGroup{
+			Name: utils.String(policyGroup["name"].(string)),
+			VirtualNetworkGatewayPolicyGroupProperties: &network.VirtualNetworkGatewayPolicyGroupProperties{
+				IsDefault:     utils.Bool(policyGroup["is_default"].(bool)),
+				PolicyMembers: expandVirtualNetworkGatewayPolicyMembers(policyGroup["policy_member"].([]interface{})),
+				Priority:      utils.Int32(int32(policyGroup["priority"].(int))),
+			},
+		})
+	}
+
+	return &results
+}
+
+func expandVirtualNetworkGatewayPolicyMembers(input []interface{}) *[]network.VirtualNetworkGatewayPolicyGroupMember {
+	results := make([]network.VirtualNetworkGatewayPolicyGroupMember, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		policyMember := item.(map[string]interface{})
+
+		results = append(results, network.VirtualNetworkGatewayPolicyGroupMember{
+			Name:           utils.String(policyMember["name"].(string)),
+			AttributeType:  network.VpnPolicyMemberAttributeType(policyMember["type"].(string)),
+			AttributeValue: utils.String(policyMember["value"].(string)),
+		})
+	}
+
+	return &results
+}
+
+func expandVirtualNetworkGatewayClientConnections(input []interface{}, vnetGatewayId parse.VirtualNetworkGatewayId) *[]network.VngClientConnectionConfiguration {
+	results := make([]network.VngClientConnectionConfiguration, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, item := range input {
+		vngClientConnectionConfiguration := item.(map[string]interface{})
+
+		results = append(results, network.VngClientConnectionConfiguration{
+			Name: utils.String(vngClientConnectionConfiguration["name"].(string)),
+			VngClientConnectionConfigurationProperties: &network.VngClientConnectionConfigurationProperties{
+				VpnClientAddressPool:              expandVirtualNetworkGatewayAddressPool(vngClientConnectionConfiguration["address_prefixes"].([]interface{})),
+				VirtualNetworkGatewayPolicyGroups: expandVirtualNetworkGatewayPolicyGroupNames(vngClientConnectionConfiguration["policy_group_names"].([]interface{}), vnetGatewayId),
+			},
+		})
+	}
+
+	return &results
+}
+
+func expandVirtualNetworkGatewayAddressPool(input []interface{}) *network.AddressSpace {
+	if len(input) == 0 {
+		return &network.AddressSpace{}
+	}
+
+	addressPrefixes := make([]string, 0)
+	for _, v := range input {
+		addressPrefixes = append(addressPrefixes, v.(string))
+	}
+
+	return &network.AddressSpace{
+		AddressPrefixes: pointer.To(addressPrefixes),
+	}
+}
+
+func expandVirtualNetworkGatewayPolicyGroupNames(input []interface{}, vnetGatewayId parse.VirtualNetworkGatewayId) *[]network.SubResource {
+	results := make([]network.SubResource, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, v := range input {
+		policyGroupId := parse.NewVirtualNetworkGatewayPolicyGroupID(vnetGatewayId.SubscriptionId, vnetGatewayId.ResourceGroup, vnetGatewayId.Name, v.(string))
+		result := network.SubResource{
+			ID: utils.String(policyGroupId.ID()),
+		}
+		results = append(results, result)
+	}
+
+	return &results
 }
 
 func flattenVirtualNetworkGatewayBgpSettings(settings *network.BgpSettings) ([]interface{}, error) {
@@ -891,11 +1314,20 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]network.VirtualNe
 	return flat
 }
 
-func flattenVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfiguration) []interface{} {
+func flattenVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfiguration) ([]interface{}, error) {
 	if cfg == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
-	flat := make(map[string]interface{})
+	flat := map[string]interface{}{
+		"ipsec_policy":  flattenVirtualNetworkGatewayIPSecPolicies(cfg.VpnClientIpsecPolicies),
+		"radius_server": flattenVirtualNetworkGatewayRadiusServers(cfg.RadiusServers),
+	}
+
+	connection, err := flattenVirtualNetworkGatewayClientConnections(cfg.VngClientConnectionConfigurations)
+	if err != nil {
+		return nil, err
+	}
+	flat["virtual_network_gateway_client_connection"] = connection
 
 	if pool := cfg.VpnClientAddressPool; pool != nil {
 		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
@@ -963,7 +1395,7 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfigura
 		flat["radius_server_secret"] = *v
 	}
 
-	return []interface{}{flat}
+	return []interface{}{flat}, nil
 }
 
 func hashVirtualNetworkGatewayRootCert(v interface{}) int {
@@ -1040,4 +1472,116 @@ func flattenVirtualNetworkGatewayAddressSpace(input *network.AddressSpace) []int
 			"address_prefixes": utils.FlattenStringSlice(input.AddressPrefixes),
 		},
 	}
+}
+
+func flattenVirtualNetworkGatewayRadiusServers(input *[]network.RadiusServer) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"address": pointer.From(item.RadiusServerAddress),
+			"secret":  pointer.From(item.RadiusServerSecret),
+			"score":   pointer.From(item.RadiusServerScore),
+		})
+	}
+
+	return results
+}
+
+func flattenVirtualNetworkGatewayIPSecPolicies(input *[]network.IpsecPolicy) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"dh_group":                  string(item.DhGroup),
+			"ipsec_encryption":          string(item.IpsecEncryption),
+			"ipsec_integrity":           string(item.IpsecIntegrity),
+			"ike_encryption":            string(item.IkeEncryption),
+			"ike_integrity":             string(item.IkeIntegrity),
+			"pfs_group":                 string(item.PfsGroup),
+			"sa_data_size_in_kilobytes": pointer.From(item.SaDataSizeKilobytes),
+			"sa_lifetime_in_seconds":    pointer.From(item.SaLifeTimeSeconds),
+		})
+	}
+	return results
+}
+
+func flattenVirtualNetworkGatewayPolicyGroups(input *[]network.VirtualNetworkGatewayPolicyGroup) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"name":          pointer.From(item.Name),
+			"is_default":    pointer.From(item.IsDefault),
+			"policy_member": flattenVirtualNetworkGatewayPolicy(item.PolicyMembers),
+			"priority":      pointer.From(item.Priority),
+		})
+	}
+	return results
+}
+
+func flattenVirtualNetworkGatewayPolicy(input *[]network.VirtualNetworkGatewayPolicyGroupMember) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"name":  pointer.From(item.Name),
+			"type":  string(item.AttributeType),
+			"value": pointer.From(item.AttributeValue),
+		})
+	}
+	return results
+}
+
+func flattenVirtualNetworkGatewayClientConnections(input *[]network.VngClientConnectionConfiguration) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results, nil
+	}
+
+	for _, item := range *input {
+		result := map[string]interface{}{
+			"name":             pointer.From(item.Name),
+			"address_prefixes": pointer.From(item.VpnClientAddressPool.AddressPrefixes),
+		}
+
+		policyGroupNames, err := flattenVirtualNetworkGatewayPolicyGroupNames(item.VirtualNetworkGatewayPolicyGroups)
+		if err != nil {
+			return nil, err
+		}
+		result["policy_group_names"] = policyGroupNames
+
+		results = append(results, result)
+	}
+
+	return results, nil
+}
+
+func flattenVirtualNetworkGatewayPolicyGroupNames(input *[]network.SubResource) ([]string, error) {
+	results := make([]string, 0)
+	if input == nil || len(*input) == 0 {
+		return results, nil
+	}
+
+	for _, item := range *input {
+		policyGroupId, err := parse.VirtualNetworkGatewayPolicyGroupID(*item.ID)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, policyGroupId.Name)
+	}
+
+	return results, nil
 }

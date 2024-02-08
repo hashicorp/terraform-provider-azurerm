@@ -20,7 +20,7 @@ type PrivateEndpointConnectionsUpdateOperationResponse struct {
 // PrivateEndpointConnectionsUpdate ...
 func (c SignalRClient) PrivateEndpointConnectionsUpdate(ctx context.Context, id PrivateEndpointConnectionId, input PrivateEndpointConnection) (result PrivateEndpointConnectionsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

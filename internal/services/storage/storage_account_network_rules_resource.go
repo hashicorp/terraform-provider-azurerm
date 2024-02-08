@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,7 +30,7 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 		Delete: resourceStorageAccountNetworkRulesDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StorageAccountID(id)
+			_, err := commonids.ParseStorageAccountID(id)
 			return err
 		}),
 
@@ -52,7 +52,7 @@ func resourceStorageAccountNetworkRulesSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StorageAccountID,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"bypass": {
@@ -139,19 +139,20 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 	var resourceGroup string
 	raw, ok := d.GetOk("storage_account_id")
 	if ok {
-		parsedStorageAccountId, err := parse.StorageAccountID(raw.(string))
+		parsedStorageAccountId, err := commonids.ParseStorageAccountID(raw.(string))
 		if err != nil {
 			return err
 		}
 
-		storageAccountName = parsedStorageAccountId.Name
-		resourceGroup = parsedStorageAccountId.ResourceGroup
+		storageAccountName = parsedStorageAccountId.StorageAccountName
+		resourceGroup = parsedStorageAccountId.ResourceGroupName
 	}
 
 	locks.ByName(storageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
-	storageAccount, err := client.GetProperties(ctx, resourceGroup, storageAccountName, "")
+	id := commonids.NewStorageAccountID(subscriptionId, resourceGroup, storageAccountName)
+	storageAccount, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
 			return fmt.Errorf("Storage Account %q (Resource Group %q) was not found", storageAccountName, resourceGroup)
@@ -166,7 +167,7 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 
 		if checkForNonDefaultStorageAccountNetworkRule(storageAccount.AccountProperties.NetworkRuleSet) {
-			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", *storageAccount.ID)
+			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", id.ID())
 		}
 	}
 
@@ -191,7 +192,6 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("updating Azure Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
-	id := parse.NewStorageAccountID(subscriptionId, resourceGroup, storageAccountName)
 	d.SetId(id.ID())
 
 	return resourceStorageAccountNetworkRulesRead(d, meta)
@@ -202,12 +202,12 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageAccountID(d.Id())
+	id, err := commonids.ParseStorageAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	storageAccount, err := client.GetProperties(ctx, id.ResourceGroup, id.Name, "")
+	storageAccount, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
 			log.Printf("[INFO] Storage Account Network Rules %q does not exist - removing from state", d.Id())
@@ -243,15 +243,15 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	parsedStorageAccountNetworkRuleId, err := parse.StorageAccountID(d.Id())
+	parsedStorageAccountNetworkRuleId, err := commonids.ParseStorageAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(parsedStorageAccountNetworkRuleId.Name, storageAccountResourceName)
-	defer locks.UnlockByName(parsedStorageAccountNetworkRuleId.Name, storageAccountResourceName)
+	locks.ByName(parsedStorageAccountNetworkRuleId.StorageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(parsedStorageAccountNetworkRuleId.StorageAccountName, storageAccountResourceName)
 
-	storageAccount, err := client.GetProperties(ctx, parsedStorageAccountNetworkRuleId.ResourceGroup, parsedStorageAccountNetworkRuleId.Name, "")
+	storageAccount, err := client.GetProperties(ctx, parsedStorageAccountNetworkRuleId.ResourceGroupName, parsedStorageAccountNetworkRuleId.StorageAccountName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
 			return fmt.Errorf("%s was not found", *parsedStorageAccountNetworkRuleId)
@@ -278,7 +278,7 @@ func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if _, err := client.Update(ctx, parsedStorageAccountNetworkRuleId.ResourceGroup, parsedStorageAccountNetworkRuleId.Name, opts); err != nil {
+	if _, err := client.Update(ctx, parsedStorageAccountNetworkRuleId.ResourceGroupName, parsedStorageAccountNetworkRuleId.StorageAccountName, opts); err != nil {
 		return fmt.Errorf("deleting Azure %s: %+v", *parsedStorageAccountNetworkRuleId, err)
 	}
 
@@ -294,7 +294,7 @@ func checkForNonDefaultStorageAccountNetworkRule(rule *storage.NetworkRuleSet) b
 	// THe default action "Allow" is set in the creation of the storage account resource as default value.
 	if (rule.IPRules != nil && len(*rule.IPRules) != 0) ||
 		(rule.VirtualNetworkRules != nil && len(*rule.VirtualNetworkRules) != 0) ||
-		rule.DefaultAction != "Allow" {
+		rule.DefaultAction != storage.DefaultActionAllow {
 		return true
 	}
 

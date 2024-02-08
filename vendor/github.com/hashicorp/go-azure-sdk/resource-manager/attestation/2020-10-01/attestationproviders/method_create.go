@@ -20,7 +20,7 @@ type CreateOperationResponse struct {
 // Create ...
 func (c AttestationProvidersClient) Create(ctx context.Context, id AttestationProvidersId, input AttestationServiceCreationParams) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

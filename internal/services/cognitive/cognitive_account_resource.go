@@ -26,7 +26,6 @@ import (
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -83,6 +82,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					"CognitiveServices",
 					"ComputerVision",
 					"ContentModerator",
+					"ContentSafety",
 					"CustomSpeech",
 					"CustomVision.Prediction",
 					"CustomVision.Training",
@@ -282,7 +282,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						"storage_account_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: storageValidate.StorageAccountID,
+							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"identity_client_id": {
@@ -338,9 +338,8 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
-	if err != nil {
-		return fmt.Errorf("expanding sku_name for %s: %v", id, err)
+	sku := cognitiveservicesaccounts.Sku{
+		Name: d.Get("sku_name").(string),
 	}
 
 	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
@@ -373,7 +372,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	props := cognitiveservicesaccounts.Account{
 		Kind:     utils.String(kind),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Sku:      sku,
+		Sku:      &sku,
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
@@ -425,9 +424,8 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
-	if err != nil {
-		return fmt.Errorf("expanding sku_name for %s: %+v", *id, err)
+	sku := cognitiveservicesaccounts.Sku{
+		Name: d.Get("sku_name").(string),
 	}
 
 	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
@@ -458,7 +456,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	props := cognitiveservicesaccounts.Account{
-		Sku: sku,
+		Sku: &sku,
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
@@ -645,27 +643,6 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	return nil
-}
-
-func expandAccountSkuName(skuName string) (*cognitiveservicesaccounts.Sku, error) {
-	var tier cognitiveservicesaccounts.SkuTier
-	switch skuName[0:1] {
-	case "F":
-		tier = cognitiveservicesaccounts.SkuTierFree
-	case "S":
-		tier = cognitiveservicesaccounts.SkuTierStandard
-	case "P":
-		tier = cognitiveservicesaccounts.SkuTierPremium
-	case "E":
-		tier = cognitiveservicesaccounts.SkuTierEnterprise
-	default:
-		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, skuName[0:1])
-	}
-
-	return &cognitiveservicesaccounts.Sku{
-		Name: skuName,
-		Tier: &tier,
-	}, nil
 }
 
 func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, id cognitiveservicesaccounts.AccountId) pluginsdk.StateRefreshFunc {

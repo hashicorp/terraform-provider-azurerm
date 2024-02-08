@@ -243,6 +243,21 @@ func TestAccSpringCloudService_containerRegistry(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudService_marketplace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.marketplace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SpringCloudServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SpringCloudServiceID(state.ID)
 	if err != nil {
@@ -527,6 +542,7 @@ resource "azurerm_spring_cloud_service" "test" {
     service_runtime_subnet_id = azurerm_subnet.test2.id
     cidr_ranges               = ["10.4.0.0/16", "10.5.0.0/16", "10.3.0.1/16"]
     read_timeout_seconds      = 2
+    outbound_type             = "loadBalancer"
   }
 
   config_server_git_setting {
@@ -607,6 +623,32 @@ resource "azurerm_spring_cloud_service" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger, containerRegistryName)
+}
+
+func (SpringCloudServiceResource) marketplace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%d"
+  location = "%s"
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                = "acctest-sc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "E0"
+
+  marketplace {
+    plan      = "asa-ent-hr-mtr"
+    publisher = "vmware-inc"
+    product   = "azure-spring-cloud-vmware-tanzu-2"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r SpringCloudServiceResource) requiresImport(data acceptance.TestData) string {

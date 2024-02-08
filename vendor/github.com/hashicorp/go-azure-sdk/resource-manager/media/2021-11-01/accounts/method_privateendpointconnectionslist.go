@@ -21,7 +21,7 @@ type PrivateEndpointConnectionsListOperationResponse struct {
 // PrivateEndpointConnectionsList ...
 func (c AccountsClient) PrivateEndpointConnectionsList(ctx context.Context, id MediaServiceId) (result PrivateEndpointConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

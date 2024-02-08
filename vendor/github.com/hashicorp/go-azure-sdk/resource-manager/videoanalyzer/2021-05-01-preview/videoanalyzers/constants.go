@@ -1,6 +1,10 @@
 package videoanalyzers
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAccountEncryptionKeyType() []string {
 		string(AccountEncryptionKeyTypeCustomerKey),
 		string(AccountEncryptionKeyTypeSystemKey),
 	}
+}
+
+func (s *AccountEncryptionKeyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAccountEncryptionKeyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAccountEncryptionKeyType(input string) (*AccountEncryptionKeyType, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForCheckNameAvailabilityReason() []string {
 	}
 }
 
+func (s *CheckNameAvailabilityReason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCheckNameAvailabilityReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseCheckNameAvailabilityReason(input string) (*CheckNameAvailabilityReason, error) {
 	vals := map[string]CheckNameAvailabilityReason{
 		"alreadyexists": CheckNameAvailabilityReasonAlreadyExists,
@@ -71,6 +101,19 @@ func PossibleValuesForVideoAnalyzerEndpointType() []string {
 	return []string{
 		string(VideoAnalyzerEndpointTypeClientApi),
 	}
+}
+
+func (s *VideoAnalyzerEndpointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVideoAnalyzerEndpointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseVideoAnalyzerEndpointType(input string) (*VideoAnalyzerEndpointType, error) {

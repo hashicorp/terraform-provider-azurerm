@@ -19,7 +19,7 @@ type WebTestsDeleteOperationResponse struct {
 // WebTestsDelete ...
 func (c WebTestsAPIsClient) WebTestsDelete(ctx context.Context, id WebTestId) (result WebTestsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

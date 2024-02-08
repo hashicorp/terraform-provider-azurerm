@@ -18,12 +18,13 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *FluxConfiguration
 }
 
 // CreateOrUpdate ...
-func (c FluxConfigurationClient) CreateOrUpdate(ctx context.Context, id FluxConfigurationId, input FluxConfiguration) (result CreateOrUpdateOperationResponse, err error) {
+func (c FluxConfigurationClient) CreateOrUpdate(ctx context.Context, id ScopedFluxConfigurationId, input FluxConfiguration) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
@@ -60,7 +61,7 @@ func (c FluxConfigurationClient) CreateOrUpdate(ctx context.Context, id FluxConf
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c FluxConfigurationClient) CreateOrUpdateThenPoll(ctx context.Context, id FluxConfigurationId, input FluxConfiguration) error {
+func (c FluxConfigurationClient) CreateOrUpdateThenPoll(ctx context.Context, id ScopedFluxConfigurationId, input FluxConfiguration) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

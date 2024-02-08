@@ -20,7 +20,7 @@ type StreamingPoliciesGetOperationResponse struct {
 // StreamingPoliciesGet ...
 func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingPoliciesGet(ctx context.Context, id StreamingPolicyId) (result StreamingPoliciesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

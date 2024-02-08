@@ -20,7 +20,7 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `EdgeModulesClient.EdgeModulesCreateOrUpdate`
+### Example Usage: `EdgeModulesClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
@@ -31,7 +31,7 @@ payload := edgemodules.EdgeModuleEntity{
 }
 
 
-read, err := client.EdgeModulesCreateOrUpdate(ctx, id, payload)
+read, err := client.CreateOrUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
 }
@@ -41,13 +41,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EdgeModulesClient.EdgeModulesDelete`
+### Example Usage: `EdgeModulesClient.Delete`
 
 ```go
 ctx := context.TODO()
 id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue", "edgeModuleValue")
 
-read, err := client.EdgeModulesDelete(ctx, id)
+read, err := client.Delete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -57,13 +57,13 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EdgeModulesClient.EdgeModulesGet`
+### Example Usage: `EdgeModulesClient.Get`
 
 ```go
 ctx := context.TODO()
 id := edgemodules.NewEdgeModuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue", "edgeModuleValue")
 
-read, err := client.EdgeModulesGet(ctx, id)
+read, err := client.Get(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -73,14 +73,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `EdgeModulesClient.EdgeModulesList`
+### Example Usage: `EdgeModulesClient.List`
 
 ```go
 ctx := context.TODO()
 id := edgemodules.NewVideoAnalyzerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "videoAnalyzerValue")
 
-// alternatively `client.EdgeModulesList(ctx, id, edgemodules.DefaultEdgeModulesListOperationOptions())` can be used to do batched pagination
-items, err := client.EdgeModulesListComplete(ctx, id, edgemodules.DefaultEdgeModulesListOperationOptions())
+// alternatively `client.List(ctx, id, edgemodules.DefaultListOperationOptions())` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id, edgemodules.DefaultListOperationOptions())
 if err != nil {
 	// handle the error
 }
@@ -90,7 +90,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `EdgeModulesClient.EdgeModulesListProvisioningToken`
+### Example Usage: `EdgeModulesClient.ListProvisioningToken`
 
 ```go
 ctx := context.TODO()
@@ -101,7 +101,7 @@ payload := edgemodules.ListProvisioningTokenInput{
 }
 
 
-read, err := client.EdgeModulesListProvisioningToken(ctx, id, payload)
+read, err := client.ListProvisioningToken(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

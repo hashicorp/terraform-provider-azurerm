@@ -58,6 +58,8 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					string(synapse.NodeSizeFamilyHardwareAcceleratedFPGA),
+					string(synapse.NodeSizeFamilyHardwareAcceleratedGPU),
 					string(synapse.NodeSizeFamilyMemoryOptimized),
 					string(synapse.NodeSizeFamilyNone),
 				}, false),

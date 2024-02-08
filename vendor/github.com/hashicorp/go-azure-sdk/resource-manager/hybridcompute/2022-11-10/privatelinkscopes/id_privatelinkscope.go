@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateLinkScopeId{}
+var _ resourceids.ResourceId = &PrivateLinkScopeId{}
 
 // PrivateLinkScopeId is a struct representing the Resource ID for a Private Link Scope
 type PrivateLinkScopeId struct {
@@ -30,25 +30,15 @@ func NewPrivateLinkScopeID(subscriptionId string, locationName string, privateLi
 
 // ParsePrivateLinkScopeID parses 'input' into a PrivateLinkScopeId
 func ParsePrivateLinkScopeID(input string) (*PrivateLinkScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateLinkScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateLinkScopeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateLinkScopeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.PrivateLinkScopeId, ok = parsed.Parsed["privateLinkScopeId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParsePrivateLinkScopeID(input string) (*PrivateLinkScopeId, error) {
 // ParsePrivateLinkScopeIDInsensitively parses 'input' case-insensitively into a PrivateLinkScopeId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateLinkScopeIDInsensitively(input string) (*PrivateLinkScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateLinkScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateLinkScopeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateLinkScopeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.PrivateLinkScopeId, ok = parsed.Parsed["privateLinkScopeId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PrivateLinkScopeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LocationName, ok = input.Parsed["locationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "locationName", input)
+	}
+
+	if id.PrivateLinkScopeId, ok = input.Parsed["privateLinkScopeId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateLinkScopeId", input)
+	}
+
+	return nil
 }
 
 // ValidatePrivateLinkScopeID checks that 'input' can be parsed as a Private Link Scope ID

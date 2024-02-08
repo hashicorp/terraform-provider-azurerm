@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/routetables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -239,7 +239,7 @@ func (t RouteTableResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, err
 	}
 
-	resp, err := clients.Network.RouteTablesClient.Get(ctx, *id, routetables.DefaultGetOperationOptions())
+	resp, err := clients.Network.RouteTables.Get(ctx, *id, routetables.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Route Table (%s): %+v", id, err)
 	}
@@ -253,7 +253,7 @@ func (RouteTableResource) Destroy(ctx context.Context, client *clients.Client, s
 		return nil, err
 	}
 
-	if err = client.Network.RouteTablesClient.DeleteThenPoll(ctx, *id); err != nil {
+	if err = client.Network.RouteTables.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Route Table %q: %+v", id, err)
 	}
 

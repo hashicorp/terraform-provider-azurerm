@@ -92,7 +92,7 @@ The following arguments are supported:
 
 -> **NOTE:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
 
-* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`.
+* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
 
@@ -110,7 +110,7 @@ The following arguments are supported:
 
 -> **NOTE:** At this time `allow_nested_items_to_be_public` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
-* `shared_access_key_enabled` - (Optional) Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is `true`.
+* `shared_access_key_enabled` - (Optional) Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). Defaults to `true`.
 
 ~> **Note:** Terraform uses Shared Key Authorisation to provision Storage Containers, Blobs and other items - when Shared Key Access is disabled, you will need to enable [the `storage_use_azuread` flag in the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#storage_use_azuread) to use Azure AD for authentication, however not all Azure Storage services support Active Directory authentication.
 
@@ -148,6 +148,8 @@ The following arguments are supported:
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
+* `local_user_enabled` - (Optional) Is Local User Enabled? Defaults to `true`.
+
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
 * `routing` - (Optional) A `routing` block as defined below.
@@ -183,15 +185,25 @@ A `blob_properties` block supports the following:
 
 * `restore_policy` - (Optional) A `restore_policy` block as defined below. This must be used together with `delete_retention_policy` set, `versioning_enabled` and `change_feed_enabled` set to `true`.
 
+-> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
+
+-> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
 * `change_feed_enabled` - (Optional) Is the blob service properties for change feed events enabled? Default to `false`.
 
+-> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+
 * `change_feed_retention_in_days` - (Optional) The duration of change feed events retention in days. The possible values are between 1 and 146000 days (400 years). Setting this to null (or omit this in the configuration file) indicates an infinite retention of the change feed.
+
+-> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
 * `default_service_version` - (Optional) The API Version which should be used by default for requests to the Data Plane API if an incoming request doesn't specify an API Version.
 
 * `last_access_time_enabled` - (Optional) Is the last access time based tracking enabled? Default to `false`.
+
+-> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
 
 * `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
 
@@ -274,7 +286,7 @@ An `identity` block supports the following:
 
 An `immutability_policy` block supports the following:
 
-~> **NOTE**: This argument specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy.
+~> **NOTE:** This argument specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy.
 
 * `allow_protected_append_writes` - (Required) When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
 
@@ -314,11 +326,11 @@ A `network_rules` block supports the following:
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional) Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
-* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. /31 CIDRs, /32 CIDRs, and Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)),  are not allowed.
+* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPv4 addresses are allowed. /31 CIDRs, /32 CIDRs, and Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)), are not allowed.
 
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
-* `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
+* `private_link_access` - (Optional) One or more `private_link_access` block as defined below.
 
 ~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
@@ -332,7 +344,7 @@ A `network_rules` block supports the following:
 
 A `private_link_access` block supports the following:
 
-* `endpoint_resource_id` - (Required) The resource id of the resource access rule to be granted access.
+* `endpoint_resource_id` - (Required) The ID of the Azure resource that should be allowed access to the target storage account.
 
 * `endpoint_tenant_id` - (Optional) The tenant id of the resource of the resource access rule to be granted access. Defaults to the current tenant id.
 
@@ -344,23 +356,21 @@ A `azure_files_authentication` block supports the following:
 
 * `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
 
-~> **Note:** If `directory_type` is set to `AADKERB`, `active_directory` is not supported. Use [icals](https://learn.microsoft.com/en-us/azure/storage/files/storage-files-identity-auth-azure-active-directory-enable?tabs=azure-portal#configure-directory-and-file-level-permissions) to configure directory and file level permissions.
-
 ---
 
 A `active_directory` block supports the following:
 
-* `storage_sid` - (Required) Specifies the security identifier (SID) for Azure Storage.
-
 * `domain_name` - (Required) Specifies the primary domain that the AD DNS server is authoritative for.
-
-* `domain_sid` - (Required) Specifies the security identifier (SID).
 
 * `domain_guid` - (Required) Specifies the domain GUID.
 
-* `forest_name` - (Required) Specifies the Active Directory forest.
+* `domain_sid` - (Optional) Specifies the security identifier (SID). This is required when `directory_type` is set to `AD`.
 
-* `netbios_domain_name` - (Required) Specifies the NetBIOS domain name.
+* `storage_sid` - (Optional) Specifies the security identifier (SID) for Azure Storage. This is required when `directory_type` is set to `AD`.
+
+* `forest_name` - (Optional) Specifies the Active Directory forest. This is required when `directory_type` is set to `AD`.
+
+* `netbios_domain_name` - (Optional) Specifies the NetBIOS domain name. This is required when `directory_type` is set to `AD`.
 
 ---
 
@@ -446,49 +456,129 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `primary_blob_host` - The hostname with port if applicable for blob storage in the primary location.
 
+* `primary_blob_internet_endpoint` - The internet routing endpoint URL for blob storage in the primary location.
+
+* `primary_blob_internet_host` - The internet routing hostname with port if applicable for blob storage in the primary location.
+
+* `primary_blob_microsoft_endpoint` - The microsoft routing endpoint URL for blob storage in the primary location.
+
+* `primary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the primary location.
+
 * `secondary_blob_endpoint` - The endpoint URL for blob storage in the secondary location.
 
 * `secondary_blob_host` - The hostname with port if applicable for blob storage in the secondary location.
+
+* `secondary_blob_internet_endpoint` - The internet routing endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_internet_host` - The internet routing hostname with port if applicable for blob storage in the secondary location.
+
+* `secondary_blob_microsoft_endpoint` - The microsoft routing endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the secondary location.
 
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
 
 * `primary_queue_host` - The hostname with port if applicable for queue storage in the primary location.
 
+* `primary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the primary location.
+
+* `primary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the primary location.
+
 * `secondary_queue_endpoint` - The endpoint URL for queue storage in the secondary location.
 
 * `secondary_queue_host` - The hostname with port if applicable for queue storage in the secondary location.
+
+* `secondary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the secondary location.
+
+* `secondary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the secondary location.
 
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
 
 * `primary_table_host` - The hostname with port if applicable for table storage in the primary location.
 
+* `primary_table_microsoft_endpoint` - The microsoft routing endpoint URL for table storage in the primary location.
+
+* `primary_table_microsoft_host` - The microsoft routing hostname with port if applicable for table storage in the primary location.
+
 * `secondary_table_endpoint` - The endpoint URL for table storage in the secondary location.
 
 * `secondary_table_host` - The hostname with port if applicable for table storage in the secondary location.
+
+* `secondary_table_microsoft_endpoint` - The microsoft routing endpoint URL for table storage in the secondary location.
+
+* `secondary_table_microsoft_host` - The microsoft routing hostname with port if applicable for table storage in the secondary location.
 
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 
 * `primary_file_host` - The hostname with port if applicable for file storage in the primary location.
 
+* `primary_file_internet_endpoint` - The internet routing endpoint URL for file storage in the primary location.
+
+* `primary_file_internet_host` - The internet routing hostname with port if applicable for file storage in the primary location.
+
+* `primary_file_microsoft_endpoint` - The microsoft routing endpoint URL for file storage in the primary location.
+
+* `primary_file_microsoft_host` - The microsoft routing hostname with port if applicable for file storage in the primary location.
+
 * `secondary_file_endpoint` - The endpoint URL for file storage in the secondary location.
 
 * `secondary_file_host` - The hostname with port if applicable for file storage in the secondary location.
+
+* `secondary_file_internet_endpoint` - The internet routing endpoint URL for file storage in the secondary location.
+
+* `secondary_file_internet_host` - The internet routing hostname with port if applicable for file storage in the secondary location.
+
+* `secondary_file_microsoft_endpoint` - The microsoft routing endpoint URL for file storage in the secondary location.
+
+* `secondary_file_microsoft_host` - The microsoft routing hostname with port if applicable for file storage in the secondary location.
 
 * `primary_dfs_endpoint` - The endpoint URL for DFS storage in the primary location.
 
 * `primary_dfs_host` - The hostname with port if applicable for DFS storage in the primary location.
 
+* `primary_dfs_internet_endpoint` - The internet routing endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_internet_host` - The internet routing hostname with port if applicable for DFS storage in the primary location.
+
+* `primary_dfs_microsoft_endpoint` - The microsoft routing endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_microsoft_host` - The microsoft routing hostname with port if applicable for DFS storage in the primary location.
+
 * `secondary_dfs_endpoint` - The endpoint URL for DFS storage in the secondary location.
 
 * `secondary_dfs_host` - The hostname with port if applicable for DFS storage in the secondary location.
+
+* `secondary_dfs_internet_endpoint` - The internet routing endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_internet_host` - The internet routing hostname with port if applicable for DFS storage in the secondary location.
+
+* `secondary_dfs_microsoft_endpoint` - The microsoft routing endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_microsoft_host` - The microsoft routing hostname with port if applicable for DFS storage in the secondary location.
 
 * `primary_web_endpoint` - The endpoint URL for web storage in the primary location.
 
 * `primary_web_host` - The hostname with port if applicable for web storage in the primary location.
 
+* `primary_web_internet_endpoint` - The internet routing endpoint URL for web storage in the primary location.
+
+* `primary_web_internet_host` - The internet routing hostname with port if applicable for web storage in the primary location.
+
+* `primary_web_microsoft_endpoint` - The microsoft routing endpoint URL for web storage in the primary location.
+
+* `primary_web_microsoft_host` - The microsoft routing hostname with port if applicable for web storage in the primary location.
+
 * `secondary_web_endpoint` - The endpoint URL for web storage in the secondary location.
 
 * `secondary_web_host` - The hostname with port if applicable for web storage in the secondary location.
+
+* `secondary_web_internet_endpoint` - The internet routing endpoint URL for web storage in the secondary location.
+
+* `secondary_web_internet_host` - The internet routing hostname with port if applicable for web storage in the secondary location.
+
+* `secondary_web_microsoft_endpoint` - The microsoft routing endpoint URL for web storage in the secondary location.
+
+* `secondary_web_microsoft_host` - The microsoft routing hostname with port if applicable for web storage in the secondary location.
 
 * `primary_access_key` - The primary access key for the storage account.
 

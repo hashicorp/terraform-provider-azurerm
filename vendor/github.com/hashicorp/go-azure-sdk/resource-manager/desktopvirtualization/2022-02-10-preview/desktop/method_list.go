@@ -19,13 +19,14 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []Desktop
+	LatestHttpResponse *http.Response
+	Items              []Desktop
 }
 
 // List ...
 func (c DesktopClient) List(ctx context.Context, id ApplicationGroupId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c DesktopClient) ListCompleteMatchingPredicate(ctx context.Context, id App
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -82,6 +82,7 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			id := loadtests.NewLoadTestID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.Get(ctx, id)
@@ -201,16 +202,6 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 	return nil
 }
 
-func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourcePatchRequestBodyProperties(input LoadTestResourceSchema, output *loadtests.LoadTestResourcePatchRequestBodyProperties) error {
-	output.Description = &input.Description
-	return nil
-}
-
-func (r LoadTestResource) mapLoadTestResourcePatchRequestBodyPropertiesToLoadTestResourceSchema(input loadtests.LoadTestResourcePatchRequestBodyProperties, output *LoadTestResourceSchema) error {
-	output.Description = pointer.From(input.Description)
-	return nil
-}
-
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input LoadTestResourceSchema, output *loadtests.LoadTestResource) error {
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
@@ -262,14 +253,6 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourcePatchReques
 	output.Identity = identity
 
 	output.Tags = tags.Expand(input.Tags)
-
-	if output.Properties == nil {
-		output.Properties = &loadtests.LoadTestResourcePatchRequestBodyProperties{}
-	}
-	if err := r.mapLoadTestResourceSchemaToLoadTestResourcePatchRequestBodyProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "LoadTestResourcePatchRequestBodyProperties", "Properties", err)
-	}
-
 	return nil
 }
 
@@ -282,13 +265,5 @@ func (r LoadTestResource) mapLoadTestResourcePatchRequestBodyToLoadTestResourceS
 	output.Identity = identity
 
 	output.Tags = tags.Flatten(input.Tags)
-
-	if input.Properties == nil {
-		input.Properties = &loadtests.LoadTestResourcePatchRequestBodyProperties{}
-	}
-	if err := r.mapLoadTestResourcePatchRequestBodyPropertiesToLoadTestResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "LoadTestResourcePatchRequestBodyProperties", "Properties", err)
-	}
-
 	return nil
 }

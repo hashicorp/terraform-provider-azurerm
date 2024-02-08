@@ -14,27 +14,27 @@ type ApiKeyOperationPredicate struct {
 
 func (p ApiKeyOperationPredicate) Matches(input ApiKey) bool {
 
-	if p.ConnectionString != nil && (input.ConnectionString == nil && *p.ConnectionString != *input.ConnectionString) {
+	if p.ConnectionString != nil && (input.ConnectionString == nil || *p.ConnectionString != *input.ConnectionString) {
 		return false
 	}
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.LastModified != nil && (input.LastModified == nil && *p.LastModified != *input.LastModified) {
+	if p.LastModified != nil && (input.LastModified == nil || *p.LastModified != *input.LastModified) {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.ReadOnly != nil && (input.ReadOnly == nil && *p.ReadOnly != *input.ReadOnly) {
+	if p.ReadOnly != nil && (input.ReadOnly == nil || *p.ReadOnly != *input.ReadOnly) {
 		return false
 	}
 
-	if p.Value != nil && (input.Value == nil && *p.Value != *input.Value) {
+	if p.Value != nil && (input.Value == nil || *p.Value != *input.Value) {
 		return false
 	}
 
@@ -50,7 +50,7 @@ type ConfigurationStoreOperationPredicate struct {
 
 func (p ConfigurationStoreOperationPredicate) Matches(input ConfigurationStore) bool {
 
-	if p.Id != nil && (input.Id == nil && *p.Id != *input.Id) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
@@ -58,11 +58,11 @@ func (p ConfigurationStoreOperationPredicate) Matches(input ConfigurationStore) 
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 
-	if p.Type != nil && (input.Type == nil && *p.Type != *input.Type) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -25,9 +26,9 @@ import (
 
 func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePointToSiteVPNGatewayCreateUpdate,
+		Create: resourcePointToSiteVPNGatewayCreate,
 		Read:   resourcePointToSiteVPNGatewayRead,
-		Update: resourcePointToSiteVPNGatewayCreateUpdate,
+		Update: resourcePointToSiteVPNGatewayUpdate,
 		Delete: resourcePointToSiteVPNGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.PointToSiteVpnGatewayID(id)
@@ -64,15 +65,12 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VpnServerConfigurationID,
+				ValidateFunc: virtualwans.ValidateVpnServerConfigurationID,
 			},
 
 			"connection_configuration": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				// Code="P2SVpnGatewayCanHaveOnlyOneP2SConnectionConfiguration"
-				// Message="Currently, P2SVpnGateway [ID] can have only one P2SConnectionConfiguration. Specified number of P2SConnectionConfiguration are 2.
-				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -190,7 +188,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourcePointToSiteVPNGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -198,17 +196,15 @@ func resourcePointToSiteVPNGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	id := parse.NewPointToSiteVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_point_to_site_vpn_gateway", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_point_to_site_vpn_gateway", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -242,11 +238,60 @@ func resourcePointToSiteVPNGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.P2sVpnGatewayName, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourcePointToSiteVPNGatewayRead(d, meta)
+}
+
+func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PointToSiteVpnGatewaysClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := parse.NewPointToSiteVpnGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.P2sVpnGatewayName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if d.HasChange("connection_configuration") {
+		existing.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}))
+	}
+
+	if d.HasChange("scale_unit") {
+		existing.VpnGatewayScaleUnit = utils.Int32(int32(d.Get("scale_unit").(int)))
+	}
+
+	if d.HasChange("dns_servers") {
+		if existing.P2SVpnGatewayProperties == nil {
+			existing.P2SVpnGatewayProperties = &network.P2SVpnGatewayProperties{}
+		}
+
+		customDNSServers := utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
+		if len(*customDNSServers) != 0 {
+			existing.P2SVpnGatewayProperties.CustomDNSServers = customDNSServers
+		}
+	}
+
+	if d.HasChange("tags") {
+		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.P2sVpnGatewayName, existing)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

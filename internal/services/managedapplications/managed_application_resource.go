@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,101 +47,121 @@ func resourceManagedApplication() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ApplicationName,
-			},
+		Schema: resourceManagedApplicationSchema(),
+	}
+}
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+func resourceManagedApplicationSchema() map[string]*pluginsdk.Schema {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ApplicationName,
+		},
 
-			"location": commonschema.Location(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-			"kind": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"MarketPlace",
-					"ServiceCatalog",
-				}, false),
-			},
+		"location": commonschema.Location(),
 
-			"managed_resource_group_name": commonschema.ResourceGroupName(),
+		"kind": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"MarketPlace",
+				"ServiceCatalog",
+			}, false),
+		},
 
-			"application_definition_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: applicationdefinitions.ValidateApplicationDefinitionID,
-			},
+		"managed_resource_group_name": commonschema.ResourceGroupName(),
 
-			"parameters": {
-				Type:          pluginsdk.TypeMap,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"parameter_values"},
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
+		"application_definition_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: applicationdefinitions.ValidateApplicationDefinitionID,
+		},
 
-			"parameter_values": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-				ConflictsWith:    []string{"parameters"},
-			},
+		"parameter_values": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{"parameters"}
+				}
+				return []string{}
+			}(),
+		},
 
-			"plan": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"product": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"publisher": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"version": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"promotion_code": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+		"plan": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"product": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"publisher": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"version": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"promotion_code": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
+		},
 
-			"tags": commonschema.Tags(),
+		"tags": commonschema.Tags(),
 
-			"outputs": {
-				Type:     pluginsdk.TypeMap,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
+		"outputs": {
+			Type:     pluginsdk.TypeMap,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		schema["parameters"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeMap,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"parameter_values"},
+			Deprecated:    "This property has been deprecated in favour of `parameter_values`",
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		}
+	}
+
+	return schema
 }
 
 func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -186,7 +207,10 @@ func resourceManagedApplicationCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	params, err := expandManagedApplicationParameters(d)
 	if err != nil {
-		return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+		if !features.FourPointOhBeta() {
+			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+		}
+		return fmt.Errorf("expanding `parameter_values`: %+v", err)
 	}
 	parameters.Properties.Parameters = pointer.To(interface{}(params))
 
@@ -240,21 +264,31 @@ func resourceManagedApplicationRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("managed_resource_group_name", id.ResourceGroup)
 		d.Set("application_definition_id", p.ApplicationDefinitionId)
 
-		parameterValues, err := flattenManagedApplicationParameterValuesValueToString(p.Parameters)
+		expendedParams, err := expandManagedApplicationParameters(d)
+		if err != nil {
+			if !features.FourPointOhBeta() {
+				return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+			}
+			return fmt.Errorf("expanding `parameter_values`: %+v", err)
+		}
+
+		parameterValues, err := flattenManagedApplicationParameterValuesValueToString(p.Parameters, *expendedParams)
 		if err != nil {
 			return fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
 		}
 		d.Set("parameter_values", parameterValues)
 
-		parameters, err := flattenManagedApplicationParametersOrOutputs(p.Parameters)
-		if err != nil {
-			return err
-		}
-		if err = d.Set("parameters", parameters); err != nil {
-			return err
+		if !features.FourPointOhBeta() {
+			parameters, err := flattenManagedApplicationParameters(p.Parameters, *expendedParams)
+			if err != nil {
+				return err
+			}
+			if err = d.Set("parameters", parameters); err != nil {
+				return err
+			}
 		}
 
-		outputs, err := flattenManagedApplicationParametersOrOutputs(p.Outputs)
+		outputs, err := flattenManagedApplicationOutputs(p.Outputs)
 		if err != nil {
 			return err
 		}
@@ -311,14 +345,17 @@ func expandManagedApplicationParameters(d *pluginsdk.ResourceData) (*map[string]
 		}
 	}
 
-	if v, ok := d.GetOk("parameters"); ok {
-		params := v.(map[string]interface{})
+	if !features.FourPointOhBeta() {
+		// `parameters` will be available in state as well after first apply when `parameter_values` is used, so getting its value only during creation or when it is changed
+		if d.IsNewResource() || d.HasChange("parameters") {
+			if v, ok := d.GetOk("parameters"); ok {
+				params := v.(map[string]interface{})
 
-		for key, val := range params {
-			newParams[key] = struct {
-				Value interface{} `json:"value"`
-			}{
-				Value: val,
+				for key, val := range params {
+					newParamValue := make(map[string]interface{}, 1)
+					newParamValue["value"] = val
+					newParams[key] = newParamValue
+				}
 			}
 		}
 	}
@@ -343,7 +380,7 @@ func flattenManagedApplicationPlan(input *applications.Plan) []interface{} {
 	return results
 }
 
-func flattenManagedApplicationParametersOrOutputs(input *interface{}) (map[string]interface{}, error) {
+func flattenManagedApplicationParameters(input *interface{}, localParameters map[string]interface{}) (map[string]interface{}, error) {
 	results := make(map[string]interface{})
 	if input == nil {
 		return results, nil
@@ -354,29 +391,27 @@ func flattenManagedApplicationParametersOrOutputs(input *interface{}) (map[strin
 		for k, val := range attrs.(map[string]interface{}) {
 			mapVal, ok := val.(map[string]interface{})
 			if !ok {
-				return nil, fmt.Errorf("unexpected managed application parameter or output type: %+v", mapVal)
+				return nil, fmt.Errorf("unexpected managed application parameter type: %+v", mapVal)
 			}
 			if mapVal != nil {
 				v, ok := mapVal["value"]
 				if !ok {
-					return nil, fmt.Errorf("missing key 'value' in parameters or output map %+v", mapVal)
-				}
-				switch t := v.(type) {
-				case float64:
-					results[k] = v.(float64)
-				case string:
-					results[k] = v.(string)
-				case map[string]interface{}:
-					// Azure NVA managed applications read call returns empty map[string]interface{} parameter 'tags'
-					// Do not return an error if the parameter is unsupported type, but is empty
-					if len(v.(map[string]interface{})) == 0 {
-						log.Printf("parameter '%s' is unexpected type %T, but we're ignoring it because of the empty value", k, t)
-					} else {
-						return nil, fmt.Errorf("unexpected parameter type %T", t)
+					// Secure values are not returned, thus settings it with local value
+					v = ""
+					if oldValueStruct, oldValueStructOK := localParameters[k]; oldValueStructOK {
+						if _, oldValueStructTypeOK := oldValueStruct.(map[string]interface{}); oldValueStructTypeOK {
+							if oldValue, oldValueOK := oldValueStruct.(map[string]interface{})["value"]; oldValueOK {
+								v = oldValue
+							}
+						}
 					}
-				default:
-					return nil, fmt.Errorf("unexpected parameter type %T", t)
 				}
+
+				value, err := extractParameterOrOutputValue(v)
+				if err != nil {
+					return nil, fmt.Errorf("extracting parameters: %+v", err)
+				}
+				results[k] = value
 			}
 		}
 	}
@@ -384,7 +419,38 @@ func flattenManagedApplicationParametersOrOutputs(input *interface{}) (map[strin
 	return results, nil
 }
 
-func flattenManagedApplicationParameterValuesValueToString(input *interface{}) (string, error) {
+func flattenManagedApplicationOutputs(input *interface{}) (map[string]interface{}, error) {
+	results := make(map[string]interface{})
+	if input == nil {
+		return results, nil
+	}
+
+	attrs := *input
+	if _, ok := attrs.(map[string]interface{}); ok {
+		for k, val := range attrs.(map[string]interface{}) {
+			mapVal, ok := val.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("unexpected managed application output type: %+v", mapVal)
+			}
+			if mapVal != nil {
+				v, ok := mapVal["value"]
+				if !ok {
+					return nil, fmt.Errorf("missing key 'value' in output map %+v", mapVal)
+				}
+
+				value, err := extractParameterOrOutputValue(v)
+				if err != nil {
+					return nil, fmt.Errorf("extracting outputs: %+v", err)
+				}
+				results[k] = value
+			}
+		}
+	}
+
+	return results, nil
+}
+
+func flattenManagedApplicationParameterValuesValueToString(input *interface{}, localParameters map[string]interface{}) (string, error) {
 	if input == nil {
 		return "", nil
 	}
@@ -394,21 +460,55 @@ func flattenManagedApplicationParameterValuesValueToString(input *interface{}) (
 		for k, v := range attrs.(map[string]interface{}) {
 			if v != nil {
 				delete(attrs.(map[string]interface{})[k].(map[string]interface{}), "type")
+
+				// Secure values are not returned, thus settings it with local value
+				value := attrs.(map[string]interface{})[k].(map[string]interface{})
+				if _, ok := value["value"]; !ok {
+					value["value"] = ""
+					if localParam, localParamOK := localParameters[k]; localParamOK {
+						if _, oldValueStructTypeOK := localParam.(map[string]interface{}); oldValueStructTypeOK {
+							if localParamValue, localParamValueOK := localParam.(map[string]interface{})["value"]; localParamValueOK {
+								value["value"] = localParamValue
+							}
+						}
+					}
+				}
 			}
 		}
 
-		result, err := json.Marshal(input)
-		if err != nil {
-			return "", err
-		}
-
-		compactJson := bytes.Buffer{}
-		if err := json.Compact(&compactJson, result); err != nil {
-			return "", err
-		}
-
-		return compactJson.String(), nil
+		return compactParameterOrOutputValue(input)
 	}
 
 	return "", nil
+}
+
+func extractParameterOrOutputValue(v interface{}) (string, error) {
+	switch t := v.(type) {
+	case bool:
+		return fmt.Sprintf("%t", v.(bool)), nil
+	case float64:
+		// use precision 0 since this comes from an int
+		return fmt.Sprintf("%.f", v.(float64)), nil
+	case string:
+		return v.(string), nil
+	case map[string]interface{}:
+		return compactParameterOrOutputValue(v)
+	case []interface{}:
+		return compactParameterOrOutputValue(v)
+	default:
+		return "", fmt.Errorf("unexpected type %T", t)
+	}
+}
+
+func compactParameterOrOutputValue(v interface{}) (string, error) {
+	result, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	compactJson := bytes.Buffer{}
+	if err = json.Compact(&compactJson, result); err != nil {
+		return "", err
+	}
+	return compactJson.String(), nil
 }

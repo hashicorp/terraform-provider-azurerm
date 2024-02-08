@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ManagementGroupId{}
+var _ resourceids.ResourceId = &ManagementGroupId{}
 
 // ManagementGroupId is a struct representing the Resource ID for a Management Group
 type ManagementGroupId struct {
@@ -26,17 +26,15 @@ func NewManagementGroupID(managementGroupId string) ManagementGroupId {
 
 // ParseManagementGroupID parses 'input' into a ManagementGroupId
 func ParseManagementGroupID(input string) (*ManagementGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagementGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagementGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagementGroupId{}
-
-	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +43,28 @@ func ParseManagementGroupID(input string) (*ManagementGroupId, error) {
 // ParseManagementGroupIDInsensitively parses 'input' case-insensitively into a ManagementGroupId
 // note: this method should only be used for API response data and not user input
 func ParseManagementGroupIDInsensitively(input string) (*ManagementGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagementGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagementGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ManagementGroupId{}
-
-	if id.ManagementGroupId, ok = parsed.Parsed["managementGroupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ManagementGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ManagementGroupId, ok = input.Parsed["managementGroupId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managementGroupId", input)
+	}
+
+	return nil
 }
 
 // ValidateManagementGroupID checks that 'input' can be parsed as a Management Group ID

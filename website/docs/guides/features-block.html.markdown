@@ -62,6 +62,10 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = true
     }
 
+    subscription {
+      prevent_cancellation_on_destroy = false
+    }
+
     template_deployment {
       delete_nested_items_during_deletion = true
     }
@@ -182,6 +186,12 @@ The `managed_disk` block supports the following:
 The `resource_group` block supports the following:
 
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
+
+---
+
+The `subscription` block supports the following:
+
+* `prevent_cancellation_on_destroy` - (Optional) Should the `azurerm_subscription` resource prevent a subscription to be cancelled on destroy? Defaults to `false`.
 
 ---
 

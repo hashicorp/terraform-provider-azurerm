@@ -19,13 +19,14 @@ type ListOutboundNetworkDependenciesEndpointsOperationResponse struct {
 }
 
 type ListOutboundNetworkDependenciesEndpointsCompleteResult struct {
-	Items []OutboundEnvironmentEndpoint
+	LatestHttpResponse *http.Response
+	Items              []OutboundEnvironmentEndpoint
 }
 
 // ListOutboundNetworkDependenciesEndpoints ...
 func (c BatchAccountClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, id BatchAccountId) (result ListOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c BatchAccountClient) ListOutboundNetworkDependenciesEndpointsCompleteMatc
 	}
 
 	result = ListOutboundNetworkDependenciesEndpointsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

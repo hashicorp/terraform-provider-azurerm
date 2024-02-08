@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/media/2021-11-01/accounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -78,7 +77,7 @@ func resourceMediaServicesAccount() *pluginsdk.Resource {
 						"id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: storageaccounts.ValidateStorageAccountID,
+							ValidateFunc: commonids.ValidateStorageAccountID,
 						},
 
 						"is_primary": {
@@ -399,7 +398,7 @@ func flattenMediaServicesAccountStorageAccounts(input *[]accounts.StorageAccount
 	for _, storageAccount := range *input {
 		storageAccountId := ""
 		if storageAccount.Id != nil {
-			id, err := storageaccounts.ParseStorageAccountIDInsensitively(*storageAccount.Id)
+			id, err := commonids.ParseStorageAccountIDInsensitively(*storageAccount.Id)
 			if err != nil {
 				return nil, fmt.Errorf("parsing %q as a Storage Account ID: %+v", *storageAccount.Id, err)
 			}

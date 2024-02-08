@@ -8,10 +8,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func importDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedService) pluginsdk.ImporterFunc {
@@ -43,10 +43,6 @@ func importDataFactoryLinkedService(expectType datafactory.TypeBasicLinkedServic
 				return nil, err
 			}
 			delete(m, "type")
-		}
-
-		if datafactory.TypeBasicLinkedService(t) != expectType {
-			return nil, fmt.Errorf("data factory linked service has mismatched type, expected: %q, got %q", expectType, t)
 		}
 
 		if datafactory.TypeBasicLinkedService(t) != expectType {

@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []Zone
+	LatestHttpResponse *http.Response
+	Items              []Zone
 }
 
 type ListOperationOptions struct {
@@ -53,7 +54,7 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 // List ...
 func (c ZonesClient) List(ctx context.Context, id commonids.SubscriptionId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -112,7 +113,8 @@ func (c ZonesClient) ListCompleteMatchingPredicate(ctx context.Context, id commo
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

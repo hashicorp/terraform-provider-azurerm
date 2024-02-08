@@ -5,27 +5,30 @@ package automation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/variable"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type AutomationVariablesDataSource struct{}
 
 type AutomationVariablesDataSourceModel struct {
-	AutomationAccountId string                   `tfschema:"automation_account_id"`
-	BooleanVariables    []map[string]interface{} `tfschema:"bool"`
-	DateTimeVariables   []map[string]interface{} `tfschema:"datetime"`
-	EncryptedVariables  []map[string]interface{} `tfschema:"encrypted"`
-	IntegerVariables    []map[string]interface{} `tfschema:"int"`
-	NullVariables       []map[string]interface{} `tfschema:"null"`
-	StringVariables     []map[string]interface{} `tfschema:"string"`
+	AutomationAccountId string                     `tfschema:"automation_account_id"`
+	BooleanVariables    []helper.BooleanVariable   `tfschema:"bool"`
+	DateTimeVariables   []helper.DateTimeVariable  `tfschema:"datetime"`
+	EncryptedVariables  []helper.EncryptedVariable `tfschema:"encrypted"`
+	IntegerVariables    []helper.IntegerVariable   `tfschema:"int"`
+	NullVariables       []helper.NullVariable      `tfschema:"null"`
+	ObjectVariables     []helper.ObjectVariable    `tfschema:"object"`
+	StringVariables     []helper.StringVariable    `tfschema:"string"`
 }
 
 var _ sdk.DataSource = AutomationVariablesDataSource{}
@@ -58,27 +61,7 @@ func (v AutomationVariablesDataSource) Attributes() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"encrypted": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"value": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-				},
+				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeBool),
 			},
 		},
 
@@ -86,27 +69,7 @@ func (v AutomationVariablesDataSource) Attributes() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"encrypted": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"value": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 
@@ -114,27 +77,7 @@ func (v AutomationVariablesDataSource) Attributes() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"encrypted": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"value": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 
@@ -142,27 +85,7 @@ func (v AutomationVariablesDataSource) Attributes() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"encrypted": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"value": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-				},
+				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeInt),
 			},
 		},
 
@@ -170,27 +93,15 @@ func (v AutomationVariablesDataSource) Attributes() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
+				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
+			},
+		},
 
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"encrypted": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"value": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+		"object": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 
@@ -198,27 +109,7 @@ func (v AutomationVariablesDataSource) Attributes() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"description": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"encrypted": {
-						Type:     pluginsdk.TypeBool,
-						Computed: true,
-					},
-
-					"value": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-				},
+				Schema: helper.DataSourceAutomationVariableCommonSchema(pluginsdk.TypeString),
 			},
 		},
 	}
@@ -238,53 +129,88 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Automation.VariableClient
+			client := metadata.Client.Automation.Variable
 
-			variableList, err := client.ListByAutomationAccountComplete(ctx, *automationAccountId)
+			variableList, err := client.ListByAutomationAccountComplete(ctx, pointer.From(automationAccountId))
 			if err != nil {
 				return fmt.Errorf("listing variables in %s: %+v", automationAccountId, err)
 			}
 
-			var var_bool []map[string]interface{}
-			var var_dt []map[string]interface{}
-			var var_encrypt []map[string]interface{}
-			var var_int []map[string]interface{}
-			var var_null []map[string]interface{}
-			var var_str []map[string]interface{}
+			var var_bool []helper.BooleanVariable
+			var var_dt []helper.DateTimeVariable
+			var var_encrypt []helper.EncryptedVariable
+			var var_int []helper.IntegerVariable
+			var var_null []helper.NullVariable
+			var var_object []helper.ObjectVariable
+			var var_str []helper.StringVariable
 
 			for _, v := range variableList.Items {
-				_, err := variable.ParseVariableID(*v.Id)
+				_, err := variable.ParseVariableID(pointer.From(v.Id))
 				if err != nil {
 					return err
 				}
 
-				res := map[string]interface{}{
-					"name":        pointer.From(v.Name),
-					"description": pointer.From(v.Properties.Description),
-					"encrypted":   pointer.From(v.Properties.IsEncrypted),
-				}
-
 				datePattern := regexp.MustCompile(`"\\/Date\((-?[0-9]+)\)\\/"`)
+				var objVar map[string]interface{}
 
 				if pointer.From(v.Properties.IsEncrypted) {
-					var_encrypt = append(var_encrypt, res)
+					var_encrypt = append(var_encrypt, helper.EncryptedVariable{
+						ID:          pointer.From(v.Id),
+						Name:        pointer.From(v.Name),
+						Description: pointer.From(v.Properties.Description),
+						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
+					})
 				} else if v.Properties.Value == nil {
-					res["value"] = nil
-					var_null = append(var_null, res)
+					var_null = append(var_null, helper.NullVariable{
+						ID:          pointer.From(v.Id),
+						Name:        pointer.From(v.Name),
+						Description: pointer.From(v.Properties.Description),
+						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
+					})
 				} else if i, err := strconv.ParseInt(pointer.From(v.Properties.Value), 10, 32); err == nil {
-					res["value"] = i
-					var_int = append(var_int, res)
+					var_int = append(var_int, helper.IntegerVariable{
+						ID:          pointer.From(v.Id),
+						Name:        pointer.From(v.Name),
+						Description: pointer.From(v.Properties.Description),
+						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
+						Value:       i,
+					})
 				} else if b, err := strconv.ParseBool(pointer.From(v.Properties.Value)); err == nil {
-					res["value"] = b
-					var_bool = append(var_bool, res)
+					var_bool = append(var_bool, helper.BooleanVariable{
+						ID:          pointer.From(v.Id),
+						Name:        pointer.From(v.Name),
+						Description: pointer.From(v.Properties.Description),
+						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
+						Value:       b,
+					})
 				} else if matches := datePattern.FindStringSubmatch(pointer.From(v.Properties.Value)); len(matches) == 2 && matches[0] == pointer.From(v.Properties.Value) {
+					var value string
 					if t, err := strconv.ParseInt(matches[1], 10, 64); err == nil {
-						res["value"] = time.UnixMilli(t).In(time.UTC).Format("2006-01-02T15:04:05.999Z")
+						value = time.UnixMilli(t).In(time.UTC).Format("2006-01-02T15:04:05.999Z")
 					}
-					var_dt = append(var_dt, res)
+					var_dt = append(var_dt, helper.DateTimeVariable{
+						ID:          pointer.From(v.Id),
+						Name:        pointer.From(v.Name),
+						Description: pointer.From(v.Properties.Description),
+						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
+						Value:       value,
+					})
+				} else if err := json.Unmarshal([]byte(*v.Properties.Value), &objVar); err == nil {
+					var_object = append(var_object, helper.ObjectVariable{
+						ID:          pointer.From(v.Id),
+						Name:        pointer.From(v.Name),
+						Description: pointer.From(v.Properties.Description),
+						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
+						Value:       pointer.From(v.Properties.Value),
+					})
 				} else if s, err := strconv.Unquote(pointer.From(v.Properties.Value)); err == nil {
-					res["value"] = s
-					var_str = append(var_str, res)
+					var_str = append(var_str, helper.StringVariable{
+						ID:          pointer.From(v.Id),
+						Name:        pointer.From(v.Name),
+						Description: pointer.From(v.Properties.Description),
+						IsEncrypted: pointer.From(v.Properties.IsEncrypted),
+						Value:       s,
+					})
 				} else {
 					return fmt.Errorf("cannot determine type of variable %q", pointer.From(v.Name))
 				}
@@ -297,6 +223,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 			model.EncryptedVariables = var_encrypt
 			model.IntegerVariables = var_int
 			model.NullVariables = var_null
+			model.ObjectVariables = var_object
 			model.StringVariables = var_str
 			return metadata.Encode(&model)
 		},

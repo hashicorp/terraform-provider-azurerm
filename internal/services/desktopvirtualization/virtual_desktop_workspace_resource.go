@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -55,7 +57,7 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty, // TODO: determine more accurate requirements in time
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"location": commonschema.Location(),
@@ -72,6 +74,12 @@ func resourceArmDesktopVirtualizationWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 512),
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -113,6 +121,14 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 		},
 	}
 
+	publicNetworkAccess := workspace.PublicNetworkAccessEnabled
+
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = workspace.PublicNetworkAccessDisabled
+	}
+
+	payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -152,6 +168,11 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 		if props := model.Properties; props != nil {
 			d.Set("description", props.Description)
 			d.Set("friendly_name", props.FriendlyName)
+			publicNetworkAccess := true
+			if v := props.PublicNetworkAccess; v != nil && *v != workspace.PublicNetworkAccessEnabled {
+				publicNetworkAccess = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

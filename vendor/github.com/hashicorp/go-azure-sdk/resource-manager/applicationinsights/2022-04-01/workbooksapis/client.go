@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type WorkbooksAPIsClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewWorkbooksAPIsClientWithBaseURI(api environments.Api) (*WorkbooksAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "workbooksapis", defaultApiVersion)
+func NewWorkbooksAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*WorkbooksAPIsClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "workbooksapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WorkbooksAPIsClient: %+v", err)
 	}

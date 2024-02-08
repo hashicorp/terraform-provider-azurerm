@@ -17,7 +17,7 @@ type DeleteOperationResponse struct {
 }
 
 // Delete ...
-func (c ConfigurationAssignmentsClient) Delete(ctx context.Context, id ConfigurationAssignmentId) (result DeleteOperationResponse, err error) {
+func (c ConfigurationAssignmentsClient) Delete(ctx context.Context, id ScopedConfigurationAssignmentId) (result DeleteOperationResponse, err error) {
 	req, err := c.preparerForDelete(ctx, id)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "configurationassignments.ConfigurationAssignmentsClient", "Delete", nil, "Failure preparing request")
@@ -40,7 +40,7 @@ func (c ConfigurationAssignmentsClient) Delete(ctx context.Context, id Configura
 }
 
 // preparerForDelete prepares the Delete request.
-func (c ConfigurationAssignmentsClient) preparerForDelete(ctx context.Context, id ConfigurationAssignmentId) (*http.Request, error) {
+func (c ConfigurationAssignmentsClient) preparerForDelete(ctx context.Context, id ScopedConfigurationAssignmentId) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
 	}

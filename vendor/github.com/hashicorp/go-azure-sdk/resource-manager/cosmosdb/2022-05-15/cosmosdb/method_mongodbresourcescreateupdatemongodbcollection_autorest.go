@@ -16,6 +16,7 @@ import (
 type MongoDBResourcesCreateUpdateMongoDBCollectionOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *MongoDBCollectionGetResults
 }
 
 // MongoDBResourcesCreateUpdateMongoDBCollection ...

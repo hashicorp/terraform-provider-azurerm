@@ -20,13 +20,14 @@ type ListTemplatesOperationResponse struct {
 }
 
 type ListTemplatesCompleteResult struct {
-	Items []AppTemplate
+	LatestHttpResponse *http.Response
+	Items              []AppTemplate
 }
 
 // ListTemplates ...
 func (c AppsClient) ListTemplates(ctx context.Context, id commonids.SubscriptionId) (result ListTemplatesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c AppsClient) ListTemplatesCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = ListTemplatesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

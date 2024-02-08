@@ -20,13 +20,14 @@ type WebTestsListByResourceGroupOperationResponse struct {
 }
 
 type WebTestsListByResourceGroupCompleteResult struct {
-	Items []WebTest
+	LatestHttpResponse *http.Response
+	Items              []WebTest
 }
 
 // WebTestsListByResourceGroup ...
 func (c WebTestsAPIsClient) WebTestsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result WebTestsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c WebTestsAPIsClient) WebTestsListByResourceGroupCompleteMatchingPredicate
 	}
 
 	result = WebTestsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,13 +20,14 @@ type AccountsListByResourceGroupOperationResponse struct {
 }
 
 type AccountsListByResourceGroupCompleteResult struct {
-	Items []Account
+	LatestHttpResponse *http.Response
+	Items              []Account
 }
 
 // AccountsListByResourceGroup ...
 func (c CognitiveServicesAccountsClient) AccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result AccountsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c CognitiveServicesAccountsClient) AccountsListByResourceGroupCompleteMatc
 	}
 
 	result = AccountsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

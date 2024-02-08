@@ -4,8 +4,8 @@
 package pluginsdk
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 // This file is intended to provide a transition from Plugin SDKv1 to Plugin SDKv2
@@ -25,8 +25,8 @@ type (
 )
 
 type (
-	StateChangeConf  = resource.StateChangeConf
-	StateRefreshFunc = resource.StateRefreshFunc
+	StateChangeConf  = retry.StateChangeConf
+	StateRefreshFunc = retry.StateRefreshFunc
 )
 
 type (

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-05-01/managementgroups" // nolint: staticcheck
@@ -124,7 +125,7 @@ func (r ManagementGroupSubscriptionAssociation) Exists(ctx context.Context, clie
 
 	present := false
 	for _, v := range *resp.Children {
-		if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && *v.Name == id.SubscriptionId {
+		if v.Type == managementgroups.Type1Subscriptions && v.Name != nil && strings.EqualFold(*v.Name, id.SubscriptionId) {
 			present = true
 		}
 	}

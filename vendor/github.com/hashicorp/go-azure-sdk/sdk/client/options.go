@@ -11,8 +11,13 @@ import (
 )
 
 type Options interface {
+	// ToHeaders yields a custom Headers struct to be appended to the request
 	ToHeaders() *Headers
+
+	// ToOData yields a custom *odata.Query struct to be appended to the request
 	ToOData() *odata.Query
+
+	// ToQuery yields a custom *QueryParams struct to be appended to the request
 	ToQuery() *QueryParams
 }
 

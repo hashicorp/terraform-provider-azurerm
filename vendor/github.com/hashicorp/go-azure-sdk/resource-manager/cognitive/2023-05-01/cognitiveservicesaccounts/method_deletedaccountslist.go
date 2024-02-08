@@ -20,13 +20,14 @@ type DeletedAccountsListOperationResponse struct {
 }
 
 type DeletedAccountsListCompleteResult struct {
-	Items []Account
+	LatestHttpResponse *http.Response
+	Items              []Account
 }
 
 // DeletedAccountsList ...
 func (c CognitiveServicesAccountsClient) DeletedAccountsList(ctx context.Context, id commonids.SubscriptionId) (result DeletedAccountsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c CognitiveServicesAccountsClient) DeletedAccountsListCompleteMatchingPred
 	}
 
 	result = DeletedAccountsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -7,12 +7,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage"         // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync" // nolint: staticcheck
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	storage_v2022_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/localusers"
+	storage_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/shim"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
@@ -30,95 +32,95 @@ import (
 
 type Client struct {
 	AccountsClient              *storage.AccountsClient
-	LocalUsersClient            *localusers.LocalUsersClient
 	FileSystemsClient           *filesystems.Client
 	ADLSGen2PathsClient         *paths.Client
-	ManagementPoliciesClient    *storage.ManagementPoliciesClient
 	BlobServicesClient          *storage.BlobServicesClient
 	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
-	CloudEndpointsClient        *storagesync.CloudEndpointsClient
 	EncryptionScopesClient      *storage.EncryptionScopesClient
 	Environment                 azure.Environment
 	FileServicesClient          *storage.FileServicesClient
-	SyncServiceClient           *storagesync.ServicesClient
-	SyncGroupsClient            *storagesync.SyncGroupsClient
+	SyncCloudEndpointsClient    *cloudendpointresource.CloudEndpointResourceClient
+	SyncServiceClient           *storagesyncservicesresource.StorageSyncServicesResourceClient
+	SyncGroupsClient            *syncgroupresource.SyncGroupResourceClient
 	SubscriptionId              string
 
-	ResourceManager *storage_v2022_05_01.Client
+	ResourceManager *storage_v2023_01_01.Client
 
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
 }
 
-func NewClient(options *common.ClientOptions) *Client {
-	accountsClient := storage.NewAccountsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	accountsClient := storage.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&accountsClient.Client, o.ResourceManagerAuthorizer)
 
-	localUsersClient := localusers.NewLocalUsersClientWithBaseURI(options.ResourceManagerEndpoint)
-	localUsersClient.Client.Authorizer = options.ResourceManagerAuthorizer
+	fileSystemsClient := filesystems.NewWithEnvironment(o.AzureEnvironment)
+	o.ConfigureClient(&fileSystemsClient.Client, o.StorageAuthorizer)
 
-	fileSystemsClient := filesystems.NewWithEnvironment(options.AzureEnvironment)
-	options.ConfigureClient(&fileSystemsClient.Client, options.StorageAuthorizer)
+	adlsGen2PathsClient := paths.NewWithEnvironment(o.AzureEnvironment)
+	o.ConfigureClient(&adlsGen2PathsClient.Client, o.StorageAuthorizer)
 
-	adlsGen2PathsClient := paths.NewWithEnvironment(options.AzureEnvironment)
-	options.ConfigureClient(&adlsGen2PathsClient.Client, options.StorageAuthorizer)
+	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&blobServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&managementPoliciesClient.Client, options.ResourceManagerAuthorizer)
+	blobInventoryPoliciesClient := storage.NewBlobInventoryPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&blobInventoryPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
+	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&encryptionScopesClient.Client, o.ResourceManagerAuthorizer)
 
-	blobInventoryPoliciesClient := storage.NewBlobInventoryPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&blobInventoryPoliciesClient.Client, options.ResourceManagerAuthorizer)
+	fileServicesClient := storage.NewFileServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&fileServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	cloudEndpointsClient := storagesync.NewCloudEndpointsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&cloudEndpointsClient.Client, options.ResourceManagerAuthorizer)
+	resourceManager, err := storage_v2023_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("building ResourceManager clients: %+v", err)
+	}
 
-	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&encryptionScopesClient.Client, options.ResourceManagerAuthorizer)
+	syncCloudEndpointsClient, err := cloudendpointresource.NewCloudEndpointResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building CloudEndpoint client: %+v", err)
+	}
+	o.Configure(syncCloudEndpointsClient.Client, o.Authorizers.ResourceManager)
+	syncServiceClient, err := storagesyncservicesresource.NewStorageSyncServicesResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building StorageSyncService client: %+v", err)
+	}
+	o.Configure(syncServiceClient.Client, o.Authorizers.ResourceManager)
 
-	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
-
-	resourceManager := storage_v2022_05_01.NewClientWithBaseURI(options.ResourceManagerEndpoint,
-		func(c *autorest.Client) {
-			c.Authorizer = options.ResourceManagerAuthorizer
-		})
-
-	syncServiceClient := storagesync.NewServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&syncServiceClient.Client, options.ResourceManagerAuthorizer)
-
-	syncGroupsClient := storagesync.NewSyncGroupsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&syncGroupsClient.Client, options.ResourceManagerAuthorizer)
+	syncGroupsClient, err := syncgroupresource.NewSyncGroupResourceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building StorageSyncGroups client: %+v", err)
+	}
+	o.Configure(syncGroupsClient.Client, o.Authorizers.ResourceManager)
 
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
 		AccountsClient:              &accountsClient,
-		LocalUsersClient:            &localUsersClient,
 		FileSystemsClient:           &fileSystemsClient,
 		ADLSGen2PathsClient:         &adlsGen2PathsClient,
-		ManagementPoliciesClient:    &managementPoliciesClient,
 		BlobServicesClient:          &blobServicesClient,
 		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
-		CloudEndpointsClient:        &cloudEndpointsClient,
 		EncryptionScopesClient:      &encryptionScopesClient,
-		Environment:                 options.AzureEnvironment,
+		Environment:                 o.AzureEnvironment,
 		FileServicesClient:          &fileServicesClient,
-		ResourceManager:             &resourceManager,
-		SubscriptionId:              options.SubscriptionId,
-		SyncServiceClient:           &syncServiceClient,
-		SyncGroupsClient:            &syncGroupsClient,
+		ResourceManager:             resourceManager,
+		SubscriptionId:              o.SubscriptionId,
+		SyncCloudEndpointsClient:    syncCloudEndpointsClient,
+		SyncServiceClient:           syncServiceClient,
+		SyncGroupsClient:            syncGroupsClient,
 
-		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
+		resourceManagerAuthorizer: o.ResourceManagerAuthorizer,
 	}
 
-	if options.StorageUseAzureAD {
-		client.storageAdAuth = &options.StorageAuthorizer
+	if o.StorageUseAzureAD {
+		client.storageAdAuth = &o.StorageAuthorizer
 	}
 
-	return &client
+	return &client, nil
 }
 
 func (client Client) AccountsDataPlaneClient(ctx context.Context, account accountDetails) (*accounts.Client, error) {

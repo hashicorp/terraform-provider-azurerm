@@ -19,13 +19,14 @@ type ListByHostPoolOperationResponse struct {
 }
 
 type ListByHostPoolCompleteResult struct {
-	Items []ScalingPlan
+	LatestHttpResponse *http.Response
+	Items              []ScalingPlan
 }
 
 // ListByHostPool ...
 func (c ScalingPlanClient) ListByHostPool(ctx context.Context, id HostPoolId) (result ListByHostPoolOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c ScalingPlanClient) ListByHostPoolCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListByHostPoolCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

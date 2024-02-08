@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DiskPoolId{}
+var _ resourceids.ResourceId = &DiskPoolId{}
 
 // DiskPoolId is a struct representing the Resource ID for a Disk Pool
 type DiskPoolId struct {
@@ -30,25 +30,15 @@ func NewDiskPoolID(subscriptionId string, resourceGroupName string, diskPoolName
 
 // ParseDiskPoolID parses 'input' into a DiskPoolId
 func ParseDiskPoolID(input string) (*DiskPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DiskPoolId{})
+	parser := resourceids.NewParserFromResourceIdType(&DiskPoolId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DiskPoolId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DiskPoolName, ok = parsed.Parsed["diskPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diskPoolName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseDiskPoolID(input string) (*DiskPoolId, error) {
 // ParseDiskPoolIDInsensitively parses 'input' case-insensitively into a DiskPoolId
 // note: this method should only be used for API response data and not user input
 func ParseDiskPoolIDInsensitively(input string) (*DiskPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DiskPoolId{})
+	parser := resourceids.NewParserFromResourceIdType(&DiskPoolId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DiskPoolId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DiskPoolName, ok = parsed.Parsed["diskPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "diskPoolName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DiskPoolId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DiskPoolName, ok = input.Parsed["diskPoolName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "diskPoolName", input)
+	}
+
+	return nil
 }
 
 // ValidateDiskPoolID checks that 'input' can be parsed as a Disk Pool ID

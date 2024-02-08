@@ -53,7 +53,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	analyticsSettingsClient := securityinsight.NewSecurityMLAnalyticsSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&analyticsSettingsClient.Client, o.ResourceManagerAuthorizer)
 
-	threatIntelligenceClient := securityinsight.NewThreatIntelligenceIndicatorClient(o.ResourceManagerEndpoint)
+	threatIntelligenceClient := securityinsight.NewThreatIntelligenceIndicatorClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&threatIntelligenceClient.Client, o.ResourceManagerAuthorizer)
 
 	metadataClient := metadata.NewMetadataClientWithBaseURI(o.ResourceManagerEndpoint)

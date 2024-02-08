@@ -20,7 +20,7 @@ type BreakPairingOperationResponse struct {
 // BreakPairing ...
 func (c DisasterRecoveryConfigsClient) BreakPairing(ctx context.Context, id DisasterRecoveryConfigId) (result BreakPairingOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

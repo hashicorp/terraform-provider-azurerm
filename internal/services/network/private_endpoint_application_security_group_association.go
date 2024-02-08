@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -67,7 +67,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 				return err
 			}
 
-			privateEndpointClient := metadata.Client.Network.PrivateEndpointClient
+			privateEndpointClient := metadata.Client.Network.PrivateEndpoints
 			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(state.PrivateEndpointId)
 			if err != nil {
 				return err
@@ -76,7 +76,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 
-			ASGClient := metadata.Client.Network.ApplicationSecurityGroupsClient
+			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
 			if err != nil {
 				return err
@@ -163,7 +163,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 				return err
 			}
 
-			privateEndpointClient := metadata.Client.Network.PrivateEndpointClient
+			privateEndpointClient := metadata.Client.Network.PrivateEndpoints
 
 			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(resourceId.PrivateEndpointId.ID())
 			if err != nil {
@@ -173,7 +173,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 
-			ASGClient := metadata.Client.Network.ApplicationSecurityGroupsClient
+			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 
 			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(resourceId.ApplicationSecurityGroupId.ID())
 			if err != nil {
@@ -241,7 +241,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 				return err
 			}
 
-			privateEndpointClient := metadata.Client.Network.PrivateEndpointClient
+			privateEndpointClient := metadata.Client.Network.PrivateEndpoints
 
 			privateEndpointId, err := privateendpoints.ParsePrivateEndpointID(state.PrivateEndpointId)
 			if err != nil {
@@ -251,7 +251,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 			locks.ByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 			defer locks.UnlockByName(privateEndpointId.PrivateEndpointName, "azurerm_private_endpoint")
 
-			ASGClient := metadata.Client.Network.ApplicationSecurityGroupsClient
+			ASGClient := metadata.Client.Network.ApplicationSecurityGroups
 
 			ASGId, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(state.ApplicationSecurityGroupId)
 			if err != nil {

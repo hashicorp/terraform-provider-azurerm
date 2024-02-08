@@ -18,12 +18,13 @@ type TracksCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AssetTrack
 }
 
 // TracksCreateOrUpdate ...
 func (c AssetsAndAssetFiltersClient) TracksCreateOrUpdate(ctx context.Context, id TrackId, input AssetTrack) (result TracksCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -20,7 +20,7 @@ type AssetsGetOperationResponse struct {
 // AssetsGet ...
 func (c AssetsAndAssetFiltersClient) AssetsGet(ctx context.Context, id AssetId) (result AssetsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

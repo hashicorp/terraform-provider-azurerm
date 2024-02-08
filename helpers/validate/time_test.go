@@ -82,6 +82,11 @@ func TestISO8601Duration(t *testing.T) {
 			Errors: 0,
 		},
 		{
+			// .Net's TimeSpan.Max value (used as the default value for ServiceBus Topics)
+			Value:  "P10675199DT2H48M5.4775807S",
+			Errors: 0,
+		},
+		{
 			// Invalid prefix
 			Value:  "1Y2M3DT7H42M3S",
 			Errors: 1,

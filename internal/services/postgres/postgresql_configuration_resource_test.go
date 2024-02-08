@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/configurations"
@@ -104,6 +105,12 @@ func (r PostgreSQLConfigurationResource) checkReset(configurationName string) ac
 			return err
 		}
 
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+			defer cancel()
+		}
+
 		configurationId := configurations.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, configurationName)
 
 		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, configurationId)
@@ -134,6 +141,12 @@ func (r PostgreSQLConfigurationResource) checkValue(value string) acceptance.Cli
 			return err
 		}
 
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+			defer cancel()
+		}
+
 		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, *id)
 		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
@@ -159,6 +172,12 @@ func (t PostgreSQLConfigurationResource) Exists(ctx context.Context, clients *cl
 	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
+	}
+
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
 	}
 
 	resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, *id)

@@ -401,6 +401,12 @@ func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		defer cancel()
+	}
+
 	resp, err := clients.Postgres.ServersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Postgresql Server (%s): %+v", id.String(), err)

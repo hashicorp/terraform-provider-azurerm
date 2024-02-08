@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/staticmembers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/staticmembers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -82,7 +82,7 @@ func (r ManagerStaticMemberResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerStaticMembersClient
+			client := metadata.Client.Network.StaticMembers
 			networkGroupId, err := staticmembers.ParseNetworkGroupID(model.NetworkGroupId)
 			if err != nil {
 				return err
@@ -118,7 +118,7 @@ func (r ManagerStaticMemberResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerStaticMembersClient
+			client := metadata.Client.Network.StaticMembers
 
 			id, err := staticmembers.ParseStaticMemberID(metadata.ResourceData.Id())
 			if err != nil {
@@ -163,7 +163,7 @@ func (r ManagerStaticMemberResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerStaticMembersClient
+			client := metadata.Client.Network.StaticMembers
 
 			id, err := staticmembers.ParseStaticMemberID(metadata.ResourceData.Id())
 			if err != nil {

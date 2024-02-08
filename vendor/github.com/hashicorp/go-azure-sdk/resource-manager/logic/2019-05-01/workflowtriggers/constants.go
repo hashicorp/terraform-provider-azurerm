@@ -1,6 +1,10 @@
 package workflowtriggers
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -27,6 +31,19 @@ func PossibleValuesForDayOfWeek() []string {
 		string(DayOfWeekTuesday),
 		string(DayOfWeekWednesday),
 	}
+}
+
+func (s *DayOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDayOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDayOfWeek(input string) (*DayOfWeek, error) {
@@ -72,6 +89,19 @@ func PossibleValuesForDaysOfWeek() []string {
 	}
 }
 
+func (s *DaysOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDaysOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDaysOfWeek(input string) (*DaysOfWeek, error) {
 	vals := map[string]DaysOfWeek{
 		"friday":    DaysOfWeekFriday,
@@ -105,6 +135,19 @@ func PossibleValuesForKeyType() []string {
 		string(KeyTypePrimary),
 		string(KeyTypeSecondary),
 	}
+}
+
+func (s *KeyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKeyType(input string) (*KeyType, error) {
@@ -148,6 +191,19 @@ func PossibleValuesForRecurrenceFrequency() []string {
 	}
 }
 
+func (s *RecurrenceFrequency) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecurrenceFrequency(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRecurrenceFrequency(input string) (*RecurrenceFrequency, error) {
 	vals := map[string]RecurrenceFrequency{
 		"day":          RecurrenceFrequencyDay,
@@ -188,6 +244,19 @@ func PossibleValuesForWorkflowState() []string {
 		string(WorkflowStateNotSpecified),
 		string(WorkflowStateSuspended),
 	}
+}
+
+func (s *WorkflowState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkflowState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkflowState(input string) (*WorkflowState, error) {
@@ -242,6 +311,19 @@ func PossibleValuesForWorkflowStatus() []string {
 		string(WorkflowStatusTimedOut),
 		string(WorkflowStatusWaiting),
 	}
+}
+
+func (s *WorkflowStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkflowStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkflowStatus(input string) (*WorkflowStatus, error) {
@@ -313,6 +395,19 @@ func PossibleValuesForWorkflowTriggerProvisioningState() []string {
 		string(WorkflowTriggerProvisioningStateUnregistering),
 		string(WorkflowTriggerProvisioningStateUpdating),
 	}
+}
+
+func (s *WorkflowTriggerProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkflowTriggerProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkflowTriggerProvisioningState(input string) (*WorkflowTriggerProvisioningState, error) {

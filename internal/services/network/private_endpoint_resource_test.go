@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -303,7 +303,7 @@ func (t PrivateEndpointResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, err
 	}
 
-	resp, err := clients.Network.PrivateEndpointClient.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
+	resp, err := clients.Network.PrivateEndpoints.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Private Endpoint (%s): %+v", id.String(), err)
 	}

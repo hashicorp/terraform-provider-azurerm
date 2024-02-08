@@ -18,12 +18,13 @@ type CustomDomainsCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *CustomDomain
 }
 
 // CustomDomainsCreateOrUpdate ...
 func (c SignalRClient) CustomDomainsCreateOrUpdate(ctx context.Context, id CustomDomainId, input CustomDomain) (result CustomDomainsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 		},

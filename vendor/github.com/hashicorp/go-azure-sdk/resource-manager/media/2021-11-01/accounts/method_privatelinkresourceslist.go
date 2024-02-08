@@ -21,7 +21,7 @@ type PrivateLinkResourcesListOperationResponse struct {
 // PrivateLinkResourcesList ...
 func (c AccountsClient) PrivateLinkResourcesList(ctx context.Context, id MediaServiceId) (result PrivateLinkResourcesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

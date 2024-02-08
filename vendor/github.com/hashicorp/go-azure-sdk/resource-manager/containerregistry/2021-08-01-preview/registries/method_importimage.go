@@ -23,7 +23,7 @@ type ImportImageOperationResponse struct {
 // ImportImage ...
 func (c RegistriesClient) ImportImage(ctx context.Context, id RegistryId, input ImportImageParameters) (result ImportImageOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

@@ -1,0 +1,29 @@
+name: 'Comment stale PRs'
+on:
+  schedule:
+    - cron: '0 6 * * MON'
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  comment-stale-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@28ca1036281a5e5922ead5184a1bbf96e5fc984e # v9.0.0
+        with:
+          stale-pr-message: |
+            This PR is being labeled as "stale" because it has not been updated for 30 or more days.
+            
+            If this PR is still valid, please remove the "stale" label. If this PR is blocked, please add it to the "Blocked" milestone.
+            
+            If you need some help completing this PR, please leave a comment letting us know. Thank you!
+          stale-pr-label: 'stale'
+          only-labels: 'waiting-response'
+          exempt-pr-labels: 'breaking-change,upstream/microsoft,upstream/pandora,upstream/terraform'
+          days-before-pr-stale: 30
+          days-before-pr-close: -1
+          days-before-issue-stale: -1
+          exempt-pr-milestones: 'Blocked'
+          start-date: '2023-07-07T00:00:00Z'

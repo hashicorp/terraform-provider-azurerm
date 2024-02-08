@@ -61,5 +61,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Azure Arc Private Link Scope can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_arc_private_link_scope.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HyrbidCompute/privateLinkScopes/privateLinkScope1
+terraform import azurerm_arc_private_link_scope.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/privateLinkScopes/privateLinkScope1
 ```

@@ -21,7 +21,7 @@ type EventHubsRegenerateKeysOperationResponse struct {
 // EventHubsRegenerateKeys ...
 func (c AuthorizationRulesEventHubsClient) EventHubsRegenerateKeys(ctx context.Context, id EventhubAuthorizationRuleId, input RegenerateAccessKeyParameters) (result EventHubsRegenerateKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

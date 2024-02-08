@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EdgeModuleId{}
+var _ resourceids.ResourceId = &EdgeModuleId{}
 
 // EdgeModuleId is a struct representing the Resource ID for a Edge Module
 type EdgeModuleId struct {
@@ -32,29 +32,15 @@ func NewEdgeModuleID(subscriptionId string, resourceGroupName string, videoAnaly
 
 // ParseEdgeModuleID parses 'input' into a EdgeModuleId
 func ParseEdgeModuleID(input string) (*EdgeModuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EdgeModuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&EdgeModuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EdgeModuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VideoAnalyzerName, ok = parsed.Parsed["videoAnalyzerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "videoAnalyzerName", *parsed)
-	}
-
-	if id.EdgeModuleName, ok = parsed.Parsed["edgeModuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "edgeModuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseEdgeModuleID(input string) (*EdgeModuleId, error) {
 // ParseEdgeModuleIDInsensitively parses 'input' case-insensitively into a EdgeModuleId
 // note: this method should only be used for API response data and not user input
 func ParseEdgeModuleIDInsensitively(input string) (*EdgeModuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EdgeModuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&EdgeModuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EdgeModuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VideoAnalyzerName, ok = parsed.Parsed["videoAnalyzerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "videoAnalyzerName", *parsed)
-	}
-
-	if id.EdgeModuleName, ok = parsed.Parsed["edgeModuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "edgeModuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *EdgeModuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VideoAnalyzerName, ok = input.Parsed["videoAnalyzerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "videoAnalyzerName", input)
+	}
+
+	if id.EdgeModuleName, ok = input.Parsed["edgeModuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "edgeModuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateEdgeModuleID checks that 'input' can be parsed as a Edge Module ID

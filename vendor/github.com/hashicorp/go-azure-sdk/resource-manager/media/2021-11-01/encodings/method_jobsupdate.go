@@ -20,7 +20,7 @@ type JobsUpdateOperationResponse struct {
 // JobsUpdate ...
 func (c EncodingsClient) JobsUpdate(ctx context.Context, id JobId, input Job) (result JobsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -6,6 +6,7 @@ package serviceconnector
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -279,7 +280,7 @@ func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd strin
 		authType = string(servicelinker.AuthTypeServicePrincipalSecret)
 		clientId = value.ClientId
 		principalId = value.PrincipalId
-		secret = value.Secret
+		secret = pwd
 	}
 
 	if value, ok := input.(servicelinker.ServicePrincipalCertificateAuthInfo); ok {
@@ -310,11 +311,7 @@ func flattenTargetService(input servicelinker.TargetServiceBase) string {
 		if value.Id != nil {
 			targetServiceId = *value.Id
 			if parsedId, err := parse.StorageAccountDefaultBlobID(targetServiceId); err == nil {
-				storageAccountId := parse.StorageAccountId{
-					SubscriptionId: parsedId.SubscriptionId,
-					ResourceGroup:  parsedId.ResourceGroup,
-					Name:           parsedId.StorageAccountName,
-				}
+				storageAccountId := commonids.NewStorageAccountID(parsedId.SubscriptionId, parsedId.ResourceGroup, parsedId.StorageAccountName)
 				targetServiceId = storageAccountId.ID()
 			}
 		}

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2022-05-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/datastore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -87,7 +87,7 @@ func TestAccMachineLearningDataStoreFileShare_requiresImport(t *testing.T) {
 }
 
 func (r MachineLearningDataStoreFileShare) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	dataStoreClient := client.MachineLearning.DatastoreClient
+	dataStoreClient := client.MachineLearning.Datastore
 	id, err := datastore.ParseDataStoreID(state.ID)
 	if err != nil {
 		return nil, err

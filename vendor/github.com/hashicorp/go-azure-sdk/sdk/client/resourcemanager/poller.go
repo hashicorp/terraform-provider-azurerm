@@ -6,6 +6,7 @@ package resourcemanager
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -17,11 +18,14 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 		return pollers.Poller{}, fmt.Errorf("no HTTP Response was returned")
 	}
 
+	originalRequestUri := response.Request.URL.String()
+
 	// If this is a LRO we should either have a 201/202 with a Polling URI header
 	isLroStatus := response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted
 	methodIsDelete := strings.EqualFold(response.Request.Method, "DELETE")
 	lroPollingUri := pollingUriForLongRunningOperation(response)
-	if isLroStatus && lroPollingUri != "" && !methodIsDelete {
+	lroIsSelfReference := isLROSelfReference(lroPollingUri, originalRequestUri)
+	if isLroStatus && lroPollingUri != "" && !methodIsDelete && !lroIsSelfReference {
 		lro, lroErr := longRunningOperationPollerFromResponse(response, client.Client)
 		if lroErr != nil {
 			err = lroErr
@@ -36,13 +40,13 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 		contentType = response.Request.Header.Get("Content-Type")
 	}
 
-	statusCodesToCheckProvisioningState := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated
+	statusCodesToCheckProvisioningState := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || (response.StatusCode == http.StatusAccepted && lroIsSelfReference)
 	contentTypeMatchesForProvisioningStateCheck := strings.Contains(strings.ToLower(contentType), "application/json")
 	methodIsApplicable := strings.EqualFold(response.Request.Method, "PATCH") ||
 		strings.EqualFold(response.Request.Method, "POST") ||
 		strings.EqualFold(response.Request.Method, "PUT")
 	if statusCodesToCheckProvisioningState && contentTypeMatchesForProvisioningStateCheck && methodIsApplicable {
-		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, client, DefaultPollingInterval)
+		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, lroIsSelfReference, client, DefaultPollingInterval)
 		if provisioningStateErr != nil {
 			err = provisioningStateErr
 			return pollers.Poller{}, fmt.Errorf("building provisioningState poller: %+v", provisioningStateErr)
@@ -62,4 +66,21 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 	}
 
 	return pollers.Poller{}, fmt.Errorf("no applicable pollers were found for the response")
+}
+
+func isLROSelfReference(lroPollingUri, originalRequestUri string) bool {
+	// Some APIs return a LRO URI of themselves, meaning that we should be checking a 200 OK is returned rather
+	// than polling as usual. Automation@2022-08-08 - DSCNodeConfiguration CreateOrUpdate is one such example.
+	first, err := url.Parse(lroPollingUri)
+	if err != nil {
+		return false
+	}
+	second, err := url.Parse(originalRequestUri)
+	if err != nil {
+		return false
+	}
+
+	// The Query String can be a different API version / options and in some cases the Host
+	// is returned with `:443` - so the path should be sufficient as a check.
+	return strings.EqualFold(first.Path, second.Path)
 }

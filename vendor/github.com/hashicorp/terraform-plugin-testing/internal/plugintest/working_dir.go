@@ -5,7 +5,6 @@ package plugintest
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,13 +12,14 @@ import (
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/internal/logging"
+	"github.com/hashicorp/terraform-plugin-testing/internal/teststep"
 )
 
 const (
-	ConfigFileName     = "terraform_plugin_test.tf"
-	ConfigFileNameJSON = ConfigFileName + ".json"
-	PlanFileName       = "tfplan"
+	ConfigFileName = "terraform_plugin_test.tf"
+	PlanFileName   = "tfplan"
 )
 
 // WorkingDir represents a distinct working directory that can be used for
@@ -47,10 +47,19 @@ type WorkingDir struct {
 	reattachInfo tfexec.ReattachInfo
 }
 
+// BaseDir returns the path to the root of the working directory tree.
+func (wd *WorkingDir) BaseDir() string {
+	return wd.baseDir
+}
+
 // Close deletes the directories and files created to represent the receiving
 // working directory. After this method is called, the working directory object
 // is invalid and may no longer be used.
 func (wd *WorkingDir) Close() error {
+	if os.Getenv(EnvTfAccPersistWorkingDir) != "" {
+		return nil
+	}
+
 	return os.RemoveAll(wd.baseDir)
 }
 
@@ -73,29 +82,71 @@ func (wd *WorkingDir) GetHelper() *Helper {
 // This must be called at least once before any call to Init, Plan, Apply, or
 // Destroy to establish the configuration. Any previously-set configuration is
 // discarded and any saved plan is cleared.
-func (wd *WorkingDir) SetConfig(ctx context.Context, cfg string) error {
+func (wd *WorkingDir) SetConfig(ctx context.Context, cfg teststep.Config, vars config.Variables) error {
+	// Remove old config and variables files first
+	d, err := os.Open(wd.baseDir)
+
+	if err != nil {
+		return err
+	}
+
+	defer d.Close()
+
+	fi, err := d.Readdir(-1)
+
+	if err != nil {
+		return err
+	}
+
+	for _, file := range fi {
+		if file.Mode().IsRegular() {
+			if filepath.Ext(file.Name()) == ".tf" || filepath.Ext(file.Name()) == ".json" {
+				err = os.Remove(filepath.Join(d.Name(), file.Name()))
+
+				if err != nil && !os.IsNotExist(err) {
+					return err
+				}
+			}
+		}
+	}
+
 	logging.HelperResourceTrace(ctx, "Setting Terraform configuration", map[string]any{logging.KeyTestTerraformConfiguration: cfg})
 
 	outFilename := filepath.Join(wd.baseDir, ConfigFileName)
-	rmFilename := filepath.Join(wd.baseDir, ConfigFileNameJSON)
-	bCfg := []byte(cfg)
-	if json.Valid(bCfg) {
-		outFilename, rmFilename = rmFilename, outFilename
-	}
-	if err := os.Remove(rmFilename); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("unable to remove %q: %w", rmFilename, err)
-	}
-	err := os.WriteFile(outFilename, bCfg, 0700)
+
+	// This file has to be written otherwise wd.Init() will return an error.
+	err = os.WriteFile(outFilename, nil, 0700)
+
 	if err != nil {
 		return err
 	}
+
+	// wd.configFilename must be set otherwise wd.Init() will return an error.
 	wd.configFilename = outFilename
+
+	// Write configuration
+	if cfg != nil {
+		err = cfg.Write(ctx, wd.baseDir)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	//Write configuration variables
+	err = vars.Write(wd.baseDir)
+
+	if err != nil {
+		return err
+	}
 
 	// Changing configuration invalidates any saved plan.
 	err = wd.ClearPlan(ctx)
+
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -50,6 +50,33 @@ func TestAccAppConfigurationFeature_basic(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationFeature_percentFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.percentageFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicPercentageFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 func TestAccAppConfigurationFeature_basicNoLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}
@@ -248,6 +275,60 @@ resource "azurerm_app_configuration_feature" "test" {
       rollout_percentage = 30
     }
   }
+}
+
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) percentageFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%d"
+  label                  = "acctest-ackeylabel-%[2]d"
+  enabled                = true
+
+  percentage_filter_value = 50.65
+
+  timewindow_filter {
+    start = "2019-11-12T07:20:50.52Z"
+    end   = "2019-11-13T07:20:50.52Z"
+  }
+
+  targeting_filter {
+    default_rollout_percentage = 39
+    users                      = ["random", "user"]
+
+    groups {
+      name               = "testgroup"
+      rollout_percentage = 50
+    }
+
+    groups {
+      name               = "testgroup2"
+      rollout_percentage = 30
+    }
+  }
+}
+
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) basicPercentageFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%d"
+  label                  = "acctest-ackeylabel-%[2]d"
+  enabled                = true
+
+  percentage_filter_value = 89.91
 }
 
 `, t.template(data), data.RandomInteger)

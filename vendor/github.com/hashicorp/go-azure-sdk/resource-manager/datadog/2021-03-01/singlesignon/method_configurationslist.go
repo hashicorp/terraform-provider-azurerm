@@ -19,13 +19,14 @@ type ConfigurationsListOperationResponse struct {
 }
 
 type ConfigurationsListCompleteResult struct {
-	Items []DatadogSingleSignOnResource
+	LatestHttpResponse *http.Response
+	Items              []DatadogSingleSignOnResource
 }
 
 // ConfigurationsList ...
 func (c SingleSignOnClient) ConfigurationsList(ctx context.Context, id MonitorId) (result ConfigurationsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c SingleSignOnClient) ConfigurationsListCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ConfigurationsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

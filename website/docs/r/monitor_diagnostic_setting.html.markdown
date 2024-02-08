@@ -122,7 +122,11 @@ A `log` block supports the following:
 
 -> **NOTE:** Not all resources have category groups available.
 
+-> **NOTE:** Exactly one of `category` or `category_group` must be specified.
+
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
+
+!> **NOTE:** `retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more information on the deprecation [in the Azure documentation](https://aka.ms/diagnostic_settings_log_retention).
 
 * `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
 
@@ -136,9 +140,13 @@ An `enabled_log` block supports the following:
 
 * `category_group` - (Optional) The name of a Diagnostic Log Category Group for this Resource.
 
--> **NOTE:** Not all resources have category groups available.****
+-> **NOTE:** Not all resources have category groups available.
+
+-> **NOTE:** Exactly one of `category` or `category_group` must be specified.
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
+
+!> **NOTE:** `retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more information on the deprecation [in the Azure documentation](https://aka.ms/diagnostic_settings_log_retention).
 
 ---
 
@@ -150,15 +158,20 @@ A `metric` block supports the following:
 
 * `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
+!> **NOTE:** `retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more information on the deprecation [in the Azure documentation](https://aka.ms/diagnostic_settings_log_retention).
+
 * `enabled` - (Optional) Is this Diagnostic Metric enabled? Defaults to `true`.
 
 ---
 
 A `retention_policy` block supports the following:
 
+!> **NOTE:** `retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more information on the deprecation [in the Azure documentation](https://aka.ms/diagnostic_settings_log_retention).
+
 * `enabled` - (Required) Is this Retention Policy enabled?
 
 * `days` - (Optional) The number of days for which this Retention Policy should apply.
+ 
 
 -> **NOTE:** Setting this to `0` will retain the events indefinitely.
 

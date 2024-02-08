@@ -1,6 +1,10 @@
 package datastores
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -29,6 +33,19 @@ func PossibleValuesForDatastoreProvisioningState() []string {
 		string(DatastoreProvisioningStateSucceeded),
 		string(DatastoreProvisioningStateUpdating),
 	}
+}
+
+func (s *DatastoreProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatastoreProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDatastoreProvisioningState(input string) (*DatastoreProvisioningState, error) {
@@ -75,6 +92,19 @@ func PossibleValuesForDatastoreStatus() []string {
 	}
 }
 
+func (s *DatastoreStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatastoreStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDatastoreStatus(input string) (*DatastoreStatus, error) {
 	vals := map[string]DatastoreStatus{
 		"accessible":        DatastoreStatusAccessible,
@@ -106,6 +136,19 @@ func PossibleValuesForMountOptionEnum() []string {
 		string(MountOptionEnumATTACH),
 		string(MountOptionEnumMOUNT),
 	}
+}
+
+func (s *MountOptionEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMountOptionEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseMountOptionEnum(input string) (*MountOptionEnum, error) {

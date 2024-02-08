@@ -1,6 +1,10 @@
 package integrationaccounts
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -25,6 +29,19 @@ func PossibleValuesForEventLevel() []string {
 		string(EventLevelVerbose),
 		string(EventLevelWarning),
 	}
+}
+
+func (s *EventLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEventLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEventLevel(input string) (*EventLevel, error) {
@@ -63,6 +80,19 @@ func PossibleValuesForIntegrationAccountSkuName() []string {
 	}
 }
 
+func (s *IntegrationAccountSkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIntegrationAccountSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseIntegrationAccountSkuName(input string) (*IntegrationAccountSkuName, error) {
 	vals := map[string]IntegrationAccountSkuName{
 		"basic":        IntegrationAccountSkuNameBasic,
@@ -95,6 +125,19 @@ func PossibleValuesForKeyType() []string {
 	}
 }
 
+func (s *KeyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseKeyType(input string) (*KeyType, error) {
 	vals := map[string]KeyType{
 		"notspecified": KeyTypeNotSpecified,
@@ -122,6 +165,19 @@ func PossibleValuesForTrackEventsOperationOptions() []string {
 		string(TrackEventsOperationOptionsDisableSourceInfoEnrich),
 		string(TrackEventsOperationOptionsNone),
 	}
+}
+
+func (s *TrackEventsOperationOptions) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTrackEventsOperationOptions(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTrackEventsOperationOptions(input string) (*TrackEventsOperationOptions, error) {
@@ -180,6 +236,19 @@ func PossibleValuesForTrackingRecordType() []string {
 	}
 }
 
+func (s *TrackingRecordType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTrackingRecordType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTrackingRecordType(input string) (*TrackingRecordType, error) {
 	vals := map[string]TrackingRecordType{
 		"as2mdn":                               TrackingRecordTypeASTwoMDN,
@@ -228,6 +297,19 @@ func PossibleValuesForWorkflowState() []string {
 		string(WorkflowStateNotSpecified),
 		string(WorkflowStateSuspended),
 	}
+}
+
+func (s *WorkflowState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkflowState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkflowState(input string) (*WorkflowState, error) {

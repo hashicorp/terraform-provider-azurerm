@@ -44,9 +44,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Container App Environment is to exist. Changing this forces a new resource to be created.
 
-* `log_analytics_workspace_id` - (Required) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
-
 ---
+
+* `dapr_application_insights_connection_string` - (Optional) Application Insights connection string used by Dapr to export Service to Service communication telemetry. Changing this forces a new resource to be created.
 
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
 
@@ -56,7 +56,27 @@ The following arguments are supported:
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
 
+* `zone_redundancy_enabled` - (Optional) Should the Container App Environment be created with Zone Redundancy enabled? Defaults to `false`. Changing this forces a new resource to be created.
+
+~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
+
+* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
+
+* `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `workload_profile` block supports the following:
+
+* `name` - (Required) The name of the workload profile.
+
+* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16` and `E32`.
+
+* `maximum_count` - (Required) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
+
+* `minimum_count` - (Required) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
 
 ## Attributes Reference
 

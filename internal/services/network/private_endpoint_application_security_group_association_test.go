@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -93,7 +93,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) Exists(ctx c
 		return &exists, fmt.Errorf("parse error, both PrivateEndpointId and ApplicationSecurityGroupId should not be nil")
 	}
 
-	privateEndpointClient := client.Network.PrivateEndpointClient
+	privateEndpointClient := client.Network.PrivateEndpoints
 	existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *endpointId, privateendpoints.DefaultGetOperationOptions())
 	if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
 		return &exists, fmt.Errorf("checking for the presence of existing PrivateEndpoint %q: %+v", endpointId, err)
@@ -254,7 +254,7 @@ func (r PrivateEndpointApplicationSecurityGroupAssociationResource) destroy(ctx 
 		return err
 	}
 
-	privateEndpointClient := client.Network.PrivateEndpointClient
+	privateEndpointClient := client.Network.PrivateEndpoints
 
 	existingPrivateEndpoint, err := privateEndpointClient.Get(ctx, *endpointId, privateendpoints.DefaultGetOperationOptions())
 	if err != nil && !response.WasNotFound(existingPrivateEndpoint.HttpResponse) {

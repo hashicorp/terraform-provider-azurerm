@@ -132,7 +132,7 @@ A `dimension` block supports the following:
 
 * `name` - (Required) The name of the column to use for the filter. The allowed values are `ChargeType`, `Frequency`, `InvoiceId`, `Meter`, `MeterCategory`, `MeterSubCategory`, `PartNumber`, `PricingModel`, `Product`, `ProductOrderId`, `ProductOrderName`, `PublisherType`, `ReservationId`, `ReservationName`, `ResourceGroupName`, `ResourceGuid`, `ResourceId`, `ResourceLocation`, `ResourceType`, `ServiceFamily`, `ServiceName`, `SubscriptionID`, `SubscriptionName`, `UnitOfMeasure`.
 
-* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`.
+* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`. Defaults to `In`.
 
 * `values` - (Required) Specifies a list of values for the column.
 
@@ -142,7 +142,7 @@ A `tag` block supports the following:
 
 * `name` - (Required) The name of the tag to use for the filter.
 
-* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`.
+* `operator` - (Optional) The operator to use for comparison. The allowed values are `In`. Defaults to `In`.
 
 * `values` - (Required) Specifies a list of values for the tag.
 

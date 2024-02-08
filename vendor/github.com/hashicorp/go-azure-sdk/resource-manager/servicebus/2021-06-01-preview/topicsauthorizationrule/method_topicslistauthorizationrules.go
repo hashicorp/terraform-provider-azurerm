@@ -19,13 +19,14 @@ type TopicsListAuthorizationRulesOperationResponse struct {
 }
 
 type TopicsListAuthorizationRulesCompleteResult struct {
-	Items []SBAuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []SBAuthorizationRule
 }
 
 // TopicsListAuthorizationRules ...
 func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRules(ctx context.Context, id TopicId) (result TopicsListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRulesCompleteMatch
 	}
 
 	result = TopicsListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,7 @@ type CreateOperationResponse struct {
 // Create ...
 func (c ScalingPlanClient) Create(ctx context.Context, id ScalingPlanId, input ScalingPlan) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

@@ -19,7 +19,8 @@ type JobsListOperationResponse struct {
 }
 
 type JobsListCompleteResult struct {
-	Items []Job
+	LatestHttpResponse *http.Response
+	Items              []Job
 }
 
 type JobsListOperationOptions struct {
@@ -56,7 +57,7 @@ func (o JobsListOperationOptions) ToQuery() *client.QueryParams {
 // JobsList ...
 func (c EncodingsClient) JobsList(ctx context.Context, id TransformId, options JobsListOperationOptions) (result JobsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -115,7 +116,8 @@ func (c EncodingsClient) JobsListCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = JobsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

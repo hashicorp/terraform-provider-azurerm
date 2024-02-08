@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VPNServerConfigurationPolicyGroupResource struct{}
@@ -86,17 +86,17 @@ func TestAccVPNServerConfigurationPolicyGroup_requiresImport(t *testing.T) {
 }
 
 func (r VPNServerConfigurationPolicyGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VpnServerConfigurationPolicyGroupID(state.ID)
+	id, err := virtualwans.ParseConfigurationPolicyGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Network.ConfigurationPolicyGroupClient.Get(ctx, id.ResourceGroup, id.VpnServerConfigurationName, id.ConfigurationPolicyGroupName)
+	resp, err := client.Network.VirtualWANs.ConfigurationPolicyGroupsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Vpn Server Configuration Policy Group (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r VPNServerConfigurationPolicyGroupResource) basic(data acceptance.TestData) string {

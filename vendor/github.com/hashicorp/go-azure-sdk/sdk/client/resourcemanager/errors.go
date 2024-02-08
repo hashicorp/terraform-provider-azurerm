@@ -108,12 +108,14 @@ func parseErrorFromApiResponse(response http.Response) (*Error, error) {
 	var err3 resourceManagerErrorType2
 	if err = json.Unmarshal(respBody, &err3); err == nil && err3.Error.Code != "" && err3.Error.Message != "" {
 		activityId := ""
-		code := err3.Error.Code
+		topLevelCode := err3.Error.Code
 		messages := []string{
 			err3.Error.Message,
 		}
+		nestedCode := ""
 		for _, v := range err3.Error.Details {
-			code = v.Code
+			nestedCode = v.Code
+			messages = append(messages, v.Message)
 			if v.PossibleCauses != "" {
 				messages = append(messages, fmt.Sprintf("Possible Causes: %q", v.PossibleCauses))
 			}
@@ -127,9 +129,25 @@ func parseErrorFromApiResponse(response http.Response) (*Error, error) {
 		}
 		return &Error{
 			ActivityId:   activityId,
+			Code:         nestedCode,
+			Message:      strings.Join(messages, "\n"),
+			Status:       topLevelCode,
+			FullHttpBody: string(respBody),
+		}, nil
+	}
+
+	var err4 resourceManagerErrorType3
+	if err = json.Unmarshal(respBody, &err4); err == nil && err4.Status != "" && err4.Error.Message != "" {
+		activityId := ""
+		code := err4.Status
+		messages := []string{
+			err4.Error.Message,
+		}
+		return &Error{
+			ActivityId:   activityId,
 			Code:         code,
 			Message:      strings.Join(messages, "\n"),
-			Status:       "Unknown",
+			Status:       err4.Status,
 			FullHttpBody: string(respBody),
 		}, nil
 	}
@@ -171,6 +189,18 @@ type resourceManagerErrorType2 struct {
 			PossibleCauses    string `json:"possibleCauses"`
 			RecommendedAction string `json:"recommendedAction"`
 		} `json:"details"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
+type resourceManagerErrorType3 struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	ResourceId string `json:"resourceId"`
+	Status     string `json:"status"`
+	StartTime  string `json:"startTime"`
+	EndTime    string `json:"endTime"`
+	Error      struct {
 		Message string `json:"message"`
 	} `json:"error"`
 }

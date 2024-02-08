@@ -21,7 +21,7 @@ type shimmedState struct {
 }
 
 func shimStateFromJson(jsonState *tfjson.State) (*terraform.State, error) {
-	state := terraform.NewState()
+	state := terraform.NewState() //nolint:staticcheck // legacy usage
 	state.TFVersion = jsonState.TerraformVersion
 
 	if jsonState.Values == nil {
@@ -66,12 +66,14 @@ func shimOutputState(so *tfjson.StateOutput) (*terraform.OutputState, error) {
 		case string:
 			elements := make([]interface{}, len(v))
 			for i, el := range v {
+				//nolint:forcetypeassert // Guaranteed by type switch
 				elements[i] = el.(string)
 			}
 			os.Value = elements
 		case bool:
 			elements := make([]interface{}, len(v))
 			for i, el := range v {
+				//nolint:forcetypeassert // Guaranteed by type switch
 				elements[i] = el.(bool)
 			}
 			os.Value = elements
@@ -79,6 +81,7 @@ func shimOutputState(so *tfjson.StateOutput) (*terraform.OutputState, error) {
 		case json.Number:
 			elements := make([]interface{}, len(v))
 			for i, el := range v {
+				//nolint:forcetypeassert // Guaranteed by type switch
 				elements[i] = el.(json.Number)
 			}
 			os.Value = elements
@@ -121,7 +124,7 @@ func (ss *shimmedState) shimStateModule(sm *tfjson.StateModule) error {
 		}
 	}
 
-	mod := ss.state.AddModule(path)
+	mod := ss.state.AddModule(path) //nolint:staticcheck // legacy usage
 	for _, res := range sm.Resources {
 		resourceState, err := shimResourceState(res)
 		if err != nil {
@@ -190,15 +193,36 @@ func shimResourceState(res *tfjson.StateResource) (*terraform.ResourceState, err
 	}
 	attributes := sf.Flatmap()
 
-	if _, ok := attributes["id"]; !ok {
-		return nil, fmt.Errorf("no %q found in attributes", "id")
+	// The instance state identifier was a Terraform versions 0.11 and earlier
+	// concept which helped core and the then SDK determine if the resource
+	// should be removed and as an identifier value in the human readable
+	// output. This concept unfortunately carried over to the testing logic when
+	// the testing logic was mostly changed to use the public, machine-readable
+	// JSON interface with Terraform, rather than reusing prior internal logic
+	// from Terraform. Using the "id" attribute value for this identifier was
+	// the default implementation and therefore those older versions of
+	// Terraform required the attribute. This is no longer necessary after
+	// Terraform versions 0.12 and later.
+	//
+	// If the "id" attribute is not found, set the instance state identifier to
+	// a synthetic value that can hopefully lead someone encountering the value
+	// to these comments. The prior logic used to raise an error if the
+	// attribute was not present, but this value should now only be present in
+	// legacy logic of this Go module, such as unintentionally exported logic in
+	// the terraform package, and not encountered during normal testing usage.
+	//
+	// Reference: https://github.com/hashicorp/terraform-plugin-testing/issues/84
+	instanceStateID, ok := attributes["id"]
+
+	if !ok {
+		instanceStateID = "id-attribute-not-set"
 	}
 
 	return &terraform.ResourceState{
 		Provider: res.ProviderName,
 		Type:     res.Type,
 		Primary: &terraform.InstanceState{
-			ID:         attributes["id"],
+			ID:         instanceStateID,
 			Attributes: attributes,
 			Meta: map[string]interface{}{
 				"schema_version": int(res.SchemaVersion),

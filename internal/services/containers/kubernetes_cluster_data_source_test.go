@@ -73,13 +73,13 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD_VOneDotTwoFourDotNine(t *testing.T) {
+func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotNine(data),
+			Config: r.roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config.0.host").IsSet(),
@@ -575,6 +575,22 @@ func TestAccDataSourceKubernetesCluster_customCaTrustCerts(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.serviceMesh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -597,7 +613,7 @@ data "azurerm_kubernetes_cluster" "test" {
 `, KubernetesClusterResource{}.roleBasedAccessControlConfig(data))
 }
 
-func (KubernetesClusterDataSource) roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotNine(data acceptance.TestData) string {
+func (KubernetesClusterDataSource) roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -605,7 +621,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.roleBasedAccessControlAADManagedConfigVOneDotTwoFourDotNine(data, ""))
+`, KubernetesClusterResource{}.roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data, ""))
 }
 
 func (KubernetesClusterDataSource) localAccountDisabled(data acceptance.TestData, tenantId string) string {
@@ -900,4 +916,14 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.customCATrustCertificates(data, fakeCertsList))
+}
+
+func (KubernetesClusterDataSource) serviceMesh(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.serviceMeshProfile(data, true, true))
 }

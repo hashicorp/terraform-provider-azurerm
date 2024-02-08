@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,8 +14,8 @@ type RefreshSetPasswordLinkClient struct {
 	Client *resourcemanager.Client
 }
 
-func NewRefreshSetPasswordLinkClientWithBaseURI(api environments.Api) (*RefreshSetPasswordLinkClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(api, "refreshsetpasswordlink", defaultApiVersion)
+func NewRefreshSetPasswordLinkClientWithBaseURI(sdkApi sdkEnv.Api) (*RefreshSetPasswordLinkClient, error) {
+	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "refreshsetpasswordlink", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RefreshSetPasswordLinkClient: %+v", err)
 	}

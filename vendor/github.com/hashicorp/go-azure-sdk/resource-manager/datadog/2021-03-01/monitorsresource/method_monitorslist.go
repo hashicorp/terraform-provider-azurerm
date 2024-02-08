@@ -20,13 +20,14 @@ type MonitorsListOperationResponse struct {
 }
 
 type MonitorsListCompleteResult struct {
-	Items []DatadogMonitorResource
+	LatestHttpResponse *http.Response
+	Items              []DatadogMonitorResource
 }
 
 // MonitorsList ...
 func (c MonitorsResourceClient) MonitorsList(ctx context.Context, id commonids.SubscriptionId) (result MonitorsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c MonitorsResourceClient) MonitorsListCompleteMatchingPredicate(ctx contex
 	}
 
 	result = MonitorsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

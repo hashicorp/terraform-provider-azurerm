@@ -1,6 +1,10 @@
 package workspaces
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -53,6 +57,19 @@ func PossibleValuesForDataIngestionStatus() []string {
 	}
 }
 
+func (s *DataIngestionStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataIngestionStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDataIngestionStatus(input string) (*DataIngestionStatus, error) {
 	vals := map[string]DataIngestionStatus{
 		"approachingquota":      DataIngestionStatusApproachingQuota,
@@ -83,6 +100,19 @@ func PossibleValuesForPublicNetworkAccessType() []string {
 		string(PublicNetworkAccessTypeDisabled),
 		string(PublicNetworkAccessTypeEnabled),
 	}
+}
+
+func (s *PublicNetworkAccessType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicNetworkAccessType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePublicNetworkAccessType(input string) (*PublicNetworkAccessType, error) {
@@ -121,6 +151,19 @@ func PossibleValuesForWorkspaceEntityStatus() []string {
 		string(WorkspaceEntityStatusSucceeded),
 		string(WorkspaceEntityStatusUpdating),
 	}
+}
+
+func (s *WorkspaceEntityStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkspaceEntityStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkspaceEntityStatus(input string) (*WorkspaceEntityStatus, error) {
@@ -166,6 +209,19 @@ func PossibleValuesForWorkspaceSkuNameEnum() []string {
 		string(WorkspaceSkuNameEnumStandalone),
 		string(WorkspaceSkuNameEnumStandard),
 	}
+}
+
+func (s *WorkspaceSkuNameEnum) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkspaceSkuNameEnum(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkspaceSkuNameEnum(input string) (*WorkspaceSkuNameEnum, error) {

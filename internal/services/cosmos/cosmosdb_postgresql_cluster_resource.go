@@ -83,37 +83,6 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 
 		"location": commonschema.Location(),
 
-		"administrator_login_password": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringLenBetween(8, 256),
-		},
-
-		"coordinator_storage_quota_in_mb": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ValidateFunc: validation.All(
-				validation.IntBetween(32768, 16777216),
-				validation.IntDivisibleBy(1024),
-			),
-		},
-
-		"coordinator_vcore_count": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ValidateFunc: validation.IntInSlice([]int{
-				1,
-				2,
-				4,
-				8,
-				16,
-				32,
-				64,
-				96,
-			}),
-		},
-
 		"node_count": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
@@ -121,6 +90,13 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				validation.IntBetween(0, 20),
 				validation.IntNotInSlice([]int{1}),
 			),
+		},
+
+		"administrator_login_password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringLenBetween(8, 256),
 		},
 
 		"citus_version": {
@@ -142,6 +118,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"11.1",
 				"11.2",
 				"11.3",
+				"12.1",
 			}, false),
 		},
 
@@ -162,6 +139,30 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"GeneralPurpose",
 				"MemoryOptimized",
 			}, false),
+		},
+
+		"coordinator_storage_quota_in_mb": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			ValidateFunc: validation.All(
+				validation.IntBetween(32768, 16777216),
+				validation.IntDivisibleBy(1024),
+			),
+		},
+
+		"coordinator_vcore_count": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			ValidateFunc: validation.IntInSlice([]int{
+				1,
+				2,
+				4,
+				8,
+				16,
+				32,
+				64,
+				96,
+			}),
 		},
 
 		"ha_enabled": {
@@ -268,7 +269,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 			ForceNew:         true,
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
-			RequiredWith:     []string{"source_resource_id", "point_in_time_in_utc"},
+			RequiredWith:     []string{"source_resource_id"},
 		},
 
 		"source_resource_id": {
@@ -276,7 +277,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: clusters.ValidateServerGroupsv2ID,
-			RequiredWith: []string{"source_location", "point_in_time_in_utc"},
+			RequiredWith: []string{"source_location"},
 		},
 
 		"sql_version": {
@@ -289,6 +290,7 @@ func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Sch
 				"13",
 				"14",
 				"15",
+				"16",
 			}, false),
 		},
 
@@ -374,8 +376,15 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.SourceLocation = &model.SourceLocation
 			}
 
-			if v := model.SourceResourceId; v != "" {
+			switch {
+			case model.SourceResourceId != "":
 				parameters.Properties.SourceResourceId = &model.SourceResourceId
+			case model.AdministratorLoginPassword == "":
+				return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
+			case model.CoordinatorStorageQuotaInMb == 0:
+				return fmt.Errorf("`coordinator_storage_quota_in_mb` is required when `source_resource_id` isn't set")
+			case model.CoordinatorVCoreCount == 0:
+				return fmt.Errorf("`coordinator_vcore_count` is required when `source_resource_id` isn't set")
 			}
 
 			// If `shards_on_coordinator_enabled` isn't set, API would set it to `true` when `node_count` is `0`.
@@ -421,6 +430,10 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
+				if model.SourceResourceId == "" && model.AdministratorLoginPassword == "" {
+					return fmt.Errorf("`administrator_login_password` is required when `source_resource_id` isn't set")
+				}
+
 				parameters.Properties.AdministratorLoginPassword = &model.AdministratorLoginPassword
 			}
 
@@ -437,10 +450,18 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("coordinator_storage_quota_in_mb") {
+				if model.SourceResourceId == "" && model.CoordinatorStorageQuotaInMb == 0 {
+					return fmt.Errorf("`coordinator_storage_quota_in_mb` is required when `source_resource_id` isn't set")
+				}
+
 				parameters.Properties.CoordinatorStorageQuotaInMb = &model.CoordinatorStorageQuotaInMb
 			}
 
 			if metadata.ResourceData.HasChange("coordinator_vcore_count") {
+				if model.SourceResourceId == "" && model.CoordinatorVCoreCount == 0 {
+					return fmt.Errorf("`coordinator_vcore_count` is required when `source_resource_id` isn't set")
+				}
+
 				parameters.Properties.CoordinatorVCores = &model.CoordinatorVCoreCount
 			}
 

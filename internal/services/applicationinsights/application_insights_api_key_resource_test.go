@@ -120,6 +120,22 @@ func TestAccApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsightsAPIKey_multiple_keys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "read_key")
+	r := AppInsightsAPIKey{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleKeys(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("read_permissions.#").HasValue("6"),
+			),
+		},
+		data.ImportStep("api_key"),
+	})
+}
+
 func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ApiKeyID(state.Attributes["id"])
 	if err != nil {
@@ -159,6 +175,38 @@ resource "azurerm_application_insights_api_key" "test" {
   write_permissions       = %s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, readPerms, writePerms)
+}
+
+func (AppInsightsAPIKey) multipleKeys(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_application_insights_api_key" "read_key" {
+  name                    = "acctestappinsightsapikeyread-%d"
+  application_insights_id = azurerm_application_insights.test.id
+  read_permissions        = ["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]
+}
+
+resource "azurerm_application_insights_api_key" "write_key" {
+  name                    = "acctestappinsightsapikeywrite-%d"
+  application_insights_id = azurerm_application_insights.test.id
+  write_permissions       = ["annotations"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (AppInsightsAPIKey) requiresImport(data acceptance.TestData, readPerms, writePerms string) string {

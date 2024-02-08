@@ -16,6 +16,7 @@ import (
 type ServiceCreateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ServiceResource
 }
 
 // ServiceCreate ...

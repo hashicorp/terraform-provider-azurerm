@@ -20,13 +20,14 @@ type AccountsListOperationResponse struct {
 }
 
 type AccountsListCompleteResult struct {
-	Items []Account
+	LatestHttpResponse *http.Response
+	Items              []Account
 }
 
 // AccountsList ...
 func (c CognitiveServicesAccountsClient) AccountsList(ctx context.Context, id commonids.SubscriptionId) (result AccountsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -84,7 +85,8 @@ func (c CognitiveServicesAccountsClient) AccountsListCompleteMatchingPredicate(c
 	}
 
 	result = AccountsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

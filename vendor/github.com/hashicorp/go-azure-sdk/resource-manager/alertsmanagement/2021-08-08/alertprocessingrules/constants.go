@@ -1,6 +1,10 @@
 package alertprocessingrules
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForActionType() []string {
 		string(ActionTypeAddActionGroups),
 		string(ActionTypeRemoveAllActionGroups),
 	}
+}
+
+func (s *ActionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseActionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseActionType(input string) (*ActionType, error) {
@@ -55,6 +72,19 @@ func PossibleValuesForDaysOfWeek() []string {
 		string(DaysOfWeekTuesday),
 		string(DaysOfWeekWednesday),
 	}
+}
+
+func (s *DaysOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDaysOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDaysOfWeek(input string) (*DaysOfWeek, error) {
@@ -108,6 +138,19 @@ func PossibleValuesForField() []string {
 	}
 }
 
+func (s *Field) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseField(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseField(input string) (*Field, error) {
 	vals := map[string]Field{
 		"alertcontext":        FieldAlertContext,
@@ -149,6 +192,19 @@ func PossibleValuesForOperator() []string {
 	}
 }
 
+func (s *Operator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseOperator(input string) (*Operator, error) {
 	vals := map[string]Operator{
 		"contains":       OperatorContains,
@@ -179,6 +235,19 @@ func PossibleValuesForRecurrenceType() []string {
 		string(RecurrenceTypeMonthly),
 		string(RecurrenceTypeWeekly),
 	}
+}
+
+func (s *RecurrenceType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecurrenceType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRecurrenceType(input string) (*RecurrenceType, error) {

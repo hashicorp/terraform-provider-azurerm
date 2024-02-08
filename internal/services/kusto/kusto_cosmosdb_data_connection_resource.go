@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package kusto
 
 import (
@@ -7,11 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-05-02/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -54,7 +57,7 @@ func (r CosmosDBDataConnectionResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DatabaseID,
+			ValidateFunc: commonids.ValidateKustoDatabaseID,
 		},
 		"managed_identity_id": {
 			Type:         pluginsdk.TypeString,
@@ -107,21 +110,21 @@ func (r CosmosDBDataConnectionResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.Kusto.DataConnectionsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			cosmosDbContainerId, err := cosmosdb.ParseContainerID(model.CosmosDbContainerId)
 			if err != nil {
 				return err
 			}
 
-			kustoDatabaseId, err := databases.ParseDatabaseID(model.DatabaseId)
+			kustoDatabaseId, err := commonids.ParseKustoDatabaseID(model.DatabaseId)
 			if err != nil {
 				return err
 			}
 
-			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(subscriptionId, kustoDatabaseId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
+			// SubscriptionId and ResourceGroupName need to align with the CosmosDB container, and those could be different from the Kusto database
+			cosmosDbAccountResourceId := cosmosdb.NewDatabaseAccountID(cosmosDbContainerId.SubscriptionId, cosmosDbContainerId.ResourceGroupName, cosmosDbContainerId.DatabaseAccountName)
 
-			id := dataconnections.NewDataConnectionID(subscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.ClusterName, kustoDatabaseId.DatabaseName, model.Name)
+			id := dataconnections.NewDataConnectionID(kustoDatabaseId.SubscriptionId, kustoDatabaseId.ResourceGroupName, kustoDatabaseId.KustoClusterName, kustoDatabaseId.KustoDatabaseName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -183,7 +186,7 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			kustoDatabaseId := databases.NewDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.DatabaseName)
+			kustoDatabaseId := commonids.NewKustoDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, id.DatabaseName)
 
 			state := CosmosDBDataConnectionModel{
 				Name:       id.DataConnectionName,
@@ -199,7 +202,7 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return err
 					}
-					cosmosDbContainerId := cosmosdb.NewContainerID(id.SubscriptionId, id.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, properties.CosmosDbDatabase, properties.CosmosDbContainer)
+					cosmosDbContainerId := cosmosdb.NewContainerID(cosmosdbAccountId.SubscriptionId, cosmosdbAccountId.ResourceGroupName, cosmosdbAccountId.DatabaseAccountName, properties.CosmosDbDatabase, properties.CosmosDbContainer)
 					state.CosmosDbContainerId = cosmosDbContainerId.ID()
 					state.TableName = properties.TableName
 					state.ManagedIdentityId = properties.ManagedIdentityResourceId

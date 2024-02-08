@@ -20,7 +20,7 @@ type MediaservicesGetOperationResponse struct {
 // MediaservicesGet ...
 func (c AccountsClient) MediaservicesGet(ctx context.Context, id MediaServiceId) (result MediaservicesGetOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

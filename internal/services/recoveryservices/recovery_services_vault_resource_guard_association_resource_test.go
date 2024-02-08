@@ -60,7 +60,7 @@ resource "azurerm_data_protection_resource_guard" "test" {
 }
 
 resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
-  name              = "tftest"
+  name              = "VaultProxy"
   vault_id          = azurerm_recovery_services_vault.test.id
   resource_guard_id = azurerm_data_protection_resource_guard.test.id
 }

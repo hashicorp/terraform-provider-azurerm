@@ -1,6 +1,10 @@
 package integrationaccountbatchconfigurations
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -27,6 +31,19 @@ func PossibleValuesForDayOfWeek() []string {
 		string(DayOfWeekTuesday),
 		string(DayOfWeekWednesday),
 	}
+}
+
+func (s *DayOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDayOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDayOfWeek(input string) (*DayOfWeek, error) {
@@ -72,6 +89,19 @@ func PossibleValuesForDaysOfWeek() []string {
 	}
 }
 
+func (s *DaysOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDaysOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDaysOfWeek(input string) (*DaysOfWeek, error) {
 	vals := map[string]DaysOfWeek{
 		"friday":    DaysOfWeekFriday,
@@ -115,6 +145,19 @@ func PossibleValuesForRecurrenceFrequency() []string {
 		string(RecurrenceFrequencyWeek),
 		string(RecurrenceFrequencyYear),
 	}
+}
+
+func (s *RecurrenceFrequency) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecurrenceFrequency(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRecurrenceFrequency(input string) (*RecurrenceFrequency, error) {

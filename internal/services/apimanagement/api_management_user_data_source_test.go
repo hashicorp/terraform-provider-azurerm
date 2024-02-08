@@ -39,7 +39,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "amtestRG-%d"
+  name     = "accTestRG-%d"
   location = "%s"
 }
 

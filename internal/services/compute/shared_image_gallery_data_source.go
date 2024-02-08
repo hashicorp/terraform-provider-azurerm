@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -42,6 +43,12 @@ func dataSourceSharedImageGallery() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"image_names": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
 			"unique_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -54,11 +61,12 @@ func dataSourceSharedImageGallery() *pluginsdk.Resource {
 
 func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
+	imagesClient := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := galleries.NewGalleryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewSharedImageGalleryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.Get(ctx, id, galleries.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -88,6 +96,24 @@ func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
+
+	imagesResp, err := imagesClient.ListByGalleryComplete(ctx, id.ResourceGroupName, id.GalleryName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	imageNames := make([]string, 0)
+	for imagesResp.NotDone() {
+		image := imagesResp.Value()
+		if image.Name != nil {
+			imageNames = append(imageNames, *imagesResp.Value().Name)
+		}
+		if err := imagesResp.NextWithContext(ctx); err != nil {
+			return fmt.Errorf("listing next page of shared images for %s: %+v", id, err)
+		}
+	}
+
+	d.Set("image_names", imageNames)
 
 	return nil
 }

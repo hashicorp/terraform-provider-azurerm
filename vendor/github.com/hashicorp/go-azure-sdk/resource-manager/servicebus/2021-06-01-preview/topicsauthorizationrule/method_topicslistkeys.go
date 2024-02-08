@@ -21,7 +21,7 @@ type TopicsListKeysOperationResponse struct {
 // TopicsListKeys ...
 func (c TopicsAuthorizationRuleClient) TopicsListKeys(ctx context.Context, id TopicAuthorizationRuleId) (result TopicsListKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

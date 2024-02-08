@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization
 
 import (
@@ -6,6 +9,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	// nolint: staticcheck
@@ -180,7 +184,8 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
 			}
 			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect {
+				if *item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
@@ -202,12 +207,18 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 			}
 
 			requestId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(config.Scope, uuid)
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal error: context has no deadline")
+			}
+
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Missing"},
 				Target:     []string{"Created"},
 				Refresh:    createEligibilityRoleAssignment(ctx, clientRequest, requestId, &payload),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
@@ -219,7 +230,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 				Target:     []string{"Found"},
 				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientInstances, config.Scope, config.PrincipalId, config.RoleDefinitionId, "Found"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -256,8 +267,10 @@ func (r PimEligibleRoleAssignmentResource) Read() sdk.ResourceFunc {
 			}
 			var instance *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstance
 			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect {
+				if *item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					instance = &item
+					break
 				}
 			}
 			if instance == nil {
@@ -338,13 +351,18 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			}
 			deleteId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(id.Scope, uuid)
 
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal error: context has no deadline")
+			}
+
 			// wait for resource to deleted
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Exist"},
 				Target:     []string{"Deleted"},
 				Refresh:    deleteEligibilityRoleAssignmentSchedule(ctx, clientRequest, deleteId, &payload),
 				MinTimeout: 1 * time.Minute,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -357,7 +375,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				Target:     []string{"Missing"},
 				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientInstances, id.Scope, id.PrincipalId, id.RoleDefinitionId, "Missing"),
 				MinTimeout: 30 * time.Second,
-				Timeout:    5 * time.Minute,
+				Timeout:    time.Until(deadline),
 			}
 
 			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -618,9 +636,11 @@ func waitForEligibleRoleAssignmentSchedule(ctx context.Context, client *roleelig
 
 		for _, item := range items.Items {
 			if *item.Properties.RoleDefinitionId == roleDefinitionId &&
-				*item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect {
+				*item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect &&
+				strings.EqualFold(*item.Properties.Scope, scope) {
 				state = "Found"
 				result = item
+				break
 			}
 		}
 

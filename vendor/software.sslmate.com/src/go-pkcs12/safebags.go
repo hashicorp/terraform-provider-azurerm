@@ -15,6 +15,7 @@ import (
 var (
 	// see https://tools.ietf.org/html/rfc7292#appendix-D
 	oidCertTypeX509Certificate = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 1, 9, 22, 1})
+	oidKeyBag                  = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 1, 12, 10, 1, 1})
 	oidPKCS8ShroundedKeyBag    = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 1, 12, 10, 1, 2})
 	oidCertBag                 = asn1.ObjectIdentifier([]int{1, 2, 840, 113549, 1, 12, 10, 1, 3})
 )
@@ -47,23 +48,30 @@ func decodePkcs8ShroudedKeyBag(asn1Data, password []byte) (privateKey interface{
 	return privateKey, nil
 }
 
-func encodePkcs8ShroudedKeyBag(rand io.Reader, privateKey interface{}, password []byte) (asn1Data []byte, err error) {
+func encodePkcs8ShroudedKeyBag(rand io.Reader, privateKey interface{}, algoID asn1.ObjectIdentifier, password []byte, iterations int, saltLen int) (asn1Data []byte, err error) {
 	var pkData []byte
 	if pkData, err = x509.MarshalPKCS8PrivateKey(privateKey); err != nil {
 		return nil, errors.New("pkcs12: error encoding PKCS#8 private key: " + err.Error())
 	}
 
-	randomSalt := make([]byte, 8)
+	randomSalt := make([]byte, saltLen)
 	if _, err = rand.Read(randomSalt); err != nil {
 		return nil, errors.New("pkcs12: error reading random salt: " + err.Error())
 	}
+
 	var paramBytes []byte
-	if paramBytes, err = asn1.Marshal(pbeParams{Salt: randomSalt, Iterations: 2048}); err != nil {
-		return nil, errors.New("pkcs12: error encoding params: " + err.Error())
+	if algoID.Equal(oidPBES2) {
+		if paramBytes, err = makePBES2Parameters(rand, randomSalt, iterations); err != nil {
+			return nil, errors.New("pkcs12: error encoding params: " + err.Error())
+		}
+	} else {
+		if paramBytes, err = asn1.Marshal(pbeParams{Salt: randomSalt, Iterations: iterations}); err != nil {
+			return nil, errors.New("pkcs12: error encoding params: " + err.Error())
+		}
 	}
 
 	var pkinfo encryptedPrivateKeyInfo
-	pkinfo.AlgorithmIdentifier.Algorithm = oidPBEWithSHAAnd3KeyTripleDESCBC
+	pkinfo.AlgorithmIdentifier.Algorithm = algoID
 	pkinfo.AlgorithmIdentifier.Parameters.FullBytes = paramBytes
 
 	if err = pbEncrypt(&pkinfo, pkData, password); err != nil {

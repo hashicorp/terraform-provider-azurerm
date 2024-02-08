@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-09-01/networkgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -75,7 +75,7 @@ func (r ManagerNetworkGroupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.ManagerNetworkGroupsClient
+			client := metadata.Client.Network.NetworkGroups
 			networkManagerId, err := networkgroups.ParseNetworkManagerID(model.NetworkManagerId)
 			if err != nil {
 				return err
@@ -113,7 +113,7 @@ func (r ManagerNetworkGroupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerNetworkGroupsClient
+			client := metadata.Client.Network.NetworkGroups
 
 			id, err := networkgroups.ParseNetworkGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -158,7 +158,7 @@ func (r ManagerNetworkGroupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerNetworkGroupsClient
+			client := metadata.Client.Network.NetworkGroups
 
 			id, err := networkgroups.ParseNetworkGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -196,7 +196,7 @@ func (r ManagerNetworkGroupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.ManagerNetworkGroupsClient
+			client := metadata.Client.Network.NetworkGroups
 
 			id, err := networkgroups.ParseNetworkGroupID(metadata.ResourceData.Id())
 			if err != nil {

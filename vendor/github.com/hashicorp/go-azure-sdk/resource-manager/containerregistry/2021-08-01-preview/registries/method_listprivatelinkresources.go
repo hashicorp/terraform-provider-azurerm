@@ -19,13 +19,14 @@ type ListPrivateLinkResourcesOperationResponse struct {
 }
 
 type ListPrivateLinkResourcesCompleteResult struct {
-	Items []PrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []PrivateLinkResource
 }
 
 // ListPrivateLinkResources ...
 func (c RegistriesClient) ListPrivateLinkResources(ctx context.Context, id RegistryId) (result ListPrivateLinkResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c RegistriesClient) ListPrivateLinkResourcesCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListPrivateLinkResourcesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

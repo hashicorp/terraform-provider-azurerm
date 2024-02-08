@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -219,7 +220,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 						},
 						"secondary": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.Any(validation.IsIPv4Address),
 						},
 					},
@@ -414,6 +415,19 @@ func resourceVirtualNetworkGatewayConnectionCreateUpdate(d *pluginsdk.ResourceDa
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("waiting for updating Shared Key for %s: %+v", id, err)
 		}
+
+		// Once this issue https://github.com/Azure/azure-rest-api-specs/issues/26660 is fixed, below this part will be removed
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:    []string{string(network.ProvisioningStateUpdating)},
+			Target:     []string{string(network.ProvisioningStateSucceeded)},
+			Refresh:    virtualNetworkGatewayConnectionStateRefreshFunc(ctx, client, id),
+			MinTimeout: 15 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for update of %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -495,11 +509,8 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		d.Set("shared_key", conn.SharedKey)
 	}
 
-	if conn.GatewayCustomBgpIPAddresses != nil {
-		adresses := flattenGatewayCustomBgpIPAddresses(conn.GatewayCustomBgpIPAddresses)
-		if err := d.Set("custom_bgp_addresses", adresses); err != nil {
-			return fmt.Errorf("setting `custom_bgp_addresses`: %+v", err)
-		}
+	if err := d.Set("custom_bgp_addresses", flattenGatewayCustomBgpIPAddresses(conn.GatewayCustomBgpIPAddresses)); err != nil {
+		return fmt.Errorf("setting `custom_bgp_addresses`: %+v", err)
 	}
 
 	d.Set("connection_protocol", string(conn.ConnectionProtocol))
@@ -554,6 +565,17 @@ func resourceVirtualNetworkGatewayConnectionDelete(d *pluginsdk.ResourceData, me
 	}
 
 	return nil
+}
+
+func virtualNetworkGatewayConnectionStateRefreshFunc(ctx context.Context, client *network.VirtualNetworkGatewayConnectionsClient, id parse.NetworkGatewayConnectionId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroup, id.ConnectionName)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+		}
+
+		return res, string(res.ProvisioningState), nil
+	}
 }
 
 func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, virtualNetworkGateway network.VirtualNetworkGateway) (*network.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
@@ -805,17 +827,21 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 		}
 	}
 
-	if len(primaryIpConfiguration) == 0 || len(secondaryIpConfiguration) == 0 {
+	if len(primaryIpConfiguration) == 0 || (secondaryAddress != "" && len(secondaryIpConfiguration) == 0) {
 		return &customBgpIpAddresses, fmt.Errorf("primary or secondary address not found at `virtual_network_gateway` configuration `bgp_settings` `peering_addresses`")
 	}
 
 	customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
 		IPConfigurationID:  &primaryIpConfiguration,
 		CustomBgpIPAddress: utils.String(primaryAddress),
-	}, network.GatewayCustomBgpIPAddressIPConfiguration{
-		IPConfigurationID:  &secondaryIpConfiguration,
-		CustomBgpIPAddress: utils.String(secondaryAddress),
 	})
+
+	if secondaryAddress != "" {
+		customBgpIpAddresses = append(customBgpIpAddresses, network.GatewayCustomBgpIPAddressIPConfiguration{
+			IPConfigurationID:  &secondaryIpConfiguration,
+			CustomBgpIPAddress: utils.String(secondaryAddress),
+		})
+	}
 
 	return &customBgpIpAddresses, nil
 }
@@ -850,17 +876,21 @@ func flattenVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]networ
 }
 
 func flattenGatewayCustomBgpIPAddresses(gatewayCustomBgpIPAddresses *[]network.GatewayCustomBgpIPAddressIPConfiguration) interface{} {
-	customBgpIpAdresses := make([]interface{}, 0)
-
-	if len(*gatewayCustomBgpIPAddresses) == 2 {
-		addresses := *gatewayCustomBgpIPAddresses
-		customBgpIpAdresses = append(customBgpIpAdresses, map[string]interface{}{
-			"primary":   addresses[0].CustomBgpIPAddress,
-			"secondary": addresses[1].CustomBgpIPAddress,
-		})
+	customBgpIpAddresses := make([]interface{}, 0)
+	if gatewayCustomBgpIPAddresses == nil || len(*gatewayCustomBgpIPAddresses) == 0 {
+		return customBgpIpAddresses
 	}
 
-	return customBgpIpAdresses
+	customBgpIpAddress := map[string]interface{}{}
+	for k, v := range *gatewayCustomBgpIPAddresses {
+		if k == 0 && v.CustomBgpIPAddress != nil {
+			customBgpIpAddress["primary"] = *v.CustomBgpIPAddress
+		} else if k == 1 && v.CustomBgpIPAddress != nil {
+			customBgpIpAddress["secondary"] = *v.CustomBgpIPAddress
+		}
+	}
+
+	return append(customBgpIpAddresses, customBgpIpAddress)
 }
 
 func flattenVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {

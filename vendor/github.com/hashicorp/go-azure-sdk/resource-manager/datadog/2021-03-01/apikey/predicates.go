@@ -12,11 +12,11 @@ type DatadogApiKeyOperationPredicate struct {
 
 func (p DatadogApiKeyOperationPredicate) Matches(input DatadogApiKey) bool {
 
-	if p.Created != nil && (input.Created == nil && *p.Created != *input.Created) {
+	if p.Created != nil && (input.Created == nil || *p.Created != *input.Created) {
 		return false
 	}
 
-	if p.CreatedBy != nil && (input.CreatedBy == nil && *p.CreatedBy != *input.CreatedBy) {
+	if p.CreatedBy != nil && (input.CreatedBy == nil || *p.CreatedBy != *input.CreatedBy) {
 		return false
 	}
 
@@ -24,7 +24,7 @@ func (p DatadogApiKeyOperationPredicate) Matches(input DatadogApiKey) bool {
 		return false
 	}
 
-	if p.Name != nil && (input.Name == nil && *p.Name != *input.Name) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 

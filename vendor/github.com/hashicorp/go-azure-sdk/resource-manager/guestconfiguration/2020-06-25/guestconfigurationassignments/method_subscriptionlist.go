@@ -22,7 +22,7 @@ type SubscriptionListOperationResponse struct {
 // SubscriptionList ...
 func (c GuestConfigurationAssignmentsClient) SubscriptionList(ctx context.Context, id commonids.SubscriptionId) (result SubscriptionListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

@@ -6,17 +6,21 @@ package resource
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/mitchellh/go-testing-interface"
 
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
-
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/internal/logging"
 	"github.com/hashicorp/terraform-plugin-testing/internal/plugintest"
+	"github.com/hashicorp/terraform-plugin-testing/internal/teststep"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 func runPostTestDestroy(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, providers *providerFactories, statePreDestroy *terraform.State) error {
@@ -46,7 +50,7 @@ func runPostTestDestroy(ctx context.Context, t testing.T, c TestCase, wd *plugin
 func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest.Helper) {
 	t.Helper()
 
-	wd := helper.RequireNewWorkingDir(ctx, t)
+	wd := helper.RequireNewWorkingDir(ctx, t, c.WorkingDir)
 
 	ctx = logging.TestTerraformPathContext(ctx, wd.GetHelper().TerraformExecPath())
 	ctx = logging.TestWorkingDirectoryContext(ctx, wd.GetHelper().WorkingDirectory())
@@ -90,8 +94,16 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		wd.Close()
 	}()
 
+	// Return value from c.ProviderConfig() is assigned to Raw as this was previously being
+	// passed to wd.SetConfig() when the second argument accept a configuration string.
 	if c.hasProviders(ctx) {
-		err := wd.SetConfig(ctx, c.providerConfig(ctx, false))
+		config := teststep.Configuration(
+			teststep.ConfigurationRequest{
+				Raw: teststep.Pointer(c.providerConfig(ctx, false)),
+			},
+		)
+
+		err := wd.SetConfig(ctx, config, nil)
 
 		if err != nil {
 			logging.HelperResourceError(ctx,
@@ -118,10 +130,28 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 
 	// use this to track last step successfully applied
 	// acts as default for import tests
-	var appliedCfg string
+	var appliedCfg teststep.Config
+	var stepNumber int
 
 	for stepIndex, step := range c.Steps {
-		stepNumber := stepIndex + 1 // 1-based indexing for humans
+		if stepNumber > 0 {
+			copyWorkingDir(ctx, t, stepNumber, wd)
+		}
+
+		stepNumber = stepIndex + 1 // 1-based indexing for humans
+
+		configRequest := teststep.PrepareConfigurationRequest{
+			Directory: step.ConfigDirectory,
+			File:      step.ConfigFile,
+			Raw:       step.Config,
+			TestStepConfigRequest: config.TestStepConfigRequest{
+				StepNumber: stepNumber,
+				TestName:   t.Name(),
+			},
+		}.Exec()
+
+		cfg := teststep.Configuration(configRequest)
+
 		ctx = logging.TestStepNumberContext(ctx, stepNumber)
 
 		logging.HelperResourceDebug(ctx, "Starting TestStep")
@@ -153,7 +183,7 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			}
 		}
 
-		if step.Config != "" && !step.Destroy && len(step.Taint) > 0 {
+		if cfg != nil && !step.Destroy && len(step.Taint) > 0 {
 			err := testStepTaint(ctx, step, wd)
 
 			if err != nil {
@@ -165,16 +195,55 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			}
 		}
 
-		if step.hasProviders(ctx) {
+		hasProviders, err := step.hasProviders(ctx, stepIndex, t.Name())
+
+		if err != nil {
+			logging.HelperResourceError(ctx,
+				"TestStep error checking for providers",
+				map[string]interface{}{logging.KeyError: err},
+			)
+			t.Fatalf("TestStep %d/%d error checking for providers: %s", stepNumber, len(c.Steps), err)
+		}
+
+		if hasProviders {
 			providers = &providerFactories{
 				legacy:  sdkProviderFactories(c.ProviderFactories).merge(step.ProviderFactories),
 				protov5: protov5ProviderFactories(c.ProtoV5ProviderFactories).merge(step.ProtoV5ProviderFactories),
 				protov6: protov6ProviderFactories(c.ProtoV6ProviderFactories).merge(step.ProtoV6ProviderFactories),
 			}
 
-			providerCfg := step.providerConfig(ctx, step.configHasProviderBlock(ctx))
+			var hasProviderBlock bool
 
-			err := wd.SetConfig(ctx, providerCfg)
+			if cfg != nil {
+				hasProviderBlock, err = cfg.HasProviderBlock(ctx)
+
+				if err != nil {
+					logging.HelperResourceError(ctx,
+						"TestStep error determining whether configuration contains provider block",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("TestStep %d/%d error determining whether configuration contains provider block: %s", stepNumber, len(c.Steps), err)
+				}
+			}
+
+			var testStepConfig teststep.Config
+
+			// Return value from step.providerConfig() is assigned to Raw as this was previously being
+			// passed to wd.SetConfig() directly when the second argument to wd.SetConfig() accepted a
+			// configuration string.
+			confRequest := teststep.PrepareConfigurationRequest{
+				Directory: step.ConfigDirectory,
+				File:      step.ConfigFile,
+				Raw:       step.providerConfig(ctx, hasProviderBlock),
+				TestStepConfigRequest: config.TestStepConfigRequest{
+					StepNumber: stepIndex + 1,
+					TestName:   t.Name(),
+				},
+			}.Exec()
+
+			testStepConfig = teststep.Configuration(confRequest)
+
+			err = wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
 
 			if err != nil {
 				logging.HelperResourceError(ctx,
@@ -207,7 +276,7 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		if step.ImportState {
 			logging.HelperResourceTrace(ctx, "TestStep is ImportState mode")
 
-			err := testStepNewImportState(ctx, t, helper, wd, step, appliedCfg, providers)
+			err := testStepNewImportState(ctx, t, helper, wd, step, appliedCfg, providers, stepIndex)
 			if step.ExpectError != nil {
 				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
 				if err == nil {
@@ -282,10 +351,10 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 			continue
 		}
 
-		if step.Config != "" {
+		if cfg != nil {
 			logging.HelperResourceTrace(ctx, "TestStep is Config mode")
 
-			err := testStepNewConfig(ctx, t, c, wd, step, providers)
+			err := testStepNewConfig(ctx, t, c, wd, step, providers, stepIndex)
 			if step.ExpectError != nil {
 				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
 
@@ -319,7 +388,44 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 				}
 			}
 
-			appliedCfg = step.mergedConfig(ctx, c)
+			var hasTerraformBlock bool
+			var hasProviderBlock bool
+
+			if cfg != nil {
+				hasTerraformBlock, err = cfg.HasTerraformBlock(ctx)
+
+				if err != nil {
+					logging.HelperResourceError(ctx,
+						"Error determining whether configuration contains terraform block",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Error determining whether configuration contains terraform block: %s", err)
+				}
+
+				hasProviderBlock, err = cfg.HasProviderBlock(ctx)
+
+				if err != nil {
+					logging.HelperResourceError(ctx,
+						"Error determining whether configuration contains provider block",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Error determining whether configuration contains provider block: %s", err)
+				}
+			}
+
+			mergedConfig := step.mergedConfig(ctx, c, hasTerraformBlock, hasProviderBlock)
+
+			confRequest := teststep.PrepareConfigurationRequest{
+				Directory: step.ConfigDirectory,
+				File:      step.ConfigFile,
+				Raw:       mergedConfig,
+				TestStepConfigRequest: config.TestStepConfigRequest{
+					StepNumber: stepIndex + 1,
+					TestName:   t.Name(),
+				},
+			}.Exec()
+
+			appliedCfg = teststep.Configuration(confRequest)
 
 			logging.HelperResourceDebug(ctx, "Finished TestStep")
 
@@ -327,6 +433,10 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		}
 
 		t.Fatalf("Step %d/%d, unsupported test mode", stepNumber, len(c.Steps))
+	}
+
+	if stepNumber > 0 {
+		copyWorkingDir(ctx, t, stepNumber, wd)
 	}
 }
 
@@ -345,7 +455,7 @@ func getState(ctx context.Context, t testing.T, wd *plugintest.WorkingDir) (*ter
 }
 
 func stateIsEmpty(state *terraform.State) bool {
-	return state.Empty() || !state.HasResources()
+	return state.Empty() || !state.HasResources() //nolint:staticcheck // legacy usage
 }
 
 func planIsEmpty(plan *tfjson.Plan) bool {
@@ -359,23 +469,73 @@ func planIsEmpty(plan *tfjson.Plan) bool {
 	return true
 }
 
-func testIDRefresh(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, step TestStep, r *terraform.ResourceState, providers *providerFactories) error {
+func testIDRefresh(ctx context.Context, t testing.T, c TestCase, wd *plugintest.WorkingDir, step TestStep, r *terraform.ResourceState, providers *providerFactories, stepIndex int) error {
 	t.Helper()
 
 	// Build the state. The state is just the resource with an ID. There
 	// are no attributes. We only set what is needed to perform a refresh.
-	state := terraform.NewState()
+	state := terraform.NewState() //nolint:staticcheck // legacy usage
 	state.RootModule().Resources = make(map[string]*terraform.ResourceState)
 	state.RootModule().Resources[c.IDRefreshName] = &terraform.ResourceState{}
 
+	configRequest := teststep.PrepareConfigurationRequest{
+		Directory: step.ConfigDirectory,
+		File:      step.ConfigFile,
+		Raw:       step.Config,
+		TestStepConfigRequest: config.TestStepConfigRequest{
+			StepNumber: stepIndex + 1,
+			TestName:   t.Name(),
+		},
+	}.Exec()
+
+	cfg := teststep.Configuration(configRequest)
+
+	var hasProviderBlock bool
+
+	if cfg != nil {
+		var err error
+
+		hasProviderBlock, err = cfg.HasProviderBlock(ctx)
+
+		if err != nil {
+			logging.HelperResourceError(ctx,
+				"Error determining whether configuration contains provider block for import test config",
+				map[string]interface{}{logging.KeyError: err},
+			)
+			t.Fatalf("Error determining whether configuration contains provider block for import test config: %s", err)
+		}
+	}
+
+	// Return value from c.ProviderConfig() is assigned to Raw as this was previously being
+	// passed to wd.SetConfig() when the second argument accept a configuration string.
+	testStepConfig := teststep.Configuration(
+		teststep.ConfigurationRequest{
+			Raw: teststep.Pointer(c.providerConfig(ctx, hasProviderBlock)),
+		},
+	)
+
 	// Temporarily set the config to a minimal provider config for the refresh
 	// test. After the refresh we can reset it.
-	err := wd.SetConfig(ctx, c.providerConfig(ctx, step.configHasProviderBlock(ctx)))
+	err := wd.SetConfig(ctx, testStepConfig, step.ConfigVariables)
 	if err != nil {
 		t.Fatalf("Error setting import test config: %s", err)
 	}
+
 	defer func() {
-		err = wd.SetConfig(ctx, step.Config)
+		confRequest := teststep.PrepareConfigurationRequest{
+			Directory: step.ConfigDirectory,
+			File:      step.ConfigFile,
+			Raw:       step.providerConfig(ctx, hasProviderBlock),
+			TestStepConfigRequest: config.TestStepConfigRequest{
+				StepNumber: stepIndex + 1,
+				TestName:   t.Name(),
+			},
+		}.Exec()
+
+		testStepConfigDefer := teststep.Configuration(confRequest)
+
+		err = wd.SetConfig(ctx, testStepConfigDefer, step.ConfigVariables)
+
 		if err != nil {
 			t.Fatalf("Error resetting test config: %s", err)
 		}
@@ -441,4 +601,28 @@ func testIDRefresh(ctx context.Context, t testing.T, c TestCase, wd *plugintest.
 	}
 
 	return nil
+}
+
+func copyWorkingDir(ctx context.Context, t testing.T, stepNumber int, wd *plugintest.WorkingDir) {
+	if os.Getenv(plugintest.EnvTfAccPersistWorkingDir) == "" {
+		return
+	}
+
+	workingDir := wd.GetHelper().WorkingDirectory()
+
+	dest := filepath.Join(workingDir, fmt.Sprintf("%s%s", "step_", strconv.Itoa(stepNumber)))
+
+	baseDir := wd.BaseDir()
+	rootBaseDir := strings.TrimLeft(baseDir, workingDir)
+
+	err := plugintest.CopyDir(workingDir, dest, rootBaseDir)
+	if err != nil {
+		logging.HelperResourceError(ctx,
+			"Unexpected error copying working directory files",
+			map[string]interface{}{logging.KeyError: err},
+		)
+		t.Fatalf("TestStep %d/%d error copying working directory files: %s", stepNumber, err)
+	}
+
+	t.Logf("Working directory and files have been copied to: %s", dest)
 }

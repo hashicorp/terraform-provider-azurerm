@@ -49,6 +49,8 @@ The following arguments are supported:
 
 * `calling_web_hook` - (Optional) Specifies the webhook for Microsoft Teams channel calls.
 
+* `deployment_environment` - (Optional) The deployment environment for Microsoft Teams channel calls. Possible values are `CommercialDeployment` and `GCCModerateDeployment`. Defaults to `CommercialDeployment`.
+
 * `enable_calling` - (Optional) Specifies whether to enable Microsoft Teams channel calls. This defaults to `false`.
 
 ## Attributes Reference

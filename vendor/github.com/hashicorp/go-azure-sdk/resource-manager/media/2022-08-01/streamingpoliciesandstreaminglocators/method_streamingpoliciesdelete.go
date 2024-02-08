@@ -19,7 +19,7 @@ type StreamingPoliciesDeleteOperationResponse struct {
 // StreamingPoliciesDelete ...
 func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingPoliciesDelete(ctx context.Context, id StreamingPolicyId) (result StreamingPoliciesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

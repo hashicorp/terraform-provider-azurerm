@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/dns"
 ```
 
@@ -20,18 +21,18 @@ client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `DnsClient.DnsResourceReferenceGetByTargetResources`
+### Example Usage: `DnsClient.ResourceReferenceGetByTargetResources`
 
 ```go
 ctx := context.TODO()
-id := dns.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 payload := dns.DnsResourceReferenceRequest{
 	// ...
 }
 
 
-read, err := client.DnsResourceReferenceGetByTargetResources(ctx, id, payload)
+read, err := client.ResourceReferenceGetByTargetResources(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

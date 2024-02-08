@@ -35,6 +35,10 @@ const (
 var multiVal = regexp.MustCompile(`\.(#|%)$`)
 
 // InstanceDiff is the diff of a resource from some state to another.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type InstanceDiff struct {
 	mu             sync.Mutex
 	Attributes     map[string]*ResourceAttrDiff
@@ -53,7 +57,14 @@ type InstanceDiff struct {
 	Meta map[string]interface{}
 }
 
-func (d *InstanceDiff) Lock()   { d.mu.Lock() }
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
+func (d *InstanceDiff) Lock() { d.mu.Lock() }
+
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) Unlock() { d.mu.Unlock() }
 
 // ApplyToValue merges the receiver into the given base value, returning a
@@ -62,6 +73,10 @@ func (d *InstanceDiff) Unlock() { d.mu.Unlock() }
 //
 // This method is intended for shimming old subsystems that still use this
 // legacy diff type to work with the new-style types.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) ApplyToValue(base cty.Value, schema *configschema.Block) (cty.Value, error) {
 	// Create an InstanceState attributes from our existing state.
 	// We can use this to more easily apply the diff changes.
@@ -84,6 +99,10 @@ func (d *InstanceDiff) ApplyToValue(base cty.Value, schema *configschema.Block) 
 //
 // This method is intended for shimming old subsystems that still use this
 // legacy diff type to work with the new-style types.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) Apply(attrs map[string]string, schema *configschema.Block) (map[string]string, error) {
 	// We always build a new value here, even if the given diff is "empty",
 	// because we might be planning to create a new instance that happens
@@ -604,6 +623,10 @@ func countFlatmapContainerValues(key string, attrs map[string]string) string {
 }
 
 // ResourceAttrDiff is the diff of a single attribute of a resource.
+//
+// Deprecated: This type is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 type ResourceAttrDiff struct {
 	Old         string      // Old Value
 	New         string      // New Value
@@ -626,12 +649,19 @@ func (d *ResourceAttrDiff) GoString() string {
 // "private_ip".
 type diffAttrType byte
 
+// Deprecated: This function is unintentionally exported by this Go module and
+// not supported for external consumption. It will be removed in the next major
+// version.
 func NewInstanceDiff() *InstanceDiff {
 	return &InstanceDiff{Attributes: make(map[string]*ResourceAttrDiff)}
 }
 
 // ChangeType returns the diffChangeType represented by the diff
 // for this single instance.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) ChangeType() diffChangeType {
 	if d.Empty() {
 		return diffNone
@@ -653,6 +683,10 @@ func (d *InstanceDiff) ChangeType() diffChangeType {
 }
 
 // Empty returns true if this diff encapsulates no changes.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) Empty() bool {
 	if d == nil {
 		return true
@@ -693,6 +727,10 @@ func (d *InstanceDiff) GoString() string {
 
 // RequiresNew returns true if the diff requires the creation of a new
 // resource (implying the destruction of the old).
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) RequiresNew() bool {
 	if d == nil {
 		return false
@@ -722,6 +760,9 @@ func (d *InstanceDiff) requiresNew() bool {
 	return false
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) GetDestroyDeposed() bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -729,6 +770,9 @@ func (d *InstanceDiff) GetDestroyDeposed() bool {
 	return d.DestroyDeposed
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) GetDestroyTainted() bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -736,6 +780,9 @@ func (d *InstanceDiff) GetDestroyTainted() bool {
 	return d.DestroyTainted
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) GetDestroy() bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -743,6 +790,9 @@ func (d *InstanceDiff) GetDestroy() bool {
 	return d.Destroy
 }
 
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) GetAttribute(key string) (*ResourceAttrDiff, bool) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -752,6 +802,10 @@ func (d *InstanceDiff) GetAttribute(key string) (*ResourceAttrDiff, bool) {
 }
 
 // Safely copies the Attributes map
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) CopyAttributes() map[string]*ResourceAttrDiff {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -768,6 +822,10 @@ func (d *InstanceDiff) CopyAttributes() map[string]*ResourceAttrDiff {
 // we say "same", it is not necessarily exactly equal. Instead, it is
 // just checking that the same attributes are changing, a destroy
 // isn't suddenly happening, etc.
+//
+// Deprecated: This method is unintentionally exported by this Go module and not
+// supported for external consumption. It will be removed in the next major
+// version.
 func (d *InstanceDiff) Same(d2 *InstanceDiff) (bool, string) {
 	// we can safely compare the pointers without a lock
 	switch {
@@ -892,7 +950,7 @@ func (d *InstanceDiff) Same(d2 *InstanceDiff) (bool, string) {
 				continue
 			}
 
-			// If the last diff was a computed value then the absense of
+			// If the last diff was a computed value then the absence of
 			// that value is allowed since it may mean the value ended up
 			// being the same.
 			if diffOld.NewComputed {

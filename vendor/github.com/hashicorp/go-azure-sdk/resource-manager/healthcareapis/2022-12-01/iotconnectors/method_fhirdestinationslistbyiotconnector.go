@@ -19,13 +19,14 @@ type FhirDestinationsListByIotConnectorOperationResponse struct {
 }
 
 type FhirDestinationsListByIotConnectorCompleteResult struct {
-	Items []IotFhirDestination
+	LatestHttpResponse *http.Response
+	Items              []IotFhirDestination
 }
 
 // FhirDestinationsListByIotConnector ...
 func (c IotConnectorsClient) FhirDestinationsListByIotConnector(ctx context.Context, id IotConnectorId) (result FhirDestinationsListByIotConnectorOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c IotConnectorsClient) FhirDestinationsListByIotConnectorCompleteMatchingP
 	}
 
 	result = FhirDestinationsListByIotConnectorCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

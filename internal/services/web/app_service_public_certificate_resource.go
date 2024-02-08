@@ -7,17 +7,18 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 func resourceAppServicePublicCertificate() *pluginsdk.Resource {
@@ -26,14 +27,13 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 		Read:   resourceAppServicePublicCertificateRead,
 		Delete: resourceAppServicePublicCertificateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PublicCertificateID(id)
+			_, err := webapps.ParsePublicCertificateID(id)
 			return err
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*pluginsdk.Schema{
@@ -53,14 +53,10 @@ func resourceAppServicePublicCertificate() *pluginsdk.Resource {
 			},
 
 			"certificate_location": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(web.PublicCertificateLocationLocalMachineMy),
-					string(web.PublicCertificateLocationCurrentUserMy),
-					string(web.PublicCertificateLocationUnknown),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForPublicCertificateLocation(), false),
 			},
 
 			"blob": {
@@ -84,24 +80,24 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewPublicCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("certificate_name").(string))
+	id := webapps.NewPublicCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("app_service_name").(string), d.Get("certificate_name").(string))
 	certificateLocation := d.Get("certificate_location").(string)
 	blob := d.Get("blob").(string)
 
-	existing, err := client.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+	existing, err := client.GetPublicCertificate(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_app_service_public_certificate", id.ID())
 	}
 
-	certificate := web.PublicCertificate{
-		PublicCertificateProperties: &web.PublicCertificateProperties{
-			PublicCertificateLocation: web.PublicCertificateLocation(certificateLocation),
+	certificate := webapps.PublicCertificate{
+		Properties: &webapps.PublicCertificateProperties{
+			PublicCertificateLocation: pointer.To(webapps.PublicCertificateLocation(certificateLocation)),
 		},
 	}
 
@@ -110,10 +106,10 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 		if err != nil {
 			return fmt.Errorf("could not decode blob: %+v", err)
 		}
-		certificate.PublicCertificateProperties.Blob = &decodedBlob
+		certificate.Properties.Blob = pointer.To(string(decodedBlob))
 	}
 
-	if _, err := client.CreateOrUpdatePublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name, certificate); err != nil {
+	if _, err := client.CreateOrUpdatePublicCertificate(ctx, id, certificate); err != nil {
 		return fmt.Errorf("creating/updating %s: %s", id, err)
 	}
 
@@ -133,9 +129,9 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 		NotFoundChecks:            10,
 		ContinuousTargetOccurence: 3,
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+			resp, err := client.GetPublicCertificate(ctx, id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return nil, "notfound", nil
 				} else {
 					return nil, "error", err
@@ -159,29 +155,58 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PublicCertificateID(d.Id())
+	id, err := webapps.ParsePublicCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetPublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not determine context deadline for Read for %s", id)
+	}
+
+	// (@mbfrahry) - similar to what @jackofallops noted above, the Get call sometimes does not return the public certificate so we'll do a get multiple times to confirm
+	// that it's not there before removing the resource from state
+	readWait := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"notfound"},
+		Target:                    []string{"ok"},
+		MinTimeout:                10 * time.Second,
+		Timeout:                   time.Until(deadline),
+		NotFoundChecks:            10,
+		ContinuousTargetOccurence: 1,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.GetPublicCertificate(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return nil, "notfound", nil
+				} else {
+					return nil, "error", err
+				}
+			}
+			return resp, "ok", nil
+		},
+	}
+
+	resp, err := readWait.WaitForStateContext(ctx)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Public Certificate %q (Resource Group %q, App Service %q) was not found - removing from state", id.Name, id.ResourceGroup, id.SiteName)
+		if strings.Contains(err.Error(), "couldn't find resource") {
+			log.Printf("[DEBUG] App Service Public Certificate %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on App Service Public Certificate %q (Resource Group %q, App Service %q): %+v", id.Name, id.ResourceGroup, id.SiteName, err)
+		return fmt.Errorf("making Read request on App Service Public Certificate %s: %+v", *id, err)
 	}
 
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("app_service_name", id.SiteName)
-	d.Set("certificate_name", id.Name)
+	d.Set("certificate_name", id.PublicCertificateName)
 
-	if properties := resp.PublicCertificateProperties; properties != nil {
-		d.Set("certificate_location", properties.PublicCertificateLocation)
-		d.Set("blob", base64.StdEncoding.EncodeToString(*properties.Blob))
-		d.Set("thumbprint", properties.Thumbprint)
+	if model, ok := resp.(webapps.PublicCertificate); ok {
+		if properties := model.Properties; properties != nil {
+			d.Set("certificate_location", string(pointer.From(properties.PublicCertificateLocation)))
+			d.Set("blob", properties.Blob)
+			d.Set("thumbprint", properties.Thumbprint)
+		}
 	}
 
 	return nil
@@ -192,17 +217,17 @@ func resourceAppServicePublicCertificateDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PublicCertificateID(d.Id())
+	id, err := webapps.ParsePublicCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service Public Certificate %q (Resource Group %q, App Service %q)", id.Name, id.ResourceGroup, id.SiteName)
+	log.Printf("[DEBUG] Deleting App Service Public Certificate %s", *id)
 
-	resp, err := client.DeletePublicCertificate(ctx, id.ResourceGroup, id.SiteName, id.Name)
+	resp, err := client.DeletePublicCertificate(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting App Service Public Certificate %q (Resource Group %q, App Servcice %q): %s)", id.Name, id.ResourceGroup, id.SiteName, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting App Service Public Certificate %s: %+v)", *id, err)
 		}
 	}
 

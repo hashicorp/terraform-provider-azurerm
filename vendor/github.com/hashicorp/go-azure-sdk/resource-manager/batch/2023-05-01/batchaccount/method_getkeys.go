@@ -21,7 +21,7 @@ type GetKeysOperationResponse struct {
 // GetKeys ...
 func (c BatchAccountClient) GetKeys(ctx context.Context, id BatchAccountId) (result GetKeysOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

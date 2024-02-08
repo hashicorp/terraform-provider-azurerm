@@ -18,12 +18,13 @@ type AccountsUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *Account
 }
 
 // AccountsUpdate ...
 func (c CognitiveServicesAccountsClient) AccountsUpdate(ctx context.Context, id AccountId, input Account) (result AccountsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,

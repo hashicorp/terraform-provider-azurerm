@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the App Configuration Feature. Changing this forces a new resource to be created.
 
-* `percentage_filter_value` - (Optional) A list of one or more numbers representing the value of the percentage required to enable this feature.
+* `percentage_filter_value` - (Optional) A number representing the value of the percentage required to enable this feature.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -76,7 +76,7 @@ A `targeting_filter` block represents a feature filter of type `Microsoft.Target
 
 * `default_rollout_percentage` - (Required) A number representing the percentage of the entire user base.
 
-* `groups` - (Optional) One or more blocks of type `groups` as defined below.
+* `groups` - (Optional) One or more `groups` blocks as defined below.
 
 * `users` - (Optional) A list of users to target for this feature.
 

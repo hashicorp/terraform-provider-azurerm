@@ -3,10 +3,9 @@ name: Check for new usages of deprecated functionality
 
 permissions:
   contents: read
-  pull-requests: write
 
 on:
-  pull_request_target:
+  pull_request:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/gradually-deprecated.yaml'
@@ -17,21 +16,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
           go-version-file: ./.go-version
       - run: bash ./scripts/run-gradually-deprecated.sh
-      - name: Add waiting-response on fail
-        if: failure()
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
-        with:
-          script: |
-            github.rest.issues.addLabels({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: ["waiting-response"]
-            })
+  save-artifacts-on-fail:
+    if: ${{ needs.test.result }} == 'failure'
+    uses: ./.github/workflows/save-artifacts.yaml
+  comment-on-fail:
+    if: ${{ needs.depscheck.result }} == 'failure'
+    uses: ./.github/workflows/comment-failure.yaml

@@ -18,6 +18,7 @@ type CreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *StreamingEndpoint
 }
 
 type CreateOperationOptions struct {
@@ -50,7 +51,7 @@ func (o CreateOperationOptions) ToQuery() *client.QueryParams {
 // Create ...
 func (c StreamingEndpointsClient) Create(ctx context.Context, id StreamingEndpointId, input StreamingEndpoint, options CreateOperationOptions) (result CreateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

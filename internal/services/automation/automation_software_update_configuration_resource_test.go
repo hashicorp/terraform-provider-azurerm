@@ -6,6 +6,7 @@ package automation_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -40,7 +41,7 @@ func (a SoftwareUpdateConfigurationResource) Exists(ctx context.Context, client 
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Automation.SoftwareUpdateConfigClient.SoftwareUpdateConfigurationsGetByName(ctx, *id, softwareupdateconfiguration.SoftwareUpdateConfigurationsGetByNameOperationOptions{})
+	resp, err := client.Automation.SoftwareUpdateConfigClient.GetByName(ctx, *id, softwareupdateconfiguration.DefaultGetByNameOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -614,11 +615,20 @@ resource "azurerm_automation_software_update_configuration" "test" {
 `, a.template(data), data.RandomInteger, a.startTime, a.expireTime)
 }
 
-// software update need log analytic location map correct, if use a random location like `East US` will cause
-// error like `chosen Azure Automation does not have a Log Analytics workspace linked for operation to succeed`.
-// so location hardcode as `West US`
-// see more https://learn.microsoft.com/en-us/azure/automation/how-to/region-mappings
 func (a SoftwareUpdateConfigurationResource) template(data acceptance.TestData) string {
+	// software update needs a log analytic location map correct, a location like `East US` will cause
+	// error like `chosen Azure Automation does not have a Log Analytics workspace linked for operation to succeed.`
+	// so use a mapping of eastus locations
+	// see more https://learn.microsoft.com/en-us/azure/automation/how-to/region-mappings
+	loc := data.Locations.Primary
+	logLoc := strings.ToLower(loc)
+	switch logLoc {
+	case "eastus":
+		logLoc = "eastus2"
+	case "eastus2":
+		logLoc = "eastus"
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -638,7 +648,7 @@ resource "azurerm_automation_account" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%[1]d"
-  location            = azurerm_resource_group.test.location
+  location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
@@ -649,5 +659,5 @@ resource "azurerm_log_analytics_linked_service" "test" {
   workspace_id        = azurerm_log_analytics_workspace.test.id
   read_access_id      = azurerm_automation_account.test.id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, loc, logLoc)
 }

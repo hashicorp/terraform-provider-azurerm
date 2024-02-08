@@ -19,13 +19,14 @@ type PrivateEndpointConnectionsListOperationResponse struct {
 }
 
 type PrivateEndpointConnectionsListCompleteResult struct {
-	Items []PrivateEndpointConnection
+	LatestHttpResponse *http.Response
+	Items              []PrivateEndpointConnection
 }
 
 // PrivateEndpointConnectionsList ...
 func (c SignalRClient) PrivateEndpointConnectionsList(ctx context.Context, id SignalRId) (result PrivateEndpointConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c SignalRClient) PrivateEndpointConnectionsListCompleteMatchingPredicate(c
 	}
 
 	result = PrivateEndpointConnectionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

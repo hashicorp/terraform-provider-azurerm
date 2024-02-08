@@ -20,7 +20,7 @@ type MonitorsUpdateOperationResponse struct {
 // MonitorsUpdate ...
 func (c MonitorsResourceClient) MonitorsUpdate(ctx context.Context, id MonitorId, input ElasticMonitorResourceUpdateParameters) (result MonitorsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -15,6 +15,7 @@ type UserFeatures struct {
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
 	ManagedDisk            ManagedDiskFeatures
+	Subscription           SubscriptionFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -73,4 +74,8 @@ type ManagedDiskFeatures struct {
 type AppConfigurationFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 	RecoverSoftDeleted       bool
+}
+
+type SubscriptionFeatures struct {
+	PreventCancellationOnDestroy bool
 }

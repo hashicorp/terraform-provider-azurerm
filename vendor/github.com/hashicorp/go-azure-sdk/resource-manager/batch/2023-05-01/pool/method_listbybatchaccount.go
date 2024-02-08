@@ -19,7 +19,8 @@ type ListByBatchAccountOperationResponse struct {
 }
 
 type ListByBatchAccountCompleteResult struct {
-	Items []Pool
+	LatestHttpResponse *http.Response
+	Items              []Pool
 }
 
 type ListByBatchAccountOperationOptions struct {
@@ -60,7 +61,7 @@ func (o ListByBatchAccountOperationOptions) ToQuery() *client.QueryParams {
 // ListByBatchAccount ...
 func (c PoolClient) ListByBatchAccount(ctx context.Context, id BatchAccountId, options ListByBatchAccountOperationOptions) (result ListByBatchAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -119,7 +120,8 @@ func (c PoolClient) ListByBatchAccountCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListByBatchAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

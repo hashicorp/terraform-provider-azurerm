@@ -108,7 +108,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the scheduled query rule. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the scheduled query rule instance. Changing this forces a new resource to be created.
 * `location` - (Required) Specifies the Azure Region where the resource should exist. Changing this forces a new resource to be created.
-* `data_source_id` - (Required) The resource URI over which log search query is to be run.
+* `data_source_id` - (Required) The resource URI over which log search query is to be run. Changing this forces a new resource to be created.
 * `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated. Values must be between 5 and 1440 (inclusive).
 * `query` - (Required) Log search query.
 * `time_window` - (Required) Time window for which data needs to be fetched for query (must be greater than or equal to `frequency`). Values must be between 5 and 2880 (inclusive).
@@ -119,7 +119,7 @@ The following arguments are supported:
 -> **NOTE** `auto_mitigation_enabled` and `throttling` are mutually exclusive and cannot both be set.
 * `description` - (Optional) The description of the scheduled query rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled. Default is `true`.
-* `query_type` - (Optional) The type of query results. Possible values are `ResultCount` and `Number`. Default is `ResultCount`. If set to `Number`, `query` must include an `AggregatedValue` column of a numeric type, for example, `Heartbeat | summarize AggregatedValue = count() by bin(TimeGenerated, 5m)`.
+* `query_type` - (Optional) The type of query results. Possible values are `ResultCount` and `Number`. Default is `ResultCount`. If set to `ResultCount`, `query` must include an `AggregatedValue` column of a numeric type, for example, `Heartbeat | summarize AggregatedValue = count() by bin(TimeGenerated, 5m)`.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
 * `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed. Values must be between 0 and 10000 (inclusive).
 * `tags` - (Optional) A mapping of tags to assign to the resource.

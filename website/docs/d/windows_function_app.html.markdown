@@ -67,6 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - Is the Function App enabled?
 
+* `ftp_publish_basic_authentication_enabled` - Are the default FTP Basic Authentication publishing credentials enabled.
+
 * `functions_extension_version` - The runtime version associated with the Function App.
 
 * `https_only` - Is the Function App only accessible via HTTPS?
@@ -84,6 +86,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `possible_outbound_ip_address_list` - A list of possible outbound IP addresses, not all of which are necessarily in use. This is a superset of `outbound_ip_address_list`. For example `["52.23.25.3", "52.143.43.12"]`.
 
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`.
+
+* `public_network_access_enabled` - Is Public Network Access enabled for the Windows Function App.
 
 * `service_plan_id` - The ID of the App Service Plan.
 
@@ -104,6 +108,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `tags` - A mapping of tags assigned to the Windows Function App.
 
 * `virtual_network_subnet_id` - The subnet id which the Windows Function App is vNet Integrated with.
+
+* `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
 
 ---
 

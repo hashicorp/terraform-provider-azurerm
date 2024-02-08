@@ -19,7 +19,8 @@ type ListByTypeOperationResponse struct {
 }
 
 type ListByTypeCompleteResult struct {
-	Items []RecordSet
+	LatestHttpResponse *http.Response
+	Items              []RecordSet
 }
 
 type ListByTypeOperationOptions struct {
@@ -56,7 +57,7 @@ func (o ListByTypeOperationOptions) ToQuery() *client.QueryParams {
 // ListByType ...
 func (c RecordSetsClient) ListByType(ctx context.Context, id ZoneId, options ListByTypeOperationOptions) (result ListByTypeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -115,7 +116,8 @@ func (c RecordSetsClient) ListByTypeCompleteMatchingPredicate(ctx context.Contex
 	}
 
 	result = ListByTypeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

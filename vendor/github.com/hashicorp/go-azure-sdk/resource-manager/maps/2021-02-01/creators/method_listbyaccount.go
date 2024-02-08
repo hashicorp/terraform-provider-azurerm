@@ -19,13 +19,14 @@ type ListByAccountOperationResponse struct {
 }
 
 type ListByAccountCompleteResult struct {
-	Items []Creator
+	LatestHttpResponse *http.Response
+	Items              []Creator
 }
 
 // ListByAccount ...
 func (c CreatorsClient) ListByAccount(ctx context.Context, id AccountId) (result ListByAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c CreatorsClient) ListByAccountCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListByAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

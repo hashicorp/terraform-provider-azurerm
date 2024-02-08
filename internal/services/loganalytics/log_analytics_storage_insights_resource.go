@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2022-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -133,7 +133,7 @@ func resourceLogAnalyticsStorageInsightsRead(d *pluginsdk.ResourceData, meta int
 
 			storageAccountIdStr := ""
 			if props.StorageAccount.Id != "" {
-				storageAccountId, err := storageaccounts.ParseStorageAccountIDInsensitively(props.StorageAccount.Id)
+				storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(props.StorageAccount.Id)
 				if err != nil {
 					return err
 				}
@@ -192,7 +192,7 @@ func resourceLogAnalyticsStorageInsightsSchema() map[string]*pluginsdk.Schema {
 		"storage_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: storageaccounts.ValidateStorageAccountID,
+			ValidateFunc: commonids.ValidateStorageAccountID,
 		},
 
 		"storage_account_key": {

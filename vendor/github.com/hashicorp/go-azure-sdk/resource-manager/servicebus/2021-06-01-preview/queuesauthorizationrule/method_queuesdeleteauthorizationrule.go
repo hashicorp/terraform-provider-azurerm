@@ -19,7 +19,7 @@ type QueuesDeleteAuthorizationRuleOperationResponse struct {
 // QueuesDeleteAuthorizationRule ...
 func (c QueuesAuthorizationRuleClient) QueuesDeleteAuthorizationRule(ctx context.Context, id QueueAuthorizationRuleId) (result QueuesDeleteAuthorizationRuleOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,

@@ -21,7 +21,7 @@ type GetBuildSourceUploadUrlOperationResponse struct {
 // GetBuildSourceUploadUrl ...
 func (c RegistriesClient) GetBuildSourceUploadUrl(ctx context.Context, id RegistryId) (result GetBuildSourceUploadUrlOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

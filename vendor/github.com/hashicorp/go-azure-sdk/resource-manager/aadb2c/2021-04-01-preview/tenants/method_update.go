@@ -20,7 +20,7 @@ type UpdateOperationResponse struct {
 // Update ...
 func (c TenantsClient) Update(ctx context.Context, id B2CDirectoryId, input UpdateTenant) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

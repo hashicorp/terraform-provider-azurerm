@@ -174,9 +174,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `is_online` - Is this API Revision online/accessible via the Gateway?
 
-* `version` - (Optional) The Version number of this API, if this API is versioned.
+* `version` - The Version number of this API, if this API is versioned.
 
-* `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
+* `version_set_id` - The ID of the Version Set which this API is associated with.
 
 ## Timeouts
 
@@ -192,5 +192,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 API Management API's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1
+terraform import azurerm_api_management_api.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1;rev=1
 ```

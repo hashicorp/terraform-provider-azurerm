@@ -20,7 +20,7 @@ type GetByScopeOperationResponse struct {
 // GetByScope ...
 func (c ViewsClient) GetByScope(ctx context.Context, id ScopedViewId) (result GetByScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},

@@ -19,13 +19,14 @@ type PrivateLinkResourcesListOperationResponse struct {
 }
 
 type PrivateLinkResourcesListCompleteResult struct {
-	Items []PrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []PrivateLinkResource
 }
 
 // PrivateLinkResourcesList ...
 func (c SignalRClient) PrivateLinkResourcesList(ctx context.Context, id SignalRId) (result PrivateLinkResourcesListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c SignalRClient) PrivateLinkResourcesListCompleteMatchingPredicate(ctx con
 	}
 
 	result = PrivateLinkResourcesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

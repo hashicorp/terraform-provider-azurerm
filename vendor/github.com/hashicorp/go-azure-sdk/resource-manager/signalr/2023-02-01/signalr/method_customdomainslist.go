@@ -19,13 +19,14 @@ type CustomDomainsListOperationResponse struct {
 }
 
 type CustomDomainsListCompleteResult struct {
-	Items []CustomDomain
+	LatestHttpResponse *http.Response
+	Items              []CustomDomain
 }
 
 // CustomDomainsList ...
 func (c SignalRClient) CustomDomainsList(ctx context.Context, id SignalRId) (result CustomDomainsListOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c SignalRClient) CustomDomainsListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = CustomDomainsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

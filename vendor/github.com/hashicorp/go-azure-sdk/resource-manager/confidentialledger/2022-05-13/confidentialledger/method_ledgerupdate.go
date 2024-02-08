@@ -18,12 +18,13 @@ type LedgerUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ConfidentialLedger
 }
 
 // LedgerUpdate ...
 func (c ConfidentialLedgerClient) LedgerUpdate(ctx context.Context, id LedgerId, input ConfidentialLedger) (result LedgerUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,

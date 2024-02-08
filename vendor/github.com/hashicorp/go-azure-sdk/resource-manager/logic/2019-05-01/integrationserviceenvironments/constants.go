@@ -1,6 +1,10 @@
 package integrationserviceenvironments
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForIntegrationServiceEnvironmentAccessEndpointType() []string
 		string(IntegrationServiceEnvironmentAccessEndpointTypeInternal),
 		string(IntegrationServiceEnvironmentAccessEndpointTypeNotSpecified),
 	}
+}
+
+func (s *IntegrationServiceEnvironmentAccessEndpointType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIntegrationServiceEnvironmentAccessEndpointType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseIntegrationServiceEnvironmentAccessEndpointType(input string) (*IntegrationServiceEnvironmentAccessEndpointType, error) {
@@ -50,6 +67,19 @@ func PossibleValuesForIntegrationServiceEnvironmentSkuName() []string {
 		string(IntegrationServiceEnvironmentSkuNameNotSpecified),
 		string(IntegrationServiceEnvironmentSkuNamePremium),
 	}
+}
+
+func (s *IntegrationServiceEnvironmentSkuName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIntegrationServiceEnvironmentSkuName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseIntegrationServiceEnvironmentSkuName(input string) (*IntegrationServiceEnvironmentSkuName, error) {
@@ -121,6 +151,19 @@ func PossibleValuesForWorkflowProvisioningState() []string {
 	}
 }
 
+func (s *WorkflowProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkflowProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseWorkflowProvisioningState(input string) (*WorkflowProvisioningState, error) {
 	vals := map[string]WorkflowProvisioningState{
 		"accepted":      WorkflowProvisioningStateAccepted,
@@ -175,6 +218,19 @@ func PossibleValuesForWorkflowState() []string {
 		string(WorkflowStateNotSpecified),
 		string(WorkflowStateSuspended),
 	}
+}
+
+func (s *WorkflowState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkflowState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkflowState(input string) (*WorkflowState, error) {

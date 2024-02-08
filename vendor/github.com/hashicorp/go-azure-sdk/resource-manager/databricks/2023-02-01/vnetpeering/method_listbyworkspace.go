@@ -19,13 +19,14 @@ type ListByWorkspaceOperationResponse struct {
 }
 
 type ListByWorkspaceCompleteResult struct {
-	Items []VirtualNetworkPeering
+	LatestHttpResponse *http.Response
+	Items              []VirtualNetworkPeering
 }
 
 // ListByWorkspace ...
 func (c VNetPeeringClient) ListByWorkspace(ctx context.Context, id WorkspaceId) (result ListByWorkspaceOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "application/json",
+		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -83,7 +84,8 @@ func (c VNetPeeringClient) ListByWorkspaceCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
