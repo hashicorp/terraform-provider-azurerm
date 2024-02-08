@@ -536,8 +536,9 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 				props.VirtualNetworkConfiguration = vnetConfig
 			}
 		} else {
+			// 'State' is hardcoded to 'Disabled' for the 'None' pattern.
+			// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
 			props.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
-			props.PublicNetworkAccess = pointer.To(clusters.PublicNetworkAccessDisabled)
 		}
 	}
 
