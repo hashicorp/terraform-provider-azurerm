@@ -1,35 +1,35 @@
-## 3.91.0 (Unreleased)
+## 3.91.0 (February 08, 2024)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_databricks_access_connector` [GH-24769]
-* **New Resource**: `azurerm_data_protection_backup_policy_kubernetes_cluster` [GH-24718]
-* **New Resource**: `azurerm_chaos_studio_experiment` [GH-24779]
-* **New Resource**: `azurerm_chaos_studio_capability` [GH-24779]
-* **New Resource**: `azurerm_dev_center_gallery` [GH-23760]
-* **New Resource:** `azurerm_kubernetes_fleet_member` [GH-24792]
-* **New Resource:** `azurerm_iotcentral_organization` [GH-23132]
-* **New Resource:** `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` [GH-24750]
+* **New Data Source**: `azurerm_databricks_access_connector` ([#24769](https://github.com/hashicorp/terraform-provider-azurerm/issues/24769))
+* **New Resource**: `azurerm_data_protection_backup_policy_kubernetes_cluster` ([#24718](https://github.com/hashicorp/terraform-provider-azurerm/issues/24718))
+* **New Resource**: `azurerm_chaos_studio_experiment` ([#24779](https://github.com/hashicorp/terraform-provider-azurerm/issues/24779))
+* **New Resource**: `azurerm_chaos_studio_capability` ([#24779](https://github.com/hashicorp/terraform-provider-azurerm/issues/24779))
+* **New Resource**: `azurerm_dev_center_gallery` ([#23760](https://github.com/hashicorp/terraform-provider-azurerm/issues/23760))
+* **New Resource:** `azurerm_kubernetes_fleet_member` ([#24792](https://github.com/hashicorp/terraform-provider-azurerm/issues/24792))
+* **New Resource:** `azurerm_iotcentral_organization` ([#23132](https://github.com/hashicorp/terraform-provider-azurerm/issues/23132))
+* **New Resource:** `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` ([#24750](https://github.com/hashicorp/terraform-provider-azurerm/issues/24750))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24819]
-* dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24819]
-* dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` [GH-24760]
-* dependencies: refactor `azurerm_role_definition` to use `go-azure-sdk` [GH-24266]
-* `managedhsm`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24761]
-* `hdinsight`: updating to API Version `2023-07-01` [GH-24761]
-* `streamanalytics`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
-* `azurerm_app_service_environment_v3` - support for the `remote_debugging_enabled` property [GH-24760]
-* `azurerm_storage_account` - support for the `local_user_enabled` property [GH-24800]
-* `azurerm_log_analytics_workspace_table` - support for the `total_retention_in_days` property [GH-24513]
-* `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties [GH-24716]
-* `azurerm_traffic_manager_azure_endpoint` - support for the `always_serve_enabled` property [GH-24573]
-* `azurerm_traffic_manager_external_endpoint` - support for the `always_serve_enabled` property [GH-24573]
+* dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/resource-manager` ([#24819](https://github.com/hashicorp/terraform-provider-azurerm/issues/24819))
+* dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/sdk` ([#24819](https://github.com/hashicorp/terraform-provider-azurerm/issues/24819))
+* dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` ([#24760](https://github.com/hashicorp/terraform-provider-azurerm/issues/24760))
+* dependencies: refactor `azurerm_role_definition` to use `go-azure-sdk` ([#24266](https://github.com/hashicorp/terraform-provider-azurerm/issues/24266))
+* `managedhsm`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#24761](https://github.com/hashicorp/terraform-provider-azurerm/issues/24761))
+* `hdinsight`: updating to API Version `2023-07-01` ([#24761](https://github.com/hashicorp/terraform-provider-azurerm/issues/24761))
+* `streamanalytics`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#24819](https://github.com/hashicorp/terraform-provider-azurerm/issues/24819))
+* `azurerm_app_service_environment_v3` - support for the `remote_debugging_enabled` property ([#24760](https://github.com/hashicorp/terraform-provider-azurerm/issues/24760))
+* `azurerm_storage_account` - support for the `local_user_enabled` property ([#24800](https://github.com/hashicorp/terraform-provider-azurerm/issues/24800))
+* `azurerm_log_analytics_workspace_table` - support for the `total_retention_in_days` property ([#24513](https://github.com/hashicorp/terraform-provider-azurerm/issues/24513))
+* `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties ([#24716](https://github.com/hashicorp/terraform-provider-azurerm/issues/24716))
+* `azurerm_traffic_manager_azure_endpoint` - support for the `always_serve_enabled` property ([#24573](https://github.com/hashicorp/terraform-provider-azurerm/issues/24573))
+* `azurerm_traffic_manager_external_endpoint` - support for the `always_serve_enabled` property ([#24573](https://github.com/hashicorp/terraform-provider-azurerm/issues/24573))
 
 BUG FIXES:
 
-* `azurerm_api_management` -  the `virtual_network_configuration` property now updates correctly outside of `virtual_network_type` [GH-24569]
+* `azurerm_api_management` -  the `virtual_network_configuration` property now updates correctly outside of `virtual_network_type` ([#24569](https://github.com/hashicorp/terraform-provider-azurerm/issues/24569))
 
 ## 3.90.0 (February 01, 2024)
 
