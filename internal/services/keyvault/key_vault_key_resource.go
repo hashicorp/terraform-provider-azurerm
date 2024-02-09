@@ -65,7 +65,7 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"key_type": {
 				Type:     pluginsdk.TypeString,
@@ -727,7 +727,7 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy
 				TimeBeforeExpiry: utils.String(rawNotificationTime.(string)), // for Type: keyvault.Notify always TimeBeforeExpiry
 			},
 			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.KeyRotationPolicyActionNotify,
+				Type: keyvault.ActionTypeNotify,
 			},
 		}
 		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
@@ -736,7 +736,7 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) keyvault.KeyRotationPolicy
 	if autoRotationList := policy["automatic"].([]interface{}); len(autoRotationList) == 1 && autoRotationList[0] != nil {
 		lifetimeActionRotate := keyvault.LifetimeActions{
 			Action: &keyvault.LifetimeActionsType{
-				Type: keyvault.KeyRotationPolicyActionRotate,
+				Type: keyvault.ActionTypeRotate,
 			},
 			Trigger: &keyvault.LifetimeActionsTrigger{},
 		}
@@ -788,7 +788,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 			action := ltAction.Action
 			trigger := ltAction.Trigger
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.ActionTypeNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
 				// Somehow a default is set after creation for notify_before_expiry
 				// Submitting this set value in the next run will not work though..
 				if policy["expire_after"] != nil {
@@ -796,7 +796,7 @@ func flattenKeyVaultKeyRotationPolicy(input keyvault.KeyRotationPolicy) []interf
 				}
 			}
 
-			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.KeyRotationPolicyActionRotate)) {
+			if action != nil && trigger != nil && action.Type != "" && strings.EqualFold(string(action.Type), string(keyvault.ActionTypeRotate)) {
 				autoRotation := make(map[string]interface{}, 0)
 				autoRotation["time_after_creation"] = pointer.From(trigger.TimeAfterCreate)
 				autoRotation["time_before_expiry"] = pointer.From(trigger.TimeBeforeExpiry)

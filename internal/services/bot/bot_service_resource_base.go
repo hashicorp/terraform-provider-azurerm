@@ -290,7 +290,6 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 				} else {
 					existing.Properties.PublicNetworkAccess = botservice.PublicNetworkAccessDisabled
 				}
-				existing.Properties.LuisKey = utils.String(metadata.ResourceData.Get("public_network_access_enabled").(string))
 			}
 
 			if metadata.ResourceData.HasChange("streaming_endpoint_enabled") {
@@ -299,6 +298,10 @@ func (br botBaseResource) updateFunc() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("icon_url") {
 				existing.Properties.IconURL = utils.String(metadata.ResourceData.Get("icon_url").(string))
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Tags = tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{}))
 			}
 
 			if _, err := client.Update(ctx, id.ResourceGroup, id.Name, existing); err != nil {
@@ -403,7 +406,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				metadata.ResourceData.Set("local_authentication_enabled", localAuthEnabled)
 
 				publicNetworkAccessEnabled := true
-				if v := props.PublicNetworkAccess; v != botservice.PublicNetworkAccessDisabled {
+				if v := props.PublicNetworkAccess; v != botservice.PublicNetworkAccessEnabled {
 					publicNetworkAccessEnabled = false
 				}
 				metadata.ResourceData.Set("public_network_access_enabled", publicNetworkAccessEnabled)

@@ -19,7 +19,8 @@ type ListVirtualMachineScaleSetVMNetworkInterfacesOperationResponse struct {
 }
 
 type ListVirtualMachineScaleSetVMNetworkInterfacesCompleteResult struct {
-	Items []NetworkInterface
+	LatestHttpResponse *http.Response
+	Items              []NetworkInterface
 }
 
 // ListVirtualMachineScaleSetVMNetworkInterfaces ...
@@ -83,7 +84,8 @@ func (c NetworkInterfacesClient) ListVirtualMachineScaleSetVMNetworkInterfacesCo
 	}
 
 	result = ListVirtualMachineScaleSetVMNetworkInterfacesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

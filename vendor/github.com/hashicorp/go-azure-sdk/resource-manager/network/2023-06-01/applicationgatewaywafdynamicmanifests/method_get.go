@@ -19,7 +19,8 @@ type GetOperationResponse struct {
 }
 
 type GetCompleteResult struct {
-	Items []ApplicationGatewayWafDynamicManifestResult
+	LatestHttpResponse *http.Response
+	Items              []ApplicationGatewayWafDynamicManifestResult
 }
 
 // Get ...
@@ -83,7 +84,8 @@ func (c ApplicationGatewayWafDynamicManifestsClient) GetCompleteMatchingPredicat
 	}
 
 	result = GetCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type WorkbooksListBySubscriptionOperationResponse struct {
 }
 
 type WorkbooksListBySubscriptionCompleteResult struct {
-	Items []Workbook
+	LatestHttpResponse *http.Response
+	Items              []Workbook
 }
 
 type WorkbooksListBySubscriptionOperationOptions struct {
@@ -120,7 +121,8 @@ func (c WorkbooksAPIsClient) WorkbooksListBySubscriptionCompleteMatchingPredicat
 	}
 
 	result = WorkbooksListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

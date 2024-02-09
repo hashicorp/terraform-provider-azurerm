@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []Snapshot
+	LatestHttpResponse *http.Response
+	Items              []Snapshot
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c SnapshotsClient) ListByResourceGroupCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

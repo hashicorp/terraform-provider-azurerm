@@ -20,7 +20,8 @@ type QueueListOperationResponse struct {
 }
 
 type QueueListCompleteResult struct {
-	Items []ListQueue
+	LatestHttpResponse *http.Response
+	Items              []ListQueue
 }
 
 type QueueListOperationOptions struct {
@@ -116,7 +117,8 @@ func (c QueueServiceClient) QueueListCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = QueueListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type ManagementGroupNetworkManagerConnectionsListOperationResponse struct {
 }
 
 type ManagementGroupNetworkManagerConnectionsListCompleteResult struct {
-	Items []NetworkManagerConnection
+	LatestHttpResponse *http.Response
+	Items              []NetworkManagerConnection
 }
 
 type ManagementGroupNetworkManagerConnectionsListOperationOptions struct {
@@ -112,7 +113,8 @@ func (c NetworkManagerConnectionsClient) ManagementGroupNetworkManagerConnection
 	}
 
 	result = ManagementGroupNetworkManagerConnectionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

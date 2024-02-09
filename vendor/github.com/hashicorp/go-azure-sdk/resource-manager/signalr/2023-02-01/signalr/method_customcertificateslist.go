@@ -19,7 +19,8 @@ type CustomCertificatesListOperationResponse struct {
 }
 
 type CustomCertificatesListCompleteResult struct {
-	Items []CustomCertificate
+	LatestHttpResponse *http.Response
+	Items              []CustomCertificate
 }
 
 // CustomCertificatesList ...
@@ -83,7 +84,8 @@ func (c SignalRClient) CustomCertificatesListCompleteMatchingPredicate(ctx conte
 	}
 
 	result = CustomCertificatesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

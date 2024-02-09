@@ -19,7 +19,8 @@ type FirewallRulesListOperationResponse struct {
 }
 
 type FirewallRulesListCompleteResult struct {
-	Items []RedisFirewallRule
+	LatestHttpResponse *http.Response
+	Items              []RedisFirewallRule
 }
 
 // FirewallRulesList ...
@@ -83,7 +84,8 @@ func (c RedisClient) FirewallRulesListCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = FirewallRulesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

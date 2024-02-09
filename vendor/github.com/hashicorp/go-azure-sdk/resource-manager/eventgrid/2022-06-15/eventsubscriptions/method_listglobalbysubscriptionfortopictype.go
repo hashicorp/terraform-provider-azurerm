@@ -19,7 +19,8 @@ type ListGlobalBySubscriptionForTopicTypeOperationResponse struct {
 }
 
 type ListGlobalBySubscriptionForTopicTypeCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type ListGlobalBySubscriptionForTopicTypeOperationOptions struct {
@@ -115,7 +116,8 @@ func (c EventSubscriptionsClient) ListGlobalBySubscriptionForTopicTypeCompleteMa
 	}
 
 	result = ListGlobalBySubscriptionForTopicTypeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

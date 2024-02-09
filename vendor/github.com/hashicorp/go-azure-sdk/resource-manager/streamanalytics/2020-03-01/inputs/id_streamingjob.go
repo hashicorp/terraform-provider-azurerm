@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StreamingJobId{}
+var _ resourceids.ResourceId = &StreamingJobId{}
 
 // StreamingJobId is a struct representing the Resource ID for a Streaming Job
 type StreamingJobId struct {
@@ -30,7 +30,7 @@ func NewStreamingJobID(subscriptionId string, resourceGroupName string, streamin
 
 // ParseStreamingJobID parses 'input' into a StreamingJobId
 func ParseStreamingJobID(input string) (*StreamingJobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamingJobId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamingJobId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseStreamingJobID(input string) (*StreamingJobId, error) {
 // ParseStreamingJobIDInsensitively parses 'input' case-insensitively into a StreamingJobId
 // note: this method should only be used for API response data and not user input
 func ParseStreamingJobIDInsensitively(input string) (*StreamingJobId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamingJobId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamingJobId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

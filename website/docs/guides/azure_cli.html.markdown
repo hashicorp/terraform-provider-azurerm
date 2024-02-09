@@ -15,6 +15,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 * [Authenticating to Azure using a Service Principal and a Client Secret](service_principal_client_secret.html)
 * [Authenticating to Azure using a Service Principal and Open ID Connect](service_principal_oidc.html)
+* [Authenticating to Azure using AKS Workload Identity](aks_workload_identity.html)
 
 ---
 
@@ -30,7 +31,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 ## Logging into the Azure CLI
 
-~> **Note**: If you're using the **China** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
+~> **Note:** If you're using the **China** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
 az cloud set --name AzureChinaCloud|AzureUSGovernment

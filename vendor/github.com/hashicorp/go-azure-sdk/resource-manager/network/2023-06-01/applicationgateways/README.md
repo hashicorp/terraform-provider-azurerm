@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/applicationgateways"
 ```
 
@@ -114,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -131,7 +132,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListAll(ctx, id)` can be used to do batched pagination
 items, err := client.ListAllComplete(ctx, id)
@@ -148,7 +149,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.ListAvailableRequestHeaders(ctx, id)
 if err != nil {
@@ -164,7 +165,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.ListAvailableResponseHeaders(ctx, id)
 if err != nil {
@@ -180,7 +181,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.ListAvailableServerVariables(ctx, id)
 if err != nil {
@@ -196,7 +197,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.ListAvailableSslOptions(ctx, id)
 if err != nil {
@@ -212,7 +213,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListAvailableSslPredefinedPolicies(ctx, id)` can be used to do batched pagination
 items, err := client.ListAvailableSslPredefinedPoliciesComplete(ctx, id)
@@ -229,7 +230,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := applicationgateways.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.ListAvailableWafRuleSets(ctx, id)
 if err != nil {

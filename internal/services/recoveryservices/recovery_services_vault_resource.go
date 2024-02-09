@@ -179,6 +179,9 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && !new.(bool)
 			}),
+			pluginsdk.ForceNewIfChange("immutability", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(vaults.ImmutabilityStateLocked)
+			}),
 		),
 	}
 }
@@ -249,7 +252,20 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		vault.Sku.Tier = utils.String("Standard")
 	}
 
+	requireAdditionalUpdate := false
+	updatePatch := vaults.PatchVault{
+		Properties: &vaults.VaultProperties{},
+	}
 	if immutability, ok := d.GetOk("immutability"); ok {
+		// The API doesn't allow to set the immutability to "Locked" on creation.
+		// Here we firstly make it "Unlocked", and once created, we will update it to "Locked".
+		// Note: The `immutability` could be transitioned only in the limited directions.
+		// Locked <- Unlocked <-> Disabled
+		if immutability == string(vaults.ImmutabilityStateLocked) {
+			updatePatch.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
+			requireAdditionalUpdate = true
+			immutability = string(vaults.ImmutabilityStateUnlocked)
+		}
 		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 	}
 
@@ -261,14 +277,16 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	// `encryption` needs to be set before `cross_region_restore_enabled` is set. Or the service will return an error. "If CRR is enabled for the Vault, the storage state will be locked and it will interfere with further operations"
 	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
 	if _, ok := d.GetOk("encryption"); ok {
-		err = client.UpdateThenPoll(ctx, id, vaults.PatchVault{
-			Properties: &vaults.VaultProperties{
-				Encryption: expandEncryption(d),
-			},
-		})
+		requireAdditionalUpdate = true
+		updatePatch.Properties.Encryption = expandEncryption(d)
+	}
+
+	if requireAdditionalUpdate {
+		err := client.UpdateThenPoll(ctx, id, updatePatch)
 		if err != nil {
-			return fmt.Errorf("updating Recovery Service Encryption %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
+
 	}
 
 	storageType := backupresourcestorageconfigsnoncrr.StorageType(d.Get("storage_mode_type").(string))
@@ -430,7 +448,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if model.Identity != nil && !validateIdentityUpdate(*existing.Model.Identity, *expandedIdentity) {
-		return fmt.Errorf("`Once `identity` sepcified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
+		return fmt.Errorf("`Once `identity` specified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
 	}
 
 	storageMode := d.Get("storage_mode_type").(string)
@@ -524,6 +542,10 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	requireAdditionalUpdate := false
+	additionalUpdatePatch := vaults.PatchVault{
+		Properties: &vaults.VaultProperties{},
+	}
 	vault := vaults.PatchVault{
 		Properties: &vaults.VaultProperties{},
 	}
@@ -549,12 +571,30 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("immutability") {
-		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(d.Get("immutability"))
+		// The API does not allow to set the immutability from `Disabled` to `Locked` directly,
+		// Hence we firstly make it `Unlocked`, and once created, we will update it to `Locked`.
+		// Note: The `immutability` could be transitioned only in the limited directions.
+		// Locked <- Unlocked <-> Disabled
+		currentImmutability := model.Properties.SecuritySettings.ImmutabilitySettings.State
+		immutability := d.Get("immutability")
+		if currentImmutability != nil && string(*currentImmutability) == string(vaults.ImmutabilityStateDisabled) && immutability == string(vaults.ImmutabilityStateLocked) {
+			additionalUpdatePatch.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
+			requireAdditionalUpdate = true
+			immutability = string(vaults.ImmutabilityStateUnlocked)
+		}
+		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 	}
 
 	err = client.UpdateThenPoll(ctx, id, vault)
 	if err != nil {
 		return fmt.Errorf("updating  %s: %+v", id, err)
+	}
+
+	if requireAdditionalUpdate {
+		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch)
+		if err != nil {
+			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
+		}
 	}
 
 	// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.

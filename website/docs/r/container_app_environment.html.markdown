@@ -74,9 +74,9 @@ A `workload_profile` block supports the following:
 
 * `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16` and `E32`.
 
-* `maximum_container_count` - (Optional) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
+* `maximum_count` - (Required) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
 
-* `minimum_container_count` - (Optional) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
+* `minimum_count` - (Required) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
 
 ## Attributes Reference
 

@@ -9,14 +9,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type FunctionAppFunctionResource struct{}
@@ -55,7 +56,7 @@ func (r FunctionAppFunctionResource) ResourceType() string {
 }
 
 func (r FunctionAppFunctionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.FunctionAppFunctionID
+	return webapps.ValidateFunctionID
 }
 
 func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -71,7 +72,7 @@ func (r FunctionAppFunctionResource) Arguments() map[string]*pluginsdk.Schema {
 		"function_app_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.FunctionAppID,
+			ValidateFunc: commonids.ValidateFunctionAppID,
 			ForceNew:     true,
 			Description:  "The ID of the Function App in which this function should reside.",
 		},
@@ -196,20 +197,20 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			appId, err := parse.FunctionAppID(appFunction.AppID)
+			appId, err := commonids.ParseFunctionAppID(appFunction.AppID)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewFunctionAppFunctionID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, appFunction.Name)
+			id := webapps.NewFunctionID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, appFunction.Name)
 
-			existing, err := client.GetFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
-				if !utils.ResponseWasBadRequest(existing.Response) {
+			existing, err := client.GetFunction(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				if !response.WasBadRequest(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasBadRequest(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) && !response.WasBadRequest(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -219,12 +220,12 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("error preparing config data to send: %+v", err)
 			}
 
-			fnEnvelope := web.FunctionEnvelope{
-				FunctionEnvelopeProperties: &web.FunctionEnvelopeProperties{
-					Config:     confJSON,
-					TestData:   utils.String(appFunction.TestData),
-					Language:   utils.String(appFunction.Language),
-					IsDisabled: utils.Bool(!appFunction.Enabled),
+			fnEnvelope := webapps.FunctionEnvelope{
+				Properties: &webapps.FunctionEnvelopeProperties{
+					Config:     pointer.To(confJSON),
+					TestData:   pointer.To(appFunction.TestData),
+					Language:   pointer.To(appFunction.Language),
+					IsDisabled: pointer.To(!appFunction.Enabled),
 					Files:      expandFunctionFiles(appFunction.Files),
 				},
 			}
@@ -239,11 +240,11 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 				Pending: []string{"busy", "unknown"},
 				Target:  []string{"ready"},
 				Refresh: func() (result interface{}, state string, err error) {
-					function, err := client.Get(ctx, appId.ResourceGroup, appId.SiteName)
-					if err != nil || function.SiteConfig == nil {
+					function, err := client.Get(ctx, *appId)
+					if err != nil || function.Model == nil || function.Model.Properties == nil {
 						return "unknown", "unknown", err
 					}
-					if function.SiteProperties.InProgressOperationID != nil {
+					if function.Model.Properties.InProgressOperationId != nil {
 						return "busy", "busy", nil
 					}
 					return "ready", "ready", nil
@@ -260,17 +261,8 @@ func (r FunctionAppFunctionResource) Create() sdk.ResourceFunc {
 			locks.ByID(appId.ID())
 			defer locks.UnlockByID(appId.ID())
 
-			future, err := client.CreateFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName, fnEnvelope)
-			if err != nil {
-				fn, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-				if err != nil {
-					return fmt.Errorf("reading parent %s: %+v", appId, err)
-				}
-				return fmt.Errorf("creating %s - State: %#v / InProgressOperationID: %#v", id, *fn.SiteProperties.State, fn.SiteProperties.InProgressOperationID)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for %s: %+v", id, err)
+			if err := client.CreateFunctionThenPoll(ctx, id, fnEnvelope); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -285,14 +277,14 @@ func (r FunctionAppFunctionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.FunctionAppFunctionID(metadata.ResourceData.Id())
+			id, err := webapps.ParseFunctionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.GetFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName)
-			if err != nil || existing.FunctionEnvelopeProperties == nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.GetFunction(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -300,40 +292,44 @@ func (r FunctionAppFunctionResource) Read() sdk.ResourceFunc {
 			}
 
 			appFunc := FunctionAppFunctionModel{
-				Name:              id.FunctionName,
-				AppID:             parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
-				ConfigURL:         utils.NormalizeNilableString(existing.ConfigHref),
-				Enabled:           !utils.NormaliseNilableBool(existing.IsDisabled),
-				FunctionURL:       utils.NormalizeNilableString(existing.Href),
-				InvokeURL:         utils.NormalizeNilableString(existing.InvokeURLTemplate),
-				ScriptURL:         utils.NormalizeNilableString(existing.ScriptHref),
-				ScriptRootPathURL: utils.NormalizeNilableString(existing.ScriptRootPathHref),
-				SecretsFileURL:    utils.NormalizeNilableString(existing.SecretsFileHref),
-				TestData:          utils.NormalizeNilableString(existing.TestData),
-				TestDataURL:       utils.NormalizeNilableString(existing.TestDataHref),
+				Name:  id.FunctionName,
+				AppID: commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName).ID(),
 			}
 
-			if language, ok := metadata.ResourceData.GetOk("language"); ok {
-				appFunc.Language = language.(string)
-			}
+			if model := existing.Model; model != nil {
+				if props := model.Properties; props != nil {
+					appFunc.ConfigURL = pointer.From(props.ConfigHref)
+					appFunc.Enabled = !pointer.From(props.IsDisabled)
+					appFunc.FunctionURL = pointer.From(props.Href)
+					appFunc.InvokeURL = pointer.From(props.InvokeUrlTemplate)
+					appFunc.ScriptURL = pointer.From(props.ScriptHref)
+					appFunc.ScriptRootPathURL = pointer.From(props.ScriptRootPathHref)
+					appFunc.SecretsFileURL = pointer.From(props.SecretsFileHref)
+					appFunc.TestData = pointer.From(props.TestData)
+					appFunc.TestDataURL = pointer.From(props.TestDataHref)
+					if language, ok := metadata.ResourceData.GetOk("language"); ok {
+						appFunc.Language = language.(string)
+					}
 
-			if filesRaw, ok := metadata.ResourceData.GetOk("file"); ok {
-				files := make([]FunctionFiles, 0)
-				for _, v := range filesRaw.([]interface{}) {
-					file := v.(map[string]interface{})
-					files = append(files, FunctionFiles{
-						Name:    file["name"].(string),
-						Content: file["content"].(string),
-					})
+					if filesRaw, ok := metadata.ResourceData.GetOk("file"); ok {
+						files := make([]FunctionFiles, 0)
+						for _, v := range filesRaw.([]interface{}) {
+							file := v.(map[string]interface{})
+							files = append(files, FunctionFiles{
+								Name:    file["name"].(string),
+								Content: file["content"].(string),
+							})
+						}
+						appFunc.Files = files
+					}
+
+					config, err := flattenFunctionFiles(props.Config)
+					if err != nil {
+						return err
+					}
+					appFunc.ConfigJSON = pointer.From(config)
 				}
-				appFunc.Files = files
 			}
-
-			config, err := flattenFunctionFiles(existing.Config)
-			if err != nil {
-				return err
-			}
-			appFunc.ConfigJSON = utils.NormalizeNilableString(config)
 
 			return metadata.Encode(&appFunc)
 		},
@@ -346,10 +342,11 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.FunctionAppFunctionID(metadata.ResourceData.Id())
+			id, err := webapps.ParseFunctionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
+			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
 			metadata.Logger.Infof("deleting %s", *id)
 
@@ -362,11 +359,11 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 				Pending: []string{"busy", "unknown"},
 				Target:  []string{"ready"},
 				Refresh: func() (result interface{}, state string, err error) {
-					function, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-					if err != nil || function.SiteConfig == nil {
+					function, err := client.Get(ctx, appId)
+					if err != nil || function.Model == nil || function.Model.Properties == nil || function.Model.Properties.SiteConfig == nil {
 						return "unknown", "unknown", err
 					}
-					if function.SiteProperties.InProgressOperationID != nil {
+					if function.Model.Properties.InProgressOperationId != nil {
 						return "busy", "busy", nil
 					}
 					return "ready", "ready", nil
@@ -380,11 +377,10 @@ func (r FunctionAppFunctionResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for %s to be settled", *id)
 			}
 
-			fnID := parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.FunctionName).ID()
-			locks.ByID(fnID)
-			defer locks.UnlockByID(fnID)
+			locks.ByID(appId.ID())
+			defer locks.UnlockByID(appId.ID())
 
-			if _, err = client.DeleteFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName); err != nil {
+			if _, err = client.DeleteFunction(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -399,20 +395,24 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.FunctionAppFunctionID(metadata.ResourceData.Id())
+			id, err := webapps.ParseFunctionID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
+
+			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
 			var appFunction FunctionAppFunctionModel
 			if err := metadata.Decode(&appFunction); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.GetFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName)
-			if err != nil || existing.FunctionEnvelopeProperties == nil {
+			existing, err := client.GetFunction(ctx, *id)
+			if err != nil || existing.Model == nil || existing.Model.Properties == nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
+
+			model := *existing.Model
 
 			if metadata.ResourceData.HasChange("config_json") {
 				var confJSON interface{}
@@ -420,15 +420,15 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("error preparing config data to send: %+v", err)
 				}
-				existing.Config = confJSON
+				model.Properties.Config = pointer.To(confJSON)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				existing.IsDisabled = utils.Bool(!appFunction.Enabled)
+				model.Properties.IsDisabled = pointer.To(!appFunction.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("test_data") {
-				existing.TestData = utils.String(appFunction.TestData)
+				model.Properties.TestData = pointer.To(appFunction.TestData)
 			}
 
 			deadline, ok := ctx.Deadline()
@@ -440,11 +440,11 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 				Pending: []string{"busy", "unknown"},
 				Target:  []string{"ready"},
 				Refresh: func() (result interface{}, state string, err error) {
-					function, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-					if err != nil || function.SiteConfig == nil {
+					function, err := client.Get(ctx, appId)
+					if err != nil || function.Model == nil || function.Model.Properties == nil || function.Model.Properties.SiteConfig == nil {
 						return "unknown", "unknown", err
 					}
-					if function.SiteProperties.InProgressOperationID != nil {
+					if function.Model.Properties.InProgressOperationId != nil {
 						return "busy", "busy", nil
 					}
 					return "ready", "ready", nil
@@ -458,17 +458,11 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for %s to be ready", *id)
 			}
 
-			fnID := parse.NewFunctionAppID(id.SubscriptionId, id.ResourceGroup, id.FunctionName).ID()
-			locks.ByID(fnID)
-			defer locks.UnlockByID(fnID)
+			locks.ByID(appId.ID())
+			defer locks.UnlockByID(appId.ID())
 
-			future, err := client.CreateFunction(ctx, id.ResourceGroup, id.SiteName, id.FunctionName, existing)
-			if err != nil {
+			if err := client.CreateFunctionThenPoll(ctx, *id, model); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for %s: %+v", id, err)
 			}
 
 			return nil
@@ -476,17 +470,16 @@ func (r FunctionAppFunctionResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func expandFunctionFiles(input []FunctionFiles) map[string]*string {
+func expandFunctionFiles(input []FunctionFiles) *map[string]string {
 	if input == nil {
 		return nil
 	}
-	result := make(map[string]*string)
+	result := make(map[string]string)
 	for _, v := range input {
-		content := v.Content
-		result[v.Name] = &content
+		result[v.Name] = v.Content
 	}
 
-	return result
+	return &result
 }
 
 func flattenFunctionFiles(input interface{}) (*string, error) {

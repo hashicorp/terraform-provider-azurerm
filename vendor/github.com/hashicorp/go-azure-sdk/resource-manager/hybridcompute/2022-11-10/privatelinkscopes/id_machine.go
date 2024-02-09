@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = MachineId{}
+var _ resourceids.ResourceId = &MachineId{}
 
 // MachineId is a struct representing the Resource ID for a Machine
 type MachineId struct {
@@ -30,7 +30,7 @@ func NewMachineID(subscriptionId string, resourceGroupName string, machineName s
 
 // ParseMachineID parses 'input' into a MachineId
 func ParseMachineID(input string) (*MachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&MachineId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseMachineID(input string) (*MachineId, error) {
 // ParseMachineIDInsensitively parses 'input' case-insensitively into a MachineId
 // note: this method should only be used for API response data and not user input
 func ParseMachineIDInsensitively(input string) (*MachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&MachineId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

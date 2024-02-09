@@ -20,7 +20,8 @@ type ListByResourceOperationResponse struct {
 }
 
 type ListByResourceCompleteResult struct {
-	Items []PrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []PrivateLinkResource
 }
 
 type ListByResourceOperationOptions struct {
@@ -116,7 +117,8 @@ func (c PrivateLinkResourcesClient) ListByResourceCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListByResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

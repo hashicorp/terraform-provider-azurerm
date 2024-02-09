@@ -115,7 +115,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%[1]d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DSv3-Type1"
+  sku_name                = "DSv3-Type3"
   platform_fault_domain   = 1
 }
 `, data.RandomInteger, data.Locations.Primary)

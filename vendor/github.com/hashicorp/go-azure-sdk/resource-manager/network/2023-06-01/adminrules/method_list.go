@@ -2,6 +2,7 @@ package adminrules
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -19,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []BaseAdminRule
+	LatestHttpResponse *http.Response
+	Items              []BaseAdminRule
 }
 
 // List ...
@@ -49,13 +51,24 @@ func (c AdminRulesClient) List(ctx context.Context, id RuleCollectionId) (result
 	}
 
 	var values struct {
-		Values *[]BaseAdminRule `json:"value"`
+		Values *[]json.RawMessage `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
-	result.Model = values.Values
+	temp := make([]BaseAdminRule, 0)
+	if values.Values != nil {
+		for i, v := range *values.Values {
+			val, err := unmarshalBaseAdminRuleImplementation(v)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling item %d for BaseAdminRule (%q): %+v", i, v, err)
+				return result, err
+			}
+			temp = append(temp, val)
+		}
+	}
+	result.Model = &temp
 
 	return
 }
@@ -83,7 +96,8 @@ func (c AdminRulesClient) ListCompleteMatchingPredicate(ctx context.Context, id 
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

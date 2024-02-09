@@ -20,7 +20,8 @@ type ListAllOperationResponse struct {
 }
 
 type ListAllCompleteResult struct {
-	Items []ExpressRouteCircuit
+	LatestHttpResponse *http.Response
+	Items              []ExpressRouteCircuit
 }
 
 // ListAll ...
@@ -84,7 +85,8 @@ func (c ExpressRouteCircuitsClient) ListAllCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListAllCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

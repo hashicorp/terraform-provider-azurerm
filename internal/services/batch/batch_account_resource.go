@@ -145,7 +145,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,

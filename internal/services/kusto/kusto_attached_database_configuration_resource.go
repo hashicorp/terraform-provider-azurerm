@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -78,7 +78,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ClusterID,
+				ValidateFunc: commonids.ValidateKustoClusterID,
 			},
 
 			"attached_database_names": {
@@ -219,7 +219,7 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
-			clusterResourceId, parseErr := clusters.ParseClusterIDInsensitively(props.ClusterResourceId)
+			clusterResourceId, parseErr := commonids.ParseKustoClusterIDInsensitively(props.ClusterResourceId)
 			if parseErr != nil {
 				return parseErr
 			}

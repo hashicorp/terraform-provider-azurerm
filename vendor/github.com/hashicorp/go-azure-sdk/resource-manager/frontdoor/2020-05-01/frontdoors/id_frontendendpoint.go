@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FrontendEndpointId{}
+var _ resourceids.ResourceId = &FrontendEndpointId{}
 
 // FrontendEndpointId is a struct representing the Resource ID for a Frontend Endpoint
 type FrontendEndpointId struct {
@@ -32,7 +32,7 @@ func NewFrontendEndpointID(subscriptionId string, resourceGroupName string, fron
 
 // ParseFrontendEndpointID parses 'input' into a FrontendEndpointId
 func ParseFrontendEndpointID(input string) (*FrontendEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontendEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontendEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseFrontendEndpointID(input string) (*FrontendEndpointId, error) {
 // ParseFrontendEndpointIDInsensitively parses 'input' case-insensitively into a FrontendEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseFrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontendEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontendEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

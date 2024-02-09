@@ -19,7 +19,8 @@ type AccountsListModelsOperationResponse struct {
 }
 
 type AccountsListModelsCompleteResult struct {
-	Items []AccountModel
+	LatestHttpResponse *http.Response
+	Items              []AccountModel
 }
 
 // AccountsListModels ...
@@ -83,7 +84,8 @@ func (c CognitiveServicesAccountsClient) AccountsListModelsCompleteMatchingPredi
 	}
 
 	result = AccountsListModelsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

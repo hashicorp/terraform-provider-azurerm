@@ -19,7 +19,8 @@ type ListByHybridRunbookWorkerGroupOperationResponse struct {
 }
 
 type ListByHybridRunbookWorkerGroupCompleteResult struct {
-	Items []HybridRunbookWorker
+	LatestHttpResponse *http.Response
+	Items              []HybridRunbookWorker
 }
 
 type ListByHybridRunbookWorkerGroupOperationOptions struct {
@@ -111,7 +112,8 @@ func (c HybridRunbookWorkerClient) ListByHybridRunbookWorkerGroupCompleteMatchin
 	}
 
 	result = ListByHybridRunbookWorkerGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

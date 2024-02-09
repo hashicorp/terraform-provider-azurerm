@@ -19,6 +19,7 @@ type GetP2sVpnConnectionHealthDetailedOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *P2SVpnConnectionHealth
 }
 
 // GetP2sVpnConnectionHealthDetailed ...

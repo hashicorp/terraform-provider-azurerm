@@ -19,7 +19,8 @@ type ListBuiltInsOperationResponse struct {
 }
 
 type ListBuiltInsCompleteResult struct {
-	Items []TemplateSpecVersion
+	LatestHttpResponse *http.Response
+	Items              []TemplateSpecVersion
 }
 
 // ListBuiltIns ...
@@ -83,7 +84,8 @@ func (c TemplateSpecVersionsClient) ListBuiltInsCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListBuiltInsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

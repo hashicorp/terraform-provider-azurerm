@@ -20,7 +20,8 @@ type ListInaccessibleByServerOperationResponse struct {
 }
 
 type ListInaccessibleByServerCompleteResult struct {
-	Items []Database
+	LatestHttpResponse *http.Response
+	Items              []Database
 }
 
 // ListInaccessibleByServer ...
@@ -84,7 +85,8 @@ func (c DatabasesClient) ListInaccessibleByServerCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListInaccessibleByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

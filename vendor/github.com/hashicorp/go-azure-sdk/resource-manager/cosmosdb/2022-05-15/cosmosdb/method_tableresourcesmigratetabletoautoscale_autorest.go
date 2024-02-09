@@ -16,6 +16,7 @@ import (
 type TableResourcesMigrateTableToAutoscaleOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // TableResourcesMigrateTableToAutoscale ...
