@@ -10,6 +10,9 @@ ENHANCEMENTS:
 * `maintenance`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
 * `azurerm_dashboard_grafana` - support for the `smtp` block [GH-24717]
 
+BUG FIXES:
+* `azurerm_search_service` - fixed the update function to adjust for changed API behavior [GH-24837]
+
 ## 3.91.0 (February 08, 2024)
 
 FEATURES:
