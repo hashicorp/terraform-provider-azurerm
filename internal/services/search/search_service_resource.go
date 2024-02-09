@@ -672,7 +672,6 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 			output = append(output, services.IPRule{
 				Value: utils.String(rule.(string)),
 			})
-			log.Printf("***************************************************** IP RULE -> %s", rule.(string))
 		}
 	}
 
