@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms` Documentation
 
-The `managedhsms` SDK allows for interaction with the Azure Resource Manager Service `keyvault` (API Version `2023-02-01`).
+The `managedhsms` SDK allows for interaction with the Azure Resource Manager Service `keyvault` (API Version `2023-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 ```
 
 
