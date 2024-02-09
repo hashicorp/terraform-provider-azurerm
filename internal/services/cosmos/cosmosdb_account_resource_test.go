@@ -992,13 +992,32 @@ func TestAccCosmosDBAccount_identity(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_icmRegression(t *testing.T) {
+	// Regression test for the Microsoft IcM 466814988...
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.icmRegression(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("120"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("10"),
+				check.That(data.ResourceName).Key("backup.0.storage_redundancy").HasValue("Geo"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCosmosDBAccount_backupOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// This test already covers the regression for Microsoft IcM 466814988...
 			Config: r.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -3383,6 +3402,42 @@ resource "azurerm_cosmosdb_account" "test" {
     interval_in_minutes = 120
     retention_in_hours  = 10
     storage_redundancy  = "Geo"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) icmRegression(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type                = "Periodic"
+    interval_in_minutes = 120
+    retention_in_hours  = 10
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
