@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource**: `azurerm_chaos_studio_experiment` [GH-24779]
 * **New Resource**: `azurerm_dev_center_gallery` [GH-23760]
 * **New Resource:** `azurerm_kubernetes_fleet_member` [GH-24792]
+* **New Resource:** `azurerm_iotcentral_organization` [GH-23132]
 * **New Resource:** `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` [GH-24750]
   
 ENHANCEMENTS:
@@ -247,7 +248,6 @@ BUG FIXES:
 FEATURES:
 
 * New Data Source: `azurerm_locations` ([#23324](https://github.com/hashicorp/terraform-provider-azurerm/issues/23324))
-* New Resource: `azurerm_iotcentral_organization` ([#23132](https://github.com/hashicorp/terraform-provider-azurerm/issues/23132))
 
 ENHANCEMENTS:
 
