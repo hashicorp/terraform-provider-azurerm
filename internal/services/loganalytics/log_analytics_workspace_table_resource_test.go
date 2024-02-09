@@ -83,7 +83,7 @@ resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppEvents"
   workspace_id            = azurerm_log_analytics_workspace.test.id
   retention_in_days       = 7
-  total_retention_in_days = 20
+  total_retention_in_days = 32
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
