@@ -1,3 +1,11 @@
+## 3.92.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating to v0.20240208.1095436 of github.com/hashicorp/go-azure-sdk [GH-24819]
+* `maintenance`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
+
+
 ## 3.91.0 (February 08, 2024)
 
 FEATURES:
