@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backupvaults"
 ```
 
@@ -90,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := backupvaults.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.GetInResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.GetInResourceGroupComplete(ctx, id)
@@ -107,7 +108,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := backupvaults.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.GetInSubscription(ctx, id)` can be used to do batched pagination
 items, err := client.GetInSubscriptionComplete(ctx, id)

@@ -161,6 +161,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		databoxedge.Registration{},
 		databricks.Registration{},
 		datafactory.Registration{},
+		dataprotection.Registration{},
 		desktopvirtualization.Registration{},
 		digitaltwins.Registration{},
 		disks.Registration{},

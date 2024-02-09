@@ -494,7 +494,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
 	}
 	client.ManagementGroups = managementgroup.NewClient(o)
-	client.ManagedHSMs = managedhsm.NewClient(o)
+	if client.ManagedHSMs, err = managedhsm.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ManagedHSM: %+v", err)
+	}
 	if client.Maps, err = maps.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Maps: %+v", err)
 	}
@@ -606,16 +608,17 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	client.Sql = sql.NewClient(o)
 	if client.Storage, err = storage.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for StorageMover: %+v", err)
+		return fmt.Errorf("building clients for Storage: %+v", err)
 	}
 	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Storage Cache: %+v", err)
 	}
 	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
-		return fmt.Errorf("building Storage for StorageMover: %+v", err)
+		return fmt.Errorf("building clients for StorageMover: %+v", err)
 	}
-	client.StreamAnalytics = streamAnalytics.NewClient(o)
-
+	if client.StreamAnalytics, err = streamAnalytics.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for StreamAnalytics: %+v", err)
+	}
 	if client.Subscription, err = subscription.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Subscription: %+v", err)
 	}

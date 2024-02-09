@@ -22,9 +22,9 @@ import (
 
 func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSpringCloudConfigurationServiceCreateUpdate,
+		Create: resourceSpringCloudConfigurationServiceCreate,
 		Read:   resourceSpringCloudConfigurationServiceRead,
-		Update: resourceSpringCloudConfigurationServiceCreateUpdate,
+		Update: resourceSpringCloudConfigurationServiceUpdate,
 		Delete: resourceSpringCloudConfigurationServiceDelete,
 
 		SchemaVersion: 1,
@@ -159,7 +159,7 @@ func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
 		},
 	}
 }
-func resourceSpringCloudConfigurationServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSpringCloudConfigurationServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).AppPlatform.ConfigurationServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -171,16 +171,14 @@ func resourceSpringCloudConfigurationServiceCreateUpdate(d *pluginsdk.ResourceDa
 	}
 	id := parse.NewSpringCloudConfigurationServiceID(subscriptionId, springId.ResourceGroup, springId.SpringName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_configuration_service", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_spring_cloud_configuration_service", id.ID())
 	}
 
 	configurationServiceResource := appplatform.ConfigurationServiceResource{
@@ -192,6 +190,53 @@ func resourceSpringCloudConfigurationServiceCreateUpdate(d *pluginsdk.ResourceDa
 				},
 			},
 		},
+	}
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName, configurationServiceResource)
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceSpringCloudConfigurationServiceRead(d, meta)
+}
+
+func resourceSpringCloudConfigurationServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).AppPlatform.ConfigurationServiceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	springId, err := parse.SpringCloudServiceID(d.Get("spring_cloud_service_id").(string))
+	if err != nil {
+		return err
+	}
+	id := parse.NewSpringCloudConfigurationServiceID(subscriptionId, springId.ResourceGroup, springId.SpringName, d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
+		}
+	}
+	if existing.Properties == nil {
+		return fmt.Errorf("retrieving %s: model was nil", id)
+	}
+
+	properties := existing.Properties
+	if d.HasChange("generation") {
+		properties.Generation = appplatform.ConfigurationServiceGeneration(d.Get("generation").(string))
+	}
+
+	if d.HasChange("repository") {
+		properties.Settings.GitProperty.Repositories = expandConfigurationServiceConfigurationServiceGitRepositoryArray(d.Get("repository").([]interface{}))
+	}
+
+	configurationServiceResource := appplatform.ConfigurationServiceResource{
+		Properties: properties,
 	}
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName, configurationServiceResource)
 	if err != nil {

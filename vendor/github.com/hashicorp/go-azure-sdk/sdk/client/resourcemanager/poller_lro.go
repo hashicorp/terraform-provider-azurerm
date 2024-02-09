@@ -174,6 +174,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			"CancelInProgress": pollers.PollingStatusInProgress,
 			// CostManagement@2021-10-01 returns `Completed` rather than `Succeeded`: https://github.com/Azure/azure-sdk-for-go/issues/20342
 			"Completed": pollers.PollingStatusSucceeded,
+			// ServiceFabricManaged @ 2021-05-01 (NodeTypes CreateOrUpdate) returns `Created` rather than `InProgress` during Creation
+			"Created": pollers.PollingStatusInProgress,
 			// ContainerRegistry@2019-06-01-preview returns `Creating` rather than `InProgress` during creation
 			"Creating": pollers.PollingStatusInProgress,
 			// SignalR@2022-02-01 returns `Running` rather than `InProgress` during creation

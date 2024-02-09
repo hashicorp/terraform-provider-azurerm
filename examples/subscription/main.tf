@@ -1,3 +1,6 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 resource "azurerm_subscription" "subscription" {
   alias             = "${var.prefix}-sub"
   subscription_name = "${var.prefix}-sub"

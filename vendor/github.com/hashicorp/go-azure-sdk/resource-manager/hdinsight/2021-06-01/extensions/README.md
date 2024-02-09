@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 ```
 
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 if err := client.DisableAzureMonitorThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +66,7 @@ if err := client.DisableAzureMonitorThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 if err := client.DisableMonitoringThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -77,7 +78,7 @@ if err := client.DisableMonitoringThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := extensions.AzureMonitorRequest{
 	// ...
@@ -94,7 +95,7 @@ if err := client.EnableAzureMonitorThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := extensions.ClusterMonitoringRequest{
 	// ...
@@ -127,7 +128,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.GetAzureMonitorStatus(ctx, id)
 if err != nil {
@@ -143,7 +144,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := extensions.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewHDInsightClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 read, err := client.GetMonitoringStatus(ctx, id)
 if err != nil {
