@@ -1,5 +1,9 @@
 ## 3.92.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_virtual_desktop_application_group` [GH-24771]
+
 ENHANCEMENTS:
 
 * dependencies: updating to v0.20240208.1095436 of github.com/hashicorp/go-azure-sdk [GH-24819]
