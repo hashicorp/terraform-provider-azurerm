@@ -597,6 +597,18 @@ func TestAccContainerAppResource_maxInactiveRevisionsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_ingressStickySessionsValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.ingressStickySessionsValidation(data, "sticky"),
+			ExpectError: regexp.MustCompile("`sticky` session affinity can only be used in conjunction with `Single` `revision_mode`"),
+		},
+	})
+}
+
 func (r ContainerAppResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := containerapps.ParseContainerAppID(state.ID)
 	if err != nil {
@@ -1397,6 +1409,9 @@ resource "azurerm_container_app" "test" {
   ingress {
     allow_insecure_connections = true
     external_enabled           = true
+    sticky_sessions {
+      affinity = "sticky"
+    }
     target_port                = 5000
     transport                  = "http"
     client_certificate_mode    = "accept"
@@ -2816,6 +2831,42 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, trafficBlock)
+}
+
+func (r ContainerAppResource) ingressStickySessionsValidation(data acceptance.TestData, affinity string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Multiple"
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    sticky_sessions {
+      affinity = "%s"
+    }
+    target_port                = 5000
+    transport                  = "http"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, affinity)
 }
 
 func (r ContainerAppResource) secretBasic(data acceptance.TestData) string {
