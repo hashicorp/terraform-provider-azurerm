@@ -166,7 +166,7 @@ service/hybrid-compute:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+|hybrid_compute_machine)((.|\n)*)###'
 
 service/iot-central:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iotcentral_application((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iotcentral_((.|\n)*)###'
 
 service/iot-hub:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iothub((.|\n)*)###'
