@@ -97,7 +97,8 @@ func ApiManagementNamedValueDisplayName(v interface{}, k string) (warnings []str
 	value := v.(string)
 
 	// From the portal: `Name may contain only letters, digits, periods, dash, and underscore.`
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z_.-]$`).Match([]byte(value)); !matched {
+	// `The value must have a length of at most 256.`
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z_.-]{1,256}$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, periods, underscores and dashes", k))
 	}
 
