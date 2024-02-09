@@ -330,7 +330,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	appSettings = append(appSettings, basicAppSettings...)
 
 	siteConfig.AppSettings = &appSettings
-	
+
 	siteEnvelope := web.Site{
 		Kind:     &kind,
 		Location: &location,
