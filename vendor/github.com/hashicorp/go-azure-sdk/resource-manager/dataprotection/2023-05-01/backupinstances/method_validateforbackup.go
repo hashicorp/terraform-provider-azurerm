@@ -52,10 +52,6 @@ func (c BackupInstancesClient) ValidateForBackup(ctx context.Context, id BackupV
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

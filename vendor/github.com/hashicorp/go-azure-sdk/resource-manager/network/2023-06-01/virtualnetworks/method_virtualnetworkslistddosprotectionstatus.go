@@ -86,15 +86,6 @@ func (c VirtualNetworksClient) VirtualNetworksListDdosProtectionStatus(ctx conte
 		return
 	}
 
-	var values struct {
-		Values *[]PublicIPDdosProtectionStatusResult `json:"value"`
-	}
-	if err = resp.Unmarshal(&values); err != nil {
-		return
-	}
-
-	result.Model = values.Values
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

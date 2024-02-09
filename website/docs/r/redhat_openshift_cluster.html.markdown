@@ -6,7 +6,7 @@ description: |-
   Manages fully managed Azure Red Hat OpenShift Cluster (also known as ARO)
 ---
 
-# azurerm_redhatopenshift_cluster
+# azurerm_redhat_openshift_cluster
 
 Manages a fully managed Azure Red Hat OpenShift Cluster (also known as ARO).
 
@@ -24,7 +24,7 @@ resource "azuread_application" "example" {
 }
 
 resource "azuread_service_principal" "example" {
-  application_id = azuread_application.example.application_id
+  client_id = azuread_application.example.client_id
 }
 
 resource "azuread_service_principal_password" "example" {
@@ -33,7 +33,7 @@ resource "azuread_service_principal_password" "example" {
 
 data "azuread_service_principal" "redhatopenshift" {
   // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
-  application_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+  client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
 resource "azurerm_role_assignment" "role_network1" {
@@ -82,7 +82,8 @@ resource "azurerm_redhat_openshift_cluster" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   cluster_profile {
-    domain = "aro-example.com"
+    domain  = "aro-example.com"
+    version = "4.13.23"
   }
 
   network_profile {
@@ -111,7 +112,7 @@ resource "azurerm_redhat_openshift_cluster" "example" {
   }
 
   service_principal {
-    client_id     = azuread_application.example.application_id
+    client_id     = azuread_application.example.client_id
     client_secret = azuread_service_principal_password.example.value
   }
 
@@ -122,7 +123,7 @@ resource "azurerm_redhat_openshift_cluster" "example" {
 }
 
 output "console_url" {
-  value = azurerm_redhatopenshift_cluster.example.console_url
+  value = azurerm_redhat_openshift_cluster.example.console_url
 }
 ```
 
@@ -198,7 +199,7 @@ A `worker_profile` block supports the following:
 
 A `cluster_profile` block supports the following:
 
-* `version` - (Required) The version of the OpenShift cluster. Changing this forces a new resource to be created.
+* `version` - (Required) The version of the OpenShift cluster. Available versions can be found with the Azure CLI command `az aro get-versions --location <region>`. Changing this forces a new resource to be created.
 
 * `domain` - (Required) The custom domain for the cluster. For more info, see [Prepare a custom domain for your cluster](https://docs.microsoft.com/azure/openshift/tutorial-create-cluster#prepare-a-custom-domain-for-your-cluster-optional). Changing this forces a new resource to be created.
 
@@ -278,5 +279,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Red Hat OpenShift Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_redhatopenshift_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.RedHatOpenShift/openShiftClusters/cluster1
+terraform import azurerm_redhat_openshift_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.RedHatOpenShift/openShiftClusters/cluster1
 ```

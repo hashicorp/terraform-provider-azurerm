@@ -48,10 +48,6 @@ func (c ApiManagementServiceClient) MigrateToStv2(ctx context.Context, id Servic
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
-		return
-	}
-
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {
 		return

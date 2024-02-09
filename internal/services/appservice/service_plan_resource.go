@@ -170,10 +170,10 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			appServicePlan := appserviceplans.AppServicePlan{
 				Properties: &appserviceplans.AppServicePlanProperties{
-					PerSiteScaling: utils.Bool(servicePlan.PerSiteScaling),
-					Reserved:       utils.Bool(servicePlan.OSType == OSTypeLinux),
-					HyperV:         utils.Bool(servicePlan.OSType == OSTypeWindowsContainer),
-					ZoneRedundant:  utils.Bool(servicePlan.ZoneBalancing),
+					PerSiteScaling: pointer.To(servicePlan.PerSiteScaling),
+					Reserved:       pointer.To(servicePlan.OSType == OSTypeLinux),
+					HyperV:         pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
+					ZoneRedundant:  pointer.To(servicePlan.ZoneBalancing),
 				},
 				Sku: &appserviceplans.SkuDescription{
 					Name: pointer.To(servicePlan.Sku),
@@ -329,7 +329,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			model := *existing.Model
 
 			if metadata.ResourceData.HasChange("per_site_scaling_enabled") {
-				model.Properties.PerSiteScaling = utils.Bool(state.PerSiteScaling)
+				model.Properties.PerSiteScaling = pointer.To(state.PerSiteScaling)
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {

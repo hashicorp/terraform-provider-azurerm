@@ -505,6 +505,12 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"partition_merge_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"backup": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -596,6 +602,42 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 										},
 									},
 								},
+							},
+						},
+
+						"gremlin_database": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.CosmosEntityName,
+									},
+
+									"graph_names": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validate.CosmosEntityName,
+										},
+									},
+								},
+							},
+						},
+
+						"tables_to_restore": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validate.CosmosEntityName,
 							},
 						},
 					},
@@ -750,6 +792,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	partitionMergeEnabled := d.Get("partition_merge_enabled").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
 	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
@@ -801,6 +844,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			Capabilities:                       capabilities,
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
+			EnablePartitionMerge:               pointer.To(partitionMergeEnabled),
 			PublicNetworkAccess:                pointer.To(publicNetworkAccess),
 			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
 			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
@@ -997,7 +1041,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 			"kind", "tags", "enable_free_tier", "enable_automatic_failover", "analytical_storage_enabled",
-			"local_authentication_disabled") {
+			"local_authentication_disabled", "partition_merge_enabled") {
 			updateRequired = true
 		}
 
@@ -1044,6 +1088,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
 				DisableLocalAuth:                   disableLocalAuthentication,
 				BackupPolicy:                       backup,
+				EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
 			},
 			Tags: t,
 		}
@@ -1327,6 +1372,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cosmosdb.PublicNetworkAccessEnabled)
 		d.Set("default_identity_type", props.DefaultIdentity)
 		d.Set("create_mode", pointer.From(props.CreateMode))
+		d.Set("partition_merge_enabled", pointer.From(props.EnablePartitionMerge))
 
 		if v := existing.Model.Properties.IsVirtualNetworkFilterEnabled; v != nil {
 			d.Set("is_virtual_network_filter_enabled", props.IsVirtualNetworkFilterEnabled)
@@ -1993,13 +2039,18 @@ func expandCosmosdbAccountRestoreParameters(input []interface{}) *cosmosdb.Resto
 	v := input[0].(map[string]interface{})
 
 	restoreParameters := cosmosdb.RestoreParameters{
-		RestoreMode:        pointer.To(cosmosdb.RestoreModePointInTime),
-		RestoreSource:      pointer.To(v["source_cosmosdb_account_id"].(string)),
-		DatabasesToRestore: expandCosmosdbAccountDatabasesToRestore(v["database"].(*pluginsdk.Set).List()),
+		RestoreMode:               pointer.To(cosmosdb.RestoreModePointInTime),
+		RestoreSource:             pointer.To(v["source_cosmosdb_account_id"].(string)),
+		DatabasesToRestore:        expandCosmosdbAccountDatabasesToRestore(v["database"].(*pluginsdk.Set).List()),
+		GremlinDatabasesToRestore: expandCosmosdbAccountGremlinDatabasesToRestore(v["gremlin_database"].([]interface{})),
 	}
 
 	restoreTimestampInUtc, _ := time.Parse(time.RFC3339, v["restore_timestamp_in_utc"].(string))
 	restoreParameters.SetRestoreTimestampInUtcAsTime(restoreTimestampInUtc)
+
+	if tablesToRestore := v["tables_to_restore"].([]interface{}); len(tablesToRestore) > 0 {
+		restoreParameters.TablesToRestore = utils.ExpandStringSlice(tablesToRestore)
+	}
 
 	return &restoreParameters
 }
@@ -2015,6 +2066,21 @@ func expandCosmosdbAccountDatabasesToRestore(input []interface{}) *[]cosmosdb.Da
 			CollectionNames: utils.ExpandStringSlice(v["collection_names"].(*pluginsdk.Set).List()),
 		})
 	}
+	return &results
+}
+
+func expandCosmosdbAccountGremlinDatabasesToRestore(input []interface{}) *[]cosmosdb.GremlinDatabaseRestoreResource {
+	results := make([]cosmosdb.GremlinDatabaseRestoreResource, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, cosmosdb.GremlinDatabaseRestoreResource{
+			DatabaseName: pointer.To(v["name"].(string)),
+			GraphNames:   utils.ExpandStringSlice(v["graph_names"].([]interface{})),
+		})
+	}
+
 	return &results
 }
 
@@ -2035,8 +2101,10 @@ func flattenCosmosdbAccountRestoreParameters(input *cosmosdb.RestoreParameters) 
 	return []interface{}{
 		map[string]interface{}{
 			"database":                   flattenCosmosdbAccountDatabasesToRestore(input.DatabasesToRestore),
+			"gremlin_database":           flattenCosmosdbAccountGremlinDatabasesToRestore(input.GremlinDatabasesToRestore),
 			"source_cosmosdb_account_id": restoreSource,
 			"restore_timestamp_in_utc":   restoreTimestampInUtc,
+			"tables_to_restore":          pointer.From(input.TablesToRestore),
 		},
 	}
 }
@@ -2058,6 +2126,22 @@ func flattenCosmosdbAccountDatabasesToRestore(input *[]cosmosdb.DatabaseRestoreR
 			"name":             databaseName,
 		})
 	}
+	return results
+}
+
+func flattenCosmosdbAccountGremlinDatabasesToRestore(input *[]cosmosdb.GremlinDatabaseRestoreResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"graph_names": utils.FlattenStringSlice(item.GraphNames),
+			"name":        pointer.From(item.DatabaseName),
+		})
+	}
+
 	return results
 }
 

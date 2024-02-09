@@ -358,6 +358,8 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below.
 
+* `kind` - (Optional) The type of the Workspace. Possible values are `Default`, `FeatureStore`. Defaults to `Default`
+
 * `container_registry_id` - (Optional) The ID of the container registry associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
@@ -374,9 +376,11 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as defined below. Changing this forces a new resource to be created.
 
+* `feature_store` - (Optional) A `feature_store` block as defined below.
+
 * `friendly_name` - (Optional) Display name for this Machine Learning Workspace.
 
-* `high_business_impact` - (Optional) Flag to signal High Business Impact (HBI) data in the workspace and reduce diagnostic data collected by the service
+* `high_business_impact` - (Optional) Flag to signal High Business Impact (HBI) data in the workspace and reduce diagnostic data collected by the service. Changing this forces a new resource to be created.
 
 * `primary_user_assigned_identity` - (Optional) The user assigned identity id that represents the workspace identity.
 
@@ -407,6 +411,19 @@ An `encryption` block supports the following:
 * `user_assigned_identity_id` - (Optional) The Key Vault URI to access the encryption key.
 
 ~> **Note:** `user_assigned_identity_id` must set when`identity.type` is `UserAssigned` or service won't be able to find the assigned permissions.
+
+---
+
+An `feature_store` block supports the following:
+
+* `computer_spark_runtime_version` - (Optional) The version of Spark runtime.
+
+* `offline_connection_name` - (Optional) The name of offline store connection.
+
+* `online_connection_name` - (Optional) The name of online store connection.
+
+~> **Note:** `feature_store` must be set when`kind` is `FeatureStore`
+
 
 ## Attributes Reference
 
