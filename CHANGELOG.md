@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_databricks_access_connector` [GH-24769]
 * **New Resource**: `azurerm_chaos_studio_capability` [GH-24779]
 * **New Resource**: `azurerm_chaos_studio_experiment` [GH-24779]
 * **New Resource**: `azurerm_dev_center_gallery` [GH-23760]
