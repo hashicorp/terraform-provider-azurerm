@@ -357,7 +357,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"max_interval_in_seconds": {
 							Type:             pluginsdk.TypeInt,
 							Optional:         true,
-							Computed:         true,
+							Default:          5,
 							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 							ValidateFunc:     validation.IntBetween(5, 86400), // single region values
 						},
@@ -365,7 +365,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"max_staleness_prefix": {
 							Type:             pluginsdk.TypeInt,
 							Optional:         true,
-							Computed:         true,
+							Default:          100,
 							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
 							ValidateFunc:     validation.IntBetween(10, 2147483647), // single region values
 						},
@@ -520,7 +520,8 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(cosmosdb.BackupPolicyTypePeriodic),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cosmosdb.BackupPolicyTypeContinuous),
 								string(cosmosdb.BackupPolicyTypePeriodic),
@@ -1907,26 +1908,45 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 	switch attr["type"].(string) {
 	case string(cosmosdb.BackupPolicyTypeContinuous):
 		if v := attr["interval_in_minutes"].(int); v != 0 && !backupHasChange {
-			return nil, fmt.Errorf("`interval_in_minutes` can not be set when `type` in `backup` is `Continuous`")
+			return nil, fmt.Errorf("`interval_in_minutes` cannot be defined when the `backup.type` is set to %q", string(cosmosdb.BackupPolicyTypeContinuous))
 		}
+
 		if v := attr["retention_in_hours"].(int); v != 0 && !backupHasChange {
-			return nil, fmt.Errorf("`retention_in_hours` can not be set when `type` in `backup` is `Continuous`")
+			return nil, fmt.Errorf("`retention_in_hours` cannot be defined when the `backup.type` is set to %q", string(cosmosdb.BackupPolicyTypeContinuous))
 		}
+
 		if v := attr["storage_redundancy"].(string); v != "" && !backupHasChange {
-			return nil, fmt.Errorf("`storage_redundancy` can not be set when `type` in `backup` is `Continuous`")
+			return nil, fmt.Errorf("`storage_redundancy` cannot be defined when the `backup.type` is set to %q", string(cosmosdb.BackupPolicyTypeContinuous))
 		}
+
 		return cosmosdb.ContinuousModeBackupPolicy{}, nil
 
 	case string(cosmosdb.BackupPolicyTypePeriodic):
 		if createMode != "" {
-			return nil, fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+			return nil, fmt.Errorf("`create_mode` can only be defined when the `backup.type` is set to %q, got %q", string(cosmosdb.BackupPolicyTypeContinuous), string(cosmosdb.BackupPolicyTypePeriodic))
 		}
+
+		// Set the default values if they are not in the config file...
+		if v := attr["interval_in_minutes"].(int); v == 0 {
+			attr["interval_in_minutes"] = 240
+		}
+		interval := utils.Int64(int64(attr["interval_in_minutes"].(int)))
+
+		if v := attr["retention_in_hours"].(int); v == 0 {
+			attr["retention_in_hours"] = 8
+		}
+		retention := utils.Int64(int64(attr["retention_in_hours"].(int)))
+
+		if v := attr["storage_redundancy"].(string); v == "" {
+			attr["storage_redundancy"] = string(cosmosdb.BackupStorageRedundancyGeo)
+		}
+		storageRedundancy := pointer.To(cosmosdb.BackupStorageRedundancy(attr["storage_redundancy"].(string)))
 
 		return cosmosdb.PeriodicModeBackupPolicy{
 			PeriodicModeProperties: &cosmosdb.PeriodicModeProperties{
-				BackupIntervalInMinutes:        utils.Int64(int64(attr["interval_in_minutes"].(int))),
-				BackupRetentionIntervalInHours: utils.Int64(int64(attr["retention_in_hours"].(int))),
-				BackupStorageRedundancy:        pointer.To(cosmosdb.BackupStorageRedundancy(attr["storage_redundancy"].(string))),
+				BackupIntervalInMinutes:        interval,
+				BackupRetentionIntervalInHours: retention,
+				BackupStorageRedundancy:        storageRedundancy,
 			},
 		}, nil
 
@@ -1953,13 +1973,16 @@ func flattenCosmosdbAccountBackup(input cosmosdb.BackupPolicy) ([]interface{}, e
 		if v := backupPolicy.PeriodicModeProperties.BackupIntervalInMinutes; v != nil {
 			interval = int(*v)
 		}
+
 		if v := backupPolicy.PeriodicModeProperties.BackupRetentionIntervalInHours; v != nil {
 			retention = int(*v)
 		}
+
 		var storageRedundancy cosmosdb.BackupStorageRedundancy
 		if backupPolicy.PeriodicModeProperties.BackupStorageRedundancy != nil {
 			storageRedundancy = pointer.From(backupPolicy.PeriodicModeProperties.BackupStorageRedundancy)
 		}
+
 		return []interface{}{
 			map[string]interface{}{
 				"type":                string(cosmosdb.BackupPolicyTypePeriodic),
