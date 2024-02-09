@@ -168,13 +168,13 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			envelope := web.HybridConnection{
-				HybridConnectionProperties: &web.HybridConnectionProperties{
-					RelayArmURI:  utils.String(relayId.ID()),
-					Hostname:     utils.String(appHybridConn.HostName),
-					Port:         utils.Int32(int32(appHybridConn.HostPort)),
-					SendKeyName:  utils.String(appHybridConn.SendKeyName),
-					SendKeyValue: utils.String(*key),
+			envelope := webapps.HybridConnection{
+				Properties: &webapps.HybridConnectionProperties{
+					RelayArmUri:  pointer.To(relayId.ID()),
+					Hostname:     pointer.To(appHybridConn.HostName),
+					Port:         pointer.To(appHybridConn.HostPort),
+					SendKeyName:  pointer.To(appHybridConn.SendKeyName),
+					SendKeyValue: key,
 				},
 			}
 
