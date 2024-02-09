@@ -15,9 +15,11 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/sdk` [GH-24819]
 * dependencies: refactor `azurerm_app_service_environment_v3` to use `go-azure-sdk` [GH-24760]
 * dependencies: refactor `azurerm_role_definition` to use `go-azure-sdk` [GH-24266]
+* `managedhsm`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24761]
+* `hdinsight`: updating to API Version `2023-07-01` [GH-24761]
+* `streamanalytics`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
 * `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
-* `azurerm_storage_account` - Support `local_user_enabled` [GH-24800]
-* `streamanalytics`: updating to use the base layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
+* `azurerm_storage_account` - support for the `local_user_enabled` property [GH-24800]
 * `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties [GH-24716]
 
 BUG FIXES:
