@@ -234,7 +234,7 @@ func (r DevCenterCatalogsResource) Update() sdk.ResourceFunc {
 
 func (r DevCenterCatalogsResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DevCenter.V20230401.Catalogs
 
