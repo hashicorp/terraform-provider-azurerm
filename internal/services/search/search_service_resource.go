@@ -357,14 +357,11 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	// (e.g., privateEndpointConnections, provisioningState, sharedPrivateLinkResources,
 	// status and statusDetails)
 	payload := services.SearchService{
-		Id:         model.Id,
 		Identity:   model.Identity,
 		Location:   model.Location,
-		Name:       model.Name,
 		Properties: pointer.To(services.SearchServiceProperties{}),
 		Sku:        model.Sku,
 		Tags:       model.Tags,
-		Type:       model.Type,
 	}
 
 	if d.HasChange("customer_managed_key_enforcement_enabled") {
