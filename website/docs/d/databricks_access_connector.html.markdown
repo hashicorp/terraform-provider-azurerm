@@ -47,13 +47,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `identity` block exports the following:
 
-* `identity_ids` - A `identity_ids` block as defined below.
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Access Connector.
 
-* `principal_id` - The ID of the TODO.
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Access Connector.
 
-* `tenant_id` - The ID of the TODO.
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Access Connector.
 
-* `type` - TODO.
+* `type` - The type of Managed Service Identity that is configured on this Access Connector.
 
 ## Timeouts
 
