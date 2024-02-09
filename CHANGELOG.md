@@ -3,13 +3,14 @@
 FEATURES:
 
 * **New Data Source**: `azurerm_databricks_access_connector` [GH-24769]
-* **New Resource**: `azurerm_chaos_studio_capability` [GH-24779]
+* **New Resource**: `azurerm_data_protection_backup_policy_kubernetes_cluster` [GH-24718]
 * **New Resource**: `azurerm_chaos_studio_experiment` [GH-24779]
+* **New Resource**: `azurerm_chaos_studio_capability` [GH-24779]
 * **New Resource**: `azurerm_dev_center_gallery` [GH-23760]
 * **New Resource:** `azurerm_kubernetes_fleet_member` [GH-24792]
 * **New Resource:** `azurerm_iotcentral_organization` [GH-23132]
 * **New Resource:** `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` [GH-24750]
-  
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240208.1095436` of `github.com/hashicorp/go-azure-sdk/resource-manager` [GH-24819]
