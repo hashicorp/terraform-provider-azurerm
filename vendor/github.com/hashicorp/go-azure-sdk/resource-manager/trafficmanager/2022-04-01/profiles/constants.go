@@ -56,6 +56,47 @@ func parseAllowedEndpointRecordType(input string) (*AllowedEndpointRecordType, e
 	return &out, nil
 }
 
+type AlwaysServe string
+
+const (
+	AlwaysServeDisabled AlwaysServe = "Disabled"
+	AlwaysServeEnabled  AlwaysServe = "Enabled"
+)
+
+func PossibleValuesForAlwaysServe() []string {
+	return []string{
+		string(AlwaysServeDisabled),
+		string(AlwaysServeEnabled),
+	}
+}
+
+func (s *AlwaysServe) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAlwaysServe(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAlwaysServe(input string) (*AlwaysServe, error) {
+	vals := map[string]AlwaysServe{
+		"disabled": AlwaysServeDisabled,
+		"enabled":  AlwaysServeEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AlwaysServe(input)
+	return &out, nil
+}
+
 type EndpointMonitorStatus string
 
 const (
@@ -65,6 +106,7 @@ const (
 	EndpointMonitorStatusInactive         EndpointMonitorStatus = "Inactive"
 	EndpointMonitorStatusOnline           EndpointMonitorStatus = "Online"
 	EndpointMonitorStatusStopped          EndpointMonitorStatus = "Stopped"
+	EndpointMonitorStatusUnmonitored      EndpointMonitorStatus = "Unmonitored"
 )
 
 func PossibleValuesForEndpointMonitorStatus() []string {
@@ -75,6 +117,7 @@ func PossibleValuesForEndpointMonitorStatus() []string {
 		string(EndpointMonitorStatusInactive),
 		string(EndpointMonitorStatusOnline),
 		string(EndpointMonitorStatusStopped),
+		string(EndpointMonitorStatusUnmonitored),
 	}
 }
 
@@ -99,6 +142,7 @@ func parseEndpointMonitorStatus(input string) (*EndpointMonitorStatus, error) {
 		"inactive":         EndpointMonitorStatusInactive,
 		"online":           EndpointMonitorStatusOnline,
 		"stopped":          EndpointMonitorStatusStopped,
+		"unmonitored":      EndpointMonitorStatusUnmonitored,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

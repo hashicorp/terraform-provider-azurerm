@@ -52,10 +52,11 @@ resource "azurerm_traffic_manager_profile" "example" {
 }
 
 resource "azurerm_traffic_manager_azure_endpoint" "example" {
-  name               = "example-endpoint"
-  profile_id         = azurerm_traffic_manager_profile.example.id
-  weight             = 100
-  target_resource_id = azurerm_public_ip.example.id
+  name                 = "example-endpoint"
+  profile_id           = azurerm_traffic_manager_profile.example.id
+  always_serve_enabled = true
+  weight               = 100
+  target_resource_id   = azurerm_public_ip.example.id
 }
 ```
 
@@ -72,6 +73,8 @@ The following arguments are supported:
 * `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`.
 
 ---
+
+* `always_serve_enabled` - (Optional) If Always Serve is enabled, probing for endpoint health will be disabled and endpoints will be included in the traffic routing method. Defaults to `false`.
 
 * `custom_header` - (Optional) One or more `custom_header` blocks as defined below.
 
