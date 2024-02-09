@@ -24,6 +24,8 @@ ENHANCEMENTS:
 * `azurerm_storage_account` - support for the `local_user_enabled` property [GH-24800]
 * `azurerm_log_analytics_workspace_table` - support for the `total_retention_in_days` property [GH-24513]
 * `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties [GH-24716]
+* `azurerm_traffic_manager_azure_endpoint` - support for always_serve_enabled [GH-24573]
+* `azurerm_traffic_manager_external_endpoint` - support for always_serve_enabled [GH-24573]
 
 BUG FIXES:
 
