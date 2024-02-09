@@ -189,6 +189,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
+		// In some cases the respBody is empty, but not nil, so don't attempt to unmarshal this
+		if len(respBody) == 0 {
+			return nil
+		}
+
 		// Unmarshal into provided model
 		if err := json.Unmarshal(respBody, model); err != nil {
 			return fmt.Errorf("unmarshaling response body: %+v", err)
@@ -209,6 +214,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+
+		// In some cases the respBody is empty, but not nil, so don't attempt to unmarshal this
+		if len(respBody) == 0 {
+			return nil
+		}
 
 		// Unmarshal into provided model
 		if err := xml.Unmarshal(respBody, model); err != nil {
@@ -287,6 +297,49 @@ func NewClient(baseUri string, serviceName, apiVersion string) *Client {
 		BaseUri:   baseUri,
 		UserAgent: fmt.Sprintf("HashiCorp/go-azure-sdk (%s)", strings.Join(segments, " ")),
 	}
+}
+
+// SetAuthorizer configures the request authorizer for the client
+func (c *Client) SetAuthorizer(authorizer auth.Authorizer) {
+	c.Authorizer = authorizer
+}
+
+// SetUserAgent configures the user agent to be included in requests
+func (c *Client) SetUserAgent(userAgent string) {
+	c.UserAgent = userAgent
+}
+
+// GetUserAgent retrieves the configured user agent for the client
+func (c *Client) GetUserAgent() string {
+	return c.UserAgent
+}
+
+// AppendRequestMiddleware appends a request middleware function for the client
+func (c *Client) AppendRequestMiddleware(f RequestMiddleware) {
+	if c.RequestMiddlewares == nil {
+		m := make([]RequestMiddleware, 0)
+		c.RequestMiddlewares = &m
+	}
+	*c.RequestMiddlewares = append(*c.RequestMiddlewares, f)
+}
+
+// ClearRequestMiddlewares removes all request middleware functions for the client
+func (c *Client) ClearRequestMiddlewares() {
+	c.RequestMiddlewares = nil
+}
+
+// AppendResponseMiddleware appends a response middleware function for the client
+func (c *Client) AppendResponseMiddleware(f ResponseMiddleware) {
+	if c.ResponseMiddlewares == nil {
+		m := make([]ResponseMiddleware, 0)
+		c.ResponseMiddlewares = &m
+	}
+	*c.ResponseMiddlewares = append(*c.ResponseMiddlewares, f)
+}
+
+// ClearResponseMiddlewares removes all response middleware functions for the client
+func (c *Client) ClearResponseMiddlewares() {
+	c.ResponseMiddlewares = nil
 }
 
 // NewRequest configures a new *Request

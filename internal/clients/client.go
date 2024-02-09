@@ -489,7 +489,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.MachineLearning, err = machinelearning.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Machine Learning: %+v", err)
 	}
-	client.Maintenance = maintenance.NewClient(o)
+	if client.Maintenance, err = maintenance.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Maintenance: %+v", err)
+	}
 	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
 	}
