@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `streamanalytics`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
 * `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
 * `azurerm_storage_account` - support for the `local_user_enabled` property [GH-24800]
+* `azurerm_log_analytics_workspace_table` - support for the `total_retention_in_days` property [GH-24513]
 * `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties [GH-24716]
 
 BUG FIXES:
