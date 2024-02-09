@@ -83,10 +83,9 @@ func resourceAzureEndpoint() *pluginsdk.Resource {
 			},
 
 			"always_serve_enabled": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(endpoints.PossibleValuesForAlwaysServe(), false),
-				Default:      endpoints.AlwaysServeDisabled,
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"custom_header": {
@@ -181,12 +180,16 @@ func resourceAzureEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Name: utils.String(id.EndpointName),
 		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeAzureEndpoints)),
 		Properties: &endpoints.EndpointProperties{
-			AlwaysServe:      pointer.To(endpoints.AlwaysServe(d.Get("always_serve_enabled").(string))),
 			CustomHeaders:    expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
+			AlwaysServe:      pointer.To(endpoints.AlwaysServeDisabled),
 			EndpointStatus:   &status,
 			TargetResourceId: utils.String(d.Get("target_resource_id").(string)),
 			Subnets:          expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 		},
+	}
+
+	if alwaysServe := d.Get("always_serve_enabled").(bool); alwaysServe {
+		params.Properties.AlwaysServe = pointer.To(endpoints.AlwaysServeEnabled)
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
@@ -243,11 +246,16 @@ func resourceAzureEndpointRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				enabled = false
 			}
 			d.Set("enabled", enabled)
-			d.Set("always_serve_enabled", props.AlwaysServe)
 			d.Set("target_resource_id", props.TargetResourceId)
 			d.Set("weight", props.Weight)
 			d.Set("priority", props.Priority)
 			d.Set("geo_mappings", props.GeoMapping)
+
+			if props.AlwaysServe != nil && *props.AlwaysServe == endpoints.AlwaysServeEnabled {
+				d.Set("always_serve_enabled", true)
+			} else {
+				d.Set("always_serve_enabled", false)
+			}
 
 			if err := d.Set("custom_header", flattenEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
 				return fmt.Errorf("setting `custom_header`: %s", err)
@@ -293,7 +301,11 @@ func resourceAzureEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("always_serve_enabled") {
-		params.Properties.AlwaysServe = pointer.To(endpoints.AlwaysServe(d.Get("always_serve_enabled").(string)))
+		alwaysServe := endpoints.AlwaysServeDisabled
+		if d.Get("always_serve_enabled").(bool) {
+			alwaysServe = endpoints.AlwaysServeEnabled
+		}
+		params.Properties.AlwaysServe = pointer.To(alwaysServe)
 	}
 
 	if d.HasChange("custom_header") {

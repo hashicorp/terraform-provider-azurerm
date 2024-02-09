@@ -219,7 +219,7 @@ resource "azurerm_traffic_manager_external_endpoint" "test" {
   weight               = 5
   profile_id           = azurerm_traffic_manager_profile.test.id
   enabled              = false
-  always_serve_enabled = "Enabled"
+  always_serve_enabled = true
   priority             = 4
   endpoint_location    = azurerm_resource_group.test.location
 

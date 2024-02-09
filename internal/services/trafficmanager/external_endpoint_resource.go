@@ -83,10 +83,9 @@ func resourceExternalEndpoint() *pluginsdk.Resource {
 			},
 
 			"always_serve_enabled": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(endpoints.PossibleValuesForAlwaysServe(), false),
-				Default:      endpoints.AlwaysServeDisabled,
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"custom_header": {
@@ -189,12 +188,16 @@ func resourceExternalEndpointCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name: utils.String(id.EndpointName),
 		Type: utils.String(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeExternalEndpoints)),
 		Properties: &endpoints.EndpointProperties{
-			AlwaysServe:    pointer.To(endpoints.AlwaysServe(d.Get("always_serve_enabled").(string))),
+			AlwaysServe:    pointer.To(endpoints.AlwaysServeDisabled),
 			CustomHeaders:  expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus: &status,
 			Target:         utils.String(d.Get("target").(string)),
 			Subnets:        expandEndpointSubnetConfig(d.Get("subnet").([]interface{})),
 		},
+	}
+
+	if alwaysServe := d.Get("always_serve_enabled").(bool); alwaysServe {
+		params.Properties.AlwaysServe = pointer.To(endpoints.AlwaysServeEnabled)
 	}
 
 	if priority := d.Get("priority").(int); priority != 0 {
@@ -255,12 +258,17 @@ func resourceExternalEndpointRead(d *pluginsdk.ResourceData, meta interface{}) e
 				enabled = false
 			}
 			d.Set("enabled", enabled)
-			d.Set("always_serve_enabled", props.AlwaysServe)
 			d.Set("target", props.Target)
 			d.Set("weight", props.Weight)
 			d.Set("priority", props.Priority)
 			d.Set("endpoint_location", props.EndpointLocation)
 			d.Set("geo_mappings", props.GeoMapping)
+
+			if props.AlwaysServe != nil && *props.AlwaysServe == endpoints.AlwaysServeEnabled {
+				d.Set("always_serve_enabled", true)
+			} else {
+				d.Set("always_serve_enabled", false)
+			}
 
 			if err := d.Set("custom_header", flattenEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
 				return fmt.Errorf("setting `custom_header`: %s", err)
@@ -306,7 +314,11 @@ func resourceExternalEndpointUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("always_serve_enabled") {
-		params.Properties.AlwaysServe = pointer.To(endpoints.AlwaysServe(d.Get("always_serve_enabled").(string)))
+		alwaysServe := endpoints.AlwaysServeDisabled
+		if d.Get("always_serve_enabled").(bool) {
+			alwaysServe = endpoints.AlwaysServeEnabled
+		}
+		params.Properties.AlwaysServe = pointer.To(alwaysServe)
 	}
 
 	if d.HasChange("custom_header") {

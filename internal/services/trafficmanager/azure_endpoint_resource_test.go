@@ -232,7 +232,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "test" {
   weight               = 5
   profile_id           = azurerm_traffic_manager_profile.test.id
   enabled              = false
-  always_serve_enabled = "Enabled"
+  always_serve_enabled = true
   priority             = 4
 
   geo_mappings = ["WORLD"]
