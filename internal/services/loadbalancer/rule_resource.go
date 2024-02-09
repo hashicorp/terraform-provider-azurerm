@@ -415,7 +415,7 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.IntBetween(4, 30),
+			ValidateFunc: validation.IntBetween(4, 100),
 		},
 
 		"load_distribution": {

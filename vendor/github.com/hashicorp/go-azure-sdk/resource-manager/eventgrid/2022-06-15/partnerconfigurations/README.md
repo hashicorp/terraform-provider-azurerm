@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnerconfigurations"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := partnerconfigurations.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 payload := partnerconfigurations.Partner{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := partnerconfigurations.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 payload := partnerconfigurations.PartnerConfiguration{
 	// ...
@@ -62,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := partnerconfigurations.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -74,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := partnerconfigurations.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -90,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := partnerconfigurations.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 read, err := client.ListByResourceGroup(ctx, id)
 if err != nil {
@@ -106,7 +107,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := partnerconfigurations.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id, partnerconfigurations.DefaultListBySubscriptionOperationOptions())` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id, partnerconfigurations.DefaultListBySubscriptionOperationOptions())
@@ -123,7 +124,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := partnerconfigurations.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 payload := partnerconfigurations.Partner{
 	// ...
@@ -144,7 +145,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := partnerconfigurations.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 payload := partnerconfigurations.PartnerConfigurationUpdateParameters{
 	// ...
