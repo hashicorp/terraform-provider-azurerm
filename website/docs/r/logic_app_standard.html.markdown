@@ -139,6 +139,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+* `public_network_access_enabled` - (Optional) Is public network access enabled? Defaults to `true`.
+
 * `site_config` - (Optional) A `site_config` object as defined below.
 
 * `storage_account_name` - (Required) The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data). Changing this forces a new resource to be created.
