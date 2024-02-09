@@ -20,16 +20,16 @@ ENHANCEMENTS:
 * `managedhsm`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24761]
 * `hdinsight`: updating to API Version `2023-07-01` [GH-24761]
 * `streamanalytics`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
-* `azurerm_app_service_environment_v3` - support for `remote_debugging_enabled` property [GH-24760]
+* `azurerm_app_service_environment_v3` - support for the `remote_debugging_enabled` property [GH-24760]
 * `azurerm_storage_account` - support for the `local_user_enabled` property [GH-24800]
 * `azurerm_log_analytics_workspace_table` - support for the `total_retention_in_days` property [GH-24513]
 * `azurerm_maching_learning_workspace` - support for the `feature_store` and `kind` properties [GH-24716]
-* `azurerm_traffic_manager_azure_endpoint` - support for always_serve_enabled [GH-24573]
-* `azurerm_traffic_manager_external_endpoint` - support for always_serve_enabled [GH-24573]
+* `azurerm_traffic_manager_azure_endpoint` - support for the `always_serve_enabled` property [GH-24573]
+* `azurerm_traffic_manager_external_endpoint` - support for the `always_serve_enabled` property [GH-24573]
 
 BUG FIXES:
 
-* `azurerm_api_management` -  `virtual_network_configuration` now updates correctly outside of `virtual_network_type` [GH-24569]
+* `azurerm_api_management` -  the `virtual_network_configuration` property now updates correctly outside of `virtual_network_type` [GH-24569]
 
 ## 3.90.0 (February 01, 2024)
 
