@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,16 +119,13 @@ func (r DesktopVirtualizationApplicationGroupDataSource) Read() sdk.ResourceFunc
 			state.ResourceGroupName = id.ResourceGroupName
 			state.Location = location.NormalizeNilable(model.Location)
 			state.Tags = pointer.From(model.Tags)
+			state.ApplicationGroupType = string(model.Properties.ApplicationGroupType)
 
-			if model.Properties.ApplicationGroupType != "" && model.Properties.ApplicationGroupType != applicationgroup.ApplicationGroupTypeDesktop {
-				state.ApplicationGroupType = "RemoteApp"
-			} else {
-				state.ApplicationGroupType = "Desktop"
+			hostPoolId, err := hostpool.ParseHostPoolIDInsensitively(model.Properties.HostPoolArmPath)
+			if err != nil {
+				return fmt.Errorf("parsing Host Pool ID %q: %+v", model.Properties.HostPoolArmPath, err)
 			}
-
-			if model.Properties.HostPoolArmPath != "" {
-				state.HostPoolId = model.Properties.HostPoolArmPath
-			}
+			state.HostPoolId = hostPoolId.ID()
 
 			if model.Properties.WorkspaceArmPath != nil {
 				state.WorkspaceId = pointer.From(model.Properties.WorkspaceArmPath)
