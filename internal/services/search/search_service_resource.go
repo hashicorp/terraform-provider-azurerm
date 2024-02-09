@@ -465,7 +465,8 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("allowed_ips") {
 		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
-		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
+
+		payload.Properties.NetworkRuleSet = &services.NetworkRuleSet{
 			IPRules: expandSearchServiceIPRules(ipRulesRaw),
 		}
 	}
@@ -671,6 +672,7 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 			output = append(output, services.IPRule{
 				Value: utils.String(rule.(string)),
 			})
+			log.Printf("***************************************************** IP RULE -> %s", rule.(string))
 		}
 	}
 
