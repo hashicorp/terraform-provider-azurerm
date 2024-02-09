@@ -30,7 +30,7 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("20"),
+				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("32"),
 			),
 		},
 	})
