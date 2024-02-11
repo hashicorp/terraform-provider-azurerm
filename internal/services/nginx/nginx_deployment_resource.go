@@ -53,6 +53,7 @@ type DeploymentModel struct {
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
+	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
@@ -194,6 +195,17 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"automatic_upgrade_channel": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "stable",
+			ValidateFunc: validation.StringInSlice(
+				[]string{
+					"stable",
+					"preview",
+				}, false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -309,6 +321,12 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if model.UpgradeChannel != "" {
+				prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+					UpgradeChannel: model.UpgradeChannel,
+				}
+			}
+
 			req.Properties = prop
 
 			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
@@ -412,6 +430,10 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
 					}
 
+					if props.AutoUpgradeProfile != nil {
+						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
+					}
+
 					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %v", err)
@@ -478,6 +500,12 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("email") {
 				req.Properties.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
 					PreferredEmail: pointer.FromString(model.Email),
+				}
+			}
+
+			if meta.ResourceData.HasChange("automatic_upgrade_channel") {
+				req.Properties.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+					UpgradeChannel: model.UpgradeChannel,
 				}
 			}
 
