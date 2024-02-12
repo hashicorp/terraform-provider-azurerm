@@ -173,7 +173,7 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 					Hostname:     pointer.To(appHybridConn.HostName),
 					Port:         pointer.To(appHybridConn.HostPort),
 					SendKeyName:  pointer.To(appHybridConn.SendKeyName),
-          			SendKeyValue: key,
+					SendKeyValue: key,
 				},
 			}
 
