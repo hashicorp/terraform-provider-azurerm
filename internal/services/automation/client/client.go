@@ -33,15 +33,27 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	agentRegistrationInfoClient, err := agentregistrationinformation.NewAgentRegistrationInformationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Agent Registration Info client : %+v", err)
+	}
 	o.Configure(agentRegistrationInfoClient.Client, o.Authorizers.ResourceManager)
 
 	softUpClient, err := softwareupdateconfiguration.NewSoftwareUpdateConfigurationClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Soft Up client : %+v", err)
+	}
 	o.Configure(softUpClient.Client, o.Authorizers.ResourceManager)
 
 	watcherClient, err := watcher.NewWatcherClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Watcher client : %+v", err)
+	}
 	o.Configure(watcherClient.Client, o.Authorizers.ResourceManager)
 
 	webhookClient, err := webhook.NewWebhookClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Webhook client : %+v", err)
+	}
 	o.Configure(webhookClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
