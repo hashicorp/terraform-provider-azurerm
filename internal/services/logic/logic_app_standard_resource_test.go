@@ -878,7 +878,7 @@ func TestAccLogicAppStandard_siteConfig_publicNetworkAccessEnabled(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccessEnabled(data, false),
+			Config: r.publicNetworkAccessEnabled_siteConfig(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
@@ -886,7 +886,7 @@ func TestAccLogicAppStandard_siteConfig_publicNetworkAccessEnabled(t *testing.T)
 		},
 		data.ImportStep(),
 		{
-			Config: r.publicNetworkAccessEnabled(data, true),
+			Config: r.publicNetworkAccessEnabled_siteConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
