@@ -37,6 +37,12 @@ type NetworkInterface struct {
 	SubnetId string `tfschema:"subnet_id"`
 }
 
+type AutoScaleProfile struct {
+	Name string `tfschema:"name"`
+	Min  int64  `tfschema:"min_capacity"`
+	Max  int64  `tfschema:"max_capacity"`
+}
+
 type DeploymentModel struct {
 	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
 	Name                   string                                     `tfschema:"name"`
@@ -46,6 +52,7 @@ type DeploymentModel struct {
 	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
+	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
 	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
@@ -99,10 +106,38 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"capacity": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Default:      20,
-			ValidateFunc: validation.IntPositive,
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			ConflictsWith: []string{"auto_scale_profile"},
+			Default:       20,
+			ValidateFunc:  validation.IntPositive,
+		},
+
+		"auto_scale_profile": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			ConflictsWith: []string{"capacity"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"min_capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntPositive,
+					},
+
+					"max_capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntPositive,
+					},
+				},
+			},
 		},
 
 		"diagnose_support_enabled": {
@@ -315,6 +350,24 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if autoScaleProfile := model.AutoScaleProfile; len(autoScaleProfile) > 0 {
+				var autoScaleProfiles []nginxdeployment.ScaleProfile
+				for _, profile := range autoScaleProfile {
+					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+						Name: profile.Name,
+						Capacity: nginxdeployment.ScaleProfileCapacity{
+							Min: profile.Min,
+							Max: profile.Max,
+						},
+					})
+				}
+				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+						Profiles: autoScaleProfiles,
+					},
+				}
+			}
+
 			if model.Email != "" {
 				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
 					PreferredEmail: pointer.FromString(model.Email),
@@ -423,7 +476,19 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 					}
 
 					if scaling := props.ScalingProperties; scaling != nil {
-						output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+						if capacity := scaling.Capacity; capacity != nil {
+							output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+						}
+						if autoScaleProfiles := scaling.AutoScaleSettings; autoScaleProfiles != nil {
+							profiles := autoScaleProfiles.Profiles
+							for _, profile := range profiles {
+								output.AutoScaleProfile = append(output.AutoScaleProfile, AutoScaleProfile{
+									Name: profile.Name,
+									Min:  profile.Capacity.Min,
+									Max:  profile.Capacity.Max,
+								})
+							}
+						}
 					}
 
 					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
@@ -494,6 +559,24 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("capacity") && model.Capacity > 0 {
 				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
 					Capacity: pointer.FromInt64(model.Capacity),
+				}
+			}
+
+			if meta.ResourceData.HasChange("auto_scale_profile") && len(model.AutoScaleProfile) > 0 {
+				var autoScaleProfiles []nginxdeployment.ScaleProfile
+				for _, profile := range model.AutoScaleProfile {
+					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+						Name: profile.Name,
+						Capacity: nginxdeployment.ScaleProfileCapacity{
+							Min: profile.Min,
+							Max: profile.Max,
+						},
+					})
+				}
+				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+						Profiles: autoScaleProfiles,
+					},
 				}
 			}
 
