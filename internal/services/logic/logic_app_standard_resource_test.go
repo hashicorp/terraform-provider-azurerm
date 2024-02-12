@@ -2261,12 +2261,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       	= "acctest-%d-func"
-  location                   	= azurerm_resource_group.test.location
-  resource_group_name        	= azurerm_resource_group.test.name
-  app_service_plan_id        	= azurerm_app_service_plan.test.id
-  storage_account_name       	= azurerm_storage_account.test.name
-  storage_account_access_key 	= azurerm_storage_account.test.primary_access_key
+  name                          = "acctest-%d-func"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  app_service_plan_id           = azurerm_app_service_plan.test.id
+  storage_account_name          = azurerm_storage_account.test.name
+  storage_account_access_key    = azurerm_storage_account.test.primary_access_key
   public_network_access_enabled = %t
 
 }
