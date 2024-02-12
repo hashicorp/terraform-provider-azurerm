@@ -97,7 +97,7 @@ resource "azurerm_dev_center_catalog" "test" {
   branch              = "main"
   path                = "/template"
   uri                 = "https://github.com/am-lim/deployment-environments.git"
-  secret_identifier   = "https://amlim-kv.vault.azure.net/secrets/envTest/0a79f15246ce4b35a13957367b422cab"
+  key_vault_key_url   = "https://amlim-kv.vault.azure.net/secrets/envTest/0a79f15246ce4b35a13957367b422cab"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -118,7 +118,7 @@ resource "azurerm_dev_center_catalog" "test" {
   branch              = "main"
   path                = "/template"
   uri                 = "https://amlim@dev.azure.com/amlim/testCatalog/_git/testCatalog"
-  secret_identifier   = "https://amlim-kv.vault.azure.net/secrets/ado/6279752c2bdd4a38a3e79d958cc36a75"
+  key_vault_key_url   = "https://amlim-kv.vault.azure.net/secrets/ado/6279752c2bdd4a38a3e79d958cc36a75"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -139,7 +139,7 @@ resource "azurerm_dev_center_catalog" "test" {
   branch              = "foo"
   path                = ""
   uri                 = "https://github.com/am-lim/deployment-environments.git"
-  secret_identifier   = "https://amlim-kv.vault.azure.net/secrets/envTest/0a79f15246ce4b35a13957367b422cab"
+  key_vault_key_url   = "https://amlim-kv.vault.azure.net/secrets/envTest/0a79f15246ce4b35a13957367b422cab"
 }
 `, r.template(data), data.RandomInteger)
 }

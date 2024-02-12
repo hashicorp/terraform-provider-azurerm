@@ -22,7 +22,7 @@ type DevCenterCatalogsResourceModel struct {
 	CatalogType       string `tfschema:"catalog_type"`
 	URI               string `tfschema:"uri"`
 	Branch            string `tfschema:"branch"`
-	SecretIdentifier  string `tfschema:"secret_identifier"`
+	KeyVaultKeyUrl    string `tfschema:"key_vault_key_url"`
 	Path              string `tfschema:"path"`
 }
 
@@ -82,7 +82,7 @@ func (r DevCenterCatalogsResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"secret_identifier": {
+		"key_vault_key_url": {
 			Required:     true,
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -133,7 +133,7 @@ func (r DevCenterCatalogsResource) Create() sdk.ResourceFunc {
 					Branch:           pointer.To(model.Branch),
 					Uri:              pointer.To(model.URI),
 					Path:             pointer.To(model.Path),
-					SecretIdentifier: pointer.To(model.SecretIdentifier),
+					SecretIdentifier: pointer.To(model.KeyVaultKeyUrl),
 				}
 
 				properties = catalogs.Catalog{
@@ -146,7 +146,7 @@ func (r DevCenterCatalogsResource) Create() sdk.ResourceFunc {
 					Branch:           pointer.To(model.Branch),
 					Uri:              pointer.To(model.URI),
 					Path:             pointer.To(model.Path),
-					SecretIdentifier: pointer.To(model.SecretIdentifier),
+					SecretIdentifier: pointer.To(model.KeyVaultKeyUrl),
 				}
 
 				properties = catalogs.Catalog{
@@ -215,11 +215,11 @@ func (r DevCenterCatalogsResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("secret_identifier") {
+			if metadata.ResourceData.HasChange("key_vault_key_url") {
 				if model.CatalogType == "gitHub" {
-					properties.Properties.GitHub.SecretIdentifier = pointer.To(model.SecretIdentifier)
+					properties.Properties.GitHub.SecretIdentifier = pointer.To(model.KeyVaultKeyUrl)
 				} else {
-					properties.Properties.AdoGit.SecretIdentifier = pointer.To(model.SecretIdentifier)
+					properties.Properties.AdoGit.SecretIdentifier = pointer.To(model.KeyVaultKeyUrl)
 				}
 			}
 
@@ -269,13 +269,13 @@ func (r DevCenterCatalogsResource) Read() sdk.ResourceFunc {
 					state.URI = pointer.From(gitHub.Uri)
 					state.Branch = pointer.From(gitHub.Branch)
 					state.Path = pointer.From(gitHub.Path)
-					state.SecretIdentifier = pointer.From(gitHub.SecretIdentifier)
+					state.KeyVaultKeyUrl = pointer.From(gitHub.SecretIdentifier)
 				} else if adoGit := properties.AdoGit; adoGit != nil {
 					state.CatalogType = "adoGit"
 					state.URI = pointer.From(adoGit.Uri)
 					state.Branch = pointer.From(adoGit.Branch)
 					state.Path = pointer.From(adoGit.Path)
-					state.SecretIdentifier = pointer.From(adoGit.SecretIdentifier)
+					state.KeyVaultKeyUrl = pointer.From(adoGit.SecretIdentifier)
 				}
 			}
 

@@ -34,7 +34,7 @@ resource "azurerm_dev_center_catalog" "example" {
   branch              = "foo"
   path                = ""
   uri                 = "example URI"
-  secret_identifier   = "secret"
+  key_vault_key_url   = "secret"
 }
 ```
 
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `path` - (Required) The folder where the catalog items can be found inside the repository.
 
-* `secret_identifier` - (Required) A reference to the Key Vault secret containing a security token to authenticate to a Git repository.
+* `key_vault_key_url` - (Required) A reference to the Key Vault secret containing a security token to authenticate to a Git repository.
 
 * `uri` - (Required) The Git URI of the Dev Center Catalog.
 
