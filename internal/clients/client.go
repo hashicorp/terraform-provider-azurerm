@@ -373,7 +373,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Containers, err = containerServices.NewContainersClient(o); err != nil {
 		return fmt.Errorf("building clients for Containers: %+v", err)
 	}
-	client.ContainerApps = containerapps.NewClient(o)
+	if client.ContainerApps, err = containerapps.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Container Apps: %+v", err)
+	}
 	if client.Cosmos, err = cosmosdb.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for CosmosDB: %+v", err)
 	}
