@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AllowedEnvironmentTypeId{}
+var _ resourceids.ResourceId = &AllowedEnvironmentTypeId{}
 
 // AllowedEnvironmentTypeId is a struct representing the Resource ID for a Allowed Environment Type
 type AllowedEnvironmentTypeId struct {
@@ -32,29 +32,15 @@ func NewAllowedEnvironmentTypeID(subscriptionId string, resourceGroupName string
 
 // ParseAllowedEnvironmentTypeID parses 'input' into a AllowedEnvironmentTypeId
 func ParseAllowedEnvironmentTypeID(input string) (*AllowedEnvironmentTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AllowedEnvironmentTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&AllowedEnvironmentTypeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AllowedEnvironmentTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProjectName, ok = parsed.Parsed["projectName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "projectName", *parsed)
-	}
-
-	if id.AllowedEnvironmentTypeName, ok = parsed.Parsed["allowedEnvironmentTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "allowedEnvironmentTypeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseAllowedEnvironmentTypeID(input string) (*AllowedEnvironmentTypeId, err
 // ParseAllowedEnvironmentTypeIDInsensitively parses 'input' case-insensitively into a AllowedEnvironmentTypeId
 // note: this method should only be used for API response data and not user input
 func ParseAllowedEnvironmentTypeIDInsensitively(input string) (*AllowedEnvironmentTypeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AllowedEnvironmentTypeId{})
+	parser := resourceids.NewParserFromResourceIdType(&AllowedEnvironmentTypeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AllowedEnvironmentTypeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProjectName, ok = parsed.Parsed["projectName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "projectName", *parsed)
-	}
-
-	if id.AllowedEnvironmentTypeName, ok = parsed.Parsed["allowedEnvironmentTypeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "allowedEnvironmentTypeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AllowedEnvironmentTypeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ProjectName, ok = input.Parsed["projectName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "projectName", input)
+	}
+
+	if id.AllowedEnvironmentTypeName, ok = input.Parsed["allowedEnvironmentTypeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "allowedEnvironmentTypeName", input)
+	}
+
+	return nil
 }
 
 // ValidateAllowedEnvironmentTypeID checks that 'input' can be parsed as a Allowed Environment Type ID

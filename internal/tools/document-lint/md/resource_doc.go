@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package md
 
 import (
@@ -35,11 +38,13 @@ var codeReg = regexp.MustCompile("`([^`]+)`")
 
 var blockHeadReg = regexp.MustCompile("^(an?|An?|The)[^`]+(`[a-zA-Z0-9_]+`[, and]*)+.*blocks?.*$")
 
-var DefaultsReg = regexp.MustCompile("[.?,;] *[Dd]efaults?.* (to|is) ['\"`]([^`\"']+)['\"`][ .,]?")
+var DefaultsReg = regexp.MustCompile("[.,?;](?: *[Tt]he)? *[Dd]efaults?[^`'\".]+(?:to|is) ('[^']+'|`[^`]+`|\"[^\"]+\")[ .,]?")
 
 func getDefaultValue(line string) string {
 	if vals := DefaultsReg.FindStringSubmatch(line); len(vals) > 0 {
-		return vals[2]
+		if val := vals[1]; len(val) > 2 {
+			return val[1 : len(val)-1] // trim leading/tailing character
+		}
 	}
 	return ""
 }
@@ -47,8 +52,15 @@ func getDefaultValue(line string) string {
 // ForceNewReg have to stop at dot or end of line to remove this part from the document when needed
 var ForceNewReg = regexp.MustCompile(` ?Changing.*forces? a [^.]*(\.|$)`)
 
+// customized forceNew like: Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
+var partForceNewReg = regexp.MustCompile(` ?Changing.*forces? a [^.]* created when [^.]*(\.|$)`)
+
 func isForceNew(line string) bool {
-	return ForceNewReg.MatchString(line)
+	if ForceNewReg.MatchString(line) && !partForceNewReg.MatchString(line) {
+		return true
+	}
+
+	return false
 }
 
 func extractFieldFromLine(line string) (field *model.Field) {
@@ -156,11 +168,7 @@ func extractBlockNames(line string) (res []string) {
 }
 
 var blockPropRegs = []*regexp.Regexp{
-	regexp.MustCompile("blocks?.*(as.*(below|above))"),
-	regexp.MustCompile(`block.*(defined|documented).*(below|above)`),
-	regexp.MustCompile("(one or more) `.*` block"),
-	regexp.MustCompile("as (defined|documented) .* blocks? (below|above)"),
-	regexp.MustCompile("as (defined|documented) (below|above)[. ]?$"),
+	regexp.MustCompile("(?:[Oo]ne|[Ee]ach|more(?: \\(.*\\))?|[Tt]he|as|of|[Aa]n?) ['\"`]([^ ]+)['\"`] (?:block|object)[^.]+(?:below|above)"),
 }
 
 func guessBlockProperty(line string) bool {
@@ -174,7 +182,7 @@ func guessBlockProperty(line string) bool {
 }
 
 var (
-	blockTypeReg = regexp.MustCompile("(a|an|one|one or more) `.*` block")
+	blockTypeReg = blockPropRegs[0]
 )
 
 func newFieldFromLine(line string) *model.Field {
@@ -182,19 +190,8 @@ func newFieldFromLine(line string) *model.Field {
 	if guessBlockProperty(line) {
 		// extract real block type
 		f.BlockTypeName = f.Name
-		// use the first code block value as block type name todo this may not right
-		// process when contains special marks, or it may cause recursive reference, ane make an infinite diff
-		if blockTypeReg.MatchString(strings.ToLower(line)) {
-			start := strings.Index(line, ")")
-			end := strings.Index(line, "block")
-			if end <= 0 {
-				end = strings.Index(line, "defined")
-			}
-			if start > 0 && end > 0 && start < end {
-				if names := util.ExtractCodeValue(line[start:end]); len(names) > 0 && names[0] != f.BlockTypeName {
-					f.BlockTypeName = names[0]
-				}
-			}
+		if match := blockTypeReg.FindAllStringSubmatchIndex(strings.ToLower(line), -1); len(match) > 0 {
+			f.BlockTypeName = line[match[0][2]:match[0][3]]
 		}
 		f.Typ = model.FieldTypeBlock
 	}

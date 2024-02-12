@@ -20,7 +20,8 @@ type ListForResourceOperationResponse struct {
 }
 
 type ListForResourceCompleteResult struct {
-	Items []PolicyAssignment
+	LatestHttpResponse *http.Response
+	Items              []PolicyAssignment
 }
 
 type ListForResourceOperationOptions struct {
@@ -116,7 +117,8 @@ func (c PolicyAssignmentsClient) ListForResourceCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListForResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -4,7 +4,7 @@
  */
 
 // specifies the default hour (UTC) at which tests should be triggered, if enabled
-var defaultStartHour = 0
+var defaultStartHour = 23
 
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
@@ -71,7 +71,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "customproviders" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "westeurope", true)),
 
         // Dashboard is only available in certain locations
-        "dashboard" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
+        "dashboard" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus2", "eastus2", false)),
 
         // Datadog is available only in WestUS2 region
         "datadog" to testConfiguration(locationOverride = LocationConfiguration("westus2", "westus2", "centraluseuap", false)),
@@ -88,8 +88,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // Elastic can't provision many in parallel
         "elastic" to testConfiguration(parallelism = 1),
 
-        // HPC Cache has a 4 instance per subscription quota as of early 2021
-        "hpccache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
+        // ElasticSAN has 5 instance quota per subscription per region
+        "elasticsan" to testConfiguration(parallelism = 4),
 
         // HSM has low quota and potentially slow recycle time, Only run on Mondays
         "hsm" to testConfiguration(parallelism = 1, daysOfWeek = "1"),
@@ -102,6 +102,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Lab Service is only available in certain locations
         "labservice" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
+
+        // load balancer global tire Public IP is only available in
+        "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
 
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
@@ -163,6 +166,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // SQL has quota available in certain locations
         "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+
+        // HPC Cache has a 4 instance per subscription quota as of early 2021
+        "storagecache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
 
         "storagemover" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus3", false)),
 

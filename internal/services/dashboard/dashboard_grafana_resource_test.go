@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2022-08-01/grafanaresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -57,6 +57,20 @@ func TestAccDashboardGrafana_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("smtp.0.password"),
+	})
+}
+
+func TestAccDashboardGrafana_nonDefaultVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
+	r := DashboardGrafanaResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nonDefaultVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -71,9 +85,23 @@ func TestAccDashboardGrafana_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("smtp.0.password"),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("smtp.0.password"),
+	})
+}
+
+func TestAccDashboardGrafana_withSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana", "test")
+	r := DashboardGrafanaResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.essential(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -118,9 +146,41 @@ func (r DashboardGrafanaResource) basic(data acceptance.TestData) string {
 				%s
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                = "a-dg-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "9"
+}
+`, template, data.RandomInteger)
+}
+
+func (r DashboardGrafanaResource) essential(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_dashboard_grafana" "test" {
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "9"
+
+  sku = "Essential"
+}
+`, template, data.RandomInteger)
+}
+
+func (r DashboardGrafanaResource) nonDefaultVersion(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_dashboard_grafana" "test" {
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "10"
+
 }
 `, template, data.RandomInteger)
 }
@@ -131,9 +191,10 @@ func (r DashboardGrafanaResource) requiresImport(data acceptance.TestData) strin
 			%s
 
 resource "azurerm_dashboard_grafana" "import" {
-  name                = azurerm_dashboard_grafana.test.name
-  resource_group_name = azurerm_dashboard_grafana.test.resource_group_name
-  location            = azurerm_dashboard_grafana.test.location
+  name                  = azurerm_dashboard_grafana.test.name
+  resource_group_name   = azurerm_dashboard_grafana.test.resource_group_name
+  location              = azurerm_dashboard_grafana.test.location
+  grafana_major_version = "9"
 }
 `, config)
 }
@@ -155,6 +216,16 @@ resource "azurerm_dashboard_grafana" "test" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
+  grafana_major_version             = "9"
+  smtp {
+    enabled          = true
+    host             = "localhost:25"
+    user             = "user"
+    password         = "password"
+    from_address     = "admin@grafana.localhost"
+    from_name        = "Grafana"
+    start_tls_policy = "OpportunisticStartTLS"
+  }
 
   identity {
     type         = "UserAssigned"
@@ -178,9 +249,10 @@ func (r DashboardGrafanaResource) update(data acceptance.TestData) string {
 			%s
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                = "a-dg-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                  = "a-dg-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  grafana_major_version = "9"
 
   identity {
     type = "SystemAssigned"

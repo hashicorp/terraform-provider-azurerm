@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
@@ -131,7 +134,11 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 				f.FormatErr = md.IncorrectlyBlockMarked
 			}
 		}
-		res = append(res, newFormatErr(f.Content, f.FormatErr, newCheckBase(f.Line, path, f)))
+		if strings.Contains(f.FormatErr, "misspell of name from") {
+			res = append(res, newPropertyMiss(newCheckBase(f.Line, path, f), Misspelling))
+		} else {
+			res = append(res, newFormatErr(f.Content, f.FormatErr, newCheckBase(f.Line, path, f)))
+		}
 		return
 	}
 
@@ -184,8 +191,17 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 		if str, ok := s.Default.(string); ok && str == "" {
 			defaultStr = `""` // empty string in code
 		}
+		shouldSkip := func() bool {
+			if defaultStr == f.Default {
+				return true
+			}
+			if defaultStr == "false" && f.Default == "" {
+				return true
+			}
+			return false
+		}()
 		// for many default value is `false`, just skip them for now
-		if defaultStr != f.Default && defaultStr != "false" {
+		if !shouldSkip {
 			// maybe numbers: convert to number and compare
 			if defNum, e1 := strconv.ParseFloat(defaultStr, 64); e1 == nil {
 				if fNum, e2 := strconv.ParseFloat(f.Default, 64); e2 == nil {
@@ -198,10 +214,11 @@ func diffCodeMiss(rt, path string, f *model.Field, s *schema2.Schema) (res []Che
 			}
 		}
 	} else if f.Default != "" && !s.Computed {
-		// code no default and not computed/optional property, but document has
-		// if default to is a long sentence, then skip it now.
-		// TODO add more logic to analysis
-		res = append(res, newDefaultDiff(base, f.Default, ""))
+		// schema has no default, but the document has default value, then we need a diff item
+		// but if schema is a boolean type and the document has a false default value, it's fine
+		if !(s.Type == pluginsdk.TypeBool && f.Default == "false") {
+			res = append(res, newDefaultDiff(base, f.Default, ""))
+		}
 	}
 
 	// check forceNew attribute

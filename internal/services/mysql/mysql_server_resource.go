@@ -558,7 +558,7 @@ func resourceMySqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
 			if err = securityClient.CreateOrUpdateThenPoll(ctx, securityAlertId, *alert); err != nil {
-				return fmt.Errorf("updataing mysql server security alert policy: %v", err)
+				return fmt.Errorf("updating mysql server security alert policy: %v", err)
 			}
 		}
 	}

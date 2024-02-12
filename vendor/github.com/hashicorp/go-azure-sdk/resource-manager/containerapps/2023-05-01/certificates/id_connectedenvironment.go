@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectedEnvironmentId{}
+var _ resourceids.ResourceId = &ConnectedEnvironmentId{}
 
 // ConnectedEnvironmentId is a struct representing the Resource ID for a Connected Environment
 type ConnectedEnvironmentId struct {
@@ -30,25 +30,15 @@ func NewConnectedEnvironmentID(subscriptionId string, resourceGroupName string, 
 
 // ParseConnectedEnvironmentID parses 'input' into a ConnectedEnvironmentId
 func ParseConnectedEnvironmentID(input string) (*ConnectedEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedEnvironmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConnectedEnvironmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConnectedEnvironmentName, ok = parsed.Parsed["connectedEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectedEnvironmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseConnectedEnvironmentID(input string) (*ConnectedEnvironmentId, error) 
 // ParseConnectedEnvironmentIDInsensitively parses 'input' case-insensitively into a ConnectedEnvironmentId
 // note: this method should only be used for API response data and not user input
 func ParseConnectedEnvironmentIDInsensitively(input string) (*ConnectedEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedEnvironmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConnectedEnvironmentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConnectedEnvironmentName, ok = parsed.Parsed["connectedEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectedEnvironmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ConnectedEnvironmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ConnectedEnvironmentName, ok = input.Parsed["connectedEnvironmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "connectedEnvironmentName", input)
+	}
+
+	return nil
 }
 
 // ValidateConnectedEnvironmentID checks that 'input' can be parsed as a Connected Environment ID

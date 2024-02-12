@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package main
 
 import (
@@ -17,8 +20,10 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-hclog"
 	"golang.org/x/mod/modfile"
@@ -26,6 +31,11 @@ import (
 )
 
 var logger = hclog.New(hclog.DefaultOptions)
+
+var goModulesToUpdate = []goModuleType{
+	baseLayerGoModule,
+	resourceManagerGoModule,
+}
 
 func main() {
 	// NOTE: this tool has a number of assumptions both about the environment this is being run in, and
@@ -128,9 +138,11 @@ func run(ctx context.Context, input config) error {
 	}
 
 	// 3. Update the version of `hashicorp/go-azure-sdk` used in `terraform-provider-azurerm`
-	logger.Info("Updating `hashicorp/go-azure-sdk`..")
-	if err := updateVersionOfGoAzureSDK(ctx, input.azurermRepoPath, input.newSdkVersion); err != nil {
-		return fmt.Errorf("updating the version of go-azure-sdk: %+v", err)
+	for _, moduleType := range goModulesToUpdate {
+		logger.Info(fmt.Sprintf("Updating the %q Go module within `hashicorp/go-azure-sdk`..", string(moduleType)))
+		if err := updateVersionOfGoAzureSDK(ctx, input.azurermRepoPath, moduleType, input.newSdkVersion); err != nil {
+			return fmt.Errorf("updating the version of the %q Go Module within `hashicorp/go-azure-sdk`: %+v", string(moduleType), err)
+		}
 	}
 
 	// 4. Then for each new Service/API Version:
@@ -237,12 +249,14 @@ func run(ctx context.Context, input config) error {
 		if err := os.WriteFile(input.outputFileName, []byte(description), 0644); err != nil {
 			return fmt.Errorf("writing description to `%s`: %+v", input.outputFileName, err)
 		}
+
+		logger.Info(fmt.Sprintf("Processing completed - details written to %q", input.outputFileName))
 	} else {
-		logger.Info("Skipping writing PR description since an output file was not specified")
+		logger.Info("Writing PR description to stdout since an output file was not specified")
+		logger.Info("Summary of changes:")
+		logger.Info(description)
 	}
-	// Let's also output it for good measure
-	logger.Info("Processing completed - summary of changes:")
-	logger.Info(description)
+
 	return nil
 }
 
@@ -264,12 +278,14 @@ func determineCurrentVersionOfGoAzureSDK(workingDirectory string) (*string, erro
 			continue
 		}
 
-		if strings.EqualFold(v.Mod.Path, "github.com/hashicorp/go-azure-sdk") {
+		// Since each of the Nested Go Modules within `hashicorp/go-azure-sdk` are versioned the same with a different
+		// prefix, checking the base layer Go Module should be sufficient.
+		if strings.EqualFold(v.Mod.Path, "github.com/hashicorp/go-azure-sdk/sdk") {
 			return pointer.To(v.Mod.Version), nil
 		}
 	}
 
-	return nil, fmt.Errorf("couldn't find the go module version for `github.com/hashicorp/go-azure-sdk` in %q", filePath)
+	return nil, fmt.Errorf("couldn't find the go module version for `github.com/hashicorp/go-azure-sdk/sdk` in %q", filePath)
 }
 
 func resetWorkingDirectory(ctx context.Context, workingDirectory string) error {
@@ -466,35 +482,40 @@ func determineChangesBetweenVersionsOfGoAzureSDK(ctx context.Context, oldSDKVers
 		_ = cmd.Wait()
 	}
 
-	// Obtain the file paths which have changed
-	// For now this should be sufficient to pull any changes and iterate over those e.g.:
-	// > git diff --name-only v0.20220711.1181406...v0.20220712.1062733
-	//
-	// There's probably a performance enhancement here using the additional flags on
-	// `--diff-filter` which supports Added (A) - but there's also Changed (C), Deleted (D)
-	// and Renamed (R) - and can be used like so:
-	// > git diff --name-only --diff-filter=A  v0.20220711.1181406...v0.20220712.1062733
-	// however doing so will come with edge-cases, so it's simplest to pull all changes for now.
-	logger.Debug(fmt.Sprintf("Determining the changes between %q and %q..", oldSDKVersion, newSDKVersion))
-	diffArgs := []string{
-		"diff",
-		"--name-only",
-		fmt.Sprintf("%s...%s", oldSDKVersion, newSDKVersion),
-	}
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	diffCmd := exec.CommandContext(ctx, "git", diffArgs...)
-	diffCmd.Dir = workingDirectory
-	diffCmd.Stderr = &stderr
-	diffCmd.Stdout = &stdout
-	_ = diffCmd.Start()
-	_ = diffCmd.Wait()
-	if stderr.Len() > 0 {
-		return nil, fmt.Errorf("determining the changes between `hashicorp/go-azure-sdk` version %q and %q: %s", oldSDKVersion, newSDKVersion, stderr.String())
+	lines := make([]string, 0)
+	for _, moduleType := range goModulesToUpdate {
+		// Obtain the file paths which have changed
+		// For now this should be sufficient to pull any changes and iterate over those e.g.:
+		// > git diff --name-only v0.20220711.1181406...v0.20220712.1062733
+		//
+		// There's probably a performance enhancement here using the additional flags on
+		// `--diff-filter` which supports Added (A) - but there's also Changed (C), Deleted (D)
+		// and Renamed (R) - and can be used like so:
+		// > git diff --name-only --diff-filter=A  v0.20220711.1181406...v0.20220712.1062733
+		// however doing so will come with edge-cases, so it's simplest to pull all changes for now.
+		logger.Debug(fmt.Sprintf("Determining the changes between %q and %q for %q..", oldSDKVersion, newSDKVersion, string(moduleType)))
+		diffArgs := []string{
+			"diff",
+			"--name-only",
+			fmt.Sprintf("%[1]s/%[2]s...%[1]s/%[3]s", string(moduleType), oldSDKVersion, newSDKVersion),
+		}
+		var stdout bytes.Buffer
+		var stderr bytes.Buffer
+		diffCmd := exec.CommandContext(ctx, "git", diffArgs...)
+		diffCmd.Dir = workingDirectory
+		diffCmd.Stderr = &stderr
+		diffCmd.Stdout = &stdout
+		_ = diffCmd.Start()
+		_ = diffCmd.Wait()
+		if stderr.Len() > 0 {
+			return nil, fmt.Errorf("determining the changes between `hashicorp/go-azure-sdk` version %q and %q: %s", oldSDKVersion, newSDKVersion, stderr.String())
+		}
+
+		logger.Debug("Parsing changes from the Git Diff..")
+		linesWithChanges := strings.Split(stdout.String(), "\n")
+		lines = append(lines, linesWithChanges...)
 	}
 
-	logger.Debug("Parsing changes from the Git Diff..")
-	lines := strings.Split(stdout.String(), "\n")
 	parsed := parseChangesFromGitDiff(lines)
 	return &parsed, nil
 }
@@ -546,11 +567,23 @@ func parseChangesFromGitDiff(lines []string) changes {
 	return out
 }
 
-func updateVersionOfGoAzureSDK(ctx context.Context, workingDirectory, newApiVersion string) error {
-	logger.Debug(fmt.Sprintf("Updating the version of `go-azure-sdk` to %q", newApiVersion))
+type goModuleType string
+
+const (
+	// baseLayerGoModule represents the Go Module containing the base layer in `hashicorp/go-azure-sdk`
+	// this is the Go Module `github.com/hashicorp/go-azure-sdk/sdk`
+	baseLayerGoModule goModuleType = "sdk"
+
+	// resourceManagerGoModule represents the Go Module containing the Resource Manager SDK in
+	// `hashicorp/go-azure-sdk` - which is the Go Module `github.com/hashicorp/go-azure-sdk/resource-manager`
+	resourceManagerGoModule goModuleType = "resource-manager"
+)
+
+func updateVersionOfGoAzureSDK(ctx context.Context, workingDirectory string, moduleType goModuleType, newApiVersion string) error {
+	logger.Debug(fmt.Sprintf("Updating the version of `go-azure-sdk`'s %q Go Module to %q", string(moduleType), newApiVersion))
 	args := []string{
 		"get",
-		fmt.Sprintf("github.com/hashicorp/go-azure-sdk@%s", newApiVersion),
+		fmt.Sprintf("github.com/hashicorp/go-azure-sdk/%s@%s", string(moduleType), newApiVersion),
 	}
 	cmd := exec.CommandContext(ctx, "go", args...)
 	cmd.Dir = workingDirectory
@@ -562,7 +595,7 @@ func updateVersionOfGoAzureSDK(ctx context.Context, workingDirectory, newApiVers
 	goModTidyAndVendor(ctx, workingDirectory)
 
 	logger.Debug("Committing the changes..")
-	message := fmt.Sprintf("dependencies: updating to version `%s` of `github.com/hashicorp/go-azure-sdk`", newApiVersion)
+	message := fmt.Sprintf("dependencies: updating to version `%s` of `github.com/hashicorp/go-azure-sdk/%s`", newApiVersion, string(moduleType))
 	if err := stageAndCommitChanges(workingDirectory, message); err != nil {
 		return fmt.Errorf("staging/committing changes to %q: %+v", workingDirectory, err)
 	}
@@ -617,7 +650,23 @@ func stageAndCommitChanges(workingDirectory string, message string) error {
 	}
 
 	logger.Trace(fmt.Sprintf("Committing all changes in %q..", workingDirectory))
-	opts := &git.CommitOptions{}
+	opts := &git.CommitOptions{
+		// locally the author/committer info comes from the `.gitconfig`
+	}
+	if os.Getenv("RUNNING_IN_AUTOMATION") != "" {
+		// however in automation lets hardcode this
+		opts.Author = &object.Signature{
+			Name:  os.Getenv("GIT_COMMIT_USERNAME"),
+			Email: "",
+			When:  time.Now(),
+		}
+		opts.Committer = &object.Signature{
+			Name:  os.Getenv("GIT_COMMIT_USERNAME"),
+			Email: "",
+			When:  time.Now(),
+		}
+	}
+
 	hash, err := worktree.Commit(message, opts)
 	if err != nil {
 		return fmt.Errorf("commiting changes to %q: %+v", workingDirectory, err)

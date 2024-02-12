@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB`, `MongoDB` and `Parse`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
-* `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this CosmosDB account.
+* `consistency_policy` - (Required) Specifies one `consistency_policy` block as defined below, used to define the consistency policy for this CosmosDB account.
 
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.
 
@@ -146,6 +146,8 @@ The following arguments are supported:
 
 * `enable_automatic_failover` - (Optional) Enable automatic failover for this Cosmos DB account.
 
+* `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below.
@@ -158,7 +160,7 @@ The following arguments are supported:
 
 ~> **NOTE:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
-* `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
+* `virtual_network_rule` - (Optional) Specifies a `virtual_network_rule` block as defined below, used to define which subnets are allowed to access this CosmosDB account.
 
 * `enable_multiple_write_locations` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
@@ -281,6 +283,10 @@ A `restore` block supports the following:
 
 * `database` - (Optional) A `database` block as defined below. Changing this forces a new resource to be created.
 
+* `gremlin_database` - (Optional) One or more `gremlin_database` blocks as defined below. Changing this forces a new resource to be created.
+
+* `tables_to_restore` - (Optional) A list of specific tables available for restore. Changing this forces a new resource to be created.
+
 ---
 
 A `database` block supports the following:
@@ -288,6 +294,14 @@ A `database` block supports the following:
 * `name` - (Required) The database name for the restore request. Changing this forces a new resource to be created.
 
 * `collection_names` - (Optional) A list of the collection names for the restore request. Changing this forces a new resource to be created.
+
+---
+
+A `gremlin_database` block supports the following:
+
+* `name` - (Required) The Gremlin Database name for the restore request. Changing this forces a new resource to be created.
+
+* `graph_names` - (Optional) A list of the Graph names for the restore request. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

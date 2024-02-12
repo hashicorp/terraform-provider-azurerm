@@ -93,17 +93,17 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "${var.prefix}-vm"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_D2s_v3"
-  admin_username                  = "adminuser"
+  name                = "${var.prefix}-vm"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
 
   admin_ssh_key {
-    username = "adminuser"
+    username   = "adminuser"
     public_key = file("~/.ssh/id_rsa.pub")
   }
 

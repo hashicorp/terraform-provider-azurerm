@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
@@ -27,7 +30,7 @@ type checkBase struct {
 }
 
 func (c checkBase) ShouldSkip() bool {
-	if c.MDField() == nil || c.MDField().Skip {
+	if c.line == 0 || c.MDField() == nil || c.MDField().Skip {
 		return true
 	}
 	return false

@@ -10,6 +10,8 @@ description: |-
 
 Manages a MySQL Database within a MySQL Server
 
+!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+
 ## Example Usage
 
 ```hcl
@@ -49,6 +51,11 @@ resource "azurerm_mysql_database" "example" {
   server_name         = azurerm_mysql_server.example.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
+
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 ```
 
@@ -77,7 +84,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the MySQL Database.
-* `update` - (Defaults to 60 minutes) Used when updating the MySQL Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Database.
 * `delete` - (Defaults to 60 minutes) Used when deleting the MySQL Database.
 

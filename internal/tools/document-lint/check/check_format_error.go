@@ -1,7 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/md"
@@ -42,13 +46,15 @@ func (f formatErr) String() string {
 	}
 }
 
+var regIncorrectMark = regexp.MustCompile(`(?: blocks?)? as (?:detailed|defined) (below|above)`)
+
 func (f formatErr) Fix(line string) (result string, err error) {
 	// some Note lines with a misleading star mark, try to remove it
 	switch {
 	case strings.HasPrefix(line, "* ~>"):
 		line = strings.TrimPrefix(line, "* ")
 	case strings.Contains(f.msg, md.IncorrectlyBlockMarked):
-		line = strings.ReplaceAll(line, " as defined below", "")
+		line = regIncorrectMark.ReplaceAllLiteralString(line, "")
 	case strings.TrimSpace(line) == "*":
 		line = ""
 	}

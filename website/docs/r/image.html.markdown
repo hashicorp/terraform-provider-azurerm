@@ -33,16 +33,14 @@ resource "azurerm_image" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the image. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to create. Changing this forces a new resource to be created.
-    the image. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the image. Changing this forces a new resource to be created.
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
-    Changing this forces a new resource to be created.
 * `source_virtual_machine_id` - (Optional) The Virtual Machine ID from which to create the image.
-* `os_disk` - (Optional) One or more `os_disk` elements as defined below. Changing this forces a new resource to be created.
-* `data_disk` - (Optional) One or more `data_disk` elements as defined below.
+* `os_disk` - (Optional) One or more `os_disk` blocks as defined below. Changing this forces a new resource to be created.
+* `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `zone_resilient` - (Optional) Is zone resiliency enabled? Defaults to `false`. Changing this forces a new resource to be created.
-* `hyper_v_generation` - (Optional) The HyperVGenerationType of the VirtualMachine created from the image as `V1`, `V2`. The default is `V1`. Changing this forces a new resource to be created.
+* `hyper_v_generation` - (Optional) The HyperVGenerationType of the VirtualMachine created from the image as `V1`, `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
 
 ~> **Note:** `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
 
@@ -56,7 +54,7 @@ The `os_disk` block supports the following:
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image. Changing this forces a new resource to be created.
 * `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
 * `size_gb` - (Optional) Specifies the size of the image to be created. Changing this forces a new resource to be created.
-* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this image.
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this image. Changing this forces a new resource to be created.
 
 ---
 
@@ -65,7 +63,7 @@ The `data_disk` block supports the following:
 * `lun` - (Optional) Specifies the logical unit number of the data disk.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image. Changing this forces a new resource to be created.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
-* `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
+* `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. Defaults to `None`.
 * `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
 
 ## Attributes Reference

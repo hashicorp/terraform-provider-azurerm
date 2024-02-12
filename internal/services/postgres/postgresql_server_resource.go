@@ -512,7 +512,7 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
 			if err = securityClient.CreateOrUpdateThenPoll(ctx, securityAlertId, *alert); err != nil {
-				return fmt.Errorf("updataing security alert policy for %s: %v", id, err)
+				return fmt.Errorf("updating security alert policy for %s: %v", id, err)
 			}
 		}
 	}

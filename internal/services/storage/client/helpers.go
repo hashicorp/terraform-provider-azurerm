@@ -22,6 +22,8 @@ var (
 
 type accountDetails struct {
 	ID            string
+	Kind          storage.Kind
+	Sku           *storage.Sku
 	ResourceGroup string
 	Properties    *storage.AccountProperties
 
@@ -132,6 +134,8 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 	return &accountDetails{
 		name:          accountName,
 		ID:            accountId,
+		Kind:          props.Kind,
+		Sku:           props.Sku,
 		ResourceGroup: id.ResourceGroupName,
 		Properties:    props.AccountProperties,
 	}, nil

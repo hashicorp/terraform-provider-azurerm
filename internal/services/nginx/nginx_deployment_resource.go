@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -83,8 +83,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				}, false),
 		},
 
-		// only UserIdentity supported, but api defined as SystemAndUserAssigned
-		// issue link: https://github.com/Azure/azure-rest-api-specs/issues/20914
+		// only one type of identity is supported.
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"managed_resource_group": {
@@ -100,6 +99,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"capacity": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
+			Default:      20,
 			ValidateFunc: validation.IntPositive,
 		},
 
@@ -312,7 +312,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
 			if err != nil {
-				return fmt.Errorf("expanding user identities: %+v", err)
+				return fmt.Errorf("expanding identities: %+v", err)
 			}
 
 			err = client.DeploymentsCreateOrUpdateThenPoll(ctx, id, req)
@@ -450,7 +450,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if meta.ResourceData.HasChange("identity") {
 				if req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity); err != nil {
-					return fmt.Errorf("expanding user identities: %+v", err)
+					return fmt.Errorf("expanding identities: %+v", err)
 				}
 			}
 

@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -389,6 +390,32 @@ func TestAccStorageBlob_pageFromLocalFile(t *testing.T) {
 	})
 }
 
+func TestAccStorageBlob_pageFromInlineContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pageFromInlineContent(data, 512),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config: r.pageFromInlineContent(data, 1024),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "source_content", "type"),
+		{
+			Config:      r.pageFromInlineContent(data, 511),
+			ExpectError: regexp.MustCompile(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`),
+		},
+	})
+}
+
 func TestAccStorageBlob_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
@@ -423,6 +450,21 @@ func TestAccStorageBlob_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("parallelism", "size", "type"),
+	})
+}
+
+func TestAccStorageBlob_archive(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+	r := StorageBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.archive(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("parallelism", "size", "type", "source_content"),
 	})
 }
 
@@ -950,6 +992,25 @@ resource "azurerm_storage_blob" "test" {
 `, template, fileName)
 }
 
+func (r StorageBlobResource) pageFromInlineContent(data acceptance.TestData, length int) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page"
+  source_content         = join("", [for i in range(0, %d) : "a"])
+}
+`, template, length)
+}
+
 func (r StorageBlobResource) requiresImport(data acceptance.TestData) string {
 	template := r.blockFromPublicBlob(data)
 	return fmt.Sprintf(`
@@ -1104,6 +1165,24 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, accessLevel)
+}
+
+func (r StorageBlobResource) archive(data acceptance.TestData) string {
+	template := r.template(data, "private")
+	return fmt.Sprintf(`
+provider "azurerm" {}
+
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "Wubba Lubba Dub Dub"
+  access_tier            = "Archive"
+}
+`, template)
 }
 
 func populateTempFile(input *os.File) error {

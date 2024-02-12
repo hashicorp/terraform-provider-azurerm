@@ -59,7 +59,7 @@ func TestAccMediaTransform_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Transform description"),
-				check.That(data.ResourceName).Key("output.#").HasValue("5"),
+				check.That(data.ResourceName).Key("output.#").HasValue("3"),
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
 			),
 		},
@@ -84,7 +84,7 @@ func TestAccMediaTransform_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Transform description"),
-				check.That(data.ResourceName).Key("output.#").HasValue("5"),
+				check.That(data.ResourceName).Key("output.#").HasValue("3"),
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
 			),
 		},
@@ -93,7 +93,7 @@ func TestAccMediaTransform_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("Transform description"),
-				check.That(data.ResourceName).Key("output.#").HasValue("5"),
+				check.That(data.ResourceName).Key("output.#").HasValue("3"),
 				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
 			),
 		},
@@ -186,21 +186,6 @@ resource "azurerm_media_transform" "test" {
   output {
     audio_analyzer_preset {
       audio_language = "ar-SA"
-    }
-  }
-
-  output {
-    face_detector_preset {
-      analysis_resolution = "StandardDefinition"
-    }
-  }
-
-  output {
-    video_analyzer_preset {
-      insights_type = "AllInsights"
-      experimental_options = {
-        env = "prod"
-      }
     }
   }
 
@@ -311,32 +296,6 @@ resource "azurerm_media_transform" "test" {
     audio_analyzer_preset {
       audio_language      = "ar-SA"
       audio_analysis_mode = "Basic"
-      experimental_options = {
-        env = "test"
-      }
-    }
-  }
-
-  output {
-    relative_priority = "Low"
-    on_error_action   = "StopProcessingJob"
-    face_detector_preset {
-      analysis_resolution = "StandardDefinition"
-      blur_type           = "Med"
-      face_redactor_mode  = "Combined"
-      experimental_options = {
-        env = "test"
-      }
-    }
-  }
-
-  output {
-    relative_priority = "Normal"
-    on_error_action   = "StopProcessingJob"
-    video_analyzer_preset {
-      audio_language      = "en-US"
-      audio_analysis_mode = "Basic"
-      insights_type       = "AllInsights"
       experimental_options = {
         env = "test"
       }

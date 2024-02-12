@@ -1,6 +1,10 @@
 package blobcontainers
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForImmutabilityPolicyState() []string {
 		string(ImmutabilityPolicyStateLocked),
 		string(ImmutabilityPolicyStateUnlocked),
 	}
+}
+
+func (s *ImmutabilityPolicyState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseImmutabilityPolicyState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseImmutabilityPolicyState(input string) (*ImmutabilityPolicyState, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForImmutabilityPolicyUpdateType() []string {
 		string(ImmutabilityPolicyUpdateTypeLock),
 		string(ImmutabilityPolicyUpdateTypePut),
 	}
+}
+
+func (s *ImmutabilityPolicyUpdateType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseImmutabilityPolicyUpdateType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseImmutabilityPolicyUpdateType(input string) (*ImmutabilityPolicyUpdateType, error) {
@@ -84,6 +114,19 @@ func PossibleValuesForLeaseContainerRequestAction() []string {
 	}
 }
 
+func (s *LeaseContainerRequestAction) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeaseContainerRequestAction(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseLeaseContainerRequestAction(input string) (*LeaseContainerRequestAction, error) {
 	vals := map[string]LeaseContainerRequestAction{
 		"acquire": LeaseContainerRequestActionAcquire,
@@ -113,6 +156,19 @@ func PossibleValuesForLeaseDuration() []string {
 		string(LeaseDurationFixed),
 		string(LeaseDurationInfinite),
 	}
+}
+
+func (s *LeaseDuration) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeaseDuration(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLeaseDuration(input string) (*LeaseDuration, error) {
@@ -149,6 +205,19 @@ func PossibleValuesForLeaseState() []string {
 	}
 }
 
+func (s *LeaseState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeaseState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseLeaseState(input string) (*LeaseState, error) {
 	vals := map[string]LeaseState{
 		"available": LeaseStateAvailable,
@@ -180,6 +249,19 @@ func PossibleValuesForLeaseStatus() []string {
 	}
 }
 
+func (s *LeaseStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLeaseStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseLeaseStatus(input string) (*LeaseStatus, error) {
 	vals := map[string]LeaseStatus{
 		"locked":   LeaseStatusLocked,
@@ -204,6 +286,19 @@ func PossibleValuesForListContainersInclude() []string {
 	return []string{
 		string(ListContainersIncludeDeleted),
 	}
+}
+
+func (s *ListContainersInclude) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseListContainersInclude(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseListContainersInclude(input string) (*ListContainersInclude, error) {
@@ -231,6 +326,19 @@ func PossibleValuesForMigrationState() []string {
 		string(MigrationStateCompleted),
 		string(MigrationStateInProgress),
 	}
+}
+
+func (s *MigrationState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMigrationState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseMigrationState(input string) (*MigrationState, error) {
@@ -261,6 +369,19 @@ func PossibleValuesForPublicAccess() []string {
 		string(PublicAccessContainer),
 		string(PublicAccessNone),
 	}
+}
+
+func (s *PublicAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePublicAccess(input string) (*PublicAccess, error) {

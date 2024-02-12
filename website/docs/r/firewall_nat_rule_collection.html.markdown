@@ -125,11 +125,7 @@ A `rule` block supports the following:
 
 -> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
-* `translated_address` - (Optional) The address of the service behind the Firewall.
-
-* `translated_fqdn` - (Optional) The fqdn of the service behind the Firewall.
-
--> **NOTE** At least one of `translated_address` and `translated_fqdn` must be specified for a rule.
+* `translated_address` - (Required) The address of the service behind the Firewall.
 
 * `translated_port` - (Required) The port of the service behind the Firewall.
 

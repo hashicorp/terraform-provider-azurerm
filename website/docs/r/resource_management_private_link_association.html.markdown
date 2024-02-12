@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `management_group_id` - (Required) Specifies the Management Group ID within which this Private Link Association should exist. Changing this forces a new Private Link Association to be created.
 
-**Note:** For now, `management_group_id` must be the ID of [Root Management Group](https://learn.microsoft.com/en-us/azure/governance/management-groups/overview#root-management-group-for-each-directory).
+~> **Note:** For now, `management_group_id` must be the ID of [Root Management Group](https://learn.microsoft.com/en-us/azure/governance/management-groups/overview#root-management-group-for-each-directory).
 
 * `resource_management_private_link_id` - (Required) The Resource ID of Resource Management Private Link. Changing this forces a new Private Link Association to be created.
 

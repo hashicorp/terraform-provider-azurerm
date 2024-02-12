@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedVersionId{}
+var _ resourceids.ResourceId = &ScopedVersionId{}
 
 // ScopedVersionId is a struct representing the Resource ID for a Scoped Version
 type ScopedVersionId struct {
@@ -30,25 +30,15 @@ func NewScopedVersionID(resourceScope string, blueprintName string, versionId st
 
 // ParseScopedVersionID parses 'input' into a ScopedVersionId
 func ParseScopedVersionID(input string) (*ScopedVersionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedVersionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedVersionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedVersionId{}
-
-	if id.ResourceScope, ok = parsed.Parsed["resourceScope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", *parsed)
-	}
-
-	if id.BlueprintName, ok = parsed.Parsed["blueprintName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", *parsed)
-	}
-
-	if id.VersionId, ok = parsed.Parsed["versionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseScopedVersionID(input string) (*ScopedVersionId, error) {
 // ParseScopedVersionIDInsensitively parses 'input' case-insensitively into a ScopedVersionId
 // note: this method should only be used for API response data and not user input
 func ParseScopedVersionIDInsensitively(input string) (*ScopedVersionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedVersionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedVersionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedVersionId{}
-
-	if id.ResourceScope, ok = parsed.Parsed["resourceScope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", *parsed)
-	}
-
-	if id.BlueprintName, ok = parsed.Parsed["blueprintName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", *parsed)
-	}
-
-	if id.VersionId, ok = parsed.Parsed["versionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedVersionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceScope, ok = input.Parsed["resourceScope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceScope", input)
+	}
+
+	if id.BlueprintName, ok = input.Parsed["blueprintName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "blueprintName", input)
+	}
+
+	if id.VersionId, ok = input.Parsed["versionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "versionId", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedVersionID checks that 'input' can be parsed as a Scoped Version ID

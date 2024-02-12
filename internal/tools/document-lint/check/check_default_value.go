@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
@@ -32,7 +35,7 @@ func (c defaultDiff) Fix(line string) (result string, err error) {
 			// remove default part from line
 			line = line[:idxs[0]+1] + line[idxs[1]:]
 		} else {
-			line = line[:idxs[4]] + c.Default + line[idxs[5]:]
+			line = line[:idxs[2]] + "`" + c.Default + "`" + line[idxs[3]:]
 		}
 	} else if c.Default != "" {
 		line = strings.TrimSpace(line) + " Defaults to `" + c.Default + "`."

@@ -129,7 +129,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `external_inbound_ip_addresses` - The external inbound IP addresses of the App Service Environment V3.
 
-* `inbound_network_dependencies` - An Inbound Network Dependencies block as defined below.
+* `inbound_network_dependencies` - An `inbound_network_dependencies` block as defined below.
 
 * `internal_inbound_ip_addresses` - The internal inbound IP addresses of the App Service Environment V3.
 

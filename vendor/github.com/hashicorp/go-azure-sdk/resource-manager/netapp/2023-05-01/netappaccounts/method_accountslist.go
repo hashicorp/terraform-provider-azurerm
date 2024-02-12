@@ -20,7 +20,8 @@ type AccountsListOperationResponse struct {
 }
 
 type AccountsListCompleteResult struct {
-	Items []NetAppAccount
+	LatestHttpResponse *http.Response
+	Items              []NetAppAccount
 }
 
 // AccountsList ...
@@ -84,7 +85,8 @@ func (c NetAppAccountsClient) AccountsListCompleteMatchingPredicate(ctx context.
 	}
 
 	result = AccountsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

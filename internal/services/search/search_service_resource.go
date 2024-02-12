@@ -341,12 +341,27 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	if resp.Model == nil {
 		return fmt.Errorf("retrieving existing %s: %+v", id, err)
 	}
+
 	model := *resp.Model
-	if model.Properties == nil {
+	if props := model.Properties; props == nil {
 		return fmt.Errorf("retrieving existing %s: `properties` was nil", id)
+	}
+
+	// The service API has changed where it will not allow the updated model to be
+	// passed to the update PATCH call. You must now create a new update payload
+	// object by removing all of the READ-ONLY fields from the model...
+	// (e.g., privateEndpointConnections, provisioningState, sharedPrivateLinkResources,
+	// status and statusDetails)
+	payload := services.SearchService{
+		Identity:   model.Identity,
+		Location:   model.Location,
+		Properties: pointer.To(services.SearchServiceProperties{}),
+		Sku:        model.Sku,
+		Tags:       model.Tags,
 	}
 
 	if d.HasChange("customer_managed_key_enforcement_enabled") {
@@ -354,7 +369,8 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if enabled := d.Get("customer_managed_key_enforcement_enabled").(bool); enabled {
 			cmkEnforcement = services.SearchEncryptionWithCmkEnabled
 		}
-		model.Properties.EncryptionWithCmk = &services.EncryptionWithCmk{
+
+		payload.Properties.EncryptionWithCmk = &services.EncryptionWithCmk{
 			Enforcement: pointer.To(cmkEnforcement),
 		}
 	}
@@ -369,7 +385,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("'hosting_mode' can only be set to %q if the 'sku' is %q, got %q", services.HostingModeHighDensity, services.SkuNameStandardThree, pointer.From(model.Sku.Name))
 		}
 
-		model.Properties.HostingMode = pointer.To(hostingMode)
+		payload.Properties.HostingMode = pointer.To(hostingMode)
 	}
 
 	if d.HasChange("identity") {
@@ -378,7 +394,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 
-		model.Identity = expandedIdentity
+		payload.Identity = expandedIdentity
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -387,7 +403,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			publicNetworkAccess = services.PublicNetworkAccessDisabled
 		}
 
-		model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	if d.HasChanges("authentication_failure_mode", "local_authentication_enabled") {
@@ -418,8 +434,8 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			authenticationOptions = nil
 		}
 
-		model.Properties.DisableLocalAuth = pointer.To(!localAuthenticationEnabled)
-		model.Properties.AuthOptions = authenticationOptions
+		payload.Properties.DisableLocalAuth = pointer.To(!localAuthenticationEnabled)
+		payload.Properties.AuthOptions = authenticationOptions
 	}
 
 	if d.HasChange("replica_count") {
@@ -428,7 +444,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return err
 		}
 
-		model.Properties.ReplicaCount = pointer.To(replicaCount)
+		payload.Properties.ReplicaCount = pointer.To(replicaCount)
 	}
 
 	if d.HasChange("partition_count") {
@@ -444,12 +460,13 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
 		}
 
-		model.Properties.PartitionCount = pointer.To(partitionCount)
+		payload.Properties.PartitionCount = pointer.To(partitionCount)
 	}
 
 	if d.HasChange("allowed_ips") {
 		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
-		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
+
+		payload.Properties.NetworkRuleSet = &services.NetworkRuleSet{
 			IPRules: expandSearchServiceIPRules(ipRulesRaw),
 		}
 	}
@@ -465,14 +482,14 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
 		}
 
-		model.Properties.SemanticSearch = pointer.To(semanticSearchSku)
+		payload.Properties.SemanticSearch = pointer.To(semanticSearchSku)
 	}
 
 	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if err = client.CreateOrUpdateThenPoll(ctx, *id, model, services.CreateOrUpdateOperationOptions{}); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, payload, services.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

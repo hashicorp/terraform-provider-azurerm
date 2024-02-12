@@ -19,7 +19,8 @@ type ListByConfigurationStoreOperationResponse struct {
 }
 
 type ListByConfigurationStoreCompleteResult struct {
-	Items []Replica
+	LatestHttpResponse *http.Response
+	Items              []Replica
 }
 
 // ListByConfigurationStore ...
@@ -83,7 +84,8 @@ func (c ReplicasClient) ListByConfigurationStoreCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByConfigurationStoreCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

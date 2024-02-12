@@ -75,6 +75,10 @@ The following arguments are supported:
 
 * `secret` - (Optional) One or more `secret` block as detailed below.
 
+* `workload_profile_name` - (Optional) The name of the Workload Profile in the Container App Environment to place this Container App.
+
+~> **Note:** Omit this value to use the default `Consumption` Workload Profile.
+
 * `tags` - (Optional) A mapping of tags to assign to the Container App.
 
 ---
@@ -90,6 +94,8 @@ A `secret` block supports the following:
 ---
 
 A `template` block supports the following:
+
+* `init_container` - (Optional) The definition of an init container that is part of the group as documented in the `init_container` block below.
 
 * `container` - (Required) One or more `container` blocks as detailed below.
 
@@ -129,7 +135,7 @@ A `custom_scale_rule` block supports the following:
 
 * `custom_rule_type` - (Required) The Custom rule type. Possible values include: `activemq`, `artemis-queue`, `kafka`, `pulsar`, `aws-cloudwatch`, `aws-dynamodb`, `aws-dynamodb-streams`, `aws-kinesis-stream`, `aws-sqs-queue`, `azure-app-insights`, `azure-blob`, `azure-data-explorer`, `azure-eventhub`, `azure-log-analytics`, `azure-monitor`, `azure-pipelines`, `azure-servicebus`, `azure-queue`, `cassandra`, `cpu`, `cron`, `datadog`, `elasticsearch`, `external`, `external-push`, `gcp-stackdriver`, `gcp-storage`, `gcp-pubsub`, `graphite`, `http`, `huawei-cloudeye`, `ibmmq`, `influxdb`, `kubernetes-workload`, `liiklus`, `memory`, `metrics-api`, `mongodb`, `mssql`, `mysql`, `nats-jetstream`, `stan`, `tcp`, `new-relic`, `openstack-metric`, `openstack-swift`, `postgresql`, `predictkube`, `prometheus`, `rabbitmq`, `redis`, `redis-cluster`, `redis-sentinel`, `redis-streams`, `redis-cluster-streams`, `redis-sentinel-streams`, `selenium-grid`,`solace-event-queue`, and `github-runner`.
 
-* `metadata`- (Required) - A map of string key-value pairs to configure the Custom Scale Rule.
+* `metadata` - (Required) - A map of string key-value pairs to configure the Custom Scale Rule.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
@@ -139,7 +145,7 @@ A `http_scale_rule` block supports the following:
 
 * `name` - (Required) The name of the Scaling Rule
 
-* `concurrent_requests`- (Required) - The number of concurrent requests to trigger scaling.
+* `concurrent_requests` - (Required) - The number of concurrent requests to trigger scaling.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
@@ -149,7 +155,7 @@ A `tcp_scale_rule` block supports the following:
 
 * `name` - (Required) The name of the Scaling Rule
 
-* `concurrent_requests`- (Required) - The number of concurrent requests to trigger scaling.
+* `concurrent_requests` - (Required) - The number of concurrent requests to trigger scaling.
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
@@ -169,7 +175,35 @@ A `volume` block supports the following:
 
 * `storage_name` - (Optional) The name of the `AzureFile` storage.
 
-* `storage_type` - (Optional) The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
+* `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`. Defaults to `EmptyDir`.
+
+---
+
+An `init_container` block supports:
+
+* `args` - (Optional) A list of extra arguments to pass to the container.
+
+* `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+
+* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+
+* `env` - (Optional) One or more `env` blocks as detailed below.
+
+* `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
+
+~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+
+* `image` - (Required) The image to use to create the container.
+
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+
+* `name` - (Required) The name of the container
+
+* `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
 
 ---
 
@@ -179,7 +213,7 @@ A `container` block supports the following:
 
 * `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. 
+* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
@@ -193,7 +227,7 @@ A `container` block supports the following:
 
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. 
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
@@ -223,7 +257,7 @@ A `liveness_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -295,7 +329,7 @@ A `startup_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -331,23 +365,23 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
 
-* `custom_domain` -  (Optional) One or more `custom_domain` block as detailed below.
+* `custom_domain` - (Optional) One or more `custom_domain` block as detailed below.
 
-* `fqdn` -  The FQDN of the ingress.
+* `fqdn` - The FQDN of the ingress.
 
 * `external_enabled` - (Optional) Are connections to this Ingress from outside the Container App Environment enabled? Defaults to `false`.
 
+* `ip_security_restriction` - (Optional) One or more `ip_security_restriction` blocks for IP-filtering rules as defined below.
+
 * `target_port` - (Required) The target port on the container for the Ingress traffic.
  
-* `exposed_port` - (Required) The exposed port on the container for the Ingress traffic.
+* `exposed_port` - (Optional) The exposed port on the container for the Ingress traffic.
 
 ~> **Note:** `exposed_port` can only be specified when `transport` is set to `tcp`.
 
-* `traffic_weight` - (Required) A `traffic_weight` block as detailed below.
+* `traffic_weight` - (Required) One or more `traffic_weight` blocks as detailed below.
 
-~> **Note:** `traffic_weight` can only be specified when `revision_mode` is set to `Multiple`.
-
-* `transport` - (Optional) The transport method for the Ingress. Possible values include `auto`, `http`, `http2` and `tcp`. Defaults to `auto`
+* `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
 ---
 
@@ -361,15 +395,31 @@ A `custom_domain` block supports the following:
 
 ---
 
+A `ip_security_restriction` block supports the following:
+
+* `action` - (Required) The IP-filter action. `Allow` or `Deny`.
+
+~> **NOTE:** The `action` types in an all `ip_security_restriction` blocks must be the same for the `ingress`, mixing `Allow` and `Deny` rules is not currently supported by the service.
+
+* `description` - (Optional) Describe the IP restriction rule that is being sent to the container-app.
+
+* `ip_address_range` - (Required) CIDR notation to match incoming IP address.
+
+* `name` - (Required) Name for the IP restriction rule.
+
+---
+
 A `traffic_weight` block supports the following:
 
 ~> **Note:** This block only applies when `revision_mode` is set to `Multiple`.
 
 * `label` - (Optional) The label to apply to the revision as a name prefix for routing traffic.
 
-* `latest_revision` - (Optional) This traffic Weight relates to the latest stable Container Revision.
+* `latest_revision` - (Optional) This traffic Weight applies to the latest stable Container Revision. At most only one `traffic_weight` block can have the `latest_revision` set to `true`.
 
 * `revision_suffix` - (Optional) The suffix string to which this `traffic_weight` applies.
+
+~> **Note:** `latest_revision` conflicts with `revision_suffix`, which means you shall either set `latest_revision` to `true` or specify `revision_suffix`. Especially for creation, there shall only be one `traffic_weight`, with the `latest_revision` set to `true`, and leave the `revision_suffix` empty.
 
 * `percentage` - (Required) The percentage of traffic which should be sent this revision.
 

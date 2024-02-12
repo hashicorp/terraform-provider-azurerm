@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -30,7 +31,7 @@ func resourceSharedImageGallery() *pluginsdk.Resource {
 		Update: resourceSharedImageGalleryUpdate,
 		Delete: resourceSharedImageGalleryDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := galleries.ParseGalleryID(id)
+			_, err := commonids.ParseSharedImageGalleryID(id)
 			return err
 		}),
 
@@ -135,7 +136,7 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := galleries.NewGalleryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewSharedImageGalleryID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	existing, err := client.Get(ctx, id, galleries.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -166,8 +167,10 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if permission == galleries.GallerySharingPermissionTypesCommunity {
-		gallerySharingUpdateId := gallerysharingupdate.NewGalleryID(id.SubscriptionId, id.ResourceGroupName, id.GalleryName)
-		if err = gallerySharingUpdateClient.GallerySharingProfileUpdateThenPoll(ctx, gallerySharingUpdateId, gallerysharingupdate.SharingUpdate{OperationType: gallerysharingupdate.SharingUpdateOperationTypesEnableCommunity}); err != nil {
+		updatePayload := gallerysharingupdate.SharingUpdate{
+			OperationType: gallerysharingupdate.SharingUpdateOperationTypesEnableCommunity,
+		}
+		if err = gallerySharingUpdateClient.GallerySharingProfileUpdateThenPoll(ctx, id, updatePayload); err != nil {
 			return fmt.Errorf("enabling community sharing of %s: %+v", id, err)
 		}
 	}
@@ -182,7 +185,7 @@ func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := galleries.ParseGalleryID(d.Id())
+	id, err := commonids.ParseSharedImageGalleryID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -229,7 +232,7 @@ func resourceSharedImageGalleryUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := galleries.ParseGalleryID(d.Id())
+	id, err := commonids.ParseSharedImageGalleryID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -268,7 +271,7 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := galleries.ParseGalleryID(d.Id())
+	id, err := commonids.ParseSharedImageGalleryID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -281,8 +284,10 @@ func resourceSharedImageGalleryDelete(d *pluginsdk.ResourceData, meta interface{
 	if model := resp.Model; model != nil {
 		if prop := model.Properties; prop != nil && prop.SharingProfile != nil && prop.SharingProfile.Permissions != nil {
 			if pointer.From(prop.SharingProfile.Permissions) == galleries.GallerySharingPermissionTypesCommunity {
-				gallerySharingUpdateId := gallerysharingupdate.NewGalleryID(id.SubscriptionId, id.ResourceGroupName, id.GalleryName)
-				if err = gallerySharingUpdateClient.GallerySharingProfileUpdateThenPoll(ctx, gallerySharingUpdateId, gallerysharingupdate.SharingUpdate{OperationType: gallerysharingupdate.SharingUpdateOperationTypesReset}); err != nil {
+				updatePayload := gallerysharingupdate.SharingUpdate{
+					OperationType: gallerysharingupdate.SharingUpdateOperationTypesReset,
+				}
+				if err = gallerySharingUpdateClient.GallerySharingProfileUpdateThenPoll(ctx, *id, updatePayload); err != nil {
 					return fmt.Errorf("reseting community sharing of %s: %+v", id, err)
 				}
 			}

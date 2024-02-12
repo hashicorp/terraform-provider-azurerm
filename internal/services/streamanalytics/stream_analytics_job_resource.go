@@ -8,20 +8,20 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/transformations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -139,7 +139,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"streaming_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
+				ValidateFunc: validation.IntBetween(1, 120),
 			},
 
 			"content_storage_policy": {
@@ -188,11 +188,21 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"job_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(streamingjobs.SkuNameStandard),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamingjobs.SkuNameStandard),
+					"StandardV2", // missing from swagger as described here https://github.com/Azure/azure-rest-api-specs/issues/27506
+				}, false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -251,32 +261,44 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	expandedIdentity, err := expandStreamAnalyticsJobIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
 	props := streamingjobs.StreamingJob{
 		Name:     utils.String(id.StreamingJobName),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Properties: &streamingjobs.StreamingJobProperties{
 			Sku: &streamingjobs.Sku{
-				Name: utils.ToPtr(streamingjobs.SkuNameStandard),
+				Name: pointer.To(streamingjobs.SkuName(d.Get("sku_name").(string))),
 			},
-			ContentStoragePolicy:               utils.ToPtr(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
-			EventsLateArrivalMaxDelayInSeconds: utils.Int64(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
-			EventsOutOfOrderMaxDelayInSeconds:  utils.Int64(int64(d.Get("events_out_of_order_max_delay_in_seconds").(int))),
-			EventsOutOfOrderPolicy:             utils.ToPtr(streamingjobs.EventsOutOfOrderPolicy(d.Get("events_out_of_order_policy").(string))),
-			OutputErrorPolicy:                  utils.ToPtr(streamingjobs.OutputErrorPolicy(d.Get("output_error_policy").(string))),
-			JobType:                            utils.ToPtr(streamingjobs.JobType(jobType)),
+			ContentStoragePolicy:               pointer.To(streamingjobs.ContentStoragePolicy(contentStoragePolicy)),
+			EventsLateArrivalMaxDelayInSeconds: pointer.To(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int))),
+			EventsOutOfOrderMaxDelayInSeconds:  pointer.To(int64(d.Get("events_out_of_order_max_delay_in_seconds").(int))),
+			EventsOutOfOrderPolicy:             pointer.To(streamingjobs.EventsOutOfOrderPolicy(d.Get("events_out_of_order_policy").(string))),
+			OutputErrorPolicy:                  pointer.To(streamingjobs.OutputErrorPolicy(d.Get("output_error_policy").(string))),
+			JobType:                            pointer.To(streamingjobs.JobType(jobType)),
 		},
-		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	if expandedIdentity.Type == identity.TypeNone {
+		// The StreamAnalytics API doesn't implement the standard `None` pattern - meaning that sending `None` outputs
+		// an API error. This conditional is required to support this, else the API returns:
+		//
+		// >  Code="BadRequest" Message="The JSON provided in the request body is invalid. Cannot convert value 'None'
+		// > to type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
+		// > Details=[{"code":"400","correlationId":"dcdbdcfa-fe38-66f8-3aa3-36950bab0a28","message":"The JSON provided in the request body is invalid.
+		// > Cannot convert value 'None' to type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
+		//
+		// Tracked in https://github.com/Azure/azure-rest-api-specs/issues/17649
+		expandedIdentity = nil
+	}
+	props.Identity = expandedIdentity
 
 	if _, ok := d.GetOk("compatibility_level"); ok {
 		compatibilityLevel := d.Get("compatibility_level").(string)
-		props.Properties.CompatibilityLevel = utils.ToPtr(streamingjobs.CompatibilityLevel(compatibilityLevel))
+		props.Properties.CompatibilityLevel = pointer.To(streamingjobs.CompatibilityLevel(compatibilityLevel))
 	}
 
 	if contentStoragePolicy == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
@@ -365,7 +387,7 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	opts := streamingjobs.GetOperationOptions{
-		Expand: utils.ToPtr("transformation"),
+		Expand: pointer.To("transformation"),
 	}
 	resp, err := client.Get(ctx, *id, opts)
 	if err != nil {
@@ -384,9 +406,14 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		if err := d.Set("identity", flattenJobIdentity(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %v", err)
 		}
+
 		if props := model.Properties; props != nil {
 			compatibilityLevel := ""
 			if v := props.CompatibilityLevel; v != nil {
@@ -435,6 +462,12 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 				jobType = string(*v)
 			}
 			d.Set("type", jobType)
+
+			sku := ""
+			if props.Sku != nil && props.Sku.Name != nil {
+				sku = string(*props.Sku.Name)
+			}
+			d.Set("sku_name", sku)
 
 			storagePolicy := ""
 			if v := props.ContentStoragePolicy; v != nil {
@@ -486,55 +519,6 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandStreamAnalyticsJobIdentity(input []interface{}) (*streamingjobs.Identity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
-	if err != nil {
-		return nil, err
-	}
-
-	// Otherwise we get:
-	//   Code="BadRequest"
-	//   Message="The JSON provided in the request body is invalid. Cannot convert value 'None' to
-	//   type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
-	// Upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/17649
-	if expanded.Type == identity.TypeNone {
-		return nil, nil
-	}
-
-	return &streamingjobs.Identity{
-		Type: utils.String(string(expanded.Type)),
-	}, nil
-}
-
-func flattenJobIdentity(identity *streamingjobs.Identity) []interface{} {
-	if identity == nil {
-		return nil
-	}
-
-	var t string
-	if identity.Type != nil {
-		t = *identity.Type
-	}
-
-	var tenantId string
-	if identity.TenantId != nil {
-		tenantId = *identity.TenantId
-	}
-
-	var principalId string
-	if identity.PrincipalId != nil {
-		principalId = *identity.PrincipalId
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         t,
-			"tenant_id":    tenantId,
-			"principal_id": principalId,
-		},
-	}
-}
-
 func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccount {
 	if input == nil {
 		return nil
@@ -546,7 +530,7 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 	accountKey := v["account_key"].(string)
 
 	return &streamingjobs.JobStorageAccount{
-		AuthenticationMode: utils.ToPtr(streamingjobs.AuthenticationMode(authenticationMode)),
+		AuthenticationMode: pointer.To(streamingjobs.AuthenticationMode(authenticationMode)),
 		AccountName:        utils.String(accountName),
 		AccountKey:         utils.String(accountKey),
 	}

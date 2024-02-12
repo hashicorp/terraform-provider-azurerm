@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) The Azure Bot Service endpoint.
 
-* `icon_url` - (Optional) The Icon Url of the Azure Bot Service.
+* `icon_url` - (Optional) The Icon Url of the Azure Bot Service. Defaults to `https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png`.
 
 * `microsoft_app_msi_id` - (Optional) The ID of the Microsoft App Managed Identity for this Azure Bot Service. Changing this forces a new resource to be created.
 
@@ -88,7 +88,11 @@ The following arguments are supported:
 
 * `luis_key` - (Optional) The LUIS key to associate with this Azure Bot Service.
 
+* `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to `true`.
+
 * `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for this Azure Bot Service. Defaults to `false`.
+
+* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Azure Bot Service.
 

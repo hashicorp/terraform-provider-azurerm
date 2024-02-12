@@ -1030,18 +1030,18 @@ resource "azurerm_service_fabric_cluster" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  reliability_level   = "Silver"
+  reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
   management_endpoint = "http://example:80"
 
   node_type {
     name                 = "backend"
-    instance_count       = 5
+    instance_count       = 3
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
-    durability_level     = "Silver"
+    durability_level     = "Bronze"
   }
 }
 
@@ -1059,7 +1059,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 
   automatic_os_upgrade_policy {
     disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    enable_automatic_os_upgrade = false
   }
 
   rolling_upgrade_policy {
@@ -1102,7 +1102,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       clusterEndpoint    = azurerm_service_fabric_cluster.test.cluster_endpoint
       nodeTypeRef        = "backend"
       dataPath           = "C:\\SvcFab"
-      durabilityLevel    = "Silver"
+      durabilityLevel    = "Bronze"
       enableParallelJobs = true
     })
   }

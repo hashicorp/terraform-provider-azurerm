@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EventhubAuthorizationRuleId{}
+var _ resourceids.ResourceId = &EventhubAuthorizationRuleId{}
 
 // EventhubAuthorizationRuleId is a struct representing the Resource ID for a Eventhub Authorization Rule
 type EventhubAuthorizationRuleId struct {
@@ -34,33 +34,15 @@ func NewEventhubAuthorizationRuleID(subscriptionId string, resourceGroupName str
 
 // ParseEventhubAuthorizationRuleID parses 'input' into a EventhubAuthorizationRuleId
 func ParseEventhubAuthorizationRuleID(input string) (*EventhubAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EventhubAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&EventhubAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EventhubAuthorizationRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.EventhubName, ok = parsed.Parsed["eventhubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventhubName", *parsed)
-	}
-
-	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "authorizationRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseEventhubAuthorizationRuleID(input string) (*EventhubAuthorizationRuleI
 // ParseEventhubAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a EventhubAuthorizationRuleId
 // note: this method should only be used for API response data and not user input
 func ParseEventhubAuthorizationRuleIDInsensitively(input string) (*EventhubAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EventhubAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&EventhubAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EventhubAuthorizationRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NamespaceName, ok = parsed.Parsed["namespaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", *parsed)
-	}
-
-	if id.EventhubName, ok = parsed.Parsed["eventhubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "eventhubName", *parsed)
-	}
-
-	if id.AuthorizationRuleName, ok = parsed.Parsed["authorizationRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "authorizationRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *EventhubAuthorizationRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NamespaceName, ok = input.Parsed["namespaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "namespaceName", input)
+	}
+
+	if id.EventhubName, ok = input.Parsed["eventhubName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "eventhubName", input)
+	}
+
+	if id.AuthorizationRuleName, ok = input.Parsed["authorizationRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "authorizationRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateEventhubAuthorizationRuleID checks that 'input' can be parsed as a Eventhub Authorization Rule ID

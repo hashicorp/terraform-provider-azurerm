@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []ProvisioningServiceDescription
+	LatestHttpResponse *http.Response
+	Items              []ProvisioningServiceDescription
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c IotDpsResourceClient) ListBySubscriptionCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -112,6 +112,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cassandra Datacenter.
 
+* `seed_node_ip_addresses` - A list of IP Address for the seed nodes in this Cassandra Datacenter. 
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

@@ -68,7 +68,8 @@ func RequestRetryAll(retryFuncs ...RequestRetryFunc) func(resp *http.Response, o
 	}
 }
 
-// RetryableErrorHandler simply returns the resp and err, this is needed to makes the retryablehttp client's Do() return early with the response body not drained.
+// RetryableErrorHandler simply returns the resp and err, this is needed to make the Do() method
+// of retryablehttp client return early with the response body not drained.
 func RetryableErrorHandler(resp *http.Response, err error, _ int) (*http.Response, error) {
 	return resp, err
 }
@@ -188,6 +189,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
+		// In some cases the respBody is empty, but not nil, so don't attempt to unmarshal this
+		if len(respBody) == 0 {
+			return nil
+		}
+
 		// Unmarshal into provided model
 		if err := json.Unmarshal(respBody, model); err != nil {
 			return fmt.Errorf("unmarshaling response body: %+v", err)
@@ -208,6 +214,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+
+		// In some cases the respBody is empty, but not nil, so don't attempt to unmarshal this
+		if len(respBody) == 0 {
+			return nil
+		}
 
 		// Unmarshal into provided model
 		if err := xml.Unmarshal(respBody, model); err != nil {
@@ -260,6 +271,11 @@ type Client struct {
 	// Authorizer is anything that can provide an access token with which to authorize requests.
 	Authorizer auth.Authorizer
 
+	// AuthorizeRequest is an optional function to decorate a Request for authorization prior to being sent.
+	// When nil, a standard Authorization header will be added using a bearer token as returned by the Token method
+	// of the configured Authorizer. Define this function in order to customize the request authorization.
+	AuthorizeRequest func(context.Context, *http.Request, auth.Authorizer) error
+
 	// DisableRetries prevents the client from reattempting failed requests (which it does to work around eventual consistency issues).
 	// This does not impact handling of retries related to rate limiting, which are always performed.
 	DisableRetries bool
@@ -281,6 +297,49 @@ func NewClient(baseUri string, serviceName, apiVersion string) *Client {
 		BaseUri:   baseUri,
 		UserAgent: fmt.Sprintf("HashiCorp/go-azure-sdk (%s)", strings.Join(segments, " ")),
 	}
+}
+
+// SetAuthorizer configures the request authorizer for the client
+func (c *Client) SetAuthorizer(authorizer auth.Authorizer) {
+	c.Authorizer = authorizer
+}
+
+// SetUserAgent configures the user agent to be included in requests
+func (c *Client) SetUserAgent(userAgent string) {
+	c.UserAgent = userAgent
+}
+
+// GetUserAgent retrieves the configured user agent for the client
+func (c *Client) GetUserAgent() string {
+	return c.UserAgent
+}
+
+// AppendRequestMiddleware appends a request middleware function for the client
+func (c *Client) AppendRequestMiddleware(f RequestMiddleware) {
+	if c.RequestMiddlewares == nil {
+		m := make([]RequestMiddleware, 0)
+		c.RequestMiddlewares = &m
+	}
+	*c.RequestMiddlewares = append(*c.RequestMiddlewares, f)
+}
+
+// ClearRequestMiddlewares removes all request middleware functions for the client
+func (c *Client) ClearRequestMiddlewares() {
+	c.RequestMiddlewares = nil
+}
+
+// AppendResponseMiddleware appends a response middleware function for the client
+func (c *Client) AppendResponseMiddleware(f ResponseMiddleware) {
+	if c.ResponseMiddlewares == nil {
+		m := make([]ResponseMiddleware, 0)
+		c.ResponseMiddlewares = &m
+	}
+	*c.ResponseMiddlewares = append(*c.ResponseMiddlewares, f)
+}
+
+// ClearResponseMiddlewares removes all response middleware functions for the client
+func (c *Client) ClearResponseMiddlewares() {
+	c.ResponseMiddlewares = nil
 }
 
 // NewRequest configures a new *Request
@@ -327,14 +386,15 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		return nil, fmt.Errorf("req.Request was nil")
 	}
 
-	// at this point we're ready to send the HTTP Request, as such let's get the Authorization token
-	// and add that to the request
-	if c.Authorizer != nil {
-		token, err := c.Authorizer.Token(ctx, req.Request)
-		if err != nil {
-			return nil, err
+	// Authorize the request
+	if c.AuthorizeRequest != nil {
+		if err := c.AuthorizeRequest(ctx, req.Request, c.Authorizer); err != nil {
+			return nil, fmt.Errorf("authorizing request: %+v", err)
 		}
-		token.SetAuthHeader(req.Request)
+	} else if c.Authorizer != nil {
+		if err := auth.SetAuthHeader(ctx, req.Request, c.Authorizer); err != nil {
+			return nil, fmt.Errorf("authorizing request: %+v", err)
+		}
 	}
 
 	var err error

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PublicMaintenanceConfigurationId{}
+var _ resourceids.ResourceId = &PublicMaintenanceConfigurationId{}
 
 // PublicMaintenanceConfigurationId is a struct representing the Resource ID for a Public Maintenance Configuration
 type PublicMaintenanceConfigurationId struct {
@@ -28,21 +28,15 @@ func NewPublicMaintenanceConfigurationID(subscriptionId string, publicMaintenanc
 
 // ParsePublicMaintenanceConfigurationID parses 'input' into a PublicMaintenanceConfigurationId
 func ParsePublicMaintenanceConfigurationID(input string) (*PublicMaintenanceConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PublicMaintenanceConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&PublicMaintenanceConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PublicMaintenanceConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.PublicMaintenanceConfigurationName, ok = parsed.Parsed["publicMaintenanceConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publicMaintenanceConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParsePublicMaintenanceConfigurationID(input string) (*PublicMaintenanceConf
 // ParsePublicMaintenanceConfigurationIDInsensitively parses 'input' case-insensitively into a PublicMaintenanceConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParsePublicMaintenanceConfigurationIDInsensitively(input string) (*PublicMaintenanceConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PublicMaintenanceConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&PublicMaintenanceConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PublicMaintenanceConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.PublicMaintenanceConfigurationName, ok = parsed.Parsed["publicMaintenanceConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publicMaintenanceConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PublicMaintenanceConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.PublicMaintenanceConfigurationName, ok = input.Parsed["publicMaintenanceConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "publicMaintenanceConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidatePublicMaintenanceConfigurationID checks that 'input' can be parsed as a Public Maintenance Configuration ID

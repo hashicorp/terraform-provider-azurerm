@@ -9,13 +9,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type SourceControlResource struct{}
@@ -41,7 +41,7 @@ func (r SourceControlResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WebAppID,
+			ValidateFunc: commonids.ValidateWebAppID,
 			Description:  "The ID of the Windows or Linux Web App.",
 		},
 
@@ -150,63 +150,63 @@ func (r SourceControlResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.WebAppID(appSourceControl.AppID)
+			id, err := commonids.ParseWebAppID(appSourceControl.AppID)
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil || existing.SiteConfig == nil {
+			existing, err := client.GetConfiguration(ctx, *id)
+			if err != nil || existing.Model == nil || existing.Model.Properties == nil {
 				return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
 			}
-			if existing.SiteConfig.ScmType != web.ScmTypeNone {
+			if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			if appSourceControl.LocalGitSCM {
-				sitePatch := web.SitePatchResource{
-					SitePatchResourceProperties: &web.SitePatchResourceProperties{
-						SiteConfig: &web.SiteConfig{
-							ScmType: web.ScmTypeLocalGit,
+				sitePatch := webapps.SitePatchResource{
+					Properties: &webapps.SitePatchResourceProperties{
+						SiteConfig: &webapps.SiteConfig{
+							ScmType: pointer.To(webapps.ScmTypeLocalGit),
 						},
 					},
 				}
 
-				if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
+				if _, err := client.Update(ctx, *id, sitePatch); err != nil {
 					return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
 				}
 			} else {
-				app, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-				if err != nil || app.Kind == nil {
+				app, err := client.Get(ctx, *id)
+				if err != nil || app.Model == nil || app.Model.Kind == nil {
 					return fmt.Errorf("reading site to determine O/S type for %s: %+v", id, err)
 				}
 
 				usesLinux := false
-				if strings.Contains(strings.ToLower(*app.Kind), "linux") {
+				if strings.Contains(strings.ToLower(*app.Model.Kind), "linux") {
 					usesLinux = true
 				}
 
-				sourceControl := web.SiteSourceControl{
-					SiteSourceControlProperties: &web.SiteSourceControlProperties{
-						IsManualIntegration:       utils.Bool(appSourceControl.ManualIntegration),
-						DeploymentRollbackEnabled: utils.Bool(appSourceControl.RollbackEnabled),
-						IsMercurial:               utils.Bool(appSourceControl.UseMercurial),
+				sourceControl := webapps.SiteSourceControl{
+					Properties: &webapps.SiteSourceControlProperties{
+						IsManualIntegration:       pointer.To(appSourceControl.ManualIntegration),
+						DeploymentRollbackEnabled: pointer.To(appSourceControl.RollbackEnabled),
+						IsMercurial:               pointer.To(appSourceControl.UseMercurial),
 					},
 				}
 
 				if appSourceControl.RepoURL != "" {
-					sourceControl.SiteSourceControlProperties.RepoURL = utils.String(appSourceControl.RepoURL)
+					sourceControl.Properties.RepoUrl = pointer.To(appSourceControl.RepoURL)
 				}
 
 				if appSourceControl.Branch != "" {
-					sourceControl.SiteSourceControlProperties.Branch = utils.String(appSourceControl.Branch)
+					sourceControl.Properties.Branch = pointer.To(appSourceControl.Branch)
 				}
 
 				if ghaConfig := expandGithubActionConfig(appSourceControl.GithubActionConfiguration, usesLinux); ghaConfig != nil {
-					sourceControl.SiteSourceControlProperties.GitHubActionConfiguration = ghaConfig
+					sourceControl.Properties.GitHubActionConfiguration = ghaConfig
 				}
 
-				_, err = client.UpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, sourceControl)
+				_, err = client.UpdateSourceControl(ctx, *id, sourceControl)
 				if err != nil {
 					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
 				}
@@ -224,44 +224,47 @@ func (r SourceControlResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := commonids.ParseWebAppID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
 
-			appSourceControl, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil || appSourceControl.SiteSourceControlProperties == nil {
-				if utils.ResponseWasNotFound(appSourceControl.Response) {
+			appSourceControl, err := client.GetSourceControl(ctx, *id)
+			if err != nil || appSourceControl.Model == nil || appSourceControl.Model.Properties == nil {
+				if response.WasNotFound(appSourceControl.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Source Control for %s: %v", id, err)
 			}
 
-			siteConfig, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
-			if err != nil {
+			siteConfig, err := client.GetConfiguration(ctx, *id)
+			if err != nil || siteConfig.Model == nil || siteConfig.Model.Properties == nil {
 				return fmt.Errorf("reading App for Source Control %s: %v", id, err)
 			}
 
-			if siteConfig.ScmType == web.ScmTypeNone {
+			if pointer.From(siteConfig.Model.Properties.ScmType) == webapps.ScmTypeNone {
 				metadata.Logger.Infof("App %s SCMType is `None` removing Source Control resource from state", id.SiteName)
 				metadata.ResourceData.SetId("")
 			}
 
-			props := *appSourceControl.SiteSourceControlProperties
+			state := SourceControlModel{}
+			if model := appSourceControl.Model; model != nil {
+				props := model.Properties
+				state = SourceControlModel{
+					AppID:                     id.ID(),
+					SCMType:                   string(pointer.From(siteConfig.Model.Properties.ScmType)),
+					RepoURL:                   pointer.From(props.RepoUrl),
+					Branch:                    pointer.From(props.Branch),
+					ManualIntegration:         pointer.From(props.IsManualIntegration),
+					UseMercurial:              pointer.From(props.IsMercurial),
+					RollbackEnabled:           pointer.From(props.DeploymentRollbackEnabled),
+					UsesGithubAction:          pointer.From(props.IsGitHubAction),
+					GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
+					LocalGitSCM:               pointer.From(siteConfig.Model.Properties.ScmType) == webapps.ScmTypeLocalGit,
+				}
 
-			state := SourceControlModel{
-				AppID:                     id.ID(),
-				SCMType:                   string(siteConfig.ScmType),
-				RepoURL:                   utils.NormalizeNilableString(props.RepoURL),
-				Branch:                    utils.NormalizeNilableString(props.Branch),
-				ManualIntegration:         utils.NormaliseNilableBool(props.IsManualIntegration),
-				UseMercurial:              utils.NormaliseNilableBool(props.IsMercurial),
-				RollbackEnabled:           utils.NormaliseNilableBool(props.DeploymentRollbackEnabled),
-				UsesGithubAction:          utils.NormaliseNilableBool(props.IsGitHubAction),
-				GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
-				LocalGitSCM:               siteConfig.ScmType == web.ScmTypeLocalGit,
 			}
 
 			return metadata.Encode(&state)
@@ -274,23 +277,23 @@ func (r SourceControlResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := commonids.ParseWebAppID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			sitePatch := web.SitePatchResource{
-				SitePatchResourceProperties: &web.SitePatchResourceProperties{
-					SiteConfig: &web.SiteConfig{
-						ScmType: web.ScmTypeNone,
+			sitePatch := webapps.SitePatchResource{
+				Properties: &webapps.SitePatchResourceProperties{
+					SiteConfig: &webapps.SiteConfig{
+						ScmType: pointer.To(webapps.ScmTypeNone),
 					},
 				},
 			}
-			if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatch); err != nil {
+			if _, err := client.Update(ctx, *id, sitePatch); err != nil {
 				return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
 			}
 
-			if _, err := client.DeleteSourceControl(ctx, id.ResourceGroup, id.SiteName, ""); err != nil {
+			if _, err := client.DeleteSourceControl(ctx, *id, webapps.DefaultDeleteSourceControlOperationOptions()); err != nil {
 				return fmt.Errorf("deleting Source Control for %s: %v", id, err)
 			}
 
@@ -301,5 +304,5 @@ func (r SourceControlResource) Delete() sdk.ResourceFunc {
 
 func (r SourceControlResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	// This is a meta resource with a 1:1 relationship with the service it's pointed at so we use the same ID
-	return validate.WebAppID
+	return commonids.ValidateAppServiceID
 }
