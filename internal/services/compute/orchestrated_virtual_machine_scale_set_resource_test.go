@@ -1089,9 +1089,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
         protocol = "Http"
       }
 
-      additional_unattend_content {        
+      additional_unattend_content {
         setting = "FirstLogonCommands"
-        content = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"        
+        content = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
       }
 
     }
