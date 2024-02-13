@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -36,6 +37,7 @@ type ContainerAppEnvironmentModel struct {
 	ZoneRedundant                           bool                           `tfschema:"zone_redundancy_enabled"`
 	Tags                                    map[string]interface{}         `tfschema:"tags"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
+	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
@@ -87,6 +89,16 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew:     true,
 			ValidateFunc: workspaces.ValidateWorkspaceID,
 			Description:  "The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.",
+		},
+
+		"infrastructure_resource_group_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"workload_profile"},
+			ValidateFunc: resourcegroups.ValidateName,
+			Description:  "Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.",
 		},
 
 		"infrastructure_subnet_id": {
@@ -195,6 +207,10 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.DaprAIConnectionString = pointer.To(containerAppEnvironment.DaprApplicationInsightsConnectionString)
 			}
 
+			if containerAppEnvironment.InfrastructureResourceGroup != "" {
+				managedEnvironment.Properties.InfrastructureResourceGroup = pointer.To(containerAppEnvironment.InfrastructureResourceGroup)
+			}
+
 			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
 				logAnalyticsId, err := workspaces.ParseWorkspaceID(containerAppEnvironment.LogAnalyticsWorkspaceId)
 				if err != nil {
@@ -286,6 +302,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
+					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 				}
 			}
 
