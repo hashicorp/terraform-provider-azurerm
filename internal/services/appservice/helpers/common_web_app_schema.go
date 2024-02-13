@@ -598,6 +598,7 @@ func applicationLogSchema() *pluginsdk.Schema {
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{ // webapps.LoglevelOff is the implied value when this block is removed.
 						string(webapps.LogLevelError),
+						string(webapps.LogLevelOff),
 						string(webapps.LogLevelInformation),
 						string(webapps.LogLevelVerbose),
 						string(webapps.LogLevelWarning),
