@@ -6,9 +6,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to v0.20240209.1164150 of github.com/hashicorp/go-azure-sdk [GH-24858]
+* dependencies: updating to v0.20240212.1141705 of github.com/hashicorp/go-azure-sdk [GH-24862]
 * `automation`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24858]
 * `maintenance`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
+* `containerspps`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24862]
 * `azurerm_dashboard_grafana` - support for the `smtp` block [GH-24717]
 
 BUG FIXES:
