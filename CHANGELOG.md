@@ -6,7 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to v0.20240212.1141705 of github.com/hashicorp/go-azure-sdk [GH-24862]
+* dependencies: updating to `v0.20240212.1141705` of `github.com/hashicorp/go-azure-sdk` [GH-24862]
 * `automation`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24858]
 * `maintenance`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
 * `containerspps`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24862]
@@ -15,7 +15,8 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_linux_web_app_slot` - `worker_count` now works correctly in `site_config` block [GH-24515]
-* `azurerm_search_service` - fixed the update function to adjust for changed API behavior [GH-24837]
+* `azurerm_private_endpoint` - fixing an issue where updating the Private Endpoint would remove any Application Security Group Association [GH-24846]
+* `azurerm_search_service` - fixed the update function to adjust for changed API behaviour [GH-24837]
 
 ## 3.91.0 (February 08, 2024)
 
