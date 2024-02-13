@@ -4,11 +4,14 @@ package v2023_10_15
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 import (
-	"github.com/Azure/go-autorest/autorest"
+	"fmt"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleetmembers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/updateruns"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
+	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
 type Client struct {
@@ -18,24 +21,35 @@ type Client struct {
 	UpdateRuns            *updateruns.UpdateRunsClient
 }
 
-func NewClientWithBaseURI(endpoint string, configureAuthFunc func(c *autorest.Client)) Client {
-
-	fleetMembersClient := fleetmembers.NewFleetMembersClientWithBaseURI(endpoint)
-	configureAuthFunc(&fleetMembersClient.Client)
-
-	fleetUpdateStrategiesClient := fleetupdatestrategies.NewFleetUpdateStrategiesClientWithBaseURI(endpoint)
-	configureAuthFunc(&fleetUpdateStrategiesClient.Client)
-
-	fleetsClient := fleets.NewFleetsClientWithBaseURI(endpoint)
-	configureAuthFunc(&fleetsClient.Client)
-
-	updateRunsClient := updateruns.NewUpdateRunsClientWithBaseURI(endpoint)
-	configureAuthFunc(&updateRunsClient.Client)
-
-	return Client{
-		FleetMembers:          &fleetMembersClient,
-		FleetUpdateStrategies: &fleetUpdateStrategiesClient,
-		Fleets:                &fleetsClient,
-		UpdateRuns:            &updateRunsClient,
+func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanager.Client)) (*Client, error) {
+	fleetMembersClient, err := fleetmembers.NewFleetMembersClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building FleetMembers client: %+v", err)
 	}
+	configureFunc(fleetMembersClient.Client)
+
+	fleetUpdateStrategiesClient, err := fleetupdatestrategies.NewFleetUpdateStrategiesClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building FleetUpdateStrategies client: %+v", err)
+	}
+	configureFunc(fleetUpdateStrategiesClient.Client)
+
+	fleetsClient, err := fleets.NewFleetsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building Fleets client: %+v", err)
+	}
+	configureFunc(fleetsClient.Client)
+
+	updateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building UpdateRuns client: %+v", err)
+	}
+	configureFunc(updateRunsClient.Client)
+
+	return &Client{
+		FleetMembers:          fleetMembersClient,
+		FleetUpdateStrategies: fleetUpdateStrategiesClient,
+		Fleets:                fleetsClient,
+		UpdateRuns:            updateRunsClient,
+	}, nil
 }
