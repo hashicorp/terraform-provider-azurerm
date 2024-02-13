@@ -16,9 +16,14 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_linux_web_app_slot` - `worker_count` now works correctly in `site_config` block [GH-24515]
+* `azurerm_linux_web_app_slot` - the `worker_count` property now works correctly in the `site_config` block [GH-24515]
+* `azurerm_linux_web_app` - support `off` for the `file_system_level` property [GH-24877]
+* `azurerm_linux_web_app_slot` - support `off` for the `file_system_level` property [GH-24877]
 * `azurerm_private_endpoint` - fixing an issue where updating the Private Endpoint would remove any Application Security Group Association [GH-24846]
 * `azurerm_search_service` - fixed the update function to adjust for changed API behaviour [GH-24837]
+* `azurerm_windows_web_app` - support `off` for the `file_system_level` property [GH-24877]
+* `azurerm_windows_web_app_slot` - support `off` for the `file_system_level` property [GH-24877]
+
 
 ## 3.91.0 (February 08, 2024)
 
