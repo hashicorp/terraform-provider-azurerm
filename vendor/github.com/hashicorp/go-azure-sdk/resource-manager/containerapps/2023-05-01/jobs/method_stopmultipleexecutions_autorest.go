@@ -16,6 +16,7 @@ import (
 type StopMultipleExecutionsOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ContainerAppJobExecutions
 }
 
 // StopMultipleExecutions ...
