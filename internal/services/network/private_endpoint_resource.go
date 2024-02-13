@@ -468,6 +468,19 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("validating the configuration for %s: %+v", id, err)
 	}
 
+	// Ensure we don't overwrite the existing ApplicationSecurityGroups
+	existing, err := client.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving existing %s: `model.Properties` was nil", *id)
+	}
+
+	applicationSecurityGroupAssociation := existing.Model.Properties.ApplicationSecurityGroups
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
@@ -479,6 +492,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	parameters := privateendpoints.PrivateEndpoint{
 		Location: utils.String(location),
 		Properties: &privateendpoints.PrivateEndpointProperties{
+			ApplicationSecurityGroups:           applicationSecurityGroupAssociation,
 			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
 			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
 			Subnet: &privateendpoints.Subnet{
