@@ -63,8 +63,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(daprComponentClient.Client, o.Authorizers.ResourceManager)
 
-	jobsClient := jobs.NewJobsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&jobsClient.Client, o.ResourceManagerAuthorizer)
+	jobsClient, err := jobs.NewJobsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Jobs client : %+v", err)
+	}
+	o.Configure(jobsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		CertificatesClient:         certificatesClient,
@@ -73,6 +76,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		DaprComponentsClient:       daprComponentClient,
 		ManagedEnvironmentClient:   managedEnvironmentClient,
 		StorageClient:              managedEnvironmentStoragesClient,
-		JobClient:                  &jobsClient,
+		JobClient:                  jobsClient,
 	}, nil
 }
