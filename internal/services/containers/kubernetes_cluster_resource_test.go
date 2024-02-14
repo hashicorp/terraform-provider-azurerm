@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -220,6 +221,9 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 		nodePoolName := state.Attributes["default_node_pool.0.name"]
 		clusterName := state.Attributes["name"]
 		resourceGroup := state.Attributes["resource_group_name"]
+
+		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+		defer cancel()
 
 		agentPoolId := agentpools.NewAgentPoolID(clients.Account.SubscriptionId, resourceGroup, clusterName, nodePoolName)
 		nodePool, err := clients.Containers.AgentPoolsClient.Get(ctx, agentPoolId)

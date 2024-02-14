@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -1129,6 +1130,10 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 		nodePoolName := state.Attributes["name"]
 		kubernetesClusterId := state.Attributes["kubernetes_cluster_id"]
 		parsedK8sId, err := commonids.ParseKubernetesClusterID(kubernetesClusterId)
+
+		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+		defer cancel()
+
 		if err != nil {
 			return fmt.Errorf("parsing kubernetes cluster id: %+v", err)
 		}

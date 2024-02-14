@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -52,6 +53,9 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 				// create the temporary node pool to simulate the case where both old default node pool and temp node pool exist
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 					client := clients.Containers.AgentPoolsClient
+
+					ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+					defer cancel()
 
 					id, err := commonids.ParseKubernetesClusterID(state.Attributes["id"])
 					if err != nil {
@@ -105,6 +109,9 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 				// create the temporary node pool and delete the old default node pool to simulate the case where resizing fails when trying to bring up the new node pool
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 					client := clients.Containers.AgentPoolsClient
+
+					ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+					defer cancel()
 
 					id, err := commonids.ParseKubernetesClusterID(state.Attributes["id"])
 					if err != nil {
