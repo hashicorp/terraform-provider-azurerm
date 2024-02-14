@@ -6,9 +6,6 @@ package containers_test
 import (
 	"context"
 	"fmt"
-	"testing"
-	"time"
-
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
@@ -17,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"testing"
+	"time"
 )
 
 type KubernetesClusterResource struct{}
@@ -222,9 +221,6 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 		clusterName := state.Attributes["name"]
 		resourceGroup := state.Attributes["resource_group_name"]
 
-		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
-		defer cancel()
-
 		agentPoolId := agentpools.NewAgentPoolID(clients.Account.SubscriptionId, resourceGroup, clusterName, nodePoolName)
 		nodePool, err := clients.Containers.AgentPoolsClient.Get(ctx, agentPoolId)
 		if err != nil {
@@ -240,6 +236,9 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 		}
 
 		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
+
+		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+		defer cancel()
 
 		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model)
 		if err != nil {

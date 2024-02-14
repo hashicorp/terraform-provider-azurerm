@@ -110,9 +110,6 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 					client := clients.Containers.AgentPoolsClient
 
-					ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
-					defer cancel()
-
 					id, err := commonids.ParseKubernetesClusterID(state.Attributes["id"])
 					if err != nil {
 						return err
@@ -132,6 +129,9 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 					profile := resp.Model
 					profile.Name = &tempNodePoolName
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
+
+					ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+					defer cancel()
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
 					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
