@@ -241,15 +241,17 @@ A `capacity` block supports the following:
 
 A `backup` block supports the following:
 
-* `type` - (Optional) The type of the `backup`. Possible values are `Continuous` and `Periodic`. Defaults to `Periodic`. 
+* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. 
 
 ~> **NOTE:** Migration of `Periodic` to `Continuous` is one-way, changing `Continuous` to `Periodic` forces a new resource to be created.
 
-* `interval_in_minutes` - (Optional) The interval in minutes between two backups. This is configurable only when `type` is `Periodic`. Possible values are between 60 and 1440. Defaults to `240`.
+* `interval_in_minutes` - (Optional) The interval in minutes between two backups. Possible values are between 60 and 1440. Defaults to `240`.
 
-* `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720. Defaults to `8`.
+* `retention_in_hours` - (Optional) The time in hours that each backup is retained. Possible values are between 8 and 720. Defaults to `8`.
 
-* `storage_redundancy` - (Optional) The storage redundancy is used to indicate the type of backup residency. This is configurable only when `type` is `Periodic`. Possible values are `Geo`, `Local` and `Zone`. Defaults to `Geo`.
+* `storage_redundancy` - (Optional) The storage redundancy is used to indicate the type of backup residency. Possible values are `Geo`, `Local` and `Zone`. Defaults to `Geo`.
+
+~> **NOTE:** You can only configure `interval_in_minutes`, `retention_in_hours` and `storage_redundancy` when the `type` field is set to `Periodic`.
 
 ---
 
