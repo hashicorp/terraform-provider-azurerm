@@ -1,6 +1,10 @@
 package jobs
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -27,6 +31,19 @@ func PossibleValuesForJobExecutionRunningState() []string {
 		string(JobExecutionRunningStateSucceeded),
 		string(JobExecutionRunningStateUnknown),
 	}
+}
+
+func (s *JobExecutionRunningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseJobExecutionRunningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseJobExecutionRunningState(input string) (*JobExecutionRunningState, error) {
@@ -68,6 +85,19 @@ func PossibleValuesForJobProvisioningState() []string {
 	}
 }
 
+func (s *JobProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseJobProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseJobProvisioningState(input string) (*JobProvisioningState, error) {
 	vals := map[string]JobProvisioningState{
 		"canceled":   JobProvisioningStateCanceled,
@@ -99,6 +129,19 @@ func PossibleValuesForScheme() []string {
 	}
 }
 
+func (s *Scheme) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScheme(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScheme(input string) (*Scheme, error) {
 	vals := map[string]Scheme{
 		"http":  SchemeHTTP,
@@ -127,6 +170,19 @@ func PossibleValuesForStorageType() []string {
 		string(StorageTypeEmptyDir),
 		string(StorageTypeSecret),
 	}
+}
+
+func (s *StorageType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStorageType(input string) (*StorageType, error) {
@@ -160,6 +216,19 @@ func PossibleValuesForTriggerType() []string {
 	}
 }
 
+func (s *TriggerType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTriggerType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTriggerType(input string) (*TriggerType, error) {
 	vals := map[string]TriggerType{
 		"event":    TriggerTypeEvent,
@@ -189,6 +258,19 @@ func PossibleValuesForType() []string {
 		string(TypeReadiness),
 		string(TypeStartup),
 	}
+}
+
+func (s *Type) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseType(input string) (*Type, error) {
