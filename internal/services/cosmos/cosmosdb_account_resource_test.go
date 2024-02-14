@@ -992,14 +992,14 @@ func TestAccCosmosDBAccount_identity(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_icmRegression(t *testing.T) {
-	// Regression test for the Microsoft IcM 466814988...
+func TestAccCosmosDBAccount_storageRedundancyRegression(t *testing.T) {
+	// Regression test for the MSFT Ticket...
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.icmRegression(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.storageRedundancyRegression(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
@@ -3407,7 +3407,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) icmRegression(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) storageRedundancyRegression(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

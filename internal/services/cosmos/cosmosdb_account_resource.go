@@ -1909,22 +1909,22 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 	switch attr["type"].(string) {
 	case string(cosmosdb.BackupPolicyTypeContinuous):
 		if v := attr["interval_in_minutes"].(int); v != 0 && !backupHasChange {
-			return nil, fmt.Errorf("`interval_in_minutes` cannot be defined when the `backup.type` is set to %q", string(cosmosdb.BackupPolicyTypeContinuous))
+			return nil, fmt.Errorf("`interval_in_minutes` cannot be defined when the `backup.type` is set to %q", cosmosdb.BackupPolicyTypeContinuous)
 		}
 
 		if v := attr["retention_in_hours"].(int); v != 0 && !backupHasChange {
-			return nil, fmt.Errorf("`retention_in_hours` cannot be defined when the `backup.type` is set to %q", string(cosmosdb.BackupPolicyTypeContinuous))
+			return nil, fmt.Errorf("`retention_in_hours` cannot be defined when the `backup.type` is set to %q", cosmosdb.BackupPolicyTypeContinuous)
 		}
 
 		if v := attr["storage_redundancy"].(string); v != "" && !backupHasChange {
-			return nil, fmt.Errorf("`storage_redundancy` cannot be defined when the `backup.type` is set to %q", string(cosmosdb.BackupPolicyTypeContinuous))
+			return nil, fmt.Errorf("`storage_redundancy` cannot be defined when the `backup.type` is set to %q", cosmosdb.BackupPolicyTypeContinuous)
 		}
 
 		return cosmosdb.ContinuousModeBackupPolicy{}, nil
 
 	case string(cosmosdb.BackupPolicyTypePeriodic):
 		if createMode != "" {
-			return nil, fmt.Errorf("`create_mode` can only be defined when the `backup.type` is set to %q, got %q", string(cosmosdb.BackupPolicyTypeContinuous), string(cosmosdb.BackupPolicyTypePeriodic))
+			return nil, fmt.Errorf("`create_mode` can only be defined when the `backup.type` is set to %q, got %q", cosmosdb.BackupPolicyTypeContinuous, cosmosdb.BackupPolicyTypePeriodic)
 		}
 
 		// Mirror the behavior of the old SDK...
