@@ -18,6 +18,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_container_app_environment`: avoid unwanted changes when updating and using `log_analytics_workspace_id` [GH-24303]
+* `azurerm_data_factory` - allow the `git_url` property to be blank/empty [GH-24879]
 * `azurerm_linux_web_app_slot` - the `worker_count` property now works correctly in the `site_config` block [GH-24515]
 * `azurerm_linux_web_app` - support `off` for the `file_system_level` property [GH-24877]
 * `azurerm_linux_web_app_slot` - support `off` for the `file_system_level` property [GH-24877]
