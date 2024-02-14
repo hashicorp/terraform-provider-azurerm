@@ -63,7 +63,7 @@ A `github_configuration` block supports the following:
 
 * `branch_name` - (Required) Specifies the branch of the repository to get code from.
 
-* `git_url` - (Required) Specifies the GitHub Enterprise host name. For example: <https://github.mydomain.com>. Use <https://github.com> for open source repositories.
+* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: <https://github.mydomain.com>. Use <https://github.com> for open source repositories.
 
 * `repository_name` - (Required) Specifies the name of the git repository.
 
