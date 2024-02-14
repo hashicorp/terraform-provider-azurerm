@@ -319,7 +319,7 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     container {
-      image = "repo/testcontainerAppsJob0:v1"
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name  = "testcontainerappsjob0"
       liveness_probe {
         transport = "HTTP"
@@ -364,7 +364,7 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     container {
-      image = "repo/testcontainerAppsJob0:v1"
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name  = "testcontainerappsjob0"
       liveness_probe {
         transport = "HTTP"
@@ -402,19 +402,19 @@ resource "azurerm_container_app_job" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
 
   replica_timeout_in_seconds = 1800
-  replica_retry_limit        = 0
+  replica_retry_limit        = 10
   schedule_trigger_config {
     cron_expression          = "*/1 * * * *"
     parallelism              = 1
     replica_completion_count = 1
   }
   template {
-    volumes {
+    volume {
       name         = "appsettings-volume"
       storage_type = "EmptyDir"
     }
     container {
-      image = "repo/testcontainerAppsJob0:v1"
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name  = "testcontainerappsjob0"
       liveness_probe {
         transport = "HTTP"
@@ -463,7 +463,7 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     container {
-      image  = "repo/testcontainerAppsJob0:v1"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
       memory = "1Gi"
@@ -503,7 +503,7 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     container {
-      image  = "repo/testcontainerAppsJob0:v1"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
       memory = "1Gi"
@@ -536,7 +536,7 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     container {
-      image  = "repo/testcontainerAppsJob0:v1"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
       memory = "1Gi"
@@ -576,7 +576,7 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     container {
-      image  = "repo/testcontainerAppsJob0:v1"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
       memory = "1Gi"
@@ -609,8 +609,8 @@ resource "azurerm_container_app_job" "test" {
   }
 
   template {
-    containers {
-      image  = "repo/testcontainerAppsJob0:v1"
+    container {
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name   = "testcontainerappsjob0"
       cpu    = 0.5
       memory = "1Gi"
@@ -639,7 +639,7 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     container {
-      image  = "repo/testcontainerAppsJob0:v1"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name   = "testcontainerappsjob0"
       cpu    = 0.25
       memory = "0.5Gi"
@@ -669,11 +669,11 @@ resource "azurerm_container_app_job" "test" {
     parallelism              = 4
     replica_completion_count = 1
   }
-  secret {
+  secrets {
     name  = "registry-password"
     value = azurerm_container_registry.test.admin_password
   }
-  registry {
+  registries {
     server               = azurerm_container_registry.test.login_server
     username             = azurerm_container_registry.test.admin_username
     password_secret_name = "registry-password"
@@ -693,7 +693,7 @@ resource "azurerm_container_app_job" "test" {
       command = [
         "/bin/sh",
       ]
-      image = "repo/testcontainerAppsJob0:v1"
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name  = "testcontainerappsjob0"
       readiness_probe {
         transport = "HTTP"
@@ -730,7 +730,7 @@ resource "azurerm_container_app_job" "test" {
 
     init_container {
       name   = "init-cont-%[2]d"
-      image  = "repo/testcontainerAppsJob0:v1"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
@@ -768,12 +768,12 @@ resource "azurerm_container_app_job" "test" {
     replica_completion_count = 2
   }
 
-  secret {
+  secrets {
     name  = "registry-password"
     value = azurerm_container_registry.test.admin_password
   }
 
-  registry {
+  registries {
     server               = azurerm_container_registry.test.login_server
     username             = azurerm_container_registry.test.admin_username
     password_secret_name = "registry-password"
@@ -793,7 +793,7 @@ resource "azurerm_container_app_job" "test" {
       command = [
         "/bin/sh",
       ]
-      image = "repo/testcontainerAppsJob0:v1"
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       name  = "testcontainerappsjob0"
       readiness_probe {
         transport = "HTTP"
@@ -832,7 +832,7 @@ resource "azurerm_container_app_job" "test" {
 
     init_container {
       name   = "init-cont-%[2]d"
-      image  = "repo/testcontainerAppsJob0:v1"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
