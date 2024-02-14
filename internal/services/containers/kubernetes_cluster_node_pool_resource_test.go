@@ -6,6 +6,11 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
@@ -16,10 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"regexp"
-	"strings"
-	"testing"
-	"time"
 )
 
 type KubernetesClusterNodePoolResource struct{}
