@@ -48,7 +48,7 @@ func TestAccRedisCache_managedIdentityAuth(t *testing.T) {
 				check.That(data.ResourceName).Key("minimum_tls_version").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
-				check.That(data.ResourceName).Key("redis_configuration.0.preferred_data_persistence_auth_method").HasValue("ManagedIdentity"),
+				check.That(data.ResourceName).Key("redis_configuration.0.data_persistence_authentication_method").HasValue("ManagedIdentity"),
 			),
 		},
 		data.ImportStep(),
@@ -624,7 +624,7 @@ resource "azurerm_redis_cache" "test" {
   minimum_tls_version = "1.2"
 
   redis_configuration {
-    preferred_data_persistence_auth_method = "ManagedIdentity"
+    data_persistence_authentication_method = "ManagedIdentity"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !requireSSL)

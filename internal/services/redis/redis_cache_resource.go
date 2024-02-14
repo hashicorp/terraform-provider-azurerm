@@ -179,7 +179,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"preferred_data_persistence_auth_method": {
+						"data_persistence_authentication_method": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "SAS",
@@ -840,7 +840,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		output.MaxmemoryPolicy = utils.String(v)
 	}
 
-	if v := raw["preferred_data_persistence_auth_method"].(string); v != "" {
+	if v := raw["data_persistence_authentication_method"].(string); v != "" {
 		output.PreferredDataPersistenceAuthMethod = utils.String(v)
 	}
 
@@ -1015,7 +1015,7 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 	}
 
 	if input.PreferredDataPersistenceAuthMethod != nil {
-		outputs["preferred_data_persistence_auth_method"] = *input.PreferredDataPersistenceAuthMethod
+		outputs["data_persistence_authentication_method"] = *input.PreferredDataPersistenceAuthMethod
 	}
 
 	if input.MaxfragmentationmemoryReserved != nil {
