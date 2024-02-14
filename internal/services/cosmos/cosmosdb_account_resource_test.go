@@ -992,14 +992,17 @@ func TestAccCosmosDBAccount_identity(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_storageRedundancyRegression(t *testing.T) {
-	// Regression test for the MSFT Ticket...
+func TestAccCosmosDBAccount_storageRedundancyUndefined(t *testing.T) {
+	// Regression test for MSFT IcM where the SDK is supplied a 'nil' pointer for the
+	// 'storage_redundancy' field, the new transport layer would send an 'empty' string
+	// instead of omitting the field from the PUT call which would result in the API
+	// returning an error...
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageRedundancyRegression(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.storageRedundancyUndefined(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
@@ -3407,7 +3410,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) storageRedundancyRegression(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) storageRedundancyUndefined(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
