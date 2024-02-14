@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* provider: support for the feature flag `postgresql_flexible_server.restart_server_on_configuration_value_change property` [GH-23811]
 * dependencies: updating to `v0.20240213.1120950` of `github.com/hashicorp/go-azure-sdk` [GH-24872]
 * `automation`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24858]
 * `maintenance`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
