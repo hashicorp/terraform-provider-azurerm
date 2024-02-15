@@ -765,7 +765,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("stroage_tier") {
+	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
