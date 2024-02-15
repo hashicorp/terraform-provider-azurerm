@@ -581,7 +581,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 		d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetID)
-		d.Set("public_network_access_enabled", props.PublicNetworkAccess)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == helpers.PublicNetworkAccessEnabled )
 
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
