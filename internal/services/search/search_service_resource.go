@@ -356,13 +356,11 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	// object by removing all of the READ-ONLY fields from the model...
 	// (e.g., privateEndpointConnections, provisioningState, sharedPrivateLinkResources,
 	// status and statusDetails)
-	payload := services.SearchService{
-		Identity:   model.Identity,
-		Location:   model.Location,
-		Properties: pointer.To(services.SearchServiceProperties{}),
-		Sku:        model.Sku,
-		Tags:       model.Tags,
-	}
+	model.Properties.PrivateEndpointConnections = nil
+	model.Properties.ProvisioningState = nil
+	model.Properties.SharedPrivateLinkResources = nil
+	model.Properties.Status = nil
+	model.Properties.StatusDetails = nil
 
 	if d.HasChange("customer_managed_key_enforcement_enabled") {
 		cmkEnforcement := services.SearchEncryptionWithCmkDisabled
@@ -370,7 +368,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			cmkEnforcement = services.SearchEncryptionWithCmkEnabled
 		}
 
-		payload.Properties.EncryptionWithCmk = &services.EncryptionWithCmk{
+		model.Properties.EncryptionWithCmk = &services.EncryptionWithCmk{
 			Enforcement: pointer.To(cmkEnforcement),
 		}
 	}
@@ -385,7 +383,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("'hosting_mode' can only be set to %q if the 'sku' is %q, got %q", services.HostingModeHighDensity, services.SkuNameStandardThree, pointer.From(model.Sku.Name))
 		}
 
-		payload.Properties.HostingMode = pointer.To(hostingMode)
+		model.Properties.HostingMode = pointer.To(hostingMode)
 	}
 
 	if d.HasChange("identity") {
@@ -394,7 +392,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 
-		payload.Identity = expandedIdentity
+		model.Identity = expandedIdentity
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -403,7 +401,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			publicNetworkAccess = services.PublicNetworkAccessDisabled
 		}
 
-		payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	if d.HasChanges("authentication_failure_mode", "local_authentication_enabled") {
@@ -434,8 +432,8 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			authenticationOptions = nil
 		}
 
-		payload.Properties.DisableLocalAuth = pointer.To(!localAuthenticationEnabled)
-		payload.Properties.AuthOptions = authenticationOptions
+		model.Properties.DisableLocalAuth = pointer.To(!localAuthenticationEnabled)
+		model.Properties.AuthOptions = authenticationOptions
 	}
 
 	if d.HasChange("replica_count") {
@@ -444,7 +442,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return err
 		}
 
-		payload.Properties.ReplicaCount = pointer.To(replicaCount)
+		model.Properties.ReplicaCount = pointer.To(replicaCount)
 	}
 
 	if d.HasChange("partition_count") {
@@ -460,13 +458,13 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
 		}
 
-		payload.Properties.PartitionCount = pointer.To(partitionCount)
+		model.Properties.PartitionCount = pointer.To(partitionCount)
 	}
 
 	if d.HasChange("allowed_ips") {
 		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 
-		payload.Properties.NetworkRuleSet = &services.NetworkRuleSet{
+		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
 			IPRules: expandSearchServiceIPRules(ipRulesRaw),
 		}
 	}
@@ -482,14 +480,14 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("`semantic_search_sku` can only be specified when `sku` is not set to %q", string(services.SkuNameFree))
 		}
 
-		payload.Properties.SemanticSearch = pointer.To(semanticSearchSku)
+		model.Properties.SemanticSearch = pointer.To(semanticSearchSku)
 	}
 
 	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if err = client.CreateOrUpdateThenPoll(ctx, *id, payload, services.CreateOrUpdateOperationOptions{}); err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, *id, model, services.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
