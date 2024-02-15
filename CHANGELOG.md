@@ -16,6 +16,8 @@ ENHANCEMENTS:
 * `azurerm_container_app_environment`: support for `infrastructure_resource_group_name` [GH-24361]
 * `azurerm_cosmosdb_account` - add default values for the `consistency_policy` code block [GH-24830]
 * `azurerm_dashboard_grafana` - support for the `smtp` block [GH-24717]
+* `azurerm_key_vault_certificates` - support for the `tags` property [GH-24857]
+* `azurerm_key_vault_secrets` - support for the `tags` property [GH-24857]
 * `azurerm_orchestrated_virtual_machine_scale_set` - support for the `additional_unattend_content` block [GH-24292]
 
 BUG FIXES:
