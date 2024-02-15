@@ -80,6 +80,7 @@ func (r ManagementGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Sche
 					"locale": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Computed: true, // TODO: make this required in 4.0
 						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForCultureCode(), false),
 					},
 
