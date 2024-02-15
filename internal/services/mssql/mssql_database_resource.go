@@ -324,6 +324,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		if _, dbok := d.GetOk("restore_dropped_database_id"); !dbok {
 			return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode)
 		}
+	case databases.CreateModeRestoreLongTermRetentionBackup:
+		if _, dbok := d.GetOk("recovery_point_id"); !dbok {
+			return fmt.Errorf("'recovery_point_id' is required for create_mode %s", createMode)
+		}
 	}
 
 	// we should not specify the value of `maintenance_configuration_name` when `elastic_pool_id` is set since its value depends on the elastic pool's `maintenance_configuration_name` value.
@@ -375,6 +379,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("recover_database_id"); ok {
 		input.Properties.RecoverableDatabaseId = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("recovery_point_id"); ok {
+		input.Properties.RecoveryServicesRecoveryPointId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("restore_dropped_database_id"); ok {
@@ -1004,6 +1012,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		props.RecoverableDatabaseId = pointer.To(d.Get("recover_database_id").(string))
 	}
 
+	if d.HasChange("recovery_point_id") {
+		props.RecoveryServicesRecoveryPointId = pointer.To(d.Get("recover_database_id").(string))
+	}
+
 	if d.HasChange("restore_dropped_database_id") {
 		props.RestorableDroppedDatabaseId = pointer.To(d.Get("restore_dropped_database_id").(string))
 	}
@@ -1412,6 +1424,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				false),
 			ConflictsWith: []string{"import"},
 		},
+
 		"import": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -1520,6 +1533,12 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.RecoverableDatabaseID,
+		},
+
+		"recovery_point_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"restore_dropped_database_id": {
