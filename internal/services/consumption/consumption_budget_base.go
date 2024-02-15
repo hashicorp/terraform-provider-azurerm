@@ -178,6 +178,7 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 					"locale": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Computed: true, // TODO: make this required in 4.0
 						ValidateFunc: validation.StringInSlice(budgets.PossibleValuesForCultureCode(), false),
 					},
 
