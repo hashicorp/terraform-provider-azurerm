@@ -69,7 +69,8 @@ resource "azurerm_postgresql_flexible_server" "example" {
   administrator_password = "H@Sh1CoR3!"
   zone                   = "1"
 
-  storage_mb = 32768
+  storage_mb   = 32768
+  storage_tier = "P30"
 
   sku_name   = "GP_Standard_D4s_v3"
   depends_on = [azurerm_private_dns_zone_virtual_network_link.example]
@@ -134,6 +135,8 @@ The following arguments are supported:
 * `auto_grow_enabled` - (Optional) Is the storage auto grow for PostgreSQL Flexible Server enabled? Defaults to `false`.
 
 * `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
+
+* `storage_tier` - (Optional) The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Possible values are `P10`,`P15`,`P2`, `P20`,`P3`, `P30`,`P4`, `P40`,`P50`,`P6`, `P60`, `P70` or `P80`. Defaults to `P20`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 

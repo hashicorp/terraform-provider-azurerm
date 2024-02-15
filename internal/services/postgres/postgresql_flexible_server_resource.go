@@ -133,6 +133,26 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
+			"storage_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(servers.AzureManagedDiskPerformanceTiersPTwoZero),
+				ValidateFunc: validation.StringInSlice([]string{string(servers.AzureManagedDiskPerformanceTiersPFiveZero),
+					string(servers.AzureManagedDiskPerformanceTiersPFour),
+					string(servers.AzureManagedDiskPerformanceTiersPFourZero),
+					string(servers.AzureManagedDiskPerformanceTiersPOne),
+					string(servers.AzureManagedDiskPerformanceTiersPOneFive),
+					string(servers.AzureManagedDiskPerformanceTiersPOneZero),
+					string(servers.AzureManagedDiskPerformanceTiersPSevenZero),
+					string(servers.AzureManagedDiskPerformanceTiersPSix),
+					string(servers.AzureManagedDiskPerformanceTiersPSixZero),
+					string(servers.AzureManagedDiskPerformanceTiersPThree),
+					string(servers.AzureManagedDiskPerformanceTiersPThreeZero),
+					string(servers.AzureManagedDiskPerformanceTiersPTwo),
+					string(servers.AzureManagedDiskPerformanceTiersPTwoZero),
+				}, false),
+			},
+
 			"version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -573,6 +593,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				if storage.StorageSizeGB != nil {
 					d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
 				}
+
+				if storage.Tier != nil {
+					d.Set("storage_tier", string(*storage.Tier))
+				}
 			}
 
 			if backup := props.Backup; backup != nil {
@@ -741,7 +765,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") {
+	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("stroage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
@@ -899,6 +923,10 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 
 	if v, ok := d.GetOk("storage_mb"); ok {
 		storage.StorageSizeGB = utils.Int64(int64(v.(int) / 1024))
+	}
+
+	if v, ok := d.GetOk("storage_tier"); ok {
+		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
 	}
 
 	return &storage
