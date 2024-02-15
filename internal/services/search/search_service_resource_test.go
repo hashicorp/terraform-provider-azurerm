@@ -761,10 +761,10 @@ resource "azurerm_search_service" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
 
-  replica_count = 1
-  partition_count = 1
+  replica_count                 = 1
+  partition_count               = 1
   public_network_access_enabled = false
-  local_authentication_enabled = %t
+  local_authentication_enabled  = %t
 }
 `, template, data.RandomInteger, localAuthEnabled)
 }
