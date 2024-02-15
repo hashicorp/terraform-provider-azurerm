@@ -133,14 +133,12 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 
 			"smb_non_browsable_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 
 			"smb_access_based_enumeration_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 		},
 	}
