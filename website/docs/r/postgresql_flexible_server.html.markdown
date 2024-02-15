@@ -114,7 +114,7 @@ The following arguments are supported:
 
 * `private_dns_zone_id` - (Optional) The ID of the private DNS zone to create the PostgreSQL Flexible Server.
 
-~> **NOTE:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private DNS zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
+~> **Note:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private DNS zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
 
@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `replication_role` - (Optional) The replication role for the PostgreSQL Flexible Server. Possible value is `None`.
 
-~> **NOTE:** The `replication_role` cannot be set while creating and only can be updated to `None` for replica server.
+~> **Note:** The `replication_role` cannot be set while creating and only can be updated to `None` for replica server.
 
 * `sku_name` - (Optional) The SKU Name for the PostgreSQL Flexible Server. The name of the SKU, follows the `tier` + `name` pattern (e.g. `B_Standard_B1ms`, `GP_Standard_D2s_v3`, `MO_Standard_E4s_v3`).
 
@@ -137,6 +137,8 @@ The following arguments are supported:
 * `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
 
 * `storage_tier` - (Optional) The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Possible values are `P10`,`P15`,`P2`, `P20`,`P3`, `P30`,`P4`, `P40`,`P50`,`P6`, `P60`, `P70` or `P80`. Defaults to `P20`.
+
+~> **Note:** You can only scale down the storage performance tier of your PostgreSQL Flexible Server 12 hours after scaling up. This restriction is in place to ensure stability and performance after any changes to your PostgreSQL Flexible Server's configuration.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
@@ -176,7 +178,7 @@ A `customer_managed_key` block supports the following:
 
 * `geo_backup_user_assigned_identity_id` - (Optional) The geo backup user managed identity id for a Customer Managed Key. Should be added with `identity_ids`. It can't cross region and need identity in same region as geo backup.
 
-~> **NOTE:** `primary_user_assigned_identity_id` or `geo_backup_user_assigned_identity_id` is required when `type` is set to `UserAssigned`.
+~> **Note:** `primary_user_assigned_identity_id` or `geo_backup_user_assigned_identity_id` is required when `type` is set to `UserAssigned`.
 
 ---
 
