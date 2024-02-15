@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -236,6 +237,9 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 		}
 
 		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
+
+		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+		defer cancel()
 
 		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model)
 		if err != nil {
