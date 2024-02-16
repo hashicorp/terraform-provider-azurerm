@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_key_vault_certificates` - support for the `tags` property [GH-24857]
 * `azurerm_key_vault_secrets` - support for the `tags` property [GH-24857]
 * `azurerm_orchestrated_virtual_machine_scale_set` - support for the `additional_unattend_content` block [GH-24292]
+* `azurerm_virtual_desktop_host_pool` - support for the `vm_template` property [GH-24369]
 
 BUG FIXES:
 
