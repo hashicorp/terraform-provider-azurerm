@@ -10,6 +10,10 @@ ENHANCEMENTS:
 * `sqlvirtualmachines`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24912]
 * `azurerm_redis_cache` - support for the `preferred_data_persistence_auth_method` property [GH-24370]
 
+BUG FIXES:
+
+* `azurerm_kusto_cluster` - `optimized_auto_scale` is now updated after `sku` has been updated [GH-24906]
+
 ## 3.92.0 (February 15, 2024)
 
 FEATURES:
