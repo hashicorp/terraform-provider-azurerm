@@ -1813,6 +1813,10 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
+				"max_surge": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -1831,6 +1835,7 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 		MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             utils.String(raw["pause_time_between_batches"].(string)),
 		PrioritizeUnhealthyInstances:        utils.Bool(raw["prioritize_unhealthy_instances_enabled"].(bool)),
+		MaxSurge:                            utils.Bool(raw["max_surge"].(bool)),
 	}
 
 	enableCrossZoneUpgrade := raw["cross_zone_upgrades_enabled"].(bool)
@@ -1879,6 +1884,11 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 		prioritizeUnhealthyInstances = *input.PrioritizeUnhealthyInstances
 	}
 
+	maxSurge := false
+	if input.MaxSurge != nil {
+		maxSurge = *input.MaxSurge
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"cross_zone_upgrades_enabled":             enableCrossZoneUpgrade,
@@ -1887,6 +1897,7 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *compute.RollingUpg
 			"max_unhealthy_upgraded_instance_percent": maxUnhealthyUpgradedInstancePercent,
 			"pause_time_between_batches":              pauseTimeBetweenBatches,
 			"prioritize_unhealthy_instances_enabled":  prioritizeUnhealthyInstances,
+			"max_surge":                               maxSurge,
 		},
 	}
 }
