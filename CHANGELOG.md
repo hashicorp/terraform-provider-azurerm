@@ -1,40 +1,40 @@
-## 3.92.0 (Unreleased)
+## 3.92.0 (February 15, 2024)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_virtual_desktop_application_group` [GH-24771]
+* **New Data Source**: `azurerm_virtual_desktop_application_group` ([#24771](https://github.com/hashicorp/terraform-provider-azurerm/issues/24771))
 
 ENHANCEMENTS:
 
-* provider: support for the feature flag `postgresql_flexible_server.restart_server_on_configuration_value_change property` [GH-23811]
-* dependencies: updating to v0.20240214.1142753 of `github.com/hashicorp/go-azure-sdk` [GH-24889]
-* `automation`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24858]
-* `maintenance`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24819]
-* `containerapps`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24862]
-* `containerservices`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24872]
-* `timeseriesinsights`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24889]
-* `azurerm_container_app_environment`: support for the `infrastructure_resource_group_name` property [GH-24361]
-* `azurerm_cost_anomaly_alert` - support for the `subscription_id` property [GH-24258]
-* `azurerm_cosmosdb_account` - add default values for the `consistency_policy` code block [GH-24830]
-* `azurerm_dashboard_grafana` - support for the `smtp` block [GH-24717]
-* `azurerm_key_vault_certificates` - support for the `tags` property [GH-24857]
-* `azurerm_key_vault_secrets` - support for the `tags` property [GH-24857]
-* `azurerm_orchestrated_virtual_machine_scale_set` - support for the `additional_unattend_content` block [GH-24292]
-* `azurerm_virtual_desktop_host_pool` - support for the `vm_template` property [GH-24369]
+* provider: support for the feature flag `postgresql_flexible_server.restart_server_on_configuration_value_change property` ([#23811](https://github.com/hashicorp/terraform-provider-azurerm/issues/23811))
+* dependencies: updating to v0.20240214.1142753 of `github.com/hashicorp/go-azure-sdk` ([#24889](https://github.com/hashicorp/terraform-provider-azurerm/issues/24889))
+* `automation`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#24858](https://github.com/hashicorp/terraform-provider-azurerm/issues/24858))
+* `maintenance`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#24819](https://github.com/hashicorp/terraform-provider-azurerm/issues/24819))
+* `containerapps`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#24862](https://github.com/hashicorp/terraform-provider-azurerm/issues/24862))
+* `containerservices`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#24872](https://github.com/hashicorp/terraform-provider-azurerm/issues/24872))
+* `timeseriesinsights`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#24889](https://github.com/hashicorp/terraform-provider-azurerm/issues/24889))
+* `azurerm_container_app_environment`: support for the `infrastructure_resource_group_name` property ([#24361](https://github.com/hashicorp/terraform-provider-azurerm/issues/24361))
+* `azurerm_cost_anomaly_alert` - support for the `subscription_id` property ([#24258](https://github.com/hashicorp/terraform-provider-azurerm/issues/24258))
+* `azurerm_cosmosdb_account` - add default values for the `consistency_policy` code block ([#24830](https://github.com/hashicorp/terraform-provider-azurerm/issues/24830))
+* `azurerm_dashboard_grafana` - support for the `smtp` block ([#24717](https://github.com/hashicorp/terraform-provider-azurerm/issues/24717))
+* `azurerm_key_vault_certificates` - support for the `tags` property ([#24857](https://github.com/hashicorp/terraform-provider-azurerm/issues/24857))
+* `azurerm_key_vault_secrets` - support for the `tags` property ([#24857](https://github.com/hashicorp/terraform-provider-azurerm/issues/24857))
+* `azurerm_orchestrated_virtual_machine_scale_set` - support for the `additional_unattend_content` block ([#24292](https://github.com/hashicorp/terraform-provider-azurerm/issues/24292))
+* `azurerm_virtual_desktop_host_pool` - support for the `vm_template` property ([#24369](https://github.com/hashicorp/terraform-provider-azurerm/issues/24369))
 
 BUG FIXES:
 
-* `azurerm_container_app_environment`: avoid unwanted changes when updating and using `log_analytics_workspace_id` [GH-24303]
-* `azurerm_cosmosdb_account` - fixed regression in the `backup` code block [GH-24830]
-* `azurerm_data_factory` - allow the `git_url` property to be blank/empty [GH-24879]
-* `azurerm_linux_web_app_slot` - the `worker_count` property now works correctly in the `site_config` block [GH-24515]
-* `azurerm_linux_web_app` - support `off` for the `file_system_level` property [GH-24877]
-* `azurerm_linux_web_app_slot` - support `off` for the `file_system_level` property [GH-24877]
-* `azurerm_private_endpoint` - fixing an issue where updating the Private Endpoint would remove any Application Security Group Association [GH-24846]
-* `azurerm_search_service` - fixed the update function to adjust for changed API behaviour [GH-24837]
-* `azurerm_search_service` - fixed the update function to adjust for changed API behaviour [GH-24903]
-* `azurerm_windows_web_app` - support `off` for the `file_system_level` property [GH-24877]
-* `azurerm_windows_web_app_slot` - support `off` for the `file_system_level` property [GH-24877]
+* `azurerm_container_app_environment`: avoid unwanted changes when updating and using `log_analytics_workspace_id` ([#24303](https://github.com/hashicorp/terraform-provider-azurerm/issues/24303))
+* `azurerm_cosmosdb_account` - fixed regression in the `backup` code block ([#24830](https://github.com/hashicorp/terraform-provider-azurerm/issues/24830))
+* `azurerm_data_factory` - allow the `git_url` property to be blank/empty ([#24879](https://github.com/hashicorp/terraform-provider-azurerm/issues/24879))
+* `azurerm_linux_web_app_slot` - the `worker_count` property now works correctly in the `site_config` block ([#24515](https://github.com/hashicorp/terraform-provider-azurerm/issues/24515))
+* `azurerm_linux_web_app` - support `off` for the `file_system_level` property ([#24877](https://github.com/hashicorp/terraform-provider-azurerm/issues/24877))
+* `azurerm_linux_web_app_slot` - support `off` for the `file_system_level` property ([#24877](https://github.com/hashicorp/terraform-provider-azurerm/issues/24877))
+* `azurerm_private_endpoint` - fixing an issue where updating the Private Endpoint would remove any Application Security Group Association ([#24846](https://github.com/hashicorp/terraform-provider-azurerm/issues/24846))
+* `azurerm_search_service` - fixed the update function to adjust for changed API behaviour ([#24837](https://github.com/hashicorp/terraform-provider-azurerm/issues/24837))
+* `azurerm_search_service` - fixed the update function to adjust for changed API behaviour ([#24903](https://github.com/hashicorp/terraform-provider-azurerm/issues/24903))
+* `azurerm_windows_web_app` - support `off` for the `file_system_level` property ([#24877](https://github.com/hashicorp/terraform-provider-azurerm/issues/24877))
+* `azurerm_windows_web_app_slot` - support `off` for the `file_system_level` property ([#24877](https://github.com/hashicorp/terraform-provider-azurerm/issues/24877))
 
 ## 3.91.0 (February 08, 2024)
 
