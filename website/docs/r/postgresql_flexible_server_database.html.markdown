@@ -32,7 +32,7 @@ resource "azurerm_postgresql_flexible_server" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server_database" "example" {
-  name      = "example-db"
+  name      = "exampledb"
   server_id = azurerm_postgresql_flexible_server.example.id
   collation = "en_US.utf8"
   charset   = "utf8"
@@ -48,7 +48,7 @@ resource "azurerm_postgresql_flexible_server_database" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Azure PostgreSQL Flexible Server Database. Changing this forces a new Azure PostgreSQL Flexible Server Database to be created.
+* `name` - (Required) Specifies the name of the PostgreSQL Database, which needs [to be a valid PostgreSQL identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS). Changing this forces a new Azure PostgreSQL Flexible Server Database to be created.
 
 * `server_id` - (Required) The ID of the Azure PostgreSQL Flexible Server from which to create this PostgreSQL Flexible Server Database. Changing this forces a new Azure PostgreSQL Flexible Server Database to be created.
 
