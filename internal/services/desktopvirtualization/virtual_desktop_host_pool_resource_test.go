@@ -33,6 +33,21 @@ func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 	})
 }
 
+func TestAccVirtualDesktopHostPool_vmTemplate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vmTemplate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vm_template").IsNotEmpty(),
+			),
+		},
+	})
+}
+
 func TestAccVirtualDesktopHostPool_agentupdates(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 	r := VirtualDesktopHostPoolResource{}
@@ -249,6 +264,46 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   type                 = "Pooled"
   validate_environment = true
   load_balancer_type   = "DepthFirst"
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+}
+
+func (VirtualDesktopHostPoolResource) vmTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktophp-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                 = "acctestHP%s"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  type                 = "Pooled"
+  validate_environment = true
+  load_balancer_type   = "DepthFirst"
+
+  vm_template = <<EOF
+  {
+    "imageType": "Gallery",
+    "galleryImageReference": {
+      "offer": "WindowsServer",
+      "publisher": "MicrosoftWindowsServer",
+      "sku": "2019-Datacenter",
+      "version": "latest"
+    },
+    "osDiskType": "Premium_LRS",
+    "customRdpProperty": {
+      "audioRedirectionMode": "dynamic",
+      "redirectClipboard": true,
+      "redirectDrives": true
+    }
+  }
+  EOF
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
