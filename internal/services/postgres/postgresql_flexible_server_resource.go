@@ -380,7 +380,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
 			oldTierRaw, newTierRaw := diff.GetChange("storage_tier")
 
-			// example: if this is a new resouce without the below fields
+			// example: if this is a new resource without the below fields
 			// defined in the config the plan should show the below
 			// default values...
 			if oldStorageMbRaw.(int) == 0 && oldTierRaw.(string) == "" && newStorageMbRaw.(int) == 0 && newTierRaw.(string) == "" {
