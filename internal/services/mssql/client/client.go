@@ -194,14 +194,14 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(transparentDataEncryptionsClient.Client, o.Authorizers.ResourceManager)
 
-	virtualMachinesAvailabilityGroupListenersClient := availabilitygrouplisteners.NewAvailabilityGroupListenersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&virtualMachinesAvailabilityGroupListenersClient.Client, o.ResourceManagerAuthorizer)
+	virtualMachinesAvailabilityGroupListenersClient, err := availabilitygrouplisteners.NewAvailabilityGroupListenersClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(virtualMachinesAvailabilityGroupListenersClient.Client, o.Authorizers.ResourceManager)
 
-	virtualMachinesClient := sqlvirtualmachines.NewSqlVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&virtualMachinesClient.Client, o.ResourceManagerAuthorizer)
+	virtualMachinesClient, err := sqlvirtualmachines.NewSqlVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(virtualMachinesClient.Client, o.Authorizers.ResourceManager)
 
-	virtualMachineGroupsClient := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&virtualMachineGroupsClient.Client, o.ResourceManagerAuthorizer)
+	virtualMachineGroupsClient, err := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(virtualMachineGroupsClient.Client, o.Authorizers.ResourceManager)
 
 	virtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&virtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
@@ -221,9 +221,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ServerExtendedBlobAuditingPoliciesClient:           &serverExtendedBlobAuditingPoliciesClient,
 		ServerKeysClient:                                   &serverKeysClient,
 		ServerVulnerabilityAssessmentsClient:               &serverVulnerabilityAssessmentsClient,
-		VirtualMachinesAvailabilityGroupListenersClient:    &virtualMachinesAvailabilityGroupListenersClient,
-		VirtualMachinesClient:                              &virtualMachinesClient,
-		VirtualMachineGroupsClient:                         &virtualMachineGroupsClient,
+		VirtualMachinesAvailabilityGroupListenersClient:    virtualMachinesAvailabilityGroupListenersClient,
+		VirtualMachinesClient:                              virtualMachinesClient,
+		VirtualMachineGroupsClient:                         virtualMachineGroupsClient,
 		VirtualNetworkRulesClient:                          &virtualNetworkRulesClient,
 
 		// Legacy Clients
