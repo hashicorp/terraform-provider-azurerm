@@ -537,7 +537,7 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if read.Model.Properties != nil && read.Model.Properties.FirewallPolicy != nil && read.Model.Properties.FirewallPolicy.Id != nil {
-			id, _ := firewallpolicies.ParseFirewallPolicyID(*read.Model.Properties.FirewallPolicy.Id)
+			id, _ := firewallpolicies.ParseFirewallPolicyIDInsensitively(*read.Model.Properties.FirewallPolicy.Id)
 			locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 			defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 		}
