@@ -136,13 +136,13 @@ The following arguments are supported:
 
 * `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216` and `33553408`.
 
-~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value. Please see the `storage_tier` defaults based on `storage_mb` table below.
+~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value.
 
-* `storage_tier` - (Optional) The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Possible values are `P4`, `P6`, `P10`, `P15`,`P20`, `P30`,`P40`, `P50`,`P60`, `P70` or `P80`. Default value is dependant on the `storage_mb` value.
+~> **Note:** The `storage_mb` can only be scaled up, for example, you can scale the `storage_mb` from `32768` to `65536`, but not from `65536` to `32768`.
 
-~> **Note:** The `storage_tier` can be scaled up once every 12 hours, this restriction is in place to ensure stability and performance after any changes to your PostgreSQL Flexible Server's configuration.
+* `storage_tier` - (Optional) The name of storage performance tier for IOPS of the PostgreSQL Flexible Server. Possible values are `P4`, `P6`, `P10`, `P15`,`P20`, `P30`,`P40`, `P50`,`P60`, `P70` or `P80`. Default value is dependant on the `storage_mb` value. Please see the `storage_tier` defaults based on `storage_mb` table below.
 
-~> **Note:** The `storage_tier` can only be scaled up, not down, it is a one way operation. For example, you can scale the `storage_tier` from `P4` to `P6`, but not from `P6` to `P4`.
+~> **Note:** The `storage_tier` can be scaled once every 12 hours, this restriction is in place to ensure stability and performance after any changes to your PostgreSQL Flexible Server's configuration.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
@@ -214,21 +214,25 @@ A `high_availability` block supports the following:
 
 -> **Note:** The Availability Zones available depend on the Azure Region that the PostgreSQL Flexible Server is being deployed into - see [the Azure Availability Zones documentation](https://azure.microsoft.com/global-infrastructure/geographies/#geographies) for more information on which Availability Zones are available in each Azure Region.
 
+---
+
 ## `storage_tier` defaults based on `storage_mb`
 
-| `storage_mb` | Default `storage_tier` | GB   | TiB | supported `storage_tier`'s           | default `IOPS`  |
-|:------------:|:----------------------:|:----:|:---:|:------------------------------------:|:---------------:|
-| 32768        | P4                     | 32   | *   | P4, P6, P10, P15, P20, P30, P40, P50 | 120             |
-| 65536        | P6                     | 64   | *   | P6, P10, P15, P20, P30, P40, P50     | 240             |
-| 131072       | P10                    | 128  | *   | P10, P15, P20, P30, P40, P50         | 500             |
-| 262144       | P15                    | 256  | *   | P15, P20, P30, P40, P50              | 1,100           |
-| 524288       | P20                    | 512  | *   | P20, P30, P40, P50                   | 2,300           |
-| 1048576      | P30                    | 1024 | 1   | P30, P40, P50                        | 5,000           |
-| 2097152      | P40                    | 2048 | 2   | P40, P50                             | 7,500           |
-| 4194304      | P50                    | 4096 | 4   | P50                                  | 7,500           |
-| 8388608      | P60                    | 8192 | 8   | P60, P70                             | 16,000          |
-| 16777216     | P70                    | 16384| 16  | P70, P80                             | 18,000          |
-| 33553408     | P80                    | 32767| 32  | P80                                  | 20,000          |
+| `storage_mb` | GB    | TiB | Default | Supported `storage_tier`'s           | Default `IOPS`  |
+|:------------:|:-----:|:---:|:-------:|:------------------------------------:|:---------------:|
+| 32768        | 32    | *   | P4      | P4, P6, P10, P15, P20, P30, P40, P50 | 120             |
+| 65536        | 64    | *   | P6      | P6, P10, P15, P20, P30, P40, P50     | 240             |
+| 131072       | 128   | *   | P10     | P10, P15, P20, P30, P40, P50         | 500             |
+| 262144       | 256   | *   | P15     | P15, P20, P30, P40, P50              | 1,100           |
+| 524288       | 512   | *   | P20     | P20, P30, P40, P50                   | 2,300           |
+| 1048576      | 1024  | 1   | P30     | P30, P40, P50                        | 5,000           |
+| 2097152      | 2048  | 2   | P40     | P40, P50                             | 7,500           |
+| 4194304      | 4096  | 4   | P50     | P50                                  | 7,500           |
+| 8388608      | 8192  | 8   | P60     | P60, P70                             | 16,000          |
+| 16777216     | 16384 | 16  | P70     | P70, P80                             | 18,000          |
+| 33553408     | 32767 | 32  | P80     | P80                                  | 20,000          |
+
+---
 
 ## Attributes Reference
 

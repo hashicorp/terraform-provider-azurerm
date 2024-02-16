@@ -73,44 +73,6 @@ func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 	return storageTiersMappings
 }
 
-// returns the integer equivalent of the storage performance tier name (e.g., 'P4' would return 4)
-func FlexibleServerStorageTierNameToInt(tierName string) *int {
-	if tierName == "" {
-		return nil
-	}
-
-	var result int
-
-	switch tierName {
-	case string(servers.AzureManagedDiskPerformanceTiersPFour):
-		result = 4
-	case string(servers.AzureManagedDiskPerformanceTiersPSix):
-		result = 6
-	case string(servers.AzureManagedDiskPerformanceTiersPOneZero):
-		result = 10
-	case string(servers.AzureManagedDiskPerformanceTiersPOneFive):
-		result = 15
-	case string(servers.AzureManagedDiskPerformanceTiersPTwoZero):
-		result = 20
-	case string(servers.AzureManagedDiskPerformanceTiersPThreeZero):
-		result = 30
-	case string(servers.AzureManagedDiskPerformanceTiersPFourZero):
-		result = 40
-	case string(servers.AzureManagedDiskPerformanceTiersPFiveZero):
-		result = 50
-	case string(servers.AzureManagedDiskPerformanceTiersPSixZero):
-		result = 60
-	case string(servers.AzureManagedDiskPerformanceTiersPSevenZero):
-		result = 70
-	case string(servers.AzureManagedDiskPerformanceTiersPEightZero):
-		result = 80
-	default:
-		return nil
-	}
-
-	return &result
-}
-
 func StorageTierNameToDefaultStorageMb(tier string) *int {
 	var result int
 

@@ -6,6 +6,7 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -411,6 +412,93 @@ func TestAccPostgresqlFlexibleServer_autoGrowEnabled(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_invalidStorageTier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidStorageTier(data),
+			ExpectError: regexp.MustCompile("invalid 'storage_tier'"),
+		},
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_invalidStorageMbScaling(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.invalidStorageMbScaling(data, "524288"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config:      r.invalidStorageMbScaling(data, "262144"),
+			ExpectError: regexp.MustCompile("'storage_mb' can only be scaled up"),
+		},
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_invalidStorageTierScalingStorageMb(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.invalidStorageTierScaling(data, "P4", "32768"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config:      r.invalidStorageTierScaling(data, "P4", "262144"),
+			ExpectError: regexp.MustCompile("invalid 'storage_tier'"),
+		},
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_invalidStorageTierScalingStorageTier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.invalidStorageTierScaling(data, "P4", "32768"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config:      r.invalidStorageTierScaling(data, "P80", "32768"),
+			ExpectError: regexp.MustCompile("invalid 'storage_tier'"),
+		},
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_invalidStorageTierScalingStorageMbStorageTier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.invalidStorageTierScaling(data, "P4", "32768"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config:      r.invalidStorageTierScaling(data, "P6", "131072"),
+			ExpectError: regexp.MustCompile("invalid 'storage_tier'"),
+		},
 	})
 }
 
@@ -1058,4 +1146,61 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger, autoGrowEnabled)
+}
+
+func (r PostgresqlFlexibleServerResource) invalidStorageTier(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 65536
+  storage_tier           = "P4"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) invalidStorageMbScaling(data acceptance.TestData, storageMb string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = %s
+  storage_tier           = "P20"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger, storageMb)
+}
+
+func (r PostgresqlFlexibleServerResource) invalidStorageTierScaling(data acceptance.TestData, storageTier string, storageMb string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = %s
+  storage_tier           = "%s"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger, storageMb, storageTier)
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -367,25 +368,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 			var storageTiers validate.StorageTiers
-			var oldTier string
 			var newTier string
 			var newMb int
 			mbChanged := false
 			tierChanged := false
 
-			// since storage_mb and storage_tier are computed,
-			// they will automatically be populated with the
-			// value from the state file if not defined
-			// in the config file...
 			oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
 			oldTierRaw, newTierRaw := diff.GetChange("storage_tier")
 
-			// example: if this is a new resource without the below fields
-			// defined in the config the plan should show the below
-			// default values...
 			if oldStorageMbRaw.(int) == 0 && oldTierRaw.(string) == "" && newStorageMbRaw.(int) == 0 && newTierRaw.(string) == "" {
 				// This is a new resource without any values in the state
-				// or config for these fields, set default values...
+				// or config, set default values...
 				diff.SetNew("storage_mb", 32768)
 				diff.SetNew("storage_tier", string(servers.AzureManagedDiskPerformanceTiersPFour))
 				return nil
@@ -394,34 +387,51 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			if diff.HasChange("storage_mb") {
 				mbChanged = true
 				newMb = newStorageMbRaw.(int)
+
+				// storage_mb can only be scaled up...
+				if newMb < oldStorageMbRaw.(int) {
+					return fmt.Errorf("'storage_mb' can only be scaled up, expected 'storage_mb' to be larger than the current 'storage_mb'(%d), got %d", oldStorageMbRaw.(int), newMb)
+				}
 			} else {
-				// since this is computed, if this is not defined in the config
-				// the old value will be automatically propagated to this field...
 				newMb = diff.Get("storage_mb").(int)
+
+				if newMb == 0 {
+					// new resource without storage_mb set,
+					// give it the default value...
+					newMb = 32768
+					diff.SetNew("storage_mb", newMb)
+					log.Printf("[DEBUG]: Default 'storage_mb' Set -> %d\n", newMb)
+				}
 			}
+
+			// get the mappings for the defined storage_mb value...
+			storageTiers = storageTierMappings[newMb]
 
 			if diff.HasChange("storage_tier") {
 				tierChanged = true
-				oldTier = oldTierRaw.(string)
 				newTier = newTierRaw.(string)
 			} else {
-				// since this is computed, if this is not defined in the config
-				// the old value will be automatically propagated to this field...
 				newTier = diff.Get("storage_tier").(string)
-			}
 
-			if !mbChanged && !tierChanged {
-				// no change, no validation required...
-				return nil
+				if newTier == "" {
+					// new resource without the storage_tier set,
+					// give it the default value for the storage_mb...
+					newTier = storageTiers.DefaultTier
+					diff.SetNew("storage_tier", newTier)
+					log.Printf("[DEBUG] Default 'storage_tier' Set -> %q\n", newTier)
+
+					// default tier has been set we know this is a valid configuration
+					return nil
+				}
 			}
 
 			// example: existing tier = P4 and new mb = 262144 (old mb 32768)
-			if mbChanged && !tierChanged {
-				// the storage_mb has changed, need to verify that the
-				// existing storage_tier is still valid...
+			// example: existing mb = 32768 and new tier = P80 (old tier P4)
+			// example: old mb = 33553408 (new mb = 8388608) and old tier = P80 (new tier P50)
+			if mbChanged || tierChanged {
+				// verify that the storage_tier is valid
+				// for the given storage_mb...
 				isValid := false
-				storageTiers = storageTierMappings[newMb]
-
 				for _, tier := range *storageTiers.ValidTiers {
 					if newTier == tier {
 						isValid = true
@@ -430,55 +440,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				if !isValid {
-					// TODO: Remove Debug error number...
-					return fmt.Errorf("1. invalid 'storage_tier' %q for defined 'storage_mb' size '%d'", newTier, newMb)
+					return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
 				}
-			}
-
-			// example: existing mb = 32768 and new tier = P80 (old tier P4)
-			if !mbChanged && tierChanged {
-				// the storage_tier has changed, need to verify that the
-				// new storage_tier is still valid in the existing storage_mb...
-				isValid := false
-				storageTiers = storageTierMappings[newMb]
-
-				for _, tiers := range *storageTiers.ValidTiers {
-					if newTier == tiers {
-						isValid = true
-						break
-					}
-				}
-
-				if !isValid {
-					// TODO: Remove Debug error number...
-					return fmt.Errorf("2. invalid 'storage_tier' %q for defined 'storage_mb' size '%d'", newTier, newMb)
-				}
-			}
-
-			// example: old mb = 33553408 (new mb = 8388608) and old tier = P80 (new tier P50)
-			if mbChanged && tierChanged {
-				// both storage_tier and storage_mb have changed,
-				// need to verify that the are valid...
-				isValid := false
-				storageTiers = storageTierMappings[newMb]
-
-				for _, tiers := range *storageTiers.ValidTiers {
-					if newTier == tiers {
-						isValid = true
-						break
-					}
-				}
-
-				if !isValid {
-					// TODO: Remove Debug error number...
-					return fmt.Errorf("3. invalid 'storage_tier' %q for defined 'storage_mb' size '%d'", newTier, newMb)
-				}
-			}
-
-			// if the code is here there were changes and they are valid, now we
-			// need check to see if the changes were a tier scale down or not...
-			if *validate.FlexibleServerStorageTierNameToInt(newTier) < *validate.FlexibleServerStorageTierNameToInt(oldTier) {
-				return fmt.Errorf("cannot scale 'storage_tier' from %q to %q, 'storage_tier' can only be scaled up", oldTier, newTier)
 			}
 
 			return nil
