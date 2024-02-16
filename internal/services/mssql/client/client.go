@@ -195,12 +195,21 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(transparentDataEncryptionsClient.Client, o.Authorizers.ResourceManager)
 
 	virtualMachinesAvailabilityGroupListenersClient, err := availabilitygrouplisteners.NewAvailabilityGroupListenersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Virtual Machines Availability Group Listeners Client: %+v", err)
+	}
 	o.Configure(virtualMachinesAvailabilityGroupListenersClient.Client, o.Authorizers.ResourceManager)
 
 	virtualMachinesClient, err := sqlvirtualmachines.NewSqlVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Virtual Machines Client: %+v", err)
+	}
 	o.Configure(virtualMachinesClient.Client, o.Authorizers.ResourceManager)
 
 	virtualMachineGroupsClient, err := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Virtual Machine Groups Client: %+v", err)
+	}
 	o.Configure(virtualMachineGroupsClient.Client, o.Authorizers.ResourceManager)
 
 	virtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
