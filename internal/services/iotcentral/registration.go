@@ -41,6 +41,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		IotCentralApplicationNetworkRuleSetResource{},
 		IotCentralOrganizationResource{},
+		IotCentralUserResource{},
 	}
 }
 
