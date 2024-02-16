@@ -29,7 +29,8 @@ func TestAccPostgresqlFlexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
-				check.That(data.ResourceName).Key("storage_tier").HasValue("P20"),
+				check.That(data.ResourceName).Key("storage_mb").HasValue("32768"),
+				check.That(data.ResourceName).Key("storage_tier").HasValue("P4"),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
@@ -450,7 +451,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  storage_mb             = 32768
   version                = "12"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"

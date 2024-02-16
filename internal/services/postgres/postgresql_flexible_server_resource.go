@@ -130,26 +130,25 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33553408}),
 			},
 
 			"storage_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(servers.AzureManagedDiskPerformanceTiersPTwoZero),
-				ValidateFunc: validation.StringInSlice([]string{string(servers.AzureManagedDiskPerformanceTiersPFiveZero),
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.AzureManagedDiskPerformanceTiersPFour),
-					string(servers.AzureManagedDiskPerformanceTiersPFourZero),
-					string(servers.AzureManagedDiskPerformanceTiersPOne),
-					string(servers.AzureManagedDiskPerformanceTiersPOneFive),
-					string(servers.AzureManagedDiskPerformanceTiersPOneZero),
-					string(servers.AzureManagedDiskPerformanceTiersPSevenZero),
 					string(servers.AzureManagedDiskPerformanceTiersPSix),
-					string(servers.AzureManagedDiskPerformanceTiersPSixZero),
-					string(servers.AzureManagedDiskPerformanceTiersPThree),
-					string(servers.AzureManagedDiskPerformanceTiersPThreeZero),
-					string(servers.AzureManagedDiskPerformanceTiersPTwo),
+					string(servers.AzureManagedDiskPerformanceTiersPOneZero),
+					string(servers.AzureManagedDiskPerformanceTiersPOneFive),
 					string(servers.AzureManagedDiskPerformanceTiersPTwoZero),
+					string(servers.AzureManagedDiskPerformanceTiersPThreeZero),
+					string(servers.AzureManagedDiskPerformanceTiersPFourZero),
+					string(servers.AzureManagedDiskPerformanceTiersPFiveZero),
+					string(servers.AzureManagedDiskPerformanceTiersPSixZero),
+					string(servers.AzureManagedDiskPerformanceTiersPSevenZero),
+					string(servers.AzureManagedDiskPerformanceTiersPEightZero),
 				}, false),
 			},
 
@@ -364,6 +363,124 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			if oldLoginName != "" {
 				diff.ForceNew("administrator_login")
 			}
+			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
+			var storageTiers validate.StorageTiers
+			var oldTier string
+			var newTier string
+			var newMb int
+			mbChanged := false
+			tierChanged := false
+
+			// since storage_mb and storage_tier are computed,
+			// they will automatically be populated with the
+			// value from the state file if not defined
+			// in the config file...
+			oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
+			oldTierRaw, newTierRaw := diff.GetChange("storage_tier")
+
+			// example: if this is a new resouce without the below fields
+			// defined in the config the plan should show the below
+			// default values...
+			if oldStorageMbRaw.(int) == 0 && oldTierRaw.(string) == "" && newStorageMbRaw.(int) == 0 && newTierRaw.(string) == "" {
+				// This is a new resource without any values in the state
+				// or config for these fields, set default values...
+				diff.SetNew("storage_mb", 32768)
+				diff.SetNew("storage_tier", string(servers.AzureManagedDiskPerformanceTiersPFour))
+				return nil
+			}
+
+			if diff.HasChange("storage_mb") {
+				mbChanged = true
+				newMb = newStorageMbRaw.(int)
+			} else {
+				// since this is computed, if this is not defined in the config
+				// the old value will be automatically propagated to this field...
+				newMb = diff.Get("storage_mb").(int)
+			}
+
+			if diff.HasChange("storage_tier") {
+				tierChanged = true
+				oldTier = oldTierRaw.(string)
+				newTier = newTierRaw.(string)
+			} else {
+				// since this is computed, if this is not defined in the config
+				// the old value will be automatically propagated to this field...
+				newTier = diff.Get("storage_tier").(string)
+			}
+
+			if !mbChanged && !tierChanged {
+				// no change, no validation required...
+				return nil
+			}
+
+			// example: existing tier = P4 and new mb = 262144 (old mb 32768)
+			if mbChanged && !tierChanged {
+				// the storage_mb has changed, need to verify that the
+				// existing storage_tier is still valid...
+				isValid := false
+				storageTiers = storageTierMappings[newMb]
+
+				for _, tier := range *storageTiers.ValidTiers {
+					if newTier == tier {
+						isValid = true
+						break
+					}
+				}
+
+				if !isValid {
+					// TODO: Remove Debug error number...
+					return fmt.Errorf("1. invalid 'storage_tier' %q for defined 'storage_mb' size '%d'", newTier, newMb)
+				}
+			}
+
+			// example: existing mb = 32768 and new tier = P80 (old tier P4)
+			if !mbChanged && tierChanged {
+				// the storage_tier has changed, need to verify that the
+				// new storage_tier is still valid in the existing storage_mb...
+				isValid := false
+				storageTiers = storageTierMappings[newMb]
+
+				for _, tiers := range *storageTiers.ValidTiers {
+					if newTier == tiers {
+						isValid = true
+						break
+					}
+				}
+
+				if !isValid {
+					// TODO: Remove Debug error number...
+					return fmt.Errorf("2. invalid 'storage_tier' %q for defined 'storage_mb' size '%d'", newTier, newMb)
+				}
+			}
+
+			// example: old mb = 33553408 (new mb = 8388608) and old tier = P80 (new tier P50)
+			if mbChanged && tierChanged {
+				// both storage_tier and storage_mb have changed,
+				// need to verify that the are valid...
+				isValid := false
+				storageTiers = storageTierMappings[newMb]
+
+				for _, tiers := range *storageTiers.ValidTiers {
+					if newTier == tiers {
+						isValid = true
+						break
+					}
+				}
+
+				if !isValid {
+					// TODO: Remove Debug error number...
+					return fmt.Errorf("3. invalid 'storage_tier' %q for defined 'storage_mb' size '%d'", newTier, newMb)
+				}
+			}
+
+			// if the code is here there were changes and they are valid, now we
+			// need check to see if the changes were a tier scale down or not...
+			if *validate.FlexibleServerStorageTierNameToInt(newTier) < *validate.FlexibleServerStorageTierNameToInt(oldTier) {
+				return fmt.Errorf("cannot scale 'storage_tier' from %q to %q, 'storage_tier' can only be scaled up", oldTier, newTier)
+			}
+
 			return nil
 		},
 		),
