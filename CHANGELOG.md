@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `containerservices`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24872]
 * `timeseriesinsights`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24889]
 * `azurerm_container_app_environment`: support for `infrastructure_resource_group_name` [GH-24361]
+* `azurerm_cost_anomaly_alert` - support for the `subscription_id` property [GH-24258]
 * `azurerm_cosmosdb_account` - add default values for the `consistency_policy` code block [GH-24830]
 * `azurerm_dashboard_grafana` - support for the `smtp` block [GH-24717]
 * `azurerm_key_vault_certificates` - support for the `tags` property [GH-24857]
