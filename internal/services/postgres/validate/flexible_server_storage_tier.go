@@ -66,6 +66,9 @@ func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 			string(servers.AzureManagedDiskPerformanceTiersPFourZero),
 			string(servers.AzureManagedDiskPerformanceTiersPFiveZero),
 		}, &[]int{40, 50}},
+		4193280: {string(servers.AzureManagedDiskPerformanceTiersPFiveZero), &[]string{
+			string(servers.AzureManagedDiskPerformanceTiersPFiveZero),
+		}, &[]int{50}},
 		4194304: {string(servers.AzureManagedDiskPerformanceTiersPFiveZero), &[]string{
 			string(servers.AzureManagedDiskPerformanceTiersPFiveZero),
 		}, &[]int{50}},
@@ -84,37 +87,4 @@ func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 	}
 
 	return storageTiersMappings
-}
-
-func StorageTierNameToDefaultStorageMb(tier string) *int {
-	var result int
-
-	switch tier {
-	case string(servers.AzureManagedDiskPerformanceTiersPFour):
-		result = 32768
-	case string(servers.AzureManagedDiskPerformanceTiersPSix):
-		result = 65536
-	case string(servers.AzureManagedDiskPerformanceTiersPOneZero):
-		result = 131072
-	case string(servers.AzureManagedDiskPerformanceTiersPOneFive):
-		result = 262144
-	case string(servers.AzureManagedDiskPerformanceTiersPTwoZero):
-		result = 524288
-	case string(servers.AzureManagedDiskPerformanceTiersPThreeZero):
-		result = 1048576
-	case string(servers.AzureManagedDiskPerformanceTiersPFourZero):
-		result = 2097152
-	case string(servers.AzureManagedDiskPerformanceTiersPFiveZero):
-		result = 4194304
-	case string(servers.AzureManagedDiskPerformanceTiersPSixZero):
-		result = 8388608
-	case string(servers.AzureManagedDiskPerformanceTiersPSevenZero):
-		result = 16777216
-	case string(servers.AzureManagedDiskPerformanceTiersPEightZero):
-		result = 33553408
-	default:
-		return nil
-	}
-
-	return &result
 }

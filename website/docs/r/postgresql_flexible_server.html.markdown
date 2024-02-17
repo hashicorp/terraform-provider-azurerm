@@ -134,7 +134,7 @@ The following arguments are supported:
 
 * `auto_grow_enabled` - (Optional) Is the storage auto grow for PostgreSQL Flexible Server enabled? Defaults to `false`.
 
-* `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216` and `33553408`.
+* `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
 
 ~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value.
 
@@ -227,6 +227,7 @@ A `high_availability` block supports the following:
 | 524288       | 512   | *   | P20     | P20, P30, P40, P50                   | 2,300           |
 | 1048576      | 1024  | 1   | P30     | P30, P40, P50                        | 5,000           |
 | 2097152      | 2048  | 2   | P40     | P40, P50                             | 7,500           |
+| 4193280      | 4095  | 4   | P50     | P50                                  | 7,500           |
 | 4194304      | 4096  | 4   | P50     | P50                                  | 7,500           |
 | 8388608      | 8192  | 8   | P60     | P60, P70                             | 16,000          |
 | 16777216     | 16384 | 16  | P70     | P70, P80                             | 18,000          |

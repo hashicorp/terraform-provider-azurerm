@@ -127,11 +127,16 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// TODO 4.0: Remove 4193280 as a valid value? This feels like it is incorrect
+			// and a duplicate value for 4194304. 4193280 is 4095 GB not 4096 GB.
+			// I originally removed it thinking it was added in error, but added it back
+			// to avoid a potential breaking-change in case any existing instances are
+			// currently using this value.
 			"storage_mb": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33553408}),
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
 			"storage_tier": {
