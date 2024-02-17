@@ -89,7 +89,7 @@ func TestAccPostgresqlFlexibleServer_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
-				check.That(data.ResourceName).Key("storage_tier").HasValue("P30"),
+				check.That(data.ResourceName).Key("storage_tier").HasValue("P6"),
 				check.That(data.ResourceName).Key("storage_mb").HasValue("65536"),
 			),
 		},
@@ -693,7 +693,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "13"
   backup_retention_days  = 10
   storage_mb             = 65536
-  storage_tier           = "P30"
+  storage_tier           = "P6"
   delegated_subnet_id    = azurerm_subnet.test.id
   private_dns_zone_id    = azurerm_private_dns_zone.test.id
   sku_name               = "GP_Standard_D2s_v3"
