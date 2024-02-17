@@ -207,7 +207,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   identity {
     type = "SystemAssigned"
   }
-  soft_delete_setting        = "Off"
+  soft_delete                = "Off"
   retention_duration_in_days = 14
   tags = {
     ENV = "Test"
@@ -230,7 +230,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   identity {
     type = "SystemAssigned"
   }
-  soft_delete_setting        = "On"
+  soft_delete                = "On"
   retention_duration_in_days = 15
   tags = {
     ENV = "Test"

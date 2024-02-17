@@ -80,7 +80,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ValidateFunc: validation.FloatBetween(14, 180),
 			},
 
-			"soft_delete_setting": {
+			"soft_delete": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      backupvaults.SoftDeleteStateOn,
@@ -91,7 +91,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("soft_delete_setting", func(ctx context.Context, old, new, meta interface{}) bool {
+			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
 			}),
 		),
@@ -167,7 +167,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 			},
 			SecuritySettings: &backupvaults.SecuritySettings{
 				SoftDeleteSettings: &backupvaults.SoftDeleteSettings{
-					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete_setting").(string))),
+					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete").(string))),
 				},
 			},
 		},
@@ -219,7 +219,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		}
 		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
 			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
-				d.Set("soft_delete_setting", string(pointer.From(softDelete.State)))
+				d.Set("soft_delete", string(pointer.From(softDelete.State)))
 				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
 			}
 		}
