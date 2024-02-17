@@ -425,9 +425,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 			}
 
-			// example: existing tier = P4 and new mb = 262144 (old mb 32768)
-			// example: existing mb = 32768 and new tier = P80 (old tier P4)
-			// example: old mb = 33553408 (new mb = 8388608) and old tier = P80 (new tier P50)
 			if mbChanged || tierChanged {
 				// verify that the storage_tier is valid
 				// for the given storage_mb...
