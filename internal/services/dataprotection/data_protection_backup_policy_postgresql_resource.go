@@ -222,7 +222,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"copy_after": {
+								"copy_option": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -285,7 +285,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											"copy_after": {
+											"copy_option": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
@@ -542,7 +542,7 @@ func expandBackupPolicyPostgreSQLLifeCycle(input []interface{}) []backuppolicies
 		targetCopySettingList := make([]backuppolicies.TargetCopySetting, 0)
 		if tcs := v["target_copy_setting"].([]interface{}); len(tcs) > 0 {
 			tcsv := tcs[0].(map[string]interface{})
-			copyAfter, err := expandTargetCopySettingFromJSON(tcsv["copy_after"].(string))
+			copyAfter, err := expandTargetCopySettingFromJSON(tcsv["copy_option"].(string))
 			if err != nil {
 				return results
 			}
@@ -935,7 +935,7 @@ func flattenBackupPolicyPostgreSQLBackupTargetDataStoreCopySettingArray(input *[
 		dataStoreType := string(item.DataStore.DataStoreType)
 
 		results = append(results, map[string]interface{}{
-			"copy_after":      copyAfter,
+			"copy_option":     copyAfter,
 			"data_store_type": dataStoreType,
 		})
 	}
