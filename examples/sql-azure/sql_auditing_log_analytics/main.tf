@@ -34,7 +34,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 
 resource "azurerm_monitor_diagnostic_setting" "example" {
   name                       = "${var.prefix}-DS"
-  target_resource_id         = "${azurerm_mssql_server.example.id}/databases/master"
+  target_resource_id         = azurerm_mssql_database.example.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 
   log {
@@ -60,7 +60,7 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "example" {
-  database_id            = "${azurerm_mssql_server.example.id}/databases/master"
+  database_id            = azurerm_mssql_database.example.id
   log_monitoring_enabled = true
 }
 
