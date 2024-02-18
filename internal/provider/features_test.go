@@ -130,7 +130,7 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_deletion_if_contains_resources": true,
 						},
 					},
-					"recovery_services_vault": []interface{}{
+					"recovery_services_vaults": []interface{}{
 						map[string]interface{}{
 							"recover_soft_deleted_backup_protected_vm": true,
 						},
@@ -271,7 +271,7 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_deletion_if_contains_resources": false,
 						},
 					},
-					"recovery_services_vault": []interface{}{
+					"recovery_services_vaults": []interface{}{
 						map[string]interface{}{
 							"recover_soft_deleted_backup_protected_vm": false,
 						},
@@ -1181,7 +1181,7 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 			Name: "Empty Block",
 			Input: []interface{}{
 				map[string]interface{}{
-					"recovery_services_vault": []interface{}{},
+					"recovery_services_vaults": []interface{}{},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -1194,7 +1194,7 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 			Name: "Recover Soft Deleted Protected VM Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"recovery_services_vault": []interface{}{
+					"recovery_services_vaults": []interface{}{
 						map[string]interface{}{
 							"recover_soft_deleted_backup_protected_vm": true,
 						},
@@ -1211,7 +1211,7 @@ func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
 			Name: "Recover Soft Deleted Protected VM Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"recovery_services_vault": []interface{}{
+					"recovery_services_vaults": []interface{}{
 						map[string]interface{}{
 							"recover_soft_deleted_backup_protected_vm": false,
 						},

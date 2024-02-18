@@ -255,7 +255,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		"recovery_services_vault": {
+		"recovery_services_vaults": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -476,7 +476,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		}
 	}
 
-	if raw, ok := val["recovery_services_vault"]; ok {
+	if raw, ok := val["recovery_services_vaults"]; ok {
 		items := raw.([]interface{})
 		if len(items) > 0 && items[0] != nil {
 			appConfRaw := items[0].(map[string]interface{})
