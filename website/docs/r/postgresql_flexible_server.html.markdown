@@ -218,7 +218,7 @@ A `high_availability` block supports the following:
 
 ## `storage_tier` defaults based on `storage_mb`
 
-| `storage_mb` | GB    | TiB | Default | Supported `storage_tier`'s           | Default `IOPS`  |
+| `storage_mb` | GiB   | TiB | Default | Supported `storage_tier`'s           | Default `IOPS`  |
 |:------------:|:-----:|:---:|:-------:|:------------------------------------:|:---------------:|
 | 32768        | 32    | *   | P4      | P4, P6, P10, P15, P20, P30, P40, P50 | 120             |
 | 65536        | 64    | *   | P6      | P6, P10, P15, P20, P30, P40, P50     | 240             |

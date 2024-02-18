@@ -127,11 +127,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// TODO 4.0: Remove 4193280 as a valid value? This feels like it is incorrect
-			// and a duplicate value for 4194304. 4193280 is 4095 GB not 4096 GB.
-			// I originally removed it thinking it was added in error, but added it back
-			// to avoid a potential breaking-change in case any existing instances are
-			// currently using this value.
+			// NOTE: Host Caching (ReadOnly and Read/Write) is supported on disk sizes less than 4 TiB.
+			// This means any disk that is provisioned up to 4095 GiB can take advantage of Host Caching.
+			// Host caching is not supported for disk sizes more than or equal to 4096 GiB. For example,
+			// a P50 premium disk provisioned at 4095 GiB (e.g., 4,193,280) can take advantage of Host
+			// caching and a P50 disk provisioned at 4096 GiB cannot take advantage of Host Caching.
 			"storage_mb": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
