@@ -301,30 +301,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
-
-	if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
-		if sku.Capacity == nil {
-			return fmt.Errorf("sku.capacity could not be empty")
-		}
-		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
-		if *sku.Capacity < optimizedAutoScale.Minimum {
-			sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
-		}
-		if *sku.Capacity > optimizedAutoScale.Maximum {
-			sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
-		}
-
-		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
-		if d.HasChange("sku.0.capacity") && !d.IsNewResource() {
-			return fmt.Errorf("cannot change `sku.capacity` when `optimized_auto_scaling.enabled` is set to `true`")
-		}
-
-		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
-			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
-		}
-	}
-
 	publicNetworkAccess := clusters.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = clusters.PublicNetworkAccessDisabled
@@ -333,7 +309,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	publicIPType := clusters.PublicIPType(d.Get("public_ip_type").(string))
 
 	clusterProperties := clusters.ClusterProperties{
-		OptimizedAutoscale:     optimizedAutoScale,
 		EnableAutoStop:         utils.Bool(d.Get("auto_stop_enabled").(bool)),
 		EnableDiskEncryption:   utils.Bool(d.Get("disk_encryption_enabled").(bool)),
 		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
@@ -397,6 +372,32 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+
+	// optimized_auto_scale can't be updated when the sku is also being updated so we'll update it separately
+	// todo rework this when we split create/update
+	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
+	if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
+		if sku.Capacity == nil {
+			return fmt.Errorf("sku.capacity could not be empty")
+		}
+		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+		if *sku.Capacity < optimizedAutoScale.Minimum {
+			sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
+		}
+		if *sku.Capacity > optimizedAutoScale.Maximum {
+			sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
+		}
+
+		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
+			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+		}
+
+		clusterProperties.OptimizedAutoscale = optimizedAutoScale
+
+		if err := client.CreateOrUpdateThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}); err != nil {
+			return fmt.Errorf("creating/updating %s: %+v", id, err)
+		}
+	}
 
 	return resourceKustoClusterRead(d, meta)
 }

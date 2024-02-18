@@ -1,6 +1,10 @@
 package agentpools
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAgentPoolMode() []string {
 		string(AgentPoolModeSystem),
 		string(AgentPoolModeUser),
 	}
+}
+
+func (s *AgentPoolMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAgentPoolMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAgentPoolMode(input string) (*AgentPoolMode, error) {
@@ -47,6 +64,19 @@ func PossibleValuesForAgentPoolSSHAccess() []string {
 	}
 }
 
+func (s *AgentPoolSSHAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAgentPoolSSHAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAgentPoolSSHAccess(input string) (*AgentPoolSSHAccess, error) {
 	vals := map[string]AgentPoolSSHAccess{
 		"disabled":  AgentPoolSSHAccessDisabled,
@@ -75,6 +105,19 @@ func PossibleValuesForAgentPoolType() []string {
 	}
 }
 
+func (s *AgentPoolType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAgentPoolType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAgentPoolType(input string) (*AgentPoolType, error) {
 	vals := map[string]AgentPoolType{
 		"availabilityset":         AgentPoolTypeAvailabilitySet,
@@ -101,6 +144,19 @@ func PossibleValuesForCode() []string {
 		string(CodeRunning),
 		string(CodeStopped),
 	}
+}
+
+func (s *Code) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCode(input string) (*Code, error) {
@@ -137,6 +193,19 @@ func PossibleValuesForGPUInstanceProfile() []string {
 	}
 }
 
+func (s *GPUInstanceProfile) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseGPUInstanceProfile(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseGPUInstanceProfile(input string) (*GPUInstanceProfile, error) {
 	vals := map[string]GPUInstanceProfile{
 		"mig4g": GPUInstanceProfileMIGFourg,
@@ -168,6 +237,19 @@ func PossibleValuesForKubeletDiskType() []string {
 	}
 }
 
+func (s *KubeletDiskType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKubeletDiskType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseKubeletDiskType(input string) (*KubeletDiskType, error) {
 	vals := map[string]KubeletDiskType{
 		"os":        KubeletDiskTypeOS,
@@ -194,6 +276,19 @@ func PossibleValuesForOSDiskType() []string {
 		string(OSDiskTypeEphemeral),
 		string(OSDiskTypeManaged),
 	}
+}
+
+func (s *OSDiskType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOSDiskType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOSDiskType(input string) (*OSDiskType, error) {
@@ -232,6 +327,19 @@ func PossibleValuesForOSSKU() []string {
 	}
 }
 
+func (s *OSSKU) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOSSKU(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseOSSKU(input string) (*OSSKU, error) {
 	vals := map[string]OSSKU{
 		"azurelinux":  OSSKUAzureLinux,
@@ -264,6 +372,19 @@ func PossibleValuesForOSType() []string {
 	}
 }
 
+func (s *OSType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOSType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseOSType(input string) (*OSType, error) {
 	vals := map[string]OSType{
 		"linux":   OSTypeLinux,
@@ -290,6 +411,19 @@ func PossibleValuesForProtocol() []string {
 		string(ProtocolTCP),
 		string(ProtocolUDP),
 	}
+}
+
+func (s *Protocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProtocol(input string) (*Protocol, error) {
@@ -320,6 +454,19 @@ func PossibleValuesForScaleDownMode() []string {
 	}
 }
 
+func (s *ScaleDownMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScaleDownMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScaleDownMode(input string) (*ScaleDownMode, error) {
 	vals := map[string]ScaleDownMode{
 		"deallocate": ScaleDownModeDeallocate,
@@ -346,6 +493,19 @@ func PossibleValuesForScaleSetEvictionPolicy() []string {
 		string(ScaleSetEvictionPolicyDeallocate),
 		string(ScaleSetEvictionPolicyDelete),
 	}
+}
+
+func (s *ScaleSetEvictionPolicy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScaleSetEvictionPolicy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScaleSetEvictionPolicy(input string) (*ScaleSetEvictionPolicy, error) {
@@ -376,6 +536,19 @@ func PossibleValuesForScaleSetPriority() []string {
 	}
 }
 
+func (s *ScaleSetPriority) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScaleSetPriority(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScaleSetPriority(input string) (*ScaleSetPriority, error) {
 	vals := map[string]ScaleSetPriority{
 		"regular": ScaleSetPriorityRegular,
@@ -404,6 +577,19 @@ func PossibleValuesForWorkloadRuntime() []string {
 		string(WorkloadRuntimeOCIContainer),
 		string(WorkloadRuntimeWasmWasi),
 	}
+}
+
+func (s *WorkloadRuntime) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWorkloadRuntime(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWorkloadRuntime(input string) (*WorkloadRuntime, error) {
