@@ -30,6 +30,7 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
+				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("32"),
 			),
 		},
 	})
@@ -79,9 +80,10 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 resource "azurerm_log_analytics_workspace_table" "test" {
-  name              = "AppEvents"
-  workspace_id      = azurerm_log_analytics_workspace.test.id
-  retention_in_days = 7
+  name                    = "AppEvents"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+  retention_in_days       = 7
+  total_retention_in_days = 32
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

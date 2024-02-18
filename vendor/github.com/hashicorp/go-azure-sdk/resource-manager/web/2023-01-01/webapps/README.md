@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 ```
 
@@ -66,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.AnalyzeCustomHostname(ctx, id, webapps.DefaultAnalyzeCustomHostnameOperationOptions())
 if err != nil {
@@ -98,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.CsmSlotEntity{
 	// ...
@@ -174,7 +175,7 @@ if err := client.ApproveOrRejectPrivateEndpointConnectionSlotThenPoll(ctx, id, p
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.BackupRequest{
 	// ...
@@ -326,7 +327,7 @@ if err := client.CreateInstanceMSDeployOperationSlotThenPoll(ctx, id, payload); 
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.MSDeploy{
 	// ...
@@ -360,7 +361,7 @@ if err := client.CreateMSDeployOperationSlotThenPoll(ctx, id, payload); err != n
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.CreateOneDeployOperation(ctx, id)
 if err != nil {
@@ -376,7 +377,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.Site{
 	// ...
@@ -393,7 +394,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SiteConfigResource{
 	// ...
@@ -746,7 +747,7 @@ if err := client.CreateOrUpdateSlotThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SiteSourceControl{
 	// ...
@@ -780,7 +781,7 @@ if err := client.CreateOrUpdateSourceControlSlotThenPoll(ctx, id, payload); err 
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SwiftVirtualNetwork{
 	// ...
@@ -906,7 +907,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.Delete(ctx, id, webapps.DefaultDeleteOperationOptions())
 if err != nil {
@@ -938,7 +939,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.DeleteBackupConfiguration(ctx, id)
 if err != nil {
@@ -1474,7 +1475,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.DeleteSourceControl(ctx, id, webapps.DefaultDeleteSourceControlOperationOptions())
 if err != nil {
@@ -1506,7 +1507,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.DeleteSwiftVirtualNetwork(ctx, id)
 if err != nil {
@@ -1602,7 +1603,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.WorkflowArtifacts{
 	// ...
@@ -1644,7 +1645,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.RestoreRequest{
 	// ...
@@ -1686,7 +1687,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GenerateNewSitePublishingPassword(ctx, id)
 if err != nil {
@@ -1718,7 +1719,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -1766,7 +1767,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.GetAppSettingsKeyVaultReferences(ctx, id)` can be used to do batched pagination
 items, err := client.GetAppSettingsKeyVaultReferencesComplete(ctx, id)
@@ -1800,7 +1801,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetAuthSettings(ctx, id)
 if err != nil {
@@ -1832,7 +1833,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetAuthSettingsV2(ctx, id)
 if err != nil {
@@ -1864,7 +1865,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetAuthSettingsV2WithoutSecrets(ctx, id)
 if err != nil {
@@ -1896,7 +1897,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetBackupConfiguration(ctx, id)
 if err != nil {
@@ -1960,7 +1961,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetConfiguration(ctx, id)
 if err != nil {
@@ -2024,7 +2025,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetContainerLogsZip(ctx, id)
 if err != nil {
@@ -2120,7 +2121,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetDiagnosticLogsConfiguration(ctx, id)
 if err != nil {
@@ -2184,7 +2185,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetFtpAllowed(ctx, id)
 if err != nil {
@@ -2232,7 +2233,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetFunctionsAdminToken(ctx, id)
 if err != nil {
@@ -2552,7 +2553,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetMSDeployLog(ctx, id)
 if err != nil {
@@ -2584,7 +2585,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetMSDeployStatus(ctx, id)
 if err != nil {
@@ -2616,7 +2617,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetMigrateMySqlStatus(ctx, id)
 if err != nil {
@@ -2712,7 +2713,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetOneDeployStatus(ctx, id)
 if err != nil {
@@ -2760,7 +2761,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetPrivateAccess(ctx, id)
 if err != nil {
@@ -2808,7 +2809,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.GetPrivateEndpointConnectionList(ctx, id)` can be used to do batched pagination
 items, err := client.GetPrivateEndpointConnectionListComplete(ctx, id)
@@ -2858,7 +2859,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetPrivateLinkResources(ctx, id)
 if err != nil {
@@ -3050,7 +3051,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetScmAllowed(ctx, id)
 if err != nil {
@@ -3114,7 +3115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.GetSiteConnectionStringKeyVaultReferences(ctx, id)` can be used to do batched pagination
 items, err := client.GetSiteConnectionStringKeyVaultReferencesComplete(ctx, id)
@@ -3180,7 +3181,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetSitePhpErrorLogFlag(ctx, id)
 if err != nil {
@@ -3228,7 +3229,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetSourceControl(ctx, id)
 if err != nil {
@@ -3260,7 +3261,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetSwiftVirtualNetworkConnection(ctx, id)
 if err != nil {
@@ -3452,7 +3453,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.GetWebSiteContainerLogs(ctx, id)
 if err != nil {
@@ -3524,7 +3525,7 @@ if err := client.InstallSiteExtensionSlotThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.IsCloneable(ctx, id)
 if err != nil {
@@ -3556,7 +3557,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -3573,7 +3574,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListApplicationSettings(ctx, id)
 if err != nil {
@@ -3605,7 +3606,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListAzureStorageAccounts(ctx, id)
 if err != nil {
@@ -3679,7 +3680,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListBackups(ctx, id)` can be used to do batched pagination
 items, err := client.ListBackupsComplete(ctx, id)
@@ -3713,7 +3714,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListBasicPublishingCredentialsPolicies(ctx, id)` can be used to do batched pagination
 items, err := client.ListBasicPublishingCredentialsPoliciesComplete(ctx, id)
@@ -3747,7 +3748,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id, webapps.DefaultListByResourceGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id, webapps.DefaultListByResourceGroupOperationOptions())
@@ -3764,7 +3765,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListConfigurationSnapshotInfo(ctx, id)` can be used to do batched pagination
 items, err := client.ListConfigurationSnapshotInfoComplete(ctx, id)
@@ -3798,7 +3799,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListConfigurations(ctx, id)` can be used to do batched pagination
 items, err := client.ListConfigurationsComplete(ctx, id)
@@ -3832,7 +3833,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListConnectionStrings(ctx, id)
 if err != nil {
@@ -3864,7 +3865,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListContinuousWebJobs(ctx, id)` can be used to do batched pagination
 items, err := client.ListContinuousWebJobsComplete(ctx, id)
@@ -3930,7 +3931,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListDeployments(ctx, id)` can be used to do batched pagination
 items, err := client.ListDeploymentsComplete(ctx, id)
@@ -3964,7 +3965,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListDomainOwnershipIdentifiers(ctx, id)` can be used to do batched pagination
 items, err := client.ListDomainOwnershipIdentifiersComplete(ctx, id)
@@ -4062,7 +4063,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListFunctions(ctx, id)` can be used to do batched pagination
 items, err := client.ListFunctionsComplete(ctx, id)
@@ -4079,7 +4080,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListHostKeys(ctx, id)
 if err != nil {
@@ -4111,7 +4112,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListHostNameBindings(ctx, id)` can be used to do batched pagination
 items, err := client.ListHostNameBindingsComplete(ctx, id)
@@ -4145,7 +4146,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListHybridConnections(ctx, id)
 if err != nil {
@@ -4194,7 +4195,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListInstanceIdentifiers(ctx, id)` can be used to do batched pagination
 items, err := client.ListInstanceIdentifiersComplete(ctx, id)
@@ -4347,7 +4348,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListMetadata(ctx, id)
 if err != nil {
@@ -4411,7 +4412,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListPerfMonCounters(ctx, id, webapps.DefaultListPerfMonCountersOperationOptions())` can be used to do batched pagination
 items, err := client.ListPerfMonCountersComplete(ctx, id, webapps.DefaultListPerfMonCountersOperationOptions())
@@ -4445,7 +4446,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListPremierAddOns(ctx, id)
 if err != nil {
@@ -4545,7 +4546,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListProcesses(ctx, id)` can be used to do batched pagination
 items, err := client.ListProcessesComplete(ctx, id)
@@ -4579,7 +4580,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListProductionSiteDeploymentStatuses(ctx, id)` can be used to do batched pagination
 items, err := client.ListProductionSiteDeploymentStatusesComplete(ctx, id)
@@ -4596,7 +4597,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListPublicCertificates(ctx, id)` can be used to do batched pagination
 items, err := client.ListPublicCertificatesComplete(ctx, id)
@@ -4630,7 +4631,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 if err := client.ListPublishingCredentialsThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -4654,7 +4655,7 @@ if err := client.ListPublishingCredentialsSlotThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.CsmPublishingProfileOptions{
 	// ...
@@ -4696,7 +4697,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListRelayServiceConnections(ctx, id)
 if err != nil {
@@ -4728,7 +4729,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListSiteBackups(ctx, id)` can be used to do batched pagination
 items, err := client.ListSiteBackupsComplete(ctx, id)
@@ -4762,7 +4763,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListSiteExtensions(ctx, id)` can be used to do batched pagination
 items, err := client.ListSiteExtensionsComplete(ctx, id)
@@ -4796,7 +4797,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListSitePushSettings(ctx, id)
 if err != nil {
@@ -4828,7 +4829,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListSlotConfigurationNames(ctx, id)
 if err != nil {
@@ -4844,7 +4845,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.CsmSlotEntity{
 	// ...
@@ -4905,7 +4906,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListSlots(ctx, id)` can be used to do batched pagination
 items, err := client.ListSlotsComplete(ctx, id)
@@ -4922,7 +4923,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListSnapshots(ctx, id)` can be used to do batched pagination
 items, err := client.ListSnapshotsComplete(ctx, id)
@@ -4939,7 +4940,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListSnapshotsFromDRSecondary(ctx, id)` can be used to do batched pagination
 items, err := client.ListSnapshotsFromDRSecondaryComplete(ctx, id)
@@ -4990,7 +4991,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListSyncFunctionTriggers(ctx, id)
 if err != nil {
@@ -5022,7 +5023,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListSyncStatus(ctx, id)
 if err != nil {
@@ -5088,7 +5089,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListTriggeredWebJobs(ctx, id)` can be used to do batched pagination
 items, err := client.ListTriggeredWebJobsComplete(ctx, id)
@@ -5122,7 +5123,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListUsages(ctx, id, webapps.DefaultListUsagesOperationOptions())` can be used to do batched pagination
 items, err := client.ListUsagesComplete(ctx, id, webapps.DefaultListUsagesOperationOptions())
@@ -5156,7 +5157,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListVnetConnections(ctx, id)
 if err != nil {
@@ -5188,7 +5189,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListWebJobs(ctx, id)` can be used to do batched pagination
 items, err := client.ListWebJobsComplete(ctx, id)
@@ -5222,7 +5223,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 // alternatively `client.ListWorkflows(ctx, id)` can be used to do batched pagination
 items, err := client.ListWorkflowsComplete(ctx, id)
@@ -5239,7 +5240,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ListWorkflowsConnections(ctx, id)
 if err != nil {
@@ -5271,7 +5272,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.MigrateMySqlRequest{
 	// ...
@@ -5288,7 +5289,7 @@ if err := client.MigrateMySqlThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.StorageMigrationOptions{
 	// ...
@@ -5305,7 +5306,7 @@ if err := client.MigrateStorageThenPoll(ctx, id, payload, webapps.DefaultMigrate
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.PrivateAccess{
 	// ...
@@ -5379,7 +5380,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.ResetProductionSlotConfig(ctx, id)
 if err != nil {
@@ -5411,7 +5412,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.Restart(ctx, id, webapps.DefaultRestartOperationOptions())
 if err != nil {
@@ -5460,7 +5461,7 @@ if err := client.RestoreThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.RestoreRequest{
 	// ...
@@ -5494,7 +5495,7 @@ if err := client.RestoreFromBackupBlobSlotThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.DeletedAppRestoreRequest{
 	// ...
@@ -5545,7 +5546,7 @@ if err := client.RestoreSlotThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SnapshotRestoreRequest{
 	// ...
@@ -5611,7 +5612,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.Start(ctx, id)
 if err != nil {
@@ -5659,7 +5660,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 if err := client.StartNetworkTraceThenPoll(ctx, id, webapps.DefaultStartNetworkTraceOperationOptions()); err != nil {
 	// handle the error
@@ -5699,7 +5700,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.StartWebSiteNetworkTrace(ctx, id, webapps.DefaultStartWebSiteNetworkTraceOperationOptions())
 if err != nil {
@@ -5715,7 +5716,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 if err := client.StartWebSiteNetworkTraceOperationThenPoll(ctx, id, webapps.DefaultStartWebSiteNetworkTraceOperationOperationOptions()); err != nil {
 	// handle the error
@@ -5755,7 +5756,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.Stop(ctx, id)
 if err != nil {
@@ -5803,7 +5804,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.StopNetworkTrace(ctx, id)
 if err != nil {
@@ -5851,7 +5852,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.StopWebSiteNetworkTrace(ctx, id)
 if err != nil {
@@ -5900,7 +5901,7 @@ if err := client.SwapSlotSlotThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.CsmSlotEntity{
 	// ...
@@ -5917,7 +5918,7 @@ if err := client.SwapSlotWithProductionThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.SyncFunctionTriggers(ctx, id)
 if err != nil {
@@ -5949,7 +5950,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.SyncFunctions(ctx, id)
 if err != nil {
@@ -5981,7 +5982,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 read, err := client.SyncRepository(ctx, id)
 if err != nil {
@@ -6013,7 +6014,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SitePatchResource{
 	// ...
@@ -6034,7 +6035,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.StringDictionary{
 	// ...
@@ -6076,7 +6077,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SiteAuthSettings{
 	// ...
@@ -6118,7 +6119,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SiteAuthSettingsV2{
 	// ...
@@ -6160,7 +6161,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.AzureStoragePropertyDictionaryResource{
 	// ...
@@ -6202,7 +6203,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.BackupRequest{
 	// ...
@@ -6244,7 +6245,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SiteConfigResource{
 	// ...
@@ -6286,7 +6287,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.ConnectionStringDictionary{
 	// ...
@@ -6328,7 +6329,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SiteLogsConfig{
 	// ...
@@ -6412,7 +6413,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.CsmPublishingCredentialsPoliciesEntity{
 	// ...
@@ -6496,7 +6497,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.StringDictionary{
 	// ...
@@ -6622,7 +6623,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.CsmPublishingCredentialsPoliciesEntity{
 	// ...
@@ -6664,7 +6665,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.PushSettings{
 	// ...
@@ -6727,7 +6728,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SlotConfigNamesResource{
 	// ...
@@ -6748,7 +6749,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SiteSourceControl{
 	// ...
@@ -6790,7 +6791,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := webapps.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
+id := commonids.NewAppServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "siteValue")
 
 payload := webapps.SwiftVirtualNetwork{
 	// ...

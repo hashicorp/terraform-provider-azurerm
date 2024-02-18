@@ -354,6 +354,11 @@ service/managed-apps:
   - any-glob-to-any-file:
     - internal/services/managedapplications/**/*
 
+service/managed-hsm:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/managedhsm/**/*
+
 service/management-groups:
 - changed-files:
   - any-glob-to-any-file:

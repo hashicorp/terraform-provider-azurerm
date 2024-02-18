@@ -108,6 +108,27 @@ func TestAccSpringCloudGateway_update(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudGateway_responseCache(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
+	r := SpringCloudGatewayResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.responseCachePerInstance(data, "10MB", "30s"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.responseCachePerRoute(data, "900KB", "5m"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SpringCloudGatewayResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := appplatform.ParseGatewayID(state.ID)
 	if err != nil {
@@ -344,4 +365,38 @@ resource "azurerm_spring_cloud_gateway" "test" {
   }
 }
 `, template, data.RandomIntOfLength(10))
+}
+
+func (r SpringCloudGatewayResource) responseCachePerRoute(data acceptance.TestData, size, timeToLive string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_gateway" "test" {
+  name                    = "default"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+
+  local_response_cache_per_route {
+    size         = "%[2]s"
+    time_to_live = "%[3]s"
+  }
+}
+`, template, size, timeToLive)
+}
+
+func (r SpringCloudGatewayResource) responseCachePerInstance(data acceptance.TestData, size, timeToLive string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_gateway" "test" {
+  name                    = "default"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+
+  local_response_cache_per_instance {
+    size         = "%[2]s"
+    time_to_live = "%[3]s"
+  }
+}
+`, template, size, timeToLive)
 }

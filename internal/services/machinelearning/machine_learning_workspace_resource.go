@@ -5,6 +5,7 @@ package machinelearning
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -93,6 +94,39 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+
+			"kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Default",
+					"FeatureStore",
+				}, false),
+				Default: "Default",
+			},
+
+			"feature_store": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"computer_spark_runtime_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+						"offline_connection_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"online_connection_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
 
 			"primary_user_assigned_identity": {
 				Type:         pluginsdk.TypeString,
@@ -250,6 +284,7 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 			Name: d.Get("sku_name").(string),
 			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
 		},
+		Kind: utils.String(d.Get("kind").(string)),
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
@@ -288,6 +323,18 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 	if v, ok := d.GetOk("primary_user_assigned_identity"); ok {
 		workspace.Properties.PrimaryUserAssignedIdentity = pointer.To(v.(string))
+	}
+
+	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]interface{}))
+	if strings.EqualFold(*workspace.Kind, "Default") {
+		if featureStore != nil {
+			return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
+		}
+	} else {
+		if featureStore == nil {
+			return fmt.Errorf("`feature_store` can not be empty when `kind` is `FeatureStore`")
+		}
+		workspace.Properties.FeatureStoreSettings = featureStore
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id, workspace)
@@ -333,6 +380,8 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("sku_name", sku.Name)
 	}
 
+	d.Set("kind", resp.Model.Kind)
+
 	if props := resp.Model.Properties; props != nil {
 		d.Set("application_insights_id", props.ApplicationInsights)
 		d.Set("storage_account_id", props.StorageAccount)
@@ -365,6 +414,11 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 
 	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(resp.Model.Properties.FeatureStoreSettings)
+	if err := d.Set("feature_store", featureStoreSettings); err != nil {
+		return fmt.Errorf("setting `feature_store`: %+v", err)
 	}
 
 	flattenedEncryption, err := flattenMachineLearningWorkspaceEncryption(resp.Model.Properties.Encryption)
@@ -510,4 +564,57 @@ func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionPrope
 			"key_id":                    keyVaultKeyId,
 		},
 	}, nil
+}
+
+func expandMachineLearningWorkspaceFeatureStore(input []interface{}) *workspaces.FeatureStoreSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	out := workspaces.FeatureStoreSettings{}
+
+	if raw["computer_spark_runtime_version"].(string) != "" {
+		out.ComputeRuntime = &workspaces.ComputeRuntimeDto{
+			SparkRuntimeVersion: utils.String(raw["computer_spark_runtime_version"].(string)),
+		}
+	}
+
+	if raw["offline_connection_name"].(string) != "" {
+		out.OfflineStoreConnectionName = utils.String(raw["offline_connection_name"].(string))
+	}
+
+	if raw["online_connection_name"].(string) != "" {
+		out.OnlineStoreConnectionName = utils.String(raw["online_connection_name"].(string))
+	}
+	return &out
+}
+
+func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreSettings) *[]interface{} {
+	if input == nil {
+		return &[]interface{}{}
+	}
+
+	computerSparkRunTimeVersion := ""
+	offlineConnectionName := ""
+	onlineConnectionName := ""
+
+	if input.ComputeRuntime != nil && input.ComputeRuntime.SparkRuntimeVersion != nil {
+		computerSparkRunTimeVersion = *input.ComputeRuntime.SparkRuntimeVersion
+	}
+	if input.OfflineStoreConnectionName != nil {
+		offlineConnectionName = *input.OfflineStoreConnectionName
+	}
+
+	if input.OnlineStoreConnectionName != nil {
+		onlineConnectionName = *input.OnlineStoreConnectionName
+	}
+
+	return &[]interface{}{
+		map[string]interface{}{
+			"computer_spark_runtime_version": computerSparkRunTimeVersion,
+			"offline_connection_name":        offlineConnectionName,
+			"online_connection_name":         onlineConnectionName,
+		},
+	}
 }
