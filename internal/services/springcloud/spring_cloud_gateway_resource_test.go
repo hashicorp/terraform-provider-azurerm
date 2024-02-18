@@ -129,6 +129,48 @@ func TestAccSpringCloudGateway_responseCache(t *testing.T) {
 	})
 }
 
+func TestAccSpringCloudGateway_apms(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
+	r := SpringCloudGatewayResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.apms(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSpringCloudGateway_apmsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_gateway", "test")
+	r := SpringCloudGatewayResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.apms(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SpringCloudGatewayResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := appplatform.ParseGatewayID(state.ID)
 	if err != nil {
@@ -165,6 +207,14 @@ resource "azurerm_spring_cloud_service" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "E0"
+}
+
+resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "test" {
+  name                    = "acctest-apm-%[2]d"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  tenant                  = "test-tenant"
+  tenant_token            = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+  connection_point        = "https://example.live.dynatrace.com:443"
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
@@ -248,6 +298,19 @@ resource "azurerm_spring_cloud_gateway" "test" {
   }
 }
 `, template, clientId, clientSecret)
+}
+
+func (r SpringCloudGatewayResource) apms(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_gateway" "test" {
+  name                    = "default"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  application_performance_monitoring_ids   = [azurerm_spring_cloud_dynatrace_application_performance_monitoring.test.id]
+}
+`, template, data.RandomInteger)
 }
 
 func (r SpringCloudGatewayResource) clientAuth(data acceptance.TestData) string {
