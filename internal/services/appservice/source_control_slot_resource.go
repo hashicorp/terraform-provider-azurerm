@@ -9,14 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type SourceControlSlotResource struct{}
@@ -42,7 +43,7 @@ func (r SourceControlSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WebAppSlotID,
+			ValidateFunc: webapps.ValidateSlotID,
 			Description:  "The ID of the Linux or Windows Web App Slot.",
 		},
 
@@ -151,73 +152,71 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.WebAppSlotID(appSourceControlSlot.SlotID)
+			id, err := webapps.ParseSlotID(appSourceControlSlot.SlotID)
 			if err != nil {
 				return err
 			}
 
-			appId := parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID()
+			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName).ID()
 			locks.ByID(appId)
 			defer locks.UnlockByID(appId)
 
-			existing, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-			if err != nil || existing.SiteConfig == nil {
+			existing, err := client.GetConfigurationSlot(ctx, *id)
+			if err != nil || existing.Model == nil || existing.Model.Properties == nil {
 				return fmt.Errorf("checking for existing Source Control configuration on %s: %+v", id, err)
 			}
-			if existing.SiteConfig.ScmType != web.ScmTypeNone {
+			if pointer.From(existing.Model.Properties.ScmType) != webapps.ScmTypeNone {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			if appSourceControlSlot.LocalGitSCM {
-				sitePatch := web.SitePatchResource{
-					SitePatchResourceProperties: &web.SitePatchResourceProperties{
-						SiteConfig: &web.SiteConfig{
-							ScmType: web.ScmTypeLocalGit,
+				sitePatch := webapps.SitePatchResource{
+					Properties: &webapps.SitePatchResourceProperties{
+						SiteConfig: &webapps.SiteConfig{
+							ScmType: pointer.To(webapps.ScmTypeLocalGit),
 						},
 					},
 				}
 
-				if _, err := client.UpdateSlot(ctx, id.ResourceGroup, id.SiteName, sitePatch, id.SlotName); err != nil {
+				if _, err := client.UpdateSlot(ctx, *id, sitePatch); err != nil {
 					return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
 				}
 			} else {
-				app, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-				if err != nil || app.Kind == nil {
+				app, err := client.GetSlot(ctx, *id)
+				if err != nil || app.Model == nil || app.Model.Kind == nil {
 					return fmt.Errorf("reading slot to determine O/S type for %s: %+v", id, err)
 				}
 
 				usesLinux := false
-				if strings.Contains(strings.ToLower(*app.Kind), "linux") {
+				if strings.Contains(strings.ToLower(*app.Model.Kind), "linux") {
 					usesLinux = true
 				}
 
-				sourceControl := web.SiteSourceControl{
-					SiteSourceControlProperties: &web.SiteSourceControlProperties{
-						IsManualIntegration:       utils.Bool(appSourceControlSlot.ManualIntegration),
-						DeploymentRollbackEnabled: utils.Bool(appSourceControlSlot.RollbackEnabled),
-						IsMercurial:               utils.Bool(appSourceControlSlot.UseMercurial),
+				sourceControl := webapps.SiteSourceControl{
+					Properties: &webapps.SiteSourceControlProperties{
+						IsManualIntegration:       pointer.To(appSourceControlSlot.ManualIntegration),
+						DeploymentRollbackEnabled: pointer.To(appSourceControlSlot.RollbackEnabled),
+						IsMercurial:               pointer.To(appSourceControlSlot.UseMercurial),
 					},
 				}
 
 				if appSourceControlSlot.RepoURL != "" {
-					sourceControl.SiteSourceControlProperties.RepoURL = utils.String(appSourceControlSlot.RepoURL)
+					sourceControl.Properties.RepoUrl = utils.String(appSourceControlSlot.RepoURL)
 				}
 
 				if appSourceControlSlot.Branch != "" {
-					sourceControl.SiteSourceControlProperties.Branch = utils.String(appSourceControlSlot.Branch)
+					sourceControl.Properties.Branch = utils.String(appSourceControlSlot.Branch)
 				}
 
 				if ghaConfig := expandGithubActionConfig(appSourceControlSlot.GithubActionConfiguration, usesLinux); ghaConfig != nil {
-					sourceControl.SiteSourceControlProperties.GitHubActionConfiguration = ghaConfig
+					sourceControl.Properties.GitHubActionConfiguration = ghaConfig
 				}
 
-				_, err = client.UpdateSourceControlSlot(ctx, id.ResourceGroup, id.SiteName, sourceControl, id.SlotName)
+				_, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl)
 				if err != nil {
 					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
 				}
 			}
-
-			// TODO - Need to introduce polling for deployment statuses to avoid 409's elsewhere
 
 			metadata.SetID(id)
 			return nil
@@ -229,44 +228,44 @@ func (r SourceControlSlotResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
+			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
 
-			appSourceControl, err := client.GetSourceControlSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-			if err != nil || appSourceControl.SiteSourceControlProperties == nil {
-				if utils.ResponseWasNotFound(appSourceControl.Response) {
+			appSourceControl, err := client.GetSourceControlSlot(ctx, *id)
+			if err != nil || appSourceControl.Model == nil || appSourceControl.Model.Properties == nil {
+				if response.WasNotFound(appSourceControl.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading Source Control for %s: %v", id, err)
 			}
 
-			siteConfig, err := client.GetConfigurationSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+			siteConfig, err := client.GetConfigurationSlot(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading App for Source Control %s: %v", id, err)
 			}
 
-			if siteConfig.ScmType == web.ScmTypeNone {
+			if pointer.From(siteConfig.Model.Properties.ScmType) == webapps.ScmTypeNone {
 				metadata.Logger.Infof("App %s SCMType is `None` removing Source Control resource from state", id.SiteName)
 				metadata.ResourceData.SetId("")
 			}
 
-			props := *appSourceControl.SiteSourceControlProperties
+			props := *appSourceControl.Model.Properties
 
 			state := SourceControlSlotModel{
 				SlotID:                    id.ID(),
-				SCMType:                   string(siteConfig.ScmType),
-				RepoURL:                   utils.NormalizeNilableString(props.RepoURL),
-				Branch:                    utils.NormalizeNilableString(props.Branch),
-				ManualIntegration:         utils.NormaliseNilableBool(props.IsManualIntegration),
-				UseMercurial:              utils.NormaliseNilableBool(props.IsMercurial),
-				RollbackEnabled:           utils.NormaliseNilableBool(props.DeploymentRollbackEnabled),
-				UsesGithubAction:          utils.NormaliseNilableBool(props.IsGitHubAction),
+				SCMType:                   string(pointer.From(siteConfig.Model.Properties.ScmType)),
+				RepoURL:                   pointer.From(props.RepoUrl),
+				Branch:                    pointer.From(props.Branch),
+				ManualIntegration:         pointer.From(props.IsManualIntegration),
+				UseMercurial:              pointer.From(props.IsMercurial),
+				RollbackEnabled:           pointer.From(props.DeploymentRollbackEnabled),
+				UsesGithubAction:          pointer.From(props.IsGitHubAction),
 				GithubActionConfiguration: flattenGitHubActionConfiguration(props.GitHubActionConfiguration),
-				LocalGitSCM:               siteConfig.ScmType == web.ScmTypeLocalGit,
+				LocalGitSCM:               pointer.From(siteConfig.Model.Properties.ScmType) == webapps.ScmTypeLocalGit,
 			}
 
 			return metadata.Encode(&state)
@@ -279,23 +278,23 @@ func (r SourceControlSlotResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
-			id, err := parse.WebAppSlotID(metadata.ResourceData.Id())
+			id, err := webapps.ParseSlotID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			sitePatch := web.SitePatchResource{
-				SitePatchResourceProperties: &web.SitePatchResourceProperties{
-					SiteConfig: &web.SiteConfig{
-						ScmType: web.ScmTypeNone,
+			sitePatch := webapps.SitePatchResource{
+				Properties: &webapps.SitePatchResourceProperties{
+					SiteConfig: &webapps.SiteConfig{
+						ScmType: pointer.To(webapps.ScmTypeNone),
 					},
 				},
 			}
-			if _, err := client.UpdateSlot(ctx, id.ResourceGroup, id.SiteName, sitePatch, id.SlotName); err != nil {
+			if _, err := client.UpdateSlot(ctx, *id, sitePatch); err != nil {
 				return fmt.Errorf("setting App Source Control Type for %s: %v", id, err)
 			}
 
-			if _, err := client.DeleteSourceControlSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, ""); err != nil {
+			if _, err := client.DeleteSourceControlSlot(ctx, *id, webapps.DefaultDeleteSourceControlSlotOperationOptions()); err != nil {
 				return fmt.Errorf("deleting Source Control for %s: %v", id, err)
 			}
 
@@ -306,5 +305,5 @@ func (r SourceControlSlotResource) Delete() sdk.ResourceFunc {
 
 func (r SourceControlSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	// This is a meta resource with a 1:1 relationship with the slot it's pointed at, so we use the same ID
-	return validate.WebAppSlotID
+	return webapps.ValidateSlotID
 }

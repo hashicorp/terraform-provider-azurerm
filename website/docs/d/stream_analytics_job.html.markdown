@@ -68,6 +68,8 @@ output "job_id" {
 
 An `identity` block exports the following:
 
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned to this resource.
+
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
