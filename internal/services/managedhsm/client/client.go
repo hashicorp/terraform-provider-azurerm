@@ -4,7 +4,9 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
+	"fmt"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
@@ -27,9 +29,12 @@ type Client struct {
 	DataPlaneSecurityDomainsClient *dataplane.HSMSecurityDomainClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	managedHsmClient := managedhsms.NewManagedHsmsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&managedHsmClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	managedHsmClient, err := managedhsms.NewManagedHsmsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagedHsms client: %+v", err)
+	}
+	o.Configure(managedHsmClient.Client, o.Authorizers.ResourceManager)
 
 	managementClient := dataplane.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
@@ -45,12 +50,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		// Resource Manger
-		ManagedHsmClient: &managedHsmClient,
+		ManagedHsmClient: managedHsmClient,
 
 		// Data Plane
 		DataPlaneClient:                &managementClient,
 		DataPlaneSecurityDomainsClient: &securityDomainClient,
 		DataPlaneRoleDefinitionsClient: &roleDefinitionsClient,
 		DataPlaneRoleAssignmentsClient: &roleAssignmentsClient,
-	}
+	}, nil
 }

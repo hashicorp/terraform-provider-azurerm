@@ -171,6 +171,8 @@ A `windows_configuration` block supports the following:
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
+* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
+
 ---
 
 A `linux_configuration` block supports the following:
@@ -208,6 +210,14 @@ A `secret` block supports the following:
 * `certificate` - (Required) One or more `certificate` blocks as defined below.
 
 -> **NOTE:** The schema of the `certificate` block is slightly different depending on if you are provisioning a `windows_configuration` or a `linux_configuration`.
+
+---
+
+An `additional_unattend_content` block supports the following:
+
+* `content` - (Required) The XML formatted content that is added to the unattend.xml file for the specified path and component. Changing this forces a new resource to be created.
+
+* `setting` - (Required) The name of the setting to which the content applies. Possible values are `AutoLogon` and `FirstLogonCommands`. Changing this forces a new resource to be created.
 
 ---
 

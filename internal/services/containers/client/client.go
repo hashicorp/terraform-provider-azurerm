@@ -59,14 +59,23 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	// AKS
-	fleetUpdateRunsClient := updateruns.NewUpdateRunsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&fleetUpdateRunsClient.Client, o.ResourceManagerAuthorizer)
+	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Fleet Update Runs Client: %+v", err)
+	}
+	o.Configure(fleetUpdateRunsClient.Client, o.Authorizers.ResourceManager)
 
-	fleetUpdateStrategiesClient := fleetupdatestrategies.NewFleetUpdateStrategiesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&fleetUpdateStrategiesClient.Client, o.ResourceManagerAuthorizer)
+	fleetUpdateStrategiesClient, err := fleetupdatestrategies.NewFleetUpdateStrategiesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Fleet Update Strategies Client: %+v", err)
+	}
+	o.Configure(fleetUpdateStrategiesClient.Client, o.Authorizers.ResourceManager)
 
-	kubernetesClustersClient := managedclusters.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&kubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
+	kubernetesClustersClient, err := managedclusters.NewManagedClustersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Kubernetes Clusters Client: %+v", err)
+	}
+	o.Configure(kubernetesClustersClient.Client, o.Authorizers.ResourceManager)
 
 	kubernetesExtensionsClient, err := extensions.NewExtensionsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -80,31 +89,43 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(fluxConfigurationClient.Client, o.Authorizers.ResourceManager)
 
-	agentPoolsClient := agentpools.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&agentPoolsClient.Client, o.ResourceManagerAuthorizer)
+	agentPoolsClient, err := agentpools.NewAgentPoolsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Agent Pools Client: %+v", err)
+	}
+	o.Configure(agentPoolsClient.Client, o.Authorizers.ResourceManager)
 
-	maintenanceConfigurationsClient := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&maintenanceConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	maintenanceConfigurationsClient, err := maintenanceconfigurations.NewMaintenanceConfigurationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Maintenance Configurations Client: %+v", err)
+	}
+	o.Configure(maintenanceConfigurationsClient.Client, o.Authorizers.ResourceManager)
 
-	servicesClient := containerservices.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
+	servicesClient, err := containerservices.NewContainerServicesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Services Client: %+v", err)
+	}
+	o.Configure(servicesClient.Client, o.Authorizers.ResourceManager)
 
-	snapshotClient := snapshots.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&snapshotClient.Client, o.ResourceManagerAuthorizer)
+	snapshotClient, err := snapshots.NewSnapshotsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Snapshot Client: %+v", err)
+	}
+	o.Configure(snapshotClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AgentPoolsClient:                            &agentPoolsClient,
+		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     &containerInstanceClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
-		FleetUpdateRunsClient:                       &fleetUpdateRunsClient,
-		FleetUpdateStrategiesClient:                 &fleetUpdateStrategiesClient,
-		KubernetesClustersClient:                    &kubernetesClustersClient,
+		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
+		FleetUpdateStrategiesClient:                 fleetUpdateStrategiesClient,
+		KubernetesClustersClient:                    kubernetesClustersClient,
 		KubernetesExtensionsClient:                  kubernetesExtensionsClient,
 		KubernetesFluxConfigurationClient:           fluxConfigurationClient,
-		MaintenanceConfigurationsClient:             &maintenanceConfigurationsClient,
-		ServicesClient:                              &servicesClient,
-		SnapshotClient:                              &snapshotClient,
+		MaintenanceConfigurationsClient:             maintenanceConfigurationsClient,
+		ServicesClient:                              servicesClient,
+		SnapshotClient:                              snapshotClient,
 		Environment:                                 o.AzureEnvironment,
 	}, nil
 }
