@@ -276,7 +276,7 @@ func CatalogPropertiesSchema() *pluginsdk.Schema {
 }
 
 func expandCatalogProperties(input []CatalogPropertiesModel) *catalogs.GitCatalog {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
