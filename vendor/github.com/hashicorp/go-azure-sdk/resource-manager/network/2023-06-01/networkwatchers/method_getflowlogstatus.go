@@ -18,6 +18,7 @@ type GetFlowLogStatusOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *FlowLogInformation
 }
 
 // GetFlowLogStatus ...

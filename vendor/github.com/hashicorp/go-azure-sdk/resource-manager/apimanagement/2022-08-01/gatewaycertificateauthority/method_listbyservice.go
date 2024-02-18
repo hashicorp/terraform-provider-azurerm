@@ -19,7 +19,8 @@ type ListByServiceOperationResponse struct {
 }
 
 type ListByServiceCompleteResult struct {
-	Items []GatewayCertificateAuthorityContract
+	LatestHttpResponse *http.Response
+	Items              []GatewayCertificateAuthorityContract
 }
 
 type ListByServiceOperationOptions struct {
@@ -119,7 +120,8 @@ func (c GatewayCertificateAuthorityClient) ListByServiceCompleteMatchingPredicat
 	}
 
 	result = ListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

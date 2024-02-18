@@ -20,7 +20,8 @@ type BotsListOperationResponse struct {
 }
 
 type BotsListCompleteResult struct {
-	Items []HealthBot
+	LatestHttpResponse *http.Response
+	Items              []HealthBot
 }
 
 // BotsList ...
@@ -84,7 +85,8 @@ func (c HealthbotsClient) BotsListCompleteMatchingPredicate(ctx context.Context,
 	}
 
 	result = BotsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

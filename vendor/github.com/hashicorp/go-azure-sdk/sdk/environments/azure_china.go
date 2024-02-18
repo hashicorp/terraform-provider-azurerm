@@ -33,7 +33,7 @@ func AzureChina() *Environment {
 	env.Postgresql = PostgresqlAPI("postgres.database.chinacloudapi.cn").withResourceIdentifier("https://ossrdbms-aad.database.chinacloudapi.cn")
 	env.ServiceBus = ServiceBusAPI("https://servicebus.chinacloudapi.cn", "servicebus.chinacloudapi.cn")
 	env.Sql = SqlAPI("database.chinacloudapi.cn").withResourceIdentifier("https://database.chinacloudapi.cn")
-	env.Storage = StorageAPI("core.chinacloudapi.cn").withResourceIdentifier("https://core.chinacloudapi.cn")
+	env.Storage = StorageAPI("core.chinacloudapi.cn").withResourceIdentifier("https://storage.azure.com")
 	env.Synapse = SynapseAPI("dev.azuresynapse.azure.cn")
 	env.TrafficManager = TrafficManagerAPI("trafficmanager.cn")
 

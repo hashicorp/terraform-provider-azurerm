@@ -9,11 +9,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -43,7 +45,17 @@ import (
 )
 
 var (
-	storageAccountResourceName = "azurerm_storage_account"
+	storageAccountResourceName  = "azurerm_storage_account"
+	storageKindsSupportsSkuTier = []storage.Kind{
+		storage.KindBlobStorage,
+		storage.KindStorageV2,
+		storage.KindFileStorage,
+	}
+	storageKindsSupportHns = []storage.Kind{
+		storage.KindBlobStorage,
+		storage.KindStorageV2,
+		storage.KindBlockBlobStorage,
+	}
 )
 
 type storageAccountServiceSupportLevel struct {
@@ -154,7 +166,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
+			// Only valid for FileStorage, BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -852,6 +864,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"local_user_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"primary_location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -872,12 +890,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_blob_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_blob_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -892,12 +950,32 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_queue_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_queue_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -912,12 +990,32 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_table_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_table_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_table_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_table_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -932,12 +1030,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_web_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_web_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_web_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -952,12 +1090,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_dfs_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_dfs_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_dfs_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_microsoft_host": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -972,12 +1150,52 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"primary_file_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_microsoft_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"secondary_file_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
 			"secondary_file_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_internet_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_internet_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_microsoft_host": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_microsoft_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -1046,6 +1264,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
 					}
 				}
+
+				if d.Get("access_tier") != "" {
+					if accountKind := d.Get("account_kind").(string); !slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
+						return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
+					}
+				}
+
 				return nil
 			}),
 			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1133,6 +1358,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowCrossTenantReplication:  &crossTenantReplication,
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 			IsSftpEnabled:                &isSftpEnabled,
+			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
 		},
 	}
 
@@ -1183,17 +1409,19 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
-	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorageV2) || accountKind == string(storage.KindFileStorage) {
-		accessTier, ok := d.GetOk("access_tier")
+	accessTier, ok := d.GetOk("access_tier")
+	if slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
 		if !ok {
 			// default to "Hot"
 			accessTier = string(storage.AccessTierHot)
 		}
-
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else if isHnsEnabled && accountKind != string(storage.KindBlockBlobStorage) {
-		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
+	} else if ok {
+		return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
+	}
+
+	if isHnsEnabled && !slices.Contains(storageKindsSupportHns, storage.Kind(accountKind)) {
+		return fmt.Errorf("`is_hns_enabled` can only be used with account of kinds: %v", storageKindsSupportHns)
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
@@ -1455,9 +1683,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	allowSharedKeyAccess := true
+	shouldUpdate := false
 	if d.HasChange("shared_access_key_enabled") {
 		allowSharedKeyAccess = d.Get("shared_access_key_enabled").(bool)
-
+		shouldUpdate = true
 		// If AllowSharedKeyAccess is nil that breaks the Portal UI as reported in https://github.com/hashicorp/terraform-provider-azurerm/issues/11689
 		// currently the Portal UI reports nil as false, and per the ARM API documentation nil is true. This manifests itself in the Portal UI
 		// when a storage account is created by terraform that the AllowSharedKeyAccess is Disabled when it is actually Enabled, thus confusing out customers
@@ -1486,17 +1715,21 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("default_to_oauth_authentication") {
+		shouldUpdate = true
 		defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
 		opts.AccountPropertiesUpdateParameters.DefaultToOAuthAuthentication = &defaultToOAuthAuthentication
 	}
 
 	if d.HasChange("cross_tenant_replication_enabled") {
+		shouldUpdate = true
 		crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
 		opts.AccountPropertiesUpdateParameters.AllowCrossTenantReplication = &crossTenantReplication
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-		return fmt.Errorf("updating AllowSharedKeyAccess for %s: %+v", *id, err)
+	if shouldUpdate {
+		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
+			return fmt.Errorf("updating AllowSharedKeyAccess for %s: %+v", *id, err)
+		}
 	}
 
 	if d.HasChange("account_replication_type") {
@@ -1591,6 +1824,17 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
 			return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+		}
+	}
+
+	if d.HasChange("local_user_enabled") {
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				IsLocalUserEnabled: pointer.To(d.Get("local_user_enabled").(bool)),
+			},
+		}
+		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
+			return fmt.Errorf("updating `local_user_enabled` for %s: %+v", *id, err)
 		}
 	}
 
@@ -2026,8 +2270,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
-			return fmt.Errorf("setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
+		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints, resp.RoutingPreference); err != nil {
+			return fmt.Errorf("setting internet, microsoft primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
 		if accessKeys := keys.Keys; accessKeys != nil {
@@ -2039,8 +2283,8 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 		}
 
-		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
-			return fmt.Errorf("setting secondary endpoints and hosts for blob, queue, table: %+v", err)
+		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints, resp.RoutingPreference); err != nil {
+			return fmt.Errorf("setting internet, microsoft secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
 		if accessKeys := keys.Keys; accessKeys != nil {
@@ -2059,6 +2303,13 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props.LargeFileSharesState != "" {
 			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
 		}
+
+		// local_user_enabled defaults to true at service side when not specified in the API request.
+		isLocalEnabled := true
+		if props.IsLocalUserEnabled != nil {
+			isLocalEnabled = *props.IsLocalUserEnabled
+		}
+		d.Set("local_user_enabled", isLocalEnabled)
 
 		allowSharedKeyAccess := true
 		if props.AllowSharedKeyAccess != nil {
@@ -3441,6 +3692,7 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
+
 	versions := []interface{}{}
 	if input.Versions != nil {
 		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")
@@ -3604,7 +3856,7 @@ func getBlobConnectionString(blobEndpoint *string, acctName *string, acctKey *st
 	return fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s", endpoint, name, key)
 }
 
-func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceData, primary *storage.Endpoints) error {
+func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceData, primary *storage.Endpoints, routingInputs *storage.RoutingPreference) error {
 	if primary == nil {
 		return fmt.Errorf("primary endpoints should not be empty")
 	}
@@ -3628,10 +3880,56 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 		return err
 	}
 
+	// below null check is to avoid nullpointer scenarios when either of publish_internet_endpoints
+	// or publish_microsoft_endpoints or both aren't set
+	if routingInputs != nil && routingInputs.PublishInternetEndpoints != nil && *routingInputs.PublishInternetEndpoints {
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Blob, "blob_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Dfs, "dfs_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.File, "file_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Web, "web_internet"); err != nil {
+			return err
+		}
+	}
+
+	if routingInputs != nil && routingInputs.PublishMicrosoftEndpoints != nil && *routingInputs.PublishMicrosoftEndpoints {
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Blob, "blob_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Dfs, "dfs_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.File, "file_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Web, "web_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Table, "table_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Queue, "queue_microsoft"); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceData, secondary *storage.Endpoints) error {
+func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceData, secondary *storage.Endpoints, routingInputs *storage.RoutingPreference) error {
 	if secondary == nil {
 		return nil
 	}
@@ -3653,6 +3951,50 @@ func flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d *pluginsdk.ResourceD
 	}
 	if err := setEndpointAndHost(d, "secondary", secondary.Web, "web"); err != nil {
 		return err
+	}
+
+	if v := routingInputs; v != nil && v.PublishInternetEndpoints != nil && *v.PublishInternetEndpoints {
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Blob, "blob_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Dfs, "dfs_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.File, "file_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.InternetEndpoints.Web, "web_internet"); err != nil {
+			return err
+		}
+	}
+
+	if routingInputs != nil && *routingInputs.PublishMicrosoftEndpoints {
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Blob, "blob_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Dfs, "dfs_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.File, "file_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Web, "web_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Table, "table_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "secondary", secondary.MicrosoftEndpoints.Queue, "queue_microsoft"); err != nil {
+			return err
+		}
 	}
 	return nil
 }

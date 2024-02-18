@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PacketCaptureId{}
+var _ resourceids.ResourceId = &PacketCaptureId{}
 
 // PacketCaptureId is a struct representing the Resource ID for a Packet Capture
 type PacketCaptureId struct {
@@ -32,29 +32,15 @@ func NewPacketCaptureID(subscriptionId string, resourceGroupName string, network
 
 // ParsePacketCaptureID parses 'input' into a PacketCaptureId
 func ParsePacketCaptureID(input string) (*PacketCaptureId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PacketCaptureId{})
+	parser := resourceids.NewParserFromResourceIdType(&PacketCaptureId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PacketCaptureId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkWatcherName, ok = parsed.Parsed["networkWatcherName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkWatcherName", *parsed)
-	}
-
-	if id.PacketCaptureName, ok = parsed.Parsed["packetCaptureName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCaptureName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParsePacketCaptureID(input string) (*PacketCaptureId, error) {
 // ParsePacketCaptureIDInsensitively parses 'input' case-insensitively into a PacketCaptureId
 // note: this method should only be used for API response data and not user input
 func ParsePacketCaptureIDInsensitively(input string) (*PacketCaptureId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PacketCaptureId{})
+	parser := resourceids.NewParserFromResourceIdType(&PacketCaptureId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PacketCaptureId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkWatcherName, ok = parsed.Parsed["networkWatcherName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkWatcherName", *parsed)
-	}
-
-	if id.PacketCaptureName, ok = parsed.Parsed["packetCaptureName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "packetCaptureName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PacketCaptureId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkWatcherName, ok = input.Parsed["networkWatcherName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkWatcherName", input)
+	}
+
+	if id.PacketCaptureName, ok = input.Parsed["packetCaptureName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "packetCaptureName", input)
+	}
+
+	return nil
 }
 
 // ValidatePacketCaptureID checks that 'input' can be parsed as a Packet Capture ID

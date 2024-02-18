@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = OfferId{}
+var _ resourceids.ResourceId = &OfferId{}
 
 // OfferId is a struct representing the Resource ID for a Offer
 type OfferId struct {
@@ -34,33 +34,15 @@ func NewOfferID(subscriptionId string, resourceGroupName string, clusterName str
 
 // ParseOfferID parses 'input' into a OfferId
 func ParseOfferID(input string) (*OfferId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OfferId{})
+	parser := resourceids.NewParserFromResourceIdType(&OfferId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OfferId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.PublisherName, ok = parsed.Parsed["publisherName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publisherName", *parsed)
-	}
-
-	if id.OfferName, ok = parsed.Parsed["offerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "offerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseOfferID(input string) (*OfferId, error) {
 // ParseOfferIDInsensitively parses 'input' case-insensitively into a OfferId
 // note: this method should only be used for API response data and not user input
 func ParseOfferIDInsensitively(input string) (*OfferId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OfferId{})
+	parser := resourceids.NewParserFromResourceIdType(&OfferId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := OfferId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.PublisherName, ok = parsed.Parsed["publisherName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publisherName", *parsed)
-	}
-
-	if id.OfferName, ok = parsed.Parsed["offerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "offerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *OfferId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ClusterName, ok = input.Parsed["clusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "clusterName", input)
+	}
+
+	if id.PublisherName, ok = input.Parsed["publisherName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "publisherName", input)
+	}
+
+	if id.OfferName, ok = input.Parsed["offerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "offerName", input)
+	}
+
+	return nil
 }
 
 // ValidateOfferID checks that 'input' can be parsed as a Offer ID

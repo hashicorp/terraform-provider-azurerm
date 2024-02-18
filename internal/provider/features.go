@@ -299,6 +299,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"postgresql_flexible_server": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"restart_server_on_configuration_value_change": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -502,6 +517,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			subscriptionRaw := items[0].(map[string]interface{})
 			if v, ok := subscriptionRaw["prevent_cancellation_on_destroy"]; ok {
 				featuresMap.Subscription.PreventCancellationOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["postgresql_flexible_server"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			subscriptionRaw := items[0].(map[string]interface{})
+			if v, ok := subscriptionRaw["restart_server_on_configuration_value_change"]; ok {
+				featuresMap.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange = v.(bool)
 			}
 		}
 	}

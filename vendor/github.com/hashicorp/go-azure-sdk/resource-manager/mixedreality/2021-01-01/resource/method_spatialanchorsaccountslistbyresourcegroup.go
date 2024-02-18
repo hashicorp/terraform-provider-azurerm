@@ -20,7 +20,8 @@ type SpatialAnchorsAccountsListByResourceGroupOperationResponse struct {
 }
 
 type SpatialAnchorsAccountsListByResourceGroupCompleteResult struct {
-	Items []SpatialAnchorsAccount
+	LatestHttpResponse *http.Response
+	Items              []SpatialAnchorsAccount
 }
 
 // SpatialAnchorsAccountsListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c ResourceClient) SpatialAnchorsAccountsListByResourceGroupCompleteMatchin
 	}
 
 	result = SpatialAnchorsAccountsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

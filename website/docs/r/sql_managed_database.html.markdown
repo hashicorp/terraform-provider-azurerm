@@ -10,7 +10,9 @@ description: |-
 
 Manages a SQL Azure Managed Database.
 
--> **Note:** The `azurerm_sql_managed_database` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_database`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_managed_database) resource instead.
+!>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
+
+->**NOTE:** The `azurerm_sql_managed_database` resource is deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use the [`azurerm_mssql_managed_database`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/mssql_managed_database) resource instead.
 
 ## Example Usage
 
@@ -51,6 +53,11 @@ resource "azurerm_sql_managed_database" "example" {
   sql_managed_instance_id = azurerm_sql_managed_instance.example.id
   name                    = "exampledatabase"
   location                = azurerm_resource_group.example.location
+
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 ```
 
@@ -58,7 +65,7 @@ resource "azurerm_sql_managed_database" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SQL Managed Instance. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the SQL Managed Database. Changing this forces a new resource to be created.
 
 * `sql_managed_instance_id` - (Required) The SQL Managed Instance ID that this Managed Database will be associated with. Changing this forces a new resource to be created.
 

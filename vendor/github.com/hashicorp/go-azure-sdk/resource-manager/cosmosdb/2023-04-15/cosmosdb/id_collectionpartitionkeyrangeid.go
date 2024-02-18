@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CollectionPartitionKeyRangeIdId{}
+var _ resourceids.ResourceId = &CollectionPartitionKeyRangeIdId{}
 
 // CollectionPartitionKeyRangeIdId is a struct representing the Resource ID for a Collection Partition Key Range Id
 type CollectionPartitionKeyRangeIdId struct {
@@ -38,41 +38,15 @@ func NewCollectionPartitionKeyRangeIdID(subscriptionId string, resourceGroupName
 
 // ParseCollectionPartitionKeyRangeIdID parses 'input' into a CollectionPartitionKeyRangeIdId
 func ParseCollectionPartitionKeyRangeIdID(input string) (*CollectionPartitionKeyRangeIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CollectionPartitionKeyRangeIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&CollectionPartitionKeyRangeIdId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CollectionPartitionKeyRangeIdId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.RegionName, ok = parsed.Parsed["regionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "regionName", *parsed)
-	}
-
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseName", *parsed)
-	}
-
-	if id.CollectionName, ok = parsed.Parsed["collectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "collectionName", *parsed)
-	}
-
-	if id.PartitionKeyRangeId, ok = parsed.Parsed["partitionKeyRangeId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "partitionKeyRangeId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -81,44 +55,52 @@ func ParseCollectionPartitionKeyRangeIdID(input string) (*CollectionPartitionKey
 // ParseCollectionPartitionKeyRangeIdIDInsensitively parses 'input' case-insensitively into a CollectionPartitionKeyRangeIdId
 // note: this method should only be used for API response data and not user input
 func ParseCollectionPartitionKeyRangeIdIDInsensitively(input string) (*CollectionPartitionKeyRangeIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CollectionPartitionKeyRangeIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&CollectionPartitionKeyRangeIdId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CollectionPartitionKeyRangeIdId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DatabaseAccountName, ok = parsed.Parsed["databaseAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", *parsed)
-	}
-
-	if id.RegionName, ok = parsed.Parsed["regionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "regionName", *parsed)
-	}
-
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseName", *parsed)
-	}
-
-	if id.CollectionName, ok = parsed.Parsed["collectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "collectionName", *parsed)
-	}
-
-	if id.PartitionKeyRangeId, ok = parsed.Parsed["partitionKeyRangeId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "partitionKeyRangeId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CollectionPartitionKeyRangeIdId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DatabaseAccountName, ok = input.Parsed["databaseAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "databaseAccountName", input)
+	}
+
+	if id.RegionName, ok = input.Parsed["regionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "regionName", input)
+	}
+
+	if id.DatabaseName, ok = input.Parsed["databaseName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "databaseName", input)
+	}
+
+	if id.CollectionName, ok = input.Parsed["collectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "collectionName", input)
+	}
+
+	if id.PartitionKeyRangeId, ok = input.Parsed["partitionKeyRangeId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "partitionKeyRangeId", input)
+	}
+
+	return nil
 }
 
 // ValidateCollectionPartitionKeyRangeIdID checks that 'input' can be parsed as a Collection Partition Key Range Id ID

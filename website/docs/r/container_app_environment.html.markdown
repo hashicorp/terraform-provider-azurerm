@@ -48,6 +48,10 @@ The following arguments are supported:
 
 * `dapr_application_insights_connection_string` - (Optional) Application Insights connection string used by Dapr to export Service to Service communication telemetry. Changing this forces a new resource to be created.
 
+* `infrastructure_resource_group_name` - (Optional) Name of the platform-managed resource group created for the Managed Environment to host infrastructure resources. Changing this forces a new resource to be created.
+
+~> **Note:** Only valid if a `workload_profile` is specified. If `infrastructure_subnet_id` is specified, this resource group will be created in the same subscription as `infrastructure_subnet_id`.
+
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
 
 ~> **NOTE:** The Subnet must have a `/21` or larger address space. 
@@ -62,7 +66,21 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
 
+* `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `workload_profile` block supports the following:
+
+* `name` - (Required) The name of the workload profile.
+
+* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16` and `E32`.
+
+* `maximum_count` - (Required) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
+
+* `minimum_count` - (Required) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
 
 ## Attributes Reference
 

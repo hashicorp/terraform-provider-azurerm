@@ -20,7 +20,8 @@ type VirtualHubsListOperationResponse struct {
 }
 
 type VirtualHubsListCompleteResult struct {
-	Items []VirtualHub
+	LatestHttpResponse *http.Response
+	Items              []VirtualHub
 }
 
 // VirtualHubsList ...
@@ -84,7 +85,8 @@ func (c VirtualWANsClient) VirtualHubsListCompleteMatchingPredicate(ctx context.
 	}
 
 	result = VirtualHubsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TagId{}
+var _ resourceids.ResourceId = &TagId{}
 
 // TagId is a struct representing the Resource ID for a Tag
 type TagId struct {
@@ -32,29 +32,15 @@ func NewTagID(subscriptionId string, resourceGroupName string, serviceName strin
 
 // ParseTagID parses 'input' into a TagId
 func ParseTagID(input string) (*TagId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TagId{})
+	parser := resourceids.NewParserFromResourceIdType(&TagId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TagId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.TagId, ok = parsed.Parsed["tagId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "tagId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseTagID(input string) (*TagId, error) {
 // ParseTagIDInsensitively parses 'input' case-insensitively into a TagId
 // note: this method should only be used for API response data and not user input
 func ParseTagIDInsensitively(input string) (*TagId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TagId{})
+	parser := resourceids.NewParserFromResourceIdType(&TagId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TagId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.TagId, ok = parsed.Parsed["tagId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "tagId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TagId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.TagId, ok = input.Parsed["tagId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "tagId", input)
+	}
+
+	return nil
 }
 
 // ValidateTagID checks that 'input' can be parsed as a Tag ID

@@ -19,7 +19,8 @@ type LoadBalancerFrontendIPConfigurationsListOperationResponse struct {
 }
 
 type LoadBalancerFrontendIPConfigurationsListCompleteResult struct {
-	Items []FrontendIPConfiguration
+	LatestHttpResponse *http.Response
+	Items              []FrontendIPConfiguration
 }
 
 // LoadBalancerFrontendIPConfigurationsList ...
@@ -83,7 +84,8 @@ func (c LoadBalancersClient) LoadBalancerFrontendIPConfigurationsListCompleteMat
 	}
 
 	result = LoadBalancerFrontendIPConfigurationsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

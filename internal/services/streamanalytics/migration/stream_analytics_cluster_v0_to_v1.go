@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -52,7 +52,7 @@ func (s StreamAnalyticsClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 func (s StreamAnalyticsClusterV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := clusters.ParseClusterIDInsensitively(oldId)
+		newId, err := commonids.ParseKustoClusterIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

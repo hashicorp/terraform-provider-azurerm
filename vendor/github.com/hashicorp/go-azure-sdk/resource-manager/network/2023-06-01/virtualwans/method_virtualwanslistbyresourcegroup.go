@@ -20,7 +20,8 @@ type VirtualWansListByResourceGroupOperationResponse struct {
 }
 
 type VirtualWansListByResourceGroupCompleteResult struct {
-	Items []VirtualWAN
+	LatestHttpResponse *http.Response
+	Items              []VirtualWAN
 }
 
 // VirtualWansListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c VirtualWANsClient) VirtualWansListByResourceGroupCompleteMatchingPredica
 	}
 
 	result = VirtualWansListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

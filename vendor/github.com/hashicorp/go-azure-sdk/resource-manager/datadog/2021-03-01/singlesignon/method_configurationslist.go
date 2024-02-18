@@ -19,7 +19,8 @@ type ConfigurationsListOperationResponse struct {
 }
 
 type ConfigurationsListCompleteResult struct {
-	Items []DatadogSingleSignOnResource
+	LatestHttpResponse *http.Response
+	Items              []DatadogSingleSignOnResource
 }
 
 // ConfigurationsList ...
@@ -83,7 +84,8 @@ func (c SingleSignOnClient) ConfigurationsListCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ConfigurationsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

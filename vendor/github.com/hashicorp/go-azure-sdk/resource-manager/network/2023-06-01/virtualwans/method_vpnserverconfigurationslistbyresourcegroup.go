@@ -20,7 +20,8 @@ type VpnServerConfigurationsListByResourceGroupOperationResponse struct {
 }
 
 type VpnServerConfigurationsListByResourceGroupCompleteResult struct {
-	Items []VpnServerConfiguration
+	LatestHttpResponse *http.Response
+	Items              []VpnServerConfiguration
 }
 
 // VpnServerConfigurationsListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c VirtualWANsClient) VpnServerConfigurationsListByResourceGroupCompleteMat
 	}
 
 	result = VpnServerConfigurationsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

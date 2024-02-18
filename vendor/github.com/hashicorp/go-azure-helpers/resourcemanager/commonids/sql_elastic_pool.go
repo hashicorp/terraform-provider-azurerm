@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SqlElasticPoolId{}
+var _ resourceids.ResourceId = &SqlElasticPoolId{}
 
 // SqlElasticPoolId is a struct representing the Resource ID for a Sql SqlElastic Pool
 type SqlElasticPoolId struct {
@@ -32,29 +32,15 @@ func NewSqlElasticPoolID(subscriptionId string, resourceGroupName string, server
 
 // ParseSqlElasticPoolID parses 'input' into a SqlElasticPoolId
 func ParseSqlElasticPoolID(input string) (*SqlElasticPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlElasticPoolId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlElasticPoolId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SqlElasticPoolId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serverName", *parsed)
-	}
-
-	if id.ElasticPoolName, ok = parsed.Parsed["elasticPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "elasticPoolName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseSqlElasticPoolID(input string) (*SqlElasticPoolId, error) {
 // ParseSqlElasticPoolIDInsensitively parses 'input' case-insensitively into a SqlElasticPoolId
 // note: this method should only be used for API response data and not user input
 func ParseSqlElasticPoolIDInsensitively(input string) (*SqlElasticPoolId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlElasticPoolId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlElasticPoolId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SqlElasticPoolId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServerName, ok = parsed.Parsed["serverName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serverName", *parsed)
-	}
-
-	if id.ElasticPoolName, ok = parsed.Parsed["elasticPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "elasticPoolName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SqlElasticPoolId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServerName, ok = input.Parsed["serverName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serverName", input)
+	}
+
+	if id.ElasticPoolName, ok = input.Parsed["elasticPoolName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "elasticPoolName", input)
+	}
+
+	return nil
 }
 
 // ValidateSqlElasticPoolID checks that 'input' can be parsed as a Sql Elastic Pool ID

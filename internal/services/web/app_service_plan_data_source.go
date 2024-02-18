@@ -111,7 +111,7 @@ func AppServicePlanDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	id := parse.NewAppServicePlanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerFarmName)
 	if err != nil {
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
@@ -122,7 +122,7 @@ func AppServicePlanDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.ServerfarmName)
+	d.Set("name", id.ServerFarmName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
 

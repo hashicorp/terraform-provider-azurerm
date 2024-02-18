@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VersionId{}
+var _ resourceids.ResourceId = &VersionId{}
 
 // VersionId is a struct representing the Resource ID for a Version
 type VersionId struct {
@@ -28,21 +28,15 @@ func NewVersionID(builtInTemplateSpecName string, versionName string) VersionId 
 
 // ParseVersionID parses 'input' into a VersionId
 func ParseVersionID(input string) (*VersionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VersionId{})
+	parser := resourceids.NewParserFromResourceIdType(&VersionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VersionId{}
-
-	if id.BuiltInTemplateSpecName, ok = parsed.Parsed["builtInTemplateSpecName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", *parsed)
-	}
-
-	if id.VersionName, ok = parsed.Parsed["versionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParseVersionID(input string) (*VersionId, error) {
 // ParseVersionIDInsensitively parses 'input' case-insensitively into a VersionId
 // note: this method should only be used for API response data and not user input
 func ParseVersionIDInsensitively(input string) (*VersionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VersionId{})
+	parser := resourceids.NewParserFromResourceIdType(&VersionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VersionId{}
-
-	if id.BuiltInTemplateSpecName, ok = parsed.Parsed["builtInTemplateSpecName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", *parsed)
-	}
-
-	if id.VersionName, ok = parsed.Parsed["versionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "versionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VersionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.BuiltInTemplateSpecName, ok = input.Parsed["builtInTemplateSpecName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "builtInTemplateSpecName", input)
+	}
+
+	if id.VersionName, ok = input.Parsed["versionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "versionName", input)
+	}
+
+	return nil
 }
 
 // ValidateVersionID checks that 'input' can be parsed as a Version ID

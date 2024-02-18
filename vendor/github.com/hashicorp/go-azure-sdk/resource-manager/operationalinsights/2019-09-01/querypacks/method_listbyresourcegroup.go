@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []LogAnalyticsQueryPack
+	LatestHttpResponse *http.Response
+	Items              []LogAnalyticsQueryPack
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c QueryPacksClient) ListByResourceGroupCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

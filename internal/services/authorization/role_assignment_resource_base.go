@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package authorization
 
 import (
@@ -111,7 +114,7 @@ func (br roleAssignmentBaseResource) createFunc(resourceName, scope string) sdk.
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			roleAssignmentsClient := metadata.Client.Authorization.ScopedRoleAssignmentsClient
 			roleDefinitionsClient := metadata.Client.Authorization.ScopedRoleDefinitionsClient
-			subscriptionClient := metadata.Client.Subscription.Client
+			subscriptionClient := metadata.Client.Subscription.SubscriptionsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			name := metadata.ResourceData.Get("name").(string)
 

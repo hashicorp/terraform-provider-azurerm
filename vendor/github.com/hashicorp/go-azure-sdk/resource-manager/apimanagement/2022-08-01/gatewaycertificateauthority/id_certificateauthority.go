@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CertificateAuthorityId{}
+var _ resourceids.ResourceId = &CertificateAuthorityId{}
 
 // CertificateAuthorityId is a struct representing the Resource ID for a Certificate Authority
 type CertificateAuthorityId struct {
@@ -34,33 +34,15 @@ func NewCertificateAuthorityID(subscriptionId string, resourceGroupName string, 
 
 // ParseCertificateAuthorityID parses 'input' into a CertificateAuthorityId
 func ParseCertificateAuthorityID(input string) (*CertificateAuthorityId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CertificateAuthorityId{})
+	parser := resourceids.NewParserFromResourceIdType(&CertificateAuthorityId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CertificateAuthorityId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.GatewayId, ok = parsed.Parsed["gatewayId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", *parsed)
-	}
-
-	if id.CertificateId, ok = parsed.Parsed["certificateId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "certificateId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseCertificateAuthorityID(input string) (*CertificateAuthorityId, error) 
 // ParseCertificateAuthorityIDInsensitively parses 'input' case-insensitively into a CertificateAuthorityId
 // note: this method should only be used for API response data and not user input
 func ParseCertificateAuthorityIDInsensitively(input string) (*CertificateAuthorityId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CertificateAuthorityId{})
+	parser := resourceids.NewParserFromResourceIdType(&CertificateAuthorityId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := CertificateAuthorityId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.GatewayId, ok = parsed.Parsed["gatewayId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", *parsed)
-	}
-
-	if id.CertificateId, ok = parsed.Parsed["certificateId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "certificateId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *CertificateAuthorityId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.GatewayId, ok = input.Parsed["gatewayId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", input)
+	}
+
+	if id.CertificateId, ok = input.Parsed["certificateId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "certificateId", input)
+	}
+
+	return nil
 }
 
 // ValidateCertificateAuthorityID checks that 'input' can be parsed as a Certificate Authority ID

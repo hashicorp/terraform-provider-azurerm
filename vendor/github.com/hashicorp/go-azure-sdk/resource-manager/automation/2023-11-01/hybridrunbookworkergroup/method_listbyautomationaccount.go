@@ -19,7 +19,8 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []HybridRunbookWorkerGroup
+	LatestHttpResponse *http.Response
+	Items              []HybridRunbookWorkerGroup
 }
 
 type ListByAutomationAccountOperationOptions struct {
@@ -111,7 +112,8 @@ func (c HybridRunbookWorkerGroupClient) ListByAutomationAccountCompleteMatchingP
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

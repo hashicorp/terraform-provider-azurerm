@@ -20,7 +20,8 @@ type ListByServerOperationResponse struct {
 }
 
 type ListByServerCompleteResult struct {
-	Items []ReplicationLink
+	LatestHttpResponse *http.Response
+	Items              []ReplicationLink
 }
 
 // ListByServer ...
@@ -84,7 +85,8 @@ func (c ReplicationLinksClient) ListByServerCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

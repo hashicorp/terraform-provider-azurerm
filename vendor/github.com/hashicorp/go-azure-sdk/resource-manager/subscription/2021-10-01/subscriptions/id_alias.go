@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AliasId{}
+var _ resourceids.ResourceId = &AliasId{}
 
 // AliasId is a struct representing the Resource ID for a Alias
 type AliasId struct {
@@ -26,17 +26,15 @@ func NewAliasID(aliasName string) AliasId {
 
 // ParseAliasID parses 'input' into a AliasId
 func ParseAliasID(input string) (*AliasId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AliasId{})
+	parser := resourceids.NewParserFromResourceIdType(&AliasId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AliasId{}
-
-	if id.AliasName, ok = parsed.Parsed["aliasName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "aliasName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +43,28 @@ func ParseAliasID(input string) (*AliasId, error) {
 // ParseAliasIDInsensitively parses 'input' case-insensitively into a AliasId
 // note: this method should only be used for API response data and not user input
 func ParseAliasIDInsensitively(input string) (*AliasId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AliasId{})
+	parser := resourceids.NewParserFromResourceIdType(&AliasId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AliasId{}
-
-	if id.AliasName, ok = parsed.Parsed["aliasName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "aliasName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AliasId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.AliasName, ok = input.Parsed["aliasName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "aliasName", input)
+	}
+
+	return nil
 }
 
 // ValidateAliasID checks that 'input' can be parsed as a Alias ID

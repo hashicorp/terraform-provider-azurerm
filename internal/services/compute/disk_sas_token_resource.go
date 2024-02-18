@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,7 +41,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := disks.ParseDiskID(id)
+			_, err := commonids.ParseManagedDiskID(id)
 			return err
 		}),
 
@@ -49,7 +50,7 @@ func resourceManagedDiskSasToken() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: disks.ValidateDiskID,
+				ValidateFunc: commonids.ValidateManagedDiskID,
 			},
 
 			// unable to provide upper value of 4294967295 as it's not comptabile with 32-bit (overflow errors)
@@ -88,7 +89,7 @@ func resourceManagedDiskSasTokenCreate(d *pluginsdk.ResourceData, meta interface
 	durationInSeconds := int64(d.Get("duration_in_seconds").(int))
 	access := disks.AccessLevel(d.Get("access_level").(string))
 
-	diskId, err := disks.ParseDiskID(d.Get("managed_disk_id").(string))
+	diskId, err := commonids.ParseManagedDiskID(d.Get("managed_disk_id").(string))
 	if err != nil {
 		return err
 	}
@@ -146,7 +147,7 @@ func resourceManagedDiskSasTokenRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diskId, err := disks.ParseDiskID(d.Id())
+	diskId, err := commonids.ParseManagedDiskID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,7 +173,7 @@ func resourceManagedDiskSasTokenDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := disks.ParseDiskID(d.Id())
+	id, err := commonids.ParseManagedDiskID(d.Id())
 	if err != nil {
 		return err
 	}

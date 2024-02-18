@@ -19,7 +19,8 @@ type ListByFactoryOperationResponse struct {
 }
 
 type ListByFactoryCompleteResult struct {
-	Items []ManagedPrivateEndpointResource
+	LatestHttpResponse *http.Response
+	Items              []ManagedPrivateEndpointResource
 }
 
 // ListByFactory ...
@@ -83,7 +84,8 @@ func (c ManagedPrivateEndpointsClient) ListByFactoryCompleteMatchingPredicate(ct
 	}
 
 	result = ListByFactoryCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

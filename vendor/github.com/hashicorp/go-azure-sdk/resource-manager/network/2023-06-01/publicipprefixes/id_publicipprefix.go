@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PublicIPPrefixId{}
+var _ resourceids.ResourceId = &PublicIPPrefixId{}
 
 // PublicIPPrefixId is a struct representing the Resource ID for a Public I P Prefix
 type PublicIPPrefixId struct {
@@ -30,25 +30,15 @@ func NewPublicIPPrefixID(subscriptionId string, resourceGroupName string, public
 
 // ParsePublicIPPrefixID parses 'input' into a PublicIPPrefixId
 func ParsePublicIPPrefixID(input string) (*PublicIPPrefixId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PublicIPPrefixId{})
+	parser := resourceids.NewParserFromResourceIdType(&PublicIPPrefixId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PublicIPPrefixId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PublicIPPrefixName, ok = parsed.Parsed["publicIPPrefixName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publicIPPrefixName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParsePublicIPPrefixID(input string) (*PublicIPPrefixId, error) {
 // ParsePublicIPPrefixIDInsensitively parses 'input' case-insensitively into a PublicIPPrefixId
 // note: this method should only be used for API response data and not user input
 func ParsePublicIPPrefixIDInsensitively(input string) (*PublicIPPrefixId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PublicIPPrefixId{})
+	parser := resourceids.NewParserFromResourceIdType(&PublicIPPrefixId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PublicIPPrefixId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PublicIPPrefixName, ok = parsed.Parsed["publicIPPrefixName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publicIPPrefixName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *PublicIPPrefixId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.PublicIPPrefixName, ok = input.Parsed["publicIPPrefixName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "publicIPPrefixName", input)
+	}
+
+	return nil
 }
 
 // ValidatePublicIPPrefixID checks that 'input' can be parsed as a Public I P Prefix ID

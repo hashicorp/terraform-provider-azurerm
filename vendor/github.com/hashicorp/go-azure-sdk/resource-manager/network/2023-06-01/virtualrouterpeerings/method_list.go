@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []VirtualRouterPeering
+	LatestHttpResponse *http.Response
+	Items              []VirtualRouterPeering
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c VirtualRouterPeeringsClient) ListCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type ListByDatabaseOperationResponse struct {
 }
 
 type ListByDatabaseCompleteResult struct {
-	Items []LogicalDatabaseTransparentDataEncryption
+	LatestHttpResponse *http.Response
+	Items              []LogicalDatabaseTransparentDataEncryption
 }
 
 // ListByDatabase ...
@@ -84,7 +85,8 @@ func (c TransparentDataEncryptionsClient) ListByDatabaseCompleteMatchingPredicat
 	}
 
 	result = ListByDatabaseCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

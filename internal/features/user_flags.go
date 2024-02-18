@@ -4,19 +4,20 @@
 package features
 
 type UserFeatures struct {
-	ApiManagement          ApiManagementFeatures
-	AppConfiguration       AppConfigurationFeatures
-	ApplicationInsights    ApplicationInsightFeatures
-	CognitiveAccount       CognitiveAccountFeatures
-	VirtualMachine         VirtualMachineFeatures
-	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
-	KeyVault               KeyVaultFeatures
-	TemplateDeployment     TemplateDeploymentFeatures
-	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
-	ResourceGroup          ResourceGroupFeatures
+	ApiManagement            ApiManagementFeatures
+	AppConfiguration         AppConfigurationFeatures
+	ApplicationInsights      ApplicationInsightFeatures
+	CognitiveAccount         CognitiveAccountFeatures
+	VirtualMachine           VirtualMachineFeatures
+	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
+	KeyVault                 KeyVaultFeatures
+	TemplateDeployment       TemplateDeploymentFeatures
+	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
+	ResourceGroup            ResourceGroupFeatures
 	RecoveryServicesVault  RecoveryServicesVault
-	ManagedDisk            ManagedDiskFeatures
-	Subscription           SubscriptionFeatures
+	ManagedDisk              ManagedDiskFeatures
+	Subscription             SubscriptionFeatures
+	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -83,4 +84,8 @@ type SubscriptionFeatures struct {
 
 type RecoveryServicesVault struct {
 	RecoverSoftDeletedBackupProtectedVM bool
+}
+
+type PostgresqlFlexibleServerFeatures struct {
+	RestartServerOnConfigurationValueChange bool
 }

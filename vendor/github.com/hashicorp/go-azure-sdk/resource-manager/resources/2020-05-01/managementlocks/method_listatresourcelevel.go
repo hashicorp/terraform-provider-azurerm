@@ -20,7 +20,8 @@ type ListAtResourceLevelOperationResponse struct {
 }
 
 type ListAtResourceLevelCompleteResult struct {
-	Items []ManagementLockObject
+	LatestHttpResponse *http.Response
+	Items              []ManagementLockObject
 }
 
 type ListAtResourceLevelOperationOptions struct {
@@ -112,7 +113,8 @@ func (c ManagementLocksClient) ListAtResourceLevelCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListAtResourceLevelCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

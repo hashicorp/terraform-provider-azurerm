@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagerconnections"
 ```
 
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkmanagerconnections.NewManagementGroupID("groupIdValue")
+id := commonids.NewManagementGroupID("groupIdValue")
 
 // alternatively `client.ManagementGroupNetworkManagerConnectionsList(ctx, id, networkmanagerconnections.DefaultManagementGroupNetworkManagerConnectionsListOperationOptions())` can be used to do batched pagination
 items, err := client.ManagementGroupNetworkManagerConnectionsListComplete(ctx, id, networkmanagerconnections.DefaultManagementGroupNetworkManagerConnectionsListOperationOptions())
@@ -147,7 +148,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := networkmanagerconnections.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.SubscriptionNetworkManagerConnectionsList(ctx, id, networkmanagerconnections.DefaultSubscriptionNetworkManagerConnectionsListOperationOptions())` can be used to do batched pagination
 items, err := client.SubscriptionNetworkManagerConnectionsListComplete(ctx, id, networkmanagerconnections.DefaultSubscriptionNetworkManagerConnectionsListOperationOptions())

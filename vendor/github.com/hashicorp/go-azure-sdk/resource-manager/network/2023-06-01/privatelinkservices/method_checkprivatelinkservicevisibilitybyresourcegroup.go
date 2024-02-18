@@ -18,6 +18,7 @@ type CheckPrivateLinkServiceVisibilityByResourceGroupOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PrivateLinkServiceVisibility
 }
 
 // CheckPrivateLinkServiceVisibilityByResourceGroup ...

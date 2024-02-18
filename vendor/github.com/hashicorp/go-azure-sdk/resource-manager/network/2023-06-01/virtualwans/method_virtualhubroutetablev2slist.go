@@ -19,7 +19,8 @@ type VirtualHubRouteTableV2sListOperationResponse struct {
 }
 
 type VirtualHubRouteTableV2sListCompleteResult struct {
-	Items []VirtualHubRouteTableV2
+	LatestHttpResponse *http.Response
+	Items              []VirtualHubRouteTableV2
 }
 
 // VirtualHubRouteTableV2sList ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) VirtualHubRouteTableV2sListCompleteMatchingPredicate(
 	}
 
 	result = VirtualHubRouteTableV2sListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

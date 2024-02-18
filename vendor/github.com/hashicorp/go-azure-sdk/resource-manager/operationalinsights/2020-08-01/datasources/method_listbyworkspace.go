@@ -19,7 +19,8 @@ type ListByWorkspaceOperationResponse struct {
 }
 
 type ListByWorkspaceCompleteResult struct {
-	Items []DataSource
+	LatestHttpResponse *http.Response
+	Items              []DataSource
 }
 
 type ListByWorkspaceOperationOptions struct {
@@ -111,7 +112,8 @@ func (c DataSourcesClient) ListByWorkspaceCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

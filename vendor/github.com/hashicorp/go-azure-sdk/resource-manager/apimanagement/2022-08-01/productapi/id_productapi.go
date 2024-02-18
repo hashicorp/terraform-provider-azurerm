@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProductApiId{}
+var _ resourceids.ResourceId = &ProductApiId{}
 
 // ProductApiId is a struct representing the Resource ID for a Product Api
 type ProductApiId struct {
@@ -34,33 +34,15 @@ func NewProductApiID(subscriptionId string, resourceGroupName string, serviceNam
 
 // ParseProductApiID parses 'input' into a ProductApiId
 func ParseProductApiID(input string) (*ProductApiId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProductApiId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProductApiId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProductApiId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.ProductId, ok = parsed.Parsed["productId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "productId", *parsed)
-	}
-
-	if id.ApiId, ok = parsed.Parsed["apiId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "apiId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseProductApiID(input string) (*ProductApiId, error) {
 // ParseProductApiIDInsensitively parses 'input' case-insensitively into a ProductApiId
 // note: this method should only be used for API response data and not user input
 func ParseProductApiIDInsensitively(input string) (*ProductApiId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProductApiId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProductApiId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProductApiId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.ProductId, ok = parsed.Parsed["productId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "productId", *parsed)
-	}
-
-	if id.ApiId, ok = parsed.Parsed["apiId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "apiId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProductApiId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.ProductId, ok = input.Parsed["productId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "productId", input)
+	}
+
+	if id.ApiId, ok = input.Parsed["apiId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "apiId", input)
+	}
+
+	return nil
 }
 
 // ValidateProductApiID checks that 'input' can be parsed as a Product Api ID

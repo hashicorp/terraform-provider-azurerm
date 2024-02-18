@@ -16,6 +16,7 @@ import (
 type SqlResourcesCreateUpdateSqlStoredProcedureOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *SqlStoredProcedureGetResults
 }
 
 // SqlResourcesCreateUpdateSqlStoredProcedure ...

@@ -20,7 +20,8 @@ type MediaservicesListOperationResponse struct {
 }
 
 type MediaservicesListCompleteResult struct {
-	Items []MediaService
+	LatestHttpResponse *http.Response
+	Items              []MediaService
 }
 
 // MediaservicesList ...
@@ -84,7 +85,8 @@ func (c AccountsClient) MediaservicesListCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = MediaservicesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

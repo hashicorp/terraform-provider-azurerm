@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopeConnectionId{}
+var _ resourceids.ResourceId = &ScopeConnectionId{}
 
 // ScopeConnectionId is a struct representing the Resource ID for a Scope Connection
 type ScopeConnectionId struct {
@@ -32,29 +32,15 @@ func NewScopeConnectionID(subscriptionId string, resourceGroupName string, netwo
 
 // ParseScopeConnectionID parses 'input' into a ScopeConnectionId
 func ParseScopeConnectionID(input string) (*ScopeConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopeConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopeConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.ScopeConnectionName, ok = parsed.Parsed["scopeConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseScopeConnectionID(input string) (*ScopeConnectionId, error) {
 // ParseScopeConnectionIDInsensitively parses 'input' case-insensitively into a ScopeConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseScopeConnectionIDInsensitively(input string) (*ScopeConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopeConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopeConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.ScopeConnectionName, ok = parsed.Parsed["scopeConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopeConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkManagerName, ok = input.Parsed["networkManagerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", input)
+	}
+
+	if id.ScopeConnectionName, ok = input.Parsed["scopeConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scopeConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopeConnectionID checks that 'input' can be parsed as a Scope Connection ID

@@ -332,6 +332,32 @@ func TestAccLogAnalyticsWorkspace_ToggleDisableLocalAuth(t *testing.T) {
 	})
 }
 
+func TestAccLogAnalyticsWorkspace_ToggleImmediatelyPurgeDataOn30Days(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	r := LogAnalyticsWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withImmediatePurgeDataOn30Days(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withImmediatePurgeDataOn30Days(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withImmediatePurgeDataOn30Days(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccLogAnalyticsWorkspace_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
@@ -938,4 +964,26 @@ resource "azurerm_log_analytics_workspace" "test" {
   data_collection_rule_id = "%[3]s"
 }
 `, data.RandomInteger, data.Locations.Primary, ruleID)
+}
+
+func (LogAnalyticsWorkspaceResource) withImmediatePurgeDataOn30Days(data acceptance.TestData, enable bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                                    = "acctestLAW-%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  sku                                     = "PerGB2018"
+  retention_in_days                       = 30
+  immediate_data_purge_on_30_days_enabled = %[4]t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enable)
 }

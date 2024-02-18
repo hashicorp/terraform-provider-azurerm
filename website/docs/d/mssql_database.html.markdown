@@ -51,6 +51,8 @@ output "database_id" {
 
 * `elastic_pool_id` - The id of the elastic pool containing this database.
 
+* `enclave_type` - The type of enclave being used by the database.
+
 * `license_type` - The license type to apply for this database.
 
 * `max_size_gb` - The max size of the database in gigabytes.
@@ -65,7 +67,23 @@ output "database_id" {
 
 * `zone_redundant` - Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
 
+* `identity` - A `identity` block as defined below.
+
+* `transparent_data_encryption_enabled` - Whether or not Transparent Data Encryption is enabled.
+
+* `transparent_data_encryption_key_vault_key_id` - The Key Vault key URI to be used as the `Customer Managed Key`(CMK/BYOK) for the `Transparent Data Encryption`(TDE) layer.
+
+* `transparent_data_encryption_key_automatic_rotation_enabled` - Whether or not TDE automatically rotates the encryption Key to latest version.
+
 * `tags` -  A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Microsoft SQL Database.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Microsoft SQL Database.
 
 ## Timeouts
 

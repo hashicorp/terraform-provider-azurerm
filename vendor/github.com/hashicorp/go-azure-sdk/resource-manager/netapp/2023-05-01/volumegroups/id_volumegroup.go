@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VolumeGroupId{}
+var _ resourceids.ResourceId = &VolumeGroupId{}
 
 // VolumeGroupId is a struct representing the Resource ID for a Volume Group
 type VolumeGroupId struct {
@@ -32,29 +32,15 @@ func NewVolumeGroupID(subscriptionId string, resourceGroupName string, netAppAcc
 
 // ParseVolumeGroupID parses 'input' into a VolumeGroupId
 func ParseVolumeGroupID(input string) (*VolumeGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VolumeGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&VolumeGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VolumeGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetAppAccountName, ok = parsed.Parsed["netAppAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "netAppAccountName", *parsed)
-	}
-
-	if id.VolumeGroupName, ok = parsed.Parsed["volumeGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "volumeGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseVolumeGroupID(input string) (*VolumeGroupId, error) {
 // ParseVolumeGroupIDInsensitively parses 'input' case-insensitively into a VolumeGroupId
 // note: this method should only be used for API response data and not user input
 func ParseVolumeGroupIDInsensitively(input string) (*VolumeGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VolumeGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&VolumeGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VolumeGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetAppAccountName, ok = parsed.Parsed["netAppAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "netAppAccountName", *parsed)
-	}
-
-	if id.VolumeGroupName, ok = parsed.Parsed["volumeGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "volumeGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VolumeGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetAppAccountName, ok = input.Parsed["netAppAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "netAppAccountName", input)
+	}
+
+	if id.VolumeGroupName, ok = input.Parsed["volumeGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "volumeGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateVolumeGroupID checks that 'input' can be parsed as a Volume Group ID

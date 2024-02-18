@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/machinelearningcomputes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -275,7 +275,7 @@ func resourceAksInferenceClusterDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	future, err := client.ComputeDelete(ctx, *id, machinelearningcomputes.ComputeDeleteOperationOptions{
-		UnderlyingResourceAction: utils.ToPtr(machinelearningcomputes.UnderlyingResourceActionDetach),
+		UnderlyingResourceAction: pointer.To(machinelearningcomputes.UnderlyingResourceActionDetach),
 	})
 	if err != nil {
 		return fmt.Errorf("deleting Inference Cluster %q in workspace %q (Resource Group %q): %+v",
@@ -298,7 +298,7 @@ func expandAksComputeProperties(aksId string, aks *managedclusters.ManagedCluste
 		Properties: &machinelearningcomputes.AKSSchemaProperties{
 			ClusterFqdn:      utils.String(*fqdn),
 			SslConfiguration: expandSSLConfig(d.Get("ssl").([]interface{})),
-			ClusterPurpose:   utils.ToPtr(machinelearningcomputes.ClusterPurpose(d.Get("cluster_purpose").(string))),
+			ClusterPurpose:   pointer.To(machinelearningcomputes.ClusterPurpose(d.Get("cluster_purpose").(string))),
 		},
 		ComputeLocation: utils.String(aks.Location),
 		Description:     utils.String(d.Get("description").(string)),
@@ -326,7 +326,7 @@ func expandSSLConfig(input []interface{}) *machinelearningcomputes.SslConfigurat
 	}
 
 	return &machinelearningcomputes.SslConfiguration{
-		Status:                  utils.ToPtr(machinelearningcomputes.SslConfigStatus(sslStatus)),
+		Status:                  pointer.To(machinelearningcomputes.SslConfigStatus(sslStatus)),
 		Cert:                    utils.String(v["cert"].(string)),
 		Key:                     utils.String(v["key"].(string)),
 		Cname:                   utils.String(v["cname"].(string)),

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = KeyKindId{}
+var _ resourceids.ResourceId = &KeyKindId{}
 
 // KeyKindId is a struct representing the Resource ID for a Key Kind
 type KeyKindId struct {
@@ -32,37 +32,15 @@ func NewKeyKindID(subscriptionId string, resourceGroupName string, searchService
 
 // ParseKeyKindID parses 'input' into a KeyKindId
 func ParseKeyKindID(input string) (*KeyKindId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyKindId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyKindId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := KeyKindId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
-	}
-
-	if v, ok := parsed.Parsed["keyKind"]; true {
-		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "keyKind", *parsed)
-		}
-
-		keyKind, err := parseAdminKeyKind(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.KeyKind = *keyKind
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -71,40 +49,48 @@ func ParseKeyKindID(input string) (*KeyKindId, error) {
 // ParseKeyKindIDInsensitively parses 'input' case-insensitively into a KeyKindId
 // note: this method should only be used for API response data and not user input
 func ParseKeyKindIDInsensitively(input string) (*KeyKindId, error) {
-	parser := resourceids.NewParserFromResourceIdType(KeyKindId{})
+	parser := resourceids.NewParserFromResourceIdType(&KeyKindId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := KeyKindId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
+	return &id, nil
+}
+
+func (id *KeyKindId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
 	}
 
-	if id.SearchServiceName, ok = parsed.Parsed["searchServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", *parsed)
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
 	}
 
-	if v, ok := parsed.Parsed["keyKind"]; true {
+	if id.SearchServiceName, ok = input.Parsed["searchServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "searchServiceName", input)
+	}
+
+	if v, ok := input.Parsed["keyKind"]; true {
 		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "keyKind", *parsed)
+			return resourceids.NewSegmentNotSpecifiedError(id, "keyKind", input)
 		}
 
 		keyKind, err := parseAdminKeyKind(v)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+			return fmt.Errorf("parsing %q: %+v", v, err)
 		}
 		id.KeyKind = *keyKind
 	}
 
-	return &id, nil
+	return nil
 }
 
 // ValidateKeyKindID checks that 'input' can be parsed as a Key Kind ID

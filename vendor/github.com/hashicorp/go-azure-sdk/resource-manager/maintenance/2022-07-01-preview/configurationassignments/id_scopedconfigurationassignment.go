@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedConfigurationAssignmentId{}
+var _ resourceids.ResourceId = &ScopedConfigurationAssignmentId{}
 
 // ScopedConfigurationAssignmentId is a struct representing the Resource ID for a Scoped Configuration Assignment
 type ScopedConfigurationAssignmentId struct {
@@ -28,21 +28,15 @@ func NewScopedConfigurationAssignmentID(scope string, configurationAssignmentNam
 
 // ParseScopedConfigurationAssignmentID parses 'input' into a ScopedConfigurationAssignmentId
 func ParseScopedConfigurationAssignmentID(input string) (*ScopedConfigurationAssignmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedConfigurationAssignmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedConfigurationAssignmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedConfigurationAssignmentId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ConfigurationAssignmentName, ok = parsed.Parsed["configurationAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "configurationAssignmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParseScopedConfigurationAssignmentID(input string) (*ScopedConfigurationAss
 // ParseScopedConfigurationAssignmentIDInsensitively parses 'input' case-insensitively into a ScopedConfigurationAssignmentId
 // note: this method should only be used for API response data and not user input
 func ParseScopedConfigurationAssignmentIDInsensitively(input string) (*ScopedConfigurationAssignmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedConfigurationAssignmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedConfigurationAssignmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedConfigurationAssignmentId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ConfigurationAssignmentName, ok = parsed.Parsed["configurationAssignmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "configurationAssignmentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedConfigurationAssignmentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.ConfigurationAssignmentName, ok = input.Parsed["configurationAssignmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "configurationAssignmentName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedConfigurationAssignmentID checks that 'input' can be parsed as a Scoped Configuration Assignment ID

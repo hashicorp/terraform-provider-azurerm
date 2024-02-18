@@ -74,6 +74,9 @@ func TestExpandFeatures(t *testing.T) {
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
 				},
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: true,
+				},
 			},
 		},
 		{
@@ -123,6 +126,11 @@ func TestExpandFeatures(t *testing.T) {
 					"managed_disk": []interface{}{
 						map[string]interface{}{
 							"expand_without_downtime": true,
+						},
+					},
+					"postgresql_flexible_server": []interface{}{
+						map[string]interface{}{
+							"restart_server_on_configuration_value_change": true,
 						},
 					},
 					"resource_group": []interface{}{
@@ -215,6 +223,9 @@ func TestExpandFeatures(t *testing.T) {
 					ForceDelete:               true,
 					ScaleToZeroOnDelete:       true,
 				},
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: true,
+				},
 			},
 		},
 		{
@@ -264,6 +275,11 @@ func TestExpandFeatures(t *testing.T) {
 					"managed_disk": []interface{}{
 						map[string]interface{}{
 							"expand_without_downtime": false,
+						},
+					},
+					"postgresql_flexible_server": []interface{}{
+						map[string]interface{}{
+							"restart_server_on_configuration_value_change": false,
 						},
 					},
 					"resource_group": []interface{}{
@@ -355,6 +371,9 @@ func TestExpandFeatures(t *testing.T) {
 					ForceDelete:               false,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       false,
+				},
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: false,
 				},
 			},
 		},
@@ -1321,7 +1340,7 @@ func TestExpandFeaturesSubscription(t *testing.T) {
 			},
 		},
 		{
-			Name: "No Downtime Resize Enabled",
+			Name: "Subscription cancellation on destroy is Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"subscription": []interface{}{
@@ -1334,6 +1353,71 @@ func TestExpandFeaturesSubscription(t *testing.T) {
 			Expected: features.UserFeatures{
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
+			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesPosgresqlFlexibleServer(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: true,
+				},
+			},
+		},
+		{
+			Name: "Postgresql Flexible Server restarts on configuration change is Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server": []interface{}{
+						map[string]interface{}{
+							"restart_server_on_configuration_value_change": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: true,
+				},
+			},
+		},
+		{
+			Name: "Postgresql Flexible Server restarts on configuration change is Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server": []interface{}{
+						map[string]interface{}{
+							"restart_server_on_configuration_value_change": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: false,
 				},
 			},
 		},
