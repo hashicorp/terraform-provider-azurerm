@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -73,6 +74,9 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 					profile.Name = &tempNodePoolName
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
+					ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+					defer cancel()
+
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
 					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
@@ -125,6 +129,9 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 					profile := resp.Model
 					profile.Name = &tempNodePoolName
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
+
+					ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+					defer cancel()
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
 					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {

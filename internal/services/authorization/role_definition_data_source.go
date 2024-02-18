@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -155,7 +155,8 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			defId := config.RoleDefinitionId
 
 			// search by name
-			var role authorization.RoleDefinition
+			var id roledefinitions.ScopedRoleDefinitionId
+			var role roledefinitions.RoleDefinition
 			if config.Name != "" {
 				// Accounting for eventual consistency
 				deadline, ok := ctx.Deadline()
@@ -163,58 +164,73 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("internal error: context had no deadline")
 				}
 				err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
-					roleDefinitions, err := client.List(ctx, config.Scope, fmt.Sprintf("roleName eq '%s'", config.Name))
+					roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
+						Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", config.Name)),
+					})
 					if err != nil {
 						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: %+v", err))
 					}
-					if len(roleDefinitions.Values()) != 1 {
+					if roleDefinitions.Model == nil {
+						return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: model was nil"))
+					}
+					if len(*roleDefinitions.Model) != 1 {
 						return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: could not find role '%s'", config.Name))
 					}
-					if roleDefinitions.Values()[0].ID == nil {
-						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: values[0].ID is nil '%s'", config.Name))
+					if (*roleDefinitions.Model)[0].Name == nil {
+						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: values[0].NameD is nil '%s'", config.Name))
 					}
 
-					defId = *roleDefinitions.Values()[0].ID
-					role, err = client.GetByID(ctx, defId)
-					if err != nil {
-						return pluginsdk.NonRetryableError(fmt.Errorf("getting Role Definition by ID %s: %+v", defId, err))
-					}
+					defId = *(*roleDefinitions.Model)[0].Id
+					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
 					return nil
 				})
 				if err != nil {
 					return err
 				}
 			} else {
-				var err error
-				role, err = client.Get(ctx, config.Scope, defId)
-				if err != nil {
-					return fmt.Errorf("loading Role Definition: %+v", err)
-				}
+				id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
+			}
+
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `Model` was nil", id)
+			}
+
+			role = *resp.Model
+
+			if role.Id == nil {
+				return fmt.Errorf("retrieving %s: `Id` was nil", id)
 			}
 
 			state := RoleDefinitionDataSourceModel{
-				Scope:            config.Scope,
+				Scope:            id.Scope,
 				RoleDefinitionId: defId,
 			}
+			if props := role.Properties; props != nil {
+				state.Name = pointer.From(props.RoleName)
+				state.Type = pointer.From(props.Type)
+				state.Description = pointer.From(props.Description)
+				state.Permissions = flattenDataSourceRoleDefinitionPermissions(props.Permissions)
+				state.AssignableScopes = pointer.From(props.AssignableScopes)
+			}
 
-			state.Name = pointer.From(role.RoleName)
-			state.Type = pointer.From(role.Type)
-			state.Description = pointer.From(role.Description)
-			state.Permissions = flattenDataSourceRoleDefinitionPermissions(role.Permissions)
-			state.AssignableScopes = pointer.From(role.AssignableScopes)
-
-			metadata.ResourceData.SetId(*role.ID)
+			// The sdk managed id start with two "/" when scope is tenant level (empty).
+			// So we use the id from response without parsing and reformating it.
+			// Tracked on https://github.com/hashicorp/pandora/issues/3257
+			metadata.ResourceData.SetId(*role.Id)
 			return metadata.Encode(&state)
 		},
 	}
 }
 
-func flattenDataSourceRoleDefinitionPermissions(input *[]authorization.Permission) []PermissionDataSourceModel {
+func flattenDataSourceRoleDefinitionPermissions(input *[]roledefinitions.Permission) []PermissionDataSourceModel {
 	permissions := make([]PermissionDataSourceModel, 0)
 	if input == nil {
 		return permissions
 	}
-
 	for _, permission := range *input {
 		permissions = append(permissions, PermissionDataSourceModel{
 			Actions:        pointer.From(permission.Actions),
@@ -223,6 +239,5 @@ func flattenDataSourceRoleDefinitionPermissions(input *[]authorization.Permissio
 			NotDataActions: pointer.From(permission.NotDataActions),
 		})
 	}
-
 	return permissions
 }

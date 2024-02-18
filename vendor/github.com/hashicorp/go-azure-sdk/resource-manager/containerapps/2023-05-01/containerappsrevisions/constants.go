@@ -1,6 +1,10 @@
 package containerappsrevisions
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForRevisionHealthState() []string {
 		string(RevisionHealthStateNone),
 		string(RevisionHealthStateUnhealthy),
 	}
+}
+
+func (s *RevisionHealthState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRevisionHealthState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRevisionHealthState(input string) (*RevisionHealthState, error) {
@@ -54,6 +71,19 @@ func PossibleValuesForRevisionProvisioningState() []string {
 		string(RevisionProvisioningStateProvisioned),
 		string(RevisionProvisioningStateProvisioning),
 	}
+}
+
+func (s *RevisionProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRevisionProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRevisionProvisioningState(input string) (*RevisionProvisioningState, error) {
@@ -95,6 +125,19 @@ func PossibleValuesForRevisionRunningState() []string {
 	}
 }
 
+func (s *RevisionRunningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRevisionRunningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRevisionRunningState(input string) (*RevisionRunningState, error) {
 	vals := map[string]RevisionRunningState{
 		"degraded":   RevisionRunningStateDegraded,
@@ -127,6 +170,19 @@ func PossibleValuesForScheme() []string {
 	}
 }
 
+func (s *Scheme) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScheme(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScheme(input string) (*Scheme, error) {
 	vals := map[string]Scheme{
 		"http":  SchemeHTTP,
@@ -155,6 +211,19 @@ func PossibleValuesForStorageType() []string {
 		string(StorageTypeEmptyDir),
 		string(StorageTypeSecret),
 	}
+}
+
+func (s *StorageType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStorageType(input string) (*StorageType, error) {
@@ -186,6 +255,19 @@ func PossibleValuesForType() []string {
 		string(TypeReadiness),
 		string(TypeStartup),
 	}
+}
+
+func (s *Type) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseType(input string) (*Type, error) {

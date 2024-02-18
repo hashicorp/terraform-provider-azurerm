@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/cloudservicepublicipaddresses"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := cloudservicepublicipaddresses.NewCloudServicesPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue", "roleInstanceValue", "networkInterfaceValue", "ipConfigurationValue", "publicIPAddressValue")
+id := commonids.NewCloudServicesPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue", "roleInstanceValue", "networkInterfaceValue", "ipConfigurationValue", "publicIPAddressValue")
 
 read, err := client.PublicIPAddressesGetCloudServicePublicIPAddress(ctx, id, cloudservicepublicipaddresses.DefaultPublicIPAddressesGetCloudServicePublicIPAddressOperationOptions())
 if err != nil {
@@ -57,7 +58,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := cloudservicepublicipaddresses.NewCloudServicesIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue", "roleInstanceValue", "networkInterfaceValue", "ipConfigurationValue")
+id := commonids.NewCloudServicesIPConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudServiceValue", "roleInstanceValue", "networkInterfaceValue", "ipConfigurationValue")
 
 // alternatively `client.PublicIPAddressesListCloudServiceRoleInstancePublicIPAddresses(ctx, id)` can be used to do batched pagination
 items, err := client.PublicIPAddressesListCloudServiceRoleInstancePublicIPAddressesComplete(ctx, id)

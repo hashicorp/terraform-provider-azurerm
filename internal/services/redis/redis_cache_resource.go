@@ -179,6 +179,16 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"data_persistence_authentication_method": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "SAS",
+							ValidateFunc: validation.StringInSlice([]string{
+								"SAS",
+								"ManagedIdentity",
+							}, false),
+						},
+
 						"rdb_backup_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -830,6 +840,10 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		output.MaxmemoryPolicy = utils.String(v)
 	}
 
+	if v := raw["data_persistence_authentication_method"].(string); v != "" {
+		output.PreferredDataPersistenceAuthMethod = utils.String(v)
+	}
+
 	// AAD/Entra support
 	// nolint : staticcheck
 	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
@@ -998,6 +1012,10 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 	}
 	if input.MaxmemoryPolicy != nil {
 		outputs["maxmemory_policy"] = *input.MaxmemoryPolicy
+	}
+
+	if input.PreferredDataPersistenceAuthMethod != nil {
+		outputs["data_persistence_authentication_method"] = *input.PreferredDataPersistenceAuthMethod
 	}
 
 	if input.MaxfragmentationmemoryReserved != nil {

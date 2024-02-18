@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/publicipaddresses"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := publicipaddresses.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
+id := commonids.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
 
 payload := publicipaddresses.PublicIPAddress{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := publicipaddresses.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
+id := commonids.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
 
 if err := client.DdosProtectionStatusThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DdosProtectionStatusThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := publicipaddresses.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
+id := commonids.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +66,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := publicipaddresses.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
+id := commonids.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
 
 read, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
 if err != nil {
@@ -81,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := publicipaddresses.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -98,7 +99,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := publicipaddresses.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListAll(ctx, id)` can be used to do batched pagination
 items, err := client.ListAllComplete(ctx, id)
@@ -115,7 +116,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := publicipaddresses.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
+id := commonids.NewPublicIPAddressID("12345678-1234-9876-4563-123456789012", "example-resource-group", "publicIPAddressValue")
 
 payload := publicipaddresses.TagsObject{
 	// ...
