@@ -30,11 +30,12 @@ resource "azurerm_dev_center_catalog" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.test.name
   dev_center_id       = azurerm_dev_center.test.id
-  catalog_type        = "gitHub"
-  branch              = "foo"
-  path                = ""
-  uri                 = "example URI"
-  key_vault_key_url   = "secret"
+  catalog_github {
+    branch            = "foo"
+    path              = ""
+    uri               = "example URI"
+    key_vault_key_url = "secret"
+  }
 }
 ```
 
@@ -48,7 +49,25 @@ The following arguments are supported:
 
 * `dev_center_id` - (Required) Specifies the Dev Center Id within which this Dev Center Catalog should exist. Changing this forces a new Dev Center Catalog to be created.
 
-* `catalog_type` - (Required) The type of the Dev Center Catalog. Possible values are `gitHub` and `adoGit`.
+* `catalog_github` - (Optional) A `catalog_github` block as defined below.
+
+* `catalog_adogit` - (Optional) A `catalog_adogit` block as defined below.
+
+---
+
+* `catalog_github` supports the following:
+
+* `branch` - (Required) The Git branch of the Dev Center Catalog.
+
+* `path` - (Required) The folder where the catalog items can be found inside the repository.
+
+* `key_vault_key_url` - (Required) A reference to the Key Vault secret containing a security token to authenticate to a Git repository.
+
+* `uri` - (Required) The Git URI of the Dev Center Catalog.
+
+---
+
+* `catalog_adogit` supports the following:
 
 * `branch` - (Required) The Git branch of the Dev Center Catalog.
 

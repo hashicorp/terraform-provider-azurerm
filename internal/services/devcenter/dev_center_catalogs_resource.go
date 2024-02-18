@@ -16,14 +16,18 @@ import (
 )
 
 type DevCenterCatalogsResourceModel struct {
-	Name              string `tfschema:"name"`
-	ResourceGroupName string `tfschema:"resource_group_name"`
-	DevCenterID       string `tfschema:"dev_center_id"`
-	CatalogType       string `tfschema:"catalog_type"`
-	URI               string `tfschema:"uri"`
-	Branch            string `tfschema:"branch"`
-	KeyVaultKeyUrl    string `tfschema:"key_vault_key_url"`
-	Path              string `tfschema:"path"`
+	Name              string                   `tfschema:"name"`
+	ResourceGroupName string                   `tfschema:"resource_group_name"`
+	DevCenterID       string                   `tfschema:"dev_center_id"`
+	CatalogGitHub     []CatalogPropertiesModel `tfschema:"catalog_github"`
+	CatalogAdoGit     []CatalogPropertiesModel `tfschema:"catalog_adogit"`
+}
+
+type CatalogPropertiesModel struct {
+	URI            string `tfschema:"uri"`
+	Branch         string `tfschema:"branch"`
+	KeyVaultKeyUrl string `tfschema:"key_vault_key_url"`
+	Path           string `tfschema:"path"`
 }
 
 type DevCenterCatalogsResource struct{}
@@ -60,38 +64,9 @@ func (r DevCenterCatalogsResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: catalogs.ValidateDevCenterID,
 		},
 
-		"catalog_type": {
-			Required: true,
-			Type:     pluginsdk.TypeString,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"gitHub",
-				"adoGit",
-			}, false),
-		},
+		"catalog_github": CatalogPropertiesSchema(),
 
-		"uri": {
-			Required:     true,
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"branch": {
-			Required:     true,
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"key_vault_key_url": {
-			Required:     true,
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"path": {
-			Required: true,
-			Type:     pluginsdk.TypeString,
-		},
+		"catalog_adogit": CatalogPropertiesSchema(),
 	}
 }
 
@@ -127,36 +102,14 @@ func (r DevCenterCatalogsResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			var properties catalogs.Catalog
-			if model.CatalogType == "gitHub" {
-				gitHubProps := catalogs.GitCatalog{
-					Branch:           pointer.To(model.Branch),
-					Uri:              pointer.To(model.URI),
-					Path:             pointer.To(model.Path),
-					SecretIdentifier: pointer.To(model.KeyVaultKeyUrl),
-				}
-
-				properties = catalogs.Catalog{
-					Properties: &catalogs.CatalogProperties{
-						GitHub: pointer.To(gitHubProps),
-					},
-				}
-			} else {
-				adoGitProps := catalogs.GitCatalog{
-					Branch:           pointer.To(model.Branch),
-					Uri:              pointer.To(model.URI),
-					Path:             pointer.To(model.Path),
-					SecretIdentifier: pointer.To(model.KeyVaultKeyUrl),
-				}
-
-				properties = catalogs.Catalog{
-					Properties: &catalogs.CatalogProperties{
-						AdoGit: pointer.To(adoGitProps),
-					},
-				}
+			catalogProperties := catalogs.Catalog{
+				Properties: &catalogs.CatalogProperties{
+					AdoGit: expandCatalogProperties(model.CatalogAdoGit),
+					GitHub: expandCatalogProperties(model.CatalogGitHub),
+				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, catalogProperties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -191,36 +144,12 @@ func (r DevCenterCatalogsResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("uri") {
-				if model.CatalogType == "gitHub" {
-					properties.Properties.GitHub.Uri = pointer.To(model.URI)
-				} else {
-					properties.Properties.AdoGit.Uri = pointer.To(model.URI)
-				}
+			if metadata.ResourceData.HasChange("catalog_github") {
+				properties.Properties.GitHub = expandCatalogProperties(model.CatalogGitHub)
 			}
 
-			if metadata.ResourceData.HasChange("branch") {
-				if model.CatalogType == "gitHub" {
-					properties.Properties.GitHub.Branch = pointer.To(model.Branch)
-				} else {
-					properties.Properties.AdoGit.Branch = pointer.To(model.Branch)
-				}
-			}
-
-			if metadata.ResourceData.HasChange("path") {
-				if model.CatalogType == "gitHub" {
-					properties.Properties.GitHub.Path = pointer.To(model.Path)
-				} else {
-					properties.Properties.AdoGit.Path = pointer.To(model.Path)
-				}
-			}
-
-			if metadata.ResourceData.HasChange("key_vault_key_url") {
-				if model.CatalogType == "gitHub" {
-					properties.Properties.GitHub.SecretIdentifier = pointer.To(model.KeyVaultKeyUrl)
-				} else {
-					properties.Properties.AdoGit.SecretIdentifier = pointer.To(model.KeyVaultKeyUrl)
-				}
+			if metadata.ResourceData.HasChange("catalog_adogit") {
+				properties.Properties.AdoGit = expandCatalogProperties(model.CatalogAdoGit)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
@@ -265,17 +194,25 @@ func (r DevCenterCatalogsResource) Read() sdk.ResourceFunc {
 
 			if properties := model.Properties; properties != nil {
 				if gitHub := properties.GitHub; gitHub != nil {
-					state.CatalogType = "gitHub"
-					state.URI = pointer.From(gitHub.Uri)
-					state.Branch = pointer.From(gitHub.Branch)
-					state.Path = pointer.From(gitHub.Path)
-					state.KeyVaultKeyUrl = pointer.From(gitHub.SecretIdentifier)
-				} else if adoGit := properties.AdoGit; adoGit != nil {
-					state.CatalogType = "adoGit"
-					state.URI = pointer.From(adoGit.Uri)
-					state.Branch = pointer.From(adoGit.Branch)
-					state.Path = pointer.From(adoGit.Path)
-					state.KeyVaultKeyUrl = pointer.From(adoGit.SecretIdentifier)
+					state.CatalogGitHub = []CatalogPropertiesModel{
+						{
+							URI:            pointer.From(gitHub.Uri),
+							Branch:         pointer.From(gitHub.Branch),
+							KeyVaultKeyUrl: pointer.From(gitHub.SecretIdentifier),
+							Path:           pointer.From(gitHub.Path),
+						},
+					}
+				}
+
+				if adoGit := properties.AdoGit; adoGit != nil {
+					state.CatalogAdoGit = []CatalogPropertiesModel{
+						{
+							URI:            pointer.From(adoGit.Uri),
+							Branch:         pointer.From(adoGit.Branch),
+							KeyVaultKeyUrl: pointer.From(adoGit.SecretIdentifier),
+							Path:           pointer.From(adoGit.Path),
+						},
+					}
 				}
 			}
 
@@ -301,5 +238,52 @@ func (r DevCenterCatalogsResource) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
+	}
+}
+
+func CatalogPropertiesSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"uri": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"branch": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"key_vault_key_url": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"path": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+				},
+			},
+		},
+	}
+}
+
+func expandCatalogProperties(input []CatalogPropertiesModel) *catalogs.GitCatalog {
+	if input == nil || len(input) == 0 {
+		return nil
+	}
+
+	return &catalogs.GitCatalog{
+		Uri:              pointer.To(input[0].URI),
+		Branch:           pointer.To(input[0].Branch),
+		SecretIdentifier: pointer.To(input[0].KeyVaultKeyUrl),
+		Path:             pointer.To(input[0].Path),
 	}
 }

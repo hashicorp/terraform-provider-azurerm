@@ -93,11 +93,12 @@ resource "azurerm_dev_center_catalog" "test" {
   name                = "acctest-catalog-%d"
   resource_group_name = azurerm_resource_group.test.name
   dev_center_id       = azurerm_dev_center.test.id
-  catalog_type        = "gitHub"
-  branch              = "main"
-  path                = "/template"
-  uri                 = "https://github.com/am-lim/deployment-environments.git"
-  key_vault_key_url   = "https://amlim-kv.vault.azure.net/secrets/envTest/0a79f15246ce4b35a13957367b422cab"
+  catalog_github {
+    branch            = "main"
+    path              = "/template"
+    uri               = "https://github.com/am-lim/deployment-environments.git"
+    key_vault_key_url = "https://amlim-kv.vault.azure.net/secrets/envTest/0a79f15246ce4b35a13957367b422cab"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -114,11 +115,12 @@ resource "azurerm_dev_center_catalog" "test" {
   name                = "acctest-catalog-%d"
   resource_group_name = azurerm_resource_group.test.name
   dev_center_id       = azurerm_dev_center.test.id
-  catalog_type        = "adoGit"
-  branch              = "main"
-  path                = "/template"
-  uri                 = "https://amlim@dev.azure.com/amlim/testCatalog/_git/testCatalog"
-  key_vault_key_url   = "https://amlim-kv.vault.azure.net/secrets/ado/6279752c2bdd4a38a3e79d958cc36a75"
+  catalog_adogit {
+    branch            = "main"
+    path              = "/template"
+    uri               = "https://amlim@dev.azure.com/amlim/testCatalog/_git/testCatalog"
+    key_vault_key_url = "https://amlim-kv.vault.azure.net/secrets/ado/6279752c2bdd4a38a3e79d958cc36a75"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -135,11 +137,12 @@ resource "azurerm_dev_center_catalog" "test" {
   name                = "acctest-catalog-%d"
   resource_group_name = azurerm_resource_group.test.name
   dev_center_id       = azurerm_dev_center.test.id
-  catalog_type        = "gitHub"
-  branch              = "foo"
-  path                = ""
-  uri                 = "https://github.com/am-lim/deployment-environments.git"
-  key_vault_key_url   = "https://amlim-kv.vault.azure.net/secrets/envTest/0a79f15246ce4b35a13957367b422cab"
+  catalog_github {
+    branch            = "foo"
+    path              = ""
+    uri               = "https://github.com/am-lim/deployment-environments.git"
+    key_vault_key_url = "https://amlim-kv.vault.azure.net/secrets/envTest/0a79f15246ce4b35a13957367b422cab"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
