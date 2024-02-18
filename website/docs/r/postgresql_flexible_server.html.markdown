@@ -218,20 +218,22 @@ A `high_availability` block supports the following:
 
 ## `storage_tier` defaults based on `storage_mb`
 
-| `storage_mb` | GiB   | TiB | Default | Supported `storage_tier`'s           | Default `IOPS`  |
-|:------------:|:-----:|:---:|:-------:|:------------------------------------:|:---------------:|
-| 32768        | 32    | *   | P4      | P4, P6, P10, P15, P20, P30, P40, P50 | 120             |
-| 65536        | 64    | *   | P6      | P6, P10, P15, P20, P30, P40, P50     | 240             |
-| 131072       | 128   | *   | P10     | P10, P15, P20, P30, P40, P50         | 500             |
-| 262144       | 256   | *   | P15     | P15, P20, P30, P40, P50              | 1,100           |
-| 524288       | 512   | *   | P20     | P20, P30, P40, P50                   | 2,300           |
-| 1048576      | 1024  | 1   | P30     | P30, P40, P50                        | 5,000           |
-| 2097152      | 2048  | 2   | P40     | P40, P50                             | 7,500           |
-| 4193280      | 4095  | 4   | P50     | P50                                  | 7,500           |
-| 4194304      | 4096  | 4   | P50     | P50                                  | 7,500           |
-| 8388608      | 8192  | 8   | P60     | P60, P70                             | 16,000          |
-| 16777216     | 16384 | 16  | P70     | P70, P80                             | 18,000          |
-| 33553408     | 32767 | 32  | P80     | P80                                  | 20,000          |
+| `storage_mb` | GiB   | TiB | Default | Supported `storage_tier`'s           | Provisioned `IOPS`  |
+|:------------:|:-----:|:---:|:-------:|:------------------------------------:|:-------------------:|
+| 32768        | 32    |  -  | P4      | P4, P6, P10, P15, P20, P30, P40, P50 | 120                 |
+| 65536        | 64    |  -  | P6      | P6, P10, P15, P20, P30, P40, P50     | 240                 |
+| 131072       | 128   |  -  | P10     | P10, P15, P20, P30, P40, P50         | 500                 |
+| 262144       | 256   |  -  | P15     | P15, P20, P30, P40, P50              | 1,100               |
+| 524288       | 512   |  -  | P20     | P20, P30, P40, P50                   | 2,300               |
+| 1048576      | 1024  |  1  | P30     | P30, P40, P50                        | 5,000               |
+| 2097152      | 2048  |  2  | P40     | P40, P50                             | 7,500               |
+| 4193280      | 4095  |  4  | P50     | P50                                  | 7,500               |
+| 4194304      | 4096  |  4  | P50     | P50                                  | 7,500               |
+| 8388608      | 8192  |  8  | P60     | P60, P70                             | 16,000              |
+| 16777216     | 16384 |  16 | P70     | P70, P80                             | 18,000              |
+| 33553408     | 32767 |  32 | P80     | P80                                  | 20,000              |
+
+-> **Note:** Host Caching (ReadOnly and Read/Write) is supported on disk sizes less than 4 TiB. This means any disk that is provisioned up to 4095 GiB can take advantage of Host Caching. Host caching is not supported for disk sizes greater than or equal to 4096 GiB. For example, a P50 premium disk provisioned at 4095 GiB can take advantage of Host caching and a P50 disk provisioned at 4096 GiB cannot take advantage of Host Caching. Moving from lower disk size to 4096 Gib or higher will lose the disk caching ability.
 
 ---
 
