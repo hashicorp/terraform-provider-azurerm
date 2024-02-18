@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -62,6 +63,8 @@ func dataSourceKeyVaultCertificates() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
+
+						"tags": tags.SchemaDataSource(),
 					},
 				},
 			},
@@ -125,8 +128,14 @@ func expandCertificate(name string, item keyvault.CertificateItem) map[string]in
 		"name": name,
 		"id":   *item.ID,
 	}
+
 	if item.Attributes != nil && item.Attributes.Enabled != nil {
 		cert["enabled"] = *item.Attributes.Enabled
 	}
+
+	if item.Tags != nil {
+		cert["tags"] = tags.Flatten(item.Tags)
+	}
+
 	return cert
 }

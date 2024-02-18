@@ -65,7 +65,7 @@ resource "azurerm_sql_managed_database" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SQL Managed Instance. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the SQL Managed Database. Changing this forces a new resource to be created.
 
 * `sql_managed_instance_id` - (Required) The SQL Managed Instance ID that this Managed Database will be associated with. Changing this forces a new resource to be created.
 

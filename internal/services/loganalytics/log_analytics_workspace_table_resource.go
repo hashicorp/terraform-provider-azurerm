@@ -26,10 +26,11 @@ var _ sdk.ResourceWithUpdate = LogAnalyticsWorkspaceTableResource{}
 var _ sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableResource{}
 
 type LogAnalyticsWorkspaceTableResourceModel struct {
-	Name            string `tfschema:"name"`
-	WorkspaceId     string `tfschema:"workspace_id"`
-	Plan            string `tfschema:"plan"`
-	RetentionInDays int64  `tfschema:"retention_in_days"`
+	Name                 string `tfschema:"name"`
+	WorkspaceId          string `tfschema:"workspace_id"`
+	Plan                 string `tfschema:"plan"`
+	RetentionInDays      int64  `tfschema:"retention_in_days"`
+	TotalRetentionInDays int64  `tfschema:"total_retention_in_days"`
 }
 
 func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
@@ -76,6 +77,12 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
+		},
+
+		"total_retention_in_days": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.Any(validation.IntBetween(30, 4383), validation.IntInSlice([]int{7})),
 		},
 	}
 }
@@ -125,6 +132,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 
 			if model.Plan == string(tables.TablePlanEnumAnalytics) {
 				updateInput.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
+				updateInput.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 			}
 			if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
 				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", tableName, workspaceId.WorkspaceName, workspaceId.ResourceGroupName, err)
@@ -174,6 +182,10 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 						if metadata.ResourceData.HasChange("retention_in_days") {
 							updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
 						}
+
+						if metadata.ResourceData.HasChange("total_retention_in_days") {
+							updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
+						}
 					}
 
 					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
@@ -220,6 +232,7 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					if pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
+						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					}
 					state.Plan = string(pointer.From(props.Plan))
 				}
@@ -247,10 +260,12 @@ func (r LogAnalyticsWorkspaceTableResource) Delete() sdk.ResourceFunc {
 			// We do not delete the resource here, just set the retention to workspace default value, which is
 			// achieved by setting the value to `-1`
 			retentionInDays := utils.Int64(-1)
+			totalRetentionInDays := utils.Int64(-1)
 
 			updateInput := tables.Table{
 				Properties: &tables.TableProperties{
-					RetentionInDays: retentionInDays,
+					RetentionInDays:      retentionInDays,
+					TotalRetentionInDays: totalRetentionInDays,
 				},
 			}
 
