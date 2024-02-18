@@ -14,7 +14,7 @@ type UserFeatures struct {
 	TemplateDeployment       TemplateDeploymentFeatures
 	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
 	ResourceGroup            ResourceGroupFeatures
-	RecoveryServicesVault  RecoveryServicesVault
+	RecoveryServicesVault    RecoveryServicesVault
 	ManagedDisk              ManagedDiskFeatures
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
