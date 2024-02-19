@@ -1789,14 +1789,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("local_user_enabled") {
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				IsLocalUserEnabled: pointer.To(d.Get("local_user_enabled").(bool)),
-			},
-		}
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `local_user_enabled` for %s: %+v", *id, err)
-		}
+		props.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
 	}
 
 	if d.HasChange("sftp_enabled") {
