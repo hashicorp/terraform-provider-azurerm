@@ -46,18 +46,18 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
-			ForceNew: true,
+			ForceNew: false,
 			Required: true,
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 		},
 		"issuer": {
-			ForceNew: true,
+			ForceNew: false,
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
 		"name": {
-			ForceNew: true,
+			ForceNew: false,
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
@@ -70,7 +70,7 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 		"subject": {
-			ForceNew: true,
+			ForceNew: false,
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
@@ -151,10 +151,46 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 				r.mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(*model, &schema)
 			}
 
-			return metadata.Encode(&schema)
+			return nil
 		},
 	}
 }
+
+func (r FederatedIdentityCredentialResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ManagedIdentity.V20230131.ManagedIdentities
+
+			var config FederatedIdentityCredentialResourceSchema
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
+			if err != nil {
+				return fmt.Errorf("parsing parent resource ID: %+v", err)
+			}
+
+			locks.ByID(parentId.ID())
+			defer locks.UnlockByID(parentId.ID())
+
+			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
+
+			var payload managedidentities.FederatedIdentityCredential
+			r.mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredential(config, &payload)
+
+			if _, err := client.FederatedIdentityCredentialsCreateOrUpdate(ctx, id, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
 func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
