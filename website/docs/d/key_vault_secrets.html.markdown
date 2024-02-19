@@ -51,6 +51,8 @@ A `secrets` block supports following:
 
 * `id` - The ID of this secret.
 
+* `tags` - The tags of this secret.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

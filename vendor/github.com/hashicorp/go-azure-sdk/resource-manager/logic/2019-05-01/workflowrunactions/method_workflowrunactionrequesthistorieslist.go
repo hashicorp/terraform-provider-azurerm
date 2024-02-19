@@ -19,7 +19,8 @@ type WorkflowRunActionRequestHistoriesListOperationResponse struct {
 }
 
 type WorkflowRunActionRequestHistoriesListCompleteResult struct {
-	Items []RequestHistory
+	LatestHttpResponse *http.Response
+	Items              []RequestHistory
 }
 
 // WorkflowRunActionRequestHistoriesList ...
@@ -83,7 +84,8 @@ func (c WorkflowRunActionsClient) WorkflowRunActionRequestHistoriesListCompleteM
 	}
 
 	result = WorkflowRunActionRequestHistoriesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

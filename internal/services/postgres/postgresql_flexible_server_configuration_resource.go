@@ -100,11 +100,13 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
-				restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
-				restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
+					restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
+					restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
-				if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
-					return fmt.Errorf("restarting server %s: %+v", id, err)
+					if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+						return fmt.Errorf("restarting server %s: %+v", id, err)
+					}
 				}
 			}
 		}
@@ -186,11 +188,13 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
-				restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
-				restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
+					restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
+					restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 
-				if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
-					return fmt.Errorf("restarting server %s: %+v", id, err)
+					if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+						return fmt.Errorf("restarting server %s: %+v", id, err)
+					}
 				}
 			}
 		}

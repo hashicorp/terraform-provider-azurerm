@@ -3,7 +3,7 @@ subcategory: "Nginx"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nginx_certificate"
 description: |-
-  Manages a Certificate for an NGinx Deployment.
+  Manages a Certificate for an Nginx Deployment.
 ---
 
 # azurerm_nginx_certificate
@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `nginx_deployment_id` - (Required) The ID of the Nginx Deployment that this Certificate should be associated with. Changing this forces a new Nginx Certificate to be created.
 
-* `certificate_virtual_path` - (Required) Specify the path to the cert file of this certificate.
+* `certificate_virtual_path` - (Required) Specify the path to the certificate file of this certificate.
 
 * `key_virtual_path` - (Required) Specify the path to the key file of this certificate.
 

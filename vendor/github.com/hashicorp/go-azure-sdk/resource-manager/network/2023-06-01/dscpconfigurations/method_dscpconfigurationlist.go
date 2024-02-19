@@ -20,7 +20,8 @@ type DscpConfigurationListOperationResponse struct {
 }
 
 type DscpConfigurationListCompleteResult struct {
-	Items []DscpConfiguration
+	LatestHttpResponse *http.Response
+	Items              []DscpConfiguration
 }
 
 // DscpConfigurationList ...
@@ -84,7 +85,8 @@ func (c DscpConfigurationsClient) DscpConfigurationListCompleteMatchingPredicate
 	}
 
 	result = DscpConfigurationListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

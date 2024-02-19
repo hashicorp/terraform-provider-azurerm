@@ -18,6 +18,7 @@ type VpnSitesCreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VpnSite
 }
 
 // VpnSitesCreateOrUpdate ...

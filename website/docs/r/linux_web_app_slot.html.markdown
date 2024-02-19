@@ -82,9 +82,9 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Linux Web App be enabled? Defaults to `true`.
 
-* `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
+* `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
-* `https_only` - (Optional) Should the Linux Web App require HTTPS connections.
+* `https_only` - (Optional) Should the Linux Web App require HTTPS connections. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Web App. Defaults to `true`.
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
-* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
+* `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
 
@@ -144,7 +144,7 @@ An `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
-* `file_system_level` - (Required) Log level. Possible values include `Verbose`, `Information`, `Warning`, and `Error`.
+* `file_system_level` - (Required) Log level. Possible values include `Off`, `Verbose`, `Information`, `Warning`, and `Error`.
 
 ---
 
@@ -174,7 +174,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --linux`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, and `18-lts`. This property conflicts with `java_version`.
+* `node_version` - (Optional) The version of Node to run. Possible values are `12-lts`, `14-lts`, `16-lts`, `18-lts` and `20-lts`. This property conflicts with `java_version`.
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
@@ -182,7 +182,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10` and `3.11`.
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10`, `3.11` and `3.12`.
 
 * `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
 

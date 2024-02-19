@@ -16,6 +16,7 @@ import (
 type ContainerGroupsCreateOrUpdateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ContainerGroup
 }
 
 // ContainerGroupsCreateOrUpdate ...

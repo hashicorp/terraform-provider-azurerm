@@ -639,6 +639,10 @@ resource "azurerm_application_security_group" "test" {
   name                = "acctestasg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -685,12 +689,20 @@ resource "azurerm_application_security_group" "test" {
   name                = "acctestasg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_application_security_group" "other" {
   name                = "acctestasg2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1283,6 +1295,10 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
@@ -1329,12 +1345,20 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_network_security_group" "other" {
   name                = "acctestnsg2-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {

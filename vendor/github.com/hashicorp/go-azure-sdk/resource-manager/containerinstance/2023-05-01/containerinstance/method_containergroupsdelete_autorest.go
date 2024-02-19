@@ -16,6 +16,7 @@ import (
 type ContainerGroupsDeleteOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ContainerGroup
 }
 
 // ContainerGroupsDelete ...

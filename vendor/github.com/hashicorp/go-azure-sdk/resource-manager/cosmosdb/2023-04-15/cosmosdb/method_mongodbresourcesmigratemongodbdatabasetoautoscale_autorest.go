@@ -16,6 +16,7 @@ import (
 type MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // MongoDBResourcesMigrateMongoDBDatabaseToAutoscale ...

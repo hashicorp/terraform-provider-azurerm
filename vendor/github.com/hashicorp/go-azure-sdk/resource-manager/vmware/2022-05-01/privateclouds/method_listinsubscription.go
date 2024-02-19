@@ -20,7 +20,8 @@ type ListInSubscriptionOperationResponse struct {
 }
 
 type ListInSubscriptionCompleteResult struct {
-	Items []PrivateCloud
+	LatestHttpResponse *http.Response
+	Items              []PrivateCloud
 }
 
 // ListInSubscription ...
@@ -84,7 +85,8 @@ func (c PrivateCloudsClient) ListInSubscriptionCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListInSubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

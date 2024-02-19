@@ -32,6 +32,7 @@ type MsSqlManagedInstanceModel struct {
 	AdministratorLoginPassword   string                              `tfschema:"administrator_login_password"`
 	Collation                    string                              `tfschema:"collation"`
 	DnsZonePartnerId             string                              `tfschema:"dns_zone_partner_id"`
+	DnsZone                      string                              `tfschema:"dns_zone"`
 	Fqdn                         string                              `tfschema:"fqdn"`
 	Identity                     []identity.SystemOrUserAssignedList `tfschema:"identity"`
 	LicenseType                  string                              `tfschema:"license_type"`
@@ -238,6 +239,10 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r MsSqlManagedInstanceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"dns_zone": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"fqdn": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -476,6 +481,9 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				}
 				if props.Collation != nil {
 					model.Collation = *props.Collation
+				}
+				if props.DNSZone != nil {
+					model.DnsZone = *props.DNSZone
 				}
 				if props.FullyQualifiedDomainName != nil {
 					model.Fqdn = *props.FullyQualifiedDomainName

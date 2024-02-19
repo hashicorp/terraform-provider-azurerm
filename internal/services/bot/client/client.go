@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	emailchannel_2022_09_15 "github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel"
 	healthbot_2022_08_08 "github.com/hashicorp/go-azure-sdk/resource-manager/healthbot/2022-08-08"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -13,10 +14,11 @@ import (
 )
 
 type Client struct {
-	BotClient        *botservice.BotsClient
-	ConnectionClient *botservice.BotConnectionClient
-	ChannelClient    *botservice.ChannelsClient
-	HealthBotClient  *healthbot_2022_08_08.Client
+	BotClient          *botservice.BotsClient
+	ConnectionClient   *botservice.BotConnectionClient
+	ChannelClient      *botservice.ChannelsClient
+	EmailChannelClient *emailchannel_2022_09_15.ChannelClient
+	HealthBotClient    *healthbot_2022_08_08.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -29,6 +31,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	channelClient := botservice.NewChannelsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&channelClient.Client, o.ResourceManagerAuthorizer)
 
+	emailChannelClient, err := emailchannel_2022_09_15.NewChannelClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building EmailChannels client: %+v", err)
+	}
+	o.Configure(emailChannelClient.Client, o.Authorizers.ResourceManager)
+
 	healthBotsClient, err := healthbot_2022_08_08.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
@@ -37,9 +45,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	return &Client{
-		BotClient:        &botClient,
-		ChannelClient:    &channelClient,
-		ConnectionClient: &connectionClient,
-		HealthBotClient:  healthBotsClient,
+		BotClient:          &botClient,
+		ChannelClient:      &channelClient,
+		ConnectionClient:   &connectionClient,
+		EmailChannelClient: emailChannelClient,
+		HealthBotClient:    healthBotsClient,
 	}, nil
 }

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -63,7 +63,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: disks.ValidateDiskID,
+				ValidateFunc: commonids.ValidateManagedDiskID,
 			},
 
 			"snapshot_resource_group_name": commonschema.ResourceGroupName(),
@@ -99,9 +99,15 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		}
 	}
 
-	diskId, _ := disks.ParseDiskID(d.Get("disk_id").(string))
+	diskId, err := commonids.ParseManagedDiskID(d.Get("disk_id").(string))
+	if err != nil {
+		return err
+	}
 	location := location.Normalize(d.Get("location").(string))
-	policyId, _ := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
+	policyId, err := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
+	if err != nil {
+		return err
+	}
 	snapshotResourceGroupId := resourceParse.NewResourceGroupID(subscriptionId, d.Get("snapshot_resource_group_name").(string))
 
 	parameters := backupinstances.BackupInstanceResource{
@@ -130,8 +136,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
 	}
 

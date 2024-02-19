@@ -19,7 +19,8 @@ type SubAccountTagRulesListOperationResponse struct {
 }
 
 type SubAccountTagRulesListCompleteResult struct {
-	Items []MonitoringTagRules
+	LatestHttpResponse *http.Response
+	Items              []MonitoringTagRules
 }
 
 // SubAccountTagRulesList ...
@@ -83,7 +84,8 @@ func (c TagRulesClient) SubAccountTagRulesListCompleteMatchingPredicate(ctx cont
 	}
 
 	result = SubAccountTagRulesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

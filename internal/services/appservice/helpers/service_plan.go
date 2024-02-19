@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -141,51 +142,71 @@ func PlanTypeFromSku(input string) string {
 }
 
 // ServicePlanInfoForApp returns the OS type and Service Plan SKU for a given App Service Resource
-func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, id interface{}) (osType *string, planSku *string, err error) {
+func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, id commonids.AppServiceId) (osType *string, planSku *string, err error) {
 	client := metadata.Client.AppService.WebAppsClient
 	servicePlanClient := metadata.Client.AppService.ServicePlanClient
-	var rg, siteName string
 
-	switch appId := id.(type) {
-	case parse.WebAppId:
-		rg = appId.ResourceGroup
-		siteName = appId.SiteName
-	case parse.WebAppSlotId:
-		rg = appId.ResourceGroup
-		siteName = appId.SiteName
-	case parse.FunctionAppId:
-		rg = appId.ResourceGroup
-		siteName = appId.SiteName
-	case parse.FunctionAppSlotId:
-		rg = appId.ResourceGroup
-		siteName = appId.SiteName
-	}
-
-	site, err := client.Get(ctx, rg, siteName)
-	if err != nil || site.SiteProperties == nil {
+	site, err := client.Get(ctx, id)
+	if err != nil || site.Model == nil || site.Model.Properties == nil {
 		return nil, nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
-	props := site.SiteProperties
-	if props.ServerFarmID == nil {
+	props := *site.Model.Properties
+	if props.ServerFarmId == nil {
 		return nil, nil, fmt.Errorf("determining Service Plan ID for %s: %+v", id, err)
 	}
-	servicePlanId, err := parse.ServicePlanID(*props.ServerFarmID)
+	servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	sp, err := servicePlanClient.Get(ctx, servicePlanId.ResourceGroup, servicePlanId.ServerfarmName)
-	if err != nil || sp.Kind == nil {
+	sp, err := servicePlanClient.Get(ctx, *servicePlanId)
+	if err != nil || sp.Model.Kind == nil {
 		return nil, nil, fmt.Errorf("reading Service Plan for %s: %+v", id, err)
 	}
 
 	osType = utils.String("windows")
-	if strings.Contains(strings.ToLower(*sp.Kind), "linux") {
+	if strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") {
 		osType = utils.String("linux")
 	}
 
 	planSku = utils.String("")
-	if sku := sp.Sku; sku != nil {
+	if sku := sp.Model.Sku; sku != nil {
+		planSku = sku.Name
+	}
+
+	return osType, planSku, nil
+}
+
+// ServicePlanInfoForApp returns the OS type and Service Plan SKU for a given App Service Resource
+func ServicePlanInfoForAppSlot(ctx context.Context, metadata sdk.ResourceMetaData, id webapps.SlotId) (osType *string, planSku *string, err error) {
+	client := metadata.Client.AppService.WebAppsClient
+	servicePlanClient := metadata.Client.AppService.ServicePlanClient
+
+	site, err := client.GetSlot(ctx, id)
+	if err != nil || site.Model == nil || site.Model.Properties == nil {
+		return nil, nil, fmt.Errorf("reading %s: %+v", id, err)
+	}
+	props := *site.Model.Properties
+	if props.ServerFarmId == nil {
+		return nil, nil, fmt.Errorf("determining Service Plan ID for %s: %+v", id, err)
+	}
+	servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sp, err := servicePlanClient.Get(ctx, *servicePlanId)
+	if err != nil || sp.Model.Kind == nil {
+		return nil, nil, fmt.Errorf("reading Service Plan for %s: %+v", id, err)
+	}
+
+	osType = utils.String("windows")
+	if strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") {
+		osType = utils.String("linux")
+	}
+
+	planSku = utils.String("")
+	if sku := sp.Model.Sku; sku != nil {
 		planSku = sku.Name
 	}
 

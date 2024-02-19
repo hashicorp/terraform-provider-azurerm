@@ -19,7 +19,8 @@ type GetDeleteProtectedItemRequestsObjectsOperationResponse struct {
 }
 
 type GetDeleteProtectedItemRequestsObjectsCompleteResult struct {
-	Items []DppBaseResource
+	LatestHttpResponse *http.Response
+	Items              []DppBaseResource
 }
 
 // GetDeleteProtectedItemRequestsObjects ...
@@ -83,7 +84,8 @@ func (c ResourceGuardsClient) GetDeleteProtectedItemRequestsObjectsCompleteMatch
 	}
 
 	result = GetDeleteProtectedItemRequestsObjectsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

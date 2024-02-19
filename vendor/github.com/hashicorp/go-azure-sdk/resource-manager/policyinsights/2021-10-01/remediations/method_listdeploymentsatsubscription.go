@@ -19,7 +19,8 @@ type ListDeploymentsAtSubscriptionOperationResponse struct {
 }
 
 type ListDeploymentsAtSubscriptionCompleteResult struct {
-	Items []RemediationDeployment
+	LatestHttpResponse *http.Response
+	Items              []RemediationDeployment
 }
 
 type ListDeploymentsAtSubscriptionOperationOptions struct {
@@ -111,7 +112,8 @@ func (c RemediationsClient) ListDeploymentsAtSubscriptionCompleteMatchingPredica
 	}
 
 	result = ListDeploymentsAtSubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

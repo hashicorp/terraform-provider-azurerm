@@ -196,7 +196,7 @@ resource "azurerm_bot_service_azure_bot" "test" {
   developer_app_insights_application_id = azurerm_application_insights.test.app_id
 
   tags = {
-    environment = "test"
+    environment = "test2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

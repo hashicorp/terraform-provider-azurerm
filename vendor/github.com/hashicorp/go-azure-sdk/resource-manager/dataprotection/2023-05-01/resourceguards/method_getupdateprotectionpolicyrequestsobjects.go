@@ -19,7 +19,8 @@ type GetUpdateProtectionPolicyRequestsObjectsOperationResponse struct {
 }
 
 type GetUpdateProtectionPolicyRequestsObjectsCompleteResult struct {
-	Items []DppBaseResource
+	LatestHttpResponse *http.Response
+	Items              []DppBaseResource
 }
 
 // GetUpdateProtectionPolicyRequestsObjects ...
@@ -83,7 +84,8 @@ func (c ResourceGuardsClient) GetUpdateProtectionPolicyRequestsObjectsCompleteMa
 	}
 
 	result = GetUpdateProtectionPolicyRequestsObjectsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

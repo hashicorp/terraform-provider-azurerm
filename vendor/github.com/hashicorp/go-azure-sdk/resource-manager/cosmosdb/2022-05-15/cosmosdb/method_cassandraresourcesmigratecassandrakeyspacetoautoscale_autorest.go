@@ -16,6 +16,7 @@ import (
 type CassandraResourcesMigrateCassandraKeyspaceToAutoscaleOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ThroughputSettingsGetResults
 }
 
 // CassandraResourcesMigrateCassandraKeyspaceToAutoscale ...

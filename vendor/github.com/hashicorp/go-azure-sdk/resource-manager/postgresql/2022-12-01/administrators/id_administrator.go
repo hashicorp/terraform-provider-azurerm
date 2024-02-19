@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AdministratorId{}
+var _ resourceids.ResourceId = &AdministratorId{}
 
 // AdministratorId is a struct representing the Resource ID for a Administrator
 type AdministratorId struct {
@@ -32,7 +32,7 @@ func NewAdministratorID(subscriptionId string, resourceGroupName string, flexibl
 
 // ParseAdministratorID parses 'input' into a AdministratorId
 func ParseAdministratorID(input string) (*AdministratorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AdministratorId{})
+	parser := resourceids.NewParserFromResourceIdType(&AdministratorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseAdministratorID(input string) (*AdministratorId, error) {
 // ParseAdministratorIDInsensitively parses 'input' case-insensitively into a AdministratorId
 // note: this method should only be used for API response data and not user input
 func ParseAdministratorIDInsensitively(input string) (*AdministratorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AdministratorId{})
+	parser := resourceids.NewParserFromResourceIdType(&AdministratorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

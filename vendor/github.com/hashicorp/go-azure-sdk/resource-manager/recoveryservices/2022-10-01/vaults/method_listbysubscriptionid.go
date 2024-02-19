@@ -20,7 +20,8 @@ type ListBySubscriptionIdOperationResponse struct {
 }
 
 type ListBySubscriptionIdCompleteResult struct {
-	Items []Vault
+	LatestHttpResponse *http.Response
+	Items              []Vault
 }
 
 // ListBySubscriptionId ...
@@ -84,7 +85,8 @@ func (c VaultsClient) ListBySubscriptionIdCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListBySubscriptionIdCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

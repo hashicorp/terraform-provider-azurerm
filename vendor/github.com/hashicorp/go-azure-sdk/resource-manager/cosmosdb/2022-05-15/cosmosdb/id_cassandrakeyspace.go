@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CassandraKeyspaceId{}
+var _ resourceids.ResourceId = &CassandraKeyspaceId{}
 
 // CassandraKeyspaceId is a struct representing the Resource ID for a Cassandra Keyspace
 type CassandraKeyspaceId struct {
@@ -32,7 +32,7 @@ func NewCassandraKeyspaceID(subscriptionId string, resourceGroupName string, dat
 
 // ParseCassandraKeyspaceID parses 'input' into a CassandraKeyspaceId
 func ParseCassandraKeyspaceID(input string) (*CassandraKeyspaceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CassandraKeyspaceId{})
+	parser := resourceids.NewParserFromResourceIdType(&CassandraKeyspaceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseCassandraKeyspaceID(input string) (*CassandraKeyspaceId, error) {
 // ParseCassandraKeyspaceIDInsensitively parses 'input' case-insensitively into a CassandraKeyspaceId
 // note: this method should only be used for API response data and not user input
 func ParseCassandraKeyspaceIDInsensitively(input string) (*CassandraKeyspaceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CassandraKeyspaceId{})
+	parser := resourceids.NewParserFromResourceIdType(&CassandraKeyspaceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

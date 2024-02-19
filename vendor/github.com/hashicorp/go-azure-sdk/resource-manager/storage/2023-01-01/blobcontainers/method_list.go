@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ListContainerItem
+	LatestHttpResponse *http.Response
+	Items              []ListContainerItem
 }
 
 type ListOperationOptions struct {
@@ -120,7 +121,8 @@ func (c BlobContainersClient) ListCompleteMatchingPredicate(ctx context.Context,
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

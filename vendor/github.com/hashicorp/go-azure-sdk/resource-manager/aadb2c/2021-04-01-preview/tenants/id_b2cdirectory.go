@@ -10,7 +10,7 @@ import (
 // Copyright (c) HashiCorp Inc. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = B2CDirectoryId{}
+var _ resourceids.ResourceId = &B2CDirectoryId{}
 
 // B2CDirectoryId is a struct representing the Resource ID for a B 2 C Directory
 type B2CDirectoryId struct {
@@ -30,7 +30,7 @@ func NewB2CDirectoryID(subscriptionId string, resourceGroup string, directoryNam
 
 // ParseB2CDirectoryID parses 'input' into a B2CDirectoryId
 func ParseB2CDirectoryID(input string) (*B2CDirectoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(B2CDirectoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&B2CDirectoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseB2CDirectoryID(input string) (*B2CDirectoryId, error) {
 // ParseB2CDirectoryIDInsensitively parses 'input' case-insensitively into a B2CDirectoryId
 // note: this method should only be used for API response data and not user input
 func ParseB2CDirectoryIDInsensitively(input string) (*B2CDirectoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(B2CDirectoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&B2CDirectoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

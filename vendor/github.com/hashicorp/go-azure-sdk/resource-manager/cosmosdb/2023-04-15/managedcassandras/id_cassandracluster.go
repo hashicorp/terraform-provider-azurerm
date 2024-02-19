@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CassandraClusterId{}
+var _ resourceids.ResourceId = &CassandraClusterId{}
 
 // CassandraClusterId is a struct representing the Resource ID for a Cassandra Cluster
 type CassandraClusterId struct {
@@ -30,7 +30,7 @@ func NewCassandraClusterID(subscriptionId string, resourceGroupName string, cass
 
 // ParseCassandraClusterID parses 'input' into a CassandraClusterId
 func ParseCassandraClusterID(input string) (*CassandraClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CassandraClusterId{})
+	parser := resourceids.NewParserFromResourceIdType(&CassandraClusterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseCassandraClusterID(input string) (*CassandraClusterId, error) {
 // ParseCassandraClusterIDInsensitively parses 'input' case-insensitively into a CassandraClusterId
 // note: this method should only be used for API response data and not user input
 func ParseCassandraClusterIDInsensitively(input string) (*CassandraClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CassandraClusterId{})
+	parser := resourceids.NewParserFromResourceIdType(&CassandraClusterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

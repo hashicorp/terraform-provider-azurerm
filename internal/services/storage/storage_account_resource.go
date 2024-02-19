@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -44,7 +45,17 @@ import (
 )
 
 var (
-	storageAccountResourceName = "azurerm_storage_account"
+	storageAccountResourceName  = "azurerm_storage_account"
+	storageKindsSupportsSkuTier = []storage.Kind{
+		storage.KindBlobStorage,
+		storage.KindStorageV2,
+		storage.KindFileStorage,
+	}
+	storageKindsSupportHns = []storage.Kind{
+		storage.KindBlobStorage,
+		storage.KindStorageV2,
+		storage.KindBlockBlobStorage,
+	}
 )
 
 type storageAccountServiceSupportLevel struct {
@@ -155,7 +166,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
+			// Only valid for FileStorage, BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -853,6 +864,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"local_user_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"primary_location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1247,6 +1264,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
 					}
 				}
+
+				if d.Get("access_tier") != "" {
+					if accountKind := d.Get("account_kind").(string); !slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
+						return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
+					}
+				}
+
 				return nil
 			}),
 			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1334,6 +1358,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowCrossTenantReplication:  &crossTenantReplication,
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 			IsSftpEnabled:                &isSftpEnabled,
+			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
 		},
 	}
 
@@ -1384,17 +1409,19 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
-	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorageV2) || accountKind == string(storage.KindFileStorage) {
-		accessTier, ok := d.GetOk("access_tier")
+	accessTier, ok := d.GetOk("access_tier")
+	if slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
 		if !ok {
 			// default to "Hot"
 			accessTier = string(storage.AccessTierHot)
 		}
-
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else if isHnsEnabled && accountKind != string(storage.KindBlockBlobStorage) {
-		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
+	} else if ok {
+		return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
+	}
+
+	if isHnsEnabled && !slices.Contains(storageKindsSupportHns, storage.Kind(accountKind)) {
+		return fmt.Errorf("`is_hns_enabled` can only be used with account of kinds: %v", storageKindsSupportHns)
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
@@ -1720,10 +1747,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		props.DefaultToOAuthAuthentication = pointer.To(d.Get("default_to_oauth_authentication").(bool))
 	}
 
-	if d.HasChange("default_to_oauth_authentication") {
-		props.DefaultToOAuthAuthentication = pointer.To(d.Get("default_to_oauth_authentication").(bool))
-	}
-
 	if d.HasChange("cross_tenant_replication_enabled") {
 		props.AllowCrossTenantReplication = pointer.To(d.Get("cross_tenant_replication_enabled").(bool))
 	}
@@ -1762,6 +1785,17 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		props.Encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.StorageAccountName, d.Get("customer_managed_key").([]interface{}))
 		if err != nil {
 			return err
+		}
+	}
+
+	if d.HasChange("local_user_enabled") {
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				IsLocalUserEnabled: pointer.To(d.Get("local_user_enabled").(bool)),
+			},
+		}
+		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
+			return fmt.Errorf("updating `local_user_enabled` for %s: %+v", *id, err)
 		}
 	}
 
@@ -2159,6 +2193,13 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props.LargeFileSharesState != "" {
 			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
 		}
+
+		// local_user_enabled defaults to true at service side when not specified in the API request.
+		isLocalEnabled := true
+		if props.IsLocalUserEnabled != nil {
+			isLocalEnabled = *props.IsLocalUserEnabled
+		}
+		d.Set("local_user_enabled", isLocalEnabled)
 
 		allowSharedKeyAccess := true
 		if props.AllowSharedKeyAccess != nil {

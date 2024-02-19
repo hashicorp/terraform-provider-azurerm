@@ -6,19 +6,16 @@ package springcloud
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type SpringCloudAPIPortalModel struct {
@@ -28,6 +25,7 @@ type SpringCloudAPIPortalModel struct {
 	HttpsOnlyEnabled           bool                `tfschema:"https_only_enabled"`
 	InstanceCount              int                 `tfschema:"instance_count"`
 	PublicNetworkAccessEnabled bool                `tfschema:"public_network_access_enabled"`
+	ApiTryOutEnabled           bool                `tfschema:"api_try_out_enabled"`
 	Sso                        []ApiPortalSsoModel `tfschema:"sso"`
 	Url                        string              `tfschema:"url"`
 }
@@ -53,7 +51,7 @@ func (s SpringCloudAPIPortalResource) ModelObject() interface{} {
 }
 
 func (s SpringCloudAPIPortalResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.SpringCloudAPIPortalID
+	return appplatform.ValidateApiPortalID
 }
 
 func (s SpringCloudAPIPortalResource) Arguments() map[string]*pluginsdk.Schema {
@@ -71,7 +69,12 @@ func (s SpringCloudAPIPortalResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.SpringCloudServiceID,
+			ValidateFunc: commonids.ValidateSpringCloudServiceID,
+		},
+
+		"api_try_out_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"gateway_ids": {
@@ -79,7 +82,7 @@ func (s SpringCloudAPIPortalResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.SpringCloudGatewayID,
+				ValidateFunc: appplatform.ValidateGatewayID,
 			},
 		},
 
@@ -161,54 +164,54 @@ func (s SpringCloudAPIPortalResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AppPlatform.APIPortalClient
-			servicesClient := metadata.Client.AppPlatform.ServicesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-
-			springId, err := parse.SpringCloudServiceID(model.SpringCloudServiceId)
+			client := metadata.Client.AppPlatform.AppPlatformClient
+			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
 			if err != nil {
 				return err
 			}
-			id := parse.NewSpringCloudAPIPortalID(subscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
+			id := appplatform.NewApiPortalID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("retrieving %s: %+v", id, err)
-				}
+			existing, err := client.ApiPortalsGet(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return tf.ImportAsExistsError("azurerm_spring_cloud_api_portal", id.ID())
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(s.ResourceType(), id)
 			}
 
-			service, err := servicesClient.Get(ctx, springId.ResourceGroup, springId.SpringName)
+			service, err := client.ServicesGet(ctx, *springId)
 			if err != nil {
 				return fmt.Errorf("checking for presence of existing %s: %+v", springId, err)
 			}
-			if service.Sku == nil || service.Sku.Name == nil || service.Sku.Tier == nil {
+			if service.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", springId)
+			}
+			if service.Model.Sku == nil || service.Model.Sku.Name == nil || service.Model.Sku.Tier == nil {
 				return fmt.Errorf("invalid `sku` for %s", springId)
 			}
 
-			apiPortalResource := appplatform.APIPortalResource{
-				Properties: &appplatform.APIPortalProperties{
-					GatewayIds:    pointer.To(model.GatewayIds),
-					HTTPSOnly:     pointer.To(model.HttpsOnlyEnabled),
-					Public:        pointer.To(model.PublicNetworkAccessEnabled),
-					SsoProperties: expandAPIPortalSsoProperties(model.Sso),
-				},
-				Sku: &appplatform.Sku{
-					Name:     service.Sku.Name,
-					Tier:     service.Sku.Tier,
-					Capacity: pointer.To(int32(model.InstanceCount)),
-				},
-			}
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, apiPortalResource)
-			if err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			apiTryOutEnabledState := appplatform.ApiPortalApiTryOutEnabledStateDisabled
+			if model.ApiTryOutEnabled {
+				apiTryOutEnabledState = appplatform.ApiPortalApiTryOutEnabledStateEnabled
 			}
 
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
+			apiPortalResource := appplatform.ApiPortalResource{
+				Properties: &appplatform.ApiPortalProperties{
+					GatewayIds:            pointer.To(model.GatewayIds),
+					HTTPSOnly:             pointer.To(model.HttpsOnlyEnabled),
+					Public:                pointer.To(model.PublicNetworkAccessEnabled),
+					SsoProperties:         expandAPIPortalSsoProperties(model.Sso),
+					ApiTryOutEnabledState: pointer.To(apiTryOutEnabledState),
+				},
+				Sku: &appplatform.Sku{
+					Name:     service.Model.Sku.Name,
+					Tier:     service.Model.Sku.Tier,
+					Capacity: pointer.To(int64(model.InstanceCount)),
+				},
+			}
+			err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, id, apiPortalResource)
+			if err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -226,34 +229,30 @@ func (s SpringCloudAPIPortalResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.AppPlatform.APIPortalClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := metadata.Client.AppPlatform.AppPlatformClient
 
-			springId, err := parse.SpringCloudServiceID(model.SpringCloudServiceId)
+			id, err := appplatform.ParseApiPortalID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			id := parse.NewSpringCloudAPIPortalID(subscriptionId, springId.ResourceGroup, springId.SpringName, model.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
+			resp, err := client.ApiPortalsGet(ctx, *id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("retrieving %s: %+v", id, err)
-				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-			if utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("retrieving %s: resource was not found", id)
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			if existing.Properties == nil {
-				return fmt.Errorf("retrieving %s: properties are nil", id)
+			properties := resp.Model.Properties
+			if properties == nil {
+				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
-			properties := existing.Properties
 
-			if existing.Sku == nil {
-				return fmt.Errorf("retrieving %s: sku is nil", id)
+			sku := resp.Model.Sku
+			if sku == nil {
+				return fmt.Errorf("retrieving %s: sku was nil", id)
 			}
-			sku := existing.Sku
 
 			if metadata.ResourceData.HasChange("gateway_ids") {
 				properties.GatewayIds = pointer.To(model.GatewayIds)
@@ -272,20 +271,24 @@ func (s SpringCloudAPIPortalResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("instance_count") {
-				sku.Capacity = pointer.To(int32(model.InstanceCount))
+				sku.Capacity = pointer.To(int64(model.InstanceCount))
 			}
 
-			apiPortalResource := appplatform.APIPortalResource{
+			if metadata.ResourceData.HasChange("api_try_out_enabled") {
+				apiTryOutEnabledState := appplatform.ApiPortalApiTryOutEnabledStateDisabled
+				if model.ApiTryOutEnabled {
+					apiTryOutEnabledState = appplatform.ApiPortalApiTryOutEnabledStateEnabled
+				}
+				properties.ApiTryOutEnabledState = pointer.To(apiTryOutEnabledState)
+			}
+
+			apiPortalResource := appplatform.ApiPortalResource{
 				Properties: properties,
 				Sku:        sku,
 			}
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName, apiPortalResource)
+			err = client.ApiPortalsCreateOrUpdateThenPoll(ctx, *id, apiPortalResource)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
 			}
 
 			return nil
@@ -297,23 +300,22 @@ func (s SpringCloudAPIPortalResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.APIPortalClient
+			client := metadata.Client.AppPlatform.AppPlatformClient
 
-			id, err := parse.SpringCloudAPIPortalID(metadata.ResourceData.Id())
+			id, err := appplatform.ParseApiPortalID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
+			resp, err := client.ApiPortalsGet(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					log.Printf("[INFO] %q does not exist - removing from state", id.ID())
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			springId := parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName)
+			springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 
 			var model SpringCloudAPIPortalModel
 			if err := metadata.Decode(&model); err != nil {
@@ -324,15 +326,18 @@ func (s SpringCloudAPIPortalResource) Read() sdk.ResourceFunc {
 				Name:                 id.ApiPortalName,
 				SpringCloudServiceId: springId.ID(),
 			}
-			if resp.Sku != nil {
-				state.InstanceCount = int(pointer.From(resp.Sku.Capacity))
-			}
-			if props := resp.Properties; props != nil {
-				state.GatewayIds = flattenSpringCloudAPIPortalGatewayIds(props.GatewayIds)
-				state.HttpsOnlyEnabled = pointer.From(props.HTTPSOnly)
-				state.PublicNetworkAccessEnabled = pointer.From(props.Public)
-				state.Sso = flattenAPIPortalSsoProperties(props.SsoProperties, model.Sso)
-				state.Url = pointer.From(props.URL)
+			if resp.Model != nil {
+				if props := resp.Model.Properties; props != nil {
+					state.GatewayIds = flattenSpringCloudAPIPortalGatewayIds(props.GatewayIds)
+					state.HttpsOnlyEnabled = pointer.From(props.HTTPSOnly)
+					state.PublicNetworkAccessEnabled = pointer.From(props.Public)
+					state.Sso = flattenAPIPortalSsoProperties(props.SsoProperties, model.Sso)
+					state.ApiTryOutEnabled = props.ApiTryOutEnabledState != nil && *props.ApiTryOutEnabledState == appplatform.ApiPortalApiTryOutEnabledStateEnabled
+				}
+
+				if sku := resp.Model.Sku; sku != nil {
+					state.InstanceCount = int(pointer.From(sku.Capacity))
+				}
 			}
 			return metadata.Encode(&state)
 		},
@@ -343,20 +348,16 @@ func (s SpringCloudAPIPortalResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppPlatform.APIPortalClient
+			client := metadata.Client.AppPlatform.AppPlatformClient
 
-			id, err := parse.SpringCloudAPIPortalID(metadata.ResourceData.Id())
+			id, err := appplatform.ParseApiPortalID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.ApiPortalName)
+			err = client.ApiPortalsDeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -371,9 +372,9 @@ func expandAPIPortalSsoProperties(input []ApiPortalSsoModel) *appplatform.SsoPro
 	v := input[0]
 	return &appplatform.SsoProperties{
 		Scope:        pointer.To(v.Scope),
-		ClientID:     pointer.To(v.ClientId),
+		ClientId:     pointer.To(v.ClientId),
 		ClientSecret: pointer.To(v.ClientSecret),
-		IssuerURI:    pointer.To(v.IssuerUri),
+		IssuerUri:    pointer.To(v.IssuerUri),
 	}
 }
 
@@ -389,10 +390,7 @@ func flattenAPIPortalSsoProperties(input *appplatform.SsoProperties, old []ApiPo
 		}
 	}
 
-	var issuerUri string
-	if input.IssuerURI != nil {
-		issuerUri = *input.IssuerURI
-	}
+	issuerUri := pointer.From(input.IssuerUri)
 	var clientId string
 	var clientSecret string
 	if oldItem, ok := oldItems[issuerUri]; ok {
@@ -419,7 +417,7 @@ func flattenSpringCloudAPIPortalGatewayIds(ids *[]string) []string {
 	}
 	out := make([]string, 0)
 	for _, id := range *ids {
-		gatewayId, err := parse.SpringCloudGatewayIDInsensitively(id)
+		gatewayId, err := appplatform.ParseGatewayIDInsensitively(id)
 		if err == nil {
 			out = append(out, gatewayId.ID())
 		}

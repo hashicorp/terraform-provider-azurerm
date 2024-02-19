@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProbeId{}
+var _ resourceids.ResourceId = &ProbeId{}
 
 // ProbeId is a struct representing the Resource ID for a Probe
 type ProbeId struct {
@@ -32,7 +32,7 @@ func NewProbeID(subscriptionId string, resourceGroupName string, loadBalancerNam
 
 // ParseProbeID parses 'input' into a ProbeId
 func ParseProbeID(input string) (*ProbeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProbeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProbeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseProbeID(input string) (*ProbeId, error) {
 // ParseProbeIDInsensitively parses 'input' case-insensitively into a ProbeId
 // note: this method should only be used for API response data and not user input
 func ParseProbeIDInsensitively(input string) (*ProbeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProbeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProbeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

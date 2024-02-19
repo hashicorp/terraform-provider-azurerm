@@ -67,6 +67,11 @@ resource "azurerm_spring_cloud_gateway" "example" {
     issuer_uri    = "https://www.test.com/issueToken"
     scope         = ["read"]
   }
+
+  local_response_cache_per_instance {
+    size         = "100MB"
+    time_to_live = "30s"
+  }
 }
 ```
 
@@ -97,6 +102,10 @@ The following arguments are supported:
 * `public_network_access_enabled` - (Optional) Indicates whether the Spring Cloud Gateway exposes endpoint.
 
 * `quota` - (Optional) A `quota` block as defined below.
+
+* `local_response_cache_per_instance` - (Optional) A `local_response_cache_per_instance` block as defined below. Only one of `local_response_cache_per_instance` or `local_response_cache_per_route` can be specified.
+
+* `local_response_cache_per_route` - (Optional) A `local_response_cache_per_route` block as defined below. Only one of `local_response_cache_per_instance` or `local_response_cache_per_route` can be specified.
 
 * `sensitive_environment_variables` - (Optional) Specifies the sensitive environment variables of the Spring Cloud Gateway as a map of key-value pairs. Changing this forces a new resource to be created.
 
@@ -141,6 +150,22 @@ A `cors` block supports the following:
 * `exposed_headers` - (Optional) HTTP response headers to expose for cross-site requests.
 
 * `max_age_seconds` - (Optional) How long, in seconds, the response from a pre-flight request can be cached by clients.
+
+---
+
+A `local_response_cache_per_route` block supports the following:
+
+* `size` - (Optional) Specifies the maximum size of cache (10MB, 900KB, 1GB...) to determine if the cache needs to evict some entries.
+
+* `time_to_live` - (Optional) Specifies the time before a cached entry is expired (300s, 5m, 1h...).
+
+---
+
+A `local_response_cache_per_instance` block supports the following:
+
+* `size` - (Optional) Specifies the maximum size of cache (10MB, 900KB, 1GB...) to determine if the cache needs to evict some entries.
+
+* `time_to_live` - (Optional) Specifies the time before a cached entry is expired (300s, 5m, 1h...).
 
 ---
 

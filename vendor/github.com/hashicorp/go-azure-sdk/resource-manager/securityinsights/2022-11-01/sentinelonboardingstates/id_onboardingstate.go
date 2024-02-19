@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = OnboardingStateId{}
+var _ resourceids.ResourceId = &OnboardingStateId{}
 
 // OnboardingStateId is a struct representing the Resource ID for a Onboarding State
 type OnboardingStateId struct {
@@ -32,7 +32,7 @@ func NewOnboardingStateID(subscriptionId string, resourceGroupName string, works
 
 // ParseOnboardingStateID parses 'input' into a OnboardingStateId
 func ParseOnboardingStateID(input string) (*OnboardingStateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OnboardingStateId{})
+	parser := resourceids.NewParserFromResourceIdType(&OnboardingStateId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseOnboardingStateID(input string) (*OnboardingStateId, error) {
 // ParseOnboardingStateIDInsensitively parses 'input' case-insensitively into a OnboardingStateId
 // note: this method should only be used for API response data and not user input
 func ParseOnboardingStateIDInsensitively(input string) (*OnboardingStateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OnboardingStateId{})
+	parser := resourceids.NewParserFromResourceIdType(&OnboardingStateId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

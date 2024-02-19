@@ -19,7 +19,8 @@ type NatRulesListByVpnGatewayOperationResponse struct {
 }
 
 type NatRulesListByVpnGatewayCompleteResult struct {
-	Items []VpnGatewayNatRule
+	LatestHttpResponse *http.Response
+	Items              []VpnGatewayNatRule
 }
 
 // NatRulesListByVpnGateway ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) NatRulesListByVpnGatewayCompleteMatchingPredicate(ctx
 	}
 
 	result = NatRulesListByVpnGatewayCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

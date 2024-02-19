@@ -94,11 +94,11 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Linux Function App Slot enabled. Defaults to `true`.
 
-* `ftp_publish_basic_authentication_enabled` - Are the default FTP Basic Authentication publishing credentials enabled.
+* `ftp_publish_basic_authentication_enabled` - (Optional) Are the default FTP Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot. Defaults to `~4`.
 
-* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
+* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
@@ -132,7 +132,7 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
  
-* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
+* `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ---
 
@@ -636,7 +636,7 @@ An `application_stack` block supports the following:
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , and `7.2`.
 
-* `python_version` - (Optional) The version of Python to use. Possible values are `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
+* `python_version` - (Optional) The version of Python to use. Possible values are `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `use_custom_runtime` - (Optional) Should the Linux Function App use a custom runtime?
 

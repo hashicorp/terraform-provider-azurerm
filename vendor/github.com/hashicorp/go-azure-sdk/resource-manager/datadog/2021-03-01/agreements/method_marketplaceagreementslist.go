@@ -20,7 +20,8 @@ type MarketplaceAgreementsListOperationResponse struct {
 }
 
 type MarketplaceAgreementsListCompleteResult struct {
-	Items []DatadogAgreementResource
+	LatestHttpResponse *http.Response
+	Items              []DatadogAgreementResource
 }
 
 // MarketplaceAgreementsList ...
@@ -84,7 +85,8 @@ func (c AgreementsClient) MarketplaceAgreementsListCompleteMatchingPredicate(ctx
 	}
 
 	result = MarketplaceAgreementsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
