@@ -378,18 +378,6 @@ func (wa *WebActivity) UnmarshalJSON(body []byte) error {
 				}
 				wa.Policy = &policy
 			}
-		default:
-			if v != nil {
-				var additionalProperties interface{}
-				err = json.Unmarshal(*v, &additionalProperties)
-				if err != nil {
-					return err
-				}
-				if wa.AdditionalProperties == nil {
-					wa.AdditionalProperties = make(map[string]interface{})
-				}
-				wa.AdditionalProperties[k] = additionalProperties
-			}
 		case "name":
 			if v != nil {
 				var name string
@@ -452,6 +440,18 @@ func (wa *WebActivity) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				wa.Type = typeVar
+			}
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if wa.AdditionalProperties == nil {
+					wa.AdditionalProperties = make(map[string]interface{})
+				}
+				wa.AdditionalProperties[k] = additionalProperties
 			}
 		}
 	}
