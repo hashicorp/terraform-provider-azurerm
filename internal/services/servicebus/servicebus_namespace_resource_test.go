@@ -808,12 +808,12 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = 1
-
+  name                         = "acctestservicebusnamespace-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  capacity                     = 1
+  premium_messaging_partitions = 1
   network_rule_set {
     default_action                = "Deny"
     trusted_services_allowed      = true
@@ -859,11 +859,12 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = 1
+  name                         = "acctestservicebusnamespace-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  capacity                     = 1
+  premium_messaging_partitions = 1
 
   network_rule_set {}
 }
