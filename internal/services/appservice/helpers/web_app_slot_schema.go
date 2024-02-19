@@ -622,6 +622,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]strin
 		expanded.RemoteDebuggingVersion = pointer.To(s.RemoteDebuggingVersion)
 	}
 
+	if s.WorkerCount != 0 {
+		expanded.NumberOfWorkers = pointer.To(s.WorkerCount)
+	}
+
 	if s.HealthCheckPath != "" {
 		expanded.HealthCheckPath = pointer.To(s.HealthCheckPath)
 	}
@@ -769,6 +773,10 @@ func (s *SiteConfigLinuxWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaDat
 
 	if metadata.ResourceData.HasChange("site_config.0.health_check_path") {
 		expanded.HealthCheckPath = pointer.To(s.HealthCheckPath)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.worker_count") {
+		expanded.NumberOfWorkers = pointer.To(s.WorkerCount)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_version") {

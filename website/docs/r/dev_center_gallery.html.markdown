@@ -6,8 +6,6 @@ description: |-
   Manages a Dev Center Gallery.
 ---
 
-<!-- Note: This documentation is generated. Any manual changes will be overwritten -->
-
 # azurerm_dev_center_gallery
 
 Manages a Dev Center Gallery.
@@ -15,23 +13,34 @@ Manages a Dev Center Gallery.
 ## Example Usage
 
 ```hcl
-resource "azurerm_dev_center" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  identity {
-    type = "example-value"
-  }
-}
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
+
+resource "azurerm_dev_center" "test" {
+  name                = "example-devcenter"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "example-uai"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_shared_image_gallery" "example" {
-  name                = "example"
+  name                = "example-image-gallery"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
+
 resource "azurerm_dev_center_gallery" "example" {
   dev_center_id     = azurerm_dev_center.example.id
   shared_gallery_id = azurerm_shared_image_gallery.example.id
@@ -43,9 +52,9 @@ resource "azurerm_dev_center_gallery" "example" {
 
 The following arguments are supported:
 
-* `dev_center_id` - (Required) Specifies the Dev Center Id within which this Dev Center Gallery should exist. Changing this forces a new Dev Center Gallery to be created.
+* `dev_center_id` - (Required) Specifies the ID of the Dev Center within which this Dev Center Gallery should exist. Changing this forces a new Dev Center Gallery to be created.
 
-* `shared_gallery_id` - (Required) The resource ID of the backing Azure Compute Gallery. Changing this forces a new Dev Center Gallery to be created.
+* `shared_gallery_id` - (Required) The ID of the Shared Gallery which should be connected to the Dev Center Gallery. Changing this forces a new Dev Center Gallery to be created.
 
 * `name` - (Required) Specifies the name of this Dev Center Gallery. Changing this forces a new Dev Center Gallery to be created.
 
@@ -54,10 +63,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Dev Center Gallery.
-
----
-
-
 
 ## Timeouts
 

@@ -1,6 +1,10 @@
 package softwareupdateconfiguration
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForLinuxUpdateClasses() []string {
 		string(LinuxUpdateClassesSecurity),
 		string(LinuxUpdateClassesUnclassified),
 	}
+}
+
+func (s *LinuxUpdateClasses) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLinuxUpdateClasses(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLinuxUpdateClasses(input string) (*LinuxUpdateClasses, error) {
@@ -51,6 +68,19 @@ func PossibleValuesForOperatingSystemType() []string {
 		string(OperatingSystemTypeLinux),
 		string(OperatingSystemTypeWindows),
 	}
+}
+
+func (s *OperatingSystemType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperatingSystemType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOperatingSystemType(input string) (*OperatingSystemType, error) {
@@ -89,6 +119,19 @@ func PossibleValuesForScheduleDay() []string {
 		string(ScheduleDayTuesday),
 		string(ScheduleDayWednesday),
 	}
+}
+
+func (s *ScheduleDay) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScheduleDay(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScheduleDay(input string) (*ScheduleDay, error) {
@@ -132,6 +175,19 @@ func PossibleValuesForScheduleFrequency() []string {
 	}
 }
 
+func (s *ScheduleFrequency) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScheduleFrequency(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScheduleFrequency(input string) (*ScheduleFrequency, error) {
 	vals := map[string]ScheduleFrequency{
 		"day":     ScheduleFrequencyDay,
@@ -162,6 +218,19 @@ func PossibleValuesForTagOperators() []string {
 		string(TagOperatorsAll),
 		string(TagOperatorsAny),
 	}
+}
+
+func (s *TagOperators) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTagOperators(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTagOperators(input string) (*TagOperators, error) {
@@ -204,6 +273,19 @@ func PossibleValuesForWindowsUpdateClasses() []string {
 		string(WindowsUpdateClassesUpdateRollup),
 		string(WindowsUpdateClassesUpdates),
 	}
+}
+
+func (s *WindowsUpdateClasses) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseWindowsUpdateClasses(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseWindowsUpdateClasses(input string) (*WindowsUpdateClasses, error) {
