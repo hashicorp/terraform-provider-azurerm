@@ -14,7 +14,7 @@ import (
 // Workaround for https://github.com/hashicorp/terraform-provider-azurerm/issues/24758
 // Tracked on https://github.com/Azure/azure-rest-api-specs/issues/27816
 // This file is almost copied from https://github.com/tombuildsstuff/kermit/blob/main/sdk/datafactory/2018-06-01/datafactory/pipelines.go
-// And added some code to make it work.
+// Added a custom client to use custom `PipelineResource`.
 
 type PipelinesClient struct {
 	OriginalClient *datafactory.PipelinesClient
