@@ -306,9 +306,9 @@ func (r SpringCloudGatewayResource) apms(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_spring_cloud_gateway" "test" {
-  name                    = "default"
-  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  application_performance_monitoring_ids   = [azurerm_spring_cloud_dynatrace_application_performance_monitoring.test.id]
+  name                                   = "default"
+  spring_cloud_service_id                = azurerm_spring_cloud_service.test.id
+  application_performance_monitoring_ids = [azurerm_spring_cloud_dynatrace_application_performance_monitoring.test.id]
 }
 `, template, data.RandomInteger)
 }
