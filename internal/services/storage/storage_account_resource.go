@@ -1462,8 +1462,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountTier != string(storage.AccessTierPremium) && accountKind != string(storage.KindStorageV2) {
 			return fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
 		}
-		if storageAccountIdentity.Type != storage.IdentityTypeUserAssigned {
-			return fmt.Errorf("customer managed key can only be used with identity type `UserAssigned`")
+		if storageAccountIdentity.Type != storage.IdentityTypeUserAssigned && storageAccountIdentity.Type != storage.IdentityTypeSystemAssignedUserAssigned {
+			return fmt.Errorf("customer managed key can only be used with identity type `UserAssigned` or `SystemAssigned, UserAssigned`")
 		}
 		encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, v.([]interface{}))
 		if err != nil {

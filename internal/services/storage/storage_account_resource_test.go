@@ -1266,6 +1266,21 @@ func TestAccStorageAccount_customerManagedKey(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_customerManagedKeyForSUAI(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customerManagedKeyForSUAI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_customerManagedKeyAutoRotation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -4055,6 +4070,41 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, r.cmkTemplate(data), data.RandomString, data.RandomString)
+}
+
+// The only difference between this and "customerManagedKey" is the "identity.type"
+func (r StorageAccountResource) customerManagedKeyForSUAI(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_key.test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  infrastructure_encryption_enabled = true
+  table_encryption_key_type         = "Account"
+  queue_encryption_key_type         = "Account"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, r.cmkTemplate(data), data.RandomString)
 }
 
 func (r StorageAccountResource) customerManagedKeyAutoRotation(data acceptance.TestData) string {
