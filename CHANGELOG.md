@@ -8,6 +8,7 @@ BUG FIXES:
 ENHANCEMENTS:
 
 * dependencies: updating to v0.20240215.1143935 of `github.com/hashicorp/go-azure-sdk` [GH-24912]
+* dependencies: refactor `azurerm_spring_cloud_configuration_service` to use `go-azure-sdk` [GH-24918]
 * `sqlvirtualmachines`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24912]
 * `azurerm_redis_cache` - support for the `preferred_data_persistence_auth_method` property [GH-24370]
 
