@@ -1537,6 +1537,7 @@ func TestAccStorageAccount_isLocalUserEnabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.isLocalUserEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
