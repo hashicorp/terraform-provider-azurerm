@@ -1,5 +1,7 @@
 ## 3.93.0 (Unreleased)
 
+* **New Resource**: `azurerm_dev_center_catalog` [GH-24833]
+
 BUG FIXES:
 
 * `azurerm_key_vault` - conditionally polling the Data Plane endpoint when `public_network_access_enabled` is set to false [GH-23823]
