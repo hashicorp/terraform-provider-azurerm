@@ -57,7 +57,7 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeString,
 		},
 		"name": {
-			ForceNew: false,
+			ForceNew: true,
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
@@ -100,15 +100,16 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(parentId.ID())
 
 			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
-
-			existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+			if metadata.ResourceData.IsNewResource() {
+				existing, err := client.FederatedIdentityCredentialsGet(ctx, id)
+				if err != nil {
+					if !response.WasNotFound(existing.HttpResponse) {
+						return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					}
 				}
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				if !response.WasNotFound(existing.HttpResponse) {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				}
 			}
 
 			var payload managedidentities.FederatedIdentityCredential
@@ -151,44 +152,12 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 				r.mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(*model, &schema)
 			}
 
-			return nil
+			return metadata.Encode(&schema)
 		},
 	}
 }
-
 func (r FederatedIdentityCredentialResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedIdentity.V20230131.ManagedIdentities
-
-			var config FederatedIdentityCredentialResourceSchema
-			if err := metadata.Decode(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
-			if err != nil {
-				return fmt.Errorf("parsing parent resource ID: %+v", err)
-			}
-
-			locks.ByID(parentId.ID())
-			defer locks.UnlockByID(parentId.ID())
-
-			id := managedidentities.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
-
-			var payload managedidentities.FederatedIdentityCredential
-			r.mapFederatedIdentityCredentialResourceSchemaToFederatedIdentityCredential(config, &payload)
-
-			if _, err := client.FederatedIdentityCredentialsCreateOrUpdate(ctx, id, payload); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			// metadata.SetID(id)
-			return nil
-		},
-	}
+	return r.Create()
 }
 
 func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
