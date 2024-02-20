@@ -293,9 +293,9 @@ A `data_disk` block supports the following:
 
 * `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are Empty and FromImage. Defaults to `Empty`. (FromImage should only be used if the source image includes data disks).
 
-* `disk_size_gb` - (Required) The size of the Data Disk which should be created.
+* `disk_size_gb` - (Optional) The size of the Data Disk which should be created. Required if `create_option` is specified as `Empty`.
 
-* `lun` - (Required) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine.
+* `lun` - (Optional) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine. Required if `create_option` is specified as `Empty`.
 
 * `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS` and `UltraSSD_LRS`.
 
