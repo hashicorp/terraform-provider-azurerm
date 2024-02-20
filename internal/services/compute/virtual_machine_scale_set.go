@@ -1114,6 +1114,12 @@ func expandVirtualMachineScaleSetPublicIPAddressUpdate(raw map[string]interface{
 		publicIPAddressConfig.VirtualMachineScaleSetUpdatePublicIPAddressConfigurationProperties.IdleTimeoutInMinutes = utils.Int32(int32(raw["idle_timeout_in_minutes"].(int)))
 	}
 
+	if publicIPPrefixID := raw["public_ip_prefix_id"].(string); publicIPPrefixID != "" {
+		publicIPAddressConfig.VirtualMachineScaleSetUpdatePublicIPAddressConfigurationProperties.PublicIPPrefix = &compute.SubResource{
+			ID: utils.String(publicIPPrefixID),
+		}
+	}
+
 	return &publicIPAddressConfig
 }
 
