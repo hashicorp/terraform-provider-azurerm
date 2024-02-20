@@ -3898,6 +3898,22 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Web, "web_internet"); err != nil {
 			return err
 		}
+	} else {
+		if err := setEndpointAndHost(d, "primary", nil, "blob_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "dfs_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "file_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "web_internet"); err != nil {
+			return err
+		}
 	}
 
 	if routingInputs != nil && routingInputs.PublishMicrosoftEndpoints != nil && *routingInputs.PublishMicrosoftEndpoints {
@@ -3922,6 +3938,30 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 		}
 
 		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Queue, "queue_microsoft"); err != nil {
+			return err
+		}
+	} else {
+		if err := setEndpointAndHost(d, "primary", nil, "blob_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "dfs_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "file_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "web_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "table_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "queue_microsoft"); err != nil {
 			return err
 		}
 	}
