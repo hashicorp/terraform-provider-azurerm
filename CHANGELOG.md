@@ -1,6 +1,7 @@
 ## 3.93.0 (Unreleased)
 
 * **New Resource**: `azurerm_dev_center_catalog` [GH-24833]
+* **New Resource**: `azurerm_system_center_virtual_machine_manager_server` [GH-24278]
 
 BUG FIXES:
 
