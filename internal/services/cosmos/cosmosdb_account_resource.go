@@ -529,7 +529,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							}, false),
 						},
 
-						// Though `tier` has the default value `Continuous7Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
+						// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
 						"tier": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
