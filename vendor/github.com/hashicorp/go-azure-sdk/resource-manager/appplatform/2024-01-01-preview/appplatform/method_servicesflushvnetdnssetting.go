@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -14,23 +15,21 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CustomizedAcceleratorsDeleteOperationResponse struct {
+type ServicesFlushVnetDnsSettingOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// CustomizedAcceleratorsDelete ...
-func (c AppPlatformClient) CustomizedAcceleratorsDelete(ctx context.Context, id CustomizedAcceleratorId) (result CustomizedAcceleratorsDeleteOperationResponse, err error) {
+// ServicesFlushVnetDnsSetting ...
+func (c AppPlatformClient) ServicesFlushVnetDnsSetting(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesFlushVnetDnsSettingOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
-			http.StatusNoContent,
-			http.StatusOK,
 		},
-		HttpMethod: http.MethodDelete,
-		Path:       id.ID(),
+		HttpMethod: http.MethodPost,
+		Path:       fmt.Sprintf("%s/flushVirtualNetworkDnsSettings", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -56,15 +55,15 @@ func (c AppPlatformClient) CustomizedAcceleratorsDelete(ctx context.Context, id 
 	return
 }
 
-// CustomizedAcceleratorsDeleteThenPoll performs CustomizedAcceleratorsDelete then polls until it's completed
-func (c AppPlatformClient) CustomizedAcceleratorsDeleteThenPoll(ctx context.Context, id CustomizedAcceleratorId) error {
-	result, err := c.CustomizedAcceleratorsDelete(ctx, id)
+// ServicesFlushVnetDnsSettingThenPoll performs ServicesFlushVnetDnsSetting then polls until it's completed
+func (c AppPlatformClient) ServicesFlushVnetDnsSettingThenPoll(ctx context.Context, id commonids.SpringCloudServiceId) error {
+	result, err := c.ServicesFlushVnetDnsSetting(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing CustomizedAcceleratorsDelete: %+v", err)
+		return fmt.Errorf("performing ServicesFlushVnetDnsSetting: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after CustomizedAcceleratorsDelete: %+v", err)
+		return fmt.Errorf("polling after ServicesFlushVnetDnsSetting: %+v", err)
 	}
 
 	return nil

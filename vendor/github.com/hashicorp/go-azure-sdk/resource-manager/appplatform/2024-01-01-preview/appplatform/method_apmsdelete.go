@@ -14,20 +14,19 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ApplicationAcceleratorsDeleteOperationResponse struct {
+type ApmsDeleteOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// ApplicationAcceleratorsDelete ...
-func (c AppPlatformClient) ApplicationAcceleratorsDelete(ctx context.Context, id ApplicationAcceleratorId) (result ApplicationAcceleratorsDeleteOperationResponse, err error) {
+// ApmsDelete ...
+func (c AppPlatformClient) ApmsDelete(ctx context.Context, id ApmId) (result ApmsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
@@ -56,15 +55,15 @@ func (c AppPlatformClient) ApplicationAcceleratorsDelete(ctx context.Context, id
 	return
 }
 
-// ApplicationAcceleratorsDeleteThenPoll performs ApplicationAcceleratorsDelete then polls until it's completed
-func (c AppPlatformClient) ApplicationAcceleratorsDeleteThenPoll(ctx context.Context, id ApplicationAcceleratorId) error {
-	result, err := c.ApplicationAcceleratorsDelete(ctx, id)
+// ApmsDeleteThenPoll performs ApmsDelete then polls until it's completed
+func (c AppPlatformClient) ApmsDeleteThenPoll(ctx context.Context, id ApmId) error {
+	result, err := c.ApmsDelete(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing ApplicationAcceleratorsDelete: %+v", err)
+		return fmt.Errorf("performing ApmsDelete: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after ApplicationAcceleratorsDelete: %+v", err)
+		return fmt.Errorf("polling after ApmsDelete: %+v", err)
 	}
 
 	return nil

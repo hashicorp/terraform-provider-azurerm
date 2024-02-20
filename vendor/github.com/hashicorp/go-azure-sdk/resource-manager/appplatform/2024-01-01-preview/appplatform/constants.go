@@ -256,6 +256,7 @@ func parseAppResourceProvisioningState(input string) (*AppResourceProvisioningSt
 type ApplicationAcceleratorProvisioningState string
 
 const (
+	ApplicationAcceleratorProvisioningStateCanceled  ApplicationAcceleratorProvisioningState = "Canceled"
 	ApplicationAcceleratorProvisioningStateCreating  ApplicationAcceleratorProvisioningState = "Creating"
 	ApplicationAcceleratorProvisioningStateDeleting  ApplicationAcceleratorProvisioningState = "Deleting"
 	ApplicationAcceleratorProvisioningStateFailed    ApplicationAcceleratorProvisioningState = "Failed"
@@ -265,6 +266,7 @@ const (
 
 func PossibleValuesForApplicationAcceleratorProvisioningState() []string {
 	return []string{
+		string(ApplicationAcceleratorProvisioningStateCanceled),
 		string(ApplicationAcceleratorProvisioningStateCreating),
 		string(ApplicationAcceleratorProvisioningStateDeleting),
 		string(ApplicationAcceleratorProvisioningStateFailed),
@@ -288,6 +290,7 @@ func (s *ApplicationAcceleratorProvisioningState) UnmarshalJSON(bytes []byte) er
 
 func parseApplicationAcceleratorProvisioningState(input string) (*ApplicationAcceleratorProvisioningState, error) {
 	vals := map[string]ApplicationAcceleratorProvisioningState{
+		"canceled":  ApplicationAcceleratorProvisioningStateCanceled,
 		"creating":  ApplicationAcceleratorProvisioningStateCreating,
 		"deleting":  ApplicationAcceleratorProvisioningStateDeleting,
 		"failed":    ApplicationAcceleratorProvisioningStateFailed,
@@ -1041,6 +1044,7 @@ func parseCustomDomainResourceProvisioningState(input string) (*CustomDomainReso
 type CustomizedAcceleratorProvisioningState string
 
 const (
+	CustomizedAcceleratorProvisioningStateCanceled  CustomizedAcceleratorProvisioningState = "Canceled"
 	CustomizedAcceleratorProvisioningStateCreating  CustomizedAcceleratorProvisioningState = "Creating"
 	CustomizedAcceleratorProvisioningStateDeleting  CustomizedAcceleratorProvisioningState = "Deleting"
 	CustomizedAcceleratorProvisioningStateFailed    CustomizedAcceleratorProvisioningState = "Failed"
@@ -1050,6 +1054,7 @@ const (
 
 func PossibleValuesForCustomizedAcceleratorProvisioningState() []string {
 	return []string{
+		string(CustomizedAcceleratorProvisioningStateCanceled),
 		string(CustomizedAcceleratorProvisioningStateCreating),
 		string(CustomizedAcceleratorProvisioningStateDeleting),
 		string(CustomizedAcceleratorProvisioningStateFailed),
@@ -1073,6 +1078,7 @@ func (s *CustomizedAcceleratorProvisioningState) UnmarshalJSON(bytes []byte) err
 
 func parseCustomizedAcceleratorProvisioningState(input string) (*CustomizedAcceleratorProvisioningState, error) {
 	vals := map[string]CustomizedAcceleratorProvisioningState{
+		"canceled":  CustomizedAcceleratorProvisioningStateCanceled,
 		"creating":  CustomizedAcceleratorProvisioningStateCreating,
 		"deleting":  CustomizedAcceleratorProvisioningStateDeleting,
 		"failed":    CustomizedAcceleratorProvisioningStateFailed,
@@ -1871,6 +1877,7 @@ func parsePowerState(input string) (*PowerState, error) {
 type PredefinedAcceleratorProvisioningState string
 
 const (
+	PredefinedAcceleratorProvisioningStateCanceled  PredefinedAcceleratorProvisioningState = "Canceled"
 	PredefinedAcceleratorProvisioningStateCreating  PredefinedAcceleratorProvisioningState = "Creating"
 	PredefinedAcceleratorProvisioningStateFailed    PredefinedAcceleratorProvisioningState = "Failed"
 	PredefinedAcceleratorProvisioningStateSucceeded PredefinedAcceleratorProvisioningState = "Succeeded"
@@ -1879,6 +1886,7 @@ const (
 
 func PossibleValuesForPredefinedAcceleratorProvisioningState() []string {
 	return []string{
+		string(PredefinedAcceleratorProvisioningStateCanceled),
 		string(PredefinedAcceleratorProvisioningStateCreating),
 		string(PredefinedAcceleratorProvisioningStateFailed),
 		string(PredefinedAcceleratorProvisioningStateSucceeded),
@@ -1901,6 +1909,7 @@ func (s *PredefinedAcceleratorProvisioningState) UnmarshalJSON(bytes []byte) err
 
 func parsePredefinedAcceleratorProvisioningState(input string) (*PredefinedAcceleratorProvisioningState, error) {
 	vals := map[string]PredefinedAcceleratorProvisioningState{
+		"canceled":  PredefinedAcceleratorProvisioningStateCanceled,
 		"creating":  PredefinedAcceleratorProvisioningStateCreating,
 		"failed":    PredefinedAcceleratorProvisioningStateFailed,
 		"succeeded": PredefinedAcceleratorProvisioningStateSucceeded,
@@ -2370,6 +2379,7 @@ const (
 	SupportedRuntimeValueJavaEight       SupportedRuntimeValue = "Java_8"
 	SupportedRuntimeValueJavaOneOne      SupportedRuntimeValue = "Java_11"
 	SupportedRuntimeValueJavaOneSeven    SupportedRuntimeValue = "Java_17"
+	SupportedRuntimeValueJavaTwoOne      SupportedRuntimeValue = "Java_21"
 	SupportedRuntimeValueNetCoreThreeOne SupportedRuntimeValue = "NetCore_31"
 )
 
@@ -2378,6 +2388,7 @@ func PossibleValuesForSupportedRuntimeValue() []string {
 		string(SupportedRuntimeValueJavaEight),
 		string(SupportedRuntimeValueJavaOneOne),
 		string(SupportedRuntimeValueJavaOneSeven),
+		string(SupportedRuntimeValueJavaTwoOne),
 		string(SupportedRuntimeValueNetCoreThreeOne),
 	}
 }
@@ -2400,6 +2411,7 @@ func parseSupportedRuntimeValue(input string) (*SupportedRuntimeValue, error) {
 		"java_8":     SupportedRuntimeValueJavaEight,
 		"java_11":    SupportedRuntimeValueJavaOneOne,
 		"java_17":    SupportedRuntimeValueJavaOneSeven,
+		"java_21":    SupportedRuntimeValueJavaTwoOne,
 		"netcore_31": SupportedRuntimeValueNetCoreThreeOne,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -2408,6 +2420,47 @@ func parseSupportedRuntimeValue(input string) (*SupportedRuntimeValue, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := SupportedRuntimeValue(input)
+	return &out, nil
+}
+
+type TestEndpointAuthState string
+
+const (
+	TestEndpointAuthStateDisabled TestEndpointAuthState = "Disabled"
+	TestEndpointAuthStateEnabled  TestEndpointAuthState = "Enabled"
+)
+
+func PossibleValuesForTestEndpointAuthState() []string {
+	return []string{
+		string(TestEndpointAuthStateDisabled),
+		string(TestEndpointAuthStateEnabled),
+	}
+}
+
+func (s *TestEndpointAuthState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTestEndpointAuthState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseTestEndpointAuthState(input string) (*TestEndpointAuthState, error) {
+	vals := map[string]TestEndpointAuthState{
+		"disabled": TestEndpointAuthStateDisabled,
+		"enabled":  TestEndpointAuthStateEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := TestEndpointAuthState(input)
 	return &out, nil
 }
 

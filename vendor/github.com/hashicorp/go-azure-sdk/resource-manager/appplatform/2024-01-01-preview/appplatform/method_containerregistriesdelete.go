@@ -14,20 +14,19 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ApplicationLiveViewsDeleteOperationResponse struct {
+type ContainerRegistriesDeleteOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// ApplicationLiveViewsDelete ...
-func (c AppPlatformClient) ApplicationLiveViewsDelete(ctx context.Context, id ApplicationLiveViewId) (result ApplicationLiveViewsDeleteOperationResponse, err error) {
+// ContainerRegistriesDelete ...
+func (c AppPlatformClient) ContainerRegistriesDelete(ctx context.Context, id ContainerRegistryId) (result ContainerRegistriesDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
@@ -56,15 +55,15 @@ func (c AppPlatformClient) ApplicationLiveViewsDelete(ctx context.Context, id Ap
 	return
 }
 
-// ApplicationLiveViewsDeleteThenPoll performs ApplicationLiveViewsDelete then polls until it's completed
-func (c AppPlatformClient) ApplicationLiveViewsDeleteThenPoll(ctx context.Context, id ApplicationLiveViewId) error {
-	result, err := c.ApplicationLiveViewsDelete(ctx, id)
+// ContainerRegistriesDeleteThenPoll performs ContainerRegistriesDelete then polls until it's completed
+func (c AppPlatformClient) ContainerRegistriesDeleteThenPoll(ctx context.Context, id ContainerRegistryId) error {
+	result, err := c.ContainerRegistriesDelete(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing ApplicationLiveViewsDelete: %+v", err)
+		return fmt.Errorf("performing ContainerRegistriesDelete: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after ApplicationLiveViewsDelete: %+v", err)
+		return fmt.Errorf("polling after ContainerRegistriesDelete: %+v", err)
 	}
 
 	return nil

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -15,22 +14,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ServicesFlushVnetDnsSettingOperationResponse struct {
+type BuildServiceDeleteBuildOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// ServicesFlushVnetDnsSetting ...
-func (c AppPlatformClient) ServicesFlushVnetDnsSetting(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesFlushVnetDnsSettingOperationResponse, err error) {
+// BuildServiceDeleteBuild ...
+func (c AppPlatformClient) BuildServiceDeleteBuild(ctx context.Context, id BuildId) (result BuildServiceDeleteBuildOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
-			http.StatusOK,
+			http.StatusNoContent,
 		},
-		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/flushVirtualNetworkDnsSettings", id.ID()),
+		HttpMethod: http.MethodDelete,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -56,15 +55,15 @@ func (c AppPlatformClient) ServicesFlushVnetDnsSetting(ctx context.Context, id c
 	return
 }
 
-// ServicesFlushVnetDnsSettingThenPoll performs ServicesFlushVnetDnsSetting then polls until it's completed
-func (c AppPlatformClient) ServicesFlushVnetDnsSettingThenPoll(ctx context.Context, id commonids.SpringCloudServiceId) error {
-	result, err := c.ServicesFlushVnetDnsSetting(ctx, id)
+// BuildServiceDeleteBuildThenPoll performs BuildServiceDeleteBuild then polls until it's completed
+func (c AppPlatformClient) BuildServiceDeleteBuildThenPoll(ctx context.Context, id BuildId) error {
+	result, err := c.BuildServiceDeleteBuild(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing ServicesFlushVnetDnsSetting: %+v", err)
+		return fmt.Errorf("performing BuildServiceDeleteBuild: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after ServicesFlushVnetDnsSetting: %+v", err)
+		return fmt.Errorf("polling after BuildServiceDeleteBuild: %+v", err)
 	}
 
 	return nil
