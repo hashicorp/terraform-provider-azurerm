@@ -73,6 +73,7 @@ func (r FederatedIdentityCredentialTestResource) Exists(ctx context.Context, cli
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r FederatedIdentityCredentialTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -86,6 +87,7 @@ resource "azurerm_federated_identity_credential" "test" {
 }
 `, r.template(data))
 }
+
 func (r FederatedIdentityCredentialTestResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

@@ -37,9 +37,11 @@ type FederatedIdentityCredentialResourceSchema struct {
 func (r FederatedIdentityCredentialResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return managedidentities.ValidateFederatedIdentityCredentialID
 }
+
 func (r FederatedIdentityCredentialResource) ResourceType() string {
 	return "azurerm_federated_identity_credential"
 }
+
 func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"audience": {
@@ -76,9 +78,11 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 		},
 	}
 }
+
 func (r FederatedIdentityCredentialResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
+
 func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -124,6 +128,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -160,6 +165,7 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 func (r FederatedIdentityCredentialResource) Update() sdk.ResourceFunc {
 	return r.Create()
 }
+
 func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
