@@ -156,10 +156,10 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r FederatedIdentityCredentialResource) Update() sdk.ResourceFunc {
 	return r.Create()
 }
-
 func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
