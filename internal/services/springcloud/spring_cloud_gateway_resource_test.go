@@ -134,7 +134,7 @@ func TestAccSpringCloudGateway_apms(t *testing.T) {
 	r := SpringCloudGatewayResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.apms(data),
+			Config: r.elasticApm(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -155,14 +155,28 @@ func TestAccSpringCloudGateway_apmsUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.apms(data),
+			Config: r.elasticApm(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.dynatraceApm(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleApms(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.noApms(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -207,14 +221,6 @@ resource "azurerm_spring_cloud_service" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "E0"
-}
-
-resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "test" {
-  name                    = "acctest-apm-%[2]d"
-  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
-  tenant                  = "test-tenant"
-  tenant_token            = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-  connection_point        = "https://example.live.dynatrace.com:443"
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
@@ -300,8 +306,31 @@ resource "azurerm_spring_cloud_gateway" "test" {
 `, template, clientId, clientSecret)
 }
 
-func (r SpringCloudGatewayResource) apms(data acceptance.TestData) string {
+func (r SpringCloudGatewayResource) apmsTemplate(data acceptance.TestData) string {
 	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_dynatrace_application_performance_monitoring" "test" {
+  name                    = "acctest-dapm-%[2]d"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  tenant                  = "test-tenant"
+  tenant_token            = "dt0s01.AAAAAAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+  connection_point        = "https://example.live.dynatrace.com:443"
+}
+
+resource "azurerm_spring_cloud_elastic_application_performance_monitoring" "test" {
+  name                    = "acctest-eapm-%[2]d"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
+  application_packages    = ["org.example", "org.another.example"]
+  service_name            = "test-service-name"
+  server_url              = "http://127.0.0.1:8200"
+}
+`, template, data.RandomInteger)
+}
+
+func (r SpringCloudGatewayResource) dynatraceApm(data acceptance.TestData) string {
+	template := r.apmsTemplate(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -310,7 +339,46 @@ resource "azurerm_spring_cloud_gateway" "test" {
   spring_cloud_service_id                = azurerm_spring_cloud_service.test.id
   application_performance_monitoring_ids = [azurerm_spring_cloud_dynatrace_application_performance_monitoring.test.id]
 }
-`, template, data.RandomInteger)
+`, template)
+}
+
+func (r SpringCloudGatewayResource) elasticApm(data acceptance.TestData) string {
+	template := r.apmsTemplate(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_gateway" "test" {
+  name                                   = "default"
+  spring_cloud_service_id                = azurerm_spring_cloud_service.test.id
+  application_performance_monitoring_ids = [azurerm_spring_cloud_elastic_application_performance_monitoring.test.id]
+}
+`, template)
+}
+
+func (r SpringCloudGatewayResource) multipleApms(data acceptance.TestData) string {
+	template := r.apmsTemplate(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_gateway" "test" {
+  name                                   = "default"
+  spring_cloud_service_id                = azurerm_spring_cloud_service.test.id
+  application_performance_monitoring_ids = [azurerm_spring_cloud_dynatrace_application_performance_monitoring.test.id, azurerm_spring_cloud_elastic_application_performance_monitoring.test.id]
+}
+`, template)
+}
+
+func (r SpringCloudGatewayResource) noApms(data acceptance.TestData) string {
+	template := r.apmsTemplate(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_spring_cloud_gateway" "test" {
+  name                                   = "default"
+  spring_cloud_service_id                = azurerm_spring_cloud_service.test.id
+  application_performance_monitoring_ids = []
+}
+`, template)
 }
 
 func (r SpringCloudGatewayResource) clientAuth(data acceptance.TestData) string {

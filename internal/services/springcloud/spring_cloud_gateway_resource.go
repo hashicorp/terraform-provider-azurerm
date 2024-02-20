@@ -943,10 +943,10 @@ func flattenGatewayLocalResponseCachePerInstanceProperties(input appplatform.Gat
 }
 
 func flattenGatewayApms(input *[]appplatform.ApmReference) ([]string, error) {
-	if input == nil {
-		return nil, nil
-	}
 	out := make([]string, 0)
+	if input == nil {
+		return out, nil
+	}
 	for _, v := range *input {
 		id, err := appplatform.ParseApmIDInsensitively(v.ResourceId)
 		if err != nil {
