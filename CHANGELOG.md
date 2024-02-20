@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to v0.20240215.1143935 of `github.com/hashicorp/go-azure-sdk` [GH-24912]
 * dependencies: refactor `azurerm_spring_cloud_configuration_service` to use `go-azure-sdk` [GH-24918]
+* provider: support or the feature flag `virtual_machine_scale_set.reimage_on_manual_upgrade` [GH-22975]
 * `sqlvirtualmachines`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24912]
 * `azurerm_cosmosdb_account` - support for the `backup.tier` property [GH-24595]
 * `azurerm_redis_cache` - support for the `preferred_data_persistence_auth_method` property [GH-24370]
