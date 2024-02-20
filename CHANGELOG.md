@@ -1,18 +1,29 @@
 ## 3.93.0 (Unreleased)
 
+* **New Resource**: `azurerm_dev_center_catalog` [GH-24833]
+* **New Resource**: `azurerm_system_center_virtual_machine_manager_server` [GH-24278]
+
 BUG FIXES:
 
 * `azurerm_key_vault` - conditionally polling the Data Plane endpoint when `public_network_access_enabled` is set to false [GH-23823]
+* `azurerm_storage_account` - allow `identity.type` to be `SystemAssigned, UserAssigned`  when using Customer Managed Key [GH-24923]
 
 ENHANCEMENTS:
 
 * dependencies: updating to v0.20240215.1143935 of `github.com/hashicorp/go-azure-sdk` [GH-24912]
+* dependencies: refactor `azurerm_spring_cloud_configuration_service` to use `go-azure-sdk` [GH-24918]
 * `sqlvirtualmachines`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24912]
 * `azurerm_redis_cache` - support for the `preferred_data_persistence_auth_method` property [GH-24370]
+* `azurerm_servicebus_namespace` - support for the `premium_messaging_partitions` property [GH-24676]
 
 BUG FIXES:
 
+* `azurerm_cognitive_deployment` - the `version_upgrade_option` property can not be updated without creating a new resource [GH-24922]
+* `azurerm_data_protection_backup_vault` - support or the `soft_delete` and `retention_duration_in_days` properties [GH-24775]
 * `azurerm_kusto_cluster` - `optimized_auto_scale` is now updated after `sku` has been updated [GH-24906]
+* `azurerm_storage_account` - change order of API calls to be GET-then-PUT ratehr then PATCHES [GH-23935]
+* `azurerm_security_center_setting` - prevent a bug when name is `SENTINEL` [GH-24497]
+
 
 ## 3.92.0 (February 15, 2024)
 
