@@ -15,6 +15,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_cognitive_deployment` - the `version_upgrade_option` property can not be updated without creating a new resource [GH-24922]
+* `azurerm_data_protection_backup_vault` - support or the `soft_delete` and `retention_duration_in_days` properties [GH-24775]
 * `azurerm_kusto_cluster` - `optimized_auto_scale` is now updated after `sku` has been updated [GH-24906]
 
 ## 3.92.0 (February 15, 2024)
