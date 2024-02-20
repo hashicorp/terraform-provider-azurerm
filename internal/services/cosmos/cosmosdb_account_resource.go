@@ -529,6 +529,14 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							}, false),
 						},
 
+						// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
+						"tier": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForContinuousTier(), false),
+						},
+
 						"interval_in_minutes": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -1920,11 +1928,23 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 			return nil, fmt.Errorf("`storage_redundancy` cannot be defined when the `backup.type` is set to %q", cosmosdb.BackupPolicyTypeContinuous)
 		}
 
-		return cosmosdb.ContinuousModeBackupPolicy{}, nil
+		result := cosmosdb.ContinuousModeBackupPolicy{}
+
+		if v := attr["tier"].(string); v != "" {
+			result.ContinuousModeProperties = &cosmosdb.ContinuousModeProperties{
+				Tier: pointer.To(cosmosdb.ContinuousTier(v)),
+			}
+		}
+
+		return result, nil
 
 	case string(cosmosdb.BackupPolicyTypePeriodic):
 		if createMode != "" {
 			return nil, fmt.Errorf("`create_mode` can only be defined when the `backup.type` is set to %q, got %q", cosmosdb.BackupPolicyTypeContinuous, cosmosdb.BackupPolicyTypePeriodic)
+		}
+
+		if v := attr["tier"].(string); v != "" && !backupHasChange {
+			return nil, fmt.Errorf("`tier` can not be set when `type` in `backup` is `Periodic`")
 		}
 
 		// Mirror the behavior of the old SDK...
@@ -1953,9 +1973,14 @@ func flattenCosmosdbAccountBackup(input cosmosdb.BackupPolicy) ([]interface{}, e
 
 	switch backupPolicy := input.(type) {
 	case cosmosdb.ContinuousModeBackupPolicy:
+		var tier cosmosdb.ContinuousTier
+		if v := backupPolicy.ContinuousModeProperties; v != nil {
+			tier = pointer.From(v.Tier)
+		}
 		return []interface{}{
 			map[string]interface{}{
 				"type": string(cosmosdb.BackupPolicyTypeContinuous),
+				"tier": string(tier),
 			},
 		}, nil
 
