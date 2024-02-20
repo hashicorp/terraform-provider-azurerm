@@ -575,6 +575,11 @@ service/synapse:
   - any-glob-to-any-file:
     - internal/services/synapse/**/*
 
+service/systemcentervirtualmachinemanager:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/systemcentervirtualmachinemanager/**/*
+
 service/traffic-manager:
 - changed-files:
   - any-glob-to-any-file:
