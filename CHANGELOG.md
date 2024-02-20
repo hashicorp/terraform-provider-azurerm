@@ -21,6 +21,7 @@ BUG FIXES:
 * `azurerm_cognitive_deployment` - the `version_upgrade_option` property can not be updated without creating a new resource [GH-24922]
 * `azurerm_data_protection_backup_vault` - support or the `soft_delete` and `retention_duration_in_days` properties [GH-24775]
 * `azurerm_kusto_cluster` - `optimized_auto_scale` is now updated after `sku` has been updated [GH-24906]
+* `azurerm_orchestrated_virtual_machine_scale_set` - the `disk_size_gb` and `lun` parameters of `data_disks` are optional now [GH-24944]
 * `azurerm_storage_account` - change order of API calls to be GET-then-PUT ratehr then PATCHES [GH-23935]
 * `azurerm_storage_account` - improve the validation around the `immutability_policy` being used with `blob_properties` [GH-24938]
 * `azurerm_security_center_setting` - prevent a bug when name is `SENTINEL` [GH-24497]
