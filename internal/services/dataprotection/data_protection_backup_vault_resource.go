@@ -4,6 +4,7 @@
 package dataprotection
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -72,8 +73,28 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
+			"retention_duration_in_days": {
+				Type:         pluginsdk.TypeFloat,
+				Optional:     true,
+				Default:      14,
+				ValidateFunc: validation.FloatBetween(14, 180),
+			},
+
+			"soft_delete": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      backupvaults.SoftDeleteStateOn,
+				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForSoftDeleteState(), false),
+			},
+
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("soft_delete", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.SoftDeleteStateAlwaysOn) && new.(string) != string(backupvaults.SoftDeleteStateAlwaysOn)
+			}),
+		),
 	}
 
 	// Confirmed with the service team that `SnapshotStore` has been replaced with `OperationalStore`.
@@ -144,10 +165,20 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 					Type:          &storageSettingType,
 				},
 			},
+			SecuritySettings: &backupvaults.SecuritySettings{
+				SoftDeleteSettings: &backupvaults.SoftDeleteSettings{
+					State: pointer.To(backupvaults.SoftDeleteState(d.Get("soft_delete").(string))),
+				},
+			},
 		},
 		Identity: expandedIdentity,
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
+
+	if v, ok := d.GetOk("retention_duration_in_days"); ok {
+		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
+	}
+
 	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating DataProtection BackupVault (%q): %+v", id, err)
@@ -185,6 +216,12 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {
 			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
+		}
+		if securitySetting := model.Properties.SecuritySettings; securitySetting != nil {
+			if softDelete := securitySetting.SoftDeleteSettings; softDelete != nil {
+				d.Set("soft_delete", string(pointer.From(softDelete.State)))
+				d.Set("retention_duration_in_days", pointer.From(softDelete.RetentionDurationInDays))
+			}
 		}
 
 		if err = d.Set("identity", flattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
