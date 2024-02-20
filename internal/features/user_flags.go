@@ -31,6 +31,7 @@ type VirtualMachineFeatures struct {
 
 type VirtualMachineScaleSetFeatures struct {
 	ForceDelete               bool
+	ReimageOnManualUpgrade    bool
 	RollInstancesWhenRequired bool
 	ScaleToZeroOnDelete       bool
 }
