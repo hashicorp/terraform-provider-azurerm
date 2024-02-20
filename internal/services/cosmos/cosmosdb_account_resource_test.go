@@ -1084,7 +1084,7 @@ func TestAccCosmosDBAccount_backupPeriodicToContinuous(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousSevenDays),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1099,7 +1099,14 @@ func TestAccCosmosDBAccount_backupContinuous(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousSevenDays),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousThreeZeroDays),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3530,7 +3537,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel, tier cosmosdb.ContinuousTier) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3559,9 +3566,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   backup {
     type = "Continuous"
+    tier = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), string(tier))
 }
 
 func (CosmosDBAccountResource) basicWithBackupContinuousUpdate(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
