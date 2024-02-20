@@ -84,10 +84,13 @@ resource "azurerm_snapshot" "example" {
 }
 
 resource "azurerm_elastic_san_volume" "example2" {
-  name             = "example-esv2"
-  volume_group_id  = azurerm_elastic_san_volume_group.example.id
-  size_in_gib      = 2
-  create_source_id = azurerm_elastic_san_volume.example.id
+  name            = "example-esv2"
+  volume_group_id = azurerm_elastic_san_volume_group.example.id
+  size_in_gib     = 2
+  create_source {
+    source_type = "DiskSnapshot"
+    source_id   = azurerm_snapshot.example.id
+  }
 }
 ```
 
@@ -101,9 +104,18 @@ The following arguments are supported:
 
 * `size_in_gib` - (Required) Specifies the size of the Elastic SAN Volume in GiB. The size should be within the remaining capacity of the parent Elastic SAN. Possible value is integer between `1` and `65536` (16 TiB).
 
--> **NOTE:** If `create_source_id` is specified, then the size must be equal to or greater than the source's size. The size can only be increased.
+-> **NOTE:** The size can only be increased. If `create_source` is specified, then the size must be equal to or greater than the source's size.
 
-* `create_source_id` - (Optional) Specifies the ID of the source to create the Elastic SAN Volume from. Changing this forces a new resource to be created.
+* `create_source` - (Optional) A `create_source` block as defined below.
+
+---
+
+A `create_source` block supports the following:
+
+* `source_id` - (Required) Specifies the ID of the source to create the Elastic SAN Volume from. Changing this forces a new resource to be created.
+
+* `source_type` - (Required) Specifies the type of the source to create the Elastic SAN Volume from. Possible values are `Disk`, `DiskRestorePoint`, `DiskSnapshot` and `VolumeSnapshot`. Changing this forces a new resource to be created.
+
 
 ## Attributes Reference
 

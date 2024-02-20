@@ -7,8 +7,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	diskSnapshots "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/restorepoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,14 +31,19 @@ func (r ElasticSANVolumeResource) ModelObject() interface{} {
 }
 
 type ElasticSANVolumeResourceModel struct {
-	CreateSourceId       string `tfschema:"create_source_id"`
-	Name                 string `tfschema:"name"`
-	SizeInGiB            int64  `tfschema:"size_in_gib"`
-	TargetIqn            string `tfschema:"target_iqn"`
-	TargetPortalHostname string `tfschema:"target_portal_hostname"`
-	TargetPortalPort     int64  `tfschema:"target_portal_port"`
-	VolumeGroupId        string `tfschema:"volume_group_id"`
-	VolumeId             string `tfschema:"volume_id"`
+	CreateSource         []ElasticSANVolumeCreateSource `tfschema:"create_source"`
+	Name                 string                         `tfschema:"name"`
+	SizeInGiB            int64                          `tfschema:"size_in_gib"`
+	TargetIqn            string                         `tfschema:"target_iqn"`
+	TargetPortalHostname string                         `tfschema:"target_portal_hostname"`
+	TargetPortalPort     int64                          `tfschema:"target_portal_port"`
+	VolumeGroupId        string                         `tfschema:"volume_group_id"`
+	VolumeId             string                         `tfschema:"volume_id"`
+}
+
+type ElasticSANVolumeCreateSource struct {
+	SourceType string `tfschema:"source_type"`
+	SourceId   string `tfschema:"source_id"`
 }
 
 func (r ElasticSANVolumeResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -68,11 +76,37 @@ func (r ElasticSANVolumeResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(1, 65536),
 		},
 
-		"create_source_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: azure.ValidateResourceID,
+		"create_source": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"source_id": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.Any(
+							commonids.ValidateManagedDiskID,
+							restorepoints.ValidateRestorePointID,
+							diskSnapshots.ValidateSnapshotID,
+							snapshots.ValidateSnapshotID,
+						),
+					},
+					"source_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							// None is not exposed
+							string(volumes.VolumeCreateOptionDisk),
+							string(volumes.VolumeCreateOptionDiskRestorePoint),
+							string(volumes.VolumeCreateOptionDiskSnapshot),
+							string(volumes.VolumeCreateOptionVolumeSnapshot),
+						},
+							false),
+					},
+				},
+			},
 		},
 	}
 }
@@ -146,14 +180,9 @@ func (r ElasticSANVolumeResource) Create() sdk.ResourceFunc {
 
 			payload := volumes.Volume{
 				Properties: volumes.VolumeProperties{
-					SizeGiB: config.SizeInGiB,
+					CreationData: ExpandElasticSANVolumeCreateSource(config.CreateSource),
+					SizeGiB:      config.SizeInGiB,
 				},
-			}
-
-			if config.CreateSourceId != "" {
-				payload.Properties.CreationData = &volumes.SourceCreationData{
-					SourceId: pointer.To(config.CreateSourceId),
-				}
 			}
 
 			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -197,10 +226,7 @@ func (r ElasticSANVolumeResource) Read() sdk.ResourceFunc {
 
 				schema.SizeInGiB = props.SizeGiB
 				schema.VolumeId = pointer.From(props.VolumeId)
-
-				if creationData := props.CreationData; creationData != nil {
-					schema.CreateSourceId = pointer.From(creationData.SourceId)
-				}
+				schema.CreateSource = FlattenElasticSANVolumeCreateSource(props.CreationData)
 
 				if storageTarget := props.StorageTarget; storageTarget != nil {
 					schema.TargetIqn = pointer.From(storageTarget.TargetIqn)
@@ -263,6 +289,31 @@ func (r ElasticSANVolumeResource) Update() sdk.ResourceFunc {
 			}
 
 			return nil
+		},
+	}
+}
+
+func ExpandElasticSANVolumeCreateSource(input []ElasticSANVolumeCreateSource) *volumes.SourceCreationData {
+	if len(input) == 0 {
+		return nil
+	}
+
+	return &volumes.SourceCreationData{
+		SourceId:     pointer.To(input[0].SourceId),
+		CreateSource: pointer.To(volumes.VolumeCreateOption(input[0].SourceType)),
+	}
+}
+
+func FlattenElasticSANVolumeCreateSource(input *volumes.SourceCreationData) []ElasticSANVolumeCreateSource {
+	// the response might return the block but with only sourceType=None in the block`
+	if input == nil || input.SourceId == nil {
+		return []ElasticSANVolumeCreateSource{}
+	}
+
+	return []ElasticSANVolumeCreateSource{
+		{
+			SourceType: string(pointer.From(input.CreateSource)),
+			SourceId:   pointer.From(input.SourceId),
 		},
 	}
 }

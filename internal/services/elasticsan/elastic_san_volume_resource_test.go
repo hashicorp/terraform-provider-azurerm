@@ -182,10 +182,13 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_elastic_san_volume" "test" {
-  name             = "acctestesv-${var.random_string}"
-  size_in_gib      = 2
-  volume_group_id  = azurerm_elastic_san_volume_group.test.id
-  create_source_id = azurerm_managed_disk.test.id
+  name            = "acctestesv-${var.random_string}"
+  size_in_gib     = 2
+  volume_group_id = azurerm_elastic_san_volume_group.test.id
+  create_source {
+    source_type = "Disk"
+    source_id   = azurerm_managed_disk.test.id
+  }
 }
 `, r.template(data))
 }
@@ -216,10 +219,13 @@ resource "azurerm_snapshot" "test" {
 }
 
 resource "azurerm_elastic_san_volume" "test" {
-  name             = "acctestesv-${var.random_string}"
-  size_in_gib      = 2
-  volume_group_id  = azurerm_elastic_san_volume_group.test.id
-  create_source_id = azurerm_snapshot.test.id
+  name            = "acctestesv-${var.random_string}"
+  size_in_gib     = 2
+  volume_group_id = azurerm_elastic_san_volume_group.test.id
+  create_source {
+    source_type = "DiskSnapshot"
+    source_id   = azurerm_snapshot.test.id
+  }
 }
 `, r.template(data))
 }
