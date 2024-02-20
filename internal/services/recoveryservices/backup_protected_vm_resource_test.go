@@ -950,7 +950,7 @@ resource "azurerm_backup_protected_vm" "test" {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-    recovery_services_vault {
+    recovery_services_vaults {
       recover_soft_deleted_backup_protected_vm = true
     }
   }
