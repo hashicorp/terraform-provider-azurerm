@@ -1560,9 +1560,20 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
-		if (blobProperties.IsVersioningEnabled != nil && !*blobProperties.IsVersioningEnabled) && (blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled) {
-			// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
-			return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
+		if blobProperties.IsVersioningEnabled != nil && !*blobProperties.IsVersioningEnabled {
+			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+				// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
+				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
+			}
+			if account.AccountProperties != nil &&
+				account.AccountProperties.ImmutableStorageWithVersioning != nil &&
+				account.AccountProperties.ImmutableStorageWithVersioning.ImmutabilityPolicy != nil &&
+				account.AccountProperties.ImmutableStorageWithVersioning.Enabled != nil &&
+				*account.AccountProperties.ImmutableStorageWithVersioning.Enabled {
+				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
+				// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
+				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
+			}
 		}
 
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
