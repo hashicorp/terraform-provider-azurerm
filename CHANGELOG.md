@@ -22,6 +22,7 @@ BUG FIXES:
 * `azurerm_data_protection_backup_vault` - support or the `soft_delete` and `retention_duration_in_days` properties [GH-24775]
 * `azurerm_kusto_cluster` - `optimized_auto_scale` is now updated after `sku` has been updated [GH-24906]
 * `azurerm_storage_account` - change order of API calls to be GET-then-PUT ratehr then PATCHES [GH-23935]
+* `azurerm_storage_account` - improve the validation around the `immutability_policy` being used with `blob_properties` [GH-24938]
 * `azurerm_security_center_setting` - prevent a bug when name is `SENTINEL` [GH-24497]
 
 
