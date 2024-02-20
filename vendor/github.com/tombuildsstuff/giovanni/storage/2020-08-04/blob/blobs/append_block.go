@@ -1,16 +1,16 @@
 package blobs
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type AppendBlockInput struct {
@@ -45,8 +45,8 @@ type AppendBlockInput struct {
 	LeaseID *string
 }
 
-type AppendBlockResult struct {
-	autorest.Response
+type AppendBlockResponse struct {
+	HttpResponse *client.Response
 
 	BlobAppendOffset        string
 	BlobCommittedBlockCount int64
@@ -56,125 +56,105 @@ type AppendBlockResult struct {
 }
 
 // AppendBlock commits a new block of data to the end of an existing append blob.
-func (client Client) AppendBlock(ctx context.Context, accountName, containerName, blobName string, input AppendBlockInput) (result AppendBlockResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "AppendBlock", "`accountName` cannot be an empty string.")
-	}
+func (c Client) AppendBlock(ctx context.Context, containerName, blobName string, input AppendBlockInput) (resp AppendBlockResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "AppendBlock", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "AppendBlock", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "AppendBlock", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
+
 	if input.Content != nil && len(*input.Content) > (4*1024*1024) {
-		return result, validation.NewError("files.Client", "PutByteRange", "`input.Content` must be at most 4MB.")
+		return resp, fmt.Errorf("`input.Content` must be at most 4MB")
 	}
 
-	req, err := client.AppendBlockPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: appendBlockOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "AppendBlock", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
-	}
-
-	resp, err := client.AppendBlockSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "AppendBlock", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.AppendBlockResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "AppendBlock", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// AppendBlockPreparer prepares the AppendBlock request.
-func (client Client) AppendBlockPreparer(ctx context.Context, accountName, containerName, blobName string, input AppendBlockInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "appendblock"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.BlobConditionAppendPosition != nil {
-		headers["x-ms-blob-condition-appendpos"] = *input.BlobConditionAppendPosition
-	}
-	if input.BlobConditionMaxSize != nil {
-		headers["x-ms-blob-condition-maxsize"] = *input.BlobConditionMaxSize
-	}
-	if input.ContentMD5 != nil {
-		headers["x-ms-blob-content-md5"] = *input.ContentMD5
-	}
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-	if input.Content != nil {
-		headers["Content-Length"] = int(len(*input.Content))
-	}
-
-	decorators := []autorest.PrepareDecorator{
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers),
 	}
 
 	if input.Content != nil {
-		decorators = append(decorators, autorest.WithBytes(input.Content))
+		req.Body = io.NopCloser(bytes.NewReader(*input.Content))
 	}
 
-	preparer := autorest.CreatePreparer(decorators...)
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
+	req.ContentLength = int64(len(*input.Content))
 
-// AppendBlockSender sends the AppendBlock request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) AppendBlockSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
+		return
+	}
 
-// AppendBlockResponder handles the response to the AppendBlock request. The method always
-// closes the http.Response Body.
-func (client Client) AppendBlockResponder(resp *http.Response) (result AppendBlockResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.BlobAppendOffset = resp.Header.Get("x-ms-blob-append-offset")
-		result.ContentMD5 = resp.Header.Get("ETag")
-		result.ETag = resp.Header.Get("ETag")
-		result.LastModified = resp.Header.Get("Last-Modified")
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.BlobAppendOffset = resp.HttpResponse.Header.Get("x-ms-blob-append-offset")
+			resp.ContentMD5 = resp.HttpResponse.Header.Get("Content-MD5")
+			resp.ETag = resp.HttpResponse.Header.Get("ETag")
+			resp.LastModified = resp.HttpResponse.Header.Get("Last-Modified")
 
-		if v := resp.Header.Get("x-ms-blob-committed-block-count"); v != "" {
-			i, innerErr := strconv.Atoi(v)
-			if innerErr != nil {
-				err = fmt.Errorf("Error parsing %q as an integer: %s", v, innerErr)
-				return
+			if v := resp.HttpResponse.Header.Get("x-ms-blob-committed-block-count"); v != "" {
+				i, innerErr := strconv.Atoi(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as an integer: %s", v, innerErr)
+					return
+				}
+				resp.BlobCommittedBlockCount = int64(i)
 			}
 
-			result.BlobCommittedBlockCount = int64(i)
 		}
 	}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-
 	return
+}
+
+type appendBlockOptions struct {
+	input AppendBlockInput
+}
+
+func (a appendBlockOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	if a.input.BlobConditionAppendPosition != nil {
+		headers.Append("x-ms-blob-condition-appendpos", strconv.Itoa(int(*a.input.BlobConditionAppendPosition)))
+	}
+	if a.input.BlobConditionMaxSize != nil {
+		headers.Append("x-ms-blob-condition-maxsize", strconv.Itoa(int(*a.input.BlobConditionMaxSize)))
+	}
+	if a.input.ContentMD5 != nil {
+		headers.Append("x-ms-blob-content-md5", *a.input.ContentMD5)
+	}
+	if a.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *a.input.LeaseID)
+	}
+	if a.input.Content != nil {
+		headers.Append("Content-Length", strconv.Itoa(len(*a.input.Content)))
+	}
+	return headers
+}
+
+func (a appendBlockOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (a appendBlockOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "appendblock")
+	return out
 }

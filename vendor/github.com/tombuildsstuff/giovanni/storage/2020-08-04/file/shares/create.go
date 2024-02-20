@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
@@ -36,99 +35,85 @@ type CreateInput struct {
 	AccessTier *AccessTier
 }
 
+type CreateResponse struct {
+	HttpResponse *client.Response
+}
+
 // Create creates the specified Storage Share within the specified Storage Account
-func (client Client) Create(ctx context.Context, accountName, shareName string, input CreateInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("shares.Client", "Create", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Create(ctx context.Context, shareName string, input CreateInput) (resp CreateResponse, err error) {
+
 	if shareName == "" {
-		return result, validation.NewError("shares.Client", "Create", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("shares.Client", "Create", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
+
 	if input.QuotaInGB <= 0 || input.QuotaInGB > 102400 {
-		return result, validation.NewError("shares.Client", "Create", "`input.QuotaInGB` must be greater than 0, and less than/equal to 100TB (102400 GB)")
-	}
-	if err := metadata.Validate(input.MetaData); err != nil {
-		return result, validation.NewError("shares.Client", "Create", fmt.Sprintf("`input.MetaData` is not valid: %s.", err))
+		return resp, fmt.Errorf("`input.QuotaInGB` must be greater than 0, and less than/equal to 100TB (102400 GB)")
 	}
 
-	req, err := client.CreatePreparer(ctx, accountName, shareName, input)
+	if err = metadata.Validate(input.MetaData); err != nil {
+		return resp, fmt.Errorf("`input.MetaData` is not valid: %s", err)
+	}
+
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: CreateOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s", shareName),
+	}
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "Create", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
-
-	resp, err := client.CreateSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "shares.Client", "Create", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
-
-	result, err = client.CreateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "Create", resp, "Failure responding to request")
-		return
-	}
-
 	return
 }
 
-// CreatePreparer prepares the Create request.
-func (client Client) CreatePreparer(ctx context.Context, accountName, shareName string, input CreateInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-	}
+type CreateOptions struct {
+	input CreateInput
+}
 
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("path", "share"),
-	}
+func (c CreateOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
 
-	headers := map[string]interface{}{
-		"x-ms-version":     APIVersion,
-		"x-ms-share-quota": input.QuotaInGB,
+	if len(c.input.MetaData) > 0 {
+		headers.Merge(metadata.SetMetaDataHeaders(c.input.MetaData))
 	}
 
 	protocol := SMB
-	if input.EnabledProtocol != "" {
-		protocol = input.EnabledProtocol
+	if c.input.EnabledProtocol != "" {
+		protocol = c.input.EnabledProtocol
 	}
-	headers["x-ms-enabled-protocols"] = protocol
+	headers.Append("x-ms-enabled-protocols", string(protocol))
 
-	if input.AccessTier != nil {
-		headers["x-ms-access-tier"] = string(*input.AccessTier)
+	if c.input.AccessTier != nil {
+		headers.Append("x-ms-access-tier", string(*c.input.AccessTier))
 	}
 
-	headers = metadata.SetIntoHeaders(headers, input.MetaData)
+	headers.Append("x-ms-share-quota", strconv.Itoa(c.input.QuotaInGB))
 
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+	return headers
 }
 
-// CreateSender sends the Create request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (c CreateOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// CreateResponder handles the response to the Create request. The method always
-// closes the http.Response Body.
-func (client Client) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-
-	return
+func (c CreateOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("restype", "share")
+	return out
 }

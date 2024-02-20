@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
@@ -51,56 +50,65 @@ type CreateInput struct {
 	MetaData map[string]string
 }
 
+type CreateResponse struct {
+	HttpResponse *client.Response
+}
+
 // Create creates a new file or replaces a file.
-func (client Client) Create(ctx context.Context, accountName, shareName, path, fileName string, input CreateInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("files.Client", "Create", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Create(ctx context.Context, shareName, path, fileName string, input CreateInput) (resp CreateResponse, err error) {
 	if shareName == "" {
-		return result, validation.NewError("files.Client", "Create", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("files.Client", "Create", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
+
 	if fileName == "" {
-		return result, validation.NewError("files.Client", "Create", "`fileName` cannot be an empty string.")
-	}
-	if err := metadata.Validate(input.MetaData); err != nil {
-		return result, validation.NewError("files.Client", "Create", "`input.MetaData` cannot be an empty string.")
+		return resp, fmt.Errorf("`fileName` cannot be an empty string")
 	}
 
-	req, err := client.CreatePreparer(ctx, accountName, shareName, path, fileName, input)
+	if err = metadata.Validate(input.MetaData); err != nil {
+		return resp, fmt.Errorf("`input.MetaData` is not valid: %s", err)
+	}
+
+	if path != "" {
+		path = fmt.Sprintf("%s/", path)
+	}
+
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: CreateOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s%s", shareName, path, fileName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "Create", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.CreateSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "files.Client", "Create", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.CreateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "Create", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// CreatePreparer prepares the Create request.
-func (client Client) CreatePreparer(ctx context.Context, accountName, shareName, path, fileName string, input CreateInput) (*http.Request, error) {
-	if path != "" {
-		path = fmt.Sprintf("%s/", path)
-	}
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-		"directory": autorest.Encode("path", path),
-		"fileName":  autorest.Encode("path", fileName),
-	}
+type CreateOptions struct {
+	input CreateInput
+}
+
+func (c CreateOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
 
 	var coalesceDate = func(input *time.Time, defaultVal string) string {
 		if input == nil {
@@ -110,60 +118,41 @@ func (client Client) CreatePreparer(ctx context.Context, accountName, shareName,
 		return input.Format(time.RFC1123)
 	}
 
-	headers := map[string]interface{}{
-		"x-ms-version":        APIVersion,
-		"x-ms-content-length": input.ContentLength,
-		"x-ms-type":           "file",
-
-		"x-ms-file-permission":      "inherit", // TODO: expose this in future
-		"x-ms-file-attributes":      "None",    // TODO: expose this in future
-		"x-ms-file-creation-time":   coalesceDate(input.CreatedAt, "now"),
-		"x-ms-file-last-write-time": coalesceDate(input.LastModified, "now"),
+	if len(c.input.MetaData) > 0 {
+		headers.Merge(metadata.SetMetaDataHeaders(c.input.MetaData))
 	}
 
-	if input.ContentDisposition != nil {
-		headers["x-ms-content-disposition"] = *input.ContentDisposition
+	headers.Append("x-ms-content-length", strconv.Itoa(int(c.input.ContentLength)))
+	headers.Append("x-ms-type", "file")
+
+	headers.Append("x-ms-file-permission", "inherit") // TODO: expose this in future
+	headers.Append("x-ms-file-attributes", "None")    // TODO: expose this in future
+	headers.Append("x-ms-file-creation-time", coalesceDate(c.input.CreatedAt, "now"))
+	headers.Append("x-ms-file-last-write-time", coalesceDate(c.input.LastModified, "now"))
+
+	if c.input.ContentDisposition != nil {
+		headers.Append("x-ms-content-disposition", *c.input.ContentDisposition)
 	}
 
-	if input.ContentEncoding != nil {
-		headers["x-ms-content-encoding"] = *input.ContentEncoding
+	if c.input.ContentEncoding != nil {
+		headers.Append("x-ms-content-encoding", *c.input.ContentEncoding)
 	}
 
-	if input.ContentMD5 != nil {
-		headers["x-ms-content-md5"] = *input.ContentMD5
+	if c.input.ContentMD5 != nil {
+		headers.Append("x-ms-content-md5", *c.input.ContentMD5)
 	}
 
-	if input.ContentType != nil {
-		headers["x-ms-content-type"] = *input.ContentType
+	if c.input.ContentType != nil {
+		headers.Append("x-ms-content-type", *c.input.ContentType)
 	}
 
-	headers = metadata.SetIntoHeaders(headers, input.MetaData)
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}/{directory}{fileName}", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+	return headers
 }
 
-// CreateSender sends the Create request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (c CreateOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// CreateResponder handles the response to the Create request. The method always
-// closes the http.Response Body.
-func (client Client) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-
-	return
+func (c CreateOptions) ToQuery() *client.QueryParams {
+	return nil
 }

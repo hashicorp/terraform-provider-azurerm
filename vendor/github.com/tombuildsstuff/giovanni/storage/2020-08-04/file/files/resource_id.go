@@ -5,60 +5,83 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 )
 
-// GetResourceID returns the Resource ID for the given File
-// This can be useful when, for example, you're using this as a unique identifier
-func (client Client) GetResourceID(accountName, shareName, directoryName, filePath string) string {
-	domain := endpoints.GetFileEndpoint(client.BaseURI, accountName)
-	return fmt.Sprintf("%s/%s/%s/%s", domain, shareName, directoryName, filePath)
+// TODO: update this to implement `resourceids.ResourceId` once
+// https://github.com/hashicorp/go-azure-helpers/issues/187 is fixed
+var _ resourceids.Id = FileId{}
+
+type FileId struct {
+	// AccountId specifies the ID of the Storage Account where this File exists.
+	AccountId accounts.AccountId
+
+	// ShareName specifies the name of the File Share containing this File.
+	ShareName string
+
+	// DirectoryPath specifies the path representing the Directory where this File exists.
+	DirectoryPath string
+
+	// FileName specifies the name of the File.
+	FileName string
 }
 
-type ResourceID struct {
-	AccountName   string
-	DirectoryName string
-	FileName      string
-	ShareName     string
+func NewFileID(accountId accounts.AccountId, shareName, directoryPath, fileName string) FileId {
+	return FileId{
+		AccountId:     accountId,
+		ShareName:     shareName,
+		DirectoryPath: directoryPath,
+		FileName:      fileName,
+	}
 }
 
-// ParseResourceID parses the specified Resource ID and returns an object
-// which can be used to interact with Files within a Storage Share.
-func ParseResourceID(id string) (*ResourceID, error) {
-	// example: https://account1.file.core.chinacloudapi.cn/share1/directory1/file1.txt
-	// example: https://account1.file.core.chinacloudapi.cn/share1/directory1/directory2/file1.txt
+func (b FileId) ID() string {
+	return fmt.Sprintf("%s/%s/%s/%s", b.AccountId.ID(), b.ShareName, b.DirectoryPath, b.FileName)
+}
 
-	if id == "" {
-		return nil, fmt.Errorf("`id` was empty")
+func (b FileId) String() string {
+	components := []string{
+		fmt.Sprintf("Directory Path %q", b.DirectoryPath),
+		fmt.Sprintf("Share Name %q", b.ShareName),
+		fmt.Sprintf("Account %q", b.AccountId.String()),
+	}
+	return fmt.Sprintf("File %q (%s)", b.FileName, strings.Join(components, " / "))
+}
+
+// ParseFileID parses `input` into a File ID using a known `domainSuffix`
+func ParseFileID(input, domainSuffix string) (*FileId, error) {
+	// example: https://foo.file.core.windows.net/Bar/some/directory/some-file.txt
+	if input == "" {
+		return nil, fmt.Errorf("`input` was empty")
 	}
 
-	uri, err := url.Parse(id)
+	account, err := accounts.ParseAccountID(input, domainSuffix)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing ID as a URL: %s", err)
+		return nil, fmt.Errorf("parsing account %q: %+v", input, err)
 	}
 
-	accountName, err := endpoints.GetAccountNameFromEndpoint(uri.Host)
+	if account.SubDomainType != accounts.FileSubDomainType {
+		return nil, fmt.Errorf("expected the subdomain type to be %q but got %q", string(accounts.FileSubDomainType), string(account.SubDomainType))
+	}
+
+	uri, err := url.Parse(input)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing Account Name: %s", err)
+		return nil, fmt.Errorf("parsing %q as a uri: %+v", input, err)
 	}
 
 	path := strings.TrimPrefix(uri.Path, "/")
 	segments := strings.Split(path, "/")
-	if len(segments) == 0 {
-		return nil, fmt.Errorf("Expected the path to contain segments but got none")
+	if len(segments) < 3 {
+		return nil, fmt.Errorf("expected the path to contain at least 3 segments but got %d", len(segments))
 	}
-
 	shareName := segments[0]
+	directoryPath := strings.Join(segments[1:len(segments)-1], "/")
 	fileName := segments[len(segments)-1]
-
-	directoryName := strings.TrimPrefix(path, shareName)
-	directoryName = strings.TrimPrefix(directoryName, "/")
-	directoryName = strings.TrimSuffix(directoryName, fileName)
-	directoryName = strings.TrimSuffix(directoryName, "/")
-	return &ResourceID{
-		AccountName:   *accountName,
+	return &FileId{
+		AccountId:     *account,
 		ShareName:     shareName,
-		DirectoryName: directoryName,
+		DirectoryPath: directoryPath,
 		FileName:      fileName,
 	}, nil
 }

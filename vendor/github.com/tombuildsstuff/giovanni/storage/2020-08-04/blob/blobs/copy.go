@@ -2,13 +2,12 @@ package blobs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
@@ -106,130 +105,126 @@ type CopyInput struct {
 	SourceIfUnmodifiedSince *string
 }
 
-type CopyResult struct {
-	autorest.Response
+type CopyResponse struct {
+	HttpResponse *client.Response
 
 	CopyID     string
 	CopyStatus string
 }
 
 // Copy copies a blob to a destination within the storage account asynchronously.
-func (client Client) Copy(ctx context.Context, accountName, containerName, blobName string, input CopyInput) (result CopyResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "Copy", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Copy(ctx context.Context, containerName, blobName string, input CopyInput) (resp CopyResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "Copy", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "Copy", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "Copy", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
+
 	if input.CopySource == "" {
-		return result, validation.NewError("blobs.Client", "Copy", "`input.CopySource` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.CopySource` cannot be an empty string")
 	}
 
-	req, err := client.CopyPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusAccepted,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: copyOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Copy", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.CopySender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Copy", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.CopyResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Copy", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.CopyID = resp.HttpResponse.Header.Get("x-ms-copy-id")
+			resp.CopyStatus = resp.HttpResponse.Header.Get("x-ms-copy-status")
+		}
 	}
 
 	return
 }
 
-// CopyPreparer prepares the Copy request.
-func (client Client) CopyPreparer(ctx context.Context, accountName, containerName, blobName string, input CopyInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version":     APIVersion,
-		"x-ms-copy-source": autorest.Encode("header", input.CopySource),
-	}
-
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-	if input.SourceLeaseID != nil {
-		headers["x-ms-source-lease-id"] = *input.SourceLeaseID
-	}
-	if input.AccessTier != nil {
-		headers["x-ms-access-tier"] = string(*input.AccessTier)
-	}
-
-	if input.IfMatch != nil {
-		headers["If-Match"] = *input.IfMatch
-	}
-	if input.IfNoneMatch != nil {
-		headers["If-None-Match"] = *input.IfNoneMatch
-	}
-	if input.IfUnmodifiedSince != nil {
-		headers["If-Unmodified-Since"] = *input.IfUnmodifiedSince
-	}
-	if input.IfModifiedSince != nil {
-		headers["If-Modified-Since"] = *input.IfModifiedSince
-	}
-
-	if input.SourceIfMatch != nil {
-		headers["x-ms-source-if-match"] = *input.SourceIfMatch
-	}
-	if input.SourceIfNoneMatch != nil {
-		headers["x-ms-source-if-none-match"] = *input.SourceIfNoneMatch
-	}
-	if input.SourceIfModifiedSince != nil {
-		headers["x-ms-source-if-modified-since"] = *input.SourceIfModifiedSince
-	}
-	if input.SourceIfUnmodifiedSince != nil {
-		headers["x-ms-source-if-unmodified-since"] = *input.SourceIfUnmodifiedSince
-	}
-
-	headers = metadata.SetIntoHeaders(headers, input.MetaData)
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type copyOptions struct {
+	input CopyInput
 }
 
-// CopySender sends the Copy request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) CopySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
+func (c copyOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	headers.Append("x-ms-copy-source", c.input.CopySource)
 
-// CopyResponder handles the response to the Copy request. The method always
-// closes the http.Response Body.
-func (client Client) CopyResponder(resp *http.Response) (result CopyResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.CopyID = resp.Header.Get("x-ms-copy-id")
+	if c.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *c.input.LeaseID)
 	}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusAccepted),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
+	if c.input.SourceLeaseID != nil {
+		headers.Append("x-ms-source-lease-id", *c.input.SourceLeaseID)
+	}
+
+	if c.input.AccessTier != nil {
+		headers.Append("x-ms-access-tier", string(*c.input.AccessTier))
+	}
+
+	if c.input.IfMatch != nil {
+		headers.Append("If-Match", *c.input.IfMatch)
+	}
+
+	if c.input.IfNoneMatch != nil {
+		headers.Append("If-None-Match", *c.input.IfNoneMatch)
+	}
+
+	if c.input.IfUnmodifiedSince != nil {
+		headers.Append("If-Unmodified-Since", *c.input.IfUnmodifiedSince)
+	}
+
+	if c.input.IfModifiedSince != nil {
+		headers.Append("If-Modified-Since", *c.input.IfModifiedSince)
+	}
+
+	if c.input.SourceIfMatch != nil {
+		headers.Append("x-ms-source-if-match", *c.input.SourceIfMatch)
+	}
+
+	if c.input.SourceIfNoneMatch != nil {
+		headers.Append("x-ms-source-if-none-match", *c.input.SourceIfNoneMatch)
+	}
+
+	if c.input.SourceIfModifiedSince != nil {
+		headers.Append("x-ms-source-if-modified-since", *c.input.SourceIfModifiedSince)
+	}
+
+	if c.input.SourceIfUnmodifiedSince != nil {
+		headers.Append("x-ms-source-if-unmodified-since", *c.input.SourceIfUnmodifiedSince)
+	}
+
+	headers.Merge(metadata.SetMetaDataHeaders(c.input.MetaData))
+
+	return headers
+}
+
+func (c copyOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (c copyOptions) ToQuery() *client.QueryParams {
+	return nil
 }

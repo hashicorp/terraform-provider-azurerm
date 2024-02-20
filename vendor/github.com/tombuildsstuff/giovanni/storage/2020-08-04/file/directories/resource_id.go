@@ -5,52 +5,76 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 )
 
-// GetResourceID returns the Resource ID for the given Directory
-// This can be useful when, for example, you're using this as a unique identifier
-func (client Client) GetResourceID(accountName, shareName, directoryName string) string {
-	domain := endpoints.GetFileEndpoint(client.BaseURI, accountName)
-	return fmt.Sprintf("%s/%s/%s", domain, shareName, directoryName)
+// TODO: update this to implement `resourceids.ResourceId` once
+// https://github.com/hashicorp/go-azure-helpers/issues/187 is fixed
+var _ resourceids.Id = DirectoryId{}
+
+type DirectoryId struct {
+	// AccountId specifies the ID of the Storage Account where this Directory exists.
+	AccountId accounts.AccountId
+
+	// ShareName specifies the name of the File Share containing this Directory.
+	ShareName string
+
+	// DirectoryPath specifies the path representing this Directory.
+	DirectoryPath string
 }
 
-type ResourceID struct {
-	AccountName   string
-	DirectoryName string
-	ShareName     string
+func NewDirectoryID(accountId accounts.AccountId, shareName, directoryPath string) DirectoryId {
+	return DirectoryId{
+		AccountId:     accountId,
+		ShareName:     shareName,
+		DirectoryPath: directoryPath,
+	}
 }
 
-// ParseResourceID parses the Resource ID into an Object
-// which can be used to interact with the Directory within the File Share
-func ParseResourceID(id string) (*ResourceID, error) {
-	// example: https://foo.file.core.windows.net/Bar/Folder
-	if id == "" {
-		return nil, fmt.Errorf("`id` was empty")
+func (b DirectoryId) ID() string {
+	return fmt.Sprintf("%s/%s/%s", b.AccountId.ID(), b.ShareName, b.DirectoryPath)
+}
+
+func (b DirectoryId) String() string {
+	components := []string{
+		fmt.Sprintf("Share Name %q", b.ShareName),
+		fmt.Sprintf("Account %q", b.AccountId.String()),
+	}
+	return fmt.Sprintf("Directory Path %q (%s)", b.DirectoryPath, strings.Join(components, " / "))
+}
+
+// ParseDirectoryID parses `input` into a Directory ID using a known `domainSuffix`
+func ParseDirectoryID(input, domainSuffix string) (*DirectoryId, error) {
+	// example: https://foo.file.core.windows.net/Bar/some/directory
+	if input == "" {
+		return nil, fmt.Errorf("`input` was empty")
 	}
 
-	uri, err := url.Parse(id)
+	account, err := accounts.ParseAccountID(input, domainSuffix)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing ID as a URL: %s", err)
+		return nil, fmt.Errorf("parsing account %q: %+v", input, err)
 	}
 
-	accountName, err := endpoints.GetAccountNameFromEndpoint(uri.Host)
+	if account.SubDomainType != accounts.FileSubDomainType {
+		return nil, fmt.Errorf("expected the subdomain type to be %q but got %q", string(accounts.FileSubDomainType), string(account.SubDomainType))
+	}
+
+	uri, err := url.Parse(input)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing Account Name: %s", err)
+		return nil, fmt.Errorf("parsing %q as a uri: %+v", input, err)
 	}
 
 	path := strings.TrimPrefix(uri.Path, "/")
 	segments := strings.Split(path, "/")
-	if len(segments) == 0 {
-		return nil, fmt.Errorf("Expected the path to contain segments but got none")
+	if len(segments) < 2 {
+		return nil, fmt.Errorf("expected the path to contain at least 2 segments but got %d", len(segments))
 	}
-
 	shareName := segments[0]
-	directoryName := strings.TrimPrefix(path, shareName)
-	directoryName = strings.TrimPrefix(directoryName, "/")
-	return &ResourceID{
-		AccountName:   *accountName,
+	directoryPath := strings.Join(segments[1:], "/")
+	return &DirectoryId{
+		AccountId:     *account,
 		ShareName:     shareName,
-		DirectoryName: directoryName,
+		DirectoryPath: directoryPath,
 	}, nil
 }

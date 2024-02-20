@@ -5,49 +5,77 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 )
-
-// GetResourceID returns the Resource ID for the given Container
-// This can be useful when, for example, you're using this as a unique identifier
-func (client Client) GetResourceID(accountName, containerName string) string {
-	domain := endpoints.GetBlobEndpoint(client.BaseURI, accountName)
-	return fmt.Sprintf("%s/%s", domain, containerName)
-}
 
 // GetResourceManagerResourceID returns the Resource Manager specific
 // ResourceID for a specific Storage Container
-func (client Client) GetResourceManagerResourceID(subscriptionID, resourceGroup, accountName, containerName string) string {
+func (c Client) GetResourceManagerResourceID(subscriptionID, resourceGroup, accountName, containerName string) string {
 	fmtStr := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/default/containers/%s"
 	return fmt.Sprintf(fmtStr, subscriptionID, resourceGroup, accountName, containerName)
 }
 
-type ResourceID struct {
-	AccountName   string
+// TODO: update this to implement `resourceids.ResourceId` once
+// https://github.com/hashicorp/go-azure-helpers/issues/187 is fixed
+var _ resourceids.Id = ContainerId{}
+
+type ContainerId struct {
+	// AccountId specifies the ID of the Storage Account where this Container exists.
+	AccountId accounts.AccountId
+
+	// ContainerName specifies the name of this Container.
 	ContainerName string
 }
 
-// ParseResourceID parses the Resource ID and returns an object which can be used
-// to interact with the Container Resource
-func ParseResourceID(id string) (*ResourceID, error) {
+func NewContainerID(accountId accounts.AccountId, containerName string) ContainerId {
+	return ContainerId{
+		AccountId:     accountId,
+		ContainerName: containerName,
+	}
+}
+
+func (b ContainerId) ID() string {
+	return fmt.Sprintf("%s/%s", b.AccountId.ID(), b.ContainerName)
+}
+
+func (b ContainerId) String() string {
+	components := []string{
+		fmt.Sprintf("Account %q", b.AccountId.String()),
+	}
+	return fmt.Sprintf("Container %q (%s)", b.ContainerName, strings.Join(components, " / "))
+}
+
+// ParseContainerID parses `input` into a Container ID using a known `domainSuffix`
+func ParseContainerID(input, domainSuffix string) (*ContainerId, error) {
 	// example: https://foo.blob.core.windows.net/Bar
-	if id == "" {
-		return nil, fmt.Errorf("`id` was empty")
+	if input == "" {
+		return nil, fmt.Errorf("`input` was empty")
 	}
 
-	uri, err := url.Parse(id)
+	account, err := accounts.ParseAccountID(input, domainSuffix)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing ID as a URL: %s", err)
+		return nil, fmt.Errorf("parsing account %q: %+v", input, err)
 	}
 
-	accountName, err := endpoints.GetAccountNameFromEndpoint(uri.Host)
+	if account.SubDomainType != accounts.BlobSubDomainType {
+		return nil, fmt.Errorf("expected the subdomain type to be %q but got %q", string(accounts.BlobSubDomainType), string(account.SubDomainType))
+	}
+
+	uri, err := url.Parse(input)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing Account Name: %s", err)
+		return nil, fmt.Errorf("parsing %q as a uri: %+v", input, err)
+	}
+
+	path := strings.TrimPrefix(uri.Path, "/")
+	segments := strings.Split(path, "/")
+	if len(segments) != 1 {
+		return nil, fmt.Errorf("expected the path to contain 1 segment but got %d", len(segments))
 	}
 
 	containerName := strings.TrimPrefix(uri.Path, "/")
-	return &ResourceID{
-		AccountName:   *accountName,
+	return &ContainerId{
+		AccountId:     *account,
 		ContainerName: containerName,
 	}, nil
 }

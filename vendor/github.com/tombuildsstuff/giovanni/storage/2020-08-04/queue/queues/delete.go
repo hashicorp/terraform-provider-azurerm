@@ -2,84 +2,49 @@ package queues
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 )
 
+type DeleteResponse struct {
+	HttpResponse *client.Response
+}
+
 // Delete deletes the specified Queue within the specified Storage Account
-func (client Client) Delete(ctx context.Context, accountName, queueName string) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("queues.Client", "Delete", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Delete(ctx context.Context, queueName string) (resp DeleteResponse, err error) {
+
 	if queueName == "" {
-		return result, validation.NewError("queues.Client", "Delete", "`queueName` cannot be an empty string.")
+		return resp, fmt.Errorf("`queueName` cannot be an empty string")
 	}
+
 	if strings.ToLower(queueName) != queueName {
-		return result, validation.NewError("queues.Client", "Delete", "`queueName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`queueName` must be a lower-cased string")
 	}
 
-	req, err := client.DeletePreparer(ctx, accountName, queueName)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
+		},
+		HttpMethod:    http.MethodDelete,
+		OptionsObject: nil,
+		Path:          fmt.Sprintf("/%s", queueName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "queues.Client", "Delete", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "queues.Client", "Delete", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "queues.Client", "Delete", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// DeletePreparer prepares the Delete request.
-func (client Client) DeletePreparer(ctx context.Context, accountName string, queueName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"queueName": autorest.Encode("path", queueName),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsDelete(),
-		autorest.WithBaseURL(endpoints.GetQueueEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{queueName}", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// DeleteSender sends the Delete request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// DeleteResponder handles the response to the Delete request. The method always
-// closes the http.Response Body.
-func (client Client) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusNoContent),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
 
 	return
 }

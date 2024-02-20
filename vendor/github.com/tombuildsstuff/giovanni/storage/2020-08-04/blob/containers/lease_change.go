@@ -2,12 +2,11 @@ package containers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type ChangeLeaseInput struct {
@@ -16,96 +15,81 @@ type ChangeLeaseInput struct {
 }
 
 type ChangeLeaseResponse struct {
-	autorest.Response
+	HttpResponse *client.Response
+	Model        *ChangeLeaseModel
+}
 
+type ChangeLeaseModel struct {
 	LeaseID string
 }
 
 // ChangeLease changes the lock from one Lease ID to another Lease ID
-func (client Client) ChangeLease(ctx context.Context, accountName, containerName string, input ChangeLeaseInput) (result ChangeLeaseResponse, err error) {
-	if accountName == "" {
-		return result, validation.NewError("containers.Client", "ChangeLease", "`accountName` cannot be an empty string.")
-	}
+func (c Client) ChangeLease(ctx context.Context, containerName string, input ChangeLeaseInput) (resp ChangeLeaseResponse, err error) {
 	if containerName == "" {
-		return result, validation.NewError("containers.Client", "ChangeLease", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
 	if input.ExistingLeaseID == "" {
-		return result, validation.NewError("containers.Client", "ChangeLease", "`input.ExistingLeaseID` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.ExistingLeaseID` cannot be an empty string")
 	}
 	if input.ProposedLeaseID == "" {
-		return result, validation.NewError("containers.Client", "ChangeLease", "`input.ProposedLeaseID` cannot be an empty string.")
+		return resp, fmt.Errorf("`input.ProposedLeaseID` cannot be an empty string")
 	}
 
-	req, err := client.ChangeLeasePreparer(ctx, accountName, containerName, input)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: changeLeaseOptions{
+			existingLeaseId: input.ExistingLeaseID,
+			proposedLeaseId: input.ProposedLeaseID,
+		},
+		Path: fmt.Sprintf("/%s", containerName),
+	}
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "ChangeLease", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
+		return
+	}
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	resp, err := client.ChangeLeaseSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containers.Client", "ChangeLease", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ChangeLeaseResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "ChangeLease", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		resp.Model = &ChangeLeaseModel{
+			LeaseID: resp.HttpResponse.Header.Get("x-ms-lease-id"),
+		}
 	}
 
 	return
 }
 
-// ChangeLeasePreparer prepares the ChangeLease request.
-func (client Client) ChangeLeasePreparer(ctx context.Context, accountName string, containerName string, input ChangeLeaseInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-	}
+var _ client.Options = changeLeaseOptions{}
 
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("path", "container"),
-		"comp":    autorest.Encode("path", "lease"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version":           APIVersion,
-		"x-ms-lease-action":      "change",
-		"x-ms-lease-id":          input.ExistingLeaseID,
-		"x-ms-proposed-lease-id": input.ProposedLeaseID,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type changeLeaseOptions struct {
+	existingLeaseId string
+	proposedLeaseId string
 }
 
-// ChangeLeaseSender sends the ChangeLease request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) ChangeLeaseSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (o changeLeaseOptions) ToHeaders() *client.Headers {
+	headers := containerOptions{}.ToHeaders()
+
+	headers.Append("x-ms-lease-action", "change")
+	headers.Append("x-ms-lease-id", o.existingLeaseId)
+	headers.Append("x-ms-proposed-lease-id", o.proposedLeaseId)
+
+	return headers
 }
 
-// ChangeLeaseResponder handles the response to the ChangeLease request. The method always
-// closes the http.Response Body.
-func (client Client) ChangeLeaseResponder(resp *http.Response) (result ChangeLeaseResponse, err error) {
-	if resp != nil {
-		result.LeaseID = resp.Header.Get("x-ms-lease-id")
-	}
+func (o changeLeaseOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-
-	return
+func (o changeLeaseOptions) ToQuery() *client.QueryParams {
+	query := containerOptions{}.ToQuery()
+	query.Append("comp", "lease")
+	return query
 }

@@ -15,9 +15,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
-	
-	"github.com/Azure/go-autorest/autorest"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues"
 )
 
@@ -25,16 +24,27 @@ func Example() error {
 	accountName := "storageaccount1"
     storageAccountKey := "ABC123...."
     queueName := "myqueue"
-    
-    storageAuth := autorest.NewSharedKeyLiteAuthorizer(accountName, storageAccountKey)
-    queuesClient := queues.New()
-    queuesClient.Client.Authorizer = storageAuth
+	domainSuffix := "core.windows.net"
+
+	auth, err := auth.NewSharedKeyAuthorizer(accountName, storageAccountKey, auth.SharedKey)
+	if err != nil {
+		return fmt.Errorf("building SharedKey authorizer: %+v", err)
+	}
+	
+    queuesClient, err := queues.NewWithBaseUri(fmt.Sprintf("https://%s.queue.%s", accountName, domainSuffix))
+	if err != nil {
+		return fmt.Errorf("building client for environment: %+v", err)
+	}
+    queuesClient.Client.SetAuthorizer(auth)
     
     ctx := context.TODO()
     metadata := map[string]string{
     	"hello": "world",
     }
-    if _, err := queuesClient.Create(ctx, accountName, queueName, metadata); err != nil {
+	input := queues.CreateInput{
+		Metadata: metadata,
+    }
+    if _, err := queuesClient.Create(ctx, queueName, input); err != nil {
         return fmt.Errorf("Error creating Queue: %s", err)
     }
     

@@ -2,99 +2,85 @@ package containers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
-// SetAccessControl sets the Access Control for a Container without a Lease ID
-func (client Client) SetAccessControl(ctx context.Context, accountName, containerName string, level AccessLevel) (autorest.Response, error) {
-	return client.SetAccessControlWithLeaseID(ctx, accountName, containerName, "", level)
+type SetAccessControlInput struct {
+	AccessLevel AccessLevel
+	LeaseId     string
 }
 
-// SetAccessControlWithLeaseID sets the Access Control for a Container using the specified Lease ID
-func (client Client) SetAccessControlWithLeaseID(ctx context.Context, accountName, containerName, leaseID string, level AccessLevel) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("containers.Client", "SetAccessControl", "`accountName` cannot be an empty string.")
-	}
+type SetAccessControlResponse struct {
+	HttpResponse *client.Response
+}
+
+// SetAccessControl sets the Access Control for a Container without a Lease ID
+// NOTE: The SetAccessControl operation only supports Shared Key authorization.
+func (c Client) SetAccessControl(ctx context.Context, containerName string, input SetAccessControlInput) (resp SetAccessControlResponse, err error) {
 	if containerName == "" {
-		return result, validation.NewError("containers.Client", "SetAccessControl", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
 
-	req, err := client.SetAccessControlWithLeaseIDPreparer(ctx, accountName, containerName, leaseID, level)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: setAccessControlListOptions{
+			accessLevel: input.AccessLevel,
+			leaseId:     input.LeaseId,
+		},
+		Path: fmt.Sprintf("/%s", containerName),
+	}
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "SetAccessControl", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
-
-	resp, err := client.SetAccessControlWithLeaseIDSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containers.Client", "SetAccessControl", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.SetAccessControlWithLeaseIDResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "SetAccessControl", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// SetAccessControlWithLeaseIDPreparer prepares the SetAccessControlWithLeaseID request.
-func (client Client) SetAccessControlWithLeaseIDPreparer(ctx context.Context, accountName, containerName, leaseID string, level AccessLevel) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-	}
+var _ client.Options = setAccessControlListOptions{}
 
-	queryParameters := map[string]interface{}{
-		"comp":    autorest.Encode("path", "acl"),
-		"restype": autorest.Encode("path", "container"),
-	}
+type setAccessControlListOptions struct {
+	accessLevel AccessLevel
+	leaseId     string
+}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
+func (o setAccessControlListOptions) ToHeaders() *client.Headers {
+	headers := containerOptions{}.ToHeaders()
 
-	headers = client.setAccessLevelIntoHeaders(headers, level)
+	// If this header is not included in the request, container data is private to the account owner.
+	if o.accessLevel != Private {
+		headers.Append("x-ms-blob-public-access", string(o.accessLevel))
+	}
 
 	// If specified, Get Container Properties only succeeds if the container’s lease is active and matches this ID.
 	// If there is no active lease or the ID does not match, 412 (Precondition Failed) is returned.
-	if leaseID != "" {
-		headers["x-ms-lease-id"] = leaseID
+	if o.leaseId != "" {
+		headers.Append("x-ms-lease-id", o.leaseId)
 	}
 
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+	return headers
 }
 
-// SetAccessControlWithLeaseIDSender sends the SetAccessControlWithLeaseID request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetAccessControlWithLeaseIDSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (o setAccessControlListOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// SetAccessControlWithLeaseIDResponder handles the response to the SetAccessControlWithLeaseID request. The method always
-// closes the http.Response Body.
-func (client Client) SetAccessControlWithLeaseIDResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-
-	return
+func (o setAccessControlListOptions) ToQuery() *client.QueryParams {
+	query := containerOptions{}.ToQuery()
+	query.Append("comp", "acl")
+	return query
 }

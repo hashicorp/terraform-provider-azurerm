@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type InsertEntityInput struct {
@@ -29,84 +27,74 @@ type InsertEntityInput struct {
 	PartitionKey string
 }
 
-// Insert inserts a new entity into a table.
-func (client Client) Insert(ctx context.Context, accountName, tableName string, input InsertEntityInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("entities.Client", "Insert", "`accountName` cannot be an empty string.")
-	}
-	if tableName == "" {
-		return result, validation.NewError("entities.Client", "Insert", "`tableName` cannot be an empty string.")
-	}
-	if input.PartitionKey == "" {
-		return result, validation.NewError("entities.Client", "Insert", "`input.PartitionKey` cannot be an empty string.")
-	}
-	if input.RowKey == "" {
-		return result, validation.NewError("entities.Client", "Insert", "`input.RowKey` cannot be an empty string.")
-	}
-
-	req, err := client.InsertPreparer(ctx, accountName, tableName, input)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "entities.Client", "Insert", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.InsertSender(req)
-	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "entities.Client", "Insert", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.InsertResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "entities.Client", "Insert", resp, "Failure responding to request")
-		return
-	}
-
-	return
+type InsertResponse struct {
+	HttpResponse *client.Response
 }
 
-// InsertPreparer prepares the Insert request.
-func (client Client) InsertPreparer(ctx context.Context, accountName, tableName string, input InsertEntityInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"tableName": autorest.Encode("path", tableName),
+// Insert inserts a new entity into a table.
+func (c Client) Insert(ctx context.Context, tableName string, input InsertEntityInput) (resp InsertResponse, err error) {
+	if tableName == "" {
+		return resp, fmt.Errorf("`tableName` cannot be an empty string")
 	}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-		"Accept":       fmt.Sprintf("application/json;odata=%s", input.MetaDataLevel),
-		"Prefer":       "return-no-content",
+	if input.PartitionKey == "" {
+		return resp, fmt.Errorf("`input.PartitionKey` cannot be an empty string")
+	}
+
+	if input.RowKey == "" {
+		return resp, fmt.Errorf("`input.RowKey` cannot be an empty string")
+	}
+
+	opts := client.RequestOptions{
+		ContentType: "application/json",
+		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
+		},
+		HttpMethod: http.MethodPost,
+		OptionsObject: insertOptions{
+			MetaDataLevel: input.MetaDataLevel,
+		},
+		Path: fmt.Sprintf("/%s", tableName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
+	if err != nil {
+		err = fmt.Errorf("building request: %+v", err)
+		return
 	}
 
 	input.Entity["PartitionKey"] = input.PartitionKey
 	input.Entity["RowKey"] = input.RowKey
 
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(endpoints.GetTableEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{tableName}", pathParameters),
-		autorest.WithJSON(input.Entity),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
+	err = req.Marshal(&input.Entity)
+	if err != nil {
+		return resp, fmt.Errorf("marshalling request: %v", err)
+	}
 
-// InsertSender sends the Insert request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) InsertSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// InsertResponder handles the response to the Insert request. The method always
-// closes the http.Response Body.
-func (client Client) InsertResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusNoContent),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
+		return
+	}
 
 	return
+}
+
+type insertOptions struct {
+	MetaDataLevel MetaDataLevel
+}
+
+func (i insertOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	headers.Append("Accept", fmt.Sprintf("application/json;odata=%s", i.MetaDataLevel))
+	headers.Append("Prefer", "return-no-content")
+	return headers
+}
+
+func (i insertOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (i insertOptions) ToQuery() *client.QueryParams {
+	return nil
 }

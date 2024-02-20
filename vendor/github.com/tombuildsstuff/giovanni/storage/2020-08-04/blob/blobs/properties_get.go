@@ -7,10 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
@@ -20,8 +18,8 @@ type GetPropertiesInput struct {
 	LeaseID *string
 }
 
-type GetPropertiesResult struct {
-	autorest.Response
+type GetPropertiesResponse struct {
+	HttpResponse *client.Response
 
 	// The tier of page blob on a premium storage account or tier of block blob on blob storage or general purpose v2 account.
 	AccessTier AccessTier
@@ -163,148 +161,127 @@ type GetPropertiesResult struct {
 }
 
 // GetProperties returns all user-defined metadata, standard HTTP properties, and system properties for the blob
-func (client Client) GetProperties(ctx context.Context, accountName, containerName, blobName string, input GetPropertiesInput) (result GetPropertiesResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "GetProperties", "`accountName` cannot be an empty string.")
-	}
+func (c Client) GetProperties(ctx context.Context, containerName, blobName string, input GetPropertiesInput) (resp GetPropertiesResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "GetProperties", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "GetProperties", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "GetProperties", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
 
-	req, err := client.GetPropertiesPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodHead,
+		OptionsObject: getPropertiesOptions{
+			leaseID: input.LeaseID,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetProperties", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.GetPropertiesSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetProperties", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.GetPropertiesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "GetProperties", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.AccessTier = AccessTier(resp.HttpResponse.Header.Get("x-ms-access-tier"))
+			resp.AccessTierChangeTime = resp.HttpResponse.Header.Get("x-ms-access-tier-change-time")
+			resp.ArchiveStatus = ArchiveStatus(resp.HttpResponse.Header.Get("x-ms-archive-status"))
+			resp.BlobCommittedBlockCount = resp.HttpResponse.Header.Get("x-ms-blob-committed-block-count")
+			resp.BlobSequenceNumber = resp.HttpResponse.Header.Get("x-ms-blob-sequence-number")
+			resp.BlobType = BlobType(resp.HttpResponse.Header.Get("x-ms-blob-type"))
+			resp.CacheControl = resp.HttpResponse.Header.Get("Cache-Control")
+			resp.ContentDisposition = resp.HttpResponse.Header.Get("Content-Disposition")
+			resp.ContentEncoding = resp.HttpResponse.Header.Get("Content-Encoding")
+			resp.ContentLanguage = resp.HttpResponse.Header.Get("Content-Language")
+			resp.ContentMD5 = resp.HttpResponse.Header.Get("Content-MD5")
+			resp.ContentType = resp.HttpResponse.Header.Get("Content-Type")
+			resp.CopyCompletionTime = resp.HttpResponse.Header.Get("x-ms-copy-completion-time")
+			resp.CopyDestinationSnapshot = resp.HttpResponse.Header.Get("x-ms-copy-destination-snapshot")
+			resp.CopyID = resp.HttpResponse.Header.Get("x-ms-copy-id")
+			resp.CopyProgress = resp.HttpResponse.Header.Get("x-ms-copy-progress")
+			resp.CopySource = resp.HttpResponse.Header.Get("x-ms-copy-source")
+			resp.CopyStatus = CopyStatus(resp.HttpResponse.Header.Get("x-ms-copy-status"))
+			resp.CopyStatusDescription = resp.HttpResponse.Header.Get("x-ms-copy-status-description")
+			resp.CreationTime = resp.HttpResponse.Header.Get("x-ms-creation-time")
+			resp.ETag = resp.HttpResponse.Header.Get("Etag")
+			resp.LastModified = resp.HttpResponse.Header.Get("Last-Modified")
+			resp.LeaseDuration = LeaseDuration(resp.HttpResponse.Header.Get("x-ms-lease-duration"))
+			resp.LeaseState = LeaseState(resp.HttpResponse.Header.Get("x-ms-lease-state"))
+			resp.LeaseStatus = LeaseStatus(resp.HttpResponse.Header.Get("x-ms-lease-status"))
+			resp.MetaData = metadata.ParseFromHeaders(resp.HttpResponse.Header)
+
+			if v := resp.HttpResponse.Header.Get("x-ms-access-tier-inferred"); v != "" {
+				b, innerErr := strconv.ParseBool(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as a bool: %s", v, innerErr)
+					return
+				}
+				resp.AccessTierInferred = b
+			}
+
+			if v := resp.HttpResponse.Header.Get("Content-Length"); v != "" {
+				i, innerErr := strconv.Atoi(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as an integer: %s", v, innerErr)
+				}
+				resp.ContentLength = int64(i)
+			}
+
+			if v := resp.HttpResponse.Header.Get("x-ms-incremental-copy"); v != "" {
+				b, innerErr := strconv.ParseBool(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as a bool: %s", v, innerErr)
+					return
+				}
+				resp.IncrementalCopy = b
+			}
+
+			if v := resp.HttpResponse.Header.Get("x-ms-server-encrypted"); v != "" {
+				b, innerErr := strconv.ParseBool(v)
+				if innerErr != nil {
+					err = fmt.Errorf("error parsing %q as a bool: %s", v, innerErr)
+					return
+				}
+				resp.ServerEncrypted = b
+			}
+		}
 	}
 
 	return
 }
 
-// GetPropertiesPreparer prepares the GetProperties request.
-func (client Client) GetPropertiesPreparer(ctx context.Context, accountName, containerName, blobName string, input GetPropertiesInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsHead(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type getPropertiesOptions struct {
+	leaseID *string
 }
 
-// GetPropertiesSender sends the GetProperties request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) GetPropertiesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (g getPropertiesOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+
+	if g.leaseID != nil {
+		headers.Append("x-ms-lease-id", *g.leaseID)
+	}
+	return headers
 }
 
-// GetPropertiesResponder handles the response to the GetProperties request. The method always
-// closes the http.Response Body.
-func (client Client) GetPropertiesResponder(resp *http.Response) (result GetPropertiesResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.AccessTier = AccessTier(resp.Header.Get("x-ms-access-tier"))
-		result.AccessTierChangeTime = resp.Header.Get(" x-ms-access-tier-change-time")
-		result.ArchiveStatus = ArchiveStatus(resp.Header.Get(" x-ms-archive-status"))
-		result.BlobCommittedBlockCount = resp.Header.Get("x-ms-blob-committed-block-count")
-		result.BlobSequenceNumber = resp.Header.Get("x-ms-blob-sequence-number")
-		result.BlobType = BlobType(resp.Header.Get("x-ms-blob-type"))
-		result.CacheControl = resp.Header.Get("Cache-Control")
-		result.ContentDisposition = resp.Header.Get("Content-Disposition")
-		result.ContentEncoding = resp.Header.Get("Content-Encoding")
-		result.ContentLanguage = resp.Header.Get("Content-Language")
-		result.ContentMD5 = resp.Header.Get("Content-MD5")
-		result.ContentType = resp.Header.Get("Content-Type")
-		result.CopyCompletionTime = resp.Header.Get("x-ms-copy-completion-time")
-		result.CopyDestinationSnapshot = resp.Header.Get("x-ms-copy-destination-snapshot")
-		result.CopyID = resp.Header.Get("x-ms-copy-id")
-		result.CopyProgress = resp.Header.Get("x-ms-copy-progress")
-		result.CopySource = resp.Header.Get("x-ms-copy-source")
-		result.CopyStatus = CopyStatus(resp.Header.Get("x-ms-copy-status"))
-		result.CopyStatusDescription = resp.Header.Get("x-ms-copy-status-description")
-		result.CreationTime = resp.Header.Get("x-ms-creation-time")
-		result.ETag = resp.Header.Get("Etag")
-		result.LastModified = resp.Header.Get("Last-Modified")
-		result.LeaseDuration = LeaseDuration(resp.Header.Get("x-ms-lease-duration"))
-		result.LeaseState = LeaseState(resp.Header.Get("x-ms-lease-state"))
-		result.LeaseStatus = LeaseStatus(resp.Header.Get("x-ms-lease-status"))
-		result.MetaData = metadata.ParseFromHeaders(resp.Header)
+func (g getPropertiesOptions) ToOData() *odata.Query {
+	return nil
+}
 
-		if v := resp.Header.Get("x-ms-access-tier-inferred"); v != "" {
-			b, innerErr := strconv.ParseBool(v)
-			if innerErr != nil {
-				err = fmt.Errorf("Error parsing %q as a bool: %s", v, innerErr)
-				return
-			}
-
-			result.AccessTierInferred = b
-		}
-
-		if v := resp.Header.Get("Content-Length"); v != "" {
-			i, innerErr := strconv.Atoi(v)
-			if innerErr != nil {
-				err = fmt.Errorf("Error parsing %q as an integer: %s", v, innerErr)
-			}
-
-			result.ContentLength = int64(i)
-		}
-
-		if v := resp.Header.Get("x-ms-incremental-copy"); v != "" {
-			b, innerErr := strconv.ParseBool(v)
-			if innerErr != nil {
-				err = fmt.Errorf("Error parsing %q as a bool: %s", v, innerErr)
-				return
-			}
-
-			result.IncrementalCopy = b
-		}
-
-		if v := resp.Header.Get("x-ms-server-encrypted"); v != "" {
-			b, innerErr := strconv.ParseBool(v)
-			if innerErr != nil {
-				err = fmt.Errorf("Error parsing %q as a bool: %s", v, innerErr)
-				return
-			}
-
-			result.IncrementalCopy = b
-		}
-	}
-
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
+func (g getPropertiesOptions) ToQuery() *client.QueryParams {
+	return nil
 }

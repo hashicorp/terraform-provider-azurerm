@@ -15,67 +15,37 @@ import (
 	"context"
 	"fmt"
 	"os"
-    "time"
 	
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/adal"
-    "github.com/Azure/go-autorest/autorest/azure"
     "github.com/hashicorp/go-azure-helpers/authentication"
     "github.com/hashicorp/go-azure-helpers/sender"
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
     "github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/filesystems"
 )
 
 func Example() error {
 	accountName := "storageaccount1"
     fileSystemName := "filesystem1"
+	storageAccountKey := "ABC123...."
+	domainSuffix := "core.windows.net"
+	
 
-    builder := &authentication.Builder{
-        SubscriptionID: os.Getenv("ARM_SUBSCRIPTION_ID"),
-        ClientID:       os.Getenv("ARM_CLIENT_ID"),
-        ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
-        TenantID:       os.Getenv("ARM_TENANT_ID"),
-        Environment:    os.Getenv("ARM_ENVIRONMENT"),
-
-        // Feature Toggles
-        SupportsClientSecretAuth: true,
-    }
-
-    c, err := builder.Build()
-    if err != nil {
-        return fmt.Errorf("Error building AzureRM Client: %s", err)
-    }
-
-    env, err := authentication.DetermineEnvironment(c.Environment)
-    if err != nil {
-        return err
-    }
-
-    oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
+	auth, err := auth.NewSharedKeyAuthorizer(accountName, storageAccountKey, auth.SharedKey)
 	if err != nil {
-		return err
+		return fmt.Errorf("building SharedKey authorizer: %+v", err)
 	}
-
-	// OAuthConfigForTenant returns a pointer, which can be nil.
-	if oauthConfig == nil {
-		return fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
-	}
-
-    sender := sender.BuildSender("AzureRM")
-    ctx := context.Background()
-
-    storageAuth, err := config.GetAuthorizationToken(sender, oauthConfig, "https://storage.azure.com/")
+	
+    fileSystemsClient, err := filesystems.NewWithBaseUri(fmt.Sprintf("https://%s.dfs.%s", accountName, domainSuffix))
 	if err != nil {
-		return fmt.Errorf("Error retrieving Authorization Token")
+		return fmt.Errorf("building client for environment: %+v", err)
 	}
-
-   
-    fileSystemsClient := filesystems.NewWithEnvironment(env)
-	fileSystemsClient.Client.Authorizer = storageAuth
+	fileSystemsClient.Client.SetAuthorizer(auth)
 
 	input := filesystems.CreateInput{
 		Properties: map[string]string{},
 	}
-	if _, err = fileSystemsClient.Create(ctx, accountName, fileSystemName, input); err != nil {
+
+	ctx := context.Background()
+	if _, err = fileSystemsClient.Create(ctx, fileSystemName, input); err != nil {
 		return fmt.Errorf("Error creating: %s", err)
 	}
 	

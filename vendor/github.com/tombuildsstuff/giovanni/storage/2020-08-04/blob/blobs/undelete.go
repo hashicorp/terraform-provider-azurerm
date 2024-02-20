@@ -2,91 +2,69 @@ package blobs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
+type UndeleteResponse struct {
+	HttpResponse *client.Response
+}
+
 // Undelete restores the contents and metadata of soft deleted blob and any associated soft deleted snapshots.
-func (client Client) Undelete(ctx context.Context, accountName, containerName, blobName string) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "Undelete", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Undelete(ctx context.Context, containerName, blobName string) (resp UndeleteResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "Undelete", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "Undelete", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "Undelete", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
 
-	req, err := client.UndeletePreparer(ctx, accountName, containerName, blobName)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod:    http.MethodPut,
+		OptionsObject: undeleteOptions{},
+		Path:          fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Undelete", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.UndeleteSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Undelete", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UndeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Undelete", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// UndeletePreparer prepares the Undelete request.
-func (client Client) UndeletePreparer(ctx context.Context, accountName, containerName, blobName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
+type undeleteOptions struct{}
 
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("path", "undelete"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+func (u undeleteOptions) ToHeaders() *client.Headers {
+	return nil
 }
 
-// UndeleteSender sends the Undelete request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) UndeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (u undeleteOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// UndeleteResponder handles the response to the Undelete request. The method always
-// closes the http.Response Body.
-func (client Client) UndeleteResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-	return
+func (u undeleteOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "undelete")
+	return out
 }

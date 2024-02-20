@@ -2,123 +2,100 @@ package containers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
+type GetPropertiesInput struct {
+	LeaseId string
+}
+
+type GetPropertiesResponse struct {
+	HttpResponse *client.Response
+	Model        *ContainerProperties
+}
+
 // GetProperties returns the properties for this Container without a Lease
-func (client Client) GetProperties(ctx context.Context, accountName, containerName string) (ContainerProperties, error) {
-	// If specified, Get Container Properties only succeeds if the container’s lease is active and matches this ID.
-	// If there is no active lease or the ID does not match, 412 (Precondition Failed) is returned.
-	return client.GetPropertiesWithLeaseID(ctx, accountName, containerName, "")
-}
-
-// GetPropertiesWithLeaseID returns the properties for this Container using the specified LeaseID
-func (client Client) GetPropertiesWithLeaseID(ctx context.Context, accountName, containerName, leaseID string) (result ContainerProperties, err error) {
-	if accountName == "" {
-		return result, validation.NewError("containers.Client", "GetPropertiesWithLeaseID", "`accountName` cannot be an empty string.")
-	}
+func (c Client) GetProperties(ctx context.Context, containerName string, input GetPropertiesInput) (resp GetPropertiesResponse, err error) {
 	if containerName == "" {
-		return result, validation.NewError("containers.Client", "GetPropertiesWithLeaseID", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
 
-	req, err := client.GetPropertiesWithLeaseIDPreparer(ctx, accountName, containerName, leaseID)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodGet,
+		OptionsObject: getPropertiesOptions{
+			leaseId: input.LeaseId,
+		},
+		Path: fmt.Sprintf("/%s", containerName),
+	}
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "GetProperties", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
+		return
+	}
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	resp, err := client.GetPropertiesWithLeaseIDSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containers.Client", "GetProperties", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetPropertiesWithLeaseIDResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "GetProperties", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// GetPropertiesWithLeaseIDPreparer prepares the GetPropertiesWithLeaseID request.
-func (client Client) GetPropertiesWithLeaseIDPreparer(ctx context.Context, accountName, containerName, leaseID string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("path", "container"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	// If specified, Get Container Properties only succeeds if the container’s lease is active and matches this ID.
-	// If there is no active lease or the ID does not match, 412 (Precondition Failed) is returned.
-	if leaseID != "" {
-		headers["x-ms-lease-id"] = leaseID
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsGet(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetPropertiesWithLeaseIDSender sends the GetPropertiesWithLeaseID request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) GetPropertiesWithLeaseIDSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetPropertiesWithLeaseIDResponder handles the response to the GetPropertiesWithLeaseID request. The method always
-// closes the http.Response Body.
-func (client Client) GetPropertiesWithLeaseIDResponder(resp *http.Response) (result ContainerProperties, err error) {
-	if resp != nil {
-		result.LeaseStatus = LeaseStatus(resp.Header.Get("x-ms-lease-status"))
-		result.LeaseState = LeaseState(resp.Header.Get("x-ms-lease-state"))
-		if result.LeaseStatus == Locked {
-			duration := LeaseDuration(resp.Header.Get("x-ms-lease-duration"))
-			result.LeaseDuration = &duration
+	if resp.HttpResponse != nil {
+		resp.Model = &ContainerProperties{}
+		resp.Model.LeaseStatus = LeaseStatus(resp.HttpResponse.Header.Get("x-ms-lease-status"))
+		resp.Model.LeaseState = LeaseState(resp.HttpResponse.Header.Get("x-ms-lease-state"))
+		if resp.Model.LeaseStatus == Locked {
+			duration := LeaseDuration(resp.HttpResponse.Header.Get("x-ms-lease-duration"))
+			resp.Model.LeaseDuration = &duration
 		}
 
 		// If this header is not returned in the response, the container is private to the account owner.
-		accessLevel := resp.Header.Get("x-ms-blob-public-access")
+		accessLevel := resp.HttpResponse.Header.Get("x-ms-blob-public-access")
 		if accessLevel != "" {
-			result.AccessLevel = AccessLevel(accessLevel)
+			resp.Model.AccessLevel = AccessLevel(accessLevel)
 		} else {
-			result.AccessLevel = Private
+			resp.Model.AccessLevel = Private
 		}
 
 		// we can't necessarily use strconv.ParseBool here since this could be nil (only in some API versions)
-		result.HasImmutabilityPolicy = strings.EqualFold(resp.Header.Get("x-ms-has-immutability-policy"), "true")
-		result.HasLegalHold = strings.EqualFold(resp.Header.Get("x-ms-has-legal-hold"), "true")
-
-		result.MetaData = metadata.ParseFromHeaders(resp.Header)
+		resp.Model.HasImmutabilityPolicy = strings.EqualFold(resp.HttpResponse.Header.Get("x-ms-has-immutability-policy"), "true")
+		resp.Model.HasLegalHold = strings.EqualFold(resp.HttpResponse.Header.Get("x-ms-has-legal-hold"), "true")
+		resp.Model.MetaData = metadata.ParseFromHeaders(resp.HttpResponse.Header)
 	}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-
 	return
+}
+
+var _ client.Options = getPropertiesOptions{}
+
+type getPropertiesOptions struct {
+	leaseId string
+}
+
+func (o getPropertiesOptions) ToHeaders() *client.Headers {
+	headers := containerOptions{}.ToHeaders()
+
+	// If specified, Get Container Properties only succeeds if the container’s lease is active and matches this ID.
+	// If there is no active lease or the ID does not match, 412 (Precondition Failed) is returned.
+	if o.leaseId != "" {
+		headers.Append("x-ms-lease-id", o.leaseId)
+	}
+
+	return headers
+}
+
+func (getPropertiesOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (getPropertiesOptions) ToQuery() *client.QueryParams {
+	return containerOptions{}.ToQuery()
 }

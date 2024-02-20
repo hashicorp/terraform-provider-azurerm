@@ -7,15 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
-type GetResult struct {
-	autorest.Response
+type GetResponse struct {
+	HttpResponse *client.Response
 
 	CacheControl          string
 	ContentDisposition    string
@@ -36,109 +33,73 @@ type GetResult struct {
 }
 
 // GetProperties returns the Properties for the specified file
-func (client Client) GetProperties(ctx context.Context, accountName, shareName, path, fileName string) (result GetResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("files.Client", "GetProperties", "`accountName` cannot be an empty string.")
-	}
+func (c Client) GetProperties(ctx context.Context, shareName, path, fileName string) (resp GetResponse, err error) {
 	if shareName == "" {
-		return result, validation.NewError("files.Client", "GetProperties", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("files.Client", "GetProperties", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
+
 	if fileName == "" {
-		return result, validation.NewError("files.Client", "GetProperties", "`fileName` cannot be an empty string.")
+		return resp, fmt.Errorf("`fileName` cannot be an empty string")
 	}
 
-	req, err := client.GetPropertiesPreparer(ctx, accountName, shareName, path, fileName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "GetProperties", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetPropertiesSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "files.Client", "GetProperties", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetPropertiesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "GetProperties", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// GetPropertiesPreparer prepares the GetProperties request.
-func (client Client) GetPropertiesPreparer(ctx context.Context, accountName, shareName, path, fileName string) (*http.Request, error) {
 	if path != "" {
-		path = fmt.Sprintf("%s/", path)
-	}
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-		"directory": autorest.Encode("path", path),
-		"fileName":  autorest.Encode("path", fileName),
+		path = fmt.Sprintf("/%s/", path)
 	}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod:    http.MethodHead,
+		OptionsObject: nil,
+		Path:          fmt.Sprintf("%s/%s%s", shareName, path, fileName),
 	}
 
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsHead(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}/{directory}{fileName}", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
+	req, err := c.Client.NewRequest(ctx, opts)
+	if err != nil {
+		err = fmt.Errorf("building request: %+v", err)
+		return
+	}
 
-// GetPropertiesSender sends the GetProperties request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) GetPropertiesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
+		return
+	}
 
-// GetPropertiesResponder handles the response to the GetProperties request. The method always
-// closes the http.Response Body.
-func (client Client) GetPropertiesResponder(resp *http.Response) (result GetResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.CacheControl = resp.Header.Get("Cache-Control")
-		result.ContentDisposition = resp.Header.Get("Content-Disposition")
-		result.ContentEncoding = resp.Header.Get("Content-Encoding")
-		result.ContentLanguage = resp.Header.Get("Content-Language")
-		result.ContentMD5 = resp.Header.Get("Content-MD5")
-		result.ContentType = resp.Header.Get("Content-Type")
-		result.CopyID = resp.Header.Get("x-ms-copy-id")
-		result.CopyProgress = resp.Header.Get("x-ms-copy-progress")
-		result.CopySource = resp.Header.Get("x-ms-copy-source")
-		result.CopyStatus = resp.Header.Get("x-ms-copy-status")
-		result.CopyStatusDescription = resp.Header.Get("x-ms-copy-status-description")
-		result.CopyCompletionTime = resp.Header.Get("x-ms-copy-completion-time")
-		result.Encrypted = strings.EqualFold(resp.Header.Get("x-ms-server-encrypted"), "true")
-		result.MetaData = metadata.ParseFromHeaders(resp.Header)
+	if resp.HttpResponse != nil {
+		if resp.HttpResponse.Header != nil {
+			resp.CacheControl = resp.HttpResponse.Header.Get("Cache-Control")
+			resp.ContentDisposition = resp.HttpResponse.Header.Get("Content-Disposition")
+			resp.ContentEncoding = resp.HttpResponse.Header.Get("Content-Encoding")
+			resp.ContentLanguage = resp.HttpResponse.Header.Get("Content-Language")
+			resp.ContentMD5 = resp.HttpResponse.Header.Get("Content-MD5")
+			resp.ContentType = resp.HttpResponse.Header.Get("Content-Type")
+			resp.CopyID = resp.HttpResponse.Header.Get("x-ms-copy-id")
+			resp.CopyProgress = resp.HttpResponse.Header.Get("x-ms-copy-progress")
+			resp.CopySource = resp.HttpResponse.Header.Get("x-ms-copy-source")
+			resp.CopyStatus = resp.HttpResponse.Header.Get("x-ms-copy-status")
+			resp.CopyStatusDescription = resp.HttpResponse.Header.Get("x-ms-copy-status-description")
+			resp.CopyCompletionTime = resp.HttpResponse.Header.Get("x-ms-copy-completion-time")
+			resp.Encrypted = strings.EqualFold(resp.HttpResponse.Header.Get("x-ms-server-encrypted"), "true")
+			resp.MetaData = metadata.ParseFromHeaders(resp.HttpResponse.Header)
 
-		contentLengthRaw := resp.Header.Get("Content-Length")
-		if contentLengthRaw != "" {
-			contentLength, err := strconv.Atoi(contentLengthRaw)
-			if err != nil {
-				return result, fmt.Errorf("Error parsing %q for Content-Length as an integer: %s", contentLengthRaw, err)
+			contentLengthRaw := resp.HttpResponse.Header.Get("Content-Length")
+			if contentLengthRaw != "" {
+				contentLength, err := strconv.Atoi(contentLengthRaw)
+				if err != nil {
+					return resp, fmt.Errorf("error parsing %q for Content-Length as an integer: %s", contentLengthRaw, err)
+				}
+				contentLengthI64 := int64(contentLength)
+				resp.ContentLength = &contentLengthI64
 			}
-			contentLengthI64 := int64(contentLength)
-			result.ContentLength = &contentLengthI64
 		}
 	}
-
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
 
 	return
 }

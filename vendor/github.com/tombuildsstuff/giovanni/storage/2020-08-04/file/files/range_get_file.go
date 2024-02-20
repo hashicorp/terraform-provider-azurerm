@@ -8,35 +8,46 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 )
 
+type GetFileInput struct {
+	Parallelism int
+}
+
+type GetFileResponse struct {
+	HttpResponse *client.Response
+
+	OutputBytes []byte
+}
+
 // GetFile is a helper method to download a file by chunking it automatically
-func (client Client) GetFile(ctx context.Context, accountName, shareName, path, fileName string, parallelism int) (result autorest.Response, outputBytes []byte, err error) {
+func (c Client) GetFile(ctx context.Context, shareName, path, fileName string, input GetFileInput) (resp GetFileResponse, err error) {
 
 	// first look up the file and check out how many bytes it is
-	file, e := client.GetProperties(ctx, accountName, shareName, path, fileName)
+	file, e := c.GetProperties(ctx, shareName, path, fileName)
 	if err != nil {
-		result = file.Response
+		resp.HttpResponse = file.HttpResponse
 		err = e
 		return
 	}
 
 	if file.ContentLength == nil {
-		err = fmt.Errorf("Content-Length was nil!")
+		err = fmt.Errorf("Content-Length was nil")
 		return
 	}
 
-	length := int64(*file.ContentLength)
+	resp.HttpResponse = file.HttpResponse
+	length := *file.ContentLength
 	chunkSize := int64(4 * 1024 * 1024) // 4MB
 
 	if chunkSize > length {
 		chunkSize = length
 	}
 
-	// then split that up into chunks and retrieve it retrieve it into the 'results' set
+	// then split that up into chunks and retrieve it into the 'results' set
 	chunks := int(math.Ceil(float64(length) / float64(chunkSize)))
-	workerCount := parallelism * runtime.NumCPU()
+	workerCount := input.Parallelism * runtime.NumCPU()
 	if workerCount > chunks {
 		workerCount = chunks
 	}
@@ -57,7 +68,7 @@ func (client Client) GetFile(ctx context.Context, accountName, shareName, path, 
 				fileSize:  length,
 			}
 
-			result, err := client.downloadFileChunk(ctx, accountName, shareName, path, fileName, dfci)
+			result, err := c.downloadFileChunk(ctx, shareName, path, fileName, dfci)
 			if err != nil {
 				errors <- err
 				waitGroup.Done()
@@ -84,7 +95,7 @@ func (client Client) GetFile(ctx context.Context, accountName, shareName, path, 
 		copy(output[v.startBytes:v.endBytes], v.bytes)
 	}
 
-	outputBytes = output
+	resp.OutputBytes = output
 	return
 }
 
@@ -100,7 +111,7 @@ type downloadFileChunkResult struct {
 	bytes      []byte
 }
 
-func (client Client) downloadFileChunk(ctx context.Context, accountName, shareName, path, fileName string, input downloadFileChunkInput) (*downloadFileChunkResult, error) {
+func (c Client) downloadFileChunk(ctx context.Context, shareName, path, fileName string, input downloadFileChunkInput) (*downloadFileChunkResult, error) {
 	startBytes := input.chunkSize * int64(input.thisChunk)
 	endBytes := startBytes + input.chunkSize
 
@@ -114,9 +125,9 @@ func (client Client) downloadFileChunk(ctx context.Context, accountName, shareNa
 		StartBytes: startBytes,
 		EndBytes:   endBytes,
 	}
-	result, err := client.GetByteRange(ctx, accountName, shareName, path, fileName, getInput)
+	result, err := c.GetByteRange(ctx, shareName, path, fileName, getInput)
 	if err != nil {
-		return nil, fmt.Errorf("Error putting bytes: %s", err)
+		return nil, fmt.Errorf("error putting bytes: %s", err)
 	}
 
 	output := downloadFileChunkResult{

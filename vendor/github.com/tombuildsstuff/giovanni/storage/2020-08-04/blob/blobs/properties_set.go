@@ -2,13 +2,13 @@ package blobs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type SetPropertiesInput struct {
@@ -24,44 +24,48 @@ type SetPropertiesInput struct {
 	BlobSequenceNumber   *string
 }
 
-type SetPropertiesResult struct {
-	autorest.Response
+type SetPropertiesResponse struct {
+	HttpResponse *client.Response
 
 	BlobSequenceNumber string
 	Etag               string
 }
 
 // SetProperties sets system properties on the blob.
-func (client Client) SetProperties(ctx context.Context, accountName, containerName, blobName string, input SetPropertiesInput) (result SetPropertiesResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "SetProperties", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetProperties(ctx context.Context, containerName, blobName string, input SetPropertiesInput) (resp SetPropertiesResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "SetProperties", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "SetProperties", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "SetProperties", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
 
-	req, err := client.SetPropertiesPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: setPropertiesOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "SetProperties", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.SetPropertiesSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "SetProperties", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.SetPropertiesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "SetProperties", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
@@ -76,81 +80,53 @@ var (
 	Update    SequenceNumberAction = "update"
 )
 
-// SetPropertiesPreparer prepares the SetProperties request.
-func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, containerName, blobName string, input SetPropertiesInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "properties"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.CacheControl != nil {
-		headers["x-ms-blob-cache-control"] = *input.CacheControl
-	}
-	if input.ContentDisposition != nil {
-		headers["x-ms-blob-content-disposition"] = *input.ContentDisposition
-	}
-	if input.ContentEncoding != nil {
-		headers["x-ms-blob-content-encoding"] = *input.ContentEncoding
-	}
-	if input.ContentLanguage != nil {
-		headers["x-ms-blob-content-language"] = *input.ContentLanguage
-	}
-	if input.ContentMD5 != nil {
-		headers["x-ms-blob-content-md5"] = *input.ContentMD5
-	}
-	if input.ContentType != nil {
-		headers["x-ms-blob-content-type"] = *input.ContentType
-	}
-	if input.ContentLength != nil {
-		headers["x-ms-blob-content-length"] = *input.ContentLength
-	}
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-	if input.SequenceNumberAction != nil {
-		headers["x-ms-sequence-number-action"] = string(*input.SequenceNumberAction)
-	}
-	if input.BlobSequenceNumber != nil {
-		headers["x-ms-blob-sequence-number"] = *input.BlobSequenceNumber
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithHeaders(headers),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type setPropertiesOptions struct {
+	input SetPropertiesInput
 }
 
-// SetPropertiesSender sends the SetProperties request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetPropertiesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
+func (s setPropertiesOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
 
-// SetPropertiesResponder handles the response to the SetProperties request. The method always
-// closes the http.Response Body.
-func (client Client) SetPropertiesResponder(resp *http.Response) (result SetPropertiesResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.BlobSequenceNumber = resp.Header.Get("x-ms-blob-sequence-number")
-		result.Etag = resp.Header.Get("Etag")
+	if s.input.CacheControl != nil {
+		headers.Append("x-ms-blob-cache-control", *s.input.CacheControl)
+	}
+	if s.input.ContentDisposition != nil {
+		headers.Append("x-ms-blob-content-disposition", *s.input.ContentDisposition)
+	}
+	if s.input.ContentEncoding != nil {
+		headers.Append("x-ms-blob-content-encoding", *s.input.ContentEncoding)
+	}
+	if s.input.ContentLanguage != nil {
+		headers.Append("x-ms-blob-content-language", *s.input.ContentLanguage)
+	}
+	if s.input.ContentMD5 != nil {
+		headers.Append("x-ms-blob-content-md5", *s.input.ContentMD5)
+	}
+	if s.input.ContentType != nil {
+		headers.Append("x-ms-blob-content-type", *s.input.ContentType)
+	}
+	if s.input.ContentLength != nil {
+		headers.Append("x-ms-blob-content-length", strconv.Itoa(int(*s.input.ContentLength)))
+	}
+	if s.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *s.input.LeaseID)
+	}
+	if s.input.SequenceNumberAction != nil {
+		headers.Append("x-ms-sequence-number-action", string(*s.input.SequenceNumberAction))
+	}
+	if s.input.BlobSequenceNumber != nil {
+		headers.Append("x-ms-blob-sequence-number", *s.input.BlobSequenceNumber)
 	}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
+	return headers
+}
+
+func (s setPropertiesOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (s setPropertiesOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "properties")
+	return out
 }

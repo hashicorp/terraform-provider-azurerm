@@ -14,9 +14,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
-	
-	"github.com/Azure/go-autorest/autorest"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities"
 )
 
@@ -24,10 +23,18 @@ func Example() error {
 	accountName := "storageaccount1"
     storageAccountKey := "ABC123...."
     tableName := "mytable"
-    
-    storageAuth := autorest.NewSharedKeyLiteTableAuthorizer(accountName, storageAccountKey)
-    entitiesClient := entities.New()
-    entitiesClient.Client.Authorizer = storageAuth
+	domainSuffix := "core.windows.net"
+
+	auth, err := auth.NewSharedKeyAuthorizer(accountName, storageAccountKey, auth.SharedKeyTable)
+	if err != nil {
+		return fmt.Errorf("building SharedKey authorizer: %+v", err)
+	}
+	
+    entitiesClient, err := entities.NewWithBaseUri(fmt.Sprintf("https://%s.table.%s", accountName, domainSuffix))
+	if err != nil {
+		return fmt.Errorf("building client for environment: %+v", err)
+	}
+	entitiesClient.Client.SetAuthorizer(auth)
     
     ctx := context.TODO()
     input := entities.InsertEntityInput{
@@ -39,7 +46,7 @@ func Example() error {
     	    "artist": "Sigrid",
     	},
     }
-    if _, err := entitiesClient.Insert(ctx, accountName, tableName, input); err != nil {
+    if _, err := entitiesClient.Insert(ctx, tableName, input); err != nil {
         return fmt.Errorf("Error creating Entity: %s", err)
     }
     

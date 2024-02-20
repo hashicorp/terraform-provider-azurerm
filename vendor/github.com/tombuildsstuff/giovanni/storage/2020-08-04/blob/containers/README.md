@@ -17,9 +17,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
-	
-	"github.com/Azure/go-autorest/autorest"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
 )
 
@@ -27,16 +26,24 @@ func Example() error {
 	accountName := "storageaccount1"
     storageAccountKey := "ABC123...."
     containerName := "mycontainer"
-    
-    storageAuth := autorest.NewSharedKeyLiteAuthorizer(accountName, storageAccountKey)
-    containersClient := containers.New()
-    containersClient.Client.Authorizer = storageAuth
+	domainSuffix := "core.windows.net"
+
+    containersClient, err := containers.NewWithBaseUri(fmt.Sprintf("https://%s.blob.%s", accountName, domainSuffix))
+	if err != nil {
+		return fmt.Errorf("building client for environment: %+v", err)
+	}
+
+	auth, err := auth.NewSharedKeyAuthorizer(accountName, storageAccountKey, auth.SharedKey)
+	if err != nil {
+		return fmt.Errorf("building SharedKey authorizer: %+v", err)
+	}
+	containersClient.Client.SetAuthorizer(auth)
     
     ctx := context.TODO()
     createInput := containers.CreateInput{
         AccessLevel: containers.Private,
     }
-    if _, err := containersClient.Create(ctx, accountName, containerName, createInput); err != nil {
+    if _, err := containersClient.Create(ctx, containerName, createInput); err != nil {
         return fmt.Errorf("Error creating Container: %s", err)
     }
     

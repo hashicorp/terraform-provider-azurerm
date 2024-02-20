@@ -2,84 +2,42 @@ package filesystems
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 )
 
+type DeleteResponse struct {
+	HttpResponse *client.Response
+}
+
 // Delete deletes a Data Lake Store Gen2 FileSystem within a Storage Account
-func (client Client) Delete(ctx context.Context, accountName string, fileSystemName string) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("datalakestore.Client", "Delete", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Delete(ctx context.Context, fileSystemName string) (resp DeleteResponse, err error) {
+
 	if fileSystemName == "" {
-		return result, validation.NewError("datalakestore.Client", "Delete", "`fileSystemName` cannot be an empty string.")
+		return resp, fmt.Errorf("`fileSystemName` cannot be an empty string")
 	}
 
-	req, err := client.DeletePreparer(ctx, accountName, fileSystemName)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusAccepted,
+		},
+		HttpMethod:    http.MethodDelete,
+		OptionsObject: fileSystemOptions{},
+		Path:          fmt.Sprintf("/%s", fileSystemName),
+	}
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "Delete", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
-
-	resp, err := client.DeleteSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "Delete", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "Delete", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// DeletePreparer prepares the Delete request.
-func (client Client) DeletePreparer(ctx context.Context, accountName string, fileSystemName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"fileSystemName": autorest.Encode("path", fileSystemName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"resource": autorest.Encode("query", "filesystem"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsDelete(),
-		autorest.WithBaseURL(endpoints.GetDataLakeStoreEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{fileSystemName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// DeleteSender sends the Delete request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// DeleteResponder handles the response to the Delete request. The method always
-// closes the http.Response Body.
-func (client Client) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusAccepted),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
 
 	return
 }

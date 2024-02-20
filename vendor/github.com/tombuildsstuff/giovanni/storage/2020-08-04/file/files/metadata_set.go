@@ -6,100 +6,87 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
+type SetMetaDataResponse struct {
+	HttpResponse *client.Response
+}
+
+type SetMetaDataInput struct {
+	MetaData map[string]string
+}
+
 // SetMetaData updates the specified File to have the specified MetaData.
-func (client Client) SetMetaData(ctx context.Context, accountName, shareName, path, fileName string, metaData map[string]string) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("files.Client", "SetMetaData", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetMetaData(ctx context.Context, shareName, path, fileName string, input SetMetaDataInput) (resp SetMetaDataResponse, err error) {
 	if shareName == "" {
-		return result, validation.NewError("files.Client", "SetMetaData", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("files.Client", "SetMetaData", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
+
 	if fileName == "" {
-		return result, validation.NewError("files.Client", "SetMetaData", "`fileName` cannot be an empty string.")
-	}
-	if err := metadata.Validate(metaData); err != nil {
-		return result, validation.NewError("files.Client", "SetMetaData", fmt.Sprintf("`metaData` is not valid: %s.", err))
+		return resp, fmt.Errorf("`fileName` cannot be an empty string")
 	}
 
-	req, err := client.SetMetaDataPreparer(ctx, accountName, shareName, path, fileName, metaData)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "SetMetaData", nil, "Failure preparing request")
-		return
+	if err = metadata.Validate(input.MetaData); err != nil {
+		return resp, fmt.Errorf("`input.MetaData` is not valid: %s", err)
 	}
 
-	resp, err := client.SetMetaDataSender(req)
-	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "files.Client", "SetMetaData", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.SetMetaDataResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "files.Client", "SetMetaData", resp, "Failure responding to request")
-		return
-	}
-
-	return
-}
-
-// SetMetaDataPreparer prepares the SetMetaData request.
-func (client Client) SetMetaDataPreparer(ctx context.Context, accountName, shareName, path, fileName string, metaData map[string]string) (*http.Request, error) {
 	if path != "" {
-		path = fmt.Sprintf("%s/", path)
-	}
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-		"directory": autorest.Encode("path", path),
-		"fileName":  autorest.Encode("path", fileName),
+		path = fmt.Sprintf("/%s/", path)
 	}
 
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "metadata"),
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: SetMetaDataOptions{
+			metaData: input.MetaData,
+		},
+		Path: fmt.Sprintf("%s/%s%s", shareName, path, fileName),
 	}
 
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
+	req, err := c.Client.NewRequest(ctx, opts)
+	if err != nil {
+		err = fmt.Errorf("building request: %+v", err)
+		return
 	}
 
-	headers = metadata.SetIntoHeaders(headers, metaData)
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}/{directory}{fileName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// SetMetaDataSender sends the SetMetaData request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetMetaDataSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// SetMetaDataResponder handles the response to the SetMetaData request. The method always
-// closes the http.Response Body.
-func (client Client) SetMetaDataResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
+		return
+	}
 
 	return
+}
+
+type SetMetaDataOptions struct {
+	metaData map[string]string
+}
+
+func (s SetMetaDataOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+
+	if len(s.metaData) > 0 {
+		headers.Merge(metadata.SetMetaDataHeaders(s.metaData))
+	}
+	return headers
+}
+
+func (s SetMetaDataOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (s SetMetaDataOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "metadata")
+	return out
 }

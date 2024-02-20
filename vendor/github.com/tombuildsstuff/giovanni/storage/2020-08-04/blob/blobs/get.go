@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type GetInput struct {
@@ -18,99 +16,86 @@ type GetInput struct {
 	EndByte   *int64
 }
 
-type GetResult struct {
-	autorest.Response
+type GetResponse struct {
+	HttpResponse *client.Response
 
 	Contents []byte
 }
 
 // Get reads or downloads a blob from the system, including its metadata and properties.
-func (client Client) Get(ctx context.Context, accountName, containerName, blobName string, input GetInput) (result GetResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "Get", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Get(ctx context.Context, containerName, blobName string, input GetInput) (resp GetResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "Get", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "Get", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "Get", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
+
 	if input.LeaseID != nil && *input.LeaseID == "" {
-		return result, validation.NewError("blobs.Client", "Get", "`input.LeaseID` should either be specified or nil, not an empty string.")
+		return resp, fmt.Errorf("`input.LeaseID` should either be specified or nil, not an empty string")
 	}
+
 	if (input.StartByte != nil && input.EndByte == nil) || input.StartByte == nil && input.EndByte != nil {
-		return result, validation.NewError("blobs.Client", "Get", "`input.StartByte` and `input.EndByte` must both be specified, or both be nil.")
+		return resp, fmt.Errorf("`input.StartByte` and `input.EndByte` must both be specified, or both be nil")
 	}
 
-	req, err := client.GetPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+			http.StatusPartialContent,
+		},
+		HttpMethod: http.MethodGet,
+		OptionsObject: getOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Get", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.GetSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Get", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.GetResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Get", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		err = resp.HttpResponse.Unmarshal(&resp.Contents)
+		if err != nil {
+			return resp, fmt.Errorf("unmarshalling response: %v", err)
+		}
 	}
 
 	return
 }
 
-// GetPreparer prepares the Get request.
-func (client Client) GetPreparer(ctx context.Context, accountName, containerName, blobName string, input GetInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.StartByte != nil && input.EndByte != nil {
-		headers["x-ms-range"] = fmt.Sprintf("bytes=%d-%d", *input.StartByte, *input.EndByte)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type getOptions struct {
+	input GetInput
 }
 
-// GetSender sends the Get request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (g getOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	if g.input.StartByte != nil && g.input.EndByte != nil {
+		headers.Append("x-ms-range", fmt.Sprintf("bytes=%d-%d", *g.input.StartByte, *g.input.EndByte))
+	}
+	return headers
+
 }
 
-// GetResponder handles the response to the Get request. The method always
-// closes the http.Response Body.
-func (client Client) GetResponder(resp *http.Response) (result GetResult, err error) {
-	if resp != nil && int(resp.ContentLength) > 0 {
-		result.Contents = make([]byte, resp.ContentLength)
-	}
+func (g getOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusPartialContent),
-		autorest.ByUnmarshallingBytes(&result.Contents),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-
-	return
+func (g getOptions) ToQuery() *client.QueryParams {
+	return nil
 }

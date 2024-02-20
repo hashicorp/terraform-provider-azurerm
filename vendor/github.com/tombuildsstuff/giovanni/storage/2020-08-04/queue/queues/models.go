@@ -36,7 +36,7 @@ type Cors struct {
 type CorsRule struct {
 	AllowedOrigins  string `xml:"AllowedOrigins"`
 	AllowedMethods  string `xml:"AllowedMethods"`
-	AllowedHeaders  string `xml:"AllowedHeaders`
+	AllowedHeaders  string `xml:"AllowedHeaders"`
 	ExposedHeaders  string `xml:"ExposedHeaders"`
 	MaxAgeInSeconds int    `xml:"MaxAgeInSeconds"`
 }

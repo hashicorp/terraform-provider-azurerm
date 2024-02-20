@@ -2,12 +2,11 @@ package paths
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type SetAccessControlInput struct {
@@ -24,93 +23,81 @@ type SetAccessControlInput struct {
 	IfUnmodifiedSince *string
 }
 
+type SetPropertiesResponse struct {
+	HttpResponse *client.Response
+}
+
 // SetProperties sets the access control properties for a Data Lake Store Gen2 Path within a Storage Account File System
-func (client Client) SetAccessControl(ctx context.Context, accountName string, fileSystemName string, path string, input SetAccessControlInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("datalakestore.Client", "SetAccessControl", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetAccessControl(ctx context.Context, fileSystemName string, path string, input SetAccessControlInput) (resp SetPropertiesResponse, err error) {
+
 	if fileSystemName == "" {
-		return result, validation.NewError("datalakestore.Client", "SetAccessControl", "`fileSystemName` cannot be an empty string.")
+		return resp, fmt.Errorf("`fileSystemName` cannot be an empty string")
 	}
 
-	req, err := client.SetAccessControlPreparer(ctx, accountName, fileSystemName, path, input)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "SetAccessControl", nil, "Failure preparing request")
-		return
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodPatch,
+		OptionsObject: setPropertyOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", fileSystemName, path),
 	}
 
-	resp, err := client.SetAccessControlSender(req)
+	req, err := c.Client.NewRequest(ctx, opts)
+
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "SetAccessControl", resp, "Failure sending request")
-		return
+		err = fmt.Errorf("building request: %+v", err)
+		return resp, err
 	}
 
-	result, err = client.SetAccessControlResponder(resp)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "datalakestore.Client", "SetAccessControl", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
+		return resp, err
 	}
 
 	return
 }
 
-// SetAccessControlPreparer prepares the SetAccessControl request.
-func (client Client) SetAccessControlPreparer(ctx context.Context, accountName string, fileSystemName string, path string, input SetAccessControlInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"fileSystemName": autorest.Encode("path", fileSystemName),
-		"path":           autorest.Encode("path", path),
-	}
-
-	queryParameters := map[string]interface{}{
-		"action": autorest.Encode("query", "setAccessControl"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.Owner != nil {
-		headers["x-ms-owner"] = *input.Owner
-	}
-	if input.Group != nil {
-		headers["x-ms-group"] = *input.Group
-	}
-	if input.ACL != nil {
-		headers["x-ms-acl"] = *input.ACL
-	}
-
-	if input.IfModifiedSince != nil {
-		headers["If-Modified-Since"] = *input.IfModifiedSince
-	}
-	if input.IfUnmodifiedSince != nil {
-		headers["If-Unmodified-Since"] = *input.IfUnmodifiedSince
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPatch(),
-		autorest.WithBaseURL(endpoints.GetDataLakeStoreEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{fileSystemName}/{path}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type setPropertyOptions struct {
+	input SetAccessControlInput
 }
 
-// SetAccessControlSender sends the SetAccessControl request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetAccessControlSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (s setPropertyOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+
+	if s.input.ACL != nil {
+		headers.Append("x-ms-acl", *s.input.ACL)
+	}
+
+	if s.input.Owner != nil {
+		headers.Append("x-ms-owner", *s.input.Owner)
+	}
+
+	if s.input.Group != nil {
+		headers.Append("x-ms-group", *s.input.Group)
+	}
+
+	if s.input.IfModifiedSince != nil {
+		headers.Append("If-Modified-Since", *s.input.IfModifiedSince)
+	}
+
+	if s.input.IfUnmodifiedSince != nil {
+		headers.Append("If-Unmodified-Since", *s.input.IfUnmodifiedSince)
+	}
+
+	return headers
 }
 
-// SetAccessControlResponder handles the response to the SetAccessControl request. The method always
-// closes the http.Response Body.
-func (client Client) SetAccessControlResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-	return
+func (s setPropertyOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (s setPropertyOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("action", "setAccessControl")
+	return out
 }

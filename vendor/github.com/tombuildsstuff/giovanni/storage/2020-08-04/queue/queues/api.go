@@ -2,16 +2,14 @@ package queues
 
 import (
 	"context"
-
-	"github.com/Azure/go-autorest/autorest"
 )
 
 type StorageQueue interface {
-	Delete(ctx context.Context, accountName, queueName string) (result autorest.Response, err error)
-	GetMetaData(ctx context.Context, accountName, queueName string) (result GetMetaDataResult, err error)
-	SetMetaData(ctx context.Context, accountName, queueName string, metaData map[string]string) (result autorest.Response, err error)
-	Create(ctx context.Context, accountName, queueName string, metaData map[string]string) (result autorest.Response, err error)
-	GetResourceID(accountName, queueName string) string
-	SetServiceProperties(ctx context.Context, accountName string, properties StorageServiceProperties) (result autorest.Response, err error)
-	GetServiceProperties(ctx context.Context, accountName string) (result StorageServicePropertiesResponse, err error)
+	Delete(ctx context.Context, queueName string) (DeleteResponse, error)
+	GetMetaData(ctx context.Context, queueName string) (GetMetaDataResponse, error)
+	SetMetaData(ctx context.Context, queueName string, input SetMetaDataInput) (SetMetaDataResponse, error)
+	Create(ctx context.Context, queueName string, input CreateInput) (CreateResponse, error)
+	GetResourceManagerResourceID(subscriptionID, resourceGroup, accountName, queueName string) string
+	SetServiceProperties(ctx context.Context, input SetStorageServicePropertiesInput) (SetStorageServicePropertiesResponse, error)
+	GetServiceProperties(ctx context.Context) (GetStorageServicePropertiesResponse, error)
 }

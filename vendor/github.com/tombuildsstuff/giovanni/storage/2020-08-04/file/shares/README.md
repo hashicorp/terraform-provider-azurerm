@@ -15,9 +15,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
-	
-	"github.com/Azure/go-autorest/autorest"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
 )
 
@@ -25,16 +24,24 @@ func Example() error {
 	accountName := "storageaccount1"
     storageAccountKey := "ABC123...."
     shareName := "myshare"
-    
-    storageAuth := autorest.NewSharedKeyLiteAuthorizer(accountName, storageAccountKey)
-    sharesClient := shares.New()
-    sharesClient.Client.Authorizer = storageAuth
+	domainSuffix := "core.windows.net"
+
+	auth, err := auth.NewSharedKeyAuthorizer(accountName, storageAccountKey, auth.SharedKey)
+	if err != nil {
+		return fmt.Errorf("building SharedKey authorizer: %+v", err)
+	}
+	
+    sharesClient, err := shares.NewWithBaseUri(fmt.Sprintf("https://%s.file.%s", accountName, domainSuffix))
+	if err != nil {
+		return fmt.Errorf("building SharedKey authorizer: %+v", err)
+	}
+    sharesClient.Client.SetAuthorizer(auth)
     
     ctx := context.TODO()
     input := shares.CreateInput{
     	QuotaInGB: 2,
     }
-    if _, err := sharesClient.Create(ctx, accountName, shareName, input); err != nil {
+    if _, err := sharesClient.Create(ctx, shareName, input); err != nil {
         return fmt.Errorf("Error creating Share: %s", err)
     }
     

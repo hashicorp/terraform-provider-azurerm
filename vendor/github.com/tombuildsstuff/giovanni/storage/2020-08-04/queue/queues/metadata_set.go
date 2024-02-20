@@ -6,92 +6,77 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
+type SetMetaDataResponse struct {
+	HttpResponse *client.Response
+}
+
+type SetMetaDataInput struct {
+	MetaData map[string]string
+}
+
 // SetMetaData returns the metadata for this Queue
-func (client Client) SetMetaData(ctx context.Context, accountName, queueName string, metaData map[string]string) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("queues.Client", "SetMetaData", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetMetaData(ctx context.Context, queueName string, input SetMetaDataInput) (resp SetMetaDataResponse, err error) {
+
 	if queueName == "" {
-		return result, validation.NewError("queues.Client", "SetMetaData", "`queueName` cannot be an empty string.")
+		return resp, fmt.Errorf("`queueName` cannot be an empty string")
 	}
+
 	if strings.ToLower(queueName) != queueName {
-		return result, validation.NewError("queues.Client", "SetMetaData", "`queueName` must be a lower-cased string.")
-	}
-	if err := metadata.Validate(metaData); err != nil {
-		return result, validation.NewError("queues.Client", "SetMetaData", fmt.Sprintf("`metadata` is not valid: %s.", err))
+		return resp, fmt.Errorf("`queueName` must be a lower-cased string")
 	}
 
-	req, err := client.SetMetaDataPreparer(ctx, accountName, queueName, metaData)
+	if err := metadata.Validate(input.MetaData); err != nil {
+		return resp, fmt.Errorf("`metadata` is not valid: %v", err)
+	}
+
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: setMetaDataOptions{
+			metadata: input.MetaData,
+		},
+		Path: fmt.Sprintf("/%s", queueName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "queues.Client", "SetMetaData", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.SetMetaDataSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "queues.Client", "SetMetaData", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.SetMetaDataResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "queues.Client", "SetMetaData", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// SetMetaDataPreparer prepares the SetMetaData request.
-func (client Client) SetMetaDataPreparer(ctx context.Context, accountName, queueName string, metaData map[string]string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"queueName": autorest.Encode("path", queueName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("path", "metadata"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	headers = metadata.SetIntoHeaders(headers, metaData)
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetQueueEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{queueName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type setMetaDataOptions struct {
+	metadata map[string]string
 }
 
-// SetMetaDataSender sends the SetMetaData request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetMetaDataSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (s setMetaDataOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	headers.Merge(metadata.SetMetaDataHeaders(s.metadata))
+	return headers
 }
 
-// SetMetaDataResponder handles the response to the SetMetaData request. The method always
-// closes the http.Response Body.
-func (client Client) SetMetaDataResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusNoContent),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
+func (s setMetaDataOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	return
+func (s setMetaDataOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "metadata")
+	return out
 }

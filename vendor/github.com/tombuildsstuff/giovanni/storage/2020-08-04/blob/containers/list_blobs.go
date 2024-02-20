@@ -2,13 +2,12 @@ package containers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type ListBlobsInput struct {
@@ -19,9 +18,12 @@ type ListBlobsInput struct {
 	Prefix     *string
 }
 
-type ListBlobsResult struct {
-	autorest.Response
+type ListBlobsResponse struct {
+	HttpResponse *client.Response
+	Model        *ListBlobsResult
+}
 
+type ListBlobsResult struct {
 	Delimiter  string  `xml:"Delimiter"`
 	Marker     string  `xml:"Marker"`
 	MaxResults int     `xml:"MaxResults"`
@@ -78,102 +80,90 @@ type BlobPrefix struct {
 }
 
 // ListBlobs lists the blobs matching the specified query within the specified Container
-func (client Client) ListBlobs(ctx context.Context, accountName, containerName string, input ListBlobsInput) (result ListBlobsResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("containers.Client", "ListBlobs", "`accountName` cannot be an empty string.")
-	}
+func (c Client) ListBlobs(ctx context.Context, containerName string, input ListBlobsInput) (resp ListBlobsResponse, err error) {
 	if containerName == "" {
-		return result, validation.NewError("containers.Client", "ListBlobs", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
 	if input.MaxResults != nil && (*input.MaxResults <= 0 || *input.MaxResults > 5000) {
-		return result, validation.NewError("containers.Client", "ListBlobs", "`input.MaxResults` can either be nil or between 0 and 5000.")
+		return resp, fmt.Errorf("`input.MaxResults` can either be nil or between 0 and 5000")
 	}
-
-	req, err := client.ListBlobsPreparer(ctx, accountName, containerName, input)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodGet,
+		OptionsObject: listBlobsOptions{
+			delimiter:  input.Delimiter,
+			include:    input.Include,
+			marker:     input.Marker,
+			maxResults: input.MaxResults,
+			prefix:     input.Prefix,
+		},
+		Path: fmt.Sprintf("/%s", containerName),
+	}
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "ListBlobs", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
+		return
+	}
+	resp.HttpResponse, err = req.Execute(ctx)
+	if err != nil {
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	resp, err := client.ListBlobsSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containers.Client", "ListBlobs", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ListBlobsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containers.Client", "ListBlobs", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil {
+		if err = resp.HttpResponse.Unmarshal(&resp.Model); err != nil {
+			err = fmt.Errorf("unmarshaling response: %+v", err)
+			return
+		}
 	}
 
 	return
 }
 
-// ListBlobsPreparer prepares the ListBlobs request.
-func (client Client) ListBlobsPreparer(ctx context.Context, accountName, containerName string, input ListBlobsInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-	}
+var _ client.Options = listBlobsOptions{}
 
-	queryParameters := map[string]interface{}{
-		"comp":    autorest.Encode("query", "list"),
-		"restype": autorest.Encode("query", "container"),
-	}
+type listBlobsOptions struct {
+	delimiter  *string
+	include    *[]Dataset
+	marker     *string
+	maxResults *int
+	prefix     *string
+}
 
-	if input.Delimiter != nil {
-		queryParameters["delimiter"] = autorest.Encode("query", *input.Delimiter)
+func (o listBlobsOptions) ToHeaders() *client.Headers {
+	return nil
+}
+
+func (o listBlobsOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (o listBlobsOptions) ToQuery() *client.QueryParams {
+	query := containerOptions{}.ToQuery()
+	query.Append("comp", "list")
+
+	if o.delimiter != nil {
+		query.Append("delimiter", *o.delimiter)
 	}
-	if input.Include != nil {
+	if o.include != nil {
 		vals := make([]string, 0)
-		for _, v := range *input.Include {
+		for _, v := range *o.include {
 			vals = append(vals, string(v))
 		}
 		include := strings.Join(vals, ",")
-		queryParameters["include"] = autorest.Encode("query", include)
+		query.Append("include", include)
 	}
-	if input.Marker != nil {
-		queryParameters["marker"] = autorest.Encode("query", *input.Marker)
+	if o.marker != nil {
+		query.Append("marker", *o.marker)
 	}
-	if input.MaxResults != nil {
-		queryParameters["maxresults"] = autorest.Encode("query", *input.MaxResults)
+	if o.maxResults != nil {
+		query.Append("maxresults", fmt.Sprintf("%d", *o.maxResults))
 	}
-	if input.Prefix != nil {
-		queryParameters["prefix"] = autorest.Encode("query", *input.Prefix)
+	if o.prefix != nil {
+		query.Append("prefix", *o.prefix)
 	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsGet(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListBlobsSender sends the ListBlobs request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) ListBlobsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListBlobsResponder handles the response to the ListBlobs request. The method always
-// closes the http.Response Body.
-func (client Client) ListBlobsResponder(resp *http.Response) (result ListBlobsResult, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingXML(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-
-	return
+	return query
 }

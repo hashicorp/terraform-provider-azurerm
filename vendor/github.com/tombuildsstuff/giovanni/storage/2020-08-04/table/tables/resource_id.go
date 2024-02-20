@@ -5,50 +5,97 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 )
 
-// GetResourceID returns the Resource ID for the given Table
+// GetResourceManagerResourceID returns the Resource ID for the given Table
 // This can be useful when, for example, you're using this as a unique identifier
-func (client Client) GetResourceID(accountName, tableName string) string {
-	domain := endpoints.GetTableEndpoint(client.BaseURI, accountName)
-	return fmt.Sprintf("%s/Tables('%s')", domain, tableName)
+func (c Client) GetResourceManagerResourceID(subscriptionID, resourceGroup, accountName, tableName string) string {
+	fmtStr := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/tableServices/default/tables/%s"
+	return fmt.Sprintf(fmtStr, subscriptionID, resourceGroup, accountName, tableName)
 }
 
-type ResourceID struct {
-	AccountName string
-	TableName   string
+// TODO: update this to implement `resourceids.ResourceId` once
+// https://github.com/hashicorp/go-azure-helpers/issues/187 is fixed
+var _ resourceids.Id = TableId{}
+
+type TableId struct {
+	// AccountId specifies the ID of the Storage Account where this Table exists.
+	AccountId accounts.AccountId
+
+	// TableName specifies the name of this Table.
+	TableName string
 }
 
-// ParseResourceID parses the Resource ID and returns an object which
-// can be used to interact with the Table within the specified Storage Account
-func ParseResourceID(id string) (*ResourceID, error) {
-	// example: https://foo.table.core.windows.net/Table('foo')
-	if id == "" {
-		return nil, fmt.Errorf("`id` was empty")
+func NewTableID(accountId accounts.AccountId, tableName string) TableId {
+	return TableId{
+		AccountId: accountId,
+		TableName: tableName,
+	}
+}
+
+func (b TableId) ID() string {
+	return fmt.Sprintf("%s/Tables('%s')", b.AccountId.ID(), b.TableName)
+}
+
+func (b TableId) String() string {
+	components := []string{
+		fmt.Sprintf("Account %q", b.AccountId.String()),
+	}
+	return fmt.Sprintf("Table %q (%s)", b.TableName, strings.Join(components, " / "))
+}
+
+// ParseTableID parses `input` into a Table ID using a known `domainSuffix`
+func ParseTableID(input, domainSuffix string) (*TableId, error) {
+	// example: https://foo.table.core.windows.net/Table('bar')
+	if input == "" {
+		return nil, fmt.Errorf("`input` was empty")
 	}
 
-	uri, err := url.Parse(id)
+	account, err := accounts.ParseAccountID(input, domainSuffix)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing ID as a URL: %s", err)
+		return nil, fmt.Errorf("parsing account %q: %+v", input, err)
 	}
 
-	accountName, err := endpoints.GetAccountNameFromEndpoint(uri.Host)
+	if account.SubDomainType != accounts.TableSubDomainType {
+		return nil, fmt.Errorf("expected the subdomain type to be %q but got %q", string(accounts.TableSubDomainType), string(account.SubDomainType))
+	}
+
+	uri, err := url.Parse(input)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing Account Name: %s", err)
+		return nil, fmt.Errorf("parsing %q as a uri: %+v", input, err)
 	}
 
-	// assume there a `Table('')`
 	path := strings.TrimPrefix(uri.Path, "/")
-	if !strings.HasPrefix(path, "Tables('") || !strings.HasSuffix(path, "')") {
-		return nil, fmt.Errorf("Expected the Table Name to be in the format `Tables('name')` but got %q", path)
+	segments := strings.Split(path, "/")
+	if len(segments) != 1 {
+		return nil, fmt.Errorf("expected the path to contain 1 segment but got %d", len(segments))
 	}
 
-	// strip off the `Table('')`
-	tableName := strings.TrimPrefix(uri.Path, "/Tables('")
-	tableName = strings.TrimSuffix(tableName, "')")
-	return &ResourceID{
-		AccountName: *accountName,
-		TableName:   tableName,
+	// Tables and Table Entities are similar however Tables use a reserved namespace, for example:
+	//   Table('tableName')
+	// whereas Entities begin with the actual table name, for example:
+	//   tableName(PartitionKey='samplepartition',RowKey='samplerow')
+	// However, there was a period of time when Table IDs did not use the reserved namespace, so we attempt to parse
+	// both forms for maximum compatibility.
+	var tableName string
+	slug := strings.TrimPrefix(uri.Path, "/")
+	if strings.HasPrefix(slug, "Tables('") && strings.HasSuffix(slug, "')") {
+		// Ensure both prefix and suffix are present before trimming them out
+		tableName = strings.TrimSuffix(strings.TrimPrefix(slug, "Tables('"), "')")
+	} else if !strings.Contains(slug, "(") && !strings.HasSuffix(slug, ")") {
+		// Also accept a bare table name
+		tableName = slug
+	} else {
+		return nil, fmt.Errorf("expected the path to a table name and not an entity name but got %q", tableName)
+	}
+	if tableName == "" {
+		return nil, fmt.Errorf("expected the path to a table name but the path was empty")
+	}
+
+	return &TableId{
+		AccountId: *account,
+		TableName: tableName,
 	}, nil
 }

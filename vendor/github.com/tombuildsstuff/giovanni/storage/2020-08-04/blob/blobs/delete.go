@@ -2,13 +2,12 @@ package blobs
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type DeleteInput struct {
@@ -21,85 +20,73 @@ type DeleteInput struct {
 	LeaseID *string
 }
 
+type DeleteResponse struct {
+	HttpResponse *client.Response
+}
+
 // Delete marks the specified blob or snapshot for deletion. The blob is later deleted during garbage collection.
-func (client Client) Delete(ctx context.Context, accountName, containerName, blobName string, input DeleteInput) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "Delete", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Delete(ctx context.Context, containerName, blobName string, input DeleteInput) (resp DeleteResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "Delete", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "Delete", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "Delete", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
 
-	req, err := client.DeletePreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusAccepted,
+		},
+		HttpMethod: http.MethodDelete,
+		OptionsObject: deleteOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Delete", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Delete", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Delete", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// DeletePreparer prepares the Delete request.
-func (client Client) DeletePreparer(ctx context.Context, accountName, containerName, blobName string, input DeleteInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-
-	if input.DeleteSnapshots {
-		headers["x-ms-delete-snapshots"] = "include"
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsDelete(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type deleteOptions struct {
+	input DeleteInput
 }
 
-// DeleteSender sends the Delete request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (d deleteOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+
+	if d.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *d.input.LeaseID)
+	}
+
+	if d.input.DeleteSnapshots {
+		headers.Append("x-ms-delete-snapshots", "include")
+	}
+
+	return headers
 }
 
-// DeleteResponder handles the response to the Delete request. The method always
-// closes the http.Response Body.
-func (client Client) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusAccepted),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-	return
+func (d deleteOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (d deleteOptions) ToQuery() *client.QueryParams {
+	return nil
 }

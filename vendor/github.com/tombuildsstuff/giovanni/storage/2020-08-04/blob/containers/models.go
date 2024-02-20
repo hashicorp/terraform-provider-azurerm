@@ -1,7 +1,5 @@
 package containers
 
-import "github.com/Azure/go-autorest/autorest"
-
 type AccessLevel string
 
 var (
@@ -21,8 +19,6 @@ var (
 )
 
 type ContainerProperties struct {
-	autorest.Response
-
 	AccessLevel           AccessLevel
 	LeaseStatus           LeaseStatus
 	LeaseState            LeaseState

@@ -5,87 +5,123 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 )
 
-// GetResourceID returns the Resource ID for the given Entity
-// This can be useful when, for example, you're using this as a unique identifier
-func (client Client) GetResourceID(accountName, tableName, partitionKey, rowKey string) string {
-	domain := endpoints.GetTableEndpoint(client.BaseURI, accountName)
-	return fmt.Sprintf("%s/%s(PartitionKey='%s',RowKey='%s')", domain, tableName, partitionKey, rowKey)
-}
+// TODO: update this to implement `resourceids.ResourceId` once
+// https://github.com/hashicorp/go-azure-helpers/issues/187 is fixed
+var _ resourceids.Id = EntityId{}
 
-type ResourceID struct {
-	AccountName  string
-	TableName    string
+type EntityId struct {
+	// AccountId specifies the ID of the Storage Account where this Entity exists.
+	AccountId accounts.AccountId
+
+	// TableName specifies the name of the Table where this Entity exists.
+	TableName string
+
+	// PartitionKey specifies the Partition Key for this Entity.
 	PartitionKey string
-	RowKey       string
+
+	// RowKey specifies the Row Key for this Entity.
+	RowKey string
 }
 
-// ParseResourceID parses the specified Resource ID and returns an object which
-// can be used to look up the specified Entity within the specified Table
-func ParseResourceID(id string) (*ResourceID, error) {
-	// example: https://account1.table.core.chinacloudapi.cn/table1(PartitionKey='partition1',RowKey='row1')
-	if id == "" {
-		return nil, fmt.Errorf("`id` was empty")
-	}
-
-	uri, err := url.Parse(id)
-	if err != nil {
-		return nil, fmt.Errorf("Error parsing ID as a URL: %s", err)
-	}
-
-	accountName, err := endpoints.GetAccountNameFromEndpoint(uri.Host)
-	if err != nil {
-		return nil, fmt.Errorf("Error parsing Account Name: %s", err)
-	}
-
-	// assume there a `Table('')`
-	path := strings.TrimPrefix(uri.Path, "/")
-	if !strings.Contains(uri.Path, "(") || !strings.HasSuffix(uri.Path, ")") {
-		return nil, fmt.Errorf("Expected the Table Name to be in the format `tables(PartitionKey='',RowKey='')` but got %q", path)
-	}
-
-	// NOTE: honestly this could probably be a RegEx, but this seemed like the simplest way to
-	// allow these two fields to be specified in either order
-	indexOfBracket := strings.IndexByte(path, '(')
-	tableName := path[0:indexOfBracket]
-
-	// trim off the brackets
-	temp := strings.TrimPrefix(path, fmt.Sprintf("%s(", tableName))
-	temp = strings.TrimSuffix(temp, ")")
-
-	dictionary := strings.Split(temp, ",")
-	partitionKey := ""
-	rowKey := ""
-	for _, v := range dictionary {
-		split := strings.Split(v, "=")
-		if len(split) != 2 {
-			return nil, fmt.Errorf("Expected 2 segments but got %d for %q", len(split), v)
-		}
-
-		key := split[0]
-		value := strings.TrimSuffix(strings.TrimPrefix(split[1], "'"), "'")
-		if strings.EqualFold(key, "PartitionKey") {
-			partitionKey = value
-		} else if strings.EqualFold(key, "RowKey") {
-			rowKey = value
-		} else {
-			return nil, fmt.Errorf("Unexpected Key %q", key)
-		}
-	}
-
-	if partitionKey == "" {
-		return nil, fmt.Errorf("Expected a PartitionKey but didn't get one")
-	}
-	if rowKey == "" {
-		return nil, fmt.Errorf("Expected a RowKey but didn't get one")
-	}
-
-	return &ResourceID{
-		AccountName:  *accountName,
+func NewEntityID(accountId accounts.AccountId, tableName, partitionKey, rowKey string) EntityId {
+	return EntityId{
+		AccountId:    accountId,
 		TableName:    tableName,
 		PartitionKey: partitionKey,
 		RowKey:       rowKey,
+	}
+}
+
+func (b EntityId) ID() string {
+	return fmt.Sprintf("%s/%s(PartitionKey='%s',RowKey='%s')", b.AccountId.ID(), b.TableName, b.PartitionKey, b.RowKey)
+}
+
+func (b EntityId) String() string {
+	components := []string{
+		fmt.Sprintf("Partition Key %q", b.PartitionKey),
+		fmt.Sprintf("Row Key %q", b.RowKey),
+		fmt.Sprintf("Table Name %q", b.TableName),
+		fmt.Sprintf("Account %q", b.AccountId.String()),
+	}
+	return fmt.Sprintf("Entity (%s)", strings.Join(components, " / "))
+}
+
+// ParseEntityID parses `input` into a Entity ID using a known `domainSuffix`
+func ParseEntityID(input, domainSuffix string) (*EntityId, error) {
+	// example: https://foo.table.core.windows.net/bar(PartitionKey='partition1',RowKey='row1')
+	if input == "" {
+		return nil, fmt.Errorf("`input` was empty")
+	}
+
+	account, err := accounts.ParseAccountID(input, domainSuffix)
+	if err != nil {
+		return nil, fmt.Errorf("parsing account %q: %+v", input, err)
+	}
+
+	if account.SubDomainType != accounts.TableSubDomainType {
+		return nil, fmt.Errorf("expected the subdomain type to be %q but got %q", string(accounts.TableSubDomainType), string(account.SubDomainType))
+	}
+
+	uri, err := url.Parse(input)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q as a uri: %+v", input, err)
+	}
+
+	path := strings.TrimPrefix(uri.Path, "/")
+	segments := strings.Split(path, "/")
+	if len(segments) != 1 {
+		return nil, fmt.Errorf("expected the path to contain 1 segment but got %d", len(segments))
+	}
+
+	// Tables and Table Entities are similar with table being `table1` and entities
+	// being `table1(PartitionKey='samplepartition',RowKey='samplerow')` so we need to validate this is a table
+	slug := strings.TrimPrefix(uri.Path, "/")
+	if strings.HasPrefix(slug, "Tables('") && strings.HasSuffix(slug, "')") {
+		// Ensure we do not parse a Table ID in the format: https://foo.table.core.windows.net/Table('foo')
+		return nil, fmt.Errorf("expected the path to be an entity name but got a table name: %q", slug)
+	} else if !strings.Contains(slug, "(") || !strings.HasSuffix(slug, ")") {
+		// Ensure we do not try to parse a bare table name
+		return nil, fmt.Errorf("expected the path to be an entity name but got an invalid format, possibly a table name: %q", slug)
+	}
+
+	indexOfFirstBracket := strings.Index(slug, "(")
+	tableName := slug[0:indexOfFirstBracket]
+	componentString := slug[indexOfFirstBracket:]
+	componentString = strings.TrimPrefix(componentString, "(")
+	componentString = strings.TrimSuffix(componentString, ")")
+	components := strings.Split(componentString, ",")
+	if len(components) != 2 {
+		return nil, fmt.Errorf("expected the path to be an entity name but got %q", slug)
+	}
+
+	partitionKey := parseValueFromKey(components[0], "PartitionKey")
+	rowKey := parseValueFromKey(components[1], "RowKey")
+
+	return &EntityId{
+		AccountId:    *account,
+		TableName:    tableName,
+		PartitionKey: *partitionKey,
+		RowKey:       *rowKey,
 	}, nil
+}
+
+func parseValueFromKey(input, expectedKey string) *string {
+	components := strings.Split(input, "=")
+	if len(components) != 2 {
+		return nil
+	}
+	key := components[0]
+	value := components[1]
+	if key != expectedKey {
+		return nil
+	}
+
+	// the value is surrounded in single quotes, remove those
+	value = strings.TrimPrefix(value, "'")
+	value = strings.TrimSuffix(value, "'")
+	return &value
 }

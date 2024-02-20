@@ -2,89 +2,70 @@ package tables
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type createTableRequest struct {
 	TableName string `json:"TableName"`
 }
 
+type CreateTableResponse struct {
+	HttpResponse *client.Response
+}
+
 // Create creates a new table in the storage account.
-func (client Client) Create(ctx context.Context, accountName, tableName string) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("tables.Client", "Create", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Create(ctx context.Context, tableName string) (resp CreateTableResponse, err error) {
 	if tableName == "" {
-		return result, validation.NewError("tables.Client", "Create", "`tableName` cannot be an empty string.")
+		return resp, fmt.Errorf("`tableName` cannot be an empty string")
 	}
 
-	req, err := client.CreatePreparer(ctx, accountName, tableName)
+	opts := client.RequestOptions{
+		ContentType: "application/json",
+		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
+		},
+		HttpMethod:    http.MethodPost,
+		OptionsObject: createTableOptions{},
+		Path:          "/Tables",
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tables.Client", "Create", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.CreateSender(req)
+	err = req.Marshal(&createTableRequest{TableName: tableName})
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "tables.Client", "Create", resp, "Failure sending request")
-		return
+		return resp, fmt.Errorf("marshalling request")
 	}
 
-	result, err = client.CreateResponder(resp)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "tables.Client", "Create", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// CreatePreparer prepares the Create request.
-func (client Client) CreatePreparer(ctx context.Context, accountName, tableName string) (*http.Request, error) {
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-		// NOTE: we could support returning metadata here, but it doesn't appear to be directly useful
-		// vs making a request using the Get methods as-necessary?
-		"Accept": "application/json;odata=nometadata",
-		"Prefer": "return-no-content",
-	}
+type createTableOptions struct{}
 
-	body := createTableRequest{
-		TableName: tableName,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(endpoints.GetTableEndpoint(client.BaseURI, accountName)),
-		autorest.WithPath("/Tables"),
-		autorest.WithJSON(body),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+func (c createTableOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	headers.Append("Accept", "application/json;odata=nometadata")
+	headers.Append("Prefer", "return-no-content")
+	return headers
 }
 
-// CreateSender sends the Create request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (c createTableOptions) ToOData() *odata.Query {
+	return nil
 }
 
-// CreateResponder handles the response to the Create request. The method always
-// closes the http.Response Body.
-func (client Client) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusNoContent),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
-
-	return
+func (c createTableOptions) ToQuery() *client.QueryParams {
+	return nil
 }

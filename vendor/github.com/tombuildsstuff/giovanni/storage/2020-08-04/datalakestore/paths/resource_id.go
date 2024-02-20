@@ -5,53 +5,76 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
 )
 
-// GetResourceID returns the Resource ID for the given Data Lake Storage FileSystem
-// This can be useful when, for example, you're using this as a unique identifier
-func (client Client) GetResourceID(accountName, fileSystemName, path string) string {
-	domain := endpoints.GetDataLakeStoreEndpoint(client.BaseURI, accountName)
-	return fmt.Sprintf("%s/%s/%s", domain, fileSystemName, path)
-}
+// TODO: update this to implement `resourceids.ResourceId` once
+// https://github.com/hashicorp/go-azure-helpers/issues/187 is fixed
+var _ resourceids.Id = PathId{}
 
-type ResourceID struct {
-	AccountName    string
+type PathId struct {
+	// AccountId specifies the ID of the Storage Account where this path exists.
+	AccountId accounts.AccountId
+
+	// FileSystemName specifies the name of the Data Lake FileSystem where this Path exists.
 	FileSystemName string
-	Path           string
+
+	// Path specifies the path in question.
+	Path string
 }
 
-// ParseResourceID parses the specified Resource ID and returns an object
-// which can be used to interact with the Data Lake Storage FileSystem API's
-func ParseResourceID(id string) (*ResourceID, error) {
-	// example: https://foo.dfs.core.windows.net/Bar
-	if id == "" {
-		return nil, fmt.Errorf("`id` was empty")
+func NewPathID(accountId accounts.AccountId, fileSystemName, path string) PathId {
+	return PathId{
+		AccountId:      accountId,
+		FileSystemName: fileSystemName,
+		Path:           path,
+	}
+}
+
+func (b PathId) ID() string {
+	return fmt.Sprintf("%s/%s/%s", b.AccountId.ID(), b.FileSystemName, b.Path)
+}
+
+func (b PathId) String() string {
+	components := []string{
+		fmt.Sprintf("File System %q", b.FileSystemName),
+		fmt.Sprintf("Account %q", b.AccountId.String()),
+	}
+	return fmt.Sprintf("Path %q (%s)", b.Path, strings.Join(components, " / "))
+}
+
+// ParsePathID parses `input` into a Path ID using a known `domainSuffix`
+func ParsePathID(input, domainSuffix string) (*PathId, error) {
+	// example: https://foo.dfs.core.windows.net/Bar/some/path
+	if input == "" {
+		return nil, fmt.Errorf("`input` was empty")
 	}
 
-	uri, err := url.Parse(id)
+	account, err := accounts.ParseAccountID(input, domainSuffix)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing ID as a URL: %s", err)
+		return nil, fmt.Errorf("parsing account %q: %+v", input, err)
 	}
 
-	accountName, err := endpoints.GetAccountNameFromEndpoint(uri.Host)
+	if account.SubDomainType != accounts.DataLakeStoreSubDomainType {
+		return nil, fmt.Errorf("expected the subdomain type to be %q but got %q", string(accounts.DataLakeStoreSubDomainType), string(account.SubDomainType))
+	}
+
+	uri, err := url.Parse(input)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing Account Name: %s", err)
+		return nil, fmt.Errorf("parsing %q as a uri: %+v", input, err)
 	}
 
-	fileSystemAndPath := strings.TrimPrefix(uri.Path, "/")
-	separatorIndex := strings.Index(fileSystemAndPath, "/")
-	var fileSystem, path string
-	if separatorIndex < 0 {
-		fileSystem = fileSystemAndPath
-		path = ""
-	} else {
-		fileSystem = fileSystemAndPath[0:separatorIndex]
-		path = fileSystemAndPath[separatorIndex+1:]
+	uriPath := strings.TrimPrefix(uri.Path, "/")
+	segments := strings.Split(uriPath, "/")
+	if len(segments) < 2 {
+		return nil, fmt.Errorf("expected the path to contain at least 2 segments but got %d", len(segments))
 	}
-	return &ResourceID{
-		AccountName:    *accountName,
-		FileSystemName: fileSystem,
+	fileSystemName := segments[0]
+	path := strings.Join(segments[1:], "/")
+	return &PathId{
+		AccountId:      *account,
+		FileSystemName: fileSystemName,
 		Path:           path,
 	}, nil
 }

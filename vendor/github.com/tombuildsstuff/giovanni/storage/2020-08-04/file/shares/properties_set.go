@@ -2,13 +2,13 @@ package shares
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 type ShareProperties struct {
@@ -16,91 +16,75 @@ type ShareProperties struct {
 	AccessTier *AccessTier
 }
 
+type SetPropertiesResponse struct {
+	HttpResponse *client.Response
+}
+
 // SetProperties lets you update the Quota for the specified Storage Share
-func (client Client) SetProperties(ctx context.Context, accountName, shareName string, properties ShareProperties) (result autorest.Response, err error) {
-	if accountName == "" {
-		return result, validation.NewError("shares.Client", "SetProperties", "`accountName` cannot be an empty string.")
-	}
+func (c Client) SetProperties(ctx context.Context, shareName string, properties ShareProperties) (resp SetPropertiesResponse, err error) {
+
 	if shareName == "" {
-		return result, validation.NewError("shares.Client", "SetProperties", "`shareName` cannot be an empty string.")
+		return resp, fmt.Errorf("`shareName` cannot be an empty string")
 	}
+
 	if strings.ToLower(shareName) != shareName {
-		return result, validation.NewError("shares.Client", "SetProperties", "`shareName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`shareName` must be a lower-cased string")
 	}
+
 	if newQuotaGB := properties.QuotaInGb; newQuotaGB != nil && (*newQuotaGB <= 0 || *newQuotaGB > 102400) {
-		return result, validation.NewError("shares.Client", "SetProperties", "`newQuotaGB` must be greater than 0, and less than/equal to 100TB (102400 GB)")
+		return resp, fmt.Errorf("`newQuotaGB` must be greater than 0, and less than/equal to 100TB (102400 GB)")
 	}
 
-	req, err := client.SetPropertiesPreparer(ctx, accountName, shareName, properties)
+	opts := client.RequestOptions{
+		ContentType: "application/xml; charset=utf-8",
+		ExpectedStatusCodes: []int{
+			http.StatusOK,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: SetPropertiesOptions{
+			input: properties,
+		},
+		Path: fmt.Sprintf("/%s", shareName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "SetProperties", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.SetPropertiesSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "shares.Client", "SetProperties", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.SetPropertiesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "shares.Client", "SetProperties", resp, "Failure responding to request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
 	return
 }
 
-// SetPropertiesPreparer prepares the SetProperties request.
-func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, shareName string, properties ShareProperties) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"shareName": autorest.Encode("path", shareName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"restype": autorest.Encode("query", "share"),
-		"comp":    autorest.Encode("query", "properties"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-	if properties.QuotaInGb != nil {
-		headers["x-ms-share-quota"] = *properties.QuotaInGb
-	}
-
-	if properties.AccessTier != nil {
-		headers["x-ms-access-tier"] = string(*properties.AccessTier)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/xml; charset=utf-8"),
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetFileEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{shareName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type SetPropertiesOptions struct {
+	input ShareProperties
 }
 
-// SetPropertiesSender sends the SetProperties request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SetPropertiesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (s SetPropertiesOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
+	if s.input.QuotaInGb != nil {
+		headers.Append("x-ms-share-quota", strconv.Itoa(*s.input.QuotaInGb))
+	}
+
+	if s.input.AccessTier != nil {
+		headers.Append("x-ms-access-tier", string(*s.input.AccessTier))
+	}
+	return headers
 }
 
-// SetPropertiesResponder handles the response to the SetProperties request. The method always
-// closes the http.Response Body.
-func (client Client) SetPropertiesResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByClosing())
-	result = autorest.Response{Response: resp}
+func (s SetPropertiesOptions) ToOData() *odata.Query {
+	return nil
+}
 
-	return
+func (s SetPropertiesOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("restype", "share")
+	out.Append("comp", "properties")
+	return out
 }

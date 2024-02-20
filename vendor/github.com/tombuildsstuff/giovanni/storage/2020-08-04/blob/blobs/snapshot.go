@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
-	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
@@ -42,8 +40,8 @@ type SnapshotInput struct {
 	IfNoneMatch *string
 }
 
-type SnapshotResult struct {
-	autorest.Response
+type SnapshotResponse struct {
+	HttpResponse *client.Response
 
 	// The ETag of the snapshot
 	ETag string
@@ -55,109 +53,92 @@ type SnapshotResult struct {
 }
 
 // Snapshot captures a Snapshot of a given Blob
-func (client Client) Snapshot(ctx context.Context, accountName, containerName, blobName string, input SnapshotInput) (result SnapshotResult, err error) {
-	if accountName == "" {
-		return result, validation.NewError("blobs.Client", "Snapshot", "`accountName` cannot be an empty string.")
-	}
+func (c Client) Snapshot(ctx context.Context, containerName, blobName string, input SnapshotInput) (resp SnapshotResponse, err error) {
+
 	if containerName == "" {
-		return result, validation.NewError("blobs.Client", "Snapshot", "`containerName` cannot be an empty string.")
+		return resp, fmt.Errorf("`containerName` cannot be an empty string")
 	}
+
 	if strings.ToLower(containerName) != containerName {
-		return result, validation.NewError("blobs.Client", "Snapshot", "`containerName` must be a lower-cased string.")
+		return resp, fmt.Errorf("`containerName` must be a lower-cased string")
 	}
+
 	if blobName == "" {
-		return result, validation.NewError("blobs.Client", "Snapshot", "`blobName` cannot be an empty string.")
+		return resp, fmt.Errorf("`blobName` cannot be an empty string")
 	}
+
 	if err := metadata.Validate(input.MetaData); err != nil {
-		return result, validation.NewError("blobs.Client", "Snapshot", fmt.Sprintf("`input.MetaData` is not valid: %s.", err))
+		return resp, fmt.Errorf(fmt.Sprintf("`input.MetaData` is not valid: %s.", err))
 	}
 
-	req, err := client.SnapshotPreparer(ctx, accountName, containerName, blobName, input)
+	opts := client.RequestOptions{
+		ExpectedStatusCodes: []int{
+			http.StatusCreated,
+		},
+		HttpMethod: http.MethodPut,
+		OptionsObject: snapshotOptions{
+			input: input,
+		},
+		Path: fmt.Sprintf("/%s/%s", containerName, blobName),
+	}
+
+	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Snapshot", nil, "Failure preparing request")
+		err = fmt.Errorf("building request: %+v", err)
 		return
 	}
 
-	resp, err := client.SnapshotSender(req)
+	resp.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Snapshot", resp, "Failure sending request")
+		err = fmt.Errorf("executing request: %+v", err)
 		return
 	}
 
-	result, err = client.SnapshotResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "blobs.Client", "Snapshot", resp, "Failure responding to request")
-		return
+	if resp.HttpResponse != nil && resp.HttpResponse.Header != nil {
+		resp.ETag = resp.HttpResponse.Header.Get("ETag")
+		resp.SnapshotDateTime = resp.HttpResponse.Header.Get("x-ms-snapshot")
 	}
 
 	return
 }
 
-// SnapshotPreparer prepares the Snapshot request.
-func (client Client) SnapshotPreparer(ctx context.Context, accountName, containerName, blobName string, input SnapshotInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"containerName": autorest.Encode("path", containerName),
-		"blobName":      autorest.Encode("path", blobName),
-	}
-
-	queryParameters := map[string]interface{}{
-		"comp": autorest.Encode("query", "snapshot"),
-	}
-
-	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
-	}
-
-	if input.LeaseID != nil {
-		headers["x-ms-lease-id"] = *input.LeaseID
-	}
-
-	if input.IfModifiedSince != nil {
-		headers["If-Modified-Since"] = *input.IfModifiedSince
-	}
-	if input.IfUnmodifiedSince != nil {
-		headers["If-Unmodified-Since"] = *input.IfUnmodifiedSince
-	}
-	if input.IfMatch != nil {
-		headers["If-Match"] = *input.IfMatch
-	}
-	if input.IfNoneMatch != nil {
-		headers["If-None-Match"] = *input.IfNoneMatch
-	}
-
-	headers = metadata.SetIntoHeaders(headers, input.MetaData)
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPut(),
-		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
-		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters),
-		autorest.WithHeaders(headers))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+type snapshotOptions struct {
+	input SnapshotInput
 }
 
-// SnapshotSender sends the Snapshot request. The method will close the
-// http.Response Body if it receives an error.
-func (client Client) SnapshotSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
+func (s snapshotOptions) ToHeaders() *client.Headers {
+	headers := &client.Headers{}
 
-// SnapshotResponder handles the response to the Snapshot request. The method always
-// closes the http.Response Body.
-func (client Client) SnapshotResponder(resp *http.Response) (result SnapshotResult, err error) {
-	if resp != nil && resp.Header != nil {
-		result.ETag = resp.Header.Get("ETag")
-		result.SnapshotDateTime = resp.Header.Get("x-ms-snapshot")
+	if s.input.LeaseID != nil {
+		headers.Append("x-ms-lease-id", *s.input.LeaseID)
 	}
 
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusCreated),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	if s.input.IfModifiedSince != nil {
+		headers.Append("If-Modified-Since", *s.input.IfModifiedSince)
+	}
 
-	return
+	if s.input.IfUnmodifiedSince != nil {
+		headers.Append("If-Unmodified-Since", *s.input.IfUnmodifiedSince)
+	}
+
+	if s.input.IfMatch != nil {
+		headers.Append("If-Match", *s.input.IfMatch)
+	}
+
+	if s.input.IfNoneMatch != nil {
+		headers.Append("If-None-Match", *s.input.IfNoneMatch)
+	}
+
+	headers.Merge(metadata.SetMetaDataHeaders(s.input.MetaData))
+	return headers
+}
+
+func (s snapshotOptions) ToOData() *odata.Query {
+	return nil
+}
+
+func (s snapshotOptions) ToQuery() *client.QueryParams {
+	out := &client.QueryParams{}
+	out.Append("comp", "snapshot")
+	return out
 }
