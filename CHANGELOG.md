@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: refactor `azurerm_spring_cloud_configuration_service` to use `go-azure-sdk` [GH-24918]
 * `sqlvirtualmachines`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24912]
 * `azurerm_redis_cache` - support for the `preferred_data_persistence_auth_method` property [GH-24370]
+* `azurerm_servicebus_namespace` - support for the `premium_messaging_partitions` property [GH-24676]
 
 BUG FIXES:
 
