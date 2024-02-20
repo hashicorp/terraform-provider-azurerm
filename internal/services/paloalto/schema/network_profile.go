@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/firewalls"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type NetworkProfileVnet struct {
@@ -17,6 +18,7 @@ type NetworkProfileVnet struct {
 
 	// Optional
 	EgressNatIPIDs    []string            `tfschema:"egress_nat_ip_address_ids"`
+	TrustedRanges     []string            `tfschema:"trusted_address_ranges"`
 	VnetConfiguration []VnetConfiguration `tfschema:"vnet_configuration"`
 
 	// Computed
@@ -30,6 +32,7 @@ type NetworkProfileVHub struct {
 
 	// Optional
 	EgressNatIPIDs []string `tfschema:"egress_nat_ip_address_ids"`
+	TrustedRanges  []string `tfschema:"trusted_address_ranges"`
 
 	// Computed
 	PublicIPs       []string `tfschema:"public_ip_addresses"`
@@ -67,6 +70,18 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
+				"trusted_address_ranges": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+						ValidateFunc: validation.Any(
+							validation.IsCIDR,
+							validation.IsIPv4Address,
+						),
+					},
+				},
+
 				"vnet_configuration": VnetConfigurationSchema(),
 
 				// Computed
@@ -95,6 +110,7 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 	result := firewalls.NetworkProfile{
 		EnableEgressNat: firewalls.EgressNatDISABLED,
 		NetworkType:     firewalls.NetworkTypeVNET,
+		TrustedRanges:   &[]string{},
 	}
 
 	if len(input) == 0 {
@@ -122,6 +138,10 @@ func ExpandNetworkProfileVnet(input []NetworkProfileVnet) firewalls.NetworkProfi
 			})
 		}
 		result.EgressNatIP = pointer.To(egressNatIPs)
+	}
+
+	if len(profile.TrustedRanges) > 0 {
+		result.TrustedRanges = pointer.To(profile.TrustedRanges)
 	}
 
 	vnet := profile.VnetConfiguration[0]
@@ -170,6 +190,12 @@ func FlattenNetworkProfileVnet(input firewalls.NetworkProfile) []NetworkProfileV
 	}
 	result.EgressNatIPIDs = egressIds
 	result.EgressNatIP = egressIPs
+
+	trustedRanges := make([]string, 0)
+	if v := input.TrustedRanges; v != nil {
+		trustedRanges = pointer.From(v)
+	}
+	result.TrustedRanges = trustedRanges
 
 	if v := input.VnetConfiguration; v != nil {
 		vNet := VnetConfiguration{}
@@ -229,6 +255,18 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					},
 				},
 
+				"trusted_address_ranges": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+						ValidateFunc: validation.Any(
+							validation.IsCIDR,
+							validation.IsIPv4Address,
+						),
+					},
+				},
+
 				"trusted_subnet_id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -268,6 +306,7 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 	result := firewalls.NetworkProfile{
 		EnableEgressNat: firewalls.EgressNatDISABLED,
 		EgressNatIP:     &[]firewalls.IPAddress{},
+		TrustedRanges:   &[]string{},
 	}
 	if len(input) == 0 {
 		return result
@@ -295,6 +334,10 @@ func ExpandNetworkProfileVHub(input []NetworkProfileVHub) firewalls.NetworkProfi
 		}
 
 		result.EgressNatIP = pointer.To(egressNatIPs)
+	}
+
+	if len(profile.TrustedRanges) > 0 {
+		result.TrustedRanges = pointer.To(profile.TrustedRanges)
 	}
 
 	result.NetworkType = firewalls.NetworkTypeVWAN
@@ -339,6 +382,12 @@ func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileV
 	}
 	result.EgressNatIPIDs = egressIds
 	result.EgressNatIP = egressIPs
+
+	trustedRanges := make([]string, 0)
+	if v := input.TrustedRanges; v != nil {
+		trustedRanges = pointer.From(v)
+	}
+	result.TrustedRanges = trustedRanges
 
 	if v := input.VwanConfiguration; v != nil {
 

@@ -301,24 +301,6 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
-
-	if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
-		if sku.Capacity == nil {
-			return fmt.Errorf("sku.capacity could not be empty")
-		}
-		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
-		if *sku.Capacity < optimizedAutoScale.Minimum {
-			sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
-		}
-		if *sku.Capacity > optimizedAutoScale.Maximum {
-			sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
-		}
-		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
-			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
-		}
-	}
-
 	publicNetworkAccess := clusters.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = clusters.PublicNetworkAccessDisabled
@@ -327,7 +309,6 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	publicIPType := clusters.PublicIPType(d.Get("public_ip_type").(string))
 
 	clusterProperties := clusters.ClusterProperties{
-		OptimizedAutoscale:     optimizedAutoScale,
 		EnableAutoStop:         utils.Bool(d.Get("auto_stop_enabled").(bool)),
 		EnableDiskEncryption:   utils.Bool(d.Get("disk_encryption_enabled").(bool)),
 		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
@@ -381,9 +362,9 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	zoneList := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
-	if len(zoneList) > 0 {
-		kustoCluster.Zones = &zoneList
+	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+	if len(zones) > 0 {
+		kustoCluster.Zones = &zones
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}); err != nil {
@@ -391,6 +372,32 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	d.SetId(id.ID())
+
+	// optimized_auto_scale can't be updated when the sku is also being updated so we'll update it separately
+	// todo rework this when we split create/update
+	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
+	if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
+		if sku.Capacity == nil {
+			return fmt.Errorf("sku.capacity could not be empty")
+		}
+		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+		if *sku.Capacity < optimizedAutoScale.Minimum {
+			sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
+		}
+		if *sku.Capacity > optimizedAutoScale.Maximum {
+			sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
+		}
+
+		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
+			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+		}
+
+		clusterProperties.OptimizedAutoscale = optimizedAutoScale
+
+		if err := client.CreateOrUpdateThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}); err != nil {
+			return fmt.Errorf("creating/updating %s: %+v", id, err)
+		}
+	}
 
 	return resourceKustoClusterRead(d, meta)
 }

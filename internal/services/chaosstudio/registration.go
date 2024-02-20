@@ -30,7 +30,10 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
-	resources := []sdk.Resource{}
+	resources := []sdk.Resource{
+		ChaosStudioCapabilityResource{},
+		ChaosStudioExperimentResource{},
+	}
 	resources = append(resources, r.autoRegistration.Resources()...)
 	return resources
 }

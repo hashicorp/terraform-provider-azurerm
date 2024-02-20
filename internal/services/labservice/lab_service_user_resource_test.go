@@ -142,6 +142,10 @@ resource "azurerm_lab_service_lab" "test" {
       capacity = 1
     }
   }
+
+  connection_setting {
+    client_ssh_access = "Public"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }

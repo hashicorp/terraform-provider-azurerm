@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines"
 ```
 
@@ -41,7 +42,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := machines.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
+id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
 
 read, err := client.GetMachine(ctx, id)
 if err != nil {
@@ -57,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := machines.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
+id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
 
 read, err := client.StartMachine(ctx, id)
 if err != nil {
@@ -73,7 +74,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := machines.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
+id := commonids.NewVMwareSiteMachineID("12345678-1234-9876-4563-123456789012", "example-resource-group", "vmwareSiteValue", "machineValue")
 
 read, err := client.StopMachine(ctx, id)
 if err != nil {

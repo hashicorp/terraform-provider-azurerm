@@ -188,7 +188,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityOptional(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"job_id": {
 				Type:     pluginsdk.TypeString,
@@ -261,11 +261,6 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	expandedIdentity, err := expandStreamAnalyticsJobIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
 	props := streamingjobs.StreamingJob{
 		Name:     utils.String(id.StreamingJobName),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
@@ -280,9 +275,26 @@ func resourceStreamAnalyticsJobCreateUpdate(d *pluginsdk.ResourceData, meta inte
 			OutputErrorPolicy:                  pointer.To(streamingjobs.OutputErrorPolicy(d.Get("output_error_policy").(string))),
 			JobType:                            pointer.To(streamingjobs.JobType(jobType)),
 		},
-		Identity: expandedIdentity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	if expandedIdentity.Type == identity.TypeNone {
+		// The StreamAnalytics API doesn't implement the standard `None` pattern - meaning that sending `None` outputs
+		// an API error. This conditional is required to support this, else the API returns:
+		//
+		// >  Code="BadRequest" Message="The JSON provided in the request body is invalid. Cannot convert value 'None'
+		// > to type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
+		// > Details=[{"code":"400","correlationId":"dcdbdcfa-fe38-66f8-3aa3-36950bab0a28","message":"The JSON provided in the request body is invalid.
+		// > Cannot convert value 'None' to type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
+		//
+		// Tracked in https://github.com/Azure/azure-rest-api-specs/issues/17649
+		expandedIdentity = nil
+	}
+	props.Identity = expandedIdentity
 
 	if _, ok := d.GetOk("compatibility_level"); ok {
 		compatibilityLevel := d.Get("compatibility_level").(string)
@@ -394,9 +406,14 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		if err := d.Set("identity", flattenJobIdentity(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %v", err)
 		}
+
 		if props := model.Properties; props != nil {
 			compatibilityLevel := ""
 			if v := props.CompatibilityLevel; v != nil {
@@ -500,55 +517,6 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
-}
-
-func expandStreamAnalyticsJobIdentity(input []interface{}) (*streamingjobs.Identity, error) {
-	expanded, err := identity.ExpandSystemAssigned(input)
-	if err != nil {
-		return nil, err
-	}
-
-	// Otherwise we get:
-	//   Code="BadRequest"
-	//   Message="The JSON provided in the request body is invalid. Cannot convert value 'None' to
-	//   type 'System.Nullable`1[Microsoft.Streaming.Service.Contracts.CSMResourceProvider.IdentityType]"
-	// Upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/17649
-	if expanded.Type == identity.TypeNone {
-		return nil, nil
-	}
-
-	return &streamingjobs.Identity{
-		Type: utils.String(string(expanded.Type)),
-	}, nil
-}
-
-func flattenJobIdentity(identity *streamingjobs.Identity) []interface{} {
-	if identity == nil {
-		return nil
-	}
-
-	var t string
-	if identity.Type != nil {
-		t = *identity.Type
-	}
-
-	var tenantId string
-	if identity.TenantId != nil {
-		tenantId = *identity.TenantId
-	}
-
-	var principalId string
-	if identity.PrincipalId != nil {
-		principalId = *identity.PrincipalId
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         t,
-			"tenant_id":    tenantId,
-			"principal_id": principalId,
-		},
-	}
 }
 
 func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccount {
