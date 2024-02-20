@@ -533,6 +533,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 						"tier": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForContinuousTier(), false),
 						},
 

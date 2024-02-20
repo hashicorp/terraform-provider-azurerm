@@ -3557,11 +3557,6 @@ resource "azurerm_cosmosdb_account" "test" {
   backup {
     type = "Continuous"
   }
-
-  // API would return the default value "Continuous7Days" when backup.type is "Continuous" and "tier" isn't set. At this time, it would cause diff. So here ignore_changes for "tier" is added.
-  lifecycle {
-    ignore_changes = [backup.0.tier]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -4117,11 +4112,6 @@ resource "azurerm_cosmosdb_account" "test" {
     location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
-
-  // API would return the default value "Continuous7Days" when backup.type is "Continuous" and "tier" isn't set. At this time, it would cause diff. So here ignore_changes for "tier" is added.
-  lifecycle {
-    ignore_changes = [backup.0.tier]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
@@ -4159,11 +4149,6 @@ resource "azurerm_cosmosdb_account" "test1" {
 
   backup {
     type = "Continuous"
-  }
-
-  // API would return the default value "Continuous7Days" when backup.type is "Continuous" and "tier" isn't set. At this time, it would cause diff. So here ignore_changes for "tier" is added.
-  lifecycle {
-    ignore_changes = [backup.0.tier]
   }
 }
 
@@ -4227,11 +4212,9 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
-  // API would return the default value "Continuous7Days" when backup.type is "Continuous" and "tier" isn't set. At this time, it would cause diff. So here ignore_changes for "tier" is added.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc,
-      backup.0.tier
+      restore.0.restore_timestamp_in_utc
     ]
   }
 }
@@ -4271,11 +4254,6 @@ resource "azurerm_cosmosdb_account" "test1" {
 
   backup {
     type = "Continuous"
-  }
-
-  // API would return the default value "Continuous7Days" when backup.type is "Continuous" and "tier" isn't set. At this time, it would cause diff. So here ignore_changes for "tier" is added.
-  lifecycle {
-    ignore_changes = [backup.0.tier]
   }
 }
 
@@ -4333,11 +4311,9 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
-  // API would return the default value "Continuous7Days" when backup.type is "Continuous" and "tier" isn't set. At this time, it would cause diff. So here ignore_changes for "tier" is added.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc,
-      backup.0.tier
+      restore.0.restore_timestamp_in_utc
     ]
   }
 }
@@ -4377,11 +4353,6 @@ resource "azurerm_cosmosdb_account" "test1" {
 
   backup {
     type = "Continuous"
-  }
-
-  // API would return the default value "Continuous7Days" when backup.type is "Continuous" and "tier" isn't set. At this time, it would cause diff. So here ignore_changes for "tier" is added.
-  lifecycle {
-    ignore_changes = [backup.0.tier]
   }
 }
 
@@ -4455,11 +4426,9 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
-  // API would return the default value "Continuous7Days" when backup.type is "Continuous" and "tier" isn't set. At this time, it would cause diff. So here ignore_changes for "tier" is added.
   lifecycle {
     ignore_changes = [
-      restore.0.restore_timestamp_in_utc,
-      backup.0.tier
+      restore.0.restore_timestamp_in_utc
     ]
   }
 }
