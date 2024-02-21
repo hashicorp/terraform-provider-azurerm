@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `sqlvirtualmachines`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24912]
 * `azurerm_cosmosdb_account` - support for the `backup.tier` property [GH-24595]
 * `azurerm_linux_virtual_machine` - the `virtual_machine_scale_set_id` proeprty can now be changed without creating a new resource [GH-24768]
+* `azurerm_private_dns_resolver_inbound_endpoint` - support the `statci` value for the `private_ip_allocation_method` property [GH-24952]
 * `azurerm_redis_cache` - support for the `preferred_data_persistence_auth_method` property [GH-24370]
 * `azurerm_servicebus_namespace` - support for the `premium_messaging_partitions` property [GH-24676]
 * `azurerm_windows_virtual_machine` - the `virtual_machine_scale_set_id` proeprty can now be changed without creating a new resource [GH-24768]
