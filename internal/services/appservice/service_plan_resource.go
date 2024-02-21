@@ -175,12 +175,17 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			if isServicePlanSupportScaleOut(servicePlan.Sku) {
+				servicePlan.PremiumElasticScaling = true
+			}
+
 			appServicePlan := appserviceplans.AppServicePlan{
 				Properties: &appserviceplans.AppServicePlanProperties{
-					PerSiteScaling: pointer.To(servicePlan.PerSiteScaling),
-					Reserved:       pointer.To(servicePlan.OSType == OSTypeLinux),
-					HyperV:         pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
-					ZoneRedundant:  pointer.To(servicePlan.ZoneBalancing),
+					PerSiteScaling:      pointer.To(servicePlan.PerSiteScaling),
+					Reserved:            pointer.To(servicePlan.OSType == OSTypeLinux),
+					HyperV:              pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
+					ZoneRedundant:       pointer.To(servicePlan.ZoneBalancing),
+					ElasticScaleEnabled: pointer.To(servicePlan.PremiumElasticScaling),
 				},
 				Sku: &appserviceplans.SkuDescription{
 					Name: pointer.To(servicePlan.Sku),
@@ -391,6 +396,18 @@ func (r ServicePlanResource) StateUpgraders() sdk.StateUpgradeData {
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.ServicePlanV0toV1{},
+		},
+	}
+}
+
+func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppService.ServicePlanClient
+			rd := metadata.ResourceDiff
+
+			if rd.HasChange("")
 		},
 	}
 }
