@@ -887,10 +887,6 @@ func (s *SiteConfigLinuxWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteConfi
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
 	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
 
-	if appSiteSlotConfig.ApiManagementConfig != nil && appSiteSlotConfig.ApiManagementConfig.Id != nil {
-		s.ApiManagementConfigId = *appSiteSlotConfig.ApiManagementConfig.Id
-
-	}
 	if appSiteSlotConfig.IPSecurityRestrictionsDefaultAction != nil {
 		if strings.EqualFold(string(*appSiteSlotConfig.IPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
 			s.IpAccessEnabled = false

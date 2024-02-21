@@ -854,17 +854,17 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
+	}
 
-		if appSiteConfig.IPSecurityRestrictionsDefaultAction != nil {
-			if strings.EqualFold(string(*appSiteConfig.IPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
-				s.IpAccessEnabled = false
-			}
+	if appSiteConfig.IPSecurityRestrictionsDefaultAction != nil {
+		if strings.EqualFold(string(*appSiteConfig.IPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
+			s.IpAccessEnabled = false
 		}
+	}
 
-		if appSiteConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
-			if strings.EqualFold(string(*appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
-				s.ScmIpAccessEnabled = false
-			}
+	if appSiteConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
+		if strings.EqualFold(string(*appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
+			s.ScmIpAccessEnabled = false
 		}
 	}
 

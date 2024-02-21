@@ -1099,6 +1099,7 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 				s.IpAccessEnabled = false
 			}
 		}
+
 		if appSiteConfig.ScmIPSecurityRestrictionsDefaultAction != nil {
 			if strings.EqualFold(string(*appSiteConfig.ScmIPSecurityRestrictionsDefaultAction), string(webapps.DefaultActionDeny)) {
 				s.ScmIpAccessEnabled = false
@@ -1107,22 +1108,18 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 
 		if appSiteConfig.ApiManagementConfig != nil {
 			s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
+		}
 
-			if appSiteConfig.ApiManagementConfig != nil {
-				s.ApiManagementConfigId = pointer.From(appSiteConfig.ApiManagementConfig.Id)
-			}
+		if appSiteConfig.ApiDefinition != nil {
+			s.ApiDefinition = pointer.From(appSiteConfig.ApiDefinition.Url)
+		}
 
-			if appSiteConfig.ApiDefinition != nil {
-				s.ApiDefinition = pointer.From(appSiteConfig.ApiDefinition.Url)
-			}
+		if appSiteConfig.LinuxFxVersion != nil {
+			var linuxAppStack ApplicationStackLinux
+			s.LinuxFxVersion = pointer.From(appSiteConfig.LinuxFxVersion)
 
-			if appSiteConfig.LinuxFxVersion != nil {
-				var linuxAppStack ApplicationStackLinux
-				s.LinuxFxVersion = pointer.From(appSiteConfig.LinuxFxVersion)
-
-				linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
-				s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
-			}
+			linuxAppStack = decodeApplicationStackLinux(s.LinuxFxVersion)
+			s.ApplicationStack = []ApplicationStackLinux{linuxAppStack}
 		}
 	}
 }
