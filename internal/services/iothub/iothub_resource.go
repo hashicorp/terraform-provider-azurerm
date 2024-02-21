@@ -2024,6 +2024,9 @@ func connectionStringToMap(connectionStr string) map[string]string {
 	for _, v := range split {
 		// The connection string might contain `=`
 		kv := strings.SplitN(v, "=", 2)
+		if len(kv) != 2 {
+			continue
+		}
 		m[kv[0]] = kv[1]
 	}
 	return m
