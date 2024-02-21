@@ -37,6 +37,26 @@ func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_basic(t *
 	})
 }
 
+func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_updatePrivateEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint_application_security_group_association", "test")
+	r := PrivateEndpointApplicationSecurityGroupAssociationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// Ensure a subsequent update to the PrivateEndpoint does not affect the association
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccPrivateEndpointApplicationSecurityGroupAssociationResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint_application_security_group_association", "test")
 	r := PrivateEndpointApplicationSecurityGroupAssociationResource{}
@@ -129,6 +149,40 @@ resource "azurerm_private_endpoint" "test" {
     name                           = azurerm_private_link_service.test.name
     is_manual_connection           = false
     private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+
+resource "azurerm_application_security_group" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_endpoint_application_security_group_association" "test" {
+  private_endpoint_id           = azurerm_private_endpoint.test.id
+  application_security_group_id = azurerm_application_security_group.test.id
+}
+`, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateEndpointApplicationSecurityGroupAssociationResource) basicUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+
+  tags = {
+    "test" = "value1"
   }
 }
 

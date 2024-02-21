@@ -826,6 +826,28 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_otherDisableReimageOnManualUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherDisableReimageOnManualUpgrade(data, "Standard_F2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherDisableReimageOnManualUpgrade(data, "Standard_F4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func (r LinuxVirtualMachineScaleSetResource) otherBootDiagnostics(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -3257,4 +3279,55 @@ resource "azurerm_gallery_application_version" "test" {
 }
 
 `, r.template(data), data.RandomString, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) otherDisableReimageOnManualUpgrade(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine_scale_set {
+      reimage_on_manual_upgrade    = false
+      roll_instances_when_required = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%s"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  upgrade_mode        = "Manual"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, sku)
 }

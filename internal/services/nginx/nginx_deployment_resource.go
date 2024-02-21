@@ -76,6 +76,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			// docs: <https://docs.nginx.com/nginx-for-azure/billing/overview/>
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
 				[]string{
 					"publicpreview_Monthly_gmz7xq9ge3py",

@@ -115,7 +115,6 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"version_upgrade_option": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(deployments.DeploymentModelVersionUpgradeOptionOnceCurrentVersionExpired),
@@ -314,6 +313,8 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("model.0.version") {
 				properties.Properties.Model.Version = pointer.To(model.Model[0].Version)
 			}
+
+			properties.Properties.VersionUpgradeOption = pointer.To(deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption))
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)

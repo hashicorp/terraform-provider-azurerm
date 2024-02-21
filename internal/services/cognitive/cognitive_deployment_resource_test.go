@@ -107,6 +107,30 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.versionUpgradeOption(data, "OnceNewDefaultVersionAvailable"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceNewDefaultVersionAvailable"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.versionUpgradeOption(data, "OnceCurrentVersionExpired"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceCurrentVersionExpired"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceNewDefaultVersionAvailable"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -254,4 +278,27 @@ resource "azurerm_cognitive_deployment" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r CognitiveDeploymentTestResource) versionUpgradeOption(data acceptance.TestData, versionUpgradeOption string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                   = "acctest-cd-%d"
+  cognitive_account_id   = azurerm_cognitive_account.test.id
+  rai_policy_name        = "Microsoft.Default"
+  version_upgrade_option = "%s"
+  model {
+    format  = "OpenAI"
+    name    = "text-embedding-ada-002"
+    version = "1"
+  }
+  scale {
+    type     = "Standard"
+    capacity = 2
+  }
+}
+`, template, data.RandomInteger, versionUpgradeOption)
 }
