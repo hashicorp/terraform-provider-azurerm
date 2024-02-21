@@ -32,7 +32,7 @@ resource "azurerm_system_center_virtual_machine_manager_availability_set" "examp
   name                                            = "example-scvmmas"
   resource_group_name                             = azurerm_resource_group.example.name
   location                                        = azurerm_resource_group.example.location
-  custom_location_id                              = azurerm_custom_location.example.id
+  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.example.id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
 }
 ```

@@ -99,11 +99,11 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Create() sdk.R
 			}
 
 			parameters := availabilitysets.AvailabilitySet{
+				Location: location.Normalize(model.Location),
 				ExtendedLocation: availabilitysets.ExtendedLocation{
 					Type: utils.String("customLocation"),
 					Name: utils.String(model.CustomLocationId),
 				},
-				Location: location.Normalize(model.Location),
 				Properties: availabilitysets.AvailabilitySetProperties{
 					AvailabilitySetName: utils.String(id.AvailabilitySetName),
 					VMmServerId:         utils.String(scvmmServerId.ID()),
@@ -142,9 +142,9 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Read() sdk.Res
 
 			state := SystemCenterVirtualMachineManagerAvailabilitySetModel{}
 			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.ResourceGroupName = id.ResourceGroupName
 				state.Name = id.AvailabilitySetName
+				state.ResourceGroupName = id.ResourceGroupName
+				state.Location = location.Normalize(model.Location)
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Tags = pointer.From(model.Tags)
 
