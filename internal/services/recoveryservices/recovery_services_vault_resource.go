@@ -277,8 +277,12 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	// `encryption` needs to be set before `cross_region_restore_enabled` is set. Or the service will return an error. "If CRR is enabled for the Vault, the storage state will be locked and it will interfere with further operations"
 	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
 	if _, ok := d.GetOk("encryption"); ok {
+		encryption, err := expandEncryption(d)
+		if err != nil {
+			return err
+		}
 		requireAdditionalUpdate = true
-		updatePatch.Properties.Encryption = expandEncryption(d)
+		updatePatch.Properties.Encryption = encryption
 	}
 
 	if requireAdditionalUpdate {
@@ -414,7 +418,10 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		VaultName:         id.VaultName,
 	}
 
-	encryption := expandEncryption(d)
+	encryption, err := expandEncryption(d)
+	if err != nil {
+		return err
+	}
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
@@ -800,14 +807,14 @@ func validateIdentityUpdate(origin identity.SystemAndUserAssignedMap, target ide
 	return true
 }
 
-func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncryption {
+func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncryption, error) {
 	encryptionRaw := d.Get("encryption")
 	if encryptionRaw == nil {
-		return nil
+		return nil, nil
 	}
 	settings := encryptionRaw.([]interface{})
 	if len(settings) == 0 {
-		return nil
+		return nil, nil
 	}
 	encryptionMap := settings[0].(map[string]interface{})
 	keyUri := encryptionMap["key_id"].(string)
@@ -826,9 +833,12 @@ func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncrypti
 		InfrastructureEncryption: &infraEncryptionState,
 	}
 	if v, ok := encryptionMap["user_assigned_identity_id"].(string); ok && v != "" {
+		if *encryption.KekIdentity.UseSystemAssignedIdentity {
+			return nil, fmt.Errorf(" `use_system_assigned_identity` must be disabled when `user_assigned_identity_id` is set.")
+		}
 		encryption.KekIdentity.UserAssignedIdentity = utils.String(v)
 	}
-	return encryption
+	return encryption, nil
 }
 
 func flattenVaultEncryption(model vaults.Vault) interface{} {
