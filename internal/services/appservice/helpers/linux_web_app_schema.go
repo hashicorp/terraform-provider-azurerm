@@ -29,10 +29,10 @@ type SiteConfigLinux struct {
 	DefaultDocuments        []string                `tfschema:"default_documents"`
 	Http2Enabled            bool                    `tfschema:"http2_enabled"`
 	IpRestriction           []IpRestriction         `tfschema:"ip_restriction"`
-	IpAccessEnabled         bool                    `tfschema:"ip_access_enabled"`
+	IpAccessEnabled         bool                    `tfschema:"default_ip_access_enabled"`
 	ScmUseMainIpRestriction bool                    `tfschema:"scm_use_main_ip_restriction"`
 	ScmIpRestriction        []IpRestriction         `tfschema:"scm_ip_restriction"`
-	ScmIpAccessEnabled      bool                    `tfschema:"scm_ip_access_enabled"`
+	ScmIpAccessEnabled      bool                    `tfschema:"scm_default_ip_access_enabled"`
 	LoadBalancing           string                  `tfschema:"load_balancing_mode"`
 	LocalMysql              bool                    `tfschema:"local_mysql_enabled"`
 	ManagedPipelineMode     string                  `tfschema:"managed_pipeline_mode"`
@@ -124,7 +124,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"ip_access_enabled": {
+				"default_ip_access_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
@@ -138,7 +138,7 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"scm_ip_access_enabled": {
+				"scm_default_ip_access_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  true,
@@ -900,14 +900,14 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		}
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.ip_access_enabled") {
+	if metadata.ResourceData.HasChange("site_config.0.default_ip_access_enabled") {
 		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 		if !s.IpAccessEnabled {
 			expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)
 		}
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.scm_ip_access_enabled") {
+	if metadata.ResourceData.HasChange("site_config.0.scm_default_ip_access_enabled") {
 		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionAllow)
 		if !s.ScmIpAccessEnabled {
 			expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultActionDeny)

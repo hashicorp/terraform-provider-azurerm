@@ -2081,8 +2081,8 @@ resource "azurerm_linux_web_app_slot" "test" {
   app_service_id = azurerm_linux_web_app.test.id
 
   site_config {
-    ip_access_enabled     = false
-    scm_ip_access_enabled = false
+    default_ip_access_enabled     = false
+    scm_default_ip_access_enabled = false
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
@@ -2113,8 +2113,8 @@ resource "azurerm_linux_web_app_slot" "test" {
         x_forwarded_host  = ["example.com"]
       }
     }
-    ip_access_enabled     = true
-    scm_ip_access_enabled = false
+    default_ip_access_enabled     = true
+    scm_default_ip_access_enabled = false
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)

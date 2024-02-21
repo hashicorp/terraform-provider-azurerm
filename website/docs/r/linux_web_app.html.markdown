@@ -708,7 +708,7 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
-* `ip_access_enabled` - (Optional)  Should the ip access be enabled for the main site of the Web App. Defaults to `true`.
+* `default_ip_access_enabled` - (Optional)  Should the ip access be enabled for the main site of the Web App. Defaults to `true`.
 
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
@@ -722,7 +722,7 @@ A `site_config` block supports the following:
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`.
 
-* `scm_ip_access_enabled` - (Optional)  Should the ip access be enabled for the scm site of the Web App. Defaults to `true`.
+* `scm_default_ip_access_enabled` - (Optional)  Should the ip access be enabled for the scm site of the Web App. Defaults to `true`.
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 

@@ -731,7 +731,7 @@ A `site_config` block supports the following:
 
 * `http2_enabled` - (Optional) Should the HTTP2 be enabled?
 
-* `ip_access_enabled` - (Optional)  Should the ip access be enabled for the main site of the Web App. Defaults to `true`.
+* `default_ip_access_enabled` - (Optional)  Should the ip access be enabled for the main site of the Web App. Defaults to `true`.
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
@@ -745,7 +745,7 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
-* `scm_ip_access_enabled` - (Optional)  Should the ip access be enabled for the scm site of the Web App. Defaults to `true`.
+* `scm_default_ip_access_enabled` - (Optional)  Should the ip access be enabled for the scm site of the Web App. Defaults to `true`.
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`.
 
