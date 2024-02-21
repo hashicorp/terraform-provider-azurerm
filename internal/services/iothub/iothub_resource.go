@@ -308,19 +308,10 @@ func resourceIotHub() *pluginsdk.Resource {
 						},
 
 						"connection_string": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
-								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
-
-								// Azure will always mask the Access Keys and will include the port number in the GET response
-								// 5671 is the default port for Azure Service Bus connections
-								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
-								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
-								return (new == d.Get(k).(string)) && (maskedNew == old)
-							},
-							Sensitive: true,
+							Type:             pluginsdk.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: IothubConnectionStringSuppress,
+							Sensitive:        true,
 						},
 
 						"name": {
@@ -1976,4 +1967,66 @@ func fileUploadConnectionStringDiffSuppress(k, old, new string, d *pluginsdk.Res
 		return true
 	}
 	return false
+}
+
+func IothubConnectionStringSuppress(k, old, new string, d *pluginsdk.ResourceData) bool {
+	secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+	sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
+
+	// Azure will always mask the Access Keys and will include the port number in the GET response
+	// 5671 is the default port for Azure Service Bus connections
+	maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
+	maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
+
+	oldMap := connectionStringToMap(old)
+	maskedNewMap := connectionStringToMap(maskedNew)
+	if oldMap == nil || maskedNewMap == nil {
+		return false
+	}
+	if len(oldMap) != len(maskedNewMap) {
+		return false
+	}
+	for k, v := range oldMap {
+		newV, ok := maskedNewMap[k]
+		if !ok {
+			return false
+		}
+		if newV != v {
+			return false
+		}
+	}
+
+	newStateMap := connectionStringToMap(new)
+	oldStateMap := connectionStringToMap(d.Get(k).(string))
+
+	if oldStateMap == nil || newStateMap == nil {
+		return false
+	}
+	if len(oldStateMap) != len(newStateMap) {
+		return false
+	}
+	for k, v := range oldStateMap {
+		newV, ok := newStateMap[k]
+		if !ok {
+			return false
+		}
+		if newV != v {
+			return false
+		}
+	}
+
+	return true
+}
+
+func connectionStringToMap(connectionStr string) map[string]string {
+	m := make(map[string]string, 0)
+	split := strings.Split(connectionStr, ";")
+	for _, v := range split {
+		kv := strings.Split(v, "=")
+		if len(kv) != 2 {
+			return nil
+		}
+		m[kv[0]] = kv[1]
+	}
+	return m
 }
