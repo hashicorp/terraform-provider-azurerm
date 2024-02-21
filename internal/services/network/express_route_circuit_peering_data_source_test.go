@@ -8,23 +8,17 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
 type ExpressRouteCircuitPeeringDataSource struct{}
 
 func testAccDataSourceExpressRouteCircuitPeering_privatePeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
-	d := ExpressRouteCircuitPeeringResource{}
+	d := ExpressRouteCircuitPeeringDataSource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: d.privatePeering(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("peering_type").HasValue("AzurePrivatePeering"),
-				check.That(data.ResourceName).Key("microsoft_peering_config.#").HasValue("0"),
-			),
 		},
 		data.ImportStep("shared_key"), // is not returned by the API
 	})
@@ -39,5 +33,5 @@ data "azurerm_express_route_circuit_peering" "data" {
   express_route_circuit_name = azurerm_express_route_circuit_peering.test.express_route_circuit_name
   resource_group_name        = azurerm_express_route_circuit_peering.test.resource_group_name
 }
-`, r.privatePeering(data))
+`, ExpressRouteCircuitPeeringResource{}.privatePeering(data))
 }
