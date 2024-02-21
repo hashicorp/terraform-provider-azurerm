@@ -37,12 +37,12 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 			},
 
 			"express_route_circuit_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 			"primary_peer_address_prefix": {
 				Type:     pluginsdk.TypeString,
