@@ -348,6 +348,16 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"default_ip_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"scm_default_ip_access_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
 				"ip_restriction": IpRestrictionSchemaComputed(),
 
 				"scm_use_main_ip_restriction": {
