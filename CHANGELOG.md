@@ -10,7 +10,7 @@ BUG FIXES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240221.1115631` of `github.com/hashicorp/go-azure-sdk` [GH-24962]
+* dependencies: updating to `v0.20240221.1170458` of `hashicorp/go-azure-sdk` [GH-24967]
 * dependencies: refactor `azurerm_spring_cloud_configuration_service` to use `go-azure-sdk` [GH-24918]
 * provider: support or the feature flag `virtual_machine_scale_set.reimage_on_manual_upgrade` [GH-22975]
 * `sentinel`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-24962]
