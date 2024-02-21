@@ -4,6 +4,7 @@ package nginxdeployment
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NginxDeploymentProperties struct {
+	AutoUpgradeProfile       *AutoUpgradeProfile               `json:"autoUpgradeProfile,omitempty"`
 	EnableDiagnosticsSupport *bool                             `json:"enableDiagnosticsSupport,omitempty"`
 	IPAddress                *string                           `json:"ipAddress,omitempty"`
 	Logging                  *NginxLogging                     `json:"logging,omitempty"`
