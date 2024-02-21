@@ -93,6 +93,17 @@ var subnetDelegationServiceNames = []string{
 	"Qumulo.Storage/fileSystems",
 }
 
+var subnetDelegationActions = []string{
+	"Microsoft.Network/networkinterfaces/*",
+	"Microsoft.Network/publicIPAddresses/join/action",
+	"Microsoft.Network/publicIPAddresses/read",
+	"Microsoft.Network/virtualNetworks/read",
+	"Microsoft.Network/virtualNetworks/subnets/action",
+	"Microsoft.Network/virtualNetworks/subnets/join/action",
+	"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+	"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+}
+
 func resourceSubnet() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceSubnetCreate,

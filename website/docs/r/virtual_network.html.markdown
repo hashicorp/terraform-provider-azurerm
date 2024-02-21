@@ -59,13 +59,13 @@ resource "azurerm_virtual_network" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created. 
+* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual network. Changing this forces a new resource to be created.
 
 * `address_space` - (Required) The address space that is used the virtual network. You can supply more than one address space.
 
-* `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created. 
+* `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
 ---
 
@@ -113,6 +113,20 @@ The `subnet` block supports:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
+* `delegation` - (Optional) Can be specified multiple times to define multiple delegations. Each delegation block supports fields documented below.
+
+A delegation block supports the following:
+
+`name` - (Required) The name of the delegation.
+
+`service_delegation` - (Required) A `service_delegation` block as documented below.
+
+A service_delegation block supports the following:
+
+`name` - (Required) The name of the service to which the subnet is delegated (e.g., `Microsoft.ContainerInstance/containerGroups`).
+
+`actions` - (Optional) A list of actions that are delegated. Can include `Microsoft.Network/virtualNetworks/subnets/action` and others depending on the service.
+
 * `security_group` - (Optional) The Network Security Group to associate with the subnet. (Referenced by `id`, ie. `azurerm_network_security_group.example.id`)
 
 ## Attributes Reference
@@ -138,6 +152,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `subnet` block exports:
 
 * `id` - The ID of this subnet.
+* `delegation` - One or more delegation blocks as configured, including the name and details of the service delegation.
 
 ## Timeouts
 
