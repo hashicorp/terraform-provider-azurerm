@@ -1781,7 +1781,7 @@ resource "azurerm_iothub" "test" {
     name                = "endpoint4"
     resource_group_name = azurerm_resource_group.test.name
 
-    connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_strine
+    connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
   }
 
   identity {
