@@ -1485,7 +1485,7 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
-	minimal_tls_version = "Tls12"
+  minimal_tls_version = "Tls12"
 
   consistency_policy {
     consistency_level = "%s"
@@ -4180,7 +4180,7 @@ resource "azurerm_cosmosdb_account" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "MongoDB"
-	minimal_tls_version = "Tls12"
+  minimal_tls_version = "Tls12"
 
   capabilities {
     name = "EnableMongo"
