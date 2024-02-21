@@ -388,7 +388,7 @@ The following arguments are supported:
 
 * `v1_legacy_mode_enabled` - (Optional) Enable V1 API features, enabling `v1_legacy_mode` may prevent you from using features provided by the v2 API. Defaults to `false`.
 
-* `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Basic`. Defaults to `Basic`.
+* `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Free`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

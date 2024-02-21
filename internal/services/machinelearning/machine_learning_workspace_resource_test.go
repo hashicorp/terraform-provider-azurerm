@@ -439,7 +439,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id                  = azurerm_key_vault.test.id
   storage_account_id            = azurerm_storage_account.test.id
   container_registry_id         = azurerm_container_registry.test.id
-  sku_name                      = "Basic"
+  sku_name                      = "Premium"
   high_business_impact          = true
   public_network_access_enabled = true
   image_build_compute_name      = "terraformCompute"

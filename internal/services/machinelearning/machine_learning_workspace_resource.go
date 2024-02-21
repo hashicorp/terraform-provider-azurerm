@@ -221,7 +221,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Default:      string(Basic),
-				ValidateFunc: validation.StringInSlice([]string{string(Basic)}, false),
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForSkuTier(), false),
 			},
 
 			"v1_legacy_mode_enabled": {
