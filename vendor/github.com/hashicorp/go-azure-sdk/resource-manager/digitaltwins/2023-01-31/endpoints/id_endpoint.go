@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EndpointId{}
+var _ resourceids.ResourceId = &EndpointId{}
 
 // EndpointId is a struct representing the Resource ID for a Endpoint
 type EndpointId struct {
@@ -32,29 +32,15 @@ func NewEndpointID(subscriptionId string, resourceGroupName string, digitalTwins
 
 // ParseEndpointID parses 'input' into a EndpointId
 func ParseEndpointID(input string) (*EndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&EndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", *parsed)
-	}
-
-	if id.EndpointName, ok = parsed.Parsed["endpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "endpointName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseEndpointID(input string) (*EndpointId, error) {
 // ParseEndpointIDInsensitively parses 'input' case-insensitively into a EndpointId
 // note: this method should only be used for API response data and not user input
 func ParseEndpointIDInsensitively(input string) (*EndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&EndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EndpointId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DigitalTwinsInstanceName, ok = parsed.Parsed["digitalTwinsInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", *parsed)
-	}
-
-	if id.EndpointName, ok = parsed.Parsed["endpointName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "endpointName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *EndpointId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DigitalTwinsInstanceName, ok = input.Parsed["digitalTwinsInstanceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "digitalTwinsInstanceName", input)
+	}
+
+	if id.EndpointName, ok = input.Parsed["endpointName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "endpointName", input)
+	}
+
+	return nil
 }
 
 // ValidateEndpointID checks that 'input' can be parsed as a Endpoint ID

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DevBoxDefinitionId{}
+var _ resourceids.ResourceId = &DevBoxDefinitionId{}
 
 // DevBoxDefinitionId is a struct representing the Resource ID for a Dev Box Definition
 type DevBoxDefinitionId struct {
@@ -32,29 +32,15 @@ func NewDevBoxDefinitionID(subscriptionId string, resourceGroupName string, proj
 
 // ParseDevBoxDefinitionID parses 'input' into a DevBoxDefinitionId
 func ParseDevBoxDefinitionID(input string) (*DevBoxDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DevBoxDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DevBoxDefinitionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DevBoxDefinitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProjectName, ok = parsed.Parsed["projectName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "projectName", *parsed)
-	}
-
-	if id.DevBoxDefinitionName, ok = parsed.Parsed["devBoxDefinitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "devBoxDefinitionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseDevBoxDefinitionID(input string) (*DevBoxDefinitionId, error) {
 // ParseDevBoxDefinitionIDInsensitively parses 'input' case-insensitively into a DevBoxDefinitionId
 // note: this method should only be used for API response data and not user input
 func ParseDevBoxDefinitionIDInsensitively(input string) (*DevBoxDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DevBoxDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DevBoxDefinitionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DevBoxDefinitionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ProjectName, ok = parsed.Parsed["projectName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "projectName", *parsed)
-	}
-
-	if id.DevBoxDefinitionName, ok = parsed.Parsed["devBoxDefinitionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "devBoxDefinitionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DevBoxDefinitionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ProjectName, ok = input.Parsed["projectName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "projectName", input)
+	}
+
+	if id.DevBoxDefinitionName, ok = input.Parsed["devBoxDefinitionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "devBoxDefinitionName", input)
+	}
+
+	return nil
 }
 
 // ValidateDevBoxDefinitionID checks that 'input' can be parsed as a Dev Box Definition ID

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkGroupId{}
+var _ resourceids.ResourceId = &NetworkGroupId{}
 
 // NetworkGroupId is a struct representing the Resource ID for a Network Group
 type NetworkGroupId struct {
@@ -32,29 +32,15 @@ func NewNetworkGroupID(subscriptionId string, resourceGroupName string, networkM
 
 // ParseNetworkGroupID parses 'input' into a NetworkGroupId
 func ParseNetworkGroupID(input string) (*NetworkGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NetworkGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.NetworkGroupName, ok = parsed.Parsed["networkGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseNetworkGroupID(input string) (*NetworkGroupId, error) {
 // ParseNetworkGroupIDInsensitively parses 'input' case-insensitively into a NetworkGroupId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkGroupIDInsensitively(input string) (*NetworkGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NetworkGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkManagerName, ok = parsed.Parsed["networkManagerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", *parsed)
-	}
-
-	if id.NetworkGroupName, ok = parsed.Parsed["networkGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *NetworkGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkManagerName, ok = input.Parsed["networkManagerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkManagerName", input)
+	}
+
+	if id.NetworkGroupName, ok = input.Parsed["networkGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateNetworkGroupID checks that 'input' can be parsed as a Network Group ID

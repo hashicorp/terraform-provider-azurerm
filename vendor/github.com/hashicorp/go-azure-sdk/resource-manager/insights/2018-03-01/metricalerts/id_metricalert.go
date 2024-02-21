@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = MetricAlertId{}
+var _ resourceids.ResourceId = &MetricAlertId{}
 
 // MetricAlertId is a struct representing the Resource ID for a Metric Alert
 type MetricAlertId struct {
@@ -30,25 +30,15 @@ func NewMetricAlertID(subscriptionId string, resourceGroupName string, metricAle
 
 // ParseMetricAlertID parses 'input' into a MetricAlertId
 func ParseMetricAlertID(input string) (*MetricAlertId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MetricAlertId{})
+	parser := resourceids.NewParserFromResourceIdType(&MetricAlertId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MetricAlertId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MetricAlertName, ok = parsed.Parsed["metricAlertName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "metricAlertName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseMetricAlertID(input string) (*MetricAlertId, error) {
 // ParseMetricAlertIDInsensitively parses 'input' case-insensitively into a MetricAlertId
 // note: this method should only be used for API response data and not user input
 func ParseMetricAlertIDInsensitively(input string) (*MetricAlertId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MetricAlertId{})
+	parser := resourceids.NewParserFromResourceIdType(&MetricAlertId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := MetricAlertId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MetricAlertName, ok = parsed.Parsed["metricAlertName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "metricAlertName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *MetricAlertId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MetricAlertName, ok = input.Parsed["metricAlertName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "metricAlertName", input)
+	}
+
+	return nil
 }
 
 // ValidateMetricAlertID checks that 'input' can be parsed as a Metric Alert ID

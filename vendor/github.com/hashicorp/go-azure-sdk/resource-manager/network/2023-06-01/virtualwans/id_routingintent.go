@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RoutingIntentId{}
+var _ resourceids.ResourceId = &RoutingIntentId{}
 
 // RoutingIntentId is a struct representing the Resource ID for a Routing Intent
 type RoutingIntentId struct {
@@ -32,29 +32,15 @@ func NewRoutingIntentID(subscriptionId string, resourceGroupName string, virtual
 
 // ParseRoutingIntentID parses 'input' into a RoutingIntentId
 func ParseRoutingIntentID(input string) (*RoutingIntentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RoutingIntentId{})
+	parser := resourceids.NewParserFromResourceIdType(&RoutingIntentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RoutingIntentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualHubName, ok = parsed.Parsed["virtualHubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", *parsed)
-	}
-
-	if id.RoutingIntentName, ok = parsed.Parsed["routingIntentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routingIntentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseRoutingIntentID(input string) (*RoutingIntentId, error) {
 // ParseRoutingIntentIDInsensitively parses 'input' case-insensitively into a RoutingIntentId
 // note: this method should only be used for API response data and not user input
 func ParseRoutingIntentIDInsensitively(input string) (*RoutingIntentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RoutingIntentId{})
+	parser := resourceids.NewParserFromResourceIdType(&RoutingIntentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RoutingIntentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualHubName, ok = parsed.Parsed["virtualHubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", *parsed)
-	}
-
-	if id.RoutingIntentName, ok = parsed.Parsed["routingIntentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routingIntentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RoutingIntentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualHubName, ok = input.Parsed["virtualHubName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", input)
+	}
+
+	if id.RoutingIntentName, ok = input.Parsed["routingIntentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "routingIntentName", input)
+	}
+
+	return nil
 }
 
 // ValidateRoutingIntentID checks that 'input' can be parsed as a Routing Intent ID

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConfigurationPolicyGroupId{}
+var _ resourceids.ResourceId = &ConfigurationPolicyGroupId{}
 
 // ConfigurationPolicyGroupId is a struct representing the Resource ID for a Configuration Policy Group
 type ConfigurationPolicyGroupId struct {
@@ -32,29 +32,15 @@ func NewConfigurationPolicyGroupID(subscriptionId string, resourceGroupName stri
 
 // ParseConfigurationPolicyGroupID parses 'input' into a ConfigurationPolicyGroupId
 func ParseConfigurationPolicyGroupID(input string) (*ConfigurationPolicyGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConfigurationPolicyGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConfigurationPolicyGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConfigurationPolicyGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VpnServerConfigurationName, ok = parsed.Parsed["vpnServerConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnServerConfigurationName", *parsed)
-	}
-
-	if id.ConfigurationPolicyGroupName, ok = parsed.Parsed["configurationPolicyGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "configurationPolicyGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseConfigurationPolicyGroupID(input string) (*ConfigurationPolicyGroupId,
 // ParseConfigurationPolicyGroupIDInsensitively parses 'input' case-insensitively into a ConfigurationPolicyGroupId
 // note: this method should only be used for API response data and not user input
 func ParseConfigurationPolicyGroupIDInsensitively(input string) (*ConfigurationPolicyGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConfigurationPolicyGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConfigurationPolicyGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConfigurationPolicyGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VpnServerConfigurationName, ok = parsed.Parsed["vpnServerConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnServerConfigurationName", *parsed)
-	}
-
-	if id.ConfigurationPolicyGroupName, ok = parsed.Parsed["configurationPolicyGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "configurationPolicyGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ConfigurationPolicyGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VpnServerConfigurationName, ok = input.Parsed["vpnServerConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vpnServerConfigurationName", input)
+	}
+
+	if id.ConfigurationPolicyGroupName, ok = input.Parsed["configurationPolicyGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "configurationPolicyGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateConfigurationPolicyGroupID checks that 'input' can be parsed as a Configuration Policy Group ID

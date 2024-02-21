@@ -19,7 +19,8 @@ type LoadBalancerOutboundRulesListOperationResponse struct {
 }
 
 type LoadBalancerOutboundRulesListCompleteResult struct {
-	Items []OutboundRule
+	LatestHttpResponse *http.Response
+	Items              []OutboundRule
 }
 
 // LoadBalancerOutboundRulesList ...
@@ -83,7 +84,8 @@ func (c LoadBalancersClient) LoadBalancerOutboundRulesListCompleteMatchingPredic
 	}
 
 	result = LoadBalancerOutboundRulesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

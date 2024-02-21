@@ -473,7 +473,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				}
 
 				if hotpatchingEnabled {
-					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition' or '2022-datacenter-azure-edition-core-smalldisk'")
+					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch' or '2022-datacenter-azure-edition-hotpatch-smalldisk'")
 				}
 			}
 		}
@@ -795,11 +795,19 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 				patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
 				patchMode := winConfig["patch_mode"].(string)
+				hotpatchingEnabled := winConfig["hotpatching_enabled"].(bool)
 
 				// If the image allows hotpatching the patch mode can only ever be AutomaticByPlatform.
 				sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 				sourceImageId := d.Get("source_image_id").(string)
 				isHotpatchEnabledImage = isValidHotPatchSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+
+				// PatchSettings is required by PATCH API when running Hotpatch-compatible images.
+				if isHotpatchEnabledImage {
+					windowsConfig.PatchSettings.AssessmentMode = compute.WindowsPatchAssessmentMode(patchAssessmentMode)
+					windowsConfig.PatchSettings.PatchMode = compute.WindowsVMGuestPatchMode(patchMode)
+					windowsConfig.PatchSettings.EnableHotpatching = utils.Bool(hotpatchingEnabled)
+				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.enable_automatic_updates") ||
 					d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") ||
@@ -838,7 +846,6 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				// so while the attribute is exposed in VMSS it is hardcoded inside the images that
 				// support hotpatching to always be enabled and cannot be set to false, ever.
 				if d.HasChange("os_profile.0.windows_configuration.0.hotpatching_enabled") {
-					hotpatchingEnabled := winConfig["hotpatching_enabled"].(bool)
 					if isHotpatchEnabledImage && !hotpatchingEnabled {
 						return fmt.Errorf("when referencing a hotpatching enabled image the 'hotpatching_enabled' field must always be set to 'true', got %q", strconv.FormatBool(hotpatchingEnabled))
 					}
@@ -1104,9 +1111,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// AutomaticOSUpgradeIsEnabled currently is not supported in orchestrated VMSS flex
 	metaData := virtualMachineScaleSetUpdateMetaData{
-		AutomaticOSUpgradeIsEnabled: false,
-		// CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
-		// UpdateInstances:              updateInstances,
+		AutomaticOSUpgradeIsEnabled:  false,
+		CanReimageOnManualUpgrade:    false,
 		CanRollInstancesWhenRequired: false,
 		UpdateInstances:              false,
 		Client:                       meta.(*clients.Client).Compute,

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedRecommendationId{}
+var _ resourceids.ResourceId = &ScopedRecommendationId{}
 
 // ScopedRecommendationId is a struct representing the Resource ID for a Scoped Recommendation
 type ScopedRecommendationId struct {
@@ -28,21 +28,15 @@ func NewScopedRecommendationID(resourceUri string, recommendationId string) Scop
 
 // ParseScopedRecommendationID parses 'input' into a ScopedRecommendationId
 func ParseScopedRecommendationID(input string) (*ScopedRecommendationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRecommendationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRecommendationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRecommendationId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.RecommendationId, ok = parsed.Parsed["recommendationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "recommendationId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParseScopedRecommendationID(input string) (*ScopedRecommendationId, error) 
 // ParseScopedRecommendationIDInsensitively parses 'input' case-insensitively into a ScopedRecommendationId
 // note: this method should only be used for API response data and not user input
 func ParseScopedRecommendationIDInsensitively(input string) (*ScopedRecommendationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRecommendationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRecommendationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedRecommendationId{}
-
-	if id.ResourceUri, ok = parsed.Parsed["resourceUri"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", *parsed)
-	}
-
-	if id.RecommendationId, ok = parsed.Parsed["recommendationId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "recommendationId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedRecommendationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ResourceUri, ok = input.Parsed["resourceUri"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceUri", input)
+	}
+
+	if id.RecommendationId, ok = input.Parsed["recommendationId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "recommendationId", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedRecommendationID checks that 'input' can be parsed as a Scoped Recommendation ID

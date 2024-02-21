@@ -16,6 +16,7 @@ import (
 type DatabaseAccountsCreateOrUpdateOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *DatabaseAccountGetResults
 }
 
 // DatabaseAccountsCreateOrUpdate ...

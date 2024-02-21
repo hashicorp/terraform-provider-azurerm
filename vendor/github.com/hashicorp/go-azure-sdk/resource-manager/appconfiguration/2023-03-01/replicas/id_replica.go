@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicaId{}
+var _ resourceids.ResourceId = &ReplicaId{}
 
 // ReplicaId is a struct representing the Resource ID for a Replica
 type ReplicaId struct {
@@ -32,29 +32,15 @@ func NewReplicaID(subscriptionId string, resourceGroupName string, configuration
 
 // ParseReplicaID parses 'input' into a ReplicaId
 func ParseReplicaID(input string) (*ReplicaId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicaId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicaId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReplicaId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConfigurationStoreName, ok = parsed.Parsed["configurationStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "configurationStoreName", *parsed)
-	}
-
-	if id.ReplicaName, ok = parsed.Parsed["replicaName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicaName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseReplicaID(input string) (*ReplicaId, error) {
 // ParseReplicaIDInsensitively parses 'input' case-insensitively into a ReplicaId
 // note: this method should only be used for API response data and not user input
 func ParseReplicaIDInsensitively(input string) (*ReplicaId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicaId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicaId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReplicaId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConfigurationStoreName, ok = parsed.Parsed["configurationStoreName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "configurationStoreName", *parsed)
-	}
-
-	if id.ReplicaName, ok = parsed.Parsed["replicaName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicaName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ReplicaId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ConfigurationStoreName, ok = input.Parsed["configurationStoreName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "configurationStoreName", input)
+	}
+
+	if id.ReplicaName, ok = input.Parsed["replicaName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "replicaName", input)
+	}
+
+	return nil
 }
 
 // ValidateReplicaID checks that 'input' can be parsed as a Replica ID

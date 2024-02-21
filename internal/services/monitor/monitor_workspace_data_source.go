@@ -23,12 +23,14 @@ type WorkspaceDataSource struct{}
 var _ sdk.DataSource = WorkspaceDataSource{}
 
 type WorkspaceDataSourceModel struct {
-	Name                       string            `tfschema:"name"`
-	ResourceGroupName          string            `tfschema:"resource_group_name"`
-	QueryEndpoint              string            `tfschema:"query_endpoint"`
-	PublicNetworkAccessEnabled bool              `tfschema:"public_network_access_enabled"`
-	Location                   string            `tfschema:"location"`
-	Tags                       map[string]string `tfschema:"tags"`
+	Name                            string            `tfschema:"name"`
+	ResourceGroupName               string            `tfschema:"resource_group_name"`
+	QueryEndpoint                   string            `tfschema:"query_endpoint"`
+	PublicNetworkAccessEnabled      bool              `tfschema:"public_network_access_enabled"`
+	DefaultDataCollectionEndpointId string            `tfschema:"default_data_collection_endpoint_id"`
+	DefaultDataCollectionRuleId     string            `tfschema:"default_data_collection_rule_id"`
+	Location                        string            `tfschema:"location"`
+	Tags                            map[string]string `tfschema:"tags"`
 }
 
 func (d WorkspaceDataSource) ModelObject() interface{} {
@@ -63,6 +65,14 @@ func (d WorkspaceDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
+		"default_data_collection_endpoint_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"default_data_collection_rule_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 
 		"tags": commonschema.TagsDataSource(),
 	}
@@ -91,7 +101,7 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			var enablePublicNetWorkAccess bool
-			var location, queryEndpoint string
+			var location, queryEndpoint, defaultDataCollectionEndpointId, defaultDataCollectionRuleId string
 			var tag map[string]string
 
 			if model := resp.Model; model != nil {
@@ -105,18 +115,28 @@ func (d WorkspaceDataSource) Read() sdk.ResourceFunc {
 					if props.Metrics != nil && props.Metrics.PrometheusQueryEndpoint != nil {
 						queryEndpoint = *props.Metrics.PrometheusQueryEndpoint
 					}
+					if props.DefaultIngestionSettings != nil {
+						if props.DefaultIngestionSettings.DataCollectionEndpointResourceId != nil {
+							defaultDataCollectionEndpointId = *props.DefaultIngestionSettings.DataCollectionEndpointResourceId
+						}
+						if props.DefaultIngestionSettings.DataCollectionRuleResourceId != nil {
+							defaultDataCollectionRuleId = *props.DefaultIngestionSettings.DataCollectionRuleResourceId
+						}
+					}
 				}
 			}
 
 			metadata.SetID(id)
 
 			return metadata.Encode(&WorkspaceDataSourceModel{
-				Location:                   location,
-				Name:                       id.AccountName,
-				PublicNetworkAccessEnabled: enablePublicNetWorkAccess,
-				QueryEndpoint:              queryEndpoint,
-				ResourceGroupName:          id.ResourceGroupName,
-				Tags:                       tag,
+				Location:                        location,
+				Name:                            id.AccountName,
+				PublicNetworkAccessEnabled:      enablePublicNetWorkAccess,
+				QueryEndpoint:                   queryEndpoint,
+				DefaultDataCollectionEndpointId: defaultDataCollectionEndpointId,
+				DefaultDataCollectionRuleId:     defaultDataCollectionRuleId,
+				ResourceGroupName:               id.ResourceGroupName,
+				Tags:                            tag,
 			})
 		},
 	}

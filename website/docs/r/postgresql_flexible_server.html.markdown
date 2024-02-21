@@ -55,6 +55,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
   private_dns_zone_name = azurerm_private_dns_zone.example.name
   virtual_network_id    = azurerm_virtual_network.example.id
   resource_group_name   = azurerm_resource_group.example.name
+  depends_on            = [azurerm_subnet.example]
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
@@ -136,7 +137,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14` and `15`. Required when `create_mode` is `Default`.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15` and `16`. Required when `create_mode` is `Default`.
 
 -> **Note:** When `create_mode` is `Update`, upgrading version wouldn't force a new resource to be created.
 

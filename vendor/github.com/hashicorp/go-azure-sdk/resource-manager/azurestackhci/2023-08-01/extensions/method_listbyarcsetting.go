@@ -19,7 +19,8 @@ type ListByArcSettingOperationResponse struct {
 }
 
 type ListByArcSettingCompleteResult struct {
-	Items []Extension
+	LatestHttpResponse *http.Response
+	Items              []Extension
 }
 
 // ListByArcSetting ...
@@ -83,7 +84,8 @@ func (c ExtensionsClient) ListByArcSettingCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByArcSettingCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

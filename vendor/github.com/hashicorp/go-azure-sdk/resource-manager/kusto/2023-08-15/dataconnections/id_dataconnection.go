@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataConnectionId{}
+var _ resourceids.ResourceId = &DataConnectionId{}
 
 // DataConnectionId is a struct representing the Resource ID for a Data Connection
 type DataConnectionId struct {
@@ -34,33 +34,15 @@ func NewDataConnectionID(subscriptionId string, resourceGroupName string, cluste
 
 // ParseDataConnectionID parses 'input' into a DataConnectionId
 func ParseDataConnectionID(input string) (*DataConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseName", *parsed)
-	}
-
-	if id.DataConnectionName, ok = parsed.Parsed["dataConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseDataConnectionID(input string) (*DataConnectionId, error) {
 // ParseDataConnectionIDInsensitively parses 'input' case-insensitively into a DataConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseDataConnectionIDInsensitively(input string) (*DataConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DataConnectionId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.DatabaseName, ok = parsed.Parsed["databaseName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "databaseName", *parsed)
-	}
-
-	if id.DataConnectionName, ok = parsed.Parsed["dataConnectionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "dataConnectionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DataConnectionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ClusterName, ok = input.Parsed["clusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "clusterName", input)
+	}
+
+	if id.DatabaseName, ok = input.Parsed["databaseName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "databaseName", input)
+	}
+
+	if id.DataConnectionName, ok = input.Parsed["dataConnectionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "dataConnectionName", input)
+	}
+
+	return nil
 }
 
 // ValidateDataConnectionID checks that 'input' can be parsed as a Data Connection ID

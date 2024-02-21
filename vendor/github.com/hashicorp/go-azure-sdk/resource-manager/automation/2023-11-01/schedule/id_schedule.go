@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScheduleId{}
+var _ resourceids.ResourceId = &ScheduleId{}
 
 // ScheduleId is a struct representing the Resource ID for a Schedule
 type ScheduleId struct {
@@ -32,29 +32,15 @@ func NewScheduleID(subscriptionId string, resourceGroupName string, automationAc
 
 // ParseScheduleID parses 'input' into a ScheduleId
 func ParseScheduleID(input string) (*ScheduleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScheduleId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScheduleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScheduleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.ScheduleName, ok = parsed.Parsed["scheduleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseScheduleID(input string) (*ScheduleId, error) {
 // ParseScheduleIDInsensitively parses 'input' case-insensitively into a ScheduleId
 // note: this method should only be used for API response data and not user input
 func ParseScheduleIDInsensitively(input string) (*ScheduleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScheduleId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScheduleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScheduleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.ScheduleName, ok = parsed.Parsed["scheduleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScheduleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AutomationAccountName, ok = input.Parsed["automationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", input)
+	}
+
+	if id.ScheduleName, ok = input.Parsed["scheduleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scheduleName", input)
+	}
+
+	return nil
 }
 
 // ValidateScheduleID checks that 'input' can be parsed as a Schedule ID

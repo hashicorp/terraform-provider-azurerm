@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HubRouteTableId{}
+var _ resourceids.ResourceId = &HubRouteTableId{}
 
 // HubRouteTableId is a struct representing the Resource ID for a Hub Route Table
 type HubRouteTableId struct {
@@ -32,29 +32,15 @@ func NewHubRouteTableID(subscriptionId string, resourceGroupName string, virtual
 
 // ParseHubRouteTableID parses 'input' into a HubRouteTableId
 func ParseHubRouteTableID(input string) (*HubRouteTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HubRouteTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&HubRouteTableId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HubRouteTableId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualHubName, ok = parsed.Parsed["virtualHubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", *parsed)
-	}
-
-	if id.HubRouteTableName, ok = parsed.Parsed["hubRouteTableName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hubRouteTableName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseHubRouteTableID(input string) (*HubRouteTableId, error) {
 // ParseHubRouteTableIDInsensitively parses 'input' case-insensitively into a HubRouteTableId
 // note: this method should only be used for API response data and not user input
 func ParseHubRouteTableIDInsensitively(input string) (*HubRouteTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HubRouteTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&HubRouteTableId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HubRouteTableId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualHubName, ok = parsed.Parsed["virtualHubName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", *parsed)
-	}
-
-	if id.HubRouteTableName, ok = parsed.Parsed["hubRouteTableName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hubRouteTableName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *HubRouteTableId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualHubName, ok = input.Parsed["virtualHubName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualHubName", input)
+	}
+
+	if id.HubRouteTableName, ok = input.Parsed["hubRouteTableName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hubRouteTableName", input)
+	}
+
+	return nil
 }
 
 // ValidateHubRouteTableID checks that 'input' can be parsed as a Hub Route Table ID

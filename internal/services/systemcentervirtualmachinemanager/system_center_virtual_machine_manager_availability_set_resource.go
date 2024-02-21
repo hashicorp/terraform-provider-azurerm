@@ -3,7 +3,6 @@ package systemcentervirtualmachinemanager
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -111,7 +111,7 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Create() sdk.R
 				},
 				Location: location.Normalize(model.Location),
 				Properties: availabilitysets.AvailabilitySetProperties{
-					AvailabilitySetName: utils.String(scvmmServerId.VmmServerName),
+					AvailabilitySetName: utils.String(id.AvailabilitySetName),
 					VMmServerId:         utils.String(scvmmServerId.ID()),
 				},
 				Tags: pointer.To(model.Tags),

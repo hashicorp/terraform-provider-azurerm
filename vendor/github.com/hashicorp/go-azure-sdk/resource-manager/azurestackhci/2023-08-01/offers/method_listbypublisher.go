@@ -19,7 +19,8 @@ type ListByPublisherOperationResponse struct {
 }
 
 type ListByPublisherCompleteResult struct {
-	Items []Offer
+	LatestHttpResponse *http.Response
+	Items              []Offer
 }
 
 type ListByPublisherOperationOptions struct {
@@ -111,7 +112,8 @@ func (c OffersClient) ListByPublisherCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListByPublisherCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

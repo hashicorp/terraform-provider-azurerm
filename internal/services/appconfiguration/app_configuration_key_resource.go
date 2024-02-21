@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -85,7 +86,13 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 		"value": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			ConflictsWith: []string{
+				"vault_key_reference",
+			},
+			// if `type` is set to `vault`, then `value` will be set by `vault_key_reference`
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				return d.Get("type").(string) == KeyTypeVault && d.Get("vault_key_reference").(string) != "" && old != "" && new == ""
+			},
 		},
 		"locked": {
 			Type:     pluginsdk.TypeBool,
@@ -95,13 +102,16 @@ func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 		"type": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Default:      "kv",
+			Default:      KeyTypeKV,
 			ValidateFunc: validation.StringInSlice([]string{KeyTypeVault, KeyTypeKV}, false),
 		},
 		"vault_key_reference": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			ConflictsWith: []string{
+				"value",
+			},
 		},
 		"tags": tags.Schema(),
 	}
@@ -241,8 +251,8 @@ func (k KeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			resourceClient := metadata.Client.Resource
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, subscriptionId, nestedItemId.ConfigurationStoreEndpoint)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
@@ -416,23 +426,22 @@ func (k KeyResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			rd := metadata.ResourceDiff
 			keyType := rd.Get("type").(string)
+
 			if keyType == KeyTypeVault {
 				contentType := rd.Get("content_type").(string)
 				if rd.HasChange("content_type") && contentType != VaultKeyContentType {
-					return fmt.Errorf("vault reference key %q cannot have content type other than %q (found %q)", rd.Get("key").(string), VaultKeyContentType, contentType)
+					return fmt.Errorf("key type %q cannot have content type other than %q (found %q)", KeyTypeVault, VaultKeyContentType, contentType)
 				}
 
-				value := rd.Get("value").(string)
-				var v VaultKeyReference
-				if rd.HasChange("value") {
-					if err := json.Unmarshal([]byte(value), &v); err != nil {
-						return fmt.Errorf("while validating attribute 'value' (%q): %+v", value, err)
-					}
-					if v.URI == "" {
-						return fmt.Errorf("invalid data in 'value' contents: URI cannot be empty")
-					}
+				if rd.HasChange("value") && rd.Get("value").(string) != "" {
+					return fmt.Errorf("'value' should only be set when key type is set to %q", KeyTypeKV)
 				}
 			}
+
+			if keyType == KeyTypeKV && rd.Get("vault_key_reference").(string) != "" {
+				return fmt.Errorf("'vault_key_reference' should only be set when key type is set to %q", KeyTypeVault)
+			}
+
 			return nil
 		},
 		Timeout: 30 * time.Minute,

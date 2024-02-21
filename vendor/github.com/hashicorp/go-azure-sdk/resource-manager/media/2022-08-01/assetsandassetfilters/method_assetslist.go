@@ -19,7 +19,8 @@ type AssetsListOperationResponse struct {
 }
 
 type AssetsListCompleteResult struct {
-	Items []Asset
+	LatestHttpResponse *http.Response
+	Items              []Asset
 }
 
 type AssetsListOperationOptions struct {
@@ -119,7 +120,8 @@ func (c AssetsAndAssetFiltersClient) AssetsListCompleteMatchingPredicate(ctx con
 	}
 
 	result = AssetsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

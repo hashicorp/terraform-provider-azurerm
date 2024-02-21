@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkVirtualApplianceId{}
+var _ resourceids.ResourceId = &NetworkVirtualApplianceId{}
 
 // NetworkVirtualApplianceId is a struct representing the Resource ID for a Network Virtual Appliance
 type NetworkVirtualApplianceId struct {
@@ -30,25 +30,15 @@ func NewNetworkVirtualApplianceID(subscriptionId string, resourceGroupName strin
 
 // ParseNetworkVirtualApplianceID parses 'input' into a NetworkVirtualApplianceId
 func ParseNetworkVirtualApplianceID(input string) (*NetworkVirtualApplianceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkVirtualApplianceId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkVirtualApplianceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NetworkVirtualApplianceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkVirtualApplianceName, ok = parsed.Parsed["networkVirtualApplianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseNetworkVirtualApplianceID(input string) (*NetworkVirtualApplianceId, e
 // ParseNetworkVirtualApplianceIDInsensitively parses 'input' case-insensitively into a NetworkVirtualApplianceId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkVirtualApplianceIDInsensitively(input string) (*NetworkVirtualApplianceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkVirtualApplianceId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkVirtualApplianceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NetworkVirtualApplianceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkVirtualApplianceName, ok = parsed.Parsed["networkVirtualApplianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *NetworkVirtualApplianceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkVirtualApplianceName, ok = input.Parsed["networkVirtualApplianceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceName", input)
+	}
+
+	return nil
 }
 
 // ValidateNetworkVirtualApplianceID checks that 'input' can be parsed as a Network Virtual Appliance ID

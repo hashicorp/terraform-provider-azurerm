@@ -20,7 +20,8 @@ type VirtualWansListOperationResponse struct {
 }
 
 type VirtualWansListCompleteResult struct {
-	Items []VirtualWAN
+	LatestHttpResponse *http.Response
+	Items              []VirtualWAN
 }
 
 // VirtualWansList ...
@@ -84,7 +85,8 @@ func (c VirtualWANsClient) VirtualWansListCompleteMatchingPredicate(ctx context.
 	}
 
 	result = VirtualWansListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

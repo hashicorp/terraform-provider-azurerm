@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VMmServerId{}
+var _ resourceids.ResourceId = &VMmServerId{}
 
 // VMmServerId is a struct representing the Resource ID for a V Mm Server
 type VMmServerId struct {
@@ -30,25 +30,15 @@ func NewVMmServerID(subscriptionId string, resourceGroupName string, vmmServerNa
 
 // ParseVMmServerID parses 'input' into a VMmServerId
 func ParseVMmServerID(input string) (*VMmServerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VMmServerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VMmServerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VMmServerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VmmServerName, ok = parsed.Parsed["vmmServerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vmmServerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseVMmServerID(input string) (*VMmServerId, error) {
 // ParseVMmServerIDInsensitively parses 'input' case-insensitively into a VMmServerId
 // note: this method should only be used for API response data and not user input
 func ParseVMmServerIDInsensitively(input string) (*VMmServerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VMmServerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VMmServerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VMmServerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VmmServerName, ok = parsed.Parsed["vmmServerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vmmServerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VMmServerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VmmServerName, ok = input.Parsed["vmmServerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vmmServerName", input)
+	}
+
+	return nil
 }
 
 // ValidateVMmServerID checks that 'input' can be parsed as a V Mm Server ID

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -119,6 +120,10 @@ func TestAccKeyVaultManagedStorageAccountSasTokenDefinition_recovery(t *testing.
 		},
 		{
 			// purge true here to make sure when we end the test there's no soft-deleted items left behind
+			PreConfig: func() {
+				// old instance dns cached may cause 404 not found error, so we sleep for a while to wait
+				time.Sleep(30 * time.Second)
+			},
 			Config: r.softDeleteRecovery(data, true, "2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -316,15 +321,15 @@ resource "azurerm_key_vault" "test" {
 }
 
 func (KeyVaultManagedStorageAccountSasTokenDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	dataPlaneClient := client.KeyVault.ManagementClient
-	keyVaultsClient := client.KeyVault
+	subscriptionId := client.Account.SubscriptionId
 
 	id, err := parse.SasDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, client.Resource, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := client.KeyVault.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
 		return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -333,12 +338,12 @@ func (KeyVaultManagedStorageAccountSasTokenDefinitionResource) Exists(ctx contex
 		return nil, err
 	}
 
-	ok, err := keyVaultsClient.Exists(ctx, *keyVaultId)
+	ok, err := client.KeyVault.Exists(ctx, *keyVaultId)
 	if err != nil || !ok {
 		return nil, fmt.Errorf("checking if key vault %q for Managed Storage Account Sas Definition %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 
-	resp, err := dataPlaneClient.GetSasDefinition(ctx, id.KeyVaultBaseUrl, id.StorageAccountName, id.Name)
+	resp, err := client.KeyVault.ManagementClient.GetSasDefinition(ctx, id.KeyVaultBaseUrl, id.StorageAccountName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Key Vault Managed Storage Account Sas Definition %q: %+v", state.ID, err)
 	}

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExpressRouteProviderPortId{}
+var _ resourceids.ResourceId = &ExpressRouteProviderPortId{}
 
 // ExpressRouteProviderPortId is a struct representing the Resource ID for a Express Route Provider Port
 type ExpressRouteProviderPortId struct {
@@ -28,21 +28,15 @@ func NewExpressRouteProviderPortID(subscriptionId string, expressRouteProviderPo
 
 // ParseExpressRouteProviderPortID parses 'input' into a ExpressRouteProviderPortId
 func ParseExpressRouteProviderPortID(input string) (*ExpressRouteProviderPortId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRouteProviderPortId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRouteProviderPortId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExpressRouteProviderPortId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ExpressRouteProviderPortName, ok = parsed.Parsed["expressRouteProviderPortName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteProviderPortName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParseExpressRouteProviderPortID(input string) (*ExpressRouteProviderPortId,
 // ParseExpressRouteProviderPortIDInsensitively parses 'input' case-insensitively into a ExpressRouteProviderPortId
 // note: this method should only be used for API response data and not user input
 func ParseExpressRouteProviderPortIDInsensitively(input string) (*ExpressRouteProviderPortId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRouteProviderPortId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRouteProviderPortId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExpressRouteProviderPortId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ExpressRouteProviderPortName, ok = parsed.Parsed["expressRouteProviderPortName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteProviderPortName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ExpressRouteProviderPortId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ExpressRouteProviderPortName, ok = input.Parsed["expressRouteProviderPortName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "expressRouteProviderPortName", input)
+	}
+
+	return nil
 }
 
 // ValidateExpressRouteProviderPortID checks that 'input' can be parsed as a Express Route Provider Port ID

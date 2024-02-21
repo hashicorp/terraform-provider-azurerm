@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RediId{}
+var _ resourceids.ResourceId = &RediId{}
 
 // RediId is a struct representing the Resource ID for a Redi
 type RediId struct {
@@ -30,25 +30,15 @@ func NewRediID(subscriptionId string, resourceGroupName string, redisName string
 
 // ParseRediID parses 'input' into a RediId
 func ParseRediID(input string) (*RediId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RediId{})
+	parser := resourceids.NewParserFromResourceIdType(&RediId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RediId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RedisName, ok = parsed.Parsed["redisName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "redisName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseRediID(input string) (*RediId, error) {
 // ParseRediIDInsensitively parses 'input' case-insensitively into a RediId
 // note: this method should only be used for API response data and not user input
 func ParseRediIDInsensitively(input string) (*RediId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RediId{})
+	parser := resourceids.NewParserFromResourceIdType(&RediId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RediId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RedisName, ok = parsed.Parsed["redisName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "redisName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RediId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RedisName, ok = input.Parsed["redisName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "redisName", input)
+	}
+
+	return nil
 }
 
 // ValidateRediID checks that 'input' can be parsed as a Redi ID

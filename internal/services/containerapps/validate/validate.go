@@ -74,24 +74,9 @@ func ContainerAppName(i interface{}, k string) (warnings []string, errors []erro
 		return
 	}
 
-	if matched := regexp.MustCompile(`^([a-z])[a-z0-9-]{0,58}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 60 characters", k))
+	if matched := regexp.MustCompile(`^([a-z])[a-z0-9-]{0,58}[a-z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
+		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters", k))
 		return
-	}
-
-	return
-}
-
-func ContainerCpu(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(float64)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be float", k))
-		return
-	}
-	switch v {
-	case 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0:
-	default:
-		errors = append(errors, fmt.Errorf("%s must be one of `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, or `2.0`", k))
 	}
 
 	return

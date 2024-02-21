@@ -8,19 +8,19 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 func TestMergeUserAppSettings(t *testing.T) {
 	cases := []struct {
-		service  []web.NameValuePair
+		service  []webapps.NameValuePair
 		user     map[string]string
-		expected []web.NameValuePair // Note: The function doesn't preserve the order of the list
+		expected []webapps.NameValuePair // Note: The function doesn't preserve the order of the list
 	}{
 		{
-			service: []web.NameValuePair{
+			service: []webapps.NameValuePair{
 				{
 					Name:  utils.String("test"),
 					Value: utils.String("ServiceValue"),
@@ -29,7 +29,7 @@ func TestMergeUserAppSettings(t *testing.T) {
 			user: map[string]string{
 				"test": "UserValue",
 			},
-			expected: []web.NameValuePair{
+			expected: []webapps.NameValuePair{
 				{
 					Name:  utils.String("test"),
 					Value: utils.String("UserValue"),
@@ -37,7 +37,7 @@ func TestMergeUserAppSettings(t *testing.T) {
 			},
 		},
 		{
-			service: []web.NameValuePair{
+			service: []webapps.NameValuePair{
 				{
 					Name:  utils.String("test"),
 					Value: utils.String("ServiceValue"),
@@ -59,7 +59,7 @@ func TestMergeUserAppSettings(t *testing.T) {
 				"test":  "UserValue",
 				"test4": "UserValue4",
 			},
-			expected: []web.NameValuePair{
+			expected: []webapps.NameValuePair{
 				{
 					Name:  utils.String("test"),
 					Value: utils.String("UserValue"),

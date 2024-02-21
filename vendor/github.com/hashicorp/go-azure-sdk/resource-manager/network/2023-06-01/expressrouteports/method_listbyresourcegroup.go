@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []ExpressRoutePort
+	LatestHttpResponse *http.Response
+	Items              []ExpressRoutePort
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c ExpressRoutePortsClient) ListByResourceGroupCompleteMatchingPredicate(ct
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

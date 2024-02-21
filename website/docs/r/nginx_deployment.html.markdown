@@ -85,13 +85,13 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Nginx Deployment should exist. Changing this forces a new Nginx Deployment to be created.
 
-* `sku` - (Required) Specify the Name of Nginx deployment SKU. The possible value are `publicpreview_Monthly_gmz7xq9ge3py` and `standard_Monthly`.
+* `sku` - (Required) Specify the Name of Nginx deployment SKU. The possible value are `publicpreview_Monthly_gmz7xq9ge3py` and `standard_Monthly`. Changing this forces a new Nginx Deployment to be created.
 
 * `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new Nginx Deployment to be created.
 
 ---
 
-* `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment.
+* `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment. Defaults to `20`.
 
 -> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
@@ -115,15 +115,17 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values is `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field.
+* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values are `UserAssigned`, `SystemAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
 A `frontend_private` block supports the following:
 
-* `allocation_method` - (Required) Specify the methos of allocating the private IP. Possible values are `Static` and `Dynamic`.
+* `allocation_method` - (Required) Specify the method of allocating the private IP. Possible values are `Static` and `Dynamic`.
 
 * `ip_address` - (Required) Specify the IP Address of this private IP.
 
@@ -139,7 +141,7 @@ A `frontend_public` block supports the following:
 
 A `logging_storage_account` block supports the following:
 
-* `container_name` - (Optional) Specify the container name of Stoage Account for logging.
+* `container_name` - (Optional) Specify the container name of Storage Account for logging.
 
 * `name` - (Optional) The account name of the StorageAccount for Nginx Logging.
 

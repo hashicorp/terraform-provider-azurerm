@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BatchAccountId{}
+var _ resourceids.ResourceId = &BatchAccountId{}
 
 // BatchAccountId is a struct representing the Resource ID for a Batch Account
 type BatchAccountId struct {
@@ -30,25 +30,15 @@ func NewBatchAccountID(subscriptionId string, resourceGroupName string, batchAcc
 
 // ParseBatchAccountID parses 'input' into a BatchAccountId
 func ParseBatchAccountID(input string) (*BatchAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BatchAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&BatchAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BatchAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.BatchAccountName, ok = parsed.Parsed["batchAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "batchAccountName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseBatchAccountID(input string) (*BatchAccountId, error) {
 // ParseBatchAccountIDInsensitively parses 'input' case-insensitively into a BatchAccountId
 // note: this method should only be used for API response data and not user input
 func ParseBatchAccountIDInsensitively(input string) (*BatchAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BatchAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&BatchAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BatchAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.BatchAccountName, ok = parsed.Parsed["batchAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "batchAccountName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *BatchAccountId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.BatchAccountName, ok = input.Parsed["batchAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "batchAccountName", input)
+	}
+
+	return nil
 }
 
 // ValidateBatchAccountID checks that 'input' can be parsed as a Batch Account ID

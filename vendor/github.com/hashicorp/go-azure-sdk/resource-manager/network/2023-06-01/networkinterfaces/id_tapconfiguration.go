@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TapConfigurationId{}
+var _ resourceids.ResourceId = &TapConfigurationId{}
 
 // TapConfigurationId is a struct representing the Resource ID for a Tap Configuration
 type TapConfigurationId struct {
@@ -32,29 +32,15 @@ func NewTapConfigurationID(subscriptionId string, resourceGroupName string, netw
 
 // ParseTapConfigurationID parses 'input' into a TapConfigurationId
 func ParseTapConfigurationID(input string) (*TapConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TapConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&TapConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TapConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkInterfaceName, ok = parsed.Parsed["networkInterfaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", *parsed)
-	}
-
-	if id.TapConfigurationName, ok = parsed.Parsed["tapConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "tapConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseTapConfigurationID(input string) (*TapConfigurationId, error) {
 // ParseTapConfigurationIDInsensitively parses 'input' case-insensitively into a TapConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseTapConfigurationIDInsensitively(input string) (*TapConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TapConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&TapConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := TapConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetworkInterfaceName, ok = parsed.Parsed["networkInterfaceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", *parsed)
-	}
-
-	if id.TapConfigurationName, ok = parsed.Parsed["tapConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "tapConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *TapConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetworkInterfaceName, ok = input.Parsed["networkInterfaceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkInterfaceName", input)
+	}
+
+	if id.TapConfigurationName, ok = input.Parsed["tapConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "tapConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateTapConfigurationID checks that 'input' can be parsed as a Tap Configuration ID

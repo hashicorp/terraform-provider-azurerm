@@ -20,7 +20,8 @@ type WebTestsListByResourceGroupOperationResponse struct {
 }
 
 type WebTestsListByResourceGroupCompleteResult struct {
-	Items []WebTest
+	LatestHttpResponse *http.Response
+	Items              []WebTest
 }
 
 // WebTestsListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c WebTestsAPIsClient) WebTestsListByResourceGroupCompleteMatchingPredicate
 	}
 
 	result = WebTestsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

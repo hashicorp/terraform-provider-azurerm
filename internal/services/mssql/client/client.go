@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/replicationlinks"
@@ -32,8 +33,7 @@ type Client struct {
 	DatabaseSecurityAlertPoliciesClient                *databasesecurityalertpolicies.DatabaseSecurityAlertPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
 	DatabasesClient                                    *databases.DatabasesClient
-	LegacyDatabasesClient                              *sql.DatabasesClient
-	ElasticPoolsClient                                 *sql.ElasticPoolsClient
+	ElasticPoolsClient                                 *elasticpools.ElasticPoolsClient
 	EncryptionProtectorClient                          *sql.EncryptionProtectorsClient
 	FailoverGroupsClient                               *sql.FailoverGroupsClient
 	FirewallRulesClient                                *sql.FirewallRulesClient
@@ -88,12 +88,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(databasesClient.Client, o.Authorizers.ResourceManager)
 
-	// NOTE: Remove once Azure Bug 2805551 ReplicationLink API ListByDatabase missed subsubcriptionId in partnerDatabaseId in response body has been released
-	legacyDatabasesClient := sql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&legacyDatabasesClient.Client, o.ResourceManagerAuthorizer)
-
-	elasticPoolsClient := sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&elasticPoolsClient.Client, o.ResourceManagerAuthorizer)
+	elasticPoolsClient, err := elasticpools.NewElasticPoolsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ElasticPools Client: %+v", err)
+	}
+	o.Configure(elasticPoolsClient.Client, o.Authorizers.ResourceManager)
 
 	encryptionProtectorClient := sql.NewEncryptionProtectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&encryptionProtectorClient.Client, o.ResourceManagerAuthorizer)
@@ -195,14 +194,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(transparentDataEncryptionsClient.Client, o.Authorizers.ResourceManager)
 
-	virtualMachinesAvailabilityGroupListenersClient := availabilitygrouplisteners.NewAvailabilityGroupListenersClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&virtualMachinesAvailabilityGroupListenersClient.Client, o.ResourceManagerAuthorizer)
+	virtualMachinesAvailabilityGroupListenersClient, err := availabilitygrouplisteners.NewAvailabilityGroupListenersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Virtual Machines Availability Group Listeners Client: %+v", err)
+	}
+	o.Configure(virtualMachinesAvailabilityGroupListenersClient.Client, o.Authorizers.ResourceManager)
 
-	virtualMachinesClient := sqlvirtualmachines.NewSqlVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&virtualMachinesClient.Client, o.ResourceManagerAuthorizer)
+	virtualMachinesClient, err := sqlvirtualmachines.NewSqlVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Virtual Machines Client: %+v", err)
+	}
+	o.Configure(virtualMachinesClient.Client, o.Authorizers.ResourceManager)
 
-	virtualMachineGroupsClient := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&virtualMachineGroupsClient.Client, o.ResourceManagerAuthorizer)
+	virtualMachineGroupsClient, err := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Virtual Machine Groups Client: %+v", err)
+	}
+	o.Configure(virtualMachineGroupsClient.Client, o.Authorizers.ResourceManager)
 
 	virtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&virtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
@@ -211,25 +219,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		// Clients using the Track1 SDK which need to be gradually switched over to `hashicorp/go-azure-sdk`
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
-		ElasticPoolsClient:                              &elasticPoolsClient,
-		EncryptionProtectorClient:                       &encryptionProtectorClient,
-		FailoverGroupsClient:                            &failoverGroupsClient,
-		FirewallRulesClient:                             &firewallRulesClient,
-		JobAgentsClient:                                 &jobAgentsClient,
-		JobCredentialsClient:                            &jobCredentialsClient,
-		OutboundFirewallRulesClient:                     &outboundFirewallRulesClient,
-		ServerDNSAliasClient:                            &serverDNSAliasClient,
-		ServerDevOpsAuditSettingsClient:                 &serverDevOpsAuditSettingsClient,
-		ServerExtendedBlobAuditingPoliciesClient:        &serverExtendedBlobAuditingPoliciesClient,
-		ServerKeysClient:                                &serverKeysClient,
-		ServerVulnerabilityAssessmentsClient:            &serverVulnerabilityAssessmentsClient,
-		VirtualMachinesAvailabilityGroupListenersClient: &virtualMachinesAvailabilityGroupListenersClient,
-		VirtualMachinesClient:                           &virtualMachinesClient,
-		VirtualMachineGroupsClient:                      &virtualMachineGroupsClient,
-		VirtualNetworkRulesClient:                       &virtualNetworkRulesClient,
+		EncryptionProtectorClient:                          &encryptionProtectorClient,
+		FailoverGroupsClient:                               &failoverGroupsClient,
+		FirewallRulesClient:                                &firewallRulesClient,
+		JobAgentsClient:                                    &jobAgentsClient,
+		JobCredentialsClient:                               &jobCredentialsClient,
+		OutboundFirewallRulesClient:                        &outboundFirewallRulesClient,
+		ServerDNSAliasClient:                               &serverDNSAliasClient,
+		ServerDevOpsAuditSettingsClient:                    &serverDevOpsAuditSettingsClient,
+		ServerExtendedBlobAuditingPoliciesClient:           &serverExtendedBlobAuditingPoliciesClient,
+		ServerKeysClient:                                   &serverKeysClient,
+		ServerVulnerabilityAssessmentsClient:               &serverVulnerabilityAssessmentsClient,
+		VirtualMachinesAvailabilityGroupListenersClient:    virtualMachinesAvailabilityGroupListenersClient,
+		VirtualMachinesClient:                              virtualMachinesClient,
+		VirtualMachineGroupsClient:                         virtualMachineGroupsClient,
+		VirtualNetworkRulesClient:                          &virtualNetworkRulesClient,
 
 		// Legacy Clients
-		LegacyDatabasesClient:                   &legacyDatabasesClient,
 		LegacyServerSecurityAlertPoliciesClient: &legacyServerSecurityAlertPoliciesClient,
 		LegacyReplicationLinksClient:            &legacyReplicationLinksClient,
 
@@ -237,6 +243,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		BackupShortTermRetentionPoliciesClient: backupShortTermRetentionPoliciesClient,
 		DatabasesClient:                        databasesClient,
 		DatabaseSecurityAlertPoliciesClient:    databaseSecurityAlertPoliciesClient,
+		ElasticPoolsClient:                     elasticPoolsClient,
 		GeoBackupPoliciesClient:                geoBackupPoliciesClient,
 		LongTermRetentionPoliciesClient:        longTermRetentionPoliciesClient,
 		ReplicationLinksClient:                 replicationLinksClient,

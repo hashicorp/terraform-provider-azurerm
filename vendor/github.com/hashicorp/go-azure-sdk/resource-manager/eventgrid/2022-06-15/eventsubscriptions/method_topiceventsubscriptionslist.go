@@ -19,7 +19,8 @@ type TopicEventSubscriptionsListOperationResponse struct {
 }
 
 type TopicEventSubscriptionsListCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type TopicEventSubscriptionsListOperationOptions struct {
@@ -115,7 +116,8 @@ func (c EventSubscriptionsClient) TopicEventSubscriptionsListCompleteMatchingPre
 	}
 
 	result = TopicEventSubscriptionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

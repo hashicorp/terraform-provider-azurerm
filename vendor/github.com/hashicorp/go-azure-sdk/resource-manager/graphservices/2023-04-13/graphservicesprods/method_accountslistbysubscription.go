@@ -20,7 +20,8 @@ type AccountsListBySubscriptionOperationResponse struct {
 }
 
 type AccountsListBySubscriptionCompleteResult struct {
-	Items []AccountResource
+	LatestHttpResponse *http.Response
+	Items              []AccountResource
 }
 
 // AccountsListBySubscription ...
@@ -84,7 +85,8 @@ func (c GraphservicesprodsClient) AccountsListBySubscriptionCompleteMatchingPred
 	}
 
 	result = AccountsListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

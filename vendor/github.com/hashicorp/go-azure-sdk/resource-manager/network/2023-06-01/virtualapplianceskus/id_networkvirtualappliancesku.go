@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkVirtualApplianceSkuId{}
+var _ resourceids.ResourceId = &NetworkVirtualApplianceSkuId{}
 
 // NetworkVirtualApplianceSkuId is a struct representing the Resource ID for a Network Virtual Appliance Sku
 type NetworkVirtualApplianceSkuId struct {
@@ -28,21 +28,15 @@ func NewNetworkVirtualApplianceSkuID(subscriptionId string, networkVirtualApplia
 
 // ParseNetworkVirtualApplianceSkuID parses 'input' into a NetworkVirtualApplianceSkuId
 func ParseNetworkVirtualApplianceSkuID(input string) (*NetworkVirtualApplianceSkuId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkVirtualApplianceSkuId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkVirtualApplianceSkuId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NetworkVirtualApplianceSkuId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.NetworkVirtualApplianceSkuName, ok = parsed.Parsed["networkVirtualApplianceSkuName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceSkuName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParseNetworkVirtualApplianceSkuID(input string) (*NetworkVirtualApplianceSk
 // ParseNetworkVirtualApplianceSkuIDInsensitively parses 'input' case-insensitively into a NetworkVirtualApplianceSkuId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkVirtualApplianceSkuIDInsensitively(input string) (*NetworkVirtualApplianceSkuId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkVirtualApplianceSkuId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkVirtualApplianceSkuId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := NetworkVirtualApplianceSkuId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.NetworkVirtualApplianceSkuName, ok = parsed.Parsed["networkVirtualApplianceSkuName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceSkuName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *NetworkVirtualApplianceSkuId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.NetworkVirtualApplianceSkuName, ok = input.Parsed["networkVirtualApplianceSkuName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "networkVirtualApplianceSkuName", input)
+	}
+
+	return nil
 }
 
 // ValidateNetworkVirtualApplianceSkuID checks that 'input' can be parsed as a Network Virtual Appliance Sku ID

@@ -20,7 +20,8 @@ type SubscriptionNetworkManagerConnectionsListOperationResponse struct {
 }
 
 type SubscriptionNetworkManagerConnectionsListCompleteResult struct {
-	Items []NetworkManagerConnection
+	LatestHttpResponse *http.Response
+	Items              []NetworkManagerConnection
 }
 
 type SubscriptionNetworkManagerConnectionsListOperationOptions struct {
@@ -112,7 +113,8 @@ func (c NetworkManagerConnectionsClient) SubscriptionNetworkManagerConnectionsLi
 	}
 
 	result = SubscriptionNetworkManagerConnectionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

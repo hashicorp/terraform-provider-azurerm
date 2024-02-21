@@ -19,7 +19,8 @@ type ListByDomainOperationResponse struct {
 }
 
 type ListByDomainCompleteResult struct {
-	Items []DomainTopic
+	LatestHttpResponse *http.Response
+	Items              []DomainTopic
 }
 
 type ListByDomainOperationOptions struct {
@@ -115,7 +116,8 @@ func (c DomainTopicsClient) ListByDomainCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListByDomainCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

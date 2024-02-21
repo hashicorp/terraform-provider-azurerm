@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AccountFilterId{}
+var _ resourceids.ResourceId = &AccountFilterId{}
 
 // AccountFilterId is a struct representing the Resource ID for a Account Filter
 type AccountFilterId struct {
@@ -32,29 +32,15 @@ func NewAccountFilterID(subscriptionId string, resourceGroupName string, mediaSe
 
 // ParseAccountFilterID parses 'input' into a AccountFilterId
 func ParseAccountFilterID(input string) (*AccountFilterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccountFilterId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccountFilterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AccountFilterId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
-	}
-
-	if id.AccountFilterName, ok = parsed.Parsed["accountFilterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accountFilterName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseAccountFilterID(input string) (*AccountFilterId, error) {
 // ParseAccountFilterIDInsensitively parses 'input' case-insensitively into a AccountFilterId
 // note: this method should only be used for API response data and not user input
 func ParseAccountFilterIDInsensitively(input string) (*AccountFilterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccountFilterId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccountFilterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AccountFilterId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
-	}
-
-	if id.AccountFilterName, ok = parsed.Parsed["accountFilterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accountFilterName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AccountFilterId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MediaServiceName, ok = input.Parsed["mediaServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", input)
+	}
+
+	if id.AccountFilterName, ok = input.Parsed["accountFilterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "accountFilterName", input)
+	}
+
+	return nil
 }
 
 // ValidateAccountFilterID checks that 'input' can be parsed as a Account Filter ID

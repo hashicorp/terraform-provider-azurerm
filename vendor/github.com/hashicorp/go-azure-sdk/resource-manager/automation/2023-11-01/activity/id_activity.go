@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ActivityId{}
+var _ resourceids.ResourceId = &ActivityId{}
 
 // ActivityId is a struct representing the Resource ID for a Activity
 type ActivityId struct {
@@ -34,33 +34,15 @@ func NewActivityID(subscriptionId string, resourceGroupName string, automationAc
 
 // ParseActivityID parses 'input' into a ActivityId
 func ParseActivityID(input string) (*ActivityId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ActivityId{})
+	parser := resourceids.NewParserFromResourceIdType(&ActivityId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ActivityId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.ModuleName, ok = parsed.Parsed["moduleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "moduleName", *parsed)
-	}
-
-	if id.ActivityName, ok = parsed.Parsed["activityName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "activityName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseActivityID(input string) (*ActivityId, error) {
 // ParseActivityIDInsensitively parses 'input' case-insensitively into a ActivityId
 // note: this method should only be used for API response data and not user input
 func ParseActivityIDInsensitively(input string) (*ActivityId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ActivityId{})
+	parser := resourceids.NewParserFromResourceIdType(&ActivityId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ActivityId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.ModuleName, ok = parsed.Parsed["moduleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "moduleName", *parsed)
-	}
-
-	if id.ActivityName, ok = parsed.Parsed["activityName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "activityName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ActivityId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AutomationAccountName, ok = input.Parsed["automationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", input)
+	}
+
+	if id.ModuleName, ok = input.Parsed["moduleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "moduleName", input)
+	}
+
+	if id.ActivityName, ok = input.Parsed["activityName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "activityName", input)
+	}
+
+	return nil
 }
 
 // ValidateActivityID checks that 'input' can be parsed as a Activity ID

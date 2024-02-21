@@ -87,7 +87,8 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					"v4.0",
 					"v5.0",
 					"v6.0",
-					"v7.0"}, false),
+					"v7.0",
+					"v8.0"}, false),
 				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
 
@@ -462,6 +463,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"5.0", // deprecated
 					"6.0",
 					"7.0",
+					"8.0",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
@@ -497,6 +499,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"3.9",
 					"3.10",
 					"3.11",
+					"3.12",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},
@@ -509,6 +512,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 					"14-lts",
 					"16-lts",
 					"18-lts",
+					"20-lts",
 				}, false),
 				ExactlyOneOf: linuxApplicationStackConstraint,
 			},

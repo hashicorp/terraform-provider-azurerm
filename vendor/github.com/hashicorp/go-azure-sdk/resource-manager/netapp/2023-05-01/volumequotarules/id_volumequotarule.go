@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VolumeQuotaRuleId{}
+var _ resourceids.ResourceId = &VolumeQuotaRuleId{}
 
 // VolumeQuotaRuleId is a struct representing the Resource ID for a Volume Quota Rule
 type VolumeQuotaRuleId struct {
@@ -36,37 +36,15 @@ func NewVolumeQuotaRuleID(subscriptionId string, resourceGroupName string, netAp
 
 // ParseVolumeQuotaRuleID parses 'input' into a VolumeQuotaRuleId
 func ParseVolumeQuotaRuleID(input string) (*VolumeQuotaRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VolumeQuotaRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&VolumeQuotaRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VolumeQuotaRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetAppAccountName, ok = parsed.Parsed["netAppAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "netAppAccountName", *parsed)
-	}
-
-	if id.CapacityPoolName, ok = parsed.Parsed["capacityPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "capacityPoolName", *parsed)
-	}
-
-	if id.VolumeName, ok = parsed.Parsed["volumeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "volumeName", *parsed)
-	}
-
-	if id.VolumeQuotaRuleName, ok = parsed.Parsed["volumeQuotaRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "volumeQuotaRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,40 +53,48 @@ func ParseVolumeQuotaRuleID(input string) (*VolumeQuotaRuleId, error) {
 // ParseVolumeQuotaRuleIDInsensitively parses 'input' case-insensitively into a VolumeQuotaRuleId
 // note: this method should only be used for API response data and not user input
 func ParseVolumeQuotaRuleIDInsensitively(input string) (*VolumeQuotaRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VolumeQuotaRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&VolumeQuotaRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VolumeQuotaRuleId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.NetAppAccountName, ok = parsed.Parsed["netAppAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "netAppAccountName", *parsed)
-	}
-
-	if id.CapacityPoolName, ok = parsed.Parsed["capacityPoolName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "capacityPoolName", *parsed)
-	}
-
-	if id.VolumeName, ok = parsed.Parsed["volumeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "volumeName", *parsed)
-	}
-
-	if id.VolumeQuotaRuleName, ok = parsed.Parsed["volumeQuotaRuleName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "volumeQuotaRuleName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VolumeQuotaRuleId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.NetAppAccountName, ok = input.Parsed["netAppAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "netAppAccountName", input)
+	}
+
+	if id.CapacityPoolName, ok = input.Parsed["capacityPoolName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "capacityPoolName", input)
+	}
+
+	if id.VolumeName, ok = input.Parsed["volumeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "volumeName", input)
+	}
+
+	if id.VolumeQuotaRuleName, ok = input.Parsed["volumeQuotaRuleName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "volumeQuotaRuleName", input)
+	}
+
+	return nil
 }
 
 // ValidateVolumeQuotaRuleID checks that 'input' can be parsed as a Volume Quota Rule ID
