@@ -407,7 +407,7 @@ resource "azurerm_container_registry" "test" {
   name                = "acctestacr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku                 = "Premium"
   admin_enabled       = true
 }
 
@@ -439,7 +439,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   key_vault_id                  = azurerm_key_vault.test.id
   storage_account_id            = azurerm_storage_account.test.id
   container_registry_id         = azurerm_container_registry.test.id
-  sku_name                      = "Premium"
+  sku_name                      = "Basic"
   high_business_impact          = true
   public_network_access_enabled = true
   image_build_compute_name      = "terraformCompute"
