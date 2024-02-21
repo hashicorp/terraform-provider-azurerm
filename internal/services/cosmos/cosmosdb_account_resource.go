@@ -242,6 +242,14 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
+			// per Microsoft's documentation, as of April 1 2023 the default minimal TLS version for all new accounts is 1.2
+			"minimal_tls_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
+			},
+
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -842,6 +850,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                          geoLocations,
 			Capabilities:                       capabilities,
+			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
 			EnablePartitionMerge:               pointer.To(partitionMergeEnabled),
@@ -917,6 +926,20 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account, d)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// NOTE: this is to work around the issue here: https://github.com/Azure/azure-rest-api-specs/issues/27596
+	// Once the above issue is resolved we shouldn't need this check and update anymore
+	if d.Get("create_mode").(string) == string(cosmosdb.CreateModeRestore) {
+		ap := cosmosdb.DatabaseAccountCreateUpdateParameters{
+			Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
+				MinimalTlsVersion: pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
+			},
+		}
+		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, ap, d)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -1075,6 +1098,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				IsVirtualNetworkFilterEnabled:      isVirtualNetworkFilterEnabled,
 				EnableFreeTier:                     enableFreeTier,
 				EnableAutomaticFailover:            enableAutomaticFailover,
+				MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 				Capabilities:                       capabilities,
 				ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 				Locations:                          cosmosLocations,
@@ -1371,6 +1395,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cosmosdb.PublicNetworkAccessEnabled)
 		d.Set("default_identity_type", props.DefaultIdentity)
+		d.Set("minimal_tls_version", pointer.From(props.MinimalTlsVersion))
 		d.Set("create_mode", pointer.From(props.CreateMode))
 		d.Set("partition_merge_enabled", pointer.From(props.EnablePartitionMerge))
 
