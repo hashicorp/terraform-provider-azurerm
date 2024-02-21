@@ -3,6 +3,7 @@ package systemcentervirtualmachinemanager_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets"
@@ -15,11 +16,28 @@ import (
 
 type SystemCenterVirtualMachineManagerAvailabilitySetResource struct{}
 
-func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_basic(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerAvailabilitySetSequential(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
+
+	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
+	}
+
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"scvmmAvailabilitySet": {
+			"basic":          testAccSystemCenterVirtualMachineManagerAvailabilitySet_basic,
+			"requiresImport": testAccSystemCenterVirtualMachineManagerAvailabilitySet_requiresImport,
+			"complete":       testAccSystemCenterVirtualMachineManagerAvailabilitySet_complete,
+			"update":         testAccSystemCenterVirtualMachineManagerAvailabilitySet_update,
+		},
+	})
+}
+
+func testAccSystemCenterVirtualMachineManagerAvailabilitySet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_availability_set", "test")
 	r := SystemCenterVirtualMachineManagerAvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -30,11 +48,11 @@ func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_basic(t *testing.T)
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_requiresImport(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerAvailabilitySet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_availability_set", "test")
 	r := SystemCenterVirtualMachineManagerAvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -45,11 +63,11 @@ func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_requiresImport(t *t
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_complete(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerAvailabilitySet_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_availability_set", "test")
 	r := SystemCenterVirtualMachineManagerAvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -60,11 +78,11 @@ func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_complete(t *testing
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerAvailabilitySet_update(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerAvailabilitySet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_availability_set", "test")
 	r := SystemCenterVirtualMachineManagerAvailabilitySetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -100,10 +118,14 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) basic(data acc
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
   name                                            = "acctest-scvmmas-%d"
   location                                        = azurerm_resource_group.test.location
-  custom_location_id                              = azurerm_custom_location.test.id
+  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
 }
 `, r.template(data), data.RandomInteger)
@@ -126,10 +148,14 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) complete(data 
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
   name                                            = "acctest-scvmmas-%d"
   location                                        = azurerm_resource_group.test.location
-  custom_location_id                              = azurerm_custom_location.test.id
+  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
   
   tags = {
@@ -143,10 +169,14 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) update(data ac
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
   name                                            = "acctest-scvmmas-%d"
   location                                        = azurerm_resource_group.test.location
-  custom_location_id                              = azurerm_custom_location.test.id
+  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
   
   tags = {
@@ -158,25 +188,19 @@ resource "azurerm_system_center_virtual_machine_manager_availability_set" "test"
 
 func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-scvmmas-%d"
   location = "%s"
-}
-
-resource "azurerm_custom_location" "test" {
-  name = "acctest-cl-%d"
 }
 
 resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   name                = "acctest-scvmmms-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = azurerm_custom_location.test.id
-  fqdn                = "testdomain.com"
+  custom_location_id  = "%s"
+  fqdn                = "%s"
+  username            = "%s"
+  password            = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }

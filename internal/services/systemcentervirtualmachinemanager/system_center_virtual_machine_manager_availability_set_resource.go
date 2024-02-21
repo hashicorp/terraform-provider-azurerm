@@ -9,17 +9,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerAvailabilitySetModel struct {
 	Name                                      string            `tfschema:"name"`
+	ResourceGroupName                         string            `tfschema:"resource_group_name"`
 	Location                                  string            `tfschema:"location"`
 	CustomLocationId                          string            `tfschema:"custom_location_id"`
 	SystemCenterVirtualMachineManagerServerId string            `tfschema:"system_center_virtual_machine_manager_server_id"`
@@ -52,20 +53,13 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Arguments() ma
 			ValidateFunc: validate.SystemCenterVirtualMachineManagerAvailabilitySetName,
 		},
 
+		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"location": commonschema.Location(),
 
-		"custom_location_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
 
-		"system_center_virtual_machine_manager_server_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
+		"system_center_virtual_machine_manager_server_id": commonschema.ResourceIDReferenceRequiredForceNew(&vmmservers.VMmServerId{}),
 
 		"tags": commonschema.Tags(),
 	}
@@ -92,7 +86,7 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Create() sdk.R
 				return err
 			}
 
-			id := availabilitysets.NewAvailabilitySetID(subscriptionId, scvmmServerId.ResourceGroupName, model.Name)
+			id := availabilitysets.NewAvailabilitySetID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -148,11 +142,17 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Read() sdk.Res
 
 			state := SystemCenterVirtualMachineManagerAvailabilitySetModel{}
 			if model := resp.Model; model != nil {
-				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Location = location.Normalize(model.Location)
+				state.ResourceGroupName = id.ResourceGroupName
 				state.Name = id.AvailabilitySetName
-				state.SystemCenterVirtualMachineManagerServerId = vmmservers.NewVMmServerID(id.SubscriptionId, id.ResourceGroupName, pointer.From(model.Properties.AvailabilitySetName)).ID()
+				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Tags = pointer.From(model.Tags)
+
+				scvmmServerId, err := vmmservers.ParseVMmServerID(pointer.From(model.Properties.VMmServerId))
+				if err != nil {
+					return err
+				}
+				state.SystemCenterVirtualMachineManagerServerId = scvmmServerId.ID()
 			}
 
 			return metadata.Encode(&state)
@@ -176,28 +176,11 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Update() sdk.R
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			parameters := availabilitysets.ResourcePatch{
+				Tags: pointer.To(model.Tags),
 			}
 
-			parameters := existing.Model
-			if parameters == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-
-			if metadata.ResourceData.HasChange("custom_location_id") {
-				parameters.ExtendedLocation = availabilitysets.ExtendedLocation{
-					Type: utils.String("customLocation"),
-					Name: utils.String(model.CustomLocationId),
-				}
-			}
-
-			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = pointer.To(model.Tags)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

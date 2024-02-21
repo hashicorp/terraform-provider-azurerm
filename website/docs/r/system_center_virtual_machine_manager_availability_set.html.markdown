@@ -18,20 +18,19 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_custom_location" "example" {
-  name = "example-cl"
-}
-
 resource "azurerm_system_center_virtual_machine_manager_server" "example" {
   name                = "example-scvmmms"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  custom_location_id  = azurerm_custom_location.example.id
-  fqdn                = "exampledomain.com"
+  custom_location_id  = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ExtendedLocation/customLocations/customLocation1"
+  fqdn                = "example.labtest"
+  username            = "testUser"
+  password            = "H@Sh1CoR3!"
 }
 
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "example" {
   name                                            = "example-scvmmas"
+  resource_group_name                             = azurerm_resource_group.example.name
   location                                        = azurerm_resource_group.example.location
   custom_location_id                              = azurerm_custom_location.example.id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
@@ -44,9 +43,11 @@ The following arguments are supported:
 
 * `name` - (Required) (Required) The name which should be used for this System Center Virtual Machine Manager Availability Set. Changing this forces a new resource to be created.
 
+* `resource_group_name` - (Required) The name of the Resource Group where the System Center Virtual Machine Manager Availability Set should exist. Changing this forces a new resource to be created.
+
 * `location` - (Required) The Azure Region where the System Center Virtual Machine Manager Availability Set should exist. Changing this forces a new resource to be created.
 
-* `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Availability Set.
+* `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Availability Set. Changing this forces a new resource to be created.
 
 * `system_center_virtual_machine_manager_server_id` - (Required) The ID of the System Center Virtual Machine Manager Server. Changing this forces a new resource to be created.
 
