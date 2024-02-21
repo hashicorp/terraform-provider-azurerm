@@ -224,6 +224,21 @@ func TestAccCosmosDBAccount_updateTagsWithUserAssignedDefaultIdentity(t *testing
 	})
 }
 
+func TestAccCosmosDBAccount_minimalTlsVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicMinimalTlsVersion(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelEventual, 1),
+				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("Tls12"),
+			),
+		},
+	})
+}
+
 func TestAccCosmosDBAccount_updateDefaultIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
@@ -1258,6 +1273,7 @@ func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
 			Config: r.restoreCreateMode(data, cosmosdb.DatabaseAccountKindMongoDB, cosmosdb.DefaultConsistencyLevelSession),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelSession, 1),
+				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("Tls12"),
 			),
 		},
 		data.ImportStep(),
@@ -1402,6 +1418,37 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) basicMinimalTlsVersion(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+	minimal_tls_version = "Tls12"
 
   consistency_policy {
     consistency_level = "%s"
@@ -4059,6 +4106,7 @@ resource "azurerm_cosmosdb_account" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "MongoDB"
+	minimal_tls_version = "Tls12"
 
   capabilities {
     name = "EnableMongo"
