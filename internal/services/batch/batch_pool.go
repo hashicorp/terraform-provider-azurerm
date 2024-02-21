@@ -772,6 +772,8 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 
 	if extensions, extErr := expandBatchPoolExtensions(d.Get("extensions").([]interface{})); extErr == nil {
 		result.Extensions = extensions
+	} else {
+		return nil, extErr
 	}
 
 	if licenseType, ok := d.GetOk("license_type"); ok {
@@ -838,7 +840,7 @@ func expandBatchPoolExtensions(list []interface{}) (*[]pool.VmExtension, error) 
 		if batchPoolExtension, err := expandBatchPoolExtension(item); err == nil {
 			result = append(result, *batchPoolExtension)
 		} else {
-			return nil, fmt.Errorf("cloud_service_configuration either is empty or contains parsing errors")
+			return nil, err
 		}
 	}
 
