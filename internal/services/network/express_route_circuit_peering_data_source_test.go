@@ -35,9 +35,9 @@ func (r ExpressRouteCircuitPeeringDataSource) privatePeering(data acceptance.Tes
 %s
 
 data "azurerm_express_route_circuit_peering" "data" {
-  peering_type                  = azurerm_express_route_circuit_peering.test.peering_type
-  express_route_circuit_name    = azurerm_express_route_circuit_peering.test.express_route_circuit_name
-  resource_group_name           = azurerm_express_route_circuit_peering.test.resource_group_name
+  peering_type               = azurerm_express_route_circuit_peering.test.peering_type
+  express_route_circuit_name = azurerm_express_route_circuit_peering.test.express_route_circuit_name
+  resource_group_name        = azurerm_express_route_circuit_peering.test.resource_group_name
 }
 `, r.privatePeering(data))
 }
