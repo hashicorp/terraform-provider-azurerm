@@ -2022,10 +2022,8 @@ func connectionStringToMap(connectionStr string) map[string]string {
 	m := make(map[string]string, 0)
 	split := strings.Split(connectionStr, ";")
 	for _, v := range split {
-		kv := strings.Split(v, "=")
-		if len(kv) != 2 {
-			return nil
-		}
+		// The connection string might contain `=`
+		kv := strings.SplitN(v, "=", 2)
 		m[kv[0]] = kv[1]
 	}
 	return m
