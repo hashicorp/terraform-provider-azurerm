@@ -6,13 +6,13 @@ package apimanagement
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policyfragment"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policyfragment"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -34,6 +34,9 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 			client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
 
 			id, err := policyfragment.ParsePolicyFragmentIDInsensitively(d.Id())
+			if err != nil {
+				return nil, err
+			}
 
 			resp, err := client.Get(ctx, *id, policyfragment.GetOperationOptions{
 				Format: pointer.To(policyfragment.PolicyFragmentContentFormatXml),
