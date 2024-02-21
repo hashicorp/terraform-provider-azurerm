@@ -376,6 +376,8 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as defined below. Changing this forces a new resource to be created.
 
+* `managed_network` - (Optional) A `managed_network` block as defined below.
+
 * `feature_store` - (Optional) A `feature_store` block as defined below.
 
 * `friendly_name` - (Optional) Display name for this Machine Learning Workspace.
@@ -411,6 +413,12 @@ An `encryption` block supports the following:
 * `user_assigned_identity_id` - (Optional) The Key Vault URI to access the encryption key.
 
 ~> **Note:** `user_assigned_identity_id` must set when`identity.type` is `UserAssigned` or service won't be able to find the assigned permissions.
+
+---
+
+An `managed_network` block supports the following:
+
+* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`
 
 ---
 

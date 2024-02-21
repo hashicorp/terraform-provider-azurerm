@@ -189,6 +189,23 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"managed_network": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"isolation_mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
+						},
+					},
+				},
+			},
+
 			"friendly_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -288,12 +305,13 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
-			Encryption:          expandedEncryption,
-			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
 			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
+			Encryption:          expandedEncryption,
 			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
+			ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
 			PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccessDisabled),
+			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
+			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
 
@@ -395,6 +413,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 		d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 		d.Set("workspace_id", props.WorkspaceId)
+		d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork))
 
 		kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
 		if err != nil {
@@ -617,4 +636,30 @@ func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreS
 			"online_connection_name":         onlineConnectionName,
 		},
 	}
+}
+
+func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) *workspaces.ManagedNetworkSettings {
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+
+	v := i[0].(map[string]interface{})
+
+	return &workspaces.ManagedNetworkSettings{
+		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
+	}
+}
+
+func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings) *[]interface{} {
+	if i == nil {
+		return &[]interface{}{}
+	}
+
+	out := map[string]interface{}{}
+
+	if i.IsolationMode != nil {
+		out["isolation_mode"] = *i.IsolationMode
+	}
+
+	return &[]interface{}{out}
 }

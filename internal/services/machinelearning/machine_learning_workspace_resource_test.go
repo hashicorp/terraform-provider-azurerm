@@ -454,6 +454,10 @@ resource "azurerm_machine_learning_workspace" "test" {
     key_id       = azurerm_key_vault_key.test.id
   }
 
+  managed_network {
+    isolation_mode = "AllowInternetOutbound"
+ }
+
   tags = {
     ENV = "Test"
   }
