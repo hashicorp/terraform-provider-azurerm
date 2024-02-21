@@ -143,6 +143,7 @@ import (
 	streamAnalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/client"
 	subscription "github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription/client"
 	synapse "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/client"
+	systemCenterVirtualMachineManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/client"
 	trafficManager "github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager/client"
 	videoAnalyzer "github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer/client"
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
@@ -632,8 +633,8 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 
 	client.Synapse = synapse.NewClient(o)
-	if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Traffic Manager: %+v", err)
+	if client.SystemCenterVirtualMachineManager, err = systemCenterVirtualMachineManager.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for System Center Virtual Machine Manager: %+v", err)
 	}
 	if client.TrafficManager, err = trafficManager.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Traffic Manager: %+v", err)
