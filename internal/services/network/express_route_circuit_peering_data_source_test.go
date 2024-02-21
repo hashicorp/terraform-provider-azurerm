@@ -15,11 +15,11 @@ type ExpressRouteCircuitPeeringDataSource struct{}
 
 func testAccDataSourceExpressRouteCircuitPeering_privatePeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
-	r := ExpressRouteCircuitPeeringResource{}
+	d := ExpressRouteCircuitPeeringResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.privatePeering(data),
+			Config: d.privatePeering(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("peering_type").HasValue("AzurePrivatePeering"),
@@ -30,7 +30,7 @@ func testAccDataSourceExpressRouteCircuitPeering_privatePeering(t *testing.T) {
 	})
 }
 
-func (r ExpressRouteCircuitPeeringDataSource) privatePeering(data acceptance.TestData) string {
+func (d ExpressRouteCircuitPeeringDataSource) privatePeering(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
