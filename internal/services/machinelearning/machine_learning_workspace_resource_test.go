@@ -456,7 +456,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 
   managed_network {
     isolation_mode = "AllowInternetOutbound"
- }
+  }
 
   tags = {
     ENV = "Test"
