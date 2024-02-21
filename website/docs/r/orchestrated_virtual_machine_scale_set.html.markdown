@@ -83,7 +83,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `extensions_time_budget` - (Optional) Specifies the time alloted for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `PT1H30M`.
 
-* `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
+* `eviction_policy` - (Optional) The Policy which should be used by Spot Virtual Machines that are Evicted from the Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
