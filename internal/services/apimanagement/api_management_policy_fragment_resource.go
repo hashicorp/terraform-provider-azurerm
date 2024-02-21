@@ -23,9 +23,9 @@ import (
 
 func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementPolicyFragmentCreateUpdate,
+		Create: resourceApiManagementPolicyFragmentCreate,
 		Read:   resourceApiManagementPolicyFragmentRead,
-		Update: resourceApiManagementPolicyFragmentCreateUpdate,
+		Update: resourceApiManagementPolicyFragmentUpdate,
 		Delete: resourceApiManagementPolicyFragmentDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := policyfragment.ParsePolicyFragmentIDInsensitively(id)
@@ -93,7 +93,7 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementPolicyFragmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -128,6 +128,38 @@ func resourceApiManagementPolicyFragmentCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, policyfragment.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceApiManagementPolicyFragmentRead(d, meta)
+}
+
+func resourceApiManagementPolicyFragmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := policyfragment.ParsePolicyFragmentIDInsensitively(d.Get("id").(string))
+	if err != nil {
+		return err
+	}
+
+	format := policyfragment.PolicyFragmentContentFormat(d.Get("format").(string))
+
+	description := d.Get("description").(string)
+	value := d.Get("value").(string)
+
+	parameters := policyfragment.PolicyFragmentContract{
+		Properties: &policyfragment.PolicyFragmentContractProperties{
+			Description: pointer.To(description),
+			Format:      pointer.To(format),
+			Value:       value,
+		},
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, pointer.From(id), parameters, policyfragment.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
