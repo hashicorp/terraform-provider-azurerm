@@ -1757,7 +1757,7 @@ resource "azurerm_iothub" "test" {
     resource_group_name = azurerm_resource_group.test.name
 
     container_name    = azurerm_storage_container.test.name
-    connection_string = nonsensitive(azurerm_storage_account.test.primary_blob_connection_string)
+    connection_string = azurerm_storage_account.test.primary_blob_connection_string
   }
 
   endpoint {
@@ -1765,7 +1765,7 @@ resource "azurerm_iothub" "test" {
     name                = "endpoint2"
     resource_group_name = azurerm_resource_group.test.name
 
-    connection_string = nonsensitive(azurerm_servicebus_queue_authorization_rule.test.primary_connection_string)
+    connection_string = azurerm_servicebus_queue_authorization_rule.test.primary_connection_string
   }
 
   endpoint {
@@ -1773,7 +1773,7 @@ resource "azurerm_iothub" "test" {
     name                = "endpoint3"
     resource_group_name = azurerm_resource_group.test.name
 
-    connection_string = nonsensitive(azurerm_servicebus_topic_authorization_rule.test.primary_connection_string)
+    connection_string = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
   }
 
   endpoint {
@@ -1781,7 +1781,7 @@ resource "azurerm_iothub" "test" {
     name                = "endpoint4"
     resource_group_name = azurerm_resource_group.test.name
 
-    connection_string = nonsensitive(azurerm_eventhub_authorization_rule.test.primary_connection_string)
+    connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
   }
 
   identity {
