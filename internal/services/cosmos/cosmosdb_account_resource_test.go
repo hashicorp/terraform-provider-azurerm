@@ -992,7 +992,30 @@ func TestAccCosmosDBAccount_identity(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_backup(t *testing.T) {
+func TestAccCosmosDBAccount_storageRedundancyUndefined(t *testing.T) {
+	// Regression test for MSFT IcM where the SDK is supplied a 'nil' pointer for the
+	// 'storage_redundancy' field, the new transport layer would send an 'empty' string
+	// instead of omitting the field from the PUT call which would result in the API
+	// returning an error...
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageRedundancyUndefined(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("120"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("10"),
+				check.That(data.ResourceName).Key("backup.0.storage_redundancy").HasValue("Geo"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_backupOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
@@ -1012,6 +1035,10 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 			Config: r.basicWithBackupPeriodic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("120"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("10"),
+				check.That(data.ResourceName).Key("backup.0.storage_redundancy").HasValue("Geo"),
 			),
 		},
 		data.ImportStep(),
@@ -1020,6 +1047,9 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("60"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("8"),
+				check.That(data.ResourceName).Key("backup.0.storage_redundancy").HasValue("Local"),
 			),
 		},
 		data.ImportStep(),
@@ -1039,7 +1069,7 @@ func TestAccCosmosDBAccount_backupPeriodicToContinuous(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousSevenDays),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1054,7 +1084,14 @@ func TestAccCosmosDBAccount_backupContinuous(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousSevenDays),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousThreeZeroDays),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -3380,6 +3417,42 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
+func (CosmosDBAccountResource) storageRedundancyUndefined(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type                = "Periodic"
+    interval_in_minutes = 120
+    retention_in_hours  = 10
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
 func (CosmosDBAccountResource) basicWithBackupPeriodicUpdate(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3417,7 +3490,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel, tier cosmosdb.ContinuousTier) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3446,9 +3519,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   backup {
     type = "Continuous"
+    tier = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), string(tier))
 }
 
 func (CosmosDBAccountResource) basicWithBackupContinuousUpdate(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {

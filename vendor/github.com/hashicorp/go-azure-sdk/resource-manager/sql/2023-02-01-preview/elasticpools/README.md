@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := elasticpools.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
+id := commonids.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
 
 payload := elasticpools.ElasticPool{
 	// ...
@@ -41,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := elasticpools.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
+id := commonids.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := elasticpools.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
+id := commonids.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
 
 if err := client.FailoverThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -65,7 +66,7 @@ if err := client.FailoverThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := elasticpools.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
+id := commonids.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -81,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := elasticpools.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
 
 // alternatively `client.ListByServer(ctx, id, elasticpools.DefaultListByServerOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id, elasticpools.DefaultListByServerOperationOptions())
@@ -98,7 +99,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := elasticpools.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
+id := commonids.NewSqlElasticPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "elasticPoolValue")
 
 payload := elasticpools.ElasticPoolUpdate{
 	// ...
