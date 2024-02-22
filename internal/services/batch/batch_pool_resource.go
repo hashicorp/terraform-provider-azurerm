@@ -5,6 +5,7 @@ package batch
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -1208,10 +1209,11 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
 							}
 							if item.Settings != nil {
-								extension["settings_json"], err = pluginsdk.FlattenJsonToString((*item.Settings).(map[string]interface{}))
+								settingValue, err := json.Marshal((*item.Settings).(map[string]interface{}))
 								if err != nil {
 									return fmt.Errorf("flattening `settings_json`: %+v", err)
 								}
+								extension["settings_json"] = string(settingValue)
 							}
 
 							for i := 0; i < n; i++ {
