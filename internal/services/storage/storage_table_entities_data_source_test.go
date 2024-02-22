@@ -45,7 +45,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  allow_nested_items_to_be_public = false 
+  allow_nested_items_to_be_public = false
 }
 
 resource "azurerm_storage_table" "test" {
