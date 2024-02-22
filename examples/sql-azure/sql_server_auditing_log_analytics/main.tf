@@ -19,11 +19,6 @@ resource "azurerm_mssql_server" "example" {
   administrator_login_password = "thisIsDog11"
 }
 
-resource "azurerm_mssql_database" "example" {
-  name      = "${var.prefix}-db-primary"
-  server_id = azurerm_mssql_server.example.id
-}
-
 resource "azurerm_log_analytics_workspace" "example" {
   name                = "${var.prefix}-LAW"
   location            = var.location
