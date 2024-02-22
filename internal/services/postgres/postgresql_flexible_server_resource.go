@@ -385,7 +385,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			// storage_mb can only be scaled up...
 			if newMb < oldStorageMbRaw.(int) {
-				return fmt.Errorf("'storage_mb' can only be scaled up, expected 'storage_mb' to be larger than the current 'storage_mb'(%d), got %d", oldStorageMbRaw.(int), newMb)
+				return fmt.Errorf("'storage_mb' can only be scaled up, expected the new 'storage_mb' value (%d) to be larger than the previous 'storage_mb' value (%d)", newMb, oldStorageMbRaw.(int))
 			}
 
 			// if newMb or newTier values are empty,
@@ -400,7 +400,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			storageTiers := storageTierMappings[newMb]
 
 			if newTier == "" {
-				newTier = storageTiers.DefaultTier
+				newTier = string(storageTiers.DefaultTier)
 			}
 
 			// verify that the storage_tier is valid
@@ -502,11 +502,32 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
+	storage := expandArmServerStorage(d)
+	var storageMb int
+
+	if storage.StorageSizeGB == nil || *storage.StorageSizeGB == 0 {
+		// set the default value for storage_mb...
+		storageMb = 32768
+		storage.StorageSizeGB = pointer.FromInt64(int64(32))
+		log.Printf("[DEBUG]: Default 'storage_mb' Set -> %d\n", storageMb)
+	} else {
+		storageMb = int(*storage.StorageSizeGB) * 1024
+	}
+
+	if storage.Tier == nil || *storage.Tier == "" {
+		// determine the correct default storage_tier based
+		// on the defined storage_mb...
+		storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
+		storageTiers := storageTierMappings[storageMb]
+		storage.Tier = pointer.To(storageTiers.DefaultTier)
+		log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTiers.DefaultTier)
+	}
+
 	parameters := servers.Server{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &servers.ServerProperties{
 			Network:          expandArmServerNetwork(d),
-			Storage:          expandArmServerStorage(d),
+			Storage:          storage,
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
 			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
@@ -965,7 +986,6 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 
 func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage := servers.Storage{}
-	storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 
 	autoGrow := servers.StorageAutoGrowDisabled
 	if v, ok := d.GetOk("auto_grow_enabled"); ok && v.(bool) {
@@ -973,31 +993,13 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	}
 	storage.AutoGrow = &autoGrow
 
-	var storageMb int
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storageMb = v.(int)
+		storage.StorageSizeGB = pointer.FromInt64(int64(v.(int) / 1024))
 	}
 
-	var storageTier string
 	if v, ok := d.GetOk("storage_tier"); ok {
-		storageTier = v.(string)
+		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
 	}
-
-	if storageMb == 0 {
-		// default
-		storageMb = 32768
-		log.Printf("[DEBUG]: Default 'storage_mb' Set -> %d\n", storageMb)
-	}
-
-	if storageTier == "" {
-		// default
-		storageTiers := storageTierMappings[storageMb]
-		storageTier = storageTiers.DefaultTier
-		log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTier)
-	}
-
-	storage.StorageSizeGB = utils.Int64(int64(storageMb / 1024))
-	storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(storageTier))
 
 	return &storage
 }
