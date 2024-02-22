@@ -827,7 +827,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("recovery_point_id") {
-		props.RecoveryServicesRecoveryPointId = pointer.To(d.Get("recover_database_id").(string))
+		props.RecoveryServicesRecoveryPointId = pointer.To(d.Get("recovery_point_id").(string))
 	}
 
 	if d.HasChange("restore_dropped_database_id") {
