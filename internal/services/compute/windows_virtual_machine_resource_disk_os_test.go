@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccWindowsVirtualMachine_diskOSBasic(t *testing.T) {
@@ -302,10 +301,6 @@ func TestAccWindowsVirtualMachine_diskOSStorageTypeUpdate(t *testing.T) {
 }
 
 func TestAccWindowsVirtualMachine_diskOSControllerType(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skipf("Test applies after 4.0 only")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 

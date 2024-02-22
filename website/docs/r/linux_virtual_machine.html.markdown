@@ -150,8 +150,6 @@ The following arguments are supported:
 
 * `disk_controller_type` - (Optional) Specifies the Disk Controller Type used for this Virtual Machine. Possible values are `SCSI` and `NVMe`.
 
--> **Note:** This will be available only from the next major version of the Azure Provider (4.0).
-
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Linux Virtual Machine should exist. Changing this forces a new Linux Virtual Machine to be created.
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?

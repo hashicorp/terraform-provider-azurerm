@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -40,7 +39,7 @@ import (
 )
 
 func resourceLinuxVirtualMachine() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceLinuxVirtualMachineCreate,
 		Read:   resourceLinuxVirtualMachineRead,
 		Update: resourceLinuxVirtualMachineUpdate,
@@ -193,6 +192,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  true,
+			},
+
+			"disk_controller_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskControllerTypesNVMe),
+					string(compute.DiskControllerTypesSCSI),
+				}, false),
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -405,20 +414,6 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if features.FourPointOhBeta() {
-		// disk_controller_type is optional+computed, which may cause a diff after upgrading the provider. Make it take effect in next major version.
-		resource.Schema["disk_controller_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(compute.DiskControllerTypesNVMe),
-				string(compute.DiskControllerTypesSCSI),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -545,10 +540,8 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(t),
 	}
 
-	if features.FourPointOhBeta() {
-		if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
-			params.StorageProfile.DiskControllerType = compute.DiskControllerTypes(diskControllerType.(string))
-		}
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		params.StorageProfile.DiskControllerType = compute.DiskControllerTypes(diskControllerType.(string))
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
@@ -969,9 +962,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 	if profile := props.StorageProfile; profile != nil {
-		if features.FourPointOhBeta() {
-			d.Set("disk_controller_type", string(props.StorageProfile.DiskControllerType))
-		}
+		d.Set("disk_controller_type", string(props.StorageProfile.DiskControllerType))
 
 		// the storage_account_type isn't returned so we need to look it up
 		flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
@@ -1233,17 +1224,15 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if features.FourPointOhBeta() {
-		if d.HasChange("disk_controller_type") {
-			shouldUpdate = true
-			shouldDeallocate = true
+	if d.HasChange("disk_controller_type") {
+		shouldUpdate = true
+		shouldDeallocate = true
 
-			if update.VirtualMachineProperties.StorageProfile == nil {
-				update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
-			}
-
-			update.VirtualMachineProperties.StorageProfile.DiskControllerType = compute.DiskControllerTypes(d.Get("disk_controller_type").(string))
+		if update.VirtualMachineProperties.StorageProfile == nil {
+			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
 		}
+
+		update.VirtualMachineProperties.StorageProfile.DiskControllerType = compute.DiskControllerTypes(d.Get("disk_controller_type").(string))
 	}
 
 	if d.HasChange("os_disk") {
