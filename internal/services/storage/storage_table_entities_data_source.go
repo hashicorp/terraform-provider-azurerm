@@ -134,6 +134,7 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model.Select != nil {
+				model.Select = append(model.Select, "RowKey", "PartitionKey")
 				input.PropertyNamesToSelect = &model.Select
 			}
 
@@ -147,6 +148,10 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 			var flattenedEntities []TableEntitiyDataSourceModel
 			for _, entity := range result.Entities {
 				flattenedEntity := flattenEntityWithMetadata(entity)
+				if len(flattenedEntity.Properties) == 0 {
+					// if we use selector, we get empty objects back, skip them
+					continue
+				}
 				flattenedEntities = append(flattenedEntities, flattenedEntity)
 			}
 			model.Items = flattenedEntities
