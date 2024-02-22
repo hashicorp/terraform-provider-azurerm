@@ -390,7 +390,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			// if newMb or newTier values are empty,
 			// assign the default values that will
-			// be assigned in the expand func...
+			// be assigned in the create func...
 			if newMb == 0 {
 				newMb = 32768
 			}
