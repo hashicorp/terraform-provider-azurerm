@@ -4214,7 +4214,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   index {
     keys   = ["_id"]
-    unique = true
+    unique = false
   }
 }
 
