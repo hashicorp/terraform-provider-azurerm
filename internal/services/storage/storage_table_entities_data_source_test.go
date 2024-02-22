@@ -74,7 +74,7 @@ resource "azurerm_storage_table_entity" "test" {
   row_key       = "testrow"
 
   entity = {
-    testkey      = "testval"
+    testkey = "testval"
   }
 }
 
@@ -132,7 +132,7 @@ data "azurerm_storage_table_entities" "test" {
   table_name           = azurerm_storage_table_entity.test.table_name
   storage_account_name = azurerm_storage_table_entity.test.storage_account_name
   filter               = "PartitionKey eq 'testselectorpartition'"
-  select               = [ "testselector" ]
+  select               = ["testselector"]
 
   depends_on = [
     azurerm_storage_table_entity.test,
