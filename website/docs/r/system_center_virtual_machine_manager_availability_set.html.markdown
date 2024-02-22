@@ -32,7 +32,7 @@ resource "azurerm_system_center_virtual_machine_manager_availability_set" "examp
   name                                            = "example-scvmmas"
   resource_group_name                             = azurerm_resource_group.example.name
   location                                        = azurerm_resource_group.example.location
-  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.example.id
+  custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
 }
 ```
@@ -41,9 +41,9 @@ resource "azurerm_system_center_virtual_machine_manager_availability_set" "examp
 
 The following arguments are supported:
 
-* `name` - (Required) (Required) The name which should be used for this System Center Virtual Machine Manager Availability Set. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the System Center Virtual Machine Manager Availability Set. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the System Center Virtual Machine Manager Availability Set should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the System Center Virtual Machine Availability Set should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region where the System Center Virtual Machine Manager Availability Set should exist. Changing this forces a new resource to be created.
 

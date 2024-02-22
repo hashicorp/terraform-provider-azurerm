@@ -124,6 +124,7 @@ provider "azurerm" {
 
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
   name                                            = "acctest-scvmmas-%d"
+  resource_group_name                             = azurerm_resource_group.test.name
   location                                        = azurerm_resource_group.test.location
   custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
@@ -137,6 +138,7 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) requiresImport
 
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "import" {
   name                                            = azurerm_system_center_virtual_machine_manager_availability_set.test.name
+  resource_group_name                             = azurerm_system_center_virtual_machine_manager_availability_set.test.resource_group_name
   location                                        = azurerm_system_center_virtual_machine_manager_availability_set.test.location
   custom_location_id                              = azurerm_system_center_virtual_machine_manager_availability_set.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_availability_set.test.system_center_virtual_machine_manager_server_id
@@ -154,6 +156,7 @@ provider "azurerm" {
 
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
   name                                            = "acctest-scvmmas-%d"
+  resource_group_name                             = azurerm_resource_group.test.name
   location                                        = azurerm_resource_group.test.location
   custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
@@ -175,6 +178,7 @@ provider "azurerm" {
 
 resource "azurerm_system_center_virtual_machine_manager_availability_set" "test" {
   name                                            = "acctest-scvmmas-%d"
+  resource_group_name                             = azurerm_resource_group.test.name
   location                                        = azurerm_resource_group.test.location
   custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
