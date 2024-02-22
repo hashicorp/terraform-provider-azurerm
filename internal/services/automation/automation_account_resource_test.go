@@ -453,6 +453,8 @@ func (a AutomationAccountResource) encryption_userIdentity(data acceptance.TestD
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -486,7 +488,7 @@ resource "azurerm_automation_account" "test" {
   }
 
   local_authentication_enabled = false
-  depends_on = [azurerm_role_assignment.test2]
+  depends_on                   = [azurerm_role_assignment.test2]
 }
 `, a.encryption_template(data), data.RandomInteger)
 }
