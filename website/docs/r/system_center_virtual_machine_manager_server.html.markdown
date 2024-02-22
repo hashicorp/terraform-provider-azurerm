@@ -28,11 +28,8 @@ resource "azurerm_system_center_virtual_machine_manager_server" "example" {
   location            = azurerm_resource_group.example.location
   custom_location_id  = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ExtendedLocation/customLocations/customLocation1"
   fqdn                = "example.labtest"
-
-  credential {
-    username = "testUser"
-    password = "H@Sh1CoR3!"
-  }
+  username            = "testUser"
+  password            = "H@Sh1CoR3!"
 }
 ```
 
