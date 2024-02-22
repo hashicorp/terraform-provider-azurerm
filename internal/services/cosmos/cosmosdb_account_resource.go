@@ -246,7 +246,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"minimal_tls_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
 			},
 
@@ -942,9 +942,31 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// Once the above issue is resolved we shouldn't need this check and update anymore
 	if d.Get("create_mode").(string) == string(cosmosdb.CreateModeRestore) {
 		ap := cosmosdb.DatabaseAccountCreateUpdateParameters{
+			Location: pointer.To(location),
+			Kind:     pointer.To(cosmosdb.DatabaseAccountKind(kind)),
+			Identity: expandedIdentity,
 			Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
-				MinimalTlsVersion: pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
+				DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(offerType),
+				IPRules:                            ipRangeFilter,
+				IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
+				EnableFreeTier:                     utils.Bool(enableFreeTier),
+				EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
+				ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+				Locations:                          geoLocations,
+				Capabilities:                       capabilities,
+				MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
+				VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+				EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
+				EnablePartitionMerge:               pointer.To(partitionMergeEnabled),
+				PublicNetworkAccess:                pointer.To(publicNetworkAccess),
+				EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
+				Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
+				DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
+				NetworkAclBypass:                   pointer.To(networkByPass),
+				NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
+				DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
 			},
+			Tags: tags.Expand(t),
 		}
 		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, ap, d)
 		if err != nil {
