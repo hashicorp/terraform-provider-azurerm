@@ -367,78 +367,53 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			return nil
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
-			var storageTiers validate.StorageTiers
 			var newTier string
 			var newMb int
-			mbChanged := false
-			tierChanged := false
+			var isValid bool
 
 			oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
 			oldTierRaw, newTierRaw := diff.GetChange("storage_tier")
 
 			if oldStorageMbRaw.(int) == 0 && oldTierRaw.(string) == "" && newStorageMbRaw.(int) == 0 && newTierRaw.(string) == "" {
 				// This is a new resource without any values in the state
-				// or config, set default values...
-				diff.SetNew("storage_mb", 32768)
-				diff.SetNew("storage_tier", string(servers.AzureManagedDiskPerformanceTiersPFour))
+				// or config, default values will be set in create...
 				return nil
 			}
 
-			if diff.HasChange("storage_mb") {
-				mbChanged = true
-				newMb = newStorageMbRaw.(int)
+			newMb = newStorageMbRaw.(int)
+			newTier = newTierRaw.(string)
 
-				// storage_mb can only be scaled up...
-				if newMb < oldStorageMbRaw.(int) {
-					return fmt.Errorf("'storage_mb' can only be scaled up, expected 'storage_mb' to be larger than the current 'storage_mb'(%d), got %d", oldStorageMbRaw.(int), newMb)
-				}
-			} else {
-				newMb = diff.Get("storage_mb").(int)
+			// storage_mb can only be scaled up...
+			if newMb < oldStorageMbRaw.(int) {
+				return fmt.Errorf("'storage_mb' can only be scaled up, expected 'storage_mb' to be larger than the current 'storage_mb'(%d), got %d", oldStorageMbRaw.(int), newMb)
+			}
 
-				if newMb == 0 {
-					// new resource without storage_mb defined,
-					// give it the default value...
-					newMb = 32768
-					diff.SetNew("storage_mb", newMb)
-					log.Printf("[DEBUG]: Default 'storage_mb' Set -> %d\n", newMb)
+			// if newMb or newTier values are empty,
+			// assign the default values that will
+			// be assigned in the expand func...
+			if newMb == 0 {
+				newMb = 32768
+			}
+
+			// get the valid mappings for the passed
+			// storage_mb size...
+			storageTiers := storageTierMappings[newMb]
+
+			if newTier == "" {
+				newTier = storageTiers.DefaultTier
+			}
+
+			// verify that the storage_tier is valid
+			// for the given storage_mb...
+			for _, tier := range *storageTiers.ValidTiers {
+				if newTier == tier {
+					isValid = true
+					break
 				}
 			}
 
-			// get the mappings for the defined storage_mb value...
-			storageTiers = storageTierMappings[newMb]
-
-			if diff.HasChange("storage_tier") {
-				tierChanged = true
-				newTier = newTierRaw.(string)
-			} else {
-				newTier = diff.Get("storage_tier").(string)
-
-				if newTier == "" {
-					// new resource without the storage_tier defined,
-					// give it the default value for the storage_mb...
-					newTier = storageTiers.DefaultTier
-					diff.SetNew("storage_tier", newTier)
-					log.Printf("[DEBUG] Default 'storage_tier' Set -> %q\n", newTier)
-
-					// default tier has been set we know this is a valid configuration
-					return nil
-				}
-			}
-
-			if mbChanged || tierChanged {
-				// verify that the storage_tier is valid
-				// for the given storage_mb...
-				isValid := false
-				for _, tier := range *storageTiers.ValidTiers {
-					if newTier == tier {
-						isValid = true
-						break
-					}
-				}
-
-				if !isValid {
-					return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
-				}
+			if !isValid {
+				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
 			}
 
 			return nil
@@ -505,6 +480,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			if !adminLoginSet {
 				return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
+
 			if !adminPwdSet {
 				return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
@@ -515,11 +491,9 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
 		}
+
 		if _, ok := d.GetOk("version"); !ok {
 			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
-		}
-		if _, ok := d.GetOk("storage_mb"); !ok {
-			return fmt.Errorf("`storage_mb` is required when `create_mode` is `Default`")
 		}
 	}
 
@@ -991,6 +965,7 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 
 func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage := servers.Storage{}
+	storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
 
 	autoGrow := servers.StorageAutoGrowDisabled
 	if v, ok := d.GetOk("auto_grow_enabled"); ok && v.(bool) {
@@ -998,13 +973,31 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	}
 	storage.AutoGrow = &autoGrow
 
+	var storageMb int
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageSizeGB = utils.Int64(int64(v.(int) / 1024))
+		storageMb = v.(int)
 	}
 
+	var storageTier string
 	if v, ok := d.GetOk("storage_tier"); ok {
-		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
+		storageTier = v.(string)
 	}
+
+	if storageMb == 0 {
+		// default
+		storageMb = 32768
+		log.Printf("[DEBUG]: Default 'storage_mb' Set -> %d\n", storageMb)
+	}
+
+	if storageTier == "" {
+		// default
+		storageTiers := storageTierMappings[storageMb]
+		storageTier = storageTiers.DefaultTier
+		log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTier)
+	}
+
+	storage.StorageSizeGB = utils.Int64(int64(storageMb / 1024))
+	storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(storageTier))
 
 	return &storage
 }
