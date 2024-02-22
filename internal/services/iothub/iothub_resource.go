@@ -1996,25 +1996,6 @@ func IothubConnectionStringSuppress(k, old, new string, d *pluginsdk.ResourceDat
 		}
 	}
 
-	newStateMap := connectionStringToMap(new)
-	oldStateMap := connectionStringToMap(d.Get(k).(string))
-
-	if oldStateMap == nil || newStateMap == nil {
-		return false
-	}
-	if len(oldStateMap) != len(newStateMap) {
-		return false
-	}
-	for k, v := range oldStateMap {
-		newV, ok := newStateMap[k]
-		if !ok {
-			return false
-		}
-		if newV != v {
-			return false
-		}
-	}
-
 	return true
 }
 
