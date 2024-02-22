@@ -9,6 +9,7 @@ BUG FIXES:
 
 * `azurerm_key_vault` - conditionally polling the Data Plane endpoint when `public_network_access_enabled` is set to false [GH-23823]
 * `azurerm_storage_account` - allow `identity.type` to be `SystemAssigned, UserAssigned`  when using Customer Managed Key [GH-24923]
+* `azurerm_automation_account` - prevent `identity.identity_ids` UserAssigned identity being set when not specified in config [GH-24977]
 
 ENHANCEMENTS:
 
