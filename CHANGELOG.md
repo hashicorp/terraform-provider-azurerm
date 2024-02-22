@@ -1,5 +1,6 @@
 ## 3.93.0 (Unreleased)
 
+* **New Data Source**: `azurerm_express_route_circuit_peering` [GH-24971]
 * **New Resource**: `azurerm_dev_center_catalog` [GH-24833]
 * **New Resource**: `azurerm_system_center_virtual_machine_manager_server` [GH-24278]
 
