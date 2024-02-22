@@ -26,6 +26,7 @@ type TableEntitiesDataSourceModel struct {
 	TableName          string                        `tfschema:"table_name"`
 	StorageAccountName string                        `tfschema:"storage_account_name"`
 	Filter             string                        `tfschema:"filter"`
+	Select             []string                      `tfschema:"select"`
 	Items              []TableEntitiyDataSourceModel `tfschema:"items"`
 }
 
@@ -53,6 +54,14 @@ func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"select": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 	}
 }
@@ -122,6 +131,10 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 			input := entities.QueryEntitiesInput{
 				Filter:        &model.Filter,
 				MetaDataLevel: entities.MinimalMetaData,
+			}
+
+			if model.Select != nil {
+				input.PropertyNamesToSelect = &model.Select
 			}
 
 			id := parse.NewStorageTableEntitiesId(model.StorageAccountName, storageClient.Environment.StorageEndpointSuffix, model.TableName, model.Filter)
