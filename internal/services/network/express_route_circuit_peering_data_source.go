@@ -115,8 +115,7 @@ func dataSourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta in
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
