@@ -256,9 +256,13 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				state.Kind = pointer.From(model.Kind)
 
 				// sku read
+				isElasticSku := false
 				if sku := model.Sku; sku != nil {
 					if sku.Name != nil {
 						state.Sku = *sku.Name
+						if isServicePlanSupportScaleOut(*sku.Name) {
+							isElasticSku = true
+						}
 						if sku.Capacity != nil {
 							state.WorkerCount = int(*sku.Capacity)
 						}
@@ -286,8 +290,12 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 					state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
 
 					state.MaximumElasticWorkerCount = int(pointer.From(props.MaximumElasticWorkerCount))
-					state.PremiumElasticScaling = pointer.From(props.ElasticScaleEnabled)
+
+					if !isElasticSku {
+						state.PremiumElasticScaling = pointer.From(props.ElasticScaleEnabled)
+					}
 				}
+
 				state.Tags = pointer.From(model.Tags)
 			}
 
@@ -396,18 +404,6 @@ func (r ServicePlanResource) StateUpgraders() sdk.StateUpgradeData {
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.ServicePlanV0toV1{},
-		},
-	}
-}
-
-func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.ServicePlanClient
-			rd := metadata.ResourceDiff
-
-			if rd.HasChange("")
 		},
 	}
 }
