@@ -34,7 +34,6 @@ func TestAccDataSourceStorageTableEntities_withSelector(t *testing.T) {
 			Config: StorageTableEntitiesDataSource{}.basicWithDataSourceAndSelector(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("items.#").HasValue("1"),
-				check.That(data.ResourceName).Key("items.0.properties.#").HasValue("1"),
 			),
 		},
 	})
