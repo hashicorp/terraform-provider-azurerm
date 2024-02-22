@@ -77,6 +77,9 @@ func (k storageTableEntitiesDataSource) Attributes() map[string]*pluginsdk.Schem
 					"properties": {
 						Type:     pluginsdk.TypeMap,
 						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
 					},
 				},
 			},
