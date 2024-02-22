@@ -407,7 +407,7 @@ resource "azurerm_container_registry" "test" {
   name                = "acctestacr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku                 = "Premium"
   admin_enabled       = true
 }
 
@@ -454,6 +454,10 @@ resource "azurerm_machine_learning_workspace" "test" {
     key_id       = azurerm_key_vault_key.test.id
   }
 
+  managed_network {
+    isolation_mode = "AllowInternetOutbound"
+  }
+
   tags = {
     ENV = "Test"
   }
@@ -470,7 +474,7 @@ resource "azurerm_container_registry" "test" {
   name                = "acctestacr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku                 = "Premium"
   admin_enabled       = true
 }
 

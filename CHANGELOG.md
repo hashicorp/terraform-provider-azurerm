@@ -1,5 +1,7 @@
 ## 3.93.0 (Unreleased)
 
+* **New Data Source**: `azurerm_express_route_circuit_peering` [GH-24971]
+* **New Data Source**: `azurerm_storage_table_entities` [GH-24973]
 * **New Resource**: `azurerm_dev_center_catalog` [GH-24833]
 * **New Resource**: `azurerm_system_center_virtual_machine_manager_server` [GH-24278]
 
@@ -18,6 +20,7 @@ ENHANCEMENTS:
 * `nginx` : updating to use `2024-01-01-preview` [GH-24868]
 * `azurerm_cosmosdb_account` - support for the `backup.tier` property [GH-24595]
 * `azurerm_linux_virtual_machine` - the `virtual_machine_scale_set_id` proeprty can now be changed without creating a new resource [GH-24768]
+* `azurerm_machine_learning_workspace` - support for the `managed_network.isolation_mode` property [GH-24951]
 * `azurerm_private_dns_resolver_inbound_endpoint` - support the `statci` value for the `private_ip_allocation_method` property [GH-24952]
 * `azurerm_redis_cache` - support for the `preferred_data_persistence_auth_method` property [GH-24370]
 * `azurerm_servicebus_namespace` - support for the `premium_messaging_partitions` property [GH-24676]
