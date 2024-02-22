@@ -269,13 +269,15 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 	}
 
-	if expandedIdentity.Type == identity.TypeSystemAssignedUserAssigned {
-		// `SystemAssigned, UserAssigned` Identity require an additional update to work
-		// Trakced on https://github.com/Azure/azure-rest-api-specs/issues/27851
+	// Async Operaation of creation with `UserAssigned` identity is returned with 404
+	// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/27869
+	// `SystemAssigned, UserAssigned` Identity require an additional update to work
+	// Trakced on https://github.com/Azure/azure-rest-api-specs/issues/27851
+	if expandedIdentity.Type == identity.TypeUserAssigned || expandedIdentity.Type == identity.TypeSystemAssignedUserAssigned {
 		requireAdditionalUpdate = true
 		updatePatch.Identity = expandedIdentity
 		vault.Identity = &identity.SystemAndUserAssignedMap{
-			Type: identity.TypeSystemAssigned,
+			Type: identity.TypeNone,
 		}
 	}
 
