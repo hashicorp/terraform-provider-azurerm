@@ -160,7 +160,7 @@ resource "azurerm_system_center_virtual_machine_manager_availability_set" "test"
   location                                        = azurerm_resource_group.test.location
   custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
-  
+
   tags = {
     env = "Test"
   }
@@ -182,7 +182,7 @@ resource "azurerm_system_center_virtual_machine_manager_availability_set" "test"
   location                                        = azurerm_resource_group.test.location
   custom_location_id                              = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
-  
+
   tags = {
     env = "Test2"
   }
