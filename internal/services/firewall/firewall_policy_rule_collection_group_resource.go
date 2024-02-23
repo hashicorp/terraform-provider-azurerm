@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
