@@ -14,20 +14,19 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DevToolPortalsDeleteOperationResponse struct {
+type ApplicationAcceleratorsDeleteOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// DevToolPortalsDelete ...
-func (c AppPlatformClient) DevToolPortalsDelete(ctx context.Context, id DevToolPortalId) (result DevToolPortalsDeleteOperationResponse, err error) {
+// ApplicationAcceleratorsDelete ...
+func (c AppPlatformClient) ApplicationAcceleratorsDelete(ctx context.Context, id ApplicationAcceleratorId) (result ApplicationAcceleratorsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
@@ -56,15 +55,15 @@ func (c AppPlatformClient) DevToolPortalsDelete(ctx context.Context, id DevToolP
 	return
 }
 
-// DevToolPortalsDeleteThenPoll performs DevToolPortalsDelete then polls until it's completed
-func (c AppPlatformClient) DevToolPortalsDeleteThenPoll(ctx context.Context, id DevToolPortalId) error {
-	result, err := c.DevToolPortalsDelete(ctx, id)
+// ApplicationAcceleratorsDeleteThenPoll performs ApplicationAcceleratorsDelete then polls until it's completed
+func (c AppPlatformClient) ApplicationAcceleratorsDeleteThenPoll(ctx context.Context, id ApplicationAcceleratorId) error {
+	result, err := c.ApplicationAcceleratorsDelete(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing DevToolPortalsDelete: %+v", err)
+		return fmt.Errorf("performing ApplicationAcceleratorsDelete: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after DevToolPortalsDelete: %+v", err)
+		return fmt.Errorf("polling after ApplicationAcceleratorsDelete: %+v", err)
 	}
 
 	return nil

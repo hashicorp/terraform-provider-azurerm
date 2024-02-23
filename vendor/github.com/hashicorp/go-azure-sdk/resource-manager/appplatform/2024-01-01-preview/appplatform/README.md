@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform` Documentation
 
-The `appplatform` SDK allows for interaction with the Azure Resource Manager Service `appplatform` (API Version `2023-11-01-preview`).
+The `appplatform` SDK allows for interaction with the Azure Resource Manager Service `appplatform` (API Version `2024-01-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 ```
 
 
@@ -1488,12 +1488,8 @@ payload := appplatform.CustomizedAcceleratorProperties{
 }
 
 
-read, err := client.CustomizedAcceleratorsValidate(ctx, id, payload)
-if err != nil {
+if err := client.CustomizedAcceleratorsValidateThenPoll(ctx, id, payload); err != nil {
 	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
 }
 ```
 

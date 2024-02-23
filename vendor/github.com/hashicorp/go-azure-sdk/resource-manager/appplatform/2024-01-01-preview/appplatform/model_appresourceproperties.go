@@ -16,6 +16,7 @@ type AppResourceProperties struct {
 	Public                *bool                           `json:"public,omitempty"`
 	Secrets               *[]Secret                       `json:"secrets,omitempty"`
 	TemporaryDisk         *TemporaryDisk                  `json:"temporaryDisk,omitempty"`
+	TestEndpointAuthState *TestEndpointAuthState          `json:"testEndpointAuthState,omitempty"`
 	Url                   *string                         `json:"url,omitempty"`
 	VnetAddons            *AppVNetAddons                  `json:"vnetAddons,omitempty"`
 	WorkloadProfileName   *string                         `json:"workloadProfileName,omitempty"`

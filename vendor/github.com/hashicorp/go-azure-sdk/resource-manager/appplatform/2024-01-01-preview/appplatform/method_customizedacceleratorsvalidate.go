@@ -14,27 +14,31 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ContainerRegistriesDeleteOperationResponse struct {
+type CustomizedAcceleratorsValidateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *CustomizedAcceleratorValidateResult
 }
 
-// ContainerRegistriesDelete ...
-func (c AppPlatformClient) ContainerRegistriesDelete(ctx context.Context, id ContainerRegistryId) (result ContainerRegistriesDeleteOperationResponse, err error) {
+// CustomizedAcceleratorsValidate ...
+func (c AppPlatformClient) CustomizedAcceleratorsValidate(ctx context.Context, id CustomizedAcceleratorId, input CustomizedAcceleratorProperties) (result CustomizedAcceleratorsValidateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
-			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodDelete,
-		Path:       id.ID(),
+		HttpMethod: http.MethodPost,
+		Path:       fmt.Sprintf("%s/validate", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -56,15 +60,15 @@ func (c AppPlatformClient) ContainerRegistriesDelete(ctx context.Context, id Con
 	return
 }
 
-// ContainerRegistriesDeleteThenPoll performs ContainerRegistriesDelete then polls until it's completed
-func (c AppPlatformClient) ContainerRegistriesDeleteThenPoll(ctx context.Context, id ContainerRegistryId) error {
-	result, err := c.ContainerRegistriesDelete(ctx, id)
+// CustomizedAcceleratorsValidateThenPoll performs CustomizedAcceleratorsValidate then polls until it's completed
+func (c AppPlatformClient) CustomizedAcceleratorsValidateThenPoll(ctx context.Context, id CustomizedAcceleratorId, input CustomizedAcceleratorProperties) error {
+	result, err := c.CustomizedAcceleratorsValidate(ctx, id, input)
 	if err != nil {
-		return fmt.Errorf("performing ContainerRegistriesDelete: %+v", err)
+		return fmt.Errorf("performing CustomizedAcceleratorsValidate: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after ContainerRegistriesDelete: %+v", err)
+		return fmt.Errorf("polling after CustomizedAcceleratorsValidate: %+v", err)
 	}
 
 	return nil
