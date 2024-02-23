@@ -419,7 +419,7 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 		// each properties are non-nil. Whilst we are still doing nil check here in case.
 		if oprop, nprop := oldRepl.Properties, newRepl.Properties; oprop != nil && nprop != nil {
 			// zoneRedundency can't be updated in place
-			if oprop.ZoneRedundancy != nprop.ZoneRedundancy {
+			if ov, nv := oprop.ZoneRedundancy, nprop.ZoneRedundancy; ov != nil && nv != nil && *ov != *nv {
 				needUpdate = true
 				needReplace = true
 			}
