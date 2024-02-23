@@ -157,13 +157,13 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "example" 
   backup_policy_id             = azurerm_data_protection_backup_policy_kubernetes_cluster.example.id
 
   backup_datasource_parameters {
-    excluded_namespaces                      = ["test-excluded-namespaces"]
-    excluded_resource_types                  = ["exvolumesnapshotcontents.snapshot.storage.k8s.io"]
-    included_cluster_scope_resources_enabled = true
-    included_namespaces                      = ["test-included-namespaces"]
-    included_resource_types                  = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
-    label_selectors                          = ["kubernetes.io/metadata.name:test"]
-    snapshot_volumes_enabled                 = true
+    excluded_namespaces            = ["test-excluded-namespaces"]
+    excluded_resource_types        = ["exvolumesnapshotcontents.snapshot.storage.k8s.io"]
+    cluster_scope_resource_enabled = true
+    included_namespaces            = ["test-included-namespaces"]
+    included_resource_types        = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
+    label_selectors                = ["kubernetes.io/metadata.name:test"]
+    volume_snapshot_enabled        = true
   }
 
   depends_on = [
@@ -182,7 +182,7 @@ The following arguments are supported:
 
 * `vault_id` - (Required) The ID of the Backup Vault within which the Backup Instance Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `backup_policy_id` - (Required) The ID of the Backup Policy Kubernetes Cluster. Changing this forces a new resource to be created.
+* `backup_policy_id` - (Required) The ID of the Backup Policy. Changing this forces a new resource to be created.
 
 * `kubernetes_cluster_id` - (Required) The ID of the Kubernetes Cluster. Changing this forces a new resource to be created.
 
@@ -194,19 +194,19 @@ The following arguments are supported:
 
 A `backup_datasource_parameters` block supports the following:
 
-* `excluded_namespaces` - (Optional) Specify the namespaces to be excluded during backup. Changing this forces a new resource to be created.
+* `excluded_namespaces` - (Optional) Specifies the namespaces to be excluded during backup. Changing this forces a new resource to be created.
 
-* `excluded_resource_types` - (Optional) Specify the resource types to be excluded during backup. Changing this forces a new resource to be created.
+* `excluded_resource_types` - (Optional) Specifies the resource types to be excluded during backup. Changing this forces a new resource to be created.
 
-* `included_cluster_scope_resources_enabled` - (Optional) Whether include cluster scope resources during backup. Default to `false`. Changing this forces a new resource to be created.
+* `cluster_scope_resource_enabled` - (Optional) Whether to include cluster scope resources during backup. Default to `false`. Changing this forces a new resource to be created.
 
-* `included_namespaces` - (Optional) Specify the namespaces to be included during backup. Changing this forces a new resource to be created.
+* `included_namespaces` - (Optional) Specifies the namespaces to be included during backup. Changing this forces a new resource to be created.
 
-* `included_resource_types` - (Optional)  Specify the resource types to be included during backup. Changing this forces a new resource to be created.
+* `included_resource_types` - (Optional)  Specifies the resource types to be included during backup. Changing this forces a new resource to be created.
 
-* `label_selectors` - (Optional) Specify the resources with such label selectors to be included during backup. Changing this forces a new resource to be created.
+* `label_selectors` - (Optional) Specifies the resources with such label selectors to be included during backup. Changing this forces a new resource to be created.
 
-* `snapshot_volumes_enabled` - (Optional) Whether to take volume snapshots during backup. Default to `false`. Changing this forces a new resource to be created.
+* `volume_snapshot_enabled` - (Optional) Whether to take volume snapshots during backup. Default to `false`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

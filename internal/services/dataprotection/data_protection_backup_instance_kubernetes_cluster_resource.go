@@ -32,13 +32,13 @@ type BackupInstanceKubernatesClusterModel struct {
 }
 
 type BackupDatasourceParameters struct {
-	IncludedNamespaces                   []string `tfschema:"included_namespaces"`
-	IncludedResourceTypes                []string `tfschema:"included_resource_types"`
-	ExcludedNamespaces                   []string `tfschema:"excluded_namespaces"`
-	ExcludedResourceTypes                []string `tfschema:"excluded_resource_types"`
-	LabelSelectors                       []string `tfschema:"label_selectors"`
-	SnapshotVolumesEnabled               bool     `tfschema:"snapshot_volumes_enabled"`
-	IncludedClusterScopeResourcesEnabled bool     `tfschema:"included_cluster_scope_resources_enabled"`
+	IncludedNamespaces          []string `tfschema:"included_namespaces"`
+	IncludedResourceTypes       []string `tfschema:"included_resource_types"`
+	ExcludedNamespaces          []string `tfschema:"excluded_namespaces"`
+	ExcludedResourceTypes       []string `tfschema:"excluded_resource_types"`
+	LabelSelectors              []string `tfschema:"label_selectors"`
+	VolumeSnapshotEnabled       bool     `tfschema:"volume_snapshot_enabled"`
+	ClusterScopeResourceEnabled bool     `tfschema:"cluster_scope_resource_enabled"`
 }
 
 type DataProtectionBackupInstanceKubernatesClusterResource struct{}
@@ -58,7 +58,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) IDValidationFunc(
 }
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -113,10 +113,11 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 							Type: schema.TypeString,
 						},
 					},
-					"included_cluster_scope_resources_enabled": {
+					"cluster_scope_resource_enabled": {
 						Type:     pluginsdk.TypeBool,
 						ForceNew: true,
 						Optional: true,
+						Default:  false,
 					},
 					"included_namespaces": {
 						Type:     pluginsdk.TypeList,
@@ -142,16 +143,16 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 							Type: schema.TypeString,
 						},
 					},
-					"snapshot_volumes_enabled": {
+					"volume_snapshot_enabled": {
 						Type:     pluginsdk.TypeBool,
 						ForceNew: true,
 						Optional: true,
+						Default:  false,
 					},
 				},
 			},
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -264,15 +265,14 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					state.Location = pointer.From(properties.DataSourceInfo.ResourceLocation)
+					state.Location = location.NormalizeNilable(properties.DataSourceInfo.ResourceLocation)
 					state.BackupPolicyId = properties.PolicyInfo.PolicyId
 					state.KubernetesClusterId = properties.DataSourceInfo.ResourceID
 
 					if policyParameters := properties.PolicyInfo.PolicyParameters; policyParameters != nil {
 						if dataStorePara := policyParameters.DataStoreParametersList; dataStorePara != nil {
 							if dsp := pointer.From(dataStorePara); len(dsp) > 0 {
-								parameter := dsp[0].(backupinstances.AzureOperationalStoreParameters)
-								if parameter.ResourceGroupId != nil {
+								if parameter, ok := dsp[0].(backupinstances.AzureOperationalStoreParameters); ok && parameter.ResourceGroupId != nil {
 									resourceGroupId, err := resourceParse.ResourceGroupID(*parameter.ResourceGroupId)
 									if err != nil {
 										return err
@@ -324,11 +324,11 @@ func expandBackupDatasourceParameters(input []BackupDatasourceParameters) *[]bac
 	results = append(results, backupinstances.KubernetesClusterBackupDatasourceParameters{
 		ExcludedNamespaces:           pointer.To(input[0].ExcludedNamespaces),
 		ExcludedResourceTypes:        pointer.To(input[0].ExcludedResourceTypes),
-		IncludeClusterScopeResources: input[0].IncludedClusterScopeResourcesEnabled,
+		IncludeClusterScopeResources: input[0].ClusterScopeResourceEnabled,
 		IncludedNamespaces:           pointer.To(input[0].IncludedNamespaces),
 		IncludedResourceTypes:        pointer.To(input[0].IncludedResourceTypes),
 		LabelSelectors:               pointer.To(input[0].LabelSelectors),
-		SnapshotVolumes:              input[0].SnapshotVolumesEnabled,
+		SnapshotVolumes:              input[0].VolumeSnapshotEnabled,
 	})
 	return &results
 }
@@ -338,16 +338,17 @@ func flattenBackupDatasourceParameters(input []backupinstances.BackupDatasourceP
 		return nil
 	}
 
-	item := input[0].(backupinstances.KubernetesClusterBackupDatasourceParameters)
 	results := make([]BackupDatasourceParameters, 0)
-	results = append(results, BackupDatasourceParameters{
-		ExcludedNamespaces:                   pointer.From(item.ExcludedNamespaces),
-		ExcludedResourceTypes:                pointer.From(item.ExcludedResourceTypes),
-		IncludedClusterScopeResourcesEnabled: item.IncludeClusterScopeResources,
-		IncludedNamespaces:                   pointer.From(item.IncludedNamespaces),
-		IncludedResourceTypes:                pointer.From(item.IncludedResourceTypes),
-		LabelSelectors:                       pointer.From(item.LabelSelectors),
-		SnapshotVolumesEnabled:               item.SnapshotVolumes,
-	})
+	if item, ok := input[0].(backupinstances.KubernetesClusterBackupDatasourceParameters); ok {
+		results = append(results, BackupDatasourceParameters{
+			ExcludedNamespaces:          pointer.From(item.ExcludedNamespaces),
+			ExcludedResourceTypes:       pointer.From(item.ExcludedResourceTypes),
+			ClusterScopeResourceEnabled: item.IncludeClusterScopeResources,
+			IncludedNamespaces:          pointer.From(item.IncludedNamespaces),
+			IncludedResourceTypes:       pointer.From(item.IncludedResourceTypes),
+			LabelSelectors:              pointer.From(item.LabelSelectors),
+			VolumeSnapshotEnabled:       item.SnapshotVolumes,
+		})
+	}
 	return &results
 }
