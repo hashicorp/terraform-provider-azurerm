@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	diskSnapshots "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/restorepoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/snapshots"
@@ -63,7 +64,7 @@ func (r ElasticSANVolumeResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ElasticSanVolumeName,
 		},
 
-		"volume_group_id": commonschema.ResourceIDReferenceForceNew(volumes.VolumeGroupId{}),
+		"volume_group_id": commonschema.ResourceIDReferenceRequiredForceNew(&volumes.VolumeGroupId{}),
 
 		"size_in_gib": {
 			Type:         pluginsdk.TypeInt,
