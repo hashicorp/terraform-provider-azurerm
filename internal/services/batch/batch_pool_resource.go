@@ -905,6 +905,8 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.DeploymentConfiguration = &pool.DeploymentConfiguration{
 			VirtualMachineConfiguration: vmDeploymentConfiguration,
 		}
+	} else {
+		return deploymentErr
 	}
 
 	certificates := d.Get("certificate").([]interface{})
