@@ -1,3 +1,10 @@
+## 3.94.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies `springcloud`: updating to API Version `2024-01-01-preview` [GH-24937]
+
+
 ## 3.93.0 (February 22, 2024)
 
 * **New Data Source**: `azurerm_express_route_circuit_peering` ([#24971](https://github.com/hashicorp/terraform-provider-azurerm/issues/24971))
