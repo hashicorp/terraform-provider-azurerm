@@ -668,7 +668,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
-						"protected_settings": {
+						"protected_settings": { // todo 4.0 - should this actually be a map of key value pairs?
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
