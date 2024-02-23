@@ -3,6 +3,8 @@
 ENHANCEMENTS:
 
 * dependencies `springcloud`: updating to API Version `2024-01-01-preview` [GH-24937]
+* dependencies: updating to `v0.20240222.1164640` of `github.com/hashicorp/go-azure-sdk` [GH-25002]
+* `servicefabric`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25002]
 
 
 ## 3.93.0 (February 22, 2024)
