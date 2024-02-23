@@ -63,12 +63,7 @@ func (r ElasticSANVolumeResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ElasticSanVolumeName,
 		},
 
-		"volume_group_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: volumes.ValidateVolumeGroupID,
-		},
+		"volume_group_id": commonschema.ResourceIDReferenceForceNew(volumes.VolumeGroupId{}),
 
 		"size_in_gib": {
 			Type:         pluginsdk.TypeInt,
@@ -86,6 +81,7 @@ func (r ElasticSANVolumeResource) Arguments() map[string]*pluginsdk.Schema {
 					"source_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 						ValidateFunc: validation.Any(
 							commonids.ValidateManagedDiskID,
 							restorepoints.ValidateRestorePointID,
@@ -96,6 +92,7 @@ func (r ElasticSANVolumeResource) Arguments() map[string]*pluginsdk.Schema {
 					"source_type": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
+						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							// None is not exposed
 							string(volumes.VolumeCreateOptionDisk),

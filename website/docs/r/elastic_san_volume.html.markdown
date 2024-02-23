@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `volume_group_id` - (Required) Specifies the Volume Group ID within which this Elastic SAN Volume should exist. Changing this forces a new resource to be created.
 
-* `size_in_gib` - (Required) Specifies the size of the Elastic SAN Volume in GiB. The size should be within the remaining capacity of the parent Elastic SAN. Possible value is integer between `1` and `65536` (16 TiB).
+* `size_in_gib` - (Required) Specifies the size of the Elastic SAN Volume in GiB. The size should be within the remaining capacity of the parent Elastic SAN. Possible values are between `1` and `65536` (16 TiB).
 
 -> **NOTE:** The size can only be increased. If `create_source` is specified, then the size must be equal to or greater than the source's size.
 
