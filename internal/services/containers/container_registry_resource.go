@@ -730,18 +730,6 @@ func expandExportPolicy(enabled bool) *registries.ExportPolicy {
 	return &exportPolicy
 }
 
-func expandReplicationsFromLocations(p []interface{}) []replications.Replication {
-	reps := make([]replications.Replication, 0)
-	for _, value := range p {
-		location := azure.NormalizeLocation(value)
-		reps = append(reps, replications.Replication{
-			Location: location,
-			Name:     &location,
-		})
-	}
-	return reps
-}
-
 func expandReplications(p []interface{}) []replications.Replication {
 	reps := make([]replications.Replication, 0)
 	if p == nil {
