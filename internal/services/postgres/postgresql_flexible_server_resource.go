@@ -279,7 +279,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
@@ -1091,7 +1091,7 @@ func flattenFlexibleServerAuthConfig(ac *servers.AuthConfig) interface{} {
 }
 
 func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
