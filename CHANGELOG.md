@@ -7,6 +7,8 @@ ENHANCEMENTS:
 * `servicefabric`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25002]
 * `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_ids` property [GH-24919]
 
+BUG FIXES:
+* azurerm_batch_pool - fix setting the `extension.settings_json` property [GH-24976]
 
 ## 3.93.0 (February 22, 2024)
 
