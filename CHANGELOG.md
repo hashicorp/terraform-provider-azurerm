@@ -8,8 +8,8 @@
 BUG FIXES:
 
 * `azurerm_key_vault` - conditionally polling the Data Plane endpoint when `public_network_access_enabled` is set to false [GH-23823]
-* `azurerm_storage_account` - allow `identity.type` to be `SystemAssigned, UserAssigned`  when using Customer Managed Key [GH-24923]
-* `azurerm_automation_account` - prevent `identity.identity_ids` UserAssigned identity being set when not specified in config [GH-24977]
+* `azurerm_storage_account` - allow the `identity.type` property to be `SystemAssigned, UserAssigned`  when using a Customer Managed Key [GH-24923]
+* `azurerm_automation_account` - prevent the `identity.identity_ids` User Assigned identity being set when not specified in config [GH-24977]
 
 ENHANCEMENTS:
 
@@ -22,8 +22,8 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - support for the `backup.tier` property [GH-24595]
 * `azurerm_linux_virtual_machine` - the `virtual_machine_scale_set_id` proeprty can now be changed without creating a new resource [GH-24768]
 * `azurerm_machine_learning_workspace` - support for the `managed_network.isolation_mode` property [GH-24951]
-* `azurerm_private_dns_resolver_inbound_endpoint` - support the `statci` value for the `private_ip_allocation_method` property [GH-24952]
-* `azurerm_postgresql_flexible_server` - expose `storage_tier` field [GH-24892]
+* `azurerm_private_dns_resolver_inbound_endpoint` - support the `static` value for the `private_ip_allocation_method` property [GH-24952]
+* `azurerm_postgresql_flexible_server` - expose the `storage_tier` field [GH-24892]
 * `azurerm_redis_cache` - support for the `preferred_data_persistence_auth_method` property [GH-24370]
 * `azurerm_servicebus_namespace` - support for the `premium_messaging_partitions` property [GH-24676]
 * `azurerm_windows_virtual_machine` - the `virtual_machine_scale_set_id` proeprty can now be changed without creating a new resource [GH-24768]
