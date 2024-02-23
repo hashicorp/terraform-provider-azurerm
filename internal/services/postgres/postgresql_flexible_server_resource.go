@@ -299,7 +299,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
