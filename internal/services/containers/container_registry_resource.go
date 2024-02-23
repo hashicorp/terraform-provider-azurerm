@@ -65,11 +65,9 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
 
-			hasGeoReplications := false
 			geoReplications := d.Get("georeplications").([]interface{})
-			hasGeoReplicationsApplied := hasGeoReplications || len(geoReplications) > 0
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
-			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+			if len(geoReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 			}
 
@@ -318,24 +316,13 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	var hasGeoReplicationLocationsChanges bool
-	var hasNewGeoReplicationLocations bool
-	oldGeoReplicationLocations := make([]interface{}, 0)
-	newGeoReplicationLocations := make([]interface{}, 0)
-
 	// geo replication is only supported by Premium Sku
-	hasGeoReplicationsApplied := hasNewGeoReplicationLocations || len(newReplications) > 0
-	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+	if len(newReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
 	if hasGeoReplicationsChanges {
 		err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications))
-		if err != nil {
-			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
-		}
-	} else if hasGeoReplicationLocationsChanges {
-		err := applyGeoReplicationLocations(ctx, meta, *id, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
