@@ -99,7 +99,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 An existing Dev Center Catalog can be imported into Terraform using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_center.example /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevCenter/devCenters/{devCenterName}/catalogs/{catalogName}
+terraform import azurerm_dev_center_catalog.example /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevCenter/devCenters/{devCenterName}/catalogs/{catalogName}
 ```
 
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Dev Center exists. For example `12345678-1234-9876-4563-123456789012`.
