@@ -374,8 +374,8 @@ func (r SpringCloudGatewayResource) noApms(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_spring_cloud_gateway" "test" {
-  name                                   = "default"
-  spring_cloud_service_id                = azurerm_spring_cloud_service.test.id
+  name                    = "default"
+  spring_cloud_service_id = azurerm_spring_cloud_service.test.id
 }
 `, template)
 }
