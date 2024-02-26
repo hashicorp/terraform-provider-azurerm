@@ -97,6 +97,14 @@ func resourceServiceBusNamespace() *pluginsdk.Resource {
 				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8, 16}),
 			},
 
+			"premium_messaging_partitions": {
+				Type:         pluginsdk.TypeInt,
+				ForceNew:     true,
+				Default:      0,
+				Optional:     true,
+				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4}),
+			},
+
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -336,6 +344,16 @@ func resourceServiceBusNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		parameters.Sku.Capacity = utils.Int64(int64(capacity.(int)))
 	}
 
+	if premiumMessagingUnit := d.Get("premium_messaging_partitions"); premiumMessagingUnit != nil {
+		if !strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && premiumMessagingUnit.(int) > 0 {
+			return fmt.Errorf("Premium messaging partition is not supported by service Bus SKU %q and it can only be set to 0", sku)
+		}
+		if strings.EqualFold(sku, string(namespaces.SkuNamePremium)) && premiumMessagingUnit.(int) == 0 {
+			return fmt.Errorf("Service Bus SKU %q only supports `premium_messaging_partitions` of 1, 2, 4", sku)
+		}
+		parameters.Properties.PremiumMessagingPartitions = utils.Int64(int64(premiumMessagingUnit.(int)))
+	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -411,6 +429,7 @@ func resourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("capacity", sku.Capacity)
 
 			if props := model.Properties; props != nil {
+				d.Set("premium_messaging_partitions", props.PremiumMessagingPartitions)
 				d.Set("zone_redundant", props.ZoneRedundant)
 				if customerManagedKey, err := flattenServiceBusNamespaceEncryption(props.Encryption); err == nil {
 					d.Set("customer_managed_key", customerManagedKey)
