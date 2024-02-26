@@ -149,7 +149,7 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk("access_mode"); ok {
-		parameters.Properties.AccessModeSettings = expandMonitorPrivateLinkScopeAccessMode(v.(*pluginsdk.ResourceData))
+		parameters.Properties.AccessModeSettings = expandMonitorPrivateLinkScopeAccessMode(v.([]interface{}))
 	}
 	if _, err := client.PrivateLinkScopesCreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -215,9 +215,8 @@ func resourceMonitorPrivateLinkScopeDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandMonitorPrivateLinkScopeAccessMode(d *pluginsdk.ResourceData) privatelinkscopesapis.AccessModeSettings {
-	input, ok := d.Get("job_storage_account").([]interface{})
-	if input == nil || !ok {
+func expandMonitorPrivateLinkScopeAccessMode(input []interface{}) privatelinkscopesapis.AccessModeSettings {
+	if input == nil {
 		return privatelinkscopesapis.AccessModeSettings{}
 	}
 

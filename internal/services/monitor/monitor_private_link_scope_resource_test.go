@@ -147,14 +147,14 @@ resource "azurerm_monitor_private_link_scope" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   access_mode {
-	ingestion = "Open"
-	query     = "Open"
-	exclusions {
-	  connection_name = "connection"
+    ingestion = "Open"
+    query     = "Open"
+    exclusions {
+      connection_name = "connection"
 
-	  ingestion = "Open"
-	  query     = "Open"
-	}
+      ingestion = "Open"
+      query     = "Open"
+    }
   }
 
   tags = {
