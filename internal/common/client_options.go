@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/meta"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -66,24 +65,20 @@ type ClientOptions struct {
 }
 
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
-func (o ClientOptions) Configure(c *resourcemanager.Client, authorizer auth.Authorizer) {
-	c.Authorizer = authorizer
-	c.UserAgent = userAgent(c.UserAgent, o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID)
+func (o ClientOptions) Configure(c client.BaseClient, authorizer auth.Authorizer) {
+	c.SetAuthorizer(authorizer)
+	c.SetUserAgent(userAgent(c.GetUserAgent(), o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID))
 
-	requestMiddlewares := make([]client.RequestMiddleware, 0)
 	if !o.DisableCorrelationRequestID {
 		id := o.CustomCorrelationRequestID
 		if id == "" {
 			id = correlationRequestID()
 		}
-		requestMiddlewares = append(requestMiddlewares, correlationRequestIDMiddleware(id))
+		c.AppendRequestMiddleware(correlationRequestIDMiddleware(id))
 	}
-	requestMiddlewares = append(requestMiddlewares, requestLoggerMiddleware("AzureRM"))
-	c.RequestMiddlewares = &requestMiddlewares
 
-	c.ResponseMiddlewares = &[]client.ResponseMiddleware{
-		responseLoggerMiddleware("AzureRM"),
-	}
+	c.AppendRequestMiddleware(requestLoggerMiddleware("AzureRM"))
+	c.AppendResponseMiddleware(responseLoggerMiddleware("AzureRM"))
 }
 
 // ConfigureClient sets up an autorest.Client using an autorest.Authorizer
