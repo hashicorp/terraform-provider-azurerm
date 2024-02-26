@@ -9,7 +9,9 @@ ENHANCEMENTS:
 * `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_ids` property [GH-24919]
 
 BUG FIXES:
-* azurerm_batch_pool - fix setting the `extension.settings_json` property [GH-24976]
+
+* `azurerm_batch_pool` - fix setting the `extension.settings_json` property [GH-24976]
+* `azurerm_recovery_services_vault` - validate that `use_system_assigned_identity` and `user_assigned_identity_id` cannot be set at the same time [GH-24091]
 
 ## 3.93.0 (February 22, 2024)
 
