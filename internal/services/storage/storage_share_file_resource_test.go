@@ -10,12 +10,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files"
 )
 
 type StorageShareFileResource struct{}
@@ -137,28 +138,28 @@ func TestAccAzureRMStorageShareFile_withEmptyFile(t *testing.T) {
 }
 
 func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := files.ParseResourceID(state.ID)
+	id, err := files.ParseFileID(state.ID, clients.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := clients.Storage.FindAccount(ctx, id.AccountName)
+	account, err := clients.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
+		return nil, fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
 	}
 	if account == nil {
 		return utils.Bool(false), nil
 	}
 
-	client, err := clients.Storage.FileShareFilesClient(ctx, *account)
+	client, err := clients.Storage.FileShareFilesDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building File Share Files Client: %s", err)
 	}
 
-	resp, err := client.GetProperties(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName)
+	resp, err := client.GetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
 		}
 	}
 

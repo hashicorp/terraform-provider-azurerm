@@ -1257,17 +1257,17 @@ github.com/rickb777/plural
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/tombuildsstuff/giovanni v0.25.1
 ## explicit; go 1.21
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/filesystems
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/paths
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/tables
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables
 github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 # github.com/tombuildsstuff/kermit v0.20240122.1123108

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
 )
 
 type storageTableEntitiesDataSource struct{}
@@ -23,14 +23,14 @@ type storageTableEntitiesDataSource struct{}
 var _ sdk.DataSource = storageTableEntitiesDataSource{}
 
 type TableEntitiesDataSourceModel struct {
-	TableName          string                        `tfschema:"table_name"`
-	StorageAccountName string                        `tfschema:"storage_account_name"`
-	Filter             string                        `tfschema:"filter"`
-	Select             []string                      `tfschema:"select"`
-	Items              []TableEntitiyDataSourceModel `tfschema:"items"`
+	TableName          string                       `tfschema:"table_name"`
+	StorageAccountName string                       `tfschema:"storage_account_name"`
+	Filter             string                       `tfschema:"filter"`
+	Select             []string                     `tfschema:"select"`
+	Items              []TableEntityDataSourceModel `tfschema:"items"`
 }
 
-type TableEntitiyDataSourceModel struct {
+type TableEntityDataSourceModel struct {
 	PartitionKey string                 `tfschema:"partition_key"`
 	RowKey       string                 `tfschema:"row_key"`
 	Properties   map[string]interface{} `tfschema:"properties"`
@@ -123,7 +123,7 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("the parent Storage Account %s was not found", model.StorageAccountName)
 			}
 
-			client, err := storageClient.TableEntityClient(ctx, *account)
+			client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %s", model.StorageAccountName, account.ResourceGroup, err)
 			}
@@ -138,14 +138,14 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				input.PropertyNamesToSelect = &model.Select
 			}
 
-			id := parse.NewStorageTableEntitiesId(model.StorageAccountName, storageClient.Environment.StorageEndpointSuffix, model.TableName, model.Filter)
+			id := parse.NewStorageTableEntitiesId(model.StorageAccountName, storageClient.StorageDomainSuffix, model.TableName, model.Filter)
 
-			result, err := client.Query(ctx, model.StorageAccountName, model.TableName, input)
+			result, err := client.Query(ctx, model.TableName, input)
 			if err != nil {
 				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q / Storage Account %q / Resource Group %q): %s", model.Filter, model.TableName, model.StorageAccountName, account.ResourceGroup, err)
 			}
 
-			var flattenedEntities []TableEntitiyDataSourceModel
+			var flattenedEntities []TableEntityDataSourceModel
 			for _, entity := range result.Entities {
 				flattenedEntity := flattenEntityWithMetadata(entity)
 				if len(flattenedEntity.Properties) == 0 {
@@ -163,10 +163,10 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 }
 
 // The api returns extra information that we already have. We'll remove it here before setting it in state.
-func flattenEntityWithMetadata(entity map[string]interface{}) TableEntitiyDataSourceModel {
+func flattenEntityWithMetadata(entity map[string]interface{}) TableEntityDataSourceModel {
 	delete(entity, "Timestamp")
 
-	result := TableEntitiyDataSourceModel{}
+	result := TableEntityDataSourceModel{}
 
 	for k, v := range entity {
 		properties := map[string]interface{}{}

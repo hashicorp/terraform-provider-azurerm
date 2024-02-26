@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/filesystems"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems"
 )
 
 type StorageDataLakeGen2FileSystemResource struct{}
@@ -147,28 +148,58 @@ func TestAccStorageDataLakeGen2FileSystem_withSuperUsers(t *testing.T) {
 }
 
 func (r StorageDataLakeGen2FileSystemResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := filesystems.ParseResourceID(state.ID)
+	id, err := filesystems.ParseFileSystemID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.FileSystemsClient.GetProperties(ctx, id.AccountName, id.DirectoryName)
+
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountId, id.FileSystemName, err)
+	}
+	if account == nil {
+		return nil, fmt.Errorf("unable to determine Resource Group for Storage Queue %q (Account %q)", id.FileSystemName, id.AccountId.AccountName)
+	}
+
+	filesystemsClient, err := client.Storage.DataLakeFilesystemsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return nil, fmt.Errorf("building Data Lake Filesystems Client: %+v", err)
+	}
+
+	resp, err := filesystemsClient.GetProperties(ctx, id.FileSystemName)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving File System %q (Account %q): %+v", id.DirectoryName, id.AccountName, err)
+		return nil, fmt.Errorf("retrieving File System %q (Account %q): %+v", id.FileSystemName, id.AccountId.AccountName, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
 func (r StorageDataLakeGen2FileSystemResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := filesystems.ParseResourceID(state.ID)
+	id, err := filesystems.ParseFileSystemID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	if _, err := client.Storage.FileSystemsClient.Delete(ctx, id.AccountName, id.DirectoryName); err != nil {
-		return nil, fmt.Errorf("deleting File System %q (Account %q): %+v", id.DirectoryName, id.AccountName, err)
+
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountId, id.FileSystemName, err)
 	}
+	if account == nil {
+		return nil, fmt.Errorf("unable to determine Resource Group for Storage Queue %q (Account %q)", id.FileSystemName, id.AccountId.AccountName)
+	}
+
+	filesystemsClient, err := client.Storage.DataLakeFilesystemsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return nil, fmt.Errorf("building Data Lake Filesystems Client: %+v", err)
+	}
+
+	if _, err = filesystemsClient.Delete(ctx, id.FileSystemName); err != nil {
+		return nil, fmt.Errorf("deleting File System %q (Account %q): %+v", id.FileSystemName, id.AccountId.AccountName, err)
+	}
+
 	return utils.Bool(true), nil
 }
 

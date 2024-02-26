@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
@@ -18,6 +19,16 @@ var (
 
 	accountsLock    = sync.RWMutex{}
 	credentialsLock = sync.RWMutex{}
+)
+
+type EndpointType string
+
+const (
+	EndpointTypeBlob  = "blob"
+	EndpointTypeDfs   = "dfs"
+	EndpointTypeFile  = "file"
+	EndpointTypeQueue = "queue"
+	EndpointTypeTable = "table"
 )
 
 type accountDetails struct {
@@ -42,11 +53,11 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	log.Printf("[DEBUG] Cache Miss - looking up the account key for storage account %q..", ad.name)
 	props, err := client.AccountsClient.ListKeys(ctx, ad.ResourceGroup, ad.name, storage.ListKeyExpandKerb)
 	if err != nil {
-		return nil, fmt.Errorf("Listing Keys for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
+		return nil, fmt.Errorf("listing Keys for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
 	}
 
 	if props.Keys == nil || len(*props.Keys) == 0 || (*props.Keys)[0].Value == nil {
-		return nil, fmt.Errorf("Keys were nil for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
+		return nil, fmt.Errorf("keys were nil for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
 	}
 
 	keys := *props.Keys
@@ -56,6 +67,48 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	storageAccountsCache[ad.name] = *ad
 
 	return ad.accountKey, nil
+}
+
+func (ad *accountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string, error) {
+	if ad.Properties == nil {
+		return nil, fmt.Errorf("storage account %q has no properties", ad.name)
+	}
+	if ad.Properties.PrimaryEndpoints == nil {
+		return nil, fmt.Errorf("storage account %q has missing endpoints", ad.name)
+	}
+
+	var baseUri string
+
+	switch endpointType {
+	case EndpointTypeBlob:
+		if ad.Properties.PrimaryEndpoints.Blob != nil {
+			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.Blob, "/")
+		}
+	case EndpointTypeDfs:
+		if ad.Properties.PrimaryEndpoints.Dfs != nil {
+			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.Dfs, "/")
+		}
+	case EndpointTypeFile:
+		if ad.Properties.PrimaryEndpoints.File != nil {
+			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.File, "/")
+		}
+	case EndpointTypeQueue:
+		if ad.Properties.PrimaryEndpoints.Queue != nil {
+			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.Queue, "/")
+		}
+	case EndpointTypeTable:
+		if ad.Properties.PrimaryEndpoints.Table != nil {
+			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.Table, "/")
+		}
+	default:
+		return nil, fmt.Errorf("internal-error: unrecognised endpoint type %q when building storage client", endpointType)
+	}
+
+	if baseUri == "" {
+		return nil, fmt.Errorf("determining storage account %s endpoint for : %q", endpointType, ad.name)
+	}
+
+	return &baseUri, nil
 }
 
 func (client Client) AddToCache(accountName string, props storage.Account) error {

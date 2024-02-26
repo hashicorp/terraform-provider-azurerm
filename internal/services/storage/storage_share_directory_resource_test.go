@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories"
 )
 
 type StorageShareDirectoryResource struct{}
@@ -25,6 +26,52 @@ func TestAccStorageShareDirectory_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShareDirectory_basicDeprecated(t *testing.T) {
+	// TODO: remove test in v4.0
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
+	r := StorageShareDirectoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShareDirectory_migrateStorageShareId(t *testing.T) {
+	// TODO: remove test in v4.0
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
+	r := StorageShareDirectoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -119,32 +166,44 @@ func TestAccStorageShareDirectory_nested(t *testing.T) {
 }
 
 func (r StorageShareDirectoryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := directories.ParseResourceID(state.ID)
+	id, err := directories.ParseDirectoryID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Directory %q (Share %q): %s", id.AccountName, id.DirectoryName, id.ShareName, err)
+		return nil, fmt.Errorf("retrieving Account %q for Directory %q (Share %q): %s", id.AccountId.AccountName, id.DirectoryPath, id.ShareName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to determine Resource Group for Storage Share Directory %q (Share %q / Account %q)", id.DirectoryName, id.ShareName, id.AccountName)
+		return nil, fmt.Errorf("unable to determine Resource Group for Storage Share Directory %q (Share %q / Account %q)", id.DirectoryPath, id.ShareName, id.AccountId.AccountName)
 	}
-	dirClient, err := client.Storage.FileShareDirectoriesClient(ctx, *account)
+	dirClient, err := client.Storage.FileShareDirectoriesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building File Share client for Storage Account %q (Resource Group %q): %+v", id.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("building File Share client for Storage Account %q (Resource Group %q): %+v", id.AccountId.AccountName, account.ResourceGroup, err)
 	}
-	resp, err := dirClient.Get(ctx, id.AccountName, id.ShareName, id.DirectoryName)
+	resp, err := dirClient.Get(ctx, id.ShareName, id.DirectoryPath)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Storage Share %q (File Share %q / Account %q / Resource Group %q): %s", id.DirectoryName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Storage Share %q (File Share %q / Account %q / Resource Group %q): %s", id.DirectoryPath, id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func (r StorageShareDirectoryResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_directory" "test" {
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
+}
+`, template)
+}
+
+func (r StorageShareDirectoryResource) basicDeprecated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -163,9 +222,8 @@ func (r StorageShareDirectoryResource) uppercase(data acceptance.TestData) strin
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name                 = "UpperCaseCharacterS"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  name             = "UpperCaseCharacterS"
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
 }
@@ -176,9 +234,8 @@ func (r StorageShareDirectoryResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_storage_share_directory" "import" {
-  name                 = azurerm_storage_share_directory.test.name
-  share_name           = azurerm_storage_share_directory.test.share_name
-  storage_account_name = azurerm_storage_share_directory.test.storage_account_name
+  name             = azurerm_storage_share_directory.test.name
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
 }
@@ -189,9 +246,8 @@ func (r StorageShareDirectoryResource) complete(data acceptance.TestData) string
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name                 = "dir"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
     hello = "world"
@@ -206,9 +262,8 @@ func (r StorageShareDirectoryResource) updated(data acceptance.TestData) string 
 %s
 
 resource "azurerm_storage_share_directory" "test" {
-  name                 = "dir"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
     hello    = "world"
@@ -224,27 +279,23 @@ func (r StorageShareDirectoryResource) nested(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_directory" "parent" {
-  name                 = "123--parent-dir"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  name             = "123--parent-dir"
+  storage_share_id = azurerm_storage_share.test.id
 }
 
 resource "azurerm_storage_share_directory" "child_one" {
-  name                 = "${azurerm_storage_share_directory.parent.name}/child1"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  name             = "${azurerm_storage_share_directory.parent.name}/child1"
+  storage_share_id = azurerm_storage_share.test.id
 }
 
 resource "azurerm_storage_share_directory" "child_two" {
-  name                 = "${azurerm_storage_share_directory.child_one.name}/childtwo--123"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  name             = "${azurerm_storage_share_directory.child_one.name}/childtwo--123"
+  storage_share_id = azurerm_storage_share.test.id
 }
 
 resource "azurerm_storage_share_directory" "multiple_child_one" {
-  name                 = "${azurerm_storage_share_directory.parent.name}/c"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  name             = "${azurerm_storage_share_directory.parent.name}/c"
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
 }

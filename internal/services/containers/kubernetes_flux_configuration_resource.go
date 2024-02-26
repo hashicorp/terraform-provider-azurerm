@@ -16,11 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
 const (
@@ -244,7 +243,7 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					"container_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: storageValidate.StorageContainerDataPlaneID,
+						ValidateFunc: validation.IsURLWithPath, // note: storage domain suffix cannot be determined at validation time, so just make sure it's a well-formed URL
 					},
 
 					"account_key": {
@@ -589,7 +588,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				properties.Properties.Bucket, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
 			} else if _, exists = metadata.ResourceData.GetOk("blob_storage"); exists {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
-				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
@@ -643,7 +642,7 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 
 			properties.Properties.ConfigurationProtectedSettings = nil
 			if metadata.ResourceData.HasChange("blob_storage") {
-				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
@@ -735,7 +734,7 @@ func (r KubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					blobStorage, err := flattenAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
+					blobStorage, err := flattenAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 					if err != nil {
 						return fmt.Errorf("flattening `blob_storage`: %+v", err)
 					}
@@ -780,7 +779,7 @@ func (r KubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*fluxconfiguration.AzureBlobDefinition, error) {
+func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel, storageDomainSuffix string) (*fluxconfiguration.AzureBlobDefinition, error) {
 	if len(inputList) == 0 {
 		return nil, nil
 	}
@@ -797,13 +796,13 @@ func expandAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*flux
 	}
 
 	if input.ContainerID != "" {
-		id, err := parse.StorageContainerDataPlaneID(input.ContainerID)
+		id, err := containers.ParseContainerID(input.ContainerID, storageDomainSuffix)
 		if err != nil {
 			return nil, err
 		}
 
-		output.ContainerName = &id.Name
-		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.Name))
+		output.ContainerName = &id.ContainerName
+		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.ContainerName))
 	}
 
 	if input.LocalAuthRef != "" {
@@ -1002,13 +1001,13 @@ func expandRepositoryRefDefinitionModel(referenceType string, referenceValue str
 	return &output, nil
 }
 
-func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel) ([]AzureBlobDefinitionModel, error) {
+func flattenAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel, storageDomainSuffix string) ([]AzureBlobDefinitionModel, error) {
 	outputList := make([]AzureBlobDefinitionModel, 0)
 	if input == nil {
 		return outputList, nil
 	}
 
-	id, err := parse.StorageContainerDataPlaneID(fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)))
+	id, err := containers.ParseContainerID(fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)), storageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}

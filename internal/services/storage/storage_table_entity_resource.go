@@ -9,25 +9,30 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
 )
 
 func resourceStorageTableEntity() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStorageTableEntityCreateUpdate,
+		Create: resourceStorageTableEntityCreate,
 		Read:   resourceStorageTableEntityRead,
-		Update: resourceStorageTableEntityCreateUpdate,
+		Update: resourceStorageTableEntityUpdate,
 		Delete: resourceStorageTableEntityDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := entities.ParseResourceID(id)
+		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
+			_, err := entities.ParseEntityID(id, storageDomainSuffix)
 			return err
 		}),
 
@@ -39,30 +44,48 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
+			"storage_table_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true, // TODO: make required and forcenew in v4.0
+				Computed:      true, // TODO: remove computed in v4.0
+				ConflictsWith: []string{"table_name", "storage_account_name"},
+				ValidateFunc:  validation.IsURLWithPath, // note: storage domain suffix cannot be determined at validation time, so just make sure it's a well-formed URL
+			},
+
 			"table_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageTableName,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "the `table_name` and `storage_account_name` properties have been superseded by the `storage_table_id` property and will be removed in version 4.0 of the AzureRM provider",
+				ConflictsWith: []string{"storage_table_id"},
+				RequiredWith:  []string{"storage_account_name"},
+				ValidateFunc:  validate.StorageTableName,
 			},
+
 			"storage_account_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageAccountName,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "the `table_name` and `storage_account_name` properties have been superseded by the `storage_table_id` property and will be removed in version 4.0 of the AzureRM provider",
+				ConflictsWith: []string{"storage_table_id"},
+				RequiredWith:  []string{"table_name"},
+				ValidateFunc:  validate.StorageAccountName,
 			},
+
 			"partition_key": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"row_key": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
 			"entity": {
 				Type:     pluginsdk.TypeMap,
 				Required: true,
@@ -74,67 +97,142 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageTableEntityCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	accountName := d.Get("storage_account_name").(string)
-	tableName := d.Get("table_name").(string)
 	partitionKey := d.Get("partition_key").(string)
 	rowKey := d.Get("row_key").(string)
-	entity := d.Get("entity").(map[string]interface{})
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	var storageTableId *tables.TableId
+	var err error
+	if v, ok := d.GetOk("storage_table_id"); ok && v.(string) != "" {
+		storageTableId, err = tables.ParseTableID(v.(string), storageClient.StorageDomainSuffix)
+		if err != nil {
+			return err
+		}
+	} else {
+		// TODO: this is needed until `table_name` / `storage_account_name` are removed in favor of `storage_table_id` in v4.0
+		// we will retrieve the storage account twice but this will make it easier to refactor later
+		storageAccountName := d.Get("storage_account_name").(string)
+
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q: %v", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("locating Storage Account %q", storageAccountName)
+		}
+
+		// Determine the table endpoint, so we can build a data plane ID
+		endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
+		if err != nil {
+			return fmt.Errorf("determining Table endpoint: %v", err)
+		}
+
+		// Parse the table endpoint as a data plane account ID
+		accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
+		if err != nil {
+			return fmt.Errorf("parsing Account ID: %v", err)
+		}
+
+		storageTableId = pointer.To(tables.NewTableID(*accountId, d.Get("table_name").(string)))
+	}
+
+	if storageTableId == nil {
+		return fmt.Errorf("determining storage table ID")
+	}
+
+	account, err := storageClient.FindAccount(ctx, storageTableId.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Table %q: %s", accountName, tableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %v", storageTableId.AccountId.AccountName, storageTableId.TableName, err)
 	}
 	if account == nil {
-		if d.IsNewResource() {
-			return fmt.Errorf("Unable to locate Account %q for Storage Table %q", accountName, tableName)
-		} else {
-			log.Printf("[DEBUG] Unable to locate Account %q for Storage Table %q - assuming removed & removing from state", accountName, tableName)
-			d.SetId("")
-			return nil
-		}
+		return fmt.Errorf("locating Storage Account %q for Table %q", storageTableId.AccountId.AccountName, storageTableId.TableName)
 	}
 
-	client, err := storageClient.TableEntityClient(ctx, *account)
+	accountId, err := accounts.ParseAccountID(storageTableId.ID(), storageClient.StorageDomainSuffix)
 	if err != nil {
-		return fmt.Errorf("building Entity Client: %s", err)
+		return fmt.Errorf("parsing Account ID: %s", err)
 	}
 
-	if d.IsNewResource() {
-		input := entities.GetEntityInput{
-			PartitionKey:  partitionKey,
-			RowKey:        rowKey,
-			MetaDataLevel: entities.NoMetaData,
-		}
-		existing, err := client.Get(ctx, accountName, tableName, input)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", partitionKey, rowKey, tableName, accountName, account.ResourceGroup, err)
-			}
-		}
+	id := entities.NewEntityID(*accountId, storageTableId.TableName, partitionKey, rowKey)
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			id := client.GetResourceID(accountName, tableName, partitionKey, rowKey)
-			return tf.ImportAsExistsError("azurerm_storage_table_entity", id)
+	client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return fmt.Errorf("building Entity Client: %v", err)
+	}
+
+	getEntityInput := entities.GetEntityInput{
+		PartitionKey:  partitionKey,
+		RowKey:        rowKey,
+		MetaDataLevel: entities.NoMetaData,
+	}
+	existing, err := client.Get(ctx, storageTableId.TableName, getEntityInput)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for existing %s: %v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_storage_table_entity", id.ID())
 	}
 
 	input := entities.InsertOrMergeEntityInput{
 		PartitionKey: partitionKey,
 		RowKey:       rowKey,
-		Entity:       entity,
+		Entity:       d.Get("entity").(map[string]interface{}),
 	}
 
-	if _, err := client.InsertOrMerge(ctx, accountName, tableName, input); err != nil {
-		return fmt.Errorf("creating Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %+v", partitionKey, rowKey, tableName, accountName, account.ResourceGroup, err)
+	if _, err = client.InsertOrMerge(ctx, storageTableId.TableName, input); err != nil {
+		return fmt.Errorf("creating %s: %v", id, err)
 	}
 
-	resourceID := client.GetResourceID(accountName, tableName, partitionKey, rowKey)
-	d.SetId(resourceID)
+	d.SetId(id.ID())
+
+	return resourceStorageTableEntityRead(d, meta)
+}
+
+func resourceStorageTableEntityUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+	storageClient := meta.(*clients.Client).Storage
+
+	id, err := entities.ParseEntityID(d.Id(), storageClient.StorageDomainSuffix)
+	if err != nil {
+		return err
+	}
+
+	storageTableId := tables.NewTableID(id.AccountId, id.TableName)
+
+	account, err := storageClient.FindAccount(ctx, storageTableId.AccountId.AccountName)
+	if err != nil {
+		return fmt.Errorf("retrieving Account %q for Table %q: %v", storageTableId.AccountId.AccountName, storageTableId.TableName, err)
+	}
+	if account == nil {
+		log.Printf("[DEBUG] Unable to locate Storage Account %q for Table %q - assuming removed & removing from state", storageTableId.AccountId.AccountName, storageTableId.TableName)
+		d.SetId("")
+		return nil
+	}
+
+	client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return fmt.Errorf("building Entity Client: %v", err)
+	}
+
+	input := entities.InsertOrMergeEntityInput{
+		PartitionKey: d.Get("partition_key").(string),
+		RowKey:       d.Get("row_key").(string),
+		Entity:       d.Get("entity").(map[string]interface{}),
+	}
+
+	if _, err = client.InsertOrMerge(ctx, storageTableId.TableName, input); err != nil {
+		return fmt.Errorf("creating %s: %v", id, err)
+	}
+
+	d.SetId(id.ID())
 
 	return resourceStorageTableEntityRead(d, meta)
 }
@@ -144,24 +242,26 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	id, err := entities.ParseResourceID(d.Id())
+	id, err := entities.ParseEntityID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountId.AccountName, id.TableName, err)
 	}
 	if account == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountId.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	client, err := storageClient.TableEntityClient(ctx, *account)
+	storageTableId := tables.NewTableID(id.AccountId, id.TableName)
+
+	client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountId.AccountName, account.ResourceGroup, err)
 	}
 
 	input := entities.GetEntityInput{
@@ -170,17 +270,19 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 		MetaDataLevel: entities.FullMetaData,
 	}
 
-	result, err := client.Get(ctx, id.AccountName, id.TableName, input)
+	result, err := client.Get(ctx, id.TableName, input)
 	if err != nil {
-		return fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	d.Set("storage_account_name", id.AccountName)
+	d.Set("storage_table_id", storageTableId.ID())
+	d.Set("storage_account_name", id.AccountId.AccountName)
 	d.Set("table_name", id.TableName)
 	d.Set("partition_key", id.PartitionKey)
 	d.Set("row_key", id.RowKey)
-	if err := d.Set("entity", flattenEntity(result.Entity)); err != nil {
-		return fmt.Errorf("setting `entity` for Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
+
+	if err = d.Set("entity", flattenEntity(result.Entity)); err != nil {
+		return fmt.Errorf("setting `entity` for %s: %v", id, err)
 	}
 
 	return nil
@@ -191,22 +293,22 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	id, err := entities.ParseResourceID(d.Id())
+	id, err := entities.ParseEntityID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+		return fmt.Errorf("retrieving Storage Account %q for Table %q: %s", id.AccountId.AccountName, id.TableName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Storage Account %q was not found!", id.AccountName)
+		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 	}
 
-	client, err := storageClient.TableEntityClient(ctx, *account)
+	client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountId.AccountName, account.ResourceGroup, err)
 	}
 
 	input := entities.DeleteEntityInput{
@@ -214,8 +316,8 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 		RowKey:       id.RowKey,
 	}
 
-	if _, err := client.Delete(ctx, id.AccountName, id.TableName, input); err != nil {
-		return fmt.Errorf("deleting Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
+	if _, err = client.Delete(ctx, id.TableName, input); err != nil {
+		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 
 	return nil

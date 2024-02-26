@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type VirtualMachineResource struct{}
@@ -249,15 +250,15 @@ func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, sh
 			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := clients.Storage.BlobsClient(ctx, *account)
+		client, err := clients.Storage.BlobsDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Blobs Client: %s", err)
 		}
 
 		input := blobs.GetPropertiesInput{}
-		props, err := client.GetProperties(ctx, accountName, containerName, blobName, input)
+		props, err := client.GetProperties(ctx, containerName, blobName, input)
 		if err != nil {
-			if utils.ResponseWasNotFound(props.Response) {
+			if response.WasNotFound(props.HttpResponse) {
 				if !shouldExist {
 					return nil
 				}

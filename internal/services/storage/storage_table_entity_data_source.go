@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
 )
 
 func dataSourceStorageTableEntity() *pluginsdk.Resource {
@@ -64,25 +65,30 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	storageAccountName := d.Get("storage_account_name").(string)
+	accountName := d.Get("storage_account_name").(string)
 	tableName := d.Get("table_name").(string)
 	partitionKey := d.Get("partition_key").(string)
 	rowKey := d.Get("row_key").(string)
 
-	account, err := storageClient.FindAccount(ctx, storageAccountName)
+	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Table %q: %s", storageAccountName, tableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("the parent Storage Account %s was not found", storageAccountName)
+		return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 	}
 
-	client, err := storageClient.TableEntityClient(ctx, *account)
+	client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %s", storageAccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %v", accountName, account.ResourceGroup, err)
 	}
 
-	id := client.GetResourceID(storageAccountName, tableName, partitionKey, rowKey)
+	accountId, err := accounts.ParseAccountID(accountName, storageClient.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	id := entities.NewEntityID(*accountId, tableName, partitionKey, rowKey)
 
 	input := entities.GetEntityInput{
 		PartitionKey:  partitionKey,
@@ -90,19 +96,21 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		MetaDataLevel: entities.NoMetaData,
 	}
 
-	result, err := client.Get(ctx, storageAccountName, tableName, input)
+	result, err := client.Get(ctx, tableName, input)
 	if err != nil {
-		return fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", partitionKey, rowKey, tableName, storageAccountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	d.Set("storage_account_name", storageAccountName)
+	d.Set("storage_account_name", accountName)
 	d.Set("table_name", tableName)
 	d.Set("partition_key", partitionKey)
 	d.Set("row_key", rowKey)
-	if err := d.Set("entity", flattenEntity(result.Entity)); err != nil {
-		return fmt.Errorf("setting `entity` for Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", partitionKey, rowKey, tableName, storageAccountName, account.ResourceGroup, err)
+
+	if err = d.Set("entity", flattenEntity(result.Entity)); err != nil {
+		return fmt.Errorf("setting `entity` for %s: %v", id, err)
 	}
-	d.SetId(id)
+
+	d.SetId(id.ID())
 
 	return nil
 }

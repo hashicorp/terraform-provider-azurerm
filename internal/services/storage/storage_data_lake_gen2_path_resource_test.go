@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/paths"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths"
 )
 
 type StorageDataLakeGen2PathResource struct{}
@@ -131,17 +132,32 @@ func TestAccStorageDataLakeGen2Path_withSuperUsers(t *testing.T) {
 }
 
 func (r StorageDataLakeGen2PathResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := paths.ParseResourceID(state.ID)
+	id, err := paths.ParsePathID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Storage.ADLSGen2PathsClient.GetProperties(ctx, id.AccountName, id.FileSystemName, id.Path, paths.GetPropertiesActionGetStatus)
+
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountId, id.FileSystemName, err)
+	}
+	if account == nil {
+		return nil, fmt.Errorf("unable to determine Resource Group for Storage Queue %q (Account %q)", id.FileSystemName, id.AccountId.AccountName)
+	}
+
+	pathsClient, err := client.Storage.DataLakePathsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
+	if err != nil {
+		return nil, fmt.Errorf("building Data Lake Paths Client: %+v", err)
+	}
+
+	resp, err := pathsClient.GetProperties(ctx, id.FileSystemName, id.Path, paths.GetPropertiesInput{Action: paths.GetPropertiesActionGetStatus})
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Path %q (File System %q / Account %q): %+v", id.Path, id.FileSystemName, id.AccountName, err)
+		return nil, fmt.Errorf("retrieving Path %q (File System %q / Account %q): %+v", id.Path, id.FileSystemName, id.AccountId.AccountName, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
