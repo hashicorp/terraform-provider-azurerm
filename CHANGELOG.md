@@ -16,6 +16,7 @@ BUG FIXES:
 
 * `azurerm_batch_pool` - fix setting the `extension.settings_json` property [GH-24976]
 * `azurerm_recovery_services_vault` - validate that `use_system_assigned_identity` and `user_assigned_identity_id` cannot be set at the same time [GH-24091]
+* `azurerm_recovery_vaults` will now create properly with `SystemAssigned,UserAssigned` identity [GH-24978]
 
 ## 3.93.0 (February 22, 2024)
 
