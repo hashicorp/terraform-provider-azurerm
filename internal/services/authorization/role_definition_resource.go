@@ -163,7 +163,7 @@ func (r RoleDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			var config RoleDefinitionModel
 			if err := metadata.Decode(&config); err != nil {
@@ -231,7 +231,7 @@ func (r RoleDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			stateId, err := parse.RoleDefinitionId(metadata.ResourceData.Id())
 			if err != nil {
@@ -275,7 +275,7 @@ func (r RoleDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			stateId, err := parse.RoleDefinitionId(metadata.ResourceData.Id())
 			if err != nil {
@@ -376,7 +376,7 @@ func (r RoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			stateId, err := parse.RoleDefinitionId(metadata.ResourceData.Id())
 			if err != nil {

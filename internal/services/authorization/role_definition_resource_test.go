@@ -196,7 +196,7 @@ func (RoleDefinitionResource) Exists(ctx context.Context, client *clients.Client
 	roleId := state.Attributes["role_definition_id"]
 
 	id := roledefinitions.NewScopedRoleDefinitionID(scope, roleId)
-	resp, err := client.Authorization.RoleDefinitionsClient.Get(ctx, id)
+	resp, err := client.Authorization.ScopedRoleDefinitionsClient.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
