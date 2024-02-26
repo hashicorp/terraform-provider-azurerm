@@ -219,7 +219,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 									"sa_data_size_kb": {
 										Type:         pluginsdk.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(1024, 2147483647),
+										ValidateFunc: validation.IntBetween(0, 2147483647),
 									},
 									"encryption_algorithm": {
 										Type:         pluginsdk.TypeString,

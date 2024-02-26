@@ -36,6 +36,7 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			"alexaRequiresImport":            testAccBotChannelAlexa_requiresImport,
 			"emailBasic":                     testAccBotChannelEmail_basic,
 			"emailUpdate":                    testAccBotChannelEmail_update,
+			"emailMagicCode":                 testAccBotChannelEmail_magicCode,
 			"slackBasic":                     testAccBotChannelSlack_basic,
 			"slackComplete":                  testAccBotChannelSlack_complete,
 			"slackUpdate":                    testAccBotChannelSlack_update,

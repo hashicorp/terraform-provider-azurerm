@@ -18,8 +18,8 @@ data "azurerm_ip_groups" "example" {
   resource_group_name = "existing"
 }
 
-output "id" {
-  value = data.azurerm_ip_groups.example.id
+output "ids" {
+  value = data.azurerm_ip_groups.example.ids
 }
 ```
 

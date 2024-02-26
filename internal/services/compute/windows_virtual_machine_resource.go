@@ -359,7 +359,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"virtual_machine_scale_set_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ConflictsWith: []string{
 					"availability_set_id",
 				},
@@ -1352,6 +1351,18 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
 			OsDisk: osDisk,
+		}
+	}
+
+	if d.HasChange("virtual_machine_scale_set_id") {
+		shouldUpdate = true
+
+		if vmssIDRaw, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
+			update.VirtualMachineProperties.VirtualMachineScaleSet = &compute.SubResource{
+				ID: utils.String(vmssIDRaw.(string)),
+			}
+		} else {
+			update.VirtualMachineProperties.VirtualMachineScaleSet = &compute.SubResource{}
 		}
 	}
 

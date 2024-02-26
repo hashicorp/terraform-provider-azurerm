@@ -94,6 +94,13 @@ func TestAccDataProtectionBackupVault_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -200,7 +207,31 @@ resource "azurerm_data_protection_backup_vault" "test" {
   identity {
     type = "SystemAssigned"
   }
+  soft_delete                = "Off"
+  retention_duration_in_days = 14
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
 
+func (r DataProtectionBackupVaultResource) completeUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-bv-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+  identity {
+    type = "SystemAssigned"
+  }
+  soft_delete                = "On"
+  retention_duration_in_days = 15
   tags = {
     ENV = "Test"
   }
@@ -219,7 +250,6 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
-
   tags = {
     ENV = "Test"
   }

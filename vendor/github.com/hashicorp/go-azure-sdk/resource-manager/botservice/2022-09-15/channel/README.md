@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/botservice/2022-09-15/channel"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := channel.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
 
 payload := channel.BotChannel{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channel.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channel.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
 
 payload := channel.SiteInfo{
 	// ...
@@ -82,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channel.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue")
+id := commonids.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue")
 
 read, err := client.EmailCreateSignInUrl(ctx, id)
 if err != nil {
@@ -98,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channel.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -114,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channel.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue")
+id := commonids.NewBotServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -131,7 +132,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := channel.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
 
 read, err := client.ListWithKeys(ctx, id)
 if err != nil {
@@ -147,7 +148,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := channel.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
+id := commonids.NewBotServiceChannelID("12345678-1234-9876-4563-123456789012", "example-resource-group", "botServiceValue", "AcsChatChannel")
 
 payload := channel.BotChannel{
 	// ...

@@ -23,7 +23,7 @@ func TestAccLinuxWebApp_authV2AzureActiveDirectory(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -39,7 +39,7 @@ func TestAccLinuxWebApp_authV2AzureActiveDirectoryNoSecretName(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -55,7 +55,7 @@ func TestAccLinuxWebApp_authV2Apple(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -71,7 +71,7 @@ func TestAccLinuxWebApp_authV2AppleCustomSettingName(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -88,7 +88,7 @@ func TestAccLinuxWebApp_authV2CustomOIDC(t *testing.T) {
 				check.That(data.ResourceName).Key("auth_settings_v2.0.custom_oidc_v2.0.client_secret_setting_name").HasValue("TESTCUSTOM_PROVIDER_AUTHENTICATION_SECRET"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -104,7 +104,7 @@ func TestAccLinuxWebApp_authV2Facebook(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -120,7 +120,7 @@ func TestAccLinuxWebApp_authV2Github(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -136,7 +136,7 @@ func TestAccLinuxWebApp_authV2Google(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -152,7 +152,7 @@ func TestAccLinuxWebApp_authV2Microsoft(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -168,7 +168,7 @@ func TestAccLinuxWebApp_authV2Twitter(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -184,7 +184,7 @@ func TestAccLinuxWebApp_authV2MultipleAuths(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -200,7 +200,7 @@ func TestAccLinuxWebApp_authV2Update(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.authV2Facebook(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -208,7 +208,7 @@ func TestAccLinuxWebApp_authV2Update(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -224,7 +224,7 @@ func TestAccLinuxWebApp_authV2UpgradeFromV1(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.completeAuthV2(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -232,7 +232,7 @@ func TestAccLinuxWebApp_authV2UpgradeFromV1(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("app,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 

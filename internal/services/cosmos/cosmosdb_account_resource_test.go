@@ -420,7 +420,7 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind cosmosdb.Databa
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, cosmosdb.DefaultConsistencyLevelStrong, 8, 880),
+			Config: r.consistency(data, kind, false, cosmosdb.DefaultConsistencyLevelStrong, 8, 880),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
 		},
 		data.ImportStep(),
@@ -430,12 +430,12 @@ func testAccCosmosDBAccount_updateConsistency(t *testing.T, kind cosmosdb.Databa
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
+			Config: r.consistency(data, kind, true, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 7, 770),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
 		{
-			Config: r.consistency(data, kind, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 77, 700),
+			Config: r.consistency(data, kind, false, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 77, 700),
 			Check:  checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelBoundedStaleness, 1),
 		},
 		data.ImportStep(),
@@ -992,7 +992,30 @@ func TestAccCosmosDBAccount_identity(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDBAccount_backup(t *testing.T) {
+func TestAccCosmosDBAccount_storageRedundancyUndefined(t *testing.T) {
+	// Regression test for MSFT IcM where the SDK is supplied a 'nil' pointer for the
+	// 'storage_redundancy' field, the new transport layer would send an 'empty' string
+	// instead of omitting the field from the PUT call which would result in the API
+	// returning an error...
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageRedundancyUndefined(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("120"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("10"),
+				check.That(data.ResourceName).Key("backup.0.storage_redundancy").HasValue("Geo"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_backupOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 	r := CosmosDBAccountResource{}
 
@@ -1012,6 +1035,10 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 			Config: r.basicWithBackupPeriodic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("120"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("10"),
+				check.That(data.ResourceName).Key("backup.0.storage_redundancy").HasValue("Geo"),
 			),
 		},
 		data.ImportStep(),
@@ -1020,6 +1047,9 @@ func TestAccCosmosDBAccount_backup(t *testing.T) {
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup.0.type").HasValue("Periodic"),
+				check.That(data.ResourceName).Key("backup.0.interval_in_minutes").HasValue("60"),
+				check.That(data.ResourceName).Key("backup.0.retention_in_hours").HasValue("8"),
+				check.That(data.ResourceName).Key("backup.0.storage_redundancy").HasValue("Local"),
 			),
 		},
 		data.ImportStep(),
@@ -1039,7 +1069,7 @@ func TestAccCosmosDBAccount_backupPeriodicToContinuous(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousSevenDays),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1054,7 +1084,14 @@ func TestAccCosmosDBAccount_backupContinuous(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousSevenDays),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithBackupContinuous(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual, cosmosdb.ContinuousTierContinuousThreeZeroDays),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1264,6 +1301,36 @@ func TestAccCosmosDBAccount_restoreCreateMode(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDBAccount_tablesToRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tablesToRestore(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCosmosDBAccount_gremlinDatabasesToRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	r := CosmosDBAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gremlinDatabasesToRestore(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 // todo remove for 4.0
 func TestAccCosmosDBAccount_ipRangeFiltersThreePointOh(t *testing.T) {
 	if features.FourPointOhBeta() {
@@ -1441,7 +1508,7 @@ resource "azurerm_cosmosdb_account" "import" {
 `, r.basic(data, "GlobalDocumentDB", consistency))
 }
 
-func (CosmosDBAccountResource) consistency(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {
+func (CosmosDBAccountResource) consistency(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, partitionMergeEnabled bool, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1453,11 +1520,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-ca-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "%s"
+  name                    = "acctest-ca-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  offer_type              = "Standard"
+  kind                    = "%s"
+  partition_merge_enabled = %t
 
   consistency_policy {
     consistency_level       = "%s"
@@ -1470,7 +1538,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), interval, staleness)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), partitionMergeEnabled, string(consistency), interval, staleness)
 }
 
 func (CosmosDBAccountResource) consistencyMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel, interval, staleness int) string {
@@ -3349,6 +3417,42 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
+func (CosmosDBAccountResource) storageRedundancyUndefined(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type                = "Periodic"
+    interval_in_minutes = 120
+    retention_in_hours  = 10
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+}
+
 func (CosmosDBAccountResource) basicWithBackupPeriodicUpdate(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3386,7 +3490,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicWithBackupContinuous(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel, tier cosmosdb.ContinuousTier) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3415,9 +3519,10 @@ resource "azurerm_cosmosdb_account" "test" {
 
   backup {
     type = "Continuous"
+    tier = "%s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), string(tier))
 }
 
 func (CosmosDBAccountResource) basicWithBackupContinuousUpdate(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
@@ -4114,6 +4219,220 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) tablesToRestore(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test1" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  capabilities {
+    name = "EnableTable"
+  }
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+}
+
+resource "azurerm_cosmosdb_table" "test" {
+  name                = "acctest-sqltable-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+}
+
+resource "azurerm_cosmosdb_table" "test2" {
+  name                = "acctest-sqltable2-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+
+  depends_on = [azurerm_cosmosdb_table.test]
+}
+
+data "azurerm_cosmosdb_restorable_database_accounts" "test" {
+  name     = azurerm_cosmosdb_account.test1.name
+  location = azurerm_resource_group.test.location
+
+  depends_on = [azurerm_cosmosdb_table.test2]
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  capabilities {
+    name = "EnableTable"
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+
+  create_mode = "Restore"
+
+  restore {
+    source_cosmosdb_account_id = data.azurerm_cosmosdb_restorable_database_accounts.test.accounts[0].id
+    restore_timestamp_in_utc   = timeadd(timestamp(), "-1s")
+    tables_to_restore          = [azurerm_cosmosdb_table.test.name, azurerm_cosmosdb_table.test2.name]
+  }
+
+  // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
+  lifecycle {
+    ignore_changes = [
+      restore.0.restore_timestamp_in_utc
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
+}
+
+func (CosmosDBAccountResource) gremlinDatabasesToRestore(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test1" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  capabilities {
+    name = "EnableGremlin"
+  }
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+}
+
+resource "azurerm_cosmosdb_gremlin_database" "test" {
+  name                = "acctest-gremlindb-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+}
+
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                = "acctest-CGRPC-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
+  throughput          = 400
+}
+
+resource "azurerm_cosmosdb_gremlin_graph" "test2" {
+  name                = "acctest-CGRPC2-%d"
+  resource_group_name = azurerm_cosmosdb_account.test1.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test1.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test2"
+  throughput          = 500
+
+  depends_on = [azurerm_cosmosdb_gremlin_graph.test]
+}
+
+data "azurerm_cosmosdb_restorable_database_accounts" "test" {
+  name     = azurerm_cosmosdb_account.test1.name
+  location = azurerm_resource_group.test.location
+
+  depends_on = [azurerm_cosmosdb_gremlin_graph.test2]
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  capabilities {
+    name = "EnableGremlin"
+  }
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  backup {
+    type = "Continuous"
+  }
+
+  create_mode = "Restore"
+
+  restore {
+    source_cosmosdb_account_id = data.azurerm_cosmosdb_restorable_database_accounts.test.accounts[0].id
+    restore_timestamp_in_utc   = timeadd(timestamp(), "-1s")
+
+    gremlin_database {
+      name        = azurerm_cosmosdb_gremlin_database.test.name
+      graph_names = [azurerm_cosmosdb_gremlin_graph.test.name, azurerm_cosmosdb_gremlin_graph.test2.name]
+    }
+  }
+
+  // As "restore_timestamp_in_utc" is retrieved dynamically, so it would cause diff when tf plan. So we have to ignore it here.
+  lifecycle {
+    ignore_changes = [
+      restore.0.restore_timestamp_in_utc
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
 }
 
 func (r CosmosDBAccountResource) ipRangeFilters(data acceptance.TestData) string {

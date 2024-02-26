@@ -32,6 +32,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		DeploymentDataSource{},
 		CertificateDataSource{},
+		ConfigurationDataSource{},
 	}
 }
 

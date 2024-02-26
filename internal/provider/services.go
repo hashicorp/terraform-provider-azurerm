@@ -76,6 +76,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
@@ -125,6 +126,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/trafficmanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/videoanalyzer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware"
@@ -160,6 +162,8 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		databoxedge.Registration{},
 		databricks.Registration{},
 		datafactory.Registration{},
+		dataprotection.Registration{},
+		desktopvirtualization.Registration{},
 		digitaltwins.Registration{},
 		disks.Registration{},
 		domainservices.Registration{},
@@ -176,8 +180,9 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		labservice.Registration{},
 		loadbalancer.Registration{},
 		loganalytics.Registration{},
-		media.Registration{},
 		machinelearning.Registration{},
+		managedhsm.Registration{},
+		media.Registration{},
 		monitor.Registration{},
 		mobilenetwork.Registration{},
 		mssql.Registration{},
@@ -207,6 +212,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		search.Registration{},
 		springcloud.Registration{},
 		securitycenter.Registration{},
+		systemcentervirtualmachinemanager.Registration{},
 		vmware.Registration{},
 		voiceservices.Registration{},
 		web.Registration{},
@@ -278,6 +284,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			managedapplications.Registration{},
 			lighthouse.Registration{},
 			managementgroup.Registration{},
+			managedhsm.Registration{},
 			maps.Registration{},
 			mariadb.Registration{},
 			media.Registration{},

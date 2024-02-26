@@ -10,9 +10,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 // @tombuildsstuff: these have been ported over from the Azure SDK for Go since the service team has removed them
@@ -291,7 +292,7 @@ func flattenDataFactorySnowflakeSchemaColumns(input interface{}) []interface{} {
 
 func deserializeDataFactoryPipelineActivities(jsonData string) (*[]datafactory.BasicActivity, error) {
 	jsonData = fmt.Sprintf(`{ "activities": %s }`, jsonData)
-	pipeline := &datafactory.Pipeline{}
+	pipeline := &azuresdkhacks.Pipeline{}
 	err := pipeline.UnmarshalJSON([]byte(jsonData))
 	if err != nil {
 		return nil, err

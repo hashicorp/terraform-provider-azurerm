@@ -7,10 +7,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
-	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"          // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	scheduledqueryrules2018 "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
@@ -43,10 +43,9 @@ type Client struct {
 
 	// Monitor
 	ActionGroupsClient                   *actiongroupsapis.ActionGroupsAPIsClient
-	ActivityLogsClient                   *classic.ActivityLogsClient
+	ActivityLogsClient                   *activitylogs.ActivityLogsClient
 	ActivityLogAlertsClient              *activitylogalertsapis.ActivityLogAlertsAPIsClient
 	AlertPrometheusRuleGroupClient       *prometheusrulegroups.PrometheusRuleGroupsClient
-	AlertRulesClient                     *classic.AlertRulesClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
 	DataCollectionRuleAssociationsClient *datacollectionruleassociations.DataCollectionRuleAssociationsClient
 	DataCollectionRulesClient            *datacollectionrules.DataCollectionRulesClient
@@ -86,7 +85,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ActionGroupsClient := actiongroupsapis.NewActionGroupsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	activityLogsClient := classic.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	activityLogsClient := activitylogs.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&activityLogsClient.Client, o.ResourceManagerAuthorizer)
 
 	ActivityLogAlertsClient := activitylogalertsapis.NewActivityLogAlertsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
@@ -97,9 +96,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building PrometheusRuleGroups client: %+v", err)
 	}
 	o.Configure(alertPrometheusRuleGroupClient.Client, o.Authorizers.ResourceManager)
-
-	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	DataCollectionEndpointsClient := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&DataCollectionEndpointsClient.Client, o.ResourceManagerAuthorizer)
@@ -146,7 +142,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ActivityLogsClient:                   &activityLogsClient,
 		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
 		AlertPrometheusRuleGroupClient:       alertPrometheusRuleGroupClient,
-		AlertRulesClient:                     &AlertRulesClient,
 		AlertProcessingRulesClient:           alertProcessingRulesClient,
 		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,
 		DataCollectionRuleAssociationsClient: &DataCollectionRuleAssociationsClient,

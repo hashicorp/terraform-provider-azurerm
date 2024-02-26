@@ -196,6 +196,13 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				},
 			},
 
+			"vm_template": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -220,6 +227,15 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	personalDesktopAssignmentType := hostpool.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string))
+	vmTemplate := d.Get("vm_template").(string)
+	if vmTemplate != "" {
+		// we have no use with the json object as azure accepts string only
+		// merely here for validation
+		_, err := pluginsdk.ExpandJsonFromString(vmTemplate)
+		if err != nil {
+			return fmt.Errorf("expanding JSON for `vm_template`: %+v", err)
+		}
+	}
 	payload := hostpool.HostPool{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -235,6 +251,7 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 			PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
 			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
 			AgentUpdate:                   expandAgentUpdateCreate(d.Get("scheduled_agent_updates").([]interface{})),
+			VMTemplate:                    &vmTemplate,
 		},
 	}
 
@@ -305,6 +322,10 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		if d.HasChanges("scheduled_agent_updates") {
 			payload.Properties.AgentUpdate = expandAgentUpdatePatch(d.Get("scheduled_agent_updates").([]interface{}))
 		}
+
+		if d.HasChanges("vm_template") {
+			payload.Properties.VMTemplate = utils.String(d.Get("vm_template").(string))
+		}
 	}
 
 	if _, err := client.Update(ctx, *id, payload); err != nil {
@@ -365,6 +386,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
 		d.Set("scheduled_agent_updates", flattenAgentUpdate(props.AgentUpdate))
+		d.Set("vm_template", props.VMTemplate)
 	}
 
 	return nil
