@@ -1,14 +1,14 @@
 ---
-subcategory: "Nginx"
+subcategory: "NGINX"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nginx_configuration"
 description: |-
-  Manages the configuration for a Nginx Deployment.
+  Manages the configuration for an NGINX Deployment.
 ---
 
 # azurerm_nginx_configuration
 
-Manages the configuration for a Nginx Deployment.
+Manages the configuration for an NGINX Deployment.
 
 ## Example Usage
 
@@ -114,9 +114,9 @@ EOT
 
 The following arguments are supported:
 
-* `nginx_deployment_id` - (Required) The ID of the Nginx Deployment. Changing this forces a new Nginx Configuration to be created.
+* `nginx_deployment_id` - (Required) The ID of the NGINX Deployment. Changing this forces a new NGINX Configuration to be created.
 
-* `root_file` - (Required) Specify the root file path of this Nginx Configuration.
+* `root_file` - (Required) Specify the root file path of this NGINX Configuration.
 
 ---
 
@@ -140,7 +140,7 @@ A `config_file` block supports the following:
 
 A `protected_file` (Protected File) block supports the following:
 
-* `content` - (Required) Specifies the base-64 encoded contents of this config file (Sensitive).
+* `content` - (Required) Specifies the base64 encoded contents of this config file (Sensitive).
 
 * `virtual_path` - (Required) Specify the path of this config file.
 
@@ -148,20 +148,20 @@ A `protected_file` (Protected File) block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of this Nginx Configuration.
+* `id` - The ID of this NGINX Configuration.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Nginx Configuration.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Nginx Configuration.
-* `update` - (Defaults to 10 minutes) Used when updating the Nginx Configuration.
-* `delete` - (Defaults to 10 minutes) Used when deleting the Nginx Configuration.
+* `create` - (Defaults to 30 minutes) Used when creating the NGINX Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Configuration.
+* `update` - (Defaults to 10 minutes) Used when updating the NGINX Configuration.
+* `delete` - (Defaults to 10 minutes) Used when deleting the NGINX Configuration.
 
 ## Import
 
-An Nginx Configuration can be imported using the `resource id`, e.g.
+An NGINX Configuration can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_nginx_configuration.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/dep1/configurations/default

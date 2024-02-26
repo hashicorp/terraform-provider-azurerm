@@ -1,14 +1,14 @@
 ---
-subcategory: "Nginx"
+subcategory: "NGINX"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_nginx_configuration"
 description: |-
-  Gets information about an existing Nginx Configuration.
+  Gets information about an existing NGINX Configuration.
 ---
 
 # Data Source: azurerm_nginx_configuration
 
-Use this data source to access information about an existing Nginx Configuration.
+Use this data source to access information about an existing NGINX Configuration.
 
 ## Example Usage
 
@@ -26,19 +26,19 @@ output "id" {
 
 The following arguments are supported:
 
-* `nginx_deployment_id` - (Required) The ID of the Nginx Deployment.
+* `nginx_deployment_id` - (Required) The ID of the NGINX Deployment.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Nginx Configuration.
+* `id` - The ID of the NGINX Configuration.
 
 * `config_file` - A `config_file` block as defined below.
 
 * `package_data` - The package data for this configuration.
 
-* `root_file` - The root file path of this Nginx Configuration.
+* `root_file` - The root file path of this NGINX Configuration.
 
 ---
 
@@ -52,4 +52,4 @@ A `config_file` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Nginx Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Configuration.
