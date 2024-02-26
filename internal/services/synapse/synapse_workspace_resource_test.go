@@ -754,7 +754,7 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
-  azuread_authentication_only          =  true
+  azuread_authentication_only          = true
 
   customer_managed_key {
     key_versionless_id        = azurerm_key_vault_key.test.versionless_id
