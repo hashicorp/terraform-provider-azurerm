@@ -148,7 +148,7 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Read() sdk.Res
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.Tags = pointer.From(model.Tags)
 
-				scvmmServerId, err := vmmservers.ParseVMmServerID(pointer.From(model.Properties.VMmServerId))
+				scvmmServerId, err := vmmservers.ParseVMmServerIDInsensitively(pointer.From(model.Properties.VMmServerId))
 				if err != nil {
 					return err
 				}
@@ -176,8 +176,10 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Update() sdk.R
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := availabilitysets.ResourcePatch{
-				Tags: pointer.To(model.Tags),
+			parameters := availabilitysets.ResourcePatch{}
+
+			if metadata.ResourceData.HasChange("tags") {
+				parameters.Tags = pointer.To(model.Tags)
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
