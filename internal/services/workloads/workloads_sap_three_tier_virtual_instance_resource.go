@@ -637,10 +637,12 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Elem: &pluginsdk.Resource{
 																Schema: map[string]*pluginsdk.Schema{
 																	"volume_name": {
-																		Type:         pluginsdk.TypeString,
-																		Required:     true,
-																		ForceNew:     true,
-																		ValidateFunc: validation.StringIsNotEmpty,
+																		Type:     pluginsdk.TypeString,
+																		Required: true,
+																		ForceNew: true,
+																		ValidateFunc: validation.StringInSlice([]string{
+																			"default",
+																		}, false),
 																	},
 
 																	"names": {
@@ -649,7 +651,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 																		ForceNew: true,
 																		Elem: &pluginsdk.Schema{
 																			Type:         pluginsdk.TypeString,
-																			ValidateFunc: validation.StringIsNotEmpty,
+																			ValidateFunc: validation.StringLenBetween(1, 80),
 																		},
 																	},
 																},
@@ -767,10 +769,12 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Elem: &pluginsdk.Resource{
 																Schema: map[string]*pluginsdk.Schema{
 																	"volume_name": {
-																		Type:         pluginsdk.TypeString,
-																		Required:     true,
-																		ForceNew:     true,
-																		ValidateFunc: validation.StringIsNotEmpty,
+																		Type:     pluginsdk.TypeString,
+																		Required: true,
+																		ForceNew: true,
+																		ValidateFunc: validation.StringInSlice([]string{
+																			"default",
+																		}, false),
 																	},
 
 																	"names": {
@@ -779,7 +783,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 																		ForceNew: true,
 																		Elem: &pluginsdk.Schema{
 																			Type:         pluginsdk.TypeString,
-																			ValidateFunc: validation.StringIsNotEmpty,
+																			ValidateFunc: validation.StringLenBetween(1, 80),
 																		},
 																	},
 																},
@@ -897,10 +901,15 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 															Elem: &pluginsdk.Resource{
 																Schema: map[string]*pluginsdk.Schema{
 																	"volume_name": {
-																		Type:         pluginsdk.TypeString,
-																		Required:     true,
-																		ForceNew:     true,
-																		ValidateFunc: validation.StringIsNotEmpty,
+																		Type:     pluginsdk.TypeString,
+																		Required: true,
+																		ForceNew: true,
+																		ValidateFunc: validation.StringInSlice([]string{
+																			"hanaData",
+																			"hanaLog",
+																			"hanaShared",
+																			"usrSap",
+																		}, false),
 																	},
 
 																	"names": {
@@ -909,7 +918,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 																		ForceNew: true,
 																		Elem: &pluginsdk.Schema{
 																			Type:         pluginsdk.TypeString,
-																			ValidateFunc: validation.StringIsNotEmpty,
+																			ValidateFunc: validation.StringLenBetween(1, 80),
 																		},
 																	},
 																},

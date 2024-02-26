@@ -468,6 +468,10 @@ A `data_disk` block supports the following:
 
 * `volume_name` - (Required) The name of the Volume. Changing this forces a new resource to be created.
 
+~> **Note:** Possible value for Application Server and Central Server is `default`.
+
+~> **Note:** Possible values for Database Server are `hanaData`, `hanaLog`, `hanaShared` and `usrSap`.
+
 * `names` - (Required) A list of full names of Data Disks per Volume. Changing this forces a new resource to be created.
 
 ---
