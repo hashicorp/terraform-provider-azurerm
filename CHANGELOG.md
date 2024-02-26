@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_ids` property [GH-24919]
 * `azurerm_nginx_deployment` - support for the `automatic_upgrade_channel` property [GH-24867]
 * `azurerm_redis_cache` - allow AAD auth for all SKUs [GH-25006]
+* `azurerm_spring_cloud_configuration_service` - support for the `refresh_interval_in_seconds` property [GH-25009]
 
 BUG FIXES:
 
