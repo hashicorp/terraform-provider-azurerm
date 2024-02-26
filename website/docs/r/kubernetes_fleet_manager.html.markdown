@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `hub_profile` - (Optional) A `hub_profile` block as defined below. The FleetHubProfile configures the Fleet's hub. Changing this forces a new Kubernetes Fleet Manager to be created.
 
+!> **Note:** `hub_profile` is currently not functional and is not passed to the Azure API.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Kubernetes Fleet Manager.
 
 ## Attributes Reference

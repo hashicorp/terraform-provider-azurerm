@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/fleets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -59,7 +59,7 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version"),
 	})
 }
 
@@ -81,7 +81,7 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -97,7 +97,7 @@ func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.ContainerService.V20220902Preview.Fleets.Get(ctx, *id)
+	resp, err := clients.ContainerService.V20231015.Fleets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
