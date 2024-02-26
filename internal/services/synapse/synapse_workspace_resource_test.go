@@ -757,7 +757,7 @@ resource "azurerm_synapse_workspace" "test" {
   azuread_authentication_only          =  true
 
   customer_managed_key {
-    key_versionless_id = azurerm_key_vault_key.test.versionless_id
+    key_versionless_id        = azurerm_key_vault_key.test.versionless_id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
