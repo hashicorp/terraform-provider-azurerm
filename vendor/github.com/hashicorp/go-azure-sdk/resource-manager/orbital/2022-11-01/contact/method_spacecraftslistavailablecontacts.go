@@ -18,12 +18,12 @@ type SpacecraftsListAvailableContactsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]AvailableContacts
+	Model        *[]AvailableContactsListResult
 }
 
 type SpacecraftsListAvailableContactsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []AvailableContacts
+	Items              []AvailableContactsListResult
 }
 
 // SpacecraftsListAvailableContacts ...

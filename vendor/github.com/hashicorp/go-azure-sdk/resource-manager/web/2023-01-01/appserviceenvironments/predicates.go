@@ -306,6 +306,19 @@ func (p UsageOperationPredicate) Matches(input Usage) bool {
 	return true
 }
 
+type WebAppCollectionOperationPredicate struct {
+	NextLink *string
+}
+
+func (p WebAppCollectionOperationPredicate) Matches(input WebAppCollection) bool {
+
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+		return false
+	}
+
+	return true
+}
+
 type WorkerPoolResourceOperationPredicate struct {
 	Id   *string
 	Kind *string

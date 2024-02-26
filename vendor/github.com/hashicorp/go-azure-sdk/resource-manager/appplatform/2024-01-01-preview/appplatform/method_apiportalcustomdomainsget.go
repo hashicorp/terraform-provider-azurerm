@@ -43,7 +43,10 @@ func (c AppPlatformClient) ApiPortalCustomDomainsGet(ctx context.Context, id Api
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiPortalCustomDomainResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

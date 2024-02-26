@@ -80,7 +80,10 @@ func (c LocalRulestacksClient) ListSecurityServices(ctx context.Context, id Loca
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SecurityServicesResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

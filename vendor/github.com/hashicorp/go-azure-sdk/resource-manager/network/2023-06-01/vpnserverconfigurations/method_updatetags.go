@@ -47,7 +47,10 @@ func (c VpnServerConfigurationsClient) UpdateTags(ctx context.Context, id VpnSer
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VpnServerConfiguration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

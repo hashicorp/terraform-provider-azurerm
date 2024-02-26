@@ -3,23 +3,56 @@ package virtualnetworks
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type PublicIPDdosProtectionStatusResultOperationPredicate struct {
-	DdosProtectionPlanId *string
-	PublicIPAddress      *string
-	PublicIPAddressId    *string
+type ResourceNavigationLinkOperationPredicate struct {
+	Etag *string
+	Id   *string
+	Name *string
+	Type *string
 }
 
-func (p PublicIPDdosProtectionStatusResultOperationPredicate) Matches(input PublicIPDdosProtectionStatusResult) bool {
+func (p ResourceNavigationLinkOperationPredicate) Matches(input ResourceNavigationLink) bool {
 
-	if p.DdosProtectionPlanId != nil && (input.DdosProtectionPlanId == nil || *p.DdosProtectionPlanId != *input.DdosProtectionPlanId) {
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
 		return false
 	}
 
-	if p.PublicIPAddress != nil && (input.PublicIPAddress == nil || *p.PublicIPAddress != *input.PublicIPAddress) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 
-	if p.PublicIPAddressId != nil && (input.PublicIPAddressId == nil || *p.PublicIPAddressId != *input.PublicIPAddressId) {
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
+		return false
+	}
+
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
+		return false
+	}
+
+	return true
+}
+
+type ServiceAssociationLinkOperationPredicate struct {
+	Etag *string
+	Id   *string
+	Name *string
+	Type *string
+}
+
+func (p ServiceAssociationLinkOperationPredicate) Matches(input ServiceAssociationLink) bool {
+
+	if p.Etag != nil && (input.Etag == nil || *p.Etag != *input.Etag) {
+		return false
+	}
+
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
+		return false
+	}
+
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
@@ -53,6 +86,19 @@ func (p VirtualNetworkOperationPredicate) Matches(input VirtualNetwork) bool {
 	}
 
 	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
+		return false
+	}
+
+	return true
+}
+
+type VirtualNetworkDdosProtectionStatusResultOperationPredicate struct {
+	NextLink *string
+}
+
+func (p VirtualNetworkDdosProtectionStatusResultOperationPredicate) Matches(input VirtualNetworkDdosProtectionStatusResult) bool {
+
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

@@ -16,12 +16,12 @@ import (
 type ListByVirtualNetworkOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]VirtualNetworkDnsForwardingRuleset
+	Model        *[]VirtualNetworkDnsForwardingRulesetListResult
 }
 
 type ListByVirtualNetworkCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []VirtualNetworkDnsForwardingRuleset
+	Items              []VirtualNetworkDnsForwardingRulesetListResult
 }
 
 type ListByVirtualNetworkOperationOptions struct {
@@ -79,7 +79,7 @@ func (c DnsForwardingRulesetsClient) ListByVirtualNetwork(ctx context.Context, i
 	}
 
 	var values struct {
-		Values *[]VirtualNetworkDnsForwardingRuleset `json:"value"`
+		Values *[]VirtualNetworkDnsForwardingRulesetListResult `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -92,12 +92,12 @@ func (c DnsForwardingRulesetsClient) ListByVirtualNetwork(ctx context.Context, i
 
 // ListByVirtualNetworkComplete retrieves all the results into a single object
 func (c DnsForwardingRulesetsClient) ListByVirtualNetworkComplete(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (ListByVirtualNetworkCompleteResult, error) {
-	return c.ListByVirtualNetworkCompleteMatchingPredicate(ctx, id, options, VirtualNetworkDnsForwardingRulesetOperationPredicate{})
+	return c.ListByVirtualNetworkCompleteMatchingPredicate(ctx, id, options, VirtualNetworkDnsForwardingRulesetListResultOperationPredicate{})
 }
 
 // ListByVirtualNetworkCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c DnsForwardingRulesetsClient) ListByVirtualNetworkCompleteMatchingPredicate(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions, predicate VirtualNetworkDnsForwardingRulesetOperationPredicate) (result ListByVirtualNetworkCompleteResult, err error) {
-	items := make([]VirtualNetworkDnsForwardingRuleset, 0)
+func (c DnsForwardingRulesetsClient) ListByVirtualNetworkCompleteMatchingPredicate(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions, predicate VirtualNetworkDnsForwardingRulesetListResultOperationPredicate) (result ListByVirtualNetworkCompleteResult, err error) {
+	items := make([]VirtualNetworkDnsForwardingRulesetListResult, 0)
 
 	resp, err := c.ListByVirtualNetwork(ctx, id, options)
 	if err != nil {

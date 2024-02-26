@@ -80,7 +80,10 @@ func (c LocalRulestacksClient) ListAdvancedSecurityObjects(ctx context.Context, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AdvSecurityObjectListResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

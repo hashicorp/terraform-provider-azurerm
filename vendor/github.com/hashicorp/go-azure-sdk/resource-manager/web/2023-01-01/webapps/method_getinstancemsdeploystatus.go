@@ -44,7 +44,10 @@ func (c WebAppsClient) GetInstanceMsDeployStatus(ctx context.Context, id Instanc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MSDeployStatus
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

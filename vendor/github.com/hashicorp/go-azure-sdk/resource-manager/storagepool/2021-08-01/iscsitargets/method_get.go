@@ -43,7 +43,10 @@ func (c IscsiTargetsClient) Get(ctx context.Context, id IscsiTargetId) (result G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IscsiTarget
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

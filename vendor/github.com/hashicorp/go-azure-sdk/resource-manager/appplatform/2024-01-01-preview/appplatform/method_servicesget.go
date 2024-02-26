@@ -44,7 +44,10 @@ func (c AppPlatformClient) ServicesGet(ctx context.Context, id commonids.SpringC
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServiceResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

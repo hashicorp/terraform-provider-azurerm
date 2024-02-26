@@ -76,7 +76,10 @@ func (c LocalRulestacksClient) ListCountries(ctx context.Context, id LocalRulest
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CountriesResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

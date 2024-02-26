@@ -72,7 +72,10 @@ func (c ExportsClient) Get(ctx context.Context, id ScopedExportId, options GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Export
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

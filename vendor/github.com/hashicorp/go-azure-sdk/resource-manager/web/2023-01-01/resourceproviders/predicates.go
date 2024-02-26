@@ -143,28 +143,13 @@ func (p GeoRegionOperationPredicate) Matches(input GeoRegion) bool {
 	return true
 }
 
-type IdentifierOperationPredicate struct {
-	Id   *string
-	Kind *string
-	Name *string
-	Type *string
+type IdentifierCollectionOperationPredicate struct {
+	NextLink *string
 }
 
-func (p IdentifierOperationPredicate) Matches(input Identifier) bool {
+func (p IdentifierCollectionOperationPredicate) Matches(input IdentifierCollection) bool {
 
-	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
-		return false
-	}
-
-	if p.Kind != nil && (input.Kind == nil || *p.Kind != *input.Kind) {
-		return false
-	}
-
-	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
-		return false
-	}
-
-	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

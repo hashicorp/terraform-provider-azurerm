@@ -44,7 +44,10 @@ func (c FirewallStatusClient) Get(ctx context.Context, id FirewallId) (result Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FirewallStatusResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

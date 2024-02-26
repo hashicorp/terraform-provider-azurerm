@@ -47,7 +47,10 @@ func (c ManagedClusterSnapshotsClient) UpdateTags(ctx context.Context, id Manage
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedClusterSnapshot
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

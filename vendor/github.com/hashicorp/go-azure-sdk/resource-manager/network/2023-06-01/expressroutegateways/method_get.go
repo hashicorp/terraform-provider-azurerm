@@ -43,7 +43,10 @@ func (c ExpressRouteGatewaysClient) Get(ctx context.Context, id ExpressRouteGate
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRouteGateway
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -5,7 +5,7 @@ package projects
 
 type ProjectProperties struct {
 	Description        *string            `json:"description,omitempty"`
-	DevCenterId        string             `json:"devCenterId"`
+	DevCenterId        *string            `json:"devCenterId,omitempty"`
 	DevCenterUri       *string            `json:"devCenterUri,omitempty"`
 	MaxDevBoxesPerUser *int64             `json:"maxDevBoxesPerUser,omitempty"`
 	ProvisioningState  *ProvisioningState `json:"provisioningState,omitempty"`

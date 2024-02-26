@@ -19,12 +19,12 @@ type ResumeOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]Site
+	Model        *[]WebAppCollection
 }
 
 type ResumeCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []Site
+	Items              []WebAppCollection
 }
 
 // Resume ...

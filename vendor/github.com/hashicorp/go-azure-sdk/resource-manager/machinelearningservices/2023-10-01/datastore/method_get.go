@@ -43,7 +43,10 @@ func (c DatastoreClient) Get(ctx context.Context, id DataStoreId) (result GetOpe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatastoreResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

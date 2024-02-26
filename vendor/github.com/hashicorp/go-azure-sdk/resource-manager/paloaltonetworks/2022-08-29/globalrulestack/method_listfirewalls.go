@@ -44,7 +44,10 @@ func (c GlobalRulestackClient) ListFirewalls(ctx context.Context, id GlobalRules
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ListFirewallsResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

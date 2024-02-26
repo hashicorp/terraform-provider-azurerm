@@ -25,3 +25,16 @@ func (p LogAnalyticsQueryPackQueryOperationPredicate) Matches(input LogAnalytics
 
 	return true
 }
+
+type LogAnalyticsQueryPackQueryListResultOperationPredicate struct {
+	NextLink *string
+}
+
+func (p LogAnalyticsQueryPackQueryListResultOperationPredicate) Matches(input LogAnalyticsQueryPackQueryListResult) bool {
+
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+		return false
+	}
+
+	return true
+}

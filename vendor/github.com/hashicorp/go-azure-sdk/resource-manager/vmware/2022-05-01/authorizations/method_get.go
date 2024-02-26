@@ -43,7 +43,10 @@ func (c AuthorizationsClient) Get(ctx context.Context, id AuthorizationId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRouteAuthorization
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

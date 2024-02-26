@@ -43,7 +43,10 @@ func (c EncodingsClient) JobsGet(ctx context.Context, id JobId) (result JobsGetO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Job
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -15,12 +15,12 @@ import (
 type ListSlotDifferencesSlotOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]SlotDifference
+	Model        *[]SlotDifferenceCollection
 }
 
 type ListSlotDifferencesSlotCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []SlotDifference
+	Items              []SlotDifferenceCollection
 }
 
 // ListSlotDifferencesSlot ...
@@ -50,7 +50,7 @@ func (c WebAppsClient) ListSlotDifferencesSlot(ctx context.Context, id SlotId, i
 	}
 
 	var values struct {
-		Values *[]SlotDifference `json:"value"`
+		Values *[]SlotDifferenceCollection `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c WebAppsClient) ListSlotDifferencesSlot(ctx context.Context, id SlotId, i
 
 // ListSlotDifferencesSlotComplete retrieves all the results into a single object
 func (c WebAppsClient) ListSlotDifferencesSlotComplete(ctx context.Context, id SlotId, input CsmSlotEntity) (ListSlotDifferencesSlotCompleteResult, error) {
-	return c.ListSlotDifferencesSlotCompleteMatchingPredicate(ctx, id, input, SlotDifferenceOperationPredicate{})
+	return c.ListSlotDifferencesSlotCompleteMatchingPredicate(ctx, id, input, SlotDifferenceCollectionOperationPredicate{})
 }
 
 // ListSlotDifferencesSlotCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c WebAppsClient) ListSlotDifferencesSlotCompleteMatchingPredicate(ctx context.Context, id SlotId, input CsmSlotEntity, predicate SlotDifferenceOperationPredicate) (result ListSlotDifferencesSlotCompleteResult, err error) {
-	items := make([]SlotDifference, 0)
+func (c WebAppsClient) ListSlotDifferencesSlotCompleteMatchingPredicate(ctx context.Context, id SlotId, input CsmSlotEntity, predicate SlotDifferenceCollectionOperationPredicate) (result ListSlotDifferencesSlotCompleteResult, err error) {
+	items := make([]SlotDifferenceCollection, 0)
 
 	resp, err := c.ListSlotDifferencesSlot(ctx, id, input)
 	if err != nil {

@@ -31,43 +31,13 @@ func (p AppOperationPredicate) Matches(input App) bool {
 	return true
 }
 
-type AppTemplateOperationPredicate struct {
-	Description     *string
-	Industry        *string
-	ManifestId      *string
-	ManifestVersion *string
-	Name            *string
-	Order           *float64
-	Title           *string
+type AppTemplatesResultOperationPredicate struct {
+	NextLink *string
 }
 
-func (p AppTemplateOperationPredicate) Matches(input AppTemplate) bool {
+func (p AppTemplatesResultOperationPredicate) Matches(input AppTemplatesResult) bool {
 
-	if p.Description != nil && (input.Description == nil || *p.Description != *input.Description) {
-		return false
-	}
-
-	if p.Industry != nil && (input.Industry == nil || *p.Industry != *input.Industry) {
-		return false
-	}
-
-	if p.ManifestId != nil && (input.ManifestId == nil || *p.ManifestId != *input.ManifestId) {
-		return false
-	}
-
-	if p.ManifestVersion != nil && (input.ManifestVersion == nil || *p.ManifestVersion != *input.ManifestVersion) {
-		return false
-	}
-
-	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
-		return false
-	}
-
-	if p.Order != nil && (input.Order == nil || *p.Order != *input.Order) {
-		return false
-	}
-
-	if p.Title != nil && (input.Title == nil || *p.Title != *input.Title) {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

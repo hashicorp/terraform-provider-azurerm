@@ -47,7 +47,10 @@ func (c WebAppsClient) CreateOrUpdateVnetConnection(ctx context.Context, id Virt
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VnetInfoResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -76,7 +76,10 @@ func (c LocalRulestacksClient) ListPredefinedUrlCategories(ctx context.Context, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PredefinedUrlCategoriesResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

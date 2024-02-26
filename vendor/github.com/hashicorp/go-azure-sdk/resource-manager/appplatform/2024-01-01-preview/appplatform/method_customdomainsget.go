@@ -43,7 +43,10 @@ func (c AppPlatformClient) CustomDomainsGet(ctx context.Context, id DomainId) (r
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomDomainResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

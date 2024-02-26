@@ -146,7 +146,7 @@ func (p P2SVpnGatewayOperationPredicate) Matches(input P2SVpnGateway) bool {
 		return false
 	}
 
-	if p.Location != nil && *p.Location != input.Location {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 
@@ -240,7 +240,7 @@ func (p VirtualHubOperationPredicate) Matches(input VirtualHub) bool {
 		return false
 	}
 
-	if p.Location != nil && *p.Location != input.Location {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 
@@ -296,7 +296,7 @@ func (p VirtualWANOperationPredicate) Matches(input VirtualWAN) bool {
 		return false
 	}
 
-	if p.Location != nil && *p.Location != input.Location {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 
@@ -352,7 +352,7 @@ func (p VpnGatewayOperationPredicate) Matches(input VpnGateway) bool {
 		return false
 	}
 
-	if p.Location != nil && *p.Location != input.Location {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 
@@ -474,7 +474,7 @@ func (p VpnSiteOperationPredicate) Matches(input VpnSite) bool {
 		return false
 	}
 
-	if p.Location != nil && *p.Location != input.Location {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 

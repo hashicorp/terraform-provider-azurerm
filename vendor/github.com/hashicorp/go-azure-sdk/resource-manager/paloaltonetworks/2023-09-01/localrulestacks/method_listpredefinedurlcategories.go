@@ -15,12 +15,12 @@ import (
 type ListPredefinedUrlCategoriesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]PredefinedUrlCategory
+	Model        *[]PredefinedUrlCategoriesResponse
 }
 
 type ListPredefinedUrlCategoriesCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []PredefinedUrlCategory
+	Items              []PredefinedUrlCategoriesResponse
 }
 
 type ListPredefinedUrlCategoriesOperationOptions struct {
@@ -82,7 +82,7 @@ func (c LocalRulestacksClient) ListPredefinedUrlCategories(ctx context.Context, 
 	}
 
 	var values struct {
-		Values *[]PredefinedUrlCategory `json:"value"`
+		Values *[]PredefinedUrlCategoriesResponse `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -95,12 +95,12 @@ func (c LocalRulestacksClient) ListPredefinedUrlCategories(ctx context.Context, 
 
 // ListPredefinedUrlCategoriesComplete retrieves all the results into a single object
 func (c LocalRulestacksClient) ListPredefinedUrlCategoriesComplete(ctx context.Context, id LocalRulestackId, options ListPredefinedUrlCategoriesOperationOptions) (ListPredefinedUrlCategoriesCompleteResult, error) {
-	return c.ListPredefinedUrlCategoriesCompleteMatchingPredicate(ctx, id, options, PredefinedUrlCategoryOperationPredicate{})
+	return c.ListPredefinedUrlCategoriesCompleteMatchingPredicate(ctx, id, options, PredefinedUrlCategoriesResponseOperationPredicate{})
 }
 
 // ListPredefinedUrlCategoriesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c LocalRulestacksClient) ListPredefinedUrlCategoriesCompleteMatchingPredicate(ctx context.Context, id LocalRulestackId, options ListPredefinedUrlCategoriesOperationOptions, predicate PredefinedUrlCategoryOperationPredicate) (result ListPredefinedUrlCategoriesCompleteResult, err error) {
-	items := make([]PredefinedUrlCategory, 0)
+func (c LocalRulestacksClient) ListPredefinedUrlCategoriesCompleteMatchingPredicate(ctx context.Context, id LocalRulestackId, options ListPredefinedUrlCategoriesOperationOptions, predicate PredefinedUrlCategoriesResponseOperationPredicate) (result ListPredefinedUrlCategoriesCompleteResult, err error) {
+	items := make([]PredefinedUrlCategoriesResponse, 0)
 
 	resp, err := c.ListPredefinedUrlCategories(ctx, id, options)
 	if err != nil {

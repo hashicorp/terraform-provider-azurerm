@@ -15,12 +15,12 @@ import (
 type ListSynchronizationsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]ShareSynchronization
+	Model        *[]ShareSynchronizationList
 }
 
 type ListSynchronizationsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []ShareSynchronization
+	Items              []ShareSynchronizationList
 }
 
 type ListSynchronizationsOperationOptions struct {
@@ -82,7 +82,7 @@ func (c ShareClient) ListSynchronizations(ctx context.Context, id ShareId, optio
 	}
 
 	var values struct {
-		Values *[]ShareSynchronization `json:"value"`
+		Values *[]ShareSynchronizationList `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -95,12 +95,12 @@ func (c ShareClient) ListSynchronizations(ctx context.Context, id ShareId, optio
 
 // ListSynchronizationsComplete retrieves all the results into a single object
 func (c ShareClient) ListSynchronizationsComplete(ctx context.Context, id ShareId, options ListSynchronizationsOperationOptions) (ListSynchronizationsCompleteResult, error) {
-	return c.ListSynchronizationsCompleteMatchingPredicate(ctx, id, options, ShareSynchronizationOperationPredicate{})
+	return c.ListSynchronizationsCompleteMatchingPredicate(ctx, id, options, ShareSynchronizationListOperationPredicate{})
 }
 
 // ListSynchronizationsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ShareClient) ListSynchronizationsCompleteMatchingPredicate(ctx context.Context, id ShareId, options ListSynchronizationsOperationOptions, predicate ShareSynchronizationOperationPredicate) (result ListSynchronizationsCompleteResult, err error) {
-	items := make([]ShareSynchronization, 0)
+func (c ShareClient) ListSynchronizationsCompleteMatchingPredicate(ctx context.Context, id ShareId, options ListSynchronizationsOperationOptions, predicate ShareSynchronizationListOperationPredicate) (result ListSynchronizationsCompleteResult, err error) {
+	items := make([]ShareSynchronizationList, 0)
 
 	resp, err := c.ListSynchronizations(ctx, id, options)
 	if err != nil {

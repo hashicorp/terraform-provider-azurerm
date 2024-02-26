@@ -72,7 +72,10 @@ func (c VirtualMachinesClient) RetrieveBootDiagnosticsData(ctx context.Context, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RetrieveBootDiagnosticsDataResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

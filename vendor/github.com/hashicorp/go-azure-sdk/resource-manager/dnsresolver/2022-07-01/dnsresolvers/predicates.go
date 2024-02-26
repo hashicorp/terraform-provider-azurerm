@@ -36,13 +36,13 @@ func (p DnsResolverOperationPredicate) Matches(input DnsResolver) bool {
 	return true
 }
 
-type SubResourceOperationPredicate struct {
-	Id *string
+type SubResourceListResultOperationPredicate struct {
+	NextLink *string
 }
 
-func (p SubResourceOperationPredicate) Matches(input SubResource) bool {
+func (p SubResourceListResultOperationPredicate) Matches(input SubResourceListResult) bool {
 
-	if p.Id != nil && *p.Id != input.Id {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

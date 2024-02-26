@@ -15,12 +15,12 @@ import (
 type ListCountriesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]Country
+	Model        *[]CountriesResponse
 }
 
 type ListCountriesCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []Country
+	Items              []CountriesResponse
 }
 
 type ListCountriesOperationOptions struct {
@@ -82,7 +82,7 @@ func (c LocalRulestacksClient) ListCountries(ctx context.Context, id LocalRulest
 	}
 
 	var values struct {
-		Values *[]Country `json:"value"`
+		Values *[]CountriesResponse `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -95,12 +95,12 @@ func (c LocalRulestacksClient) ListCountries(ctx context.Context, id LocalRulest
 
 // ListCountriesComplete retrieves all the results into a single object
 func (c LocalRulestacksClient) ListCountriesComplete(ctx context.Context, id LocalRulestackId, options ListCountriesOperationOptions) (ListCountriesCompleteResult, error) {
-	return c.ListCountriesCompleteMatchingPredicate(ctx, id, options, CountryOperationPredicate{})
+	return c.ListCountriesCompleteMatchingPredicate(ctx, id, options, CountriesResponseOperationPredicate{})
 }
 
 // ListCountriesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c LocalRulestacksClient) ListCountriesCompleteMatchingPredicate(ctx context.Context, id LocalRulestackId, options ListCountriesOperationOptions, predicate CountryOperationPredicate) (result ListCountriesCompleteResult, err error) {
-	items := make([]Country, 0)
+func (c LocalRulestacksClient) ListCountriesCompleteMatchingPredicate(ctx context.Context, id LocalRulestackId, options ListCountriesOperationOptions, predicate CountriesResponseOperationPredicate) (result ListCountriesCompleteResult, err error) {
+	items := make([]CountriesResponse, 0)
 
 	resp, err := c.ListCountries(ctx, id, options)
 	if err != nil {

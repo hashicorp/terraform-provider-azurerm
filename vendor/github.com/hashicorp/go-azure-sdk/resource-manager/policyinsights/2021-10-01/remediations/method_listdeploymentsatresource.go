@@ -15,12 +15,12 @@ import (
 type ListDeploymentsAtResourceOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]RemediationDeployment
+	Model        *[]RemediationDeploymentsListResult
 }
 
 type ListDeploymentsAtResourceCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []RemediationDeployment
+	Items              []RemediationDeploymentsListResult
 }
 
 type ListDeploymentsAtResourceOperationOptions struct {
@@ -78,7 +78,7 @@ func (c RemediationsClient) ListDeploymentsAtResource(ctx context.Context, id Sc
 	}
 
 	var values struct {
-		Values *[]RemediationDeployment `json:"value"`
+		Values *[]RemediationDeploymentsListResult `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -91,12 +91,12 @@ func (c RemediationsClient) ListDeploymentsAtResource(ctx context.Context, id Sc
 
 // ListDeploymentsAtResourceComplete retrieves all the results into a single object
 func (c RemediationsClient) ListDeploymentsAtResourceComplete(ctx context.Context, id ScopedRemediationId, options ListDeploymentsAtResourceOperationOptions) (ListDeploymentsAtResourceCompleteResult, error) {
-	return c.ListDeploymentsAtResourceCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
+	return c.ListDeploymentsAtResourceCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentsListResultOperationPredicate{})
 }
 
 // ListDeploymentsAtResourceCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c RemediationsClient) ListDeploymentsAtResourceCompleteMatchingPredicate(ctx context.Context, id ScopedRemediationId, options ListDeploymentsAtResourceOperationOptions, predicate RemediationDeploymentOperationPredicate) (result ListDeploymentsAtResourceCompleteResult, err error) {
-	items := make([]RemediationDeployment, 0)
+func (c RemediationsClient) ListDeploymentsAtResourceCompleteMatchingPredicate(ctx context.Context, id ScopedRemediationId, options ListDeploymentsAtResourceOperationOptions, predicate RemediationDeploymentsListResultOperationPredicate) (result ListDeploymentsAtResourceCompleteResult, err error) {
+	items := make([]RemediationDeploymentsListResult, 0)
 
 	resp, err := c.ListDeploymentsAtResource(ctx, id, options)
 	if err != nil {

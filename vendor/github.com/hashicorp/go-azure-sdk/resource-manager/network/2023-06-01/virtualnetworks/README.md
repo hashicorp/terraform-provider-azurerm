@@ -106,12 +106,13 @@ for _, item := range items {
 ctx := context.TODO()
 id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
 
-read, err := client.ResourceNavigationLinksList(ctx, id)
+// alternatively `client.ResourceNavigationLinksList(ctx, id)` can be used to do batched pagination
+items, err := client.ResourceNavigationLinksListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -122,12 +123,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
 
-read, err := client.ServiceAssociationLinksList(ctx, id)
+// alternatively `client.ServiceAssociationLinksList(ctx, id)` can be used to do batched pagination
+items, err := client.ServiceAssociationLinksListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

@@ -43,7 +43,10 @@ func (c CertificateObjectGlobalRulestackClient) Get(ctx context.Context, id Cert
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CertificateObjectGlobalRulestackResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

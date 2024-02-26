@@ -15,12 +15,12 @@ import (
 type ListVhdsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]LabVhd
+	Model        *[]LabVhdList
 }
 
 type ListVhdsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []LabVhd
+	Items              []LabVhdList
 }
 
 // ListVhds ...
@@ -50,7 +50,7 @@ func (c LabsClient) ListVhds(ctx context.Context, id LabId) (result ListVhdsOper
 	}
 
 	var values struct {
-		Values *[]LabVhd `json:"value"`
+		Values *[]LabVhdList `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c LabsClient) ListVhds(ctx context.Context, id LabId) (result ListVhdsOper
 
 // ListVhdsComplete retrieves all the results into a single object
 func (c LabsClient) ListVhdsComplete(ctx context.Context, id LabId) (ListVhdsCompleteResult, error) {
-	return c.ListVhdsCompleteMatchingPredicate(ctx, id, LabVhdOperationPredicate{})
+	return c.ListVhdsCompleteMatchingPredicate(ctx, id, LabVhdListOperationPredicate{})
 }
 
 // ListVhdsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c LabsClient) ListVhdsCompleteMatchingPredicate(ctx context.Context, id LabId, predicate LabVhdOperationPredicate) (result ListVhdsCompleteResult, err error) {
-	items := make([]LabVhd, 0)
+func (c LabsClient) ListVhdsCompleteMatchingPredicate(ctx context.Context, id LabId, predicate LabVhdListOperationPredicate) (result ListVhdsCompleteResult, err error) {
+	items := make([]LabVhdList, 0)
 
 	resp, err := c.ListVhds(ctx, id)
 	if err != nil {

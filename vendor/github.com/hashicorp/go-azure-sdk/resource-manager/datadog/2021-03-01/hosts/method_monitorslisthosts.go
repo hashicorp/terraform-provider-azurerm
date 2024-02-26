@@ -15,12 +15,12 @@ import (
 type MonitorsListHostsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]DatadogHost
+	Model        *[]DatadogHostListResponse
 }
 
 type MonitorsListHostsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []DatadogHost
+	Items              []DatadogHostListResponse
 }
 
 // MonitorsListHosts ...
@@ -50,7 +50,7 @@ func (c HostsClient) MonitorsListHosts(ctx context.Context, id MonitorId) (resul
 	}
 
 	var values struct {
-		Values *[]DatadogHost `json:"value"`
+		Values *[]DatadogHostListResponse `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c HostsClient) MonitorsListHosts(ctx context.Context, id MonitorId) (resul
 
 // MonitorsListHostsComplete retrieves all the results into a single object
 func (c HostsClient) MonitorsListHostsComplete(ctx context.Context, id MonitorId) (MonitorsListHostsCompleteResult, error) {
-	return c.MonitorsListHostsCompleteMatchingPredicate(ctx, id, DatadogHostOperationPredicate{})
+	return c.MonitorsListHostsCompleteMatchingPredicate(ctx, id, DatadogHostListResponseOperationPredicate{})
 }
 
 // MonitorsListHostsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c HostsClient) MonitorsListHostsCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate DatadogHostOperationPredicate) (result MonitorsListHostsCompleteResult, err error) {
-	items := make([]DatadogHost, 0)
+func (c HostsClient) MonitorsListHostsCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate DatadogHostListResponseOperationPredicate) (result MonitorsListHostsCompleteResult, err error) {
+	items := make([]DatadogHostListResponse, 0)
 
 	resp, err := c.MonitorsListHosts(ctx, id)
 	if err != nil {

@@ -15,12 +15,12 @@ import (
 type ListApplicableOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]Schedule
+	Model        *[]ScheduleList
 }
 
 type ListApplicableCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []Schedule
+	Items              []ScheduleList
 }
 
 // ListApplicable ...
@@ -50,7 +50,7 @@ func (c SchedulesClient) ListApplicable(ctx context.Context, id LabScheduleId) (
 	}
 
 	var values struct {
-		Values *[]Schedule `json:"value"`
+		Values *[]ScheduleList `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c SchedulesClient) ListApplicable(ctx context.Context, id LabScheduleId) (
 
 // ListApplicableComplete retrieves all the results into a single object
 func (c SchedulesClient) ListApplicableComplete(ctx context.Context, id LabScheduleId) (ListApplicableCompleteResult, error) {
-	return c.ListApplicableCompleteMatchingPredicate(ctx, id, ScheduleOperationPredicate{})
+	return c.ListApplicableCompleteMatchingPredicate(ctx, id, ScheduleListOperationPredicate{})
 }
 
 // ListApplicableCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c SchedulesClient) ListApplicableCompleteMatchingPredicate(ctx context.Context, id LabScheduleId, predicate ScheduleOperationPredicate) (result ListApplicableCompleteResult, err error) {
-	items := make([]Schedule, 0)
+func (c SchedulesClient) ListApplicableCompleteMatchingPredicate(ctx context.Context, id LabScheduleId, predicate ScheduleListOperationPredicate) (result ListApplicableCompleteResult, err error) {
+	items := make([]ScheduleList, 0)
 
 	resp, err := c.ListApplicable(ctx, id)
 	if err != nil {

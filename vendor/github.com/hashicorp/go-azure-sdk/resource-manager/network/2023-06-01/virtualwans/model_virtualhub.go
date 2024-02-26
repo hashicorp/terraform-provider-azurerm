@@ -7,7 +7,7 @@ type VirtualHub struct {
 	Etag       *string               `json:"etag,omitempty"`
 	Id         *string               `json:"id,omitempty"`
 	Kind       *string               `json:"kind,omitempty"`
-	Location   string                `json:"location"`
+	Location   *string               `json:"location,omitempty"`
 	Name       *string               `json:"name,omitempty"`
 	Properties *VirtualHubProperties `json:"properties,omitempty"`
 	Tags       *map[string]string    `json:"tags,omitempty"`

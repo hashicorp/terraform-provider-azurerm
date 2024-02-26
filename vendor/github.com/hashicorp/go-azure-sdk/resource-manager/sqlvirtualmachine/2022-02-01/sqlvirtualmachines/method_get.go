@@ -72,7 +72,10 @@ func (c SqlVirtualMachinesClient) Get(ctx context.Context, id SqlVirtualMachineI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SqlVirtualMachine
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

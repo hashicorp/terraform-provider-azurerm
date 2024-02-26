@@ -3,38 +3,13 @@ package configurationstores
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ApiKeyOperationPredicate struct {
-	ConnectionString *string
-	Id               *string
-	LastModified     *string
-	Name             *string
-	ReadOnly         *bool
-	Value            *string
+type ApiKeyListResultOperationPredicate struct {
+	NextLink *string
 }
 
-func (p ApiKeyOperationPredicate) Matches(input ApiKey) bool {
+func (p ApiKeyListResultOperationPredicate) Matches(input ApiKeyListResult) bool {
 
-	if p.ConnectionString != nil && (input.ConnectionString == nil || *p.ConnectionString != *input.ConnectionString) {
-		return false
-	}
-
-	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
-		return false
-	}
-
-	if p.LastModified != nil && (input.LastModified == nil || *p.LastModified != *input.LastModified) {
-		return false
-	}
-
-	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
-		return false
-	}
-
-	if p.ReadOnly != nil && (input.ReadOnly == nil || *p.ReadOnly != *input.ReadOnly) {
-		return false
-	}
-
-	if p.Value != nil && (input.Value == nil || *p.Value != *input.Value) {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

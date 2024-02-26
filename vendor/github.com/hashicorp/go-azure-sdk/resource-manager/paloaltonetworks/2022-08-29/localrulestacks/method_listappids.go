@@ -84,7 +84,10 @@ func (c LocalRulestacksClient) ListAppIds(ctx context.Context, id LocalRulestack
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ListAppIdResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

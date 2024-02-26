@@ -15,12 +15,12 @@ import (
 type DisconnectActiveSessionsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]BastionSessionState
+	Model        *[]BastionSessionDeleteResult
 }
 
 type DisconnectActiveSessionsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []BastionSessionState
+	Items              []BastionSessionDeleteResult
 }
 
 // DisconnectActiveSessions ...
@@ -50,7 +50,7 @@ func (c BastionHostsClient) DisconnectActiveSessions(ctx context.Context, id Bas
 	}
 
 	var values struct {
-		Values *[]BastionSessionState `json:"value"`
+		Values *[]BastionSessionDeleteResult `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c BastionHostsClient) DisconnectActiveSessions(ctx context.Context, id Bas
 
 // DisconnectActiveSessionsComplete retrieves all the results into a single object
 func (c BastionHostsClient) DisconnectActiveSessionsComplete(ctx context.Context, id BastionHostId, input SessionIds) (DisconnectActiveSessionsCompleteResult, error) {
-	return c.DisconnectActiveSessionsCompleteMatchingPredicate(ctx, id, input, BastionSessionStateOperationPredicate{})
+	return c.DisconnectActiveSessionsCompleteMatchingPredicate(ctx, id, input, BastionSessionDeleteResultOperationPredicate{})
 }
 
 // DisconnectActiveSessionsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c BastionHostsClient) DisconnectActiveSessionsCompleteMatchingPredicate(ctx context.Context, id BastionHostId, input SessionIds, predicate BastionSessionStateOperationPredicate) (result DisconnectActiveSessionsCompleteResult, err error) {
-	items := make([]BastionSessionState, 0)
+func (c BastionHostsClient) DisconnectActiveSessionsCompleteMatchingPredicate(ctx context.Context, id BastionHostId, input SessionIds, predicate BastionSessionDeleteResultOperationPredicate) (result DisconnectActiveSessionsCompleteResult, err error) {
+	items := make([]BastionSessionDeleteResult, 0)
 
 	resp, err := c.DisconnectActiveSessions(ctx, id, input)
 	if err != nil {

@@ -15,12 +15,12 @@ import (
 type MonitorsListLinkedResourcesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]LinkedResource
+	Model        *[]LinkedResourceListResponse
 }
 
 type MonitorsListLinkedResourcesCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []LinkedResource
+	Items              []LinkedResourceListResponse
 }
 
 // MonitorsListLinkedResources ...
@@ -50,7 +50,7 @@ func (c LinkedResourcesClient) MonitorsListLinkedResources(ctx context.Context, 
 	}
 
 	var values struct {
-		Values *[]LinkedResource `json:"value"`
+		Values *[]LinkedResourceListResponse `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c LinkedResourcesClient) MonitorsListLinkedResources(ctx context.Context, 
 
 // MonitorsListLinkedResourcesComplete retrieves all the results into a single object
 func (c LinkedResourcesClient) MonitorsListLinkedResourcesComplete(ctx context.Context, id MonitorId) (MonitorsListLinkedResourcesCompleteResult, error) {
-	return c.MonitorsListLinkedResourcesCompleteMatchingPredicate(ctx, id, LinkedResourceOperationPredicate{})
+	return c.MonitorsListLinkedResourcesCompleteMatchingPredicate(ctx, id, LinkedResourceListResponseOperationPredicate{})
 }
 
 // MonitorsListLinkedResourcesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c LinkedResourcesClient) MonitorsListLinkedResourcesCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate LinkedResourceOperationPredicate) (result MonitorsListLinkedResourcesCompleteResult, err error) {
-	items := make([]LinkedResource, 0)
+func (c LinkedResourcesClient) MonitorsListLinkedResourcesCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate LinkedResourceListResponseOperationPredicate) (result MonitorsListLinkedResourcesCompleteResult, err error) {
+	items := make([]LinkedResourceListResponse, 0)
 
 	resp, err := c.MonitorsListLinkedResources(ctx, id)
 	if err != nil {

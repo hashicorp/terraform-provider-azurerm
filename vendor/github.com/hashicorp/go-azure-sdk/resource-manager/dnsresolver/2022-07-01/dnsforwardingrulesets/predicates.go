@@ -36,13 +36,13 @@ func (p DnsForwardingRulesetOperationPredicate) Matches(input DnsForwardingRules
 	return true
 }
 
-type VirtualNetworkDnsForwardingRulesetOperationPredicate struct {
-	Id *string
+type VirtualNetworkDnsForwardingRulesetListResultOperationPredicate struct {
+	NextLink *string
 }
 
-func (p VirtualNetworkDnsForwardingRulesetOperationPredicate) Matches(input VirtualNetworkDnsForwardingRuleset) bool {
+func (p VirtualNetworkDnsForwardingRulesetListResultOperationPredicate) Matches(input VirtualNetworkDnsForwardingRulesetListResult) bool {
 
-	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

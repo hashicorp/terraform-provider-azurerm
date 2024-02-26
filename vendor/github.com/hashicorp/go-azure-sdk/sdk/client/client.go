@@ -91,39 +91,43 @@ type Request struct {
 func (r *Request) Marshal(payload interface{}) error {
 	contentType := strings.ToLower(r.Header.Get("Content-Type"))
 
-	if strings.Contains(contentType, "application/json") {
+	switch {
+	case strings.Contains(contentType, "application/json"):
 		body, err := json.Marshal(payload)
 		if err == nil {
 			r.ContentLength = int64(len(body))
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
+		return nil
+
+	case strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml"):
 		body, err := xml.Marshal(payload)
 		if err == nil {
 			r.ContentLength = int64(len(body))
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
+
 		return nil
 	}
 
-	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		switch v := payload.(type) {
-		case *[]byte:
+	switch v := payload.(type) {
+	case *[]byte:
+		if v == nil {
+			r.ContentLength = int64(len([]byte{}))
+			r.Body = io.NopCloser(bytes.NewReader([]byte{}))
+		} else {
 			r.ContentLength = int64(len(*v))
 			r.Body = io.NopCloser(bytes.NewReader(*v))
-		case []byte:
-			r.ContentLength = int64(len(v))
-			r.Body = io.NopCloser(bytes.NewReader(v))
-		default:
-			return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 		}
-		return nil
+	case []byte:
+		r.ContentLength = int64(len(v))
+		r.Body = io.NopCloser(bytes.NewReader(v))
+	default:
+		return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 	}
 
-	return fmt.Errorf("internal-error: unimplemented marshal function for content type %q", contentType)
+	return nil
 }
 
 // Execute invokes the Execute method for the Request's Client
@@ -173,12 +177,14 @@ func (r *Response) Unmarshal(model interface{}) error {
 			contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
 		}
 	}
-	// the maintenance API returns a 200 for a delete with no content-type and no content length so we should skip
-	// trying to unmarshal this
+
+	// Some APIs (e.g. Maintenance) return 200 without a body, don't unmarshal these
 	if r.ContentLength == 0 && (r.Body == nil || r.Body == http.NoBody) {
 		return nil
 	}
-	if strings.Contains(contentType, "application/json") {
+
+	switch {
+	case strings.Contains(contentType, "application/json"):
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -201,10 +207,10 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
+		return nil
+
+	case strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml"):
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -227,13 +233,13 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		ptr, ok := model.(**[]byte)
+		return nil
+
+	case strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell"):
+		ptr, ok := model.(*[]byte)
 		if !ok || ptr == nil {
-			return fmt.Errorf("internal-error: `model` must be a non-nil `**[]byte` but got %+v", model)
+			return fmt.Errorf("internal-error: `model` must be a non-nil `*[]byte` but got %[1]T: %+[1]v", model)
 		}
 
 		// Read the response body and close it
@@ -243,14 +249,17 @@ func (r *Response) Unmarshal(model interface{}) error {
 		}
 		r.Body.Close()
 
-		// Trim away a BOM if present
-		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+		if strings.HasPrefix(contentType, "text/") {
+			// Trim away a BOM if present
+			respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+		}
 
 		// copy the byte stream across
-		*ptr = &respBody
+		*ptr = respBody
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+
 		return nil
 	}
 
@@ -374,6 +383,7 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 		Client:           c,
 		Request:          req,
 		Pager:            input.Pager,
+		RetryFunc:        input.RetryFunc,
 		ValidStatusCodes: input.ExpectedStatusCodes,
 	}
 

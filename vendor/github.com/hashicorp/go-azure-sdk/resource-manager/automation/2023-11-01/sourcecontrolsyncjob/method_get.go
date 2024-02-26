@@ -43,7 +43,10 @@ func (c SourceControlSyncJobClient) Get(ctx context.Context, id SourceControlSyn
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SourceControlSyncJobById
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

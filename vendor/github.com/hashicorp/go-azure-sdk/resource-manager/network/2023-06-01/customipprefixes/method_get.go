@@ -72,7 +72,10 @@ func (c CustomIPPrefixesClient) Get(ctx context.Context, id CustomIPPrefixId, op
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomIPPrefix
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -15,12 +15,12 @@ import (
 type GetBastionShareableLinkOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]BastionShareableLink
+	Model        *[]BastionShareableLinkListResult
 }
 
 type GetBastionShareableLinkCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []BastionShareableLink
+	Items              []BastionShareableLinkListResult
 }
 
 // GetBastionShareableLink ...
@@ -50,7 +50,7 @@ func (c BastionShareableLinkClient) GetBastionShareableLink(ctx context.Context,
 	}
 
 	var values struct {
-		Values *[]BastionShareableLink `json:"value"`
+		Values *[]BastionShareableLinkListResult `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c BastionShareableLinkClient) GetBastionShareableLink(ctx context.Context,
 
 // GetBastionShareableLinkComplete retrieves all the results into a single object
 func (c BastionShareableLinkClient) GetBastionShareableLinkComplete(ctx context.Context, id BastionHostId, input BastionShareableLinkListRequest) (GetBastionShareableLinkCompleteResult, error) {
-	return c.GetBastionShareableLinkCompleteMatchingPredicate(ctx, id, input, BastionShareableLinkOperationPredicate{})
+	return c.GetBastionShareableLinkCompleteMatchingPredicate(ctx, id, input, BastionShareableLinkListResultOperationPredicate{})
 }
 
 // GetBastionShareableLinkCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c BastionShareableLinkClient) GetBastionShareableLinkCompleteMatchingPredicate(ctx context.Context, id BastionHostId, input BastionShareableLinkListRequest, predicate BastionShareableLinkOperationPredicate) (result GetBastionShareableLinkCompleteResult, err error) {
-	items := make([]BastionShareableLink, 0)
+func (c BastionShareableLinkClient) GetBastionShareableLinkCompleteMatchingPredicate(ctx context.Context, id BastionHostId, input BastionShareableLinkListRequest, predicate BastionShareableLinkListResultOperationPredicate) (result GetBastionShareableLinkCompleteResult, err error) {
+	items := make([]BastionShareableLinkListResult, 0)
 
 	resp, err := c.GetBastionShareableLink(ctx, id, input)
 	if err != nil {

@@ -72,7 +72,10 @@ func (c RouteFiltersClient) Get(ctx context.Context, id RouteFilterId, options G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RouteFilter
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

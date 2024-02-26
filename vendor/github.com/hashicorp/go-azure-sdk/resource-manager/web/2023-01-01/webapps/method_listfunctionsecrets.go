@@ -44,7 +44,10 @@ func (c WebAppsClient) ListFunctionSecrets(ctx context.Context, id FunctionId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FunctionSecrets
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

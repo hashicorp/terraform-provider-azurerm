@@ -76,7 +76,10 @@ func (c FunctionsClient) Update(ctx context.Context, id FunctionId, input Functi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Function
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

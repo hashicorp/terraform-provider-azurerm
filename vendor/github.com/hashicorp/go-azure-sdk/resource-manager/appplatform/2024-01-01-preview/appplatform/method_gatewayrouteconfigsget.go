@@ -43,7 +43,10 @@ func (c AppPlatformClient) GatewayRouteConfigsGet(ctx context.Context, id RouteC
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GatewayRouteConfigResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

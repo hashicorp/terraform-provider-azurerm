@@ -43,7 +43,10 @@ func (c AppPlatformClient) GatewaysGet(ctx context.Context, id GatewayId) (resul
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GatewayResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -15,12 +15,12 @@ import (
 type ListBySearchServiceOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]QueryKey
+	Model        *[]ListQueryKeysResult
 }
 
 type ListBySearchServiceCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []QueryKey
+	Items              []ListQueryKeysResult
 }
 
 type ListBySearchServiceOperationOptions struct {
@@ -78,7 +78,7 @@ func (c QueryKeysClient) ListBySearchService(ctx context.Context, id SearchServi
 	}
 
 	var values struct {
-		Values *[]QueryKey `json:"value"`
+		Values *[]ListQueryKeysResult `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -91,12 +91,12 @@ func (c QueryKeysClient) ListBySearchService(ctx context.Context, id SearchServi
 
 // ListBySearchServiceComplete retrieves all the results into a single object
 func (c QueryKeysClient) ListBySearchServiceComplete(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions) (ListBySearchServiceCompleteResult, error) {
-	return c.ListBySearchServiceCompleteMatchingPredicate(ctx, id, options, QueryKeyOperationPredicate{})
+	return c.ListBySearchServiceCompleteMatchingPredicate(ctx, id, options, ListQueryKeysResultOperationPredicate{})
 }
 
 // ListBySearchServiceCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c QueryKeysClient) ListBySearchServiceCompleteMatchingPredicate(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions, predicate QueryKeyOperationPredicate) (result ListBySearchServiceCompleteResult, err error) {
-	items := make([]QueryKey, 0)
+func (c QueryKeysClient) ListBySearchServiceCompleteMatchingPredicate(ctx context.Context, id SearchServiceId, options ListBySearchServiceOperationOptions, predicate ListQueryKeysResultOperationPredicate) (result ListBySearchServiceCompleteResult, err error) {
+	items := make([]ListQueryKeysResult, 0)
 
 	resp, err := c.ListBySearchService(ctx, id, options)
 	if err != nil {

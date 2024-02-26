@@ -3,13 +3,13 @@ package webhooks
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type EventOperationPredicate struct {
-	Id *string
+type EventListResultOperationPredicate struct {
+	NextLink *string
 }
 
-func (p EventOperationPredicate) Matches(input Event) bool {
+func (p EventListResultOperationPredicate) Matches(input EventListResult) bool {
 
-	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

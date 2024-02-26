@@ -15,12 +15,12 @@ import (
 type ListEventsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]Event
+	Model        *[]EventListResult
 }
 
 type ListEventsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []Event
+	Items              []EventListResult
 }
 
 // ListEvents ...
@@ -50,7 +50,7 @@ func (c WebHooksClient) ListEvents(ctx context.Context, id WebHookId) (result Li
 	}
 
 	var values struct {
-		Values *[]Event `json:"value"`
+		Values *[]EventListResult `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c WebHooksClient) ListEvents(ctx context.Context, id WebHookId) (result Li
 
 // ListEventsComplete retrieves all the results into a single object
 func (c WebHooksClient) ListEventsComplete(ctx context.Context, id WebHookId) (ListEventsCompleteResult, error) {
-	return c.ListEventsCompleteMatchingPredicate(ctx, id, EventOperationPredicate{})
+	return c.ListEventsCompleteMatchingPredicate(ctx, id, EventListResultOperationPredicate{})
 }
 
 // ListEventsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c WebHooksClient) ListEventsCompleteMatchingPredicate(ctx context.Context, id WebHookId, predicate EventOperationPredicate) (result ListEventsCompleteResult, err error) {
-	items := make([]Event, 0)
+func (c WebHooksClient) ListEventsCompleteMatchingPredicate(ctx context.Context, id WebHookId, predicate EventListResultOperationPredicate) (result ListEventsCompleteResult, err error) {
+	items := make([]EventListResult, 0)
 
 	resp, err := c.ListEvents(ctx, id)
 	if err != nil {

@@ -72,7 +72,10 @@ func (c ImagesClient) Get(ctx context.Context, id ImageId, options GetOperationO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Image
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

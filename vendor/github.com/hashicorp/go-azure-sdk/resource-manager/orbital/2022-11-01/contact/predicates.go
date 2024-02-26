@@ -3,13 +3,13 @@ package contact
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type AvailableContactsOperationPredicate struct {
-	GroundStationName *string
+type AvailableContactsListResultOperationPredicate struct {
+	NextLink *string
 }
 
-func (p AvailableContactsOperationPredicate) Matches(input AvailableContacts) bool {
+func (p AvailableContactsListResultOperationPredicate) Matches(input AvailableContactsListResult) bool {
 
-	if p.GroundStationName != nil && (input.GroundStationName == nil || *p.GroundStationName != *input.GroundStationName) {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

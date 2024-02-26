@@ -43,7 +43,10 @@ func (c WorkflowTriggersClient) Get(ctx context.Context, id TriggerId) (result G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WorkflowTrigger
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

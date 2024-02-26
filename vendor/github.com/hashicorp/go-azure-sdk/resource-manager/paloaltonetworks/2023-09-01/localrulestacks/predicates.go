@@ -3,18 +3,26 @@ package localrulestacks
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CountryOperationPredicate struct {
-	Code        *string
-	Description *string
+type CountriesResponseOperationPredicate struct {
+	NextLink *string
 }
 
-func (p CountryOperationPredicate) Matches(input Country) bool {
+func (p CountriesResponseOperationPredicate) Matches(input CountriesResponse) bool {
 
-	if p.Code != nil && *p.Code != input.Code {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 
-	if p.Description != nil && (input.Description == nil || *p.Description != *input.Description) {
+	return true
+}
+
+type ListAppIdResponseOperationPredicate struct {
+	NextLink *string
+}
+
+func (p ListAppIdResponseOperationPredicate) Matches(input ListAppIdResponse) bool {
+
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 
@@ -49,18 +57,13 @@ func (p LocalRulestackResourceOperationPredicate) Matches(input LocalRulestackRe
 	return true
 }
 
-type PredefinedUrlCategoryOperationPredicate struct {
-	Action *string
-	Name   *string
+type PredefinedUrlCategoriesResponseOperationPredicate struct {
+	NextLink *string
 }
 
-func (p PredefinedUrlCategoryOperationPredicate) Matches(input PredefinedUrlCategory) bool {
+func (p PredefinedUrlCategoriesResponseOperationPredicate) Matches(input PredefinedUrlCategoriesResponse) bool {
 
-	if p.Action != nil && *p.Action != input.Action {
-		return false
-	}
-
-	if p.Name != nil && *p.Name != input.Name {
+	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

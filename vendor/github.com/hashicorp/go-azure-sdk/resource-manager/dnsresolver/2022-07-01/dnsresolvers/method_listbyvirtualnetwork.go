@@ -16,12 +16,12 @@ import (
 type ListByVirtualNetworkOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]SubResource
+	Model        *[]SubResourceListResult
 }
 
 type ListByVirtualNetworkCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []SubResource
+	Items              []SubResourceListResult
 }
 
 type ListByVirtualNetworkOperationOptions struct {
@@ -79,7 +79,7 @@ func (c DnsResolversClient) ListByVirtualNetwork(ctx context.Context, id commoni
 	}
 
 	var values struct {
-		Values *[]SubResource `json:"value"`
+		Values *[]SubResourceListResult `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -92,12 +92,12 @@ func (c DnsResolversClient) ListByVirtualNetwork(ctx context.Context, id commoni
 
 // ListByVirtualNetworkComplete retrieves all the results into a single object
 func (c DnsResolversClient) ListByVirtualNetworkComplete(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions) (ListByVirtualNetworkCompleteResult, error) {
-	return c.ListByVirtualNetworkCompleteMatchingPredicate(ctx, id, options, SubResourceOperationPredicate{})
+	return c.ListByVirtualNetworkCompleteMatchingPredicate(ctx, id, options, SubResourceListResultOperationPredicate{})
 }
 
 // ListByVirtualNetworkCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c DnsResolversClient) ListByVirtualNetworkCompleteMatchingPredicate(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions, predicate SubResourceOperationPredicate) (result ListByVirtualNetworkCompleteResult, err error) {
-	items := make([]SubResource, 0)
+func (c DnsResolversClient) ListByVirtualNetworkCompleteMatchingPredicate(ctx context.Context, id commonids.VirtualNetworkId, options ListByVirtualNetworkOperationOptions, predicate SubResourceListResultOperationPredicate) (result ListByVirtualNetworkCompleteResult, err error) {
+	items := make([]SubResourceListResult, 0)
 
 	resp, err := c.ListByVirtualNetwork(ctx, id, options)
 	if err != nil {

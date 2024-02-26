@@ -15,12 +15,12 @@ import (
 type ListUserRolesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]UserRoleResponse
+	Model        *[]UserRoleListResponse
 }
 
 type ListUserRolesCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []UserRoleResponse
+	Items              []UserRoleListResponse
 }
 
 // ListUserRoles ...
@@ -50,7 +50,7 @@ func (c MonitorsClient) ListUserRoles(ctx context.Context, id MonitorId, input U
 	}
 
 	var values struct {
-		Values *[]UserRoleResponse `json:"value"`
+		Values *[]UserRoleListResponse `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c MonitorsClient) ListUserRoles(ctx context.Context, id MonitorId, input U
 
 // ListUserRolesComplete retrieves all the results into a single object
 func (c MonitorsClient) ListUserRolesComplete(ctx context.Context, id MonitorId, input UserRoleRequest) (ListUserRolesCompleteResult, error) {
-	return c.ListUserRolesCompleteMatchingPredicate(ctx, id, input, UserRoleResponseOperationPredicate{})
+	return c.ListUserRolesCompleteMatchingPredicate(ctx, id, input, UserRoleListResponseOperationPredicate{})
 }
 
 // ListUserRolesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c MonitorsClient) ListUserRolesCompleteMatchingPredicate(ctx context.Context, id MonitorId, input UserRoleRequest, predicate UserRoleResponseOperationPredicate) (result ListUserRolesCompleteResult, err error) {
-	items := make([]UserRoleResponse, 0)
+func (c MonitorsClient) ListUserRolesCompleteMatchingPredicate(ctx context.Context, id MonitorId, input UserRoleRequest, predicate UserRoleListResponseOperationPredicate) (result ListUserRolesCompleteResult, err error) {
+	items := make([]UserRoleListResponse, 0)
 
 	resp, err := c.ListUserRoles(ctx, id, input)
 	if err != nil {

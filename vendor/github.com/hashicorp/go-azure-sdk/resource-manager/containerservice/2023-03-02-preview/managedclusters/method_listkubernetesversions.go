@@ -44,7 +44,10 @@ func (c ManagedClustersClient) ListKubernetesVersions(ctx context.Context, id Lo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model KubernetesVersionListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

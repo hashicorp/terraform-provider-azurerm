@@ -72,7 +72,10 @@ func (c NatGatewaysClient) Get(ctx context.Context, id NatGatewayId, options Get
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NatGateway
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
