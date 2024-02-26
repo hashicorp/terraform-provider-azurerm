@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -145,7 +145,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			var config RoleDefinitionDataSourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -218,7 +218,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			// The sdk managed id start with two "/" when scope is tenant level (empty).
-			// So we use the id from response without parsing and reformating it.
+			// So we use the id from response without parsing and reformatting it.
 			// Tracked on https://github.com/hashicorp/pandora/issues/3257
 			metadata.ResourceData.SetId(*role.Id)
 			return metadata.Encode(&state)
