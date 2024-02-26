@@ -452,7 +452,7 @@ An `application_server` block supports the following:
 
 A `virtual_machine` block supports the following:
 
-* `data_disk_names` - (Optional) A mapping of Data Disk names passed to the backend host. The keys are volume names, and the values are a comma separated list of full names of Data Disks per volume. Changing this forces a new resource to be created.
+* `data_disk` - (Optional) One or more `data_disk` blocks as defined below. Changing this forces a new resource to be created.
 
 * `host_name` - (Optional) The full name of the host of the Virtual Machine. Changing this forces a new resource to be created.
 
@@ -461,6 +461,14 @@ A `virtual_machine` block supports the following:
 * `os_disk_name` - (Optional) The full name of the OS Disk attached to the Virtual Machine. Changing this forces a new resource to be created.
 
 * `virtual_machine_name` - (Optional) The full name of the Virtual Machine in a single server SAP system. Changing this forces a new resource to be created.
+
+---
+
+A `data_disk` block supports the following:
+
+* `volume_name` - (Required) The name of the Volume. Changing this forces a new resource to be created.
+
+* `names` - (Required) A list of full names of Data Disks per Volume. Changing this forces a new resource to be created.
 
 ---
 

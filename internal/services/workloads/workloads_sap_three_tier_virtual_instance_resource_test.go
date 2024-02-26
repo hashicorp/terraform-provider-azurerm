@@ -550,8 +550,9 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
           virtual_machine_name    = "appvm0"
           network_interface_names = ["appnic0"]
 
-          data_disk_names = {
-            default = "app0disk0"
+          data_disk {
+            volume_name = "default"
+            names       = ["app0disk0"]
           }
         }
       }
@@ -572,8 +573,9 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
           virtual_machine_name    = "ascsvm"
           network_interface_names = ["ascsnic"]
 
-          data_disk_names = {
-            default = "ascsdisk"
+          data_disk {
+            volume_name = "default"
+            names       = ["ascsdisk"]
           }
         }
       }
@@ -594,11 +596,24 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
           virtual_machine_name    = "dbvmpr"
           network_interface_names = ["dbprnic"]
 
-          data_disk_names = {
-            hanaData   = "hanadatapr0,hanadatapr1"
-            hanaLog    = "hanalogpr0,hanalogpr1,hanalogpr2"
-            usrSap     = "usrsappr0"
-            hanaShared = "hanasharedpr0,hanasharedpr1"
+          data_disk {
+            volume_name = "hanaData"
+            names       = ["hanadatapr0", "hanadatapr1"]
+          }
+
+          data_disk {
+            volume_name = "hanaLog"
+            names       = ["hanalogpr0", "hanalogpr1", "hanalogpr2"]
+          }
+
+          data_disk {
+            volume_name = "usrSap"
+            names       = ["usrsappr0"]
+          }
+
+          data_disk {
+            volume_name = "hanaShared"
+            names       = ["hanasharedpr0", "hanasharedpr1"]
           }
         }
       }
@@ -787,8 +802,9 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
           virtual_machine_name    = "appvm0"
           network_interface_names = ["appnic0"]
 
-          data_disk_names = {
-            default = "app0disk0"
+          data_disk {
+            volume_name = "default"
+            names       = ["app0disk0"]
           }
         }
       }
@@ -809,8 +825,9 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
           virtual_machine_name    = "ascsvm"
           network_interface_names = ["ascsnic"]
 
-          data_disk_names = {
-            default = "ascsdisk"
+          data_disk {
+            volume_name = "default"
+            names       = ["ascsdisk"]
           }
         }
       }
@@ -831,11 +848,24 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test" {
           virtual_machine_name    = "dbvmpr"
           network_interface_names = ["dbprnic"]
 
-          data_disk_names = {
-            hanaData   = "hanadatapr0,hanadatapr1"
-            hanaLog    = "hanalogpr0,hanalogpr1,hanalogpr2"
-            usrSap     = "usrsappr0"
-            hanaShared = "hanasharedpr0,hanasharedpr1"
+          data_disk {
+            volume_name = "hanaData"
+            names       = ["hanadatapr0", "hanadatapr1"]
+          }
+
+          data_disk {
+            volume_name = "hanaLog"
+            names       = ["hanalogpr0", "hanalogpr1", "hanalogpr2"]
+          }
+
+          data_disk {
+            volume_name = "usrSap"
+            names       = ["usrsappr0"]
+          }
+
+          data_disk {
+            volume_name = "hanaShared"
+            names       = ["hanasharedpr0", "hanasharedpr1"]
           }
         }
       }
