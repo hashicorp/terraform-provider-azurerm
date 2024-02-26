@@ -13,12 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/privateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	storageParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -83,17 +81,11 @@ type ThreeTierConfiguration struct {
 	HighAvailabilityType           string                           `tfschema:"high_availability_type"`
 	IsSecondaryIpEnabled           bool                             `tfschema:"secondary_ip_enabled"`
 	TransportCreateAndMount        []TransportCreateAndMount        `tfschema:"transport_create_and_mount"`
-	TransportMount                 []TransportMount                 `tfschema:"transport_mount"`
 }
 
 type TransportCreateAndMount struct {
 	ResourceGroupId    string `tfschema:"resource_group_id"`
 	StorageAccountName string `tfschema:"storage_account_name"`
-}
-
-type TransportMount struct {
-	FileShareId       string `tfschema:"file_share_id"`
-	PrivateEndpointId string `tfschema:"private_endpoint_id"`
 }
 
 type ApplicationServerConfiguration struct {
@@ -951,11 +943,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 					},
 
 					"transport_create_and_mount": {
-						Type:          pluginsdk.TypeList,
-						Optional:      true,
-						ForceNew:      true,
-						MaxItems:      1,
-						ConflictsWith: []string{"three_tier_configuration.0.transport_mount"},
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"resource_group_id": {
@@ -970,31 +961,6 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 									Optional:     true,
 									ForceNew:     true,
 									ValidateFunc: storageValidate.StorageAccountName,
-								},
-							},
-						},
-					},
-
-					"transport_mount": {
-						Type:          pluginsdk.TypeList,
-						Optional:      true,
-						ForceNew:      true,
-						MaxItems:      1,
-						ConflictsWith: []string{"three_tier_configuration.0.transport_create_and_mount"},
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"file_share_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: storageValidate.StorageShareResourceManagerID,
-								},
-
-								"private_endpoint_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: privateendpoints.ValidatePrivateEndpointID,
 								},
 							},
 						},
@@ -1410,21 +1376,13 @@ func expandDatabaseServer(input []DatabaseServerConfiguration) *sapvirtualinstan
 }
 
 func expandStorageConfiguration(input ThreeTierConfiguration) (*sapvirtualinstances.StorageConfiguration, error) {
-	if len(input.TransportCreateAndMount) == 0 && len(input.TransportMount) == 0 {
+	if len(input.TransportCreateAndMount) == 0 {
 		return &sapvirtualinstances.StorageConfiguration{
 			TransportFileShareConfiguration: sapvirtualinstances.SkipFileShareConfiguration{},
 		}, nil
 	}
 
 	result := &sapvirtualinstances.StorageConfiguration{}
-
-	if len(input.TransportMount) != 0 {
-		transportMount, err := expandTransportMount(input.TransportMount)
-		if err != nil {
-			return nil, err
-		}
-		result.TransportFileShareConfiguration = transportMount
-	}
 
 	if len(input.TransportCreateAndMount) != 0 {
 		transportCreateAndMount, err := expandTransportCreateAndMount(input.TransportCreateAndMount)
@@ -1456,28 +1414,6 @@ func expandTransportCreateAndMount(input []TransportCreateAndMount) (*sapvirtual
 
 	if v := transportCreateAndMount.StorageAccountName; v != "" {
 		result.StorageAccountName = utils.String(v)
-	}
-
-	return result, nil
-}
-
-func expandTransportMount(input []TransportMount) (*sapvirtualinstances.MountFileShareConfiguration, error) {
-	if len(input) == 0 {
-		return nil, nil
-	}
-
-	transportMount := input[0]
-
-	// Currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected.
-	// The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`.
-	// See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209
-	storageShareResourceManagerId, err := storageParse.StorageShareResourceManagerID(transportMount.FileShareId)
-	if err != nil {
-		return nil, err
-	}
-	result := &sapvirtualinstances.MountFileShareConfiguration{
-		Id:                storageParse.NewLegacyStorageShareResourceManagerID(storageShareResourceManagerId.SubscriptionId, storageShareResourceManagerId.ResourceGroup, storageShareResourceManagerId.StorageAccountName, storageShareResourceManagerId.FileServiceName, storageShareResourceManagerId.FileshareName).ID(),
-		PrivateEndpointId: transportMount.PrivateEndpointId,
 	}
 
 	return result, nil
@@ -1931,31 +1867,11 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 				}
 			}
 
-			if v, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
-				transportMount, err := flattenTransportMount(v)
-				if err != nil {
-					return nil, err
-				}
-				threeTierConfig.TransportMount = transportMount
+			if _, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
+				return nil, fmt.Errorf("currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected. The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209. So the feature of `TransportMount` isn't supported by TF for now due to this service API bug")
 			}
 		}
 	}
 
 	return append(result, threeTierConfig), nil
-}
-
-func flattenTransportMount(input sapvirtualinstances.MountFileShareConfiguration) ([]TransportMount, error) {
-	result := make([]TransportMount, 0)
-
-	// Currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected.
-	// The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`.
-	// See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209
-	legacyStorageShareResourceManagerId, err := storageParse.LegacyStorageShareResourceManagerID(input.Id)
-	if err != nil {
-		return nil, err
-	}
-	return append(result, TransportMount{
-		FileShareId:       storageParse.NewStorageShareResourceManagerID(legacyStorageShareResourceManagerId.SubscriptionId, legacyStorageShareResourceManagerId.ResourceGroup, legacyStorageShareResourceManagerId.StorageAccountName, legacyStorageShareResourceManagerId.FileServiceName, legacyStorageShareResourceManagerId.ShareName).ID(),
-		PrivateEndpointId: input.PrivateEndpointId,
-	}), nil
 }

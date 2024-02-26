@@ -382,9 +382,9 @@ A `three_tier_configuration` block supports the following:
 
 * `transport_create_and_mount` - (Optional) A `transport_create_and_mount` block as defined below. Changing this forces a new resource to be created.
 
-* `transport_mount` - (Optional) A `transport_mount` block as defined below. Changing this forces a new resource to be created.
+~> **Note:** The file share configuration uses `skip` by default when `transport_create_and_mount` isn't set.
 
-~> **Note:** The file share configuration uses `skip` by default If neither `transport_create_and_mount` nor `transport_mount` is set.
+~> **Note:** Currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected. The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209. So the feature of `TransportMount` isn't supported by TF for now due to this service API bug.
 
 ---
 
@@ -393,14 +393,6 @@ A `transport_create_and_mount` block supports the following:
 * `resource_group_id` - (Optional) The ID of the Resource Group of the transport File Share. Changing this forces a new resource to be created.
 
 * `storage_account_name` - (Optional) The name of the Storage Account of the File Share. Changing this forces a new resource to be created.
-
----
-
-A `transport_mount` block supports the following:
-
-* `file_share_id` - (Required) The resource ID of the Storage File Share. Changing this forces a new resource to be created.
-
-* `private_endpoint_id` - (Required) The resource ID of the Private Endpoint. Changing this forces a new resource to be created.
 
 ---
 
