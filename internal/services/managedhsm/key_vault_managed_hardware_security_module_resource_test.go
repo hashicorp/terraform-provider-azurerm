@@ -30,6 +30,7 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"download":    testAccKeyVaultManagedHardwareSecurityModule_download,
 			"role_define": testAccKeyVaultManagedHardwareSecurityModule_roleDefinition,
 			"role_assign": testAccKeyVaultManagedHardwareSecurityModule_roleAssignment,
+			"key":         testAccKeyVaultManagedHardwareSecurityModule_keyBasic,
 		},
 	})
 }
@@ -114,6 +115,45 @@ func testAccKeyVaultManagedHardwareSecurityModule_roleAssignment(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withBuiltInRoleAssignment(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccKeyVaultManagedHardwareSecurityModule_keyBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
+	r := KeyVaultManagedHSMKeyResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.template(data, false),
+		},
+		{
+			Config: r.basic(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.rotationPolicy(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

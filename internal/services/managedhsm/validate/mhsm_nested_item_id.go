@@ -21,7 +21,7 @@ func NestedItemId(i interface{}, k string) (warnings []string, errors []error) {
 		return warnings, errors
 	}
 
-	if _, err := parse.NestedItemID(v); err != nil {
+	if _, err := parse.RoleNestedItemID(v); err != nil {
 		errors = append(errors, fmt.Errorf("parsing %q: %s", v, err))
 		return warnings, errors
 	}

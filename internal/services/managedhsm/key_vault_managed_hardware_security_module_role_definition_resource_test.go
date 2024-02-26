@@ -19,7 +19,7 @@ type KeyVaultMHSMRoleDefinitionResource struct{}
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
 func (k KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	baseURL := state.Attributes["vault_base_url"]
-	id, err := parse.NestedItemID(state.ID)
+	id, err := parse.RoleNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}
