@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `qos_type` - (Optional) QoS Type of the pool. Valid values include `Auto` or `Manual`.
 
-* `encryption_type` - (Optional) The encryption type of the pool. Valid values include `Single`, and `Double`. Changing this forces a new resource to be created.
+* `encryption_type` - (Optional) The encryption type of the pool. Valid values include `Single`, and `Double`. Defaults to `Single`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

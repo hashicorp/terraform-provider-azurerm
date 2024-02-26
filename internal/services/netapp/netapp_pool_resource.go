@@ -92,8 +92,8 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			"encryption_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
+				Default:  capacitypools.EncryptionTypeSingle,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(capacitypools.EncryptionTypeSingle),
 					string(capacitypools.EncryptionTypeDouble),
@@ -128,12 +128,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	sizeInMB := sizeInTB * 1024 * 1024
 	sizeInBytes := sizeInMB * 1024 * 1024
 
-	var encryptionType capacitypools.EncryptionType
-	encryptionTypeString := d.Get("encryption_type").(string)
-	if encryptionTypeString == "" {
-		encryptionType = capacitypools.EncryptionTypeSingle
-	}
-	encryptionType = capacitypools.EncryptionType(encryptionTypeString)
+	encryptionType := capacitypools.EncryptionType(d.Get("encryption_type").(string))
 
 	capacityPoolParameters := capacitypools.CapacityPool{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
