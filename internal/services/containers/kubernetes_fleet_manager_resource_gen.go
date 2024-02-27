@@ -49,7 +49,9 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
+
 		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"hub_profile": {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -72,6 +74,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Optional: true,
 			Type:     pluginsdk.TypeList,
 		},
+
 		"tags": commonschema.Tags(),
 	}
 }
