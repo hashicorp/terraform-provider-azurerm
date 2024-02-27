@@ -232,8 +232,7 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   private_dns_resolver_id = azurerm_private_dns_resolver.test.id
   location                = azurerm_private_dns_resolver.test.location
   ip_configurations {
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_allocation_method = "Dynamic"
+    subnet_id = azurerm_subnet.test.id
   }
   tags = {
     key = "updated value"
