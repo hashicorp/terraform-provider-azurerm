@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_redis_cache` - allow AAD auth for all SKUs [GH-25006]
 * `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_ids` property [GH-24919]
 * `azurerm_spring_cloud_configuration_service` - support for the `refresh_interval_in_seconds` property [GH-25009]
+* `azurerm_synapse_workspace` - add support for `user_assigned_identity_id` within `customer_managed_key` [GH-25027]
 * `azurerm_windows_virtual_machine` - support for the `automatic_upgrade_enabled`, `disk_controller_type`, `os_image_notification`, `treat_failure_as_deployment_failure_enabled`, and `vm_agent_platform_updates_enabled`properties [GH-23394]
 
 BUG FIXES:
