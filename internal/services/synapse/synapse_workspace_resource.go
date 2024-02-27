@@ -911,7 +911,7 @@ func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetai
 			},
 		}
 
-		if v, ok := cmk["user_assigned_identity_id"]; ok {
+		if v, ok := cmk["user_assigned_identity_id"]; ok && v.(string) != "" {
 			encryptionDetails.Cmk.KekIdentity = &synapse.KekIdentityProperties{
 				UserAssignedIdentity:      pointer.To(v.(string)),
 				UseSystemAssignedIdentity: false,
