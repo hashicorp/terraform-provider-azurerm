@@ -17,7 +17,7 @@ import (
 	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
-	nginx_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01"
+	nginx_2024_01_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview"
 	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01"
 	servicenetworking_v2023_05_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
@@ -245,7 +245,7 @@ type Client struct {
 	Network                           *network.Client
 	NetworkFunction                   *networkfunction.Client
 	NewRelic                          *newrelic.Client
-	Nginx                             *nginx_2023_09_01.Client
+	Nginx                             *nginx_2024_01_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
 	Orbital                           *orbital.Client
 	PaloAlto                          *paloalto.Client
@@ -598,16 +598,20 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Search: %+v", err)
 	}
 	client.SecurityCenter = securityCenter.NewClient(o)
-	client.Sentinel = sentinel.NewClient(o)
+	if client.Sentinel, err = sentinel.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Sentinel: %+v", err)
+	}
 	if client.ServiceBus, err = serviceBus.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ServiceBus: %+v", err)
 	}
 	if client.ServiceConnector, err = serviceConnector.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ServiceConnector: %+v", err)
 	}
-	client.ServiceFabric = serviceFabric.NewClient(o)
+	if client.ServiceFabric, err = serviceFabric.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceConnector: %+v", err)
+	}
 	if client.ServiceFabricManaged, err = serviceFabricManaged.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for ServiceFabricManagedCluster: %+v", err)
+		return fmt.Errorf("building clients for ServiceFabric: %+v", err)
 	}
 	if client.ServiceNetworking, err = serviceNetworking.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ServiceNetworking: %+v", err)

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -24,6 +24,7 @@ type SpringCloudConfigurationServiceModel struct {
 	Name                 string                       `tfschema:"name"`
 	SpringCloudServiceId string                       `tfschema:"spring_cloud_service_id"`
 	Generation           string                       `tfschema:"generation"`
+	RefreshInterval      int64                        `tfschema:"refresh_interval_in_seconds"`
 	Repository           []SpringCloudRepositoryModel `tfschema:"repository"`
 }
 
@@ -76,6 +77,12 @@ func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.
 				string(appplatform.ConfigurationServiceGenerationGenOne),
 				string(appplatform.ConfigurationServiceGenerationGenTwo),
 			}, false),
+		},
+
+		"refresh_interval_in_seconds": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(0),
 		},
 
 		"repository": {
@@ -221,6 +228,7 @@ func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
 						GitProperty: &appplatform.ConfigurationServiceGitProperty{
 							Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(model.Repository),
 						},
+						RefreshIntervalInSeconds: pointer.To(model.RefreshInterval),
 					},
 				},
 			}
@@ -268,6 +276,10 @@ func (s SpringCloudConfigurationServiceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("repository") {
 				properties.Settings.GitProperty.Repositories = expandConfigurationServiceConfigurationServiceGitRepositoryArray(model.Repository)
+			}
+
+			if metadata.ResourceData.HasChange("refresh_interval_in_seconds") {
+				properties.Settings.RefreshIntervalInSeconds = pointer.To(model.RefreshInterval)
 			}
 
 			configurationServiceResource := appplatform.ConfigurationServiceResource{
@@ -319,6 +331,7 @@ func (s SpringCloudConfigurationServiceResource) Read() sdk.ResourceFunc {
 					state.Generation = string(pointer.From(props.Generation))
 					if props.Settings != nil && props.Settings.GitProperty != nil {
 						state.Repository = flattenConfigurationServiceConfigurationServiceGitRepositoryArray(props.Settings.GitProperty.Repositories, model.Repository)
+						state.RefreshInterval = pointer.From(props.Settings.RefreshIntervalInSeconds)
 					}
 				}
 			}

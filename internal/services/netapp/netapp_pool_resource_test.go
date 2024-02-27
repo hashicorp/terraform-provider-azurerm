@@ -65,6 +65,7 @@ func TestAccNetAppPool_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("qos_type").HasValue("Auto"),
+				check.That(data.ResourceName).Key("encryption_type").HasValue("Single"),
 			),
 		},
 		data.ImportStep(),
@@ -107,6 +108,22 @@ func TestAccNetAppPool_update(t *testing.T) {
 				check.That(data.ResourceName).Key("qos_type").HasValue("Manual"),
 			),
 		},
+	})
+}
+
+func TestAccNetAppPool_doubleEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.doubleEncryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption_type").HasValue("Double"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -208,6 +225,7 @@ resource "azurerm_netapp_pool" "test" {
   service_level       = "Standard"
   size_in_tb          = 15
   qos_type            = "Auto"
+  encryption_type     = "Single"
 
   tags = {
     "CreatedOnDate" = "2022-07-08T23:50:21Z",
@@ -255,6 +273,43 @@ resource "azurerm_netapp_pool" "test" {
   tags = {
     "CreatedOnDate" = "2022-07-08T23:50:21Z",
     "FoO"           = "BaR"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppPoolResource) doubleEncryption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_level       = "Standard"
+  size_in_tb          = 2
+  encryption_type     = "Double"
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

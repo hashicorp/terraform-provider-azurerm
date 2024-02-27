@@ -849,14 +849,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
-
-		// active_directory_authentication_enabled is available when SKU is Premium
-		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-
-			output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
-		} else if entraEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-			return nil, fmt.Errorf("The `active_directory_authentication_enabled` property requires a `Premium` sku to be set")
-		}
+		output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
 	}
 
 	// RDB Backup

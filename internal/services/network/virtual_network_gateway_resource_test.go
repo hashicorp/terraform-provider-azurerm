@@ -451,9 +451,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "Basic"
 
   ip_configuration {
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+    subnet_id            = azurerm_subnet.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
