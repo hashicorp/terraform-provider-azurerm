@@ -8,13 +8,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	clusterSdk "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/cluster"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -80,10 +78,19 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				ValidateFunc: autoVal.AutomanageConfigurationID,
 			},
 
-			"software_assurance_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+			"cloud_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"service_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_provider_object_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
@@ -120,7 +127,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
+		expandedIdentity, err := expandSystemAssigned(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding identity: %+v", err)
 		}
@@ -172,16 +179,6 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if v, ok := d.GetOk("software_assurance_enabled"); ok {
-		clusterClient := meta.(*clients.Client).AzureStackHCI.Cluster
-		clusterId := clusterSdk.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-		softwareAssurance := ExpandClusterSoftwareAssurance(v.(bool))
-
-		if err := clusterClient.ExtendSoftwareAssuranceBenefitThenPoll(ctx, clusterId, softwareAssurance); err != nil {
-			return fmt.Errorf("setting software assurance for %s: %+v", id, err)
-		}
-	}
-
 	d.SetId(id.ID())
 
 	return resourceArmStackHCIClusterRead(d, meta)
@@ -214,20 +211,14 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
-
-		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
-		if err != nil {
-			return fmt.Errorf("flattening identity: %+v", err)
-		}
-		d.Set("identity", flattenedIdentity)
+		d.Set("identity", flattenSystemAssigned(model.Identity))
 
 		if props := model.Properties; props != nil {
 			d.Set("client_id", props.AadClientId)
 			d.Set("tenant_id", props.AadTenantId)
-
-			if props.SoftwareAssuranceProperties != nil {
-				d.Set("software_assurance_enabled", FlattenClusterSoftwareAssurance(props.SoftwareAssuranceProperties.SoftwareAssuranceIntent))
-			}
+			d.Set("cloud_id", props.CloudId)
+			d.Set("service_endpoint", props.ServiceEndpoint)
+			d.Set("resource_provider_object_id", props.ResourceProviderObjectId)
 
 			assignmentResp, err := hciAssignmentClient.Get(ctx, id.ResourceGroupName, id.ClusterName, "default")
 			if err != nil && !utils.ResponseWasNotFound(assignmentResp.Response) {
@@ -271,7 +262,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		expandedIdentity, err := expandSystemAssigned(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding identity: %+v", err)
 		}
@@ -280,16 +271,6 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if _, err := client.Update(ctx, *id, cluster); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if d.HasChange("software_assurance_enabled") {
-		clusterClient := meta.(*clients.Client).AzureStackHCI.Cluster
-		clusterId := clusterSdk.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName)
-		softwareAssurance := ExpandClusterSoftwareAssurance(d.Get("software_assurance_enabled").(bool))
-
-		if err := clusterClient.ExtendSoftwareAssuranceBenefitThenPoll(ctx, clusterId, softwareAssurance); err != nil {
-			return fmt.Errorf("setting software assurance for %s: %+v", id, err)
-		}
 	}
 
 	if d.HasChange("automanage_configuration_id") {
@@ -365,22 +346,32 @@ func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func ExpandClusterSoftwareAssurance(input bool) clusterSdk.SoftwareAssuranceChangeRequest {
-	enabled := clusterSdk.SoftwareAssuranceIntentDisable
-	if input {
-		enabled = clusterSdk.SoftwareAssuranceIntentEnable
+func expandSystemAssigned(input []interface{}) (*identity.SystemAndUserAssignedMap, error) {
+	if len(input) == 0 || input[0] == nil {
+		return &identity.SystemAndUserAssignedMap{
+			Type: identity.TypeNone,
+		}, nil
 	}
 
-	return clusterSdk.SoftwareAssuranceChangeRequest{
-		Properties: &clusterSdk.SoftwareAssuranceChangeRequestProperties{
-			SoftwareAssuranceIntent: pointer.To(enabled),
-		},
-	}
+	return &identity.SystemAndUserAssignedMap{
+		Type: identity.TypeSystemAssigned,
+	}, nil
 }
 
-func FlattenClusterSoftwareAssurance(input *clusters.SoftwareAssuranceIntent) bool {
+func flattenSystemAssigned(input *identity.SystemAndUserAssignedMap) []interface{} {
 	if input == nil {
-		return false
+		return []interface{}{}
 	}
-	return *input == clusters.SoftwareAssuranceIntentEnable
+
+	if input.Type == identity.TypeNone {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         input.Type,
+			"principal_id": input.PrincipalId,
+			"tenant_id":    input.TenantId,
+		},
+	}
 }

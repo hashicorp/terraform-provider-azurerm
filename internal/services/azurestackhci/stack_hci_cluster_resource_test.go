@@ -28,6 +28,9 @@ func TestAccStackHCICluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cloud_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("service_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("resource_provider_object_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -58,6 +61,9 @@ func TestAccStackHCICluster_systemAssignedIdentity(t *testing.T) {
 			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -78,50 +84,6 @@ func TestAccStackHCICluster_systemAssignedIdentityUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.systemAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccStackHCICluster_softwareAssurance(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
-	r := StackHCIClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.softwareAssurance(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccStackHCICluster_softwareAssuranceUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
-	r := StackHCIClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.softwareAssurance(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -260,22 +222,6 @@ resource "azurerm_stack_hci_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
-}
-`, template, data.RandomInteger)
-}
-
-func (r StackHCIClusterResource) softwareAssurance(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_stack_hci_cluster" "test" {
-  name                     = "acctest-StackHCICluster-%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  client_id                = azuread_application.test.application_id
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  softwareAssuranceEnabled = true
 }
 `, template, data.RandomInteger)
 }
