@@ -1,5 +1,9 @@
 ## 3.94.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_kubernetes_fleet_update_run` [GH-24813]
+
 ENHANCEMENTS:
 
 * dependencies `springcloud`: updating to API Version `2024-01-01-preview` [GH-24937]
@@ -25,6 +29,8 @@ BUG FIXES:
 * `azurerm_recovery_vaults` will now create properly with `SystemAssigned,UserAssigned` identity [GH-24978]
 
 ## 3.93.0 (February 22, 2024)
+
+FEATURES:
 
 * **New Data Source**: `azurerm_express_route_circuit_peering` ([#24971](https://github.com/hashicorp/terraform-provider-azurerm/issues/24971))
 * **New Data Source**: `azurerm_storage_table_entities` ([#24973](https://github.com/hashicorp/terraform-provider-azurerm/issues/24973))
