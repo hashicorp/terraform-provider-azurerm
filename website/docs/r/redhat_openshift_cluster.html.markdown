@@ -147,7 +147,7 @@ The following arguments are supported:
 
 * `api_server_profile` - (Required) An `api_server_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `ingress_profile` - (Required) An `ingress_profile` block as defined below. Changing this forces a new resource to be created.
+* `ingress_profile` - (Required) One or more `ingress_profile` blocks as defined below. Changing this forces a new resource to be created.
 
 * `network_profile` - (Required) A `network_profile` block as defined below. Changing this forces a new resource to be created.
 
@@ -229,6 +229,8 @@ A `ingress_profile` block supports the following:
 
 * `visibility` - (Required) Cluster Ingress visibility. Supported values are `Public` and `Private`. Changing this forces a new resource to be created.
 
+* `name` - (Optional) The name of the IngressController resource on the openshift-ingress-operator namespace. Defaults to `default` but must be unique.
+
 ---
 
 ## Attributes Reference
@@ -259,7 +261,7 @@ A `api_server_profile` block exports the following:
 
 ---
 
-A `ingress_profile` block exports the following:
+A `ingress_profile` block exports a list with the following:
 
 * `name` - The name of the Ingress Profile.
 

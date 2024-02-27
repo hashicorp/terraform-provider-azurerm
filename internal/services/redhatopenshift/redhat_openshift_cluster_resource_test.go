@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redhatopenshift/2023-09-04/openshiftclusters"
@@ -156,6 +157,34 @@ func TestAccOpenShiftCluster_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccOpenShiftCluster_multiIngress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiIngress(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress_profile.0").Exists(),
+				check.That(data.ResourceName).Key("ingress_profile.0.name").HasValue("restricted"),
+				check.That(data.ResourceName).Key("ingress_profile.0.visibility").HasValue("Public"),
+
+				check.That(data.ResourceName).Key("ingress_profile.1").Exists(),
+				check.That(data.ResourceName).Key("ingress_profile.1.name").HasValue("default"),
+				check.That(data.ResourceName).Key("ingress_profile.1.visibility").HasValue("Public"),
+
+				check.That(data.ResourceName).Key("ingress_profile.2").Exists(),
+				check.That(data.ResourceName).Key("ingress_profile.2.name").HasValue("default1"),
+				check.That(data.ResourceName).Key("ingress_profile.2.visibility").HasValue("Private"),
+				// Expect an internal IP from worker_subnet for the private ingress load balancer (10.0.2.0/23)
+				check.That(data.ResourceName).Key("ingress_profile.2.ip_address").MatchesRegex(regexp.MustCompile(`^10\.0\.[23]\.[0-9]+$`)),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
 	})
 }
 
@@ -699,6 +728,67 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     "azurerm_role_assignment.role_network2",
     "azurerm_role_assignment.disk_encryption_reader1",
     "azurerm_role_assignment.disk_encryption_reader2",
+  ]
+}
+  `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r OpenShiftClusterResource) multiIngress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain  = "aro-%[3]s.com"
+    version = "4.13.23"
+  }
+
+  network_profile {
+    pod_cidr     = "10.128.0.0/14"
+    service_cidr = "172.30.0.0/16"
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    name = "restricted"
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Private"
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  service_principal {
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
   ]
 }
   `, r.template(data), data.RandomInteger, data.RandomString)
