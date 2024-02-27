@@ -242,6 +242,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO: 4.0 - set the default to Tls12
 			// per Microsoft's documentation, as of April 1 2023 the default minimal TLS version for all new accounts is 1.2
 			"minimal_tls_version": {
 				Type:         pluginsdk.TypeString,
