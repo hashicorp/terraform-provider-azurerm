@@ -1009,6 +1009,16 @@ The `connector_identity` block exports the following:
 
 ---
 
+The `kubelet_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity to be assigned to the Kubelets.
+
+* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
+
+---
+
 A `load_balancer_profile` block exports the following:
 
 * `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
