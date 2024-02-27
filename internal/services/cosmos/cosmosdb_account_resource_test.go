@@ -230,12 +230,19 @@ func TestAccCosmosDBAccount_minimalTlsVersion(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicMinimalTlsVersion(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelEventual),
+			Config: r.basicMinimalTlsVersion(data, cosmosdb.MinimalTlsVersionTls),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelEventual, 1),
-				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("Tls12"),
+				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("Tls"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basicMinimalTlsVersion(data, cosmosdb.MinimalTlsVersionTlsOneOne),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("Tls11"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1468,7 +1475,7 @@ resource "azurerm_cosmosdb_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
-func (CosmosDBAccountResource) basicMinimalTlsVersion(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
+func (CosmosDBAccountResource) basicMinimalTlsVersion(data acceptance.TestData, tls cosmosdb.MinimalTlsVersion) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1484,11 +1491,11 @@ resource "azurerm_cosmosdb_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
-  kind                = "%s"
-  minimal_tls_version = "Tls12"
+  kind                = "GlobalDocumentDB"
+  minimal_tls_version = "%s"
 
   consistency_policy {
-    consistency_level = "%s"
+    consistency_level = "Eventual"
   }
 
   geo_location {
@@ -1496,7 +1503,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(tls))
 }
 
 func (CosmosDBAccountResource) basicMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel) string {
