@@ -170,7 +170,7 @@ func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("bgp_settings", dataSourceFlattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {

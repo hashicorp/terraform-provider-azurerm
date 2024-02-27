@@ -6,6 +6,7 @@ package labservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -486,16 +487,21 @@ func (r LabServiceLabResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			autoShutdownProfile := expandAutoShutdownProfile(model.AutoShutdown)
+			connectionProfile := expandConnectionProfile(model.ConnectionSetting)
+			securityProfile := expandSecurityProfile(model.Security)
+			virtualMachineProfile := expandVirtualMachineProfile(model.VirtualMachine, false)
+
 			props := &lab.Lab{
 				Location: location.Normalize(model.Location),
 				Properties: lab.LabProperties{
-					AutoShutdownProfile:   expandAutoShutdownProfile(model.AutoShutdown),
-					ConnectionProfile:     expandConnectionProfile(model.ConnectionSetting),
+					AutoShutdownProfile:   pointer.To(autoShutdownProfile),
+					ConnectionProfile:     pointer.To(connectionProfile),
 					NetworkProfile:        expandNetworkProfile(model.Network, false, nil),
 					RosterProfile:         expandRosterProfile(model.Roster),
-					SecurityProfile:       expandSecurityProfile(model.Security),
+					SecurityProfile:       pointer.To(securityProfile),
 					Title:                 &model.Title,
-					VirtualMachineProfile: expandVirtualMachineProfile(model.VirtualMachine, false),
+					VirtualMachineProfile: pointer.To(virtualMachineProfile),
 				},
 				Tags: &model.Tags,
 			}
@@ -545,15 +551,18 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("auto_shutdown") {
-				props.Properties.AutoShutdownProfile = expandAutoShutdownProfile(model.AutoShutdown)
+				autoShutdownProfile := expandAutoShutdownProfile(model.AutoShutdown)
+				props.Properties.AutoShutdownProfile = pointer.To(autoShutdownProfile)
 			}
 
 			if metadata.ResourceData.HasChange("connection_setting") {
-				props.Properties.ConnectionProfile = expandConnectionProfile(model.ConnectionSetting)
+				connectionProfile := expandConnectionProfile(model.ConnectionSetting)
+				props.Properties.ConnectionProfile = pointer.To(connectionProfile)
 			}
 
 			if metadata.ResourceData.HasChange("security") {
-				props.Properties.SecurityProfile = expandSecurityProfile(model.Security)
+				securityProfile := expandSecurityProfile(model.Security)
+				props.Properties.SecurityProfile = pointer.To(securityProfile)
 			}
 
 			if metadata.ResourceData.HasChange("title") {
@@ -561,7 +570,8 @@ func (r LabServiceLabResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("virtual_machine") {
-				props.Properties.VirtualMachineProfile = expandVirtualMachineProfile(model.VirtualMachine, true)
+				virtualMachineProfile := expandVirtualMachineProfile(model.VirtualMachine, true)
+				props.Properties.VirtualMachineProfile = pointer.To(virtualMachineProfile)
 			}
 
 			if metadata.ResourceData.HasChange("network") {
@@ -756,7 +766,11 @@ func expandAutoShutdownProfile(input []AutoShutdown) lab.AutoShutdownProfile {
 	return result
 }
 
-func flattenAutoShutdownProfile(input lab.AutoShutdownProfile) []AutoShutdown {
+func flattenAutoShutdownProfile(input *lab.AutoShutdownProfile) []AutoShutdown {
+	if input == nil {
+		return []AutoShutdown{}
+	}
+
 	// default values
 	shutdownOnDisconnectEnabled := input.ShutdownOnDisconnect != nil && *input.ShutdownOnDisconnect != lab.EnableStateDisabled
 	shutdownWhenNotConnectedEnabled := input.ShutdownWhenNotConnected != nil && *input.ShutdownWhenNotConnected != lab.EnableStateDisabled
@@ -822,7 +836,10 @@ func expandConnectionProfile(input []ConnectionSetting) lab.ConnectionProfile {
 	return result
 }
 
-func flattenConnectionProfile(input lab.ConnectionProfile) []ConnectionSetting {
+func flattenConnectionProfile(input *lab.ConnectionProfile) []ConnectionSetting {
+	if input == nil {
+		return []ConnectionSetting{}
+	}
 	if (input.ClientRdpAccess == nil || *input.ClientRdpAccess == lab.ConnectionTypeNone) && (input.ClientSshAccess == nil || *input.ClientSshAccess == lab.ConnectionTypeNone) {
 		return []ConnectionSetting{}
 	}
@@ -860,7 +877,11 @@ func expandSecurityProfile(input []Security) lab.SecurityProfile {
 	return result
 }
 
-func flattenSecurityProfile(input lab.SecurityProfile) []Security {
+func flattenSecurityProfile(input *lab.SecurityProfile) []Security {
+	if input == nil {
+		return []Security{}
+	}
+
 	var securityProfiles []Security
 	securityProfile := Security{}
 
@@ -970,7 +991,11 @@ func expandSku(input []Sku) lab.Sku {
 	return result
 }
 
-func flattenVirtualMachineProfile(input lab.VirtualMachineProfile, password string) []VirtualMachine {
+func flattenVirtualMachineProfile(input *lab.VirtualMachineProfile, password string) []VirtualMachine {
+	if input == nil {
+		return []VirtualMachine{}
+	}
+
 	var virtualMachineProfiles []VirtualMachine
 
 	virtualMachineProfile := VirtualMachine{

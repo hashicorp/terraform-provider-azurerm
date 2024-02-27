@@ -5,6 +5,7 @@ package sentinel
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"time"
 
@@ -407,15 +408,15 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
 			Techniques:            expandAlertRuleTechnicals(d.Get("techniques").(*pluginsdk.Set).List()),
 			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident_configuration").([]interface{}), "create_incident", true),
-			Severity:              alertrules.AlertSeverity(d.Get("severity").(string)),
+			Severity:              pointer.To(alertrules.AlertSeverity(d.Get("severity").(string))),
 			Enabled:               d.Get("enabled").(bool),
-			Query:                 d.Get("query").(string),
-			QueryFrequency:        queryFreq,
-			QueryPeriod:           queryPeriod,
+			Query:                 pointer.To(d.Get("query").(string)),
+			QueryFrequency:        pointer.To(queryFreq),
+			QueryPeriod:           pointer.To(queryPeriod),
 			SuppressionEnabled:    suppressionEnabled,
 			SuppressionDuration:   suppressionDuration,
-			TriggerOperator:       alertrules.TriggerOperator(d.Get("trigger_operator").(string)),
-			TriggerThreshold:      int64(d.Get("trigger_threshold").(int)),
+			TriggerOperator:       pointer.To(alertrules.TriggerOperator(d.Get("trigger_operator").(string))),
+			TriggerThreshold:      pointer.To(int64(d.Get("trigger_threshold").(int))),
 		},
 	}
 
@@ -517,13 +518,13 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 			if err := d.Set("incident_configuration", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident", true)); err != nil {
 				return fmt.Errorf("setting `incident_configuration`: %+v", err)
 			}
-			d.Set("severity", string(prop.Severity))
+			d.Set("severity", string(pointer.From(prop.Severity)))
 			d.Set("enabled", prop.Enabled)
 			d.Set("query", prop.Query)
 			d.Set("query_frequency", prop.QueryFrequency)
 			d.Set("query_period", prop.QueryPeriod)
-			d.Set("trigger_operator", string(prop.TriggerOperator))
-			d.Set("trigger_threshold", int(prop.TriggerThreshold))
+			d.Set("trigger_operator", string(pointer.From(prop.TriggerOperator)))
+			d.Set("trigger_threshold", int(pointer.From(prop.TriggerThreshold)))
 			d.Set("suppression_enabled", prop.SuppressionEnabled)
 			d.Set("suppression_duration", prop.SuppressionDuration)
 			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
