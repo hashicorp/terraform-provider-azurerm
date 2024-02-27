@@ -36,13 +36,18 @@ func (p ClusterOperationPredicate) Matches(input Cluster) bool {
 	return true
 }
 
-type ClusterJobListResultOperationPredicate struct {
-	NextLink *string
+type ClusterJobOperationPredicate struct {
+	Id             *string
+	StreamingUnits *int64
 }
 
-func (p ClusterJobListResultOperationPredicate) Matches(input ClusterJobListResult) bool {
+func (p ClusterJobOperationPredicate) Matches(input ClusterJob) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.StreamingUnits != nil && (input.StreamingUnits == nil || *p.StreamingUnits != *input.StreamingUnits) {
 		return false
 	}
 

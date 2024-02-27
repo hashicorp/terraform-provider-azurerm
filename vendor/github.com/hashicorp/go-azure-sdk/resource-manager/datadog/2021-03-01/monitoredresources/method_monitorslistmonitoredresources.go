@@ -15,12 +15,12 @@ import (
 type MonitorsListMonitoredResourcesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]MonitoredResourceListResponse
+	Model        *[]MonitoredResource
 }
 
 type MonitorsListMonitoredResourcesCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []MonitoredResourceListResponse
+	Items              []MonitoredResource
 }
 
 // MonitorsListMonitoredResources ...
@@ -50,7 +50,7 @@ func (c MonitoredResourcesClient) MonitorsListMonitoredResources(ctx context.Con
 	}
 
 	var values struct {
-		Values *[]MonitoredResourceListResponse `json:"value"`
+		Values *[]MonitoredResource `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c MonitoredResourcesClient) MonitorsListMonitoredResources(ctx context.Con
 
 // MonitorsListMonitoredResourcesComplete retrieves all the results into a single object
 func (c MonitoredResourcesClient) MonitorsListMonitoredResourcesComplete(ctx context.Context, id MonitorId) (MonitorsListMonitoredResourcesCompleteResult, error) {
-	return c.MonitorsListMonitoredResourcesCompleteMatchingPredicate(ctx, id, MonitoredResourceListResponseOperationPredicate{})
+	return c.MonitorsListMonitoredResourcesCompleteMatchingPredicate(ctx, id, MonitoredResourceOperationPredicate{})
 }
 
 // MonitorsListMonitoredResourcesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c MonitoredResourcesClient) MonitorsListMonitoredResourcesCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoredResourceListResponseOperationPredicate) (result MonitorsListMonitoredResourcesCompleteResult, err error) {
-	items := make([]MonitoredResourceListResponse, 0)
+func (c MonitoredResourcesClient) MonitorsListMonitoredResourcesCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoredResourceOperationPredicate) (result MonitorsListMonitoredResourcesCompleteResult, err error) {
+	items := make([]MonitoredResource, 0)
 
 	resp, err := c.MonitorsListMonitoredResources(ctx, id)
 	if err != nil {

@@ -19,7 +19,12 @@ type ListEffectiveNetworkSecurityGroupsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *EffectiveNetworkSecurityGroupListResult
+	Model        *[]EffectiveNetworkSecurityGroup
+}
+
+type ListEffectiveNetworkSecurityGroupsCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []EffectiveNetworkSecurityGroup
 }
 
 // ListEffectiveNetworkSecurityGroups ...

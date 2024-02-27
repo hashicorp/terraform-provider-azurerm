@@ -15,7 +15,12 @@ import (
 type ListPredefinedUrlCategoriesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PredefinedUrlCategoriesResponse
+	Model        *[]PredefinedUrlCategory
+}
+
+type ListPredefinedUrlCategoriesCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []PredefinedUrlCategory
 }
 
 type ListPredefinedUrlCategoriesOperationOptions struct {
@@ -67,7 +72,7 @@ func (c LocalRulestacksClient) ListPredefinedUrlCategories(ctx context.Context, 
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -76,12 +81,43 @@ func (c LocalRulestacksClient) ListPredefinedUrlCategories(ctx context.Context, 
 		return
 	}
 
-	var model PredefinedUrlCategoriesResponse
-	result.Model = &model
-
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]PredefinedUrlCategory `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListPredefinedUrlCategoriesComplete retrieves all the results into a single object
+func (c LocalRulestacksClient) ListPredefinedUrlCategoriesComplete(ctx context.Context, id LocalRulestackId, options ListPredefinedUrlCategoriesOperationOptions) (ListPredefinedUrlCategoriesCompleteResult, error) {
+	return c.ListPredefinedUrlCategoriesCompleteMatchingPredicate(ctx, id, options, PredefinedUrlCategoryOperationPredicate{})
+}
+
+// ListPredefinedUrlCategoriesCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c LocalRulestacksClient) ListPredefinedUrlCategoriesCompleteMatchingPredicate(ctx context.Context, id LocalRulestackId, options ListPredefinedUrlCategoriesOperationOptions, predicate PredefinedUrlCategoryOperationPredicate) (result ListPredefinedUrlCategoriesCompleteResult, err error) {
+	items := make([]PredefinedUrlCategory, 0)
+
+	resp, err := c.ListPredefinedUrlCategories(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListPredefinedUrlCategoriesCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

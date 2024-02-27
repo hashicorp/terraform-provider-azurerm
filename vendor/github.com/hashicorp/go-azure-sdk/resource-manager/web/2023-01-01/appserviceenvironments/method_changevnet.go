@@ -19,12 +19,12 @@ type ChangeVnetOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]WebAppCollection
+	Model        *[]Site
 }
 
 type ChangeVnetCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []WebAppCollection
+	Items              []Site
 }
 
 // ChangeVnet ...

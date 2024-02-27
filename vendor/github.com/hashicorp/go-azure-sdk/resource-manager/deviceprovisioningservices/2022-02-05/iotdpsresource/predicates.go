@@ -44,13 +44,23 @@ func (p ProvisioningServiceDescriptionOperationPredicate) Matches(input Provisio
 	return true
 }
 
-type SharedAccessSignatureAuthorizationRuleListResultOperationPredicate struct {
-	NextLink *string
+type SharedAccessSignatureAuthorizationRuleAccessRightsDescriptionOperationPredicate struct {
+	KeyName      *string
+	PrimaryKey   *string
+	SecondaryKey *string
 }
 
-func (p SharedAccessSignatureAuthorizationRuleListResultOperationPredicate) Matches(input SharedAccessSignatureAuthorizationRuleListResult) bool {
+func (p SharedAccessSignatureAuthorizationRuleAccessRightsDescriptionOperationPredicate) Matches(input SharedAccessSignatureAuthorizationRuleAccessRightsDescription) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.KeyName != nil && *p.KeyName != input.KeyName {
+		return false
+	}
+
+	if p.PrimaryKey != nil && (input.PrimaryKey == nil || *p.PrimaryKey != *input.PrimaryKey) {
+		return false
+	}
+
+	if p.SecondaryKey != nil && (input.SecondaryKey == nil || *p.SecondaryKey != *input.SecondaryKey) {
 		return false
 	}
 

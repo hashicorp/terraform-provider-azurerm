@@ -15,12 +15,12 @@ import (
 type ListDeploymentsAtResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]RemediationDeploymentsListResult
+	Model        *[]RemediationDeployment
 }
 
 type ListDeploymentsAtResourceGroupCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []RemediationDeploymentsListResult
+	Items              []RemediationDeployment
 }
 
 type ListDeploymentsAtResourceGroupOperationOptions struct {
@@ -78,7 +78,7 @@ func (c RemediationsClient) ListDeploymentsAtResourceGroup(ctx context.Context, 
 	}
 
 	var values struct {
-		Values *[]RemediationDeploymentsListResult `json:"value"`
+		Values *[]RemediationDeployment `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -91,12 +91,12 @@ func (c RemediationsClient) ListDeploymentsAtResourceGroup(ctx context.Context, 
 
 // ListDeploymentsAtResourceGroupComplete retrieves all the results into a single object
 func (c RemediationsClient) ListDeploymentsAtResourceGroupComplete(ctx context.Context, id ProviderRemediationId, options ListDeploymentsAtResourceGroupOperationOptions) (ListDeploymentsAtResourceGroupCompleteResult, error) {
-	return c.ListDeploymentsAtResourceGroupCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentsListResultOperationPredicate{})
+	return c.ListDeploymentsAtResourceGroupCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
 }
 
 // ListDeploymentsAtResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c RemediationsClient) ListDeploymentsAtResourceGroupCompleteMatchingPredicate(ctx context.Context, id ProviderRemediationId, options ListDeploymentsAtResourceGroupOperationOptions, predicate RemediationDeploymentsListResultOperationPredicate) (result ListDeploymentsAtResourceGroupCompleteResult, err error) {
-	items := make([]RemediationDeploymentsListResult, 0)
+func (c RemediationsClient) ListDeploymentsAtResourceGroupCompleteMatchingPredicate(ctx context.Context, id ProviderRemediationId, options ListDeploymentsAtResourceGroupOperationOptions, predicate RemediationDeploymentOperationPredicate) (result ListDeploymentsAtResourceGroupCompleteResult, err error) {
+	items := make([]RemediationDeployment, 0)
 
 	resp, err := c.ListDeploymentsAtResourceGroup(ctx, id, options)
 	if err != nil {

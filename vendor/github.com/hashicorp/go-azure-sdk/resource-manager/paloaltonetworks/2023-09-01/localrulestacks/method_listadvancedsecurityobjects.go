@@ -15,7 +15,12 @@ import (
 type ListAdvancedSecurityObjectsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *AdvSecurityObjectListResponse
+	Model        *[]AdvSecurityObjectModel
+}
+
+type ListAdvancedSecurityObjectsCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []AdvSecurityObjectModel
 }
 
 type ListAdvancedSecurityObjectsOperationOptions struct {
@@ -71,7 +76,7 @@ func (c LocalRulestacksClient) ListAdvancedSecurityObjects(ctx context.Context, 
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -80,12 +85,43 @@ func (c LocalRulestacksClient) ListAdvancedSecurityObjects(ctx context.Context, 
 		return
 	}
 
-	var model AdvSecurityObjectListResponse
-	result.Model = &model
-
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]AdvSecurityObjectModel `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListAdvancedSecurityObjectsComplete retrieves all the results into a single object
+func (c LocalRulestacksClient) ListAdvancedSecurityObjectsComplete(ctx context.Context, id LocalRulestackId, options ListAdvancedSecurityObjectsOperationOptions) (ListAdvancedSecurityObjectsCompleteResult, error) {
+	return c.ListAdvancedSecurityObjectsCompleteMatchingPredicate(ctx, id, options, AdvSecurityObjectModelOperationPredicate{})
+}
+
+// ListAdvancedSecurityObjectsCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c LocalRulestacksClient) ListAdvancedSecurityObjectsCompleteMatchingPredicate(ctx context.Context, id LocalRulestackId, options ListAdvancedSecurityObjectsOperationOptions, predicate AdvSecurityObjectModelOperationPredicate) (result ListAdvancedSecurityObjectsCompleteResult, err error) {
+	items := make([]AdvSecurityObjectModel, 0)
+
+	resp, err := c.ListAdvancedSecurityObjects(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListAdvancedSecurityObjectsCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

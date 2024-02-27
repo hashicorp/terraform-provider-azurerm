@@ -19,12 +19,12 @@ type VirtualNetworksListDdosProtectionStatusOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]VirtualNetworkDdosProtectionStatusResult
+	Model        *[]PublicIPDdosProtectionStatusResult
 }
 
 type VirtualNetworksListDdosProtectionStatusCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []VirtualNetworkDdosProtectionStatusResult
+	Items              []PublicIPDdosProtectionStatusResult
 }
 
 type VirtualNetworksListDdosProtectionStatusOperationOptions struct {

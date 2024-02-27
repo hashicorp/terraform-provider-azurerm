@@ -31,13 +31,13 @@ func (p LabOperationPredicate) Matches(input Lab) bool {
 	return true
 }
 
-type LabVhdListOperationPredicate struct {
-	NextLink *string
+type LabVhdOperationPredicate struct {
+	Id *string
 }
 
-func (p LabVhdListOperationPredicate) Matches(input LabVhdList) bool {
+func (p LabVhdOperationPredicate) Matches(input LabVhd) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false
 	}
 

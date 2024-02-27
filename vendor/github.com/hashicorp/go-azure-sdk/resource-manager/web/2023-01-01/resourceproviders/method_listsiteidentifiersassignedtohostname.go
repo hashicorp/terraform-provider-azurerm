@@ -16,12 +16,12 @@ import (
 type ListSiteIdentifiersAssignedToHostNameOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]IdentifierCollection
+	Model        *[]Identifier
 }
 
 type ListSiteIdentifiersAssignedToHostNameCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []IdentifierCollection
+	Items              []Identifier
 }
 
 // ListSiteIdentifiersAssignedToHostName ...
@@ -51,7 +51,7 @@ func (c ResourceProvidersClient) ListSiteIdentifiersAssignedToHostName(ctx conte
 	}
 
 	var values struct {
-		Values *[]IdentifierCollection `json:"value"`
+		Values *[]Identifier `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -64,12 +64,12 @@ func (c ResourceProvidersClient) ListSiteIdentifiersAssignedToHostName(ctx conte
 
 // ListSiteIdentifiersAssignedToHostNameComplete retrieves all the results into a single object
 func (c ResourceProvidersClient) ListSiteIdentifiersAssignedToHostNameComplete(ctx context.Context, id commonids.SubscriptionId, input NameIdentifier) (ListSiteIdentifiersAssignedToHostNameCompleteResult, error) {
-	return c.ListSiteIdentifiersAssignedToHostNameCompleteMatchingPredicate(ctx, id, input, IdentifierCollectionOperationPredicate{})
+	return c.ListSiteIdentifiersAssignedToHostNameCompleteMatchingPredicate(ctx, id, input, IdentifierOperationPredicate{})
 }
 
 // ListSiteIdentifiersAssignedToHostNameCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ResourceProvidersClient) ListSiteIdentifiersAssignedToHostNameCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, input NameIdentifier, predicate IdentifierCollectionOperationPredicate) (result ListSiteIdentifiersAssignedToHostNameCompleteResult, err error) {
-	items := make([]IdentifierCollection, 0)
+func (c ResourceProvidersClient) ListSiteIdentifiersAssignedToHostNameCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, input NameIdentifier, predicate IdentifierOperationPredicate) (result ListSiteIdentifiersAssignedToHostNameCompleteResult, err error) {
+	items := make([]Identifier, 0)
 
 	resp, err := c.ListSiteIdentifiersAssignedToHostName(ctx, id, input)
 	if err != nil {

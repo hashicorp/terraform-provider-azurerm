@@ -15,12 +15,12 @@ import (
 type ListKeysOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]ApiKeyListResult
+	Model        *[]ApiKey
 }
 
 type ListKeysCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []ApiKeyListResult
+	Items              []ApiKey
 }
 
 // ListKeys ...
@@ -50,7 +50,7 @@ func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id Configuratio
 	}
 
 	var values struct {
-		Values *[]ApiKeyListResult `json:"value"`
+		Values *[]ApiKey `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c ConfigurationStoresClient) ListKeys(ctx context.Context, id Configuratio
 
 // ListKeysComplete retrieves all the results into a single object
 func (c ConfigurationStoresClient) ListKeysComplete(ctx context.Context, id ConfigurationStoreId) (ListKeysCompleteResult, error) {
-	return c.ListKeysCompleteMatchingPredicate(ctx, id, ApiKeyListResultOperationPredicate{})
+	return c.ListKeysCompleteMatchingPredicate(ctx, id, ApiKeyOperationPredicate{})
 }
 
 // ListKeysCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context.Context, id ConfigurationStoreId, predicate ApiKeyListResultOperationPredicate) (result ListKeysCompleteResult, err error) {
-	items := make([]ApiKeyListResult, 0)
+func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context.Context, id ConfigurationStoreId, predicate ApiKeyOperationPredicate) (result ListKeysCompleteResult, err error) {
+	items := make([]ApiKey, 0)
 
 	resp, err := c.ListKeys(ctx, id)
 	if err != nil {

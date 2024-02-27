@@ -15,7 +15,12 @@ import (
 type ListAppIdsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ListAppIdResponse
+	Model        *[]string
+}
+
+type ListAppIdsCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []string
 }
 
 type ListAppIdsOperationOptions struct {
@@ -75,7 +80,7 @@ func (c GlobalRulestackClient) ListAppIds(ctx context.Context, id GlobalRulestac
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -84,12 +89,36 @@ func (c GlobalRulestackClient) ListAppIds(ctx context.Context, id GlobalRulestac
 		return
 	}
 
-	var model ListAppIdResponse
-	result.Model = &model
-
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]string `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListAppIdsComplete retrieves all the results into a single object
+func (c GlobalRulestackClient) ListAppIdsComplete(ctx context.Context, id GlobalRulestackId, options ListAppIdsOperationOptions) (result ListAppIdsCompleteResult, err error) {
+	items := make([]string, 0)
+
+	resp, err := c.ListAppIds(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			items = append(items, v)
+		}
+	}
+
+	result = ListAppIdsCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

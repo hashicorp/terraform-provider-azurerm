@@ -15,7 +15,12 @@ import (
 type ListCountriesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *CountriesResponse
+	Model        *[]Country
+}
+
+type ListCountriesCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Country
 }
 
 type ListCountriesOperationOptions struct {
@@ -67,7 +72,7 @@ func (c GlobalRulestackClient) ListCountries(ctx context.Context, id GlobalRules
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -76,12 +81,43 @@ func (c GlobalRulestackClient) ListCountries(ctx context.Context, id GlobalRules
 		return
 	}
 
-	var model CountriesResponse
-	result.Model = &model
-
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]Country `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListCountriesComplete retrieves all the results into a single object
+func (c GlobalRulestackClient) ListCountriesComplete(ctx context.Context, id GlobalRulestackId, options ListCountriesOperationOptions) (ListCountriesCompleteResult, error) {
+	return c.ListCountriesCompleteMatchingPredicate(ctx, id, options, CountryOperationPredicate{})
+}
+
+// ListCountriesCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c GlobalRulestackClient) ListCountriesCompleteMatchingPredicate(ctx context.Context, id GlobalRulestackId, options ListCountriesOperationOptions, predicate CountryOperationPredicate) (result ListCountriesCompleteResult, err error) {
+	items := make([]Country, 0)
+
+	resp, err := c.ListCountries(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListCountriesCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

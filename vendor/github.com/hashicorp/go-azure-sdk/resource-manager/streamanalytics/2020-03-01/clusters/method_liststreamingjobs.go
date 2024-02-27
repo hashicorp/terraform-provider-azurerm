@@ -15,12 +15,12 @@ import (
 type ListStreamingJobsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]ClusterJobListResult
+	Model        *[]ClusterJob
 }
 
 type ListStreamingJobsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []ClusterJobListResult
+	Items              []ClusterJob
 }
 
 // ListStreamingJobs ...
@@ -50,7 +50,7 @@ func (c ClustersClient) ListStreamingJobs(ctx context.Context, id ClusterId) (re
 	}
 
 	var values struct {
-		Values *[]ClusterJobListResult `json:"value"`
+		Values *[]ClusterJob `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c ClustersClient) ListStreamingJobs(ctx context.Context, id ClusterId) (re
 
 // ListStreamingJobsComplete retrieves all the results into a single object
 func (c ClustersClient) ListStreamingJobsComplete(ctx context.Context, id ClusterId) (ListStreamingJobsCompleteResult, error) {
-	return c.ListStreamingJobsCompleteMatchingPredicate(ctx, id, ClusterJobListResultOperationPredicate{})
+	return c.ListStreamingJobsCompleteMatchingPredicate(ctx, id, ClusterJobOperationPredicate{})
 }
 
 // ListStreamingJobsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ClustersClient) ListStreamingJobsCompleteMatchingPredicate(ctx context.Context, id ClusterId, predicate ClusterJobListResultOperationPredicate) (result ListStreamingJobsCompleteResult, err error) {
-	items := make([]ClusterJobListResult, 0)
+func (c ClustersClient) ListStreamingJobsCompleteMatchingPredicate(ctx context.Context, id ClusterId, predicate ClusterJobOperationPredicate) (result ListStreamingJobsCompleteResult, err error) {
+	items := make([]ClusterJob, 0)
 
 	resp, err := c.ListStreamingJobs(ctx, id)
 	if err != nil {

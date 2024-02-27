@@ -3,26 +3,46 @@ package monitors
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type AppServicesListResponseOperationPredicate struct {
-	NextLink *string
+type AppServiceInfoOperationPredicate struct {
+	AgentStatus     *string
+	AgentVersion    *string
+	AzureResourceId *string
 }
 
-func (p AppServicesListResponseOperationPredicate) Matches(input AppServicesListResponse) bool {
+func (p AppServiceInfoOperationPredicate) Matches(input AppServiceInfo) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.AgentStatus != nil && (input.AgentStatus == nil || *p.AgentStatus != *input.AgentStatus) {
+		return false
+	}
+
+	if p.AgentVersion != nil && (input.AgentVersion == nil || *p.AgentVersion != *input.AgentVersion) {
+		return false
+	}
+
+	if p.AzureResourceId != nil && (input.AzureResourceId == nil || *p.AzureResourceId != *input.AzureResourceId) {
 		return false
 	}
 
 	return true
 }
 
-type MonitoredResourceListResponseOperationPredicate struct {
-	NextLink *string
+type MonitoredResourceOperationPredicate struct {
+	Id                     *string
+	ReasonForLogsStatus    *string
+	ReasonForMetricsStatus *string
 }
 
-func (p MonitoredResourceListResponseOperationPredicate) Matches(input MonitoredResourceListResponse) bool {
+func (p MonitoredResourceOperationPredicate) Matches(input MonitoredResource) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.ReasonForLogsStatus != nil && (input.ReasonForLogsStatus == nil || *p.ReasonForLogsStatus != *input.ReasonForLogsStatus) {
+		return false
+	}
+
+	if p.ReasonForMetricsStatus != nil && (input.ReasonForMetricsStatus == nil || *p.ReasonForMetricsStatus != *input.ReasonForMetricsStatus) {
 		return false
 	}
 
@@ -57,13 +77,23 @@ func (p NewRelicMonitorResourceOperationPredicate) Matches(input NewRelicMonitor
 	return true
 }
 
-type VMHostsListResponseOperationPredicate struct {
-	NextLink *string
+type VMInfoOperationPredicate struct {
+	AgentStatus  *string
+	AgentVersion *string
+	VMId         *string
 }
 
-func (p VMHostsListResponseOperationPredicate) Matches(input VMHostsListResponse) bool {
+func (p VMInfoOperationPredicate) Matches(input VMInfo) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.AgentStatus != nil && (input.AgentStatus == nil || *p.AgentStatus != *input.AgentStatus) {
+		return false
+	}
+
+	if p.AgentVersion != nil && (input.AgentVersion == nil || *p.AgentVersion != *input.AgentVersion) {
+		return false
+	}
+
+	if p.VMId != nil && (input.VMId == nil || *p.VMId != *input.VMId) {
 		return false
 	}
 

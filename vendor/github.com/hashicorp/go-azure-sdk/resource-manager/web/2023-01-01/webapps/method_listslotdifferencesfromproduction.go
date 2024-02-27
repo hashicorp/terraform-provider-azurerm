@@ -16,12 +16,12 @@ import (
 type ListSlotDifferencesFromProductionOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]SlotDifferenceCollection
+	Model        *[]SlotDifference
 }
 
 type ListSlotDifferencesFromProductionCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []SlotDifferenceCollection
+	Items              []SlotDifference
 }
 
 // ListSlotDifferencesFromProduction ...
@@ -51,7 +51,7 @@ func (c WebAppsClient) ListSlotDifferencesFromProduction(ctx context.Context, id
 	}
 
 	var values struct {
-		Values *[]SlotDifferenceCollection `json:"value"`
+		Values *[]SlotDifference `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -64,12 +64,12 @@ func (c WebAppsClient) ListSlotDifferencesFromProduction(ctx context.Context, id
 
 // ListSlotDifferencesFromProductionComplete retrieves all the results into a single object
 func (c WebAppsClient) ListSlotDifferencesFromProductionComplete(ctx context.Context, id commonids.AppServiceId, input CsmSlotEntity) (ListSlotDifferencesFromProductionCompleteResult, error) {
-	return c.ListSlotDifferencesFromProductionCompleteMatchingPredicate(ctx, id, input, SlotDifferenceCollectionOperationPredicate{})
+	return c.ListSlotDifferencesFromProductionCompleteMatchingPredicate(ctx, id, input, SlotDifferenceOperationPredicate{})
 }
 
 // ListSlotDifferencesFromProductionCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c WebAppsClient) ListSlotDifferencesFromProductionCompleteMatchingPredicate(ctx context.Context, id commonids.AppServiceId, input CsmSlotEntity, predicate SlotDifferenceCollectionOperationPredicate) (result ListSlotDifferencesFromProductionCompleteResult, err error) {
-	items := make([]SlotDifferenceCollection, 0)
+func (c WebAppsClient) ListSlotDifferencesFromProductionCompleteMatchingPredicate(ctx context.Context, id commonids.AppServiceId, input CsmSlotEntity, predicate SlotDifferenceOperationPredicate) (result ListSlotDifferencesFromProductionCompleteResult, err error) {
+	items := make([]SlotDifference, 0)
 
 	resp, err := c.ListSlotDifferencesFromProduction(ctx, id, input)
 	if err != nil {

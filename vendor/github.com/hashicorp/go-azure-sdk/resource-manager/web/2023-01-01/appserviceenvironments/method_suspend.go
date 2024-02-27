@@ -19,12 +19,12 @@ type SuspendOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]WebAppCollection
+	Model        *[]Site
 }
 
 type SuspendCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []WebAppCollection
+	Items              []Site
 }
 
 // Suspend ...

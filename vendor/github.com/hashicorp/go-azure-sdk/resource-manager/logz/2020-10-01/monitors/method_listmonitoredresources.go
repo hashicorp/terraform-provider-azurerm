@@ -15,12 +15,12 @@ import (
 type ListMonitoredResourcesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]MonitoredResourceListResponse
+	Model        *[]MonitoredResource
 }
 
 type ListMonitoredResourcesCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []MonitoredResourceListResponse
+	Items              []MonitoredResource
 }
 
 // ListMonitoredResources ...
@@ -50,7 +50,7 @@ func (c MonitorsClient) ListMonitoredResources(ctx context.Context, id MonitorId
 	}
 
 	var values struct {
-		Values *[]MonitoredResourceListResponse `json:"value"`
+		Values *[]MonitoredResource `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c MonitorsClient) ListMonitoredResources(ctx context.Context, id MonitorId
 
 // ListMonitoredResourcesComplete retrieves all the results into a single object
 func (c MonitorsClient) ListMonitoredResourcesComplete(ctx context.Context, id MonitorId) (ListMonitoredResourcesCompleteResult, error) {
-	return c.ListMonitoredResourcesCompleteMatchingPredicate(ctx, id, MonitoredResourceListResponseOperationPredicate{})
+	return c.ListMonitoredResourcesCompleteMatchingPredicate(ctx, id, MonitoredResourceOperationPredicate{})
 }
 
 // ListMonitoredResourcesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c MonitorsClient) ListMonitoredResourcesCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoredResourceListResponseOperationPredicate) (result ListMonitoredResourcesCompleteResult, err error) {
-	items := make([]MonitoredResourceListResponse, 0)
+func (c MonitorsClient) ListMonitoredResourcesCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate MonitoredResourceOperationPredicate) (result ListMonitoredResourcesCompleteResult, err error) {
+	items := make([]MonitoredResource, 0)
 
 	resp, err := c.ListMonitoredResources(ctx, id)
 	if err != nil {

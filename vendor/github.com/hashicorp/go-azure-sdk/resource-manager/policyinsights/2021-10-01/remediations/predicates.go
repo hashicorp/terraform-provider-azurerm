@@ -26,13 +26,38 @@ func (p RemediationOperationPredicate) Matches(input Remediation) bool {
 	return true
 }
 
-type RemediationDeploymentsListResultOperationPredicate struct {
-	NextLink *string
+type RemediationDeploymentOperationPredicate struct {
+	CreatedOn            *string
+	DeploymentId         *string
+	LastUpdatedOn        *string
+	RemediatedResourceId *string
+	ResourceLocation     *string
+	Status               *string
 }
 
-func (p RemediationDeploymentsListResultOperationPredicate) Matches(input RemediationDeploymentsListResult) bool {
+func (p RemediationDeploymentOperationPredicate) Matches(input RemediationDeployment) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.CreatedOn != nil && (input.CreatedOn == nil || *p.CreatedOn != *input.CreatedOn) {
+		return false
+	}
+
+	if p.DeploymentId != nil && (input.DeploymentId == nil || *p.DeploymentId != *input.DeploymentId) {
+		return false
+	}
+
+	if p.LastUpdatedOn != nil && (input.LastUpdatedOn == nil || *p.LastUpdatedOn != *input.LastUpdatedOn) {
+		return false
+	}
+
+	if p.RemediatedResourceId != nil && (input.RemediatedResourceId == nil || *p.RemediatedResourceId != *input.RemediatedResourceId) {
+		return false
+	}
+
+	if p.ResourceLocation != nil && (input.ResourceLocation == nil || *p.ResourceLocation != *input.ResourceLocation) {
+		return false
+	}
+
+	if p.Status != nil && (input.Status == nil || *p.Status != *input.Status) {
 		return false
 	}
 

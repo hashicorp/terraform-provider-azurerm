@@ -16,12 +16,12 @@ import (
 type ListTemplatesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]AppTemplatesResult
+	Model        *[]AppTemplate
 }
 
 type ListTemplatesCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []AppTemplatesResult
+	Items              []AppTemplate
 }
 
 // ListTemplates ...
@@ -51,7 +51,7 @@ func (c AppsClient) ListTemplates(ctx context.Context, id commonids.Subscription
 	}
 
 	var values struct {
-		Values *[]AppTemplatesResult `json:"value"`
+		Values *[]AppTemplate `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -64,12 +64,12 @@ func (c AppsClient) ListTemplates(ctx context.Context, id commonids.Subscription
 
 // ListTemplatesComplete retrieves all the results into a single object
 func (c AppsClient) ListTemplatesComplete(ctx context.Context, id commonids.SubscriptionId) (ListTemplatesCompleteResult, error) {
-	return c.ListTemplatesCompleteMatchingPredicate(ctx, id, AppTemplatesResultOperationPredicate{})
+	return c.ListTemplatesCompleteMatchingPredicate(ctx, id, AppTemplateOperationPredicate{})
 }
 
 // ListTemplatesCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AppsClient) ListTemplatesCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AppTemplatesResultOperationPredicate) (result ListTemplatesCompleteResult, err error) {
-	items := make([]AppTemplatesResult, 0)
+func (c AppsClient) ListTemplatesCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate AppTemplateOperationPredicate) (result ListTemplatesCompleteResult, err error) {
+	items := make([]AppTemplate, 0)
 
 	resp, err := c.ListTemplates(ctx, id)
 	if err != nil {

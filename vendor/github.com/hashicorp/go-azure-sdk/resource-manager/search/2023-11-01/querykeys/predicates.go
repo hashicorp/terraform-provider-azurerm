@@ -3,13 +3,18 @@ package querykeys
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListQueryKeysResultOperationPredicate struct {
-	NextLink *string
+type QueryKeyOperationPredicate struct {
+	Key  *string
+	Name *string
 }
 
-func (p ListQueryKeysResultOperationPredicate) Matches(input ListQueryKeysResult) bool {
+func (p QueryKeyOperationPredicate) Matches(input QueryKey) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Key != nil && (input.Key == nil || *p.Key != *input.Key) {
+		return false
+	}
+
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
 		return false
 	}
 

@@ -15,12 +15,12 @@ import (
 type ListAppIdsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]ListAppIdResponse
+	Model        *[]string
 }
 
 type ListAppIdsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []ListAppIdResponse
+	Items              []string
 }
 
 type ListAppIdsOperationOptions struct {
@@ -90,7 +90,7 @@ func (c LocalRulestacksClient) ListAppIds(ctx context.Context, id LocalRulestack
 	}
 
 	var values struct {
-		Values *[]ListAppIdResponse `json:"value"`
+		Values *[]string `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -102,13 +102,8 @@ func (c LocalRulestacksClient) ListAppIds(ctx context.Context, id LocalRulestack
 }
 
 // ListAppIdsComplete retrieves all the results into a single object
-func (c LocalRulestacksClient) ListAppIdsComplete(ctx context.Context, id LocalRulestackId, options ListAppIdsOperationOptions) (ListAppIdsCompleteResult, error) {
-	return c.ListAppIdsCompleteMatchingPredicate(ctx, id, options, ListAppIdResponseOperationPredicate{})
-}
-
-// ListAppIdsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c LocalRulestacksClient) ListAppIdsCompleteMatchingPredicate(ctx context.Context, id LocalRulestackId, options ListAppIdsOperationOptions, predicate ListAppIdResponseOperationPredicate) (result ListAppIdsCompleteResult, err error) {
-	items := make([]ListAppIdResponse, 0)
+func (c LocalRulestacksClient) ListAppIdsComplete(ctx context.Context, id LocalRulestackId, options ListAppIdsOperationOptions) (result ListAppIdsCompleteResult, err error) {
+	items := make([]string, 0)
 
 	resp, err := c.ListAppIds(ctx, id, options)
 	if err != nil {
@@ -117,9 +112,7 @@ func (c LocalRulestacksClient) ListAppIdsCompleteMatchingPredicate(ctx context.C
 	}
 	if resp.Model != nil {
 		for _, v := range *resp.Model {
-			if predicate.Matches(v) {
-				items = append(items, v)
-			}
+			items = append(items, v)
 		}
 	}
 

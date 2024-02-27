@@ -15,12 +15,12 @@ import (
 type ListSiteBackupsSlotOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]BackupItemCollection
+	Model        *[]BackupItem
 }
 
 type ListSiteBackupsSlotCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []BackupItemCollection
+	Items              []BackupItem
 }
 
 // ListSiteBackupsSlot ...
@@ -50,7 +50,7 @@ func (c WebAppsClient) ListSiteBackupsSlot(ctx context.Context, id SlotId) (resu
 	}
 
 	var values struct {
-		Values *[]BackupItemCollection `json:"value"`
+		Values *[]BackupItem `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c WebAppsClient) ListSiteBackupsSlot(ctx context.Context, id SlotId) (resu
 
 // ListSiteBackupsSlotComplete retrieves all the results into a single object
 func (c WebAppsClient) ListSiteBackupsSlotComplete(ctx context.Context, id SlotId) (ListSiteBackupsSlotCompleteResult, error) {
-	return c.ListSiteBackupsSlotCompleteMatchingPredicate(ctx, id, BackupItemCollectionOperationPredicate{})
+	return c.ListSiteBackupsSlotCompleteMatchingPredicate(ctx, id, BackupItemOperationPredicate{})
 }
 
 // ListSiteBackupsSlotCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c WebAppsClient) ListSiteBackupsSlotCompleteMatchingPredicate(ctx context.Context, id SlotId, predicate BackupItemCollectionOperationPredicate) (result ListSiteBackupsSlotCompleteResult, err error) {
-	items := make([]BackupItemCollection, 0)
+func (c WebAppsClient) ListSiteBackupsSlotCompleteMatchingPredicate(ctx context.Context, id SlotId, predicate BackupItemOperationPredicate) (result ListSiteBackupsSlotCompleteResult, err error) {
+	items := make([]BackupItem, 0)
 
 	resp, err := c.ListSiteBackupsSlot(ctx, id)
 	if err != nil {

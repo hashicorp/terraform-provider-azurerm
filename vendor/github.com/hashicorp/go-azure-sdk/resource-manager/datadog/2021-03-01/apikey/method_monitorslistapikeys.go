@@ -15,12 +15,12 @@ import (
 type MonitorsListApiKeysOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]DatadogApiKeyListResponse
+	Model        *[]DatadogApiKey
 }
 
 type MonitorsListApiKeysCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []DatadogApiKeyListResponse
+	Items              []DatadogApiKey
 }
 
 // MonitorsListApiKeys ...
@@ -50,7 +50,7 @@ func (c ApiKeyClient) MonitorsListApiKeys(ctx context.Context, id MonitorId) (re
 	}
 
 	var values struct {
-		Values *[]DatadogApiKeyListResponse `json:"value"`
+		Values *[]DatadogApiKey `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -63,12 +63,12 @@ func (c ApiKeyClient) MonitorsListApiKeys(ctx context.Context, id MonitorId) (re
 
 // MonitorsListApiKeysComplete retrieves all the results into a single object
 func (c ApiKeyClient) MonitorsListApiKeysComplete(ctx context.Context, id MonitorId) (MonitorsListApiKeysCompleteResult, error) {
-	return c.MonitorsListApiKeysCompleteMatchingPredicate(ctx, id, DatadogApiKeyListResponseOperationPredicate{})
+	return c.MonitorsListApiKeysCompleteMatchingPredicate(ctx, id, DatadogApiKeyOperationPredicate{})
 }
 
 // MonitorsListApiKeysCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ApiKeyClient) MonitorsListApiKeysCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate DatadogApiKeyListResponseOperationPredicate) (result MonitorsListApiKeysCompleteResult, err error) {
-	items := make([]DatadogApiKeyListResponse, 0)
+func (c ApiKeyClient) MonitorsListApiKeysCompleteMatchingPredicate(ctx context.Context, id MonitorId, predicate DatadogApiKeyOperationPredicate) (result MonitorsListApiKeysCompleteResult, err error) {
+	items := make([]DatadogApiKey, 0)
 
 	resp, err := c.MonitorsListApiKeys(ctx, id)
 	if err != nil {

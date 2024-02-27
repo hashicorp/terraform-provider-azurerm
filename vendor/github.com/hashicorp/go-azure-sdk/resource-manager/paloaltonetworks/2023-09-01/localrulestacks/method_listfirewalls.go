@@ -15,7 +15,12 @@ import (
 type ListFirewallsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ListFirewallsResponse
+	Model        *[]string
+}
+
+type ListFirewallsCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []string
 }
 
 // ListFirewalls ...
@@ -35,7 +40,7 @@ func (c LocalRulestacksClient) ListFirewalls(ctx context.Context, id LocalRulest
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,12 +49,36 @@ func (c LocalRulestacksClient) ListFirewalls(ctx context.Context, id LocalRulest
 		return
 	}
 
-	var model ListFirewallsResponse
-	result.Model = &model
-
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]string `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListFirewallsComplete retrieves all the results into a single object
+func (c LocalRulestacksClient) ListFirewallsComplete(ctx context.Context, id LocalRulestackId) (result ListFirewallsCompleteResult, err error) {
+	items := make([]string, 0)
+
+	resp, err := c.ListFirewalls(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			items = append(items, v)
+		}
+	}
+
+	result = ListFirewallsCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

@@ -18,12 +18,12 @@ type PutBastionShareableLinkOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]BastionShareableLinkListResult
+	Model        *[]BastionShareableLink
 }
 
 type PutBastionShareableLinkCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []BastionShareableLinkListResult
+	Items              []BastionShareableLink
 }
 
 // PutBastionShareableLink ...

@@ -18,12 +18,12 @@ type GetActiveSessionsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]BastionActiveSessionListResult
+	Model        *[]BastionActiveSession
 }
 
 type GetActiveSessionsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []BastionActiveSessionListResult
+	Items              []BastionActiveSession
 }
 
 // GetActiveSessions ...

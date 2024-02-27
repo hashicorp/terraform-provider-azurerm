@@ -3,13 +3,23 @@ package bastionshareablelink
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type BastionShareableLinkListResultOperationPredicate struct {
-	NextLink *string
+type BastionShareableLinkOperationPredicate struct {
+	Bsl       *string
+	CreatedAt *string
+	Message   *string
 }
 
-func (p BastionShareableLinkListResultOperationPredicate) Matches(input BastionShareableLinkListResult) bool {
+func (p BastionShareableLinkOperationPredicate) Matches(input BastionShareableLink) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Bsl != nil && (input.Bsl == nil || *p.Bsl != *input.Bsl) {
+		return false
+	}
+
+	if p.CreatedAt != nil && (input.CreatedAt == nil || *p.CreatedAt != *input.CreatedAt) {
+		return false
+	}
+
+	if p.Message != nil && (input.Message == nil || *p.Message != *input.Message) {
 		return false
 	}
 

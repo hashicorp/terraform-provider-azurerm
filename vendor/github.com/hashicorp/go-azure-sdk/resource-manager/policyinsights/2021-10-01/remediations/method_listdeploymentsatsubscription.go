@@ -15,12 +15,12 @@ import (
 type ListDeploymentsAtSubscriptionOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]RemediationDeploymentsListResult
+	Model        *[]RemediationDeployment
 }
 
 type ListDeploymentsAtSubscriptionCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []RemediationDeploymentsListResult
+	Items              []RemediationDeployment
 }
 
 type ListDeploymentsAtSubscriptionOperationOptions struct {
@@ -78,7 +78,7 @@ func (c RemediationsClient) ListDeploymentsAtSubscription(ctx context.Context, i
 	}
 
 	var values struct {
-		Values *[]RemediationDeploymentsListResult `json:"value"`
+		Values *[]RemediationDeployment `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -91,12 +91,12 @@ func (c RemediationsClient) ListDeploymentsAtSubscription(ctx context.Context, i
 
 // ListDeploymentsAtSubscriptionComplete retrieves all the results into a single object
 func (c RemediationsClient) ListDeploymentsAtSubscriptionComplete(ctx context.Context, id RemediationId, options ListDeploymentsAtSubscriptionOperationOptions) (ListDeploymentsAtSubscriptionCompleteResult, error) {
-	return c.ListDeploymentsAtSubscriptionCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentsListResultOperationPredicate{})
+	return c.ListDeploymentsAtSubscriptionCompleteMatchingPredicate(ctx, id, options, RemediationDeploymentOperationPredicate{})
 }
 
 // ListDeploymentsAtSubscriptionCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c RemediationsClient) ListDeploymentsAtSubscriptionCompleteMatchingPredicate(ctx context.Context, id RemediationId, options ListDeploymentsAtSubscriptionOperationOptions, predicate RemediationDeploymentsListResultOperationPredicate) (result ListDeploymentsAtSubscriptionCompleteResult, err error) {
-	items := make([]RemediationDeploymentsListResult, 0)
+func (c RemediationsClient) ListDeploymentsAtSubscriptionCompleteMatchingPredicate(ctx context.Context, id RemediationId, options ListDeploymentsAtSubscriptionOperationOptions, predicate RemediationDeploymentOperationPredicate) (result ListDeploymentsAtSubscriptionCompleteResult, err error) {
+	items := make([]RemediationDeployment, 0)
 
 	resp, err := c.ListDeploymentsAtSubscription(ctx, id, options)
 	if err != nil {

@@ -3,26 +3,31 @@ package localrulestacks
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CountriesResponseOperationPredicate struct {
-	NextLink *string
+type AdvSecurityObjectModelOperationPredicate struct {
+	Type *string
 }
 
-func (p CountriesResponseOperationPredicate) Matches(input CountriesResponse) bool {
+func (p AdvSecurityObjectModelOperationPredicate) Matches(input AdvSecurityObjectModel) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 
 	return true
 }
 
-type ListAppIdResponseOperationPredicate struct {
-	NextLink *string
+type CountryOperationPredicate struct {
+	Code        *string
+	Description *string
 }
 
-func (p ListAppIdResponseOperationPredicate) Matches(input ListAppIdResponse) bool {
+func (p CountryOperationPredicate) Matches(input Country) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Code != nil && *p.Code != input.Code {
+		return false
+	}
+
+	if p.Description != nil && (input.Description == nil || *p.Description != *input.Description) {
 		return false
 	}
 
@@ -57,13 +62,31 @@ func (p LocalRulestackResourceOperationPredicate) Matches(input LocalRulestackRe
 	return true
 }
 
-type PredefinedUrlCategoriesResponseOperationPredicate struct {
-	NextLink *string
+type PredefinedUrlCategoryOperationPredicate struct {
+	Action *string
+	Name   *string
 }
 
-func (p PredefinedUrlCategoriesResponseOperationPredicate) Matches(input PredefinedUrlCategoriesResponse) bool {
+func (p PredefinedUrlCategoryOperationPredicate) Matches(input PredefinedUrlCategory) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Action != nil && *p.Action != input.Action {
+		return false
+	}
+
+	if p.Name != nil && *p.Name != input.Name {
+		return false
+	}
+
+	return true
+}
+
+type SecurityServicesTypeListOperationPredicate struct {
+	Type *string
+}
+
+func (p SecurityServicesTypeListOperationPredicate) Matches(input SecurityServicesTypeList) bool {
+
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

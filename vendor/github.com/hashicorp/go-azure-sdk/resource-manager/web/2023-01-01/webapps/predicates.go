@@ -59,19 +59,6 @@ func (p BackupItemOperationPredicate) Matches(input BackupItem) bool {
 	return true
 }
 
-type BackupItemCollectionOperationPredicate struct {
-	NextLink *string
-}
-
-func (p BackupItemCollectionOperationPredicate) Matches(input BackupItemCollection) bool {
-
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
-		return false
-	}
-
-	return true
-}
-
 type ContinuousWebJobOperationPredicate struct {
 	Id   *string
 	Kind *string
@@ -571,13 +558,28 @@ func (p SiteExtensionInfoOperationPredicate) Matches(input SiteExtensionInfo) bo
 	return true
 }
 
-type SlotDifferenceCollectionOperationPredicate struct {
-	NextLink *string
+type SlotDifferenceOperationPredicate struct {
+	Id   *string
+	Kind *string
+	Name *string
+	Type *string
 }
 
-func (p SlotDifferenceCollectionOperationPredicate) Matches(input SlotDifferenceCollection) bool {
+func (p SlotDifferenceOperationPredicate) Matches(input SlotDifference) bool {
 
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
+	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.Kind != nil && (input.Kind == nil || *p.Kind != *input.Kind) {
+		return false
+	}
+
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
+		return false
+	}
+
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

@@ -16,12 +16,12 @@ import (
 type ListKeysOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]SharedAccessSignatureAuthorizationRuleListResult
+	Model        *[]SharedAccessSignatureAuthorizationRuleAccessRightsDescription
 }
 
 type ListKeysCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []SharedAccessSignatureAuthorizationRuleListResult
+	Items              []SharedAccessSignatureAuthorizationRuleAccessRightsDescription
 }
 
 // ListKeys ...
@@ -51,7 +51,7 @@ func (c IotDpsResourceClient) ListKeys(ctx context.Context, id commonids.Provisi
 	}
 
 	var values struct {
-		Values *[]SharedAccessSignatureAuthorizationRuleListResult `json:"value"`
+		Values *[]SharedAccessSignatureAuthorizationRuleAccessRightsDescription `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -64,12 +64,12 @@ func (c IotDpsResourceClient) ListKeys(ctx context.Context, id commonids.Provisi
 
 // ListKeysComplete retrieves all the results into a single object
 func (c IotDpsResourceClient) ListKeysComplete(ctx context.Context, id commonids.ProvisioningServiceId) (ListKeysCompleteResult, error) {
-	return c.ListKeysCompleteMatchingPredicate(ctx, id, SharedAccessSignatureAuthorizationRuleListResultOperationPredicate{})
+	return c.ListKeysCompleteMatchingPredicate(ctx, id, SharedAccessSignatureAuthorizationRuleAccessRightsDescriptionOperationPredicate{})
 }
 
 // ListKeysCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c IotDpsResourceClient) ListKeysCompleteMatchingPredicate(ctx context.Context, id commonids.ProvisioningServiceId, predicate SharedAccessSignatureAuthorizationRuleListResultOperationPredicate) (result ListKeysCompleteResult, err error) {
-	items := make([]SharedAccessSignatureAuthorizationRuleListResult, 0)
+func (c IotDpsResourceClient) ListKeysCompleteMatchingPredicate(ctx context.Context, id commonids.ProvisioningServiceId, predicate SharedAccessSignatureAuthorizationRuleAccessRightsDescriptionOperationPredicate) (result ListKeysCompleteResult, err error) {
+	items := make([]SharedAccessSignatureAuthorizationRuleAccessRightsDescription, 0)
 
 	resp, err := c.ListKeys(ctx, id)
 	if err != nil {

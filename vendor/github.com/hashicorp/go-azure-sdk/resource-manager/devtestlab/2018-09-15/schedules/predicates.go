@@ -30,16 +30,3 @@ func (p ScheduleOperationPredicate) Matches(input Schedule) bool {
 
 	return true
 }
-
-type ScheduleListOperationPredicate struct {
-	NextLink *string
-}
-
-func (p ScheduleListOperationPredicate) Matches(input ScheduleList) bool {
-
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
-		return false
-	}
-
-	return true
-}

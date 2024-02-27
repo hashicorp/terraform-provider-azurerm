@@ -15,12 +15,12 @@ import (
 type ListSynchronizationDetailsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]SynchronizationDetailsList
+	Model        *[]SynchronizationDetails
 }
 
 type ListSynchronizationDetailsCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []SynchronizationDetailsList
+	Items              []SynchronizationDetails
 }
 
 type ListSynchronizationDetailsOperationOptions struct {
@@ -82,7 +82,7 @@ func (c ShareClient) ListSynchronizationDetails(ctx context.Context, id ShareId,
 	}
 
 	var values struct {
-		Values *[]SynchronizationDetailsList `json:"value"`
+		Values *[]SynchronizationDetails `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -95,12 +95,12 @@ func (c ShareClient) ListSynchronizationDetails(ctx context.Context, id ShareId,
 
 // ListSynchronizationDetailsComplete retrieves all the results into a single object
 func (c ShareClient) ListSynchronizationDetailsComplete(ctx context.Context, id ShareId, input ShareSynchronization, options ListSynchronizationDetailsOperationOptions) (ListSynchronizationDetailsCompleteResult, error) {
-	return c.ListSynchronizationDetailsCompleteMatchingPredicate(ctx, id, input, options, SynchronizationDetailsListOperationPredicate{})
+	return c.ListSynchronizationDetailsCompleteMatchingPredicate(ctx, id, input, options, SynchronizationDetailsOperationPredicate{})
 }
 
 // ListSynchronizationDetailsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ShareClient) ListSynchronizationDetailsCompleteMatchingPredicate(ctx context.Context, id ShareId, input ShareSynchronization, options ListSynchronizationDetailsOperationOptions, predicate SynchronizationDetailsListOperationPredicate) (result ListSynchronizationDetailsCompleteResult, err error) {
-	items := make([]SynchronizationDetailsList, 0)
+func (c ShareClient) ListSynchronizationDetailsCompleteMatchingPredicate(ctx context.Context, id ShareId, input ShareSynchronization, options ListSynchronizationDetailsOperationOptions, predicate SynchronizationDetailsOperationPredicate) (result ListSynchronizationDetailsCompleteResult, err error) {
+	items := make([]SynchronizationDetails, 0)
 
 	resp, err := c.ListSynchronizationDetails(ctx, id, input, options)
 	if err != nil {

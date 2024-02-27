@@ -3,6 +3,29 @@ package virtualnetworks
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type PublicIPDdosProtectionStatusResultOperationPredicate struct {
+	DdosProtectionPlanId *string
+	PublicIPAddress      *string
+	PublicIPAddressId    *string
+}
+
+func (p PublicIPDdosProtectionStatusResultOperationPredicate) Matches(input PublicIPDdosProtectionStatusResult) bool {
+
+	if p.DdosProtectionPlanId != nil && (input.DdosProtectionPlanId == nil || *p.DdosProtectionPlanId != *input.DdosProtectionPlanId) {
+		return false
+	}
+
+	if p.PublicIPAddress != nil && (input.PublicIPAddress == nil || *p.PublicIPAddress != *input.PublicIPAddress) {
+		return false
+	}
+
+	if p.PublicIPAddressId != nil && (input.PublicIPAddressId == nil || *p.PublicIPAddressId != *input.PublicIPAddressId) {
+		return false
+	}
+
+	return true
+}
+
 type ResourceNavigationLinkOperationPredicate struct {
 	Etag *string
 	Id   *string
@@ -86,19 +109,6 @@ func (p VirtualNetworkOperationPredicate) Matches(input VirtualNetwork) bool {
 	}
 
 	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
-		return false
-	}
-
-	return true
-}
-
-type VirtualNetworkDdosProtectionStatusResultOperationPredicate struct {
-	NextLink *string
-}
-
-func (p VirtualNetworkDdosProtectionStatusResultOperationPredicate) Matches(input VirtualNetworkDdosProtectionStatusResult) bool {
-
-	if p.NextLink != nil && (input.NextLink == nil || *p.NextLink != *input.NextLink) {
 		return false
 	}
 

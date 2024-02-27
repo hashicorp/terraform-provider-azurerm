@@ -15,12 +15,12 @@ import (
 type QueriesSearchOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]LogAnalyticsQueryPackQueryListResult
+	Model        *[]LogAnalyticsQueryPackQuery
 }
 
 type QueriesSearchCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []LogAnalyticsQueryPackQueryListResult
+	Items              []LogAnalyticsQueryPackQuery
 }
 
 type QueriesSearchOperationOptions struct {
@@ -82,7 +82,7 @@ func (c QueryPackQueriesClient) QueriesSearch(ctx context.Context, id QueryPackI
 	}
 
 	var values struct {
-		Values *[]LogAnalyticsQueryPackQueryListResult `json:"value"`
+		Values *[]LogAnalyticsQueryPackQuery `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -95,12 +95,12 @@ func (c QueryPackQueriesClient) QueriesSearch(ctx context.Context, id QueryPackI
 
 // QueriesSearchComplete retrieves all the results into a single object
 func (c QueryPackQueriesClient) QueriesSearchComplete(ctx context.Context, id QueryPackId, input LogAnalyticsQueryPackQuerySearchProperties, options QueriesSearchOperationOptions) (QueriesSearchCompleteResult, error) {
-	return c.QueriesSearchCompleteMatchingPredicate(ctx, id, input, options, LogAnalyticsQueryPackQueryListResultOperationPredicate{})
+	return c.QueriesSearchCompleteMatchingPredicate(ctx, id, input, options, LogAnalyticsQueryPackQueryOperationPredicate{})
 }
 
 // QueriesSearchCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c QueryPackQueriesClient) QueriesSearchCompleteMatchingPredicate(ctx context.Context, id QueryPackId, input LogAnalyticsQueryPackQuerySearchProperties, options QueriesSearchOperationOptions, predicate LogAnalyticsQueryPackQueryListResultOperationPredicate) (result QueriesSearchCompleteResult, err error) {
-	items := make([]LogAnalyticsQueryPackQueryListResult, 0)
+func (c QueryPackQueriesClient) QueriesSearchCompleteMatchingPredicate(ctx context.Context, id QueryPackId, input LogAnalyticsQueryPackQuerySearchProperties, options QueriesSearchOperationOptions, predicate LogAnalyticsQueryPackQueryOperationPredicate) (result QueriesSearchCompleteResult, err error) {
+	items := make([]LogAnalyticsQueryPackQuery, 0)
 
 	resp, err := c.QueriesSearch(ctx, id, input, options)
 	if err != nil {
