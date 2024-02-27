@@ -9,12 +9,14 @@ ENHANCEMENTS:
 * Data Source: `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
 * `azurerm_federated_identity_credential` - the federated credentials can now be changed without creating a new resource [GH-25003]
 * `azurerm_mssql_database` - support for the `recovery_point_id` and `restore_long_term_retention_backup_id` properties [GH-24904]
+* `azurerm_linux_virtual_machine` - support for the `automatic_upgrade_enabled`, `disk_controller_type`, `os_image_notification`, `treat_failure_as_deployment_failure_enabled`, and `vm_agent_platform_updates_enabled`properties [GH-23394]
 * `azurerm_nginx_deployment` - support for the `automatic_upgrade_channel` property [GH-24867]
 * `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
 * `azurerm_role_definition` - upgrade to the API version `2022-05-01-preview` [GH-25008]
 * `azurerm_redis_cache` - allow AAD auth for all SKUs [GH-25006]
 * `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_ids` property [GH-24919]
 * `azurerm_spring_cloud_configuration_service` - support for the `refresh_interval_in_seconds` property [GH-25009]
+* `azurerm_windows_virtual_machine` - support for the `automatic_upgrade_enabled`, `disk_controller_type`, `os_image_notification`, `treat_failure_as_deployment_failure_enabled`, and `vm_agent_platform_updates_enabled`properties [GH-23394]
 
 BUG FIXES:
 
