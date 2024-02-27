@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	network_2023_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
@@ -45,7 +46,7 @@ type Client struct {
 	ServiceAssociationLinkClient           *network.ServiceAssociationLinksClient
 	ServiceEndpointPoliciesClient          *network.ServiceEndpointPoliciesClient
 	ServiceEndpointPolicyDefinitionsClient *network.ServiceEndpointPolicyDefinitionsClient
-	SubnetsClient                          *network.SubnetsClient
+	SubnetsClient                          *subnets.SubnetsClient
 	NatGatewayClient                       *network.NatGatewaysClient
 	VirtualHubBgpConnectionClient          *network.VirtualHubBgpConnectionClient
 	VirtualHubIPClient                     *network.VirtualHubIPConfigurationClient
@@ -143,8 +144,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ServiceEndpointPolicyDefinitionsClient := network.NewServiceEndpointPolicyDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceEndpointPolicyDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
+	SubnetsClient, err := subnets.NewSubnetsClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(SubnetsClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Subnets client: %+v", err)
+	}
 
 	VirtualHubBgpConnectionClient := network.NewVirtualHubBgpConnectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualHubBgpConnectionClient.Client, o.ResourceManagerAuthorizer)
@@ -210,7 +214,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SecurityPartnerProviderClient:          &SecurityPartnerProviderClient,
 		ServiceEndpointPoliciesClient:          &ServiceEndpointPoliciesClient,
 		ServiceEndpointPolicyDefinitionsClient: &ServiceEndpointPolicyDefinitionsClient,
-		SubnetsClient:                          &SubnetsClient,
+		SubnetsClient:                          SubnetsClient,
 		NatGatewayClient:                       &NatGatewayClient,
 		VirtualHubBgpConnectionClient:          &VirtualHubBgpConnectionClient,
 		VirtualHubIPClient:                     &VirtualHubIPClient,
