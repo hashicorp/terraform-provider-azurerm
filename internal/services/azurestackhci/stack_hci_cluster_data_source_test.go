@@ -38,7 +38,7 @@ func TestAccStackHCIClusterDataSource_identity(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.identity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").IsNotEmpty(),
