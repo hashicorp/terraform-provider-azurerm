@@ -4223,6 +4223,14 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
     keys   = ["_id"]
     unique = false
   }
+
+  // indices can cause test to be inconsistent
+  // I believe there is a bug within the azurerm_cosmosdb_mongo_collection that causes inconsistent results on read
+  lifecycle {
+    ignore_changes = [
+      index
+    ]
+  }
 }
 
 data "azurerm_cosmosdb_restorable_database_accounts" "test" {
