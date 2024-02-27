@@ -366,36 +366,38 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 
 			name := subnet["name"].(string)
 			log.Printf("[INFO] setting subnets inside vNet, processing %q", name)
-			// since subnets can also be created outside of vNet definition (as root objects)
-			// do a GET on subnet properties from the server before setting them
 			resGroup := d.Get("resource_group_name").(string)
 			vnetName := d.Get("name").(string)
+			// since subnets can also be created outside of vNet definition (as root objects)
+			// do a GET on subnet properties from the server before setting them
+			// and set when you receive non-nil response
 			subnetObj, err := getExistingSubnet(ctx, resGroup, vnetName, name, meta)
 			if err != nil {
 				return nil, err
 			}
 			log.Printf("[INFO] Completed GET of Subnet props ")
+			if subnetObj != nil {
+				prefix := subnet["address_prefix"].(string)
+				secGroup := subnet["security_group"].(string)
 
-			prefix := subnet["address_prefix"].(string)
-			secGroup := subnet["security_group"].(string)
-
-			// set the props from config and leave the rest intact
-			subnetObj.Name = &name
-			if subnetObj.SubnetPropertiesFormat == nil {
-				subnetObj.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{}
-			}
-
-			subnetObj.SubnetPropertiesFormat.AddressPrefix = &prefix
-
-			if secGroup != "" {
-				subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = &network.SecurityGroup{
-					ID: &secGroup,
+				// set the props from config and leave the rest intact
+				subnetObj.Name = &name
+				if subnetObj.SubnetPropertiesFormat == nil {
+					subnetObj.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{}
 				}
-			} else {
-				subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = nil
-			}
 
-			subnets = append(subnets, *subnetObj)
+				subnetObj.SubnetPropertiesFormat.AddressPrefix = &prefix
+
+				if secGroup != "" {
+					subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = &network.SecurityGroup{
+						ID: &secGroup,
+					}
+				} else {
+					subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = nil
+				}
+
+				subnets = append(subnets, *subnetObj)
+			}
 		}
 	}
 
@@ -545,7 +547,9 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			return &network.Subnet{}, nil
+			// pass a nil object to identify that the subnet does not exist on azure
+			// added to fix https://github.com/hashicorp/terraform-provider-azurerm/issues/16342
+			return nil, nil
 		}
 		// raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
