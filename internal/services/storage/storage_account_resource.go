@@ -1505,7 +1505,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			KeyType: storage.KeyType(queueEncryptionKeyType),
 		}
 		encryption.Services.Table = &storage.EncryptionService{
-			KeyType: storage.KeyType(queueEncryptionKeyType),
+			KeyType: storage.KeyType(tableEncryptionKeyType),
 		}
 	}
 
