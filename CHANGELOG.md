@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `servicefabric`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25002]
 * Data Source: `azurerm_storage_table_entities` - support for `select` [GH-24987]
 * Data Source: `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
+* `azurerm_cosmosdb_account` - add support for `minimal_tls_version` [GH-24966]
 * `azurerm_federated_identity_credential` - the federated credentials can now be changed without creating a new resource [GH-25003]
 * `azurerm_mssql_database` - support for the `recovery_point_id` and `restore_long_term_retention_backup_id` properties [GH-24904]
 * `azurerm_linux_virtual_machine` - support for the `automatic_upgrade_enabled`, `disk_controller_type`, `os_image_notification`, `treat_failure_as_deployment_failure_enabled`, and `vm_agent_platform_updates_enabled`properties [GH-23394]
