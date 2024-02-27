@@ -191,6 +191,16 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"disk_controller_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskControllerTypesNVMe),
+					string(compute.DiskControllerTypesSCSI),
+				}, false),
+			},
+
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			"encryption_at_host_enabled": {
@@ -336,6 +346,12 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
+			"vm_agent_platform_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"vtpm_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -352,6 +368,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"os_image_notification": virtualMachineOsImageNotificationSchema(),
 
 			"termination_notification": virtualMachineTerminationNotificationSchema(),
 
@@ -436,6 +454,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		computerName = id.VirtualMachineName
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
+	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandVirtualMachineIdentity(identityRaw)
@@ -488,6 +507,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 				AllowExtensionOperations: utils.Bool(allowExtensionOperations),
 				LinuxConfiguration: &compute.LinuxConfiguration{
 					DisablePasswordAuthentication: utils.Bool(disablePasswordAuthentication),
+					EnableVMAgentPlatformUpdates:  utils.Bool(vmAgentPlatformUpdatesEnabled),
 					ProvisionVMAgent:              utils.Bool(provisionVMAgent),
 					SSH: &compute.SSHConfiguration{
 						PublicKeys: &sshKeys,
@@ -514,6 +534,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		params.StorageProfile.DiskControllerType = compute.DiskControllerTypes(diskControllerType.(string))
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
@@ -630,8 +654,22 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	var osImageNotificationProfile *compute.OSImageNotificationProfile
+	var terminateNotificationProfile *compute.TerminateNotificationProfile
+
+	if v, ok := d.GetOk("os_image_notification"); ok {
+		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("termination_notification"); ok {
-		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
+		terminateNotificationProfile = expandTerminateNotificationProfile(v.([]interface{}))
+	}
+
+	if terminateNotificationProfile != nil || osImageNotificationProfile != nil {
+		params.VirtualMachineProperties.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
@@ -871,6 +909,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		if config := profile.LinuxConfiguration; config != nil {
 			d.Set("disable_password_authentication", config.DisablePasswordAuthentication)
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+			d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 			flattenedSSHKeys, err := FlattenSSHKeys(config.SSH)
 			if err != nil {
@@ -919,6 +958,8 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 	if profile := props.StorageProfile; profile != nil {
+		d.Set("disk_controller_type", string(props.StorageProfile.DiskControllerType))
+
 		// the storage_account_type isn't returned so we need to look it up
 		flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
 		if err != nil {
@@ -947,7 +988,11 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
-		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+		if err := d.Set("os_image_notification", flattenOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
+		}
+
+		if err := d.Set("termination_notification", flattenTerminateNotificationProfile(scheduleProfile.TerminateNotificationProfile)); err != nil {
 			return fmt.Errorf("setting `termination_notification`: %+v", err)
 		}
 	}
@@ -1175,6 +1220,17 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
+	if d.HasChange("disk_controller_type") {
+		shouldUpdate = true
+		shouldDeallocate = true
+
+		if update.VirtualMachineProperties.StorageProfile == nil {
+			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
+		}
+
+		update.VirtualMachineProperties.StorageProfile.DiskControllerType = compute.DiskControllerTypes(d.Get("disk_controller_type").(string))
+	}
+
 	if d.HasChange("os_disk") {
 		shouldUpdate = true
 
@@ -1188,9 +1244,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
 		}
 
-		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
-			OsDisk: osDisk,
+		if update.VirtualMachineProperties.StorageProfile == nil {
+			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
 		}
+
+		update.VirtualMachineProperties.StorageProfile.OsDisk = osDisk
 	}
 
 	if d.HasChange("virtual_machine_scale_set_id") {
@@ -1262,6 +1320,19 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.VirtualMachineProperties.HardwareProfile = &compute.HardwareProfile{
 			VMSize: compute.VirtualMachineSizeTypes(vmSize),
 		}
+	}
+
+	if d.HasChange("vm_agent_platform_updates_enabled") {
+		shouldUpdate = true
+		if update.VirtualMachineProperties.OsProfile == nil {
+			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+		}
+
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.EnableVMAgentPlatformUpdates = utils.Bool(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {
@@ -1377,11 +1448,24 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
 	}
 
+	var osImageNotificationProfile *compute.OSImageNotificationProfile
+	var terminateNotificationProfile *compute.TerminateNotificationProfile
+
+	if d.HasChange("os_image_notification") {
+		shouldUpdate = true
+		osImageNotificationProfile = expandOsImageNotificationProfile(d.Get("os_image_notification").([]interface{}))
+	}
+
 	if d.HasChange("termination_notification") {
 		shouldUpdate = true
+		terminateNotificationProfile = expandTerminateNotificationProfile(d.Get("termination_notification").([]interface{}))
+	}
 
-		notificationRaw := d.Get("termination_notification").([]interface{})
-		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		update.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if d.HasChange("tags") {
