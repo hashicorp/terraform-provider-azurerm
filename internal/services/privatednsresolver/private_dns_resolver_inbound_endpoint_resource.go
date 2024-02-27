@@ -77,8 +77,11 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
+					// When `private_ip_allocation_method` is `Dynamic`, API would automatically set the value for `private_ip_address`
+					// When `private_ip_allocation_method` is `Static`, `private_ip_address` needs to be set by user
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
+						Optional: true,
 						Computed: true,
 					},
 

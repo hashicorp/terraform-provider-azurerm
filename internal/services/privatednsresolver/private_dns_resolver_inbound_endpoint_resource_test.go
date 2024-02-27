@@ -112,7 +112,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-rg-%[2]d"
+  name                = "acctest-vnet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
@@ -218,7 +218,9 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   private_dns_resolver_id = azurerm_private_dns_resolver.test.id
   location                = azurerm_private_dns_resolver.test.location
   ip_configurations {
-    subnet_id = azurerm_subnet.test.id
+    subnet_id                    = azurerm_subnet.test.id
+    private_ip_allocation_method = "Static"
+    private_ip_address           = "10.0.0.4"
   }
   tags = {
     key = "updated value"
