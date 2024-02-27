@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_storage_table_entities` - support for `select` [GH-24987]
 * Data Source: `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
 * `azurerm_federated_identity_credential` - the federated credentials can now be changed without creating a new resource [GH-25003]
+* `azurerm_mssql_database` - support for the `recovery_point_id` and `restore_long_term_retention_backup_id` properties [GH-24904]
 * `azurerm_nginx_deployment` - support for the `automatic_upgrade_channel` property [GH-24867]
 * `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
 * `azurerm_role_definition` - upgrade to the API version `2022-05-01-preview` [GH-25008]
