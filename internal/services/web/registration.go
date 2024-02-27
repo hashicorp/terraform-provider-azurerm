@@ -56,8 +56,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_app_service":                                       resourceAppService(),
 		"azurerm_function_app":                                      resourceFunctionApp(),
 		"azurerm_function_app_slot":                                 resourceFunctionAppSlot(),
-		"azurerm_static_site":                                       resourceStaticSite(),
-		"azurerm_static_site_custom_domain":                         resourceStaticSiteCustomDomain(),
 	}
 }
 

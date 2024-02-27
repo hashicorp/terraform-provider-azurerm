@@ -49,6 +49,8 @@ func (r Registration) Resources() []sdk.Resource {
 		ServicePlanResource{},
 		SourceControlResource{},
 		SourceControlSlotResource{},
+		StaticWebAppResource{},
+		StaticSiteCustomDomainResource{},
 		WebAppActiveSlotResource{},
 		WebAppHybridConnectionResource{},
 		WindowsFunctionAppResource{},
