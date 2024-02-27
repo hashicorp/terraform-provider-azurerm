@@ -4221,7 +4221,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   index {
     keys   = ["_id"]
-    unique = false
+    unique = true
   }
 
   // indices can cause test to be inconsistent
