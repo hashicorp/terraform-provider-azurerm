@@ -53,6 +53,11 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
+		"data_plane_uri": {
+			ForceNew: true,
+			Optional: true,
+			Type:     pluginsdk.TypeString,
+		},
 		"description": {
 			ForceNew: true,
 			Optional: true,
@@ -63,12 +68,7 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 func (r LoadTestResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"data_plane_uri": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 func (r LoadTestResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
@@ -191,7 +191,7 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
-
+	output.DataPlaneURI = &input.DataPlaneURI
 	output.Description = &input.Description
 	return nil
 }

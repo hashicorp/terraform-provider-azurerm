@@ -63,6 +63,11 @@ func (r DevCenterProjectResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
+		"dev_center_uri": {
+			ForceNew: true,
+			Optional: true,
+			Type:     pluginsdk.TypeString,
+		},
 		"maximum_dev_boxes_per_user": {
 			Optional: true,
 			Type:     pluginsdk.TypeInt,
@@ -71,12 +76,7 @@ func (r DevCenterProjectResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 func (r DevCenterProjectResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"dev_center_uri": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 func (r DevCenterProjectResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
@@ -229,7 +229,7 @@ func (r DevCenterProjectResource) mapProjectToDevCenterProjectResourceSchema(inp
 func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectProperties(input DevCenterProjectResourceSchema, output *projects.ProjectProperties) error {
 	output.Description = &input.Description
 	output.DevCenterId = input.DevCenterId
-
+	output.DevCenterUri = &input.DevCenterUri
 	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
 	return nil
 }

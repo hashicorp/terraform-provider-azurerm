@@ -148,6 +148,7 @@ resource "azurerm_dev_center_project" "test" {
   name                       = "acctestdcp-${var.random_string}"
   resource_group_name        = azurerm_resource_group.test.name
   description                = "Description for the Dev Center Project"
+  dev_center_uri             = "val-${var.random_string}"
   maximum_dev_boxes_per_user = 21
   tags = {
     environment = "terraform-acctests"

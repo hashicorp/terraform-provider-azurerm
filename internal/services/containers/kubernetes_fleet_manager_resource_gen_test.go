@@ -149,7 +149,9 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
     some_key    = "some-value"
   }
   hub_profile {
-    dns_prefix = "val-${var.random_string}"
+    dns_prefix         = "val-${var.random_string}"
+    fqdn               = "val-${var.random_string}"
+    kubernetes_version = "val-${var.random_string}"
   }
 }
 `, r.template(data))

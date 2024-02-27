@@ -49,9 +49,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
-
 		"resource_group_name": commonschema.ResourceGroupName(),
-
 		"hub_profile": {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -60,11 +58,11 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 						Type:     pluginsdk.TypeString,
 					},
 					"fqdn": {
-						Computed: true,
+						Optional: true,
 						Type:     pluginsdk.TypeString,
 					},
 					"kubernetes_version": {
-						Computed: true,
+						Optional: true,
 						Type:     pluginsdk.TypeString,
 					},
 				},
@@ -74,7 +72,6 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Optional: true,
 			Type:     pluginsdk.TypeList,
 		},
-
 		"tags": commonschema.Tags(),
 	}
 }
@@ -217,7 +214,8 @@ type KubernetesFleetManagerResourceFleetHubProfileSchema struct {
 
 func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceFleetHubProfileSchemaToFleetHubProfile(input KubernetesFleetManagerResourceFleetHubProfileSchema, output *fleets.FleetHubProfile) error {
 	output.DnsPrefix = input.DnsPrefix
-
+	output.Fqdn = &input.Fqdn
+	output.KubernetesVersion = &input.KubernetesVersion
 	return nil
 }
 

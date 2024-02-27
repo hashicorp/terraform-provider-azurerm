@@ -49,6 +49,8 @@ The following arguments are supported:
 
 * `description` - (Optional) Description of the project. Changing this forces a new Dev Center Project to be created.
 
+* `dev_center_uri` - (Optional) The URI of the Dev Center resource this project is associated with. Changing this forces a new Dev Center Project to be created.
+
 * `maximum_dev_boxes_per_user` - (Optional) When specified, limits the maximum number of Dev Boxes a single user can create across all pools in the project.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project.
@@ -58,8 +60,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Dev Center Project.
-
-* `dev_center_uri` - The URI of the Dev Center resource this project is associated with.
 
 ---
 

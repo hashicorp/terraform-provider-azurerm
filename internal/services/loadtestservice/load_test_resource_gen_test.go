@@ -144,6 +144,7 @@ resource "azurerm_load_test" "test" {
   location            = azurerm_resource_group.test.location
   name                = "acctestlt-${var.random_string}"
   resource_group_name = azurerm_resource_group.test.name
+  data_plane_uri      = "val-${var.random_string}"
   description         = "Description for the Load Test"
   tags = {
     environment = "terraform-acctests"

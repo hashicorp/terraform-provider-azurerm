@@ -41,6 +41,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Dev Center should exist. Changing this forces a new Dev Center to be created.
 
+* `dev_center_uri` - (Optional) The URI of the Dev Center.
+
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Dev Center.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center.
@@ -50,8 +52,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Dev Center.
-
-* `dev_center_uri` - The URI of the Dev Center.
 
 ---
 

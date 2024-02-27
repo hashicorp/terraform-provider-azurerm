@@ -56,12 +56,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `hub_profile` block supports the following arguments:
 
 * `dns_prefix` - (Required) 
-
-
-In addition to the arguments defined above, the `hub_profile` block exports the following attributes:
-
-* `fqdn` - 
-* `kubernetes_version` -
+* `fqdn` - (Optional) 
+* `kubernetes_version` - (Optional)
 
 ## Timeouts
 

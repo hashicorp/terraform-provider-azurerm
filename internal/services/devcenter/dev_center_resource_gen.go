@@ -52,17 +52,16 @@ func (r DevCenterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"identity":            commonschema.SystemAssignedUserAssignedIdentityOptional(),
-		"tags":                commonschema.Tags(),
+		"dev_center_uri": {
+			Optional: true,
+			Type:     pluginsdk.TypeString,
+		},
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"tags":     commonschema.Tags(),
 	}
 }
 func (r DevCenterResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"dev_center_uri": {
-			Computed: true,
-			Type:     pluginsdk.TypeString,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 func (r DevCenterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
@@ -235,7 +234,7 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 }
 
 func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
-
+	output.DevCenterUri = &input.DevCenterUri
 	return nil
 }
 

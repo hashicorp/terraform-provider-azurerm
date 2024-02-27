@@ -41,6 +41,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Load Test should exist. Changing this forces a new Load Test to be created.
 
+* `data_plane_uri` - (Optional) Resource data plane URI. Changing this forces a new Load Test to be created.
+
 * `description` - (Optional) Description of the resource. Changing this forces a new Load Test to be created.
 
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Load Test.
@@ -52,8 +54,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Load Test.
-
-* `data_plane_uri` - Resource data plane URI.
 
 ---
 
