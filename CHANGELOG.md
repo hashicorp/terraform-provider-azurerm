@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - support for the `automatic_upgrade_enabled`, `disk_controller_type`, `os_image_notification`, `treat_failure_as_deployment_failure_enabled`, and `vm_agent_platform_updates_enabled`properties [GH-23394]
 * `azurerm_nginx_deployment` - support for the `automatic_upgrade_channel` property [GH-24867]
 * `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
+* `azurerm_netapp_pool` - support for the `encryption_type` property [GH-24993]
 * `azurerm_role_definition` - upgrade to the API version `2022-05-01-preview` [GH-25008]
 * `azurerm_redis_cache` - allow AAD auth for all SKUs [GH-25006]
 * `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_ids` property [GH-24919]
