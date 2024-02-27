@@ -82,6 +82,20 @@ func TestAccDNSResolverInboundEndpoint_update(t *testing.T) {
 	})
 }
 
+func TestAccDNSResolverInboundEndpoint_static(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
+	r := DNSResolverInboundEndpointResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.static(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DNSResolverInboundEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := inboundendpoints.ParseInboundEndpointID(state.ID)
 	if err != nil {
@@ -219,11 +233,29 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   location                = azurerm_private_dns_resolver.test.location
   ip_configurations {
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_allocation_method = "Static"
-    private_ip_address           = "10.0.0.4"
+    private_ip_allocation_method = "Dynamic"
   }
   tags = {
     key = "updated value"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r DNSResolverInboundEndpointResource) static(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
+  name                    = "acctest-drie-%d"
+  private_dns_resolver_id = azurerm_private_dns_resolver.test.id
+  location                = azurerm_private_dns_resolver.test.location
+
+  ip_configurations {
+    subnet_id                    = azurerm_subnet.test.id
+    private_ip_allocation_method = "Static"
+    private_ip_address           = "10.0.0.4"
   }
 }
 `, template, data.RandomInteger)
