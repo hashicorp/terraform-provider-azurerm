@@ -30,6 +30,8 @@ import (
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -273,8 +275,16 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+						},
+
+						"managed_hsm_key_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
+							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 						},
 
 						"user_assigned_identity_id": {
@@ -2422,42 +2432,61 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 
 	v := input[0].(map[string]interface{})
 
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
-	if err != nil {
-		return nil, err
-	}
-
-	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-	keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseUrl)
-	if err != nil {
-		return nil, err
-	}
-	if keyVaultIdRaw == nil {
-		return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %s", keyId.KeyVaultBaseUrl)
-	}
-	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
-	if err != nil {
-		return nil, err
-	}
-
-	vaultsClient := keyVaultClient.VaultsClient
-	keyVault, err := vaultsClient.Get(ctx, *keyVaultId)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
-	}
-
-	softDeleteEnabled := false
-	purgeProtectionEnabled := false
-	if model := keyVault.Model; model != nil {
-		if esd := model.Properties.EnableSoftDelete; esd != nil {
-			softDeleteEnabled = *esd
+	var keyName, keyVersion, keyVaultURI *string
+	if keyVaultKeyId, ok := v["key_vault_key_id"]; ok && keyVaultKeyId != "" {
+		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId.(string))
+		if err != nil {
+			return nil, err
 		}
-		if epp := model.Properties.EnablePurgeProtection; epp != nil {
-			purgeProtectionEnabled = *epp
+
+		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+		keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseUrl)
+		if err != nil {
+			return nil, err
 		}
-	}
-	if !softDeleteEnabled || !purgeProtectionEnabled {
-		return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultId)
+		if keyVaultIdRaw == nil {
+			return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %s", keyId.KeyVaultBaseUrl)
+		}
+		keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
+		if err != nil {
+			return nil, err
+		}
+
+		vaultsClient := keyVaultClient.VaultsClient
+		keyVault, err := vaultsClient.Get(ctx, *keyVaultId)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
+		}
+
+		softDeleteEnabled := false
+		purgeProtectionEnabled := false
+		if model := keyVault.Model; model != nil {
+			if esd := model.Properties.EnableSoftDelete; esd != nil {
+				softDeleteEnabled = *esd
+			}
+			if epp := model.Properties.EnablePurgeProtection; epp != nil {
+				purgeProtectionEnabled = *epp
+			}
+		}
+		if !softDeleteEnabled || !purgeProtectionEnabled {
+			return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultId)
+		}
+
+		keyName = utils.String(keyId.Name)
+		keyVersion = utils.String(keyId.Version)
+		keyVaultURI = utils.String(keyId.KeyVaultBaseUrl)
+	} else if managedHSMKeyId, ok := v["managed_hsm_key_id"]; ok && managedHSMKeyId != "" {
+		if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err != nil {
+			keyName = utils.String(keyId.KeyName)
+			keyVersion = utils.String(keyId.KeyVersion)
+			keyVaultURI = utils.String(keyId.BaseUri())
+		} else if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err != nil {
+			keyName = utils.String(keyId.KeyName)
+			keyVersion = utils.String("")
+			keyVaultURI = utils.String(keyId.BaseUri())
+		} else {
+			return nil, fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId.(string))
+		}
 	}
 
 	encryption := &storage.Encryption{
@@ -2476,9 +2505,9 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 		},
 		KeySource: storage.KeySourceMicrosoftKeyvault,
 		KeyVaultProperties: &storage.KeyVaultProperties{
-			KeyName:     utils.String(keyId.Name),
-			KeyVersion:  utils.String(keyId.Version),
-			KeyVaultURI: utils.String(keyId.KeyVaultBaseUrl),
+			KeyName:     keyName,
+			KeyVersion:  keyVersion,
+			KeyVaultURI: keyVaultURI,
 		},
 	}
 
@@ -2550,16 +2579,44 @@ func flattenStorageAccountCustomerManagedKey(storageAccountId *commonids.Storage
 		return nil, fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", *storageAccountId)
 	}
 
-	keyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+	url, err := url.Parse(keyVaultURI)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error parsing %s as URI: %+v", keyVaultURI, err)
+	}
+
+	instanceName, domainSuffix, found := strings.Cut(url.Hostname(), ".")
+	if !found {
+		return nil, fmt.Errorf("Key vault URI hostname does not have the right number of components: %s", url.Hostname())
+	}
+	isHSMURI := strings.Contains(domainSuffix, "managedhsm") // todo
+
+	ret := map[string]interface{}{
+		"user_assigned_identity_id": userAssignedIdentityId,
+	}
+
+	switch {
+	case isHSMURI && keyVersion == "":
+		{
+			keyId := managedHsmParse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName)
+			ret["managed_hsm_key_id"] = keyId.ID()
+		}
+	case isHSMURI && keyVersion != "":
+		{
+			keyId := managedHsmParse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion)
+			ret["managed_hsm_key_id"] = keyId.ID()
+		}
+	case !isHSMURI:
+		{
+			keyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+			if err != nil {
+				return nil, err
+			}
+			ret["key_vault_key_id"] = keyId.ID()
+		}
 	}
 
 	return []interface{}{
-		map[string]interface{}{
-			"key_vault_key_id":          keyId.ID(),
-			"user_assigned_identity_id": userAssignedIdentityId,
-		},
+		ret,
 	}, nil
 }
 
