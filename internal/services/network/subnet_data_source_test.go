@@ -32,7 +32,7 @@ func TestAccDataSourceSubnet_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSubnet_basic_addressPrefixes(t *testing.T) {
+func TestAccDataSourceSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 	r := SubnetDataSource{}
 
