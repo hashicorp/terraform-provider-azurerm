@@ -240,6 +240,7 @@ func TestAccVirtualNetwork_subnetResource(t *testing.T) {
 			Config: r.withSubnetDelete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
 		{
@@ -620,6 +621,10 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "Production"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
