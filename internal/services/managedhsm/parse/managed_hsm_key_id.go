@@ -9,32 +9,17 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// NestedItemObjectType enumerates the type of the "NestedItemType" value (e.g."keys", "secrets" or "certificates").
-type NestedItemObjectType string
+var _ resourceids.Id = ManagedHSMKeyID{}
 
-const (
-	// KeyVaultObjectType Keys...
-	NestedItemTypeKey NestedItemObjectType = "keys"
-)
-
-// PossibleNestedItemObjectTypeValues returns a string slice of possible "NestedItemObjectType" values.
-func PossibleNestedItemObjectTypeValues() []string {
-	return []string{string(NestedItemTypeKey)}
+type ManagedHSMKeyID struct {
+	HSMBaseUrl string
+	Name       string
+	Version    string
 }
 
-var _ resourceids.Id = NestedItemId{}
-
-type NestedItemId struct {
-	HSMBaseUrl     string
-	NestedItemType NestedItemObjectType
-	Name           string
-	Version        string
-}
-
-func NewNestedItemID(keyVaultBaseUrl string, nestedItemType NestedItemObjectType, name, version string) (*NestedItemId, error) {
+func NewManagedHSMKeyID(keyVaultBaseUrl string, name, version string) (*ManagedHSMKeyID, error) {
 	keyVaultUrl, err := url.Parse(keyVaultBaseUrl)
 	if err != nil || keyVaultBaseUrl == "" {
 		return nil, fmt.Errorf("parsing %q: %+v", keyVaultBaseUrl, err)
@@ -48,19 +33,18 @@ func NewNestedItemID(keyVaultBaseUrl string, nestedItemType NestedItemObjectType
 		return nil, fmt.Errorf("internal-error: only support Managed HSM IDs as Nested Items")
 	}
 
-	return &NestedItemId{
-		HSMBaseUrl:     keyVaultUrl.String(),
-		NestedItemType: nestedItemType,
-		Name:           name,
-		Version:        version,
+	return &ManagedHSMKeyID{
+		HSMBaseUrl: keyVaultUrl.String(),
+		Name:       name,
+		Version:    version,
 	}, nil
 }
 
-func (id NestedItemId) ID() string {
-	// example: https://tharvey-managedhsm.managedhsm.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
+func (id ManagedHSMKeyID) ID() string {
+	// example: https://tharvey-managedhsm.managedhsm.azure.net/keys/key-bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	segments := []string{
 		strings.TrimSuffix(id.HSMBaseUrl, "/"),
-		string(id.NestedItemType),
+		"keys",
 		id.Name,
 	}
 	if id.Version != "" {
@@ -69,21 +53,21 @@ func (id NestedItemId) ID() string {
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
 }
 
-func (id NestedItemId) String() string {
+func (id ManagedHSMKeyID) String() string {
 	components := []string{
 		fmt.Sprintf("Base Url %q", id.HSMBaseUrl),
-		fmt.Sprintf("Nested Item Type %q", string(id.NestedItemType)),
+		fmt.Sprintf("Type %q", "keys"),
 		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Version %q", id.Version),
 	}
 	return fmt.Sprintf("Managed HSM Nested Item %s", strings.Join(components, " / "))
 }
 
-func (id NestedItemId) VersionlessID() string {
-	// example: https://tharvey-managedhsm.managedhsm.azure.net/type/bird
+func (id ManagedHSMKeyID) VersionlessID() string {
+	// example: https://tharvey-managedhsm.managedhsm.azure.net/keys/key-bird
 	segments := []string{
 		strings.TrimSuffix(id.HSMBaseUrl, "/"),
-		string(id.NestedItemType),
+		"keys",
 		id.Name,
 	}
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
@@ -91,7 +75,7 @@ func (id NestedItemId) VersionlessID() string {
 
 // ParseNestedItemID parses a managed HSM Nested Item ID (such as a Certificate, Key or Secret)
 // containing a version into a NestedItemId object
-func ParseNestedItemID(input string) (*NestedItemId, error) {
+func ParseNestedItemID(input string) (*ManagedHSMKeyID, error) {
 	item, err := parseNestedItemId(input)
 	if err != nil {
 		return nil, err
@@ -106,11 +90,11 @@ func ParseNestedItemID(input string) (*NestedItemId, error) {
 
 // ParseOptionallyVersionedNestedItemID parses a managed HSM Nested Item ID (such as a Certificate, Key or Secret)
 // optionally containing a version into a NestedItemId object
-func ParseOptionallyVersionedNestedItemID(input string) (*NestedItemId, error) {
+func ParseOptionallyVersionedNestedItemID(input string) (*ManagedHSMKeyID, error) {
 	return parseNestedItemId(input)
 }
 
-func parseNestedItemId(id string) (*NestedItemId, error) {
+func parseNestedItemId(id string) (*ManagedHSMKeyID, error) {
 	if !strings.Contains(strings.ToLower(id), ".managedhsm.") {
 		return nil, fmt.Errorf("internal-error: only support Managed HSM IDs as managed HSM Nested Items")
 	}
@@ -137,19 +121,10 @@ func parseNestedItemId(id string) (*NestedItemId, error) {
 		version = components[2]
 	}
 
-	nestedItemObjectTypes := PossibleNestedItemObjectTypeValues()
-
-	if !utils.SliceContainsValue(nestedItemObjectTypes, components[0]) {
-		return nil, fmt.Errorf("managed HSM 'NestedItemType' should be one of: %s, got %q", strings.Join(nestedItemObjectTypes, ", "), components[0])
-	}
-
-	nestedItemObjectType := NestedItemObjectType(components[0])
-
-	childId := NestedItemId{
-		HSMBaseUrl:     fmt.Sprintf("https://%s/", idURL.Host),
-		NestedItemType: nestedItemObjectType,
-		Name:           components[1],
-		Version:        version,
+	childId := ManagedHSMKeyID{
+		HSMBaseUrl: fmt.Sprintf("https://%s/keys/", idURL.Host),
+		Name:       components[1],
+		Version:    version,
 	}
 
 	return &childId, nil

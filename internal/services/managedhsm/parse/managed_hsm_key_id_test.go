@@ -6,7 +6,6 @@ package parse
 import "testing"
 
 func TestNewNestedItemID(t *testing.T) {
-	childType := NestedItemTypeKey
 	childName := "test"
 	childVersion := "testVersionString"
 	cases := []struct {
@@ -43,7 +42,7 @@ func TestNewNestedItemID(t *testing.T) {
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing %q", tc.keyVaultBaseUrl)
 
-		id, err := NewNestedItemID(tc.keyVaultBaseUrl, childType, childName, childVersion)
+		id, err := NewManagedHSMKeyID(tc.keyVaultBaseUrl, childName, childVersion)
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for New Resource ID '%s': %+v", tc.keyVaultBaseUrl, err)
@@ -62,7 +61,7 @@ func TestNewNestedItemID(t *testing.T) {
 func TestParseNestedItemID(t *testing.T) {
 	cases := []struct {
 		Input       string
-		Expected    NestedItemId
+		Expected    ManagedHSMKeyID
 		ExpectError bool
 	}{
 		{
@@ -100,7 +99,7 @@ func TestParseNestedItemID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: ManagedHSMKeyID{
 				Name:       "bird",
 				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:    "fdf067c93bbb4b22bff4d8b7a9a56217",
@@ -109,7 +108,7 @@ func TestParseNestedItemID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/certificates/hello/world",
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: ManagedHSMKeyID{
 				Name:       "hello",
 				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:    "world",
@@ -118,7 +117,7 @@ func TestParseNestedItemID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/keys/castle/1492",
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: ManagedHSMKeyID{
 				Name:       "castle",
 				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:    "1492",
@@ -173,7 +172,7 @@ func TestParseNestedItemID(t *testing.T) {
 func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 	cases := []struct {
 		Input       string
-		Expected    NestedItemId
+		Expected    ManagedHSMKeyID
 		ExpectError bool
 	}{
 		{
@@ -191,7 +190,7 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird",
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: ManagedHSMKeyID{
 				Name:       "bird",
 				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:    "",
@@ -200,7 +199,7 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: ManagedHSMKeyID{
 				Name:       "bird",
 				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:    "fdf067c93bbb4b22bff4d8b7a9a56217",
@@ -209,7 +208,7 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/certificates/hello/world",
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: ManagedHSMKeyID{
 				Name:       "hello",
 				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:    "world",
@@ -218,7 +217,7 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 		{
 			Input:       "https://my-keyvault.vault.azure.net/keys/castle/1492",
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: ManagedHSMKeyID{
 				Name:       "castle",
 				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
 				Version:    "1492",
