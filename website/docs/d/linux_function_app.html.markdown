@@ -187,6 +187,8 @@ An `auth_settings` block exports the following:
 
 * `unauthenticated_client_action` - The action to taken when an unauthenticated client attempts to access the app.
 
+* `managed_environment_id` - Managed Environment for the app.
+
 ---
 
 An `auth_settings_v2` block exports the following:
