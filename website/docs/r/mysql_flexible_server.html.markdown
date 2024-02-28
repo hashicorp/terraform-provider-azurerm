@@ -195,6 +195,8 @@ A `storage` block supports the following:
 
 * `size_gb` - (Optional) The max storage allowed for the MySQL Flexible Server. Possible values are between `20` and `16384`.
 
+-> **Note:** Decreasing `size_gb` forces a new resource to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
