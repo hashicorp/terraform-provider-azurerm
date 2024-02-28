@@ -6,9 +6,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies `springcloud`: updating to API Version `2024-01-01-preview` [GH-24937]
-* dependencies: updating to `v0.20240222.1164640` of `github.com/hashicorp/go-azure-sdk` [GH-25002]
+* dependencies: updating to `v0.20240227.1172434` of `github.com/hashicorp/go-azure-sdk` [GH-25055]
 * `servicefabric`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25002]
+* `springcloud`: updating to API Version `2024-01-01-preview` [GH-24937]
 * Data Source: `azurerm_storage_table_entities` - support for `select` [GH-24987]
 * Data Source: `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
 * `azurerm_cosmosdb_account` - add support for `minimal_tls_version` [GH-24966]
@@ -27,10 +27,13 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management_notification_recipient_email` - fixing an issue where response pages weren't iterated over correctly [GH-25055]
+* `azurerm_api_management_notification_recipient_user` - fixing an issue where response pages weren't iterated over correctly [GH-25055]
 * `azurerm_batch_pool` - fix setting the `extension.settings_json` property [GH-24976]
 * `azurerm_key_vault_key` - `expiration_date` can be updated if newer date is ahead [GH-25000]
 * `azurerm_recovery_services_vault` - validate that `use_system_assigned_identity` and `user_assigned_identity_id` cannot be set at the same time [GH-24091]
 * `azurerm_recovery_vaults` will now create properly with `SystemAssigned,UserAssigned` identity [GH-24978]
+* `azurerm_subscription` - fixing an issue where response pages weren't iterated over correctly [GH-25055]
 
 ## 3.93.0 (February 22, 2024)
 
