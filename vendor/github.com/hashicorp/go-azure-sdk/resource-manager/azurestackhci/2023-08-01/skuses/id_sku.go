@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SkuId{}
+var _ resourceids.ResourceId = &SkuId{}
 
 // SkuId is a struct representing the Resource ID for a Sku
 type SkuId struct {
@@ -36,37 +36,15 @@ func NewSkuID(subscriptionId string, resourceGroupName string, clusterName strin
 
 // ParseSkuID parses 'input' into a SkuId
 func ParseSkuID(input string) (*SkuId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SkuId{})
+	parser := resourceids.NewParserFromResourceIdType(&SkuId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SkuId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.PublisherName, ok = parsed.Parsed["publisherName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publisherName", *parsed)
-	}
-
-	if id.OfferName, ok = parsed.Parsed["offerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "offerName", *parsed)
-	}
-
-	if id.SkuName, ok = parsed.Parsed["skuName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "skuName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -75,40 +53,48 @@ func ParseSkuID(input string) (*SkuId, error) {
 // ParseSkuIDInsensitively parses 'input' case-insensitively into a SkuId
 // note: this method should only be used for API response data and not user input
 func ParseSkuIDInsensitively(input string) (*SkuId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SkuId{})
+	parser := resourceids.NewParserFromResourceIdType(&SkuId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SkuId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ClusterName, ok = parsed.Parsed["clusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "clusterName", *parsed)
-	}
-
-	if id.PublisherName, ok = parsed.Parsed["publisherName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "publisherName", *parsed)
-	}
-
-	if id.OfferName, ok = parsed.Parsed["offerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "offerName", *parsed)
-	}
-
-	if id.SkuName, ok = parsed.Parsed["skuName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "skuName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SkuId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ClusterName, ok = input.Parsed["clusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "clusterName", input)
+	}
+
+	if id.PublisherName, ok = input.Parsed["publisherName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "publisherName", input)
+	}
+
+	if id.OfferName, ok = input.Parsed["offerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "offerName", input)
+	}
+
+	if id.SkuName, ok = input.Parsed["skuName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "skuName", input)
+	}
+
+	return nil
 }
 
 // ValidateSkuID checks that 'input' can be parsed as a Sku ID

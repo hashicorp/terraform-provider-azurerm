@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RouteTablesSummaryId{}
+var _ resourceids.ResourceId = &RouteTablesSummaryId{}
 
 // RouteTablesSummaryId is a struct representing the Resource ID for a Route Tables Summary
 type RouteTablesSummaryId struct {
@@ -34,33 +34,15 @@ func NewRouteTablesSummaryID(subscriptionId string, resourceGroupName string, ex
 
 // ParseRouteTablesSummaryID parses 'input' into a RouteTablesSummaryId
 func ParseRouteTablesSummaryID(input string) (*RouteTablesSummaryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RouteTablesSummaryId{})
+	parser := resourceids.NewParserFromResourceIdType(&RouteTablesSummaryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RouteTablesSummaryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ExpressRouteCircuitName, ok = parsed.Parsed["expressRouteCircuitName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCircuitName", *parsed)
-	}
-
-	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "peeringName", *parsed)
-	}
-
-	if id.RouteTablesSummaryName, ok = parsed.Parsed["routeTablesSummaryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeTablesSummaryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseRouteTablesSummaryID(input string) (*RouteTablesSummaryId, error) {
 // ParseRouteTablesSummaryIDInsensitively parses 'input' case-insensitively into a RouteTablesSummaryId
 // note: this method should only be used for API response data and not user input
 func ParseRouteTablesSummaryIDInsensitively(input string) (*RouteTablesSummaryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RouteTablesSummaryId{})
+	parser := resourceids.NewParserFromResourceIdType(&RouteTablesSummaryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RouteTablesSummaryId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ExpressRouteCircuitName, ok = parsed.Parsed["expressRouteCircuitName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCircuitName", *parsed)
-	}
-
-	if id.PeeringName, ok = parsed.Parsed["peeringName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "peeringName", *parsed)
-	}
-
-	if id.RouteTablesSummaryName, ok = parsed.Parsed["routeTablesSummaryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "routeTablesSummaryName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RouteTablesSummaryId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ExpressRouteCircuitName, ok = input.Parsed["expressRouteCircuitName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCircuitName", input)
+	}
+
+	if id.PeeringName, ok = input.Parsed["peeringName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "peeringName", input)
+	}
+
+	if id.RouteTablesSummaryName, ok = input.Parsed["routeTablesSummaryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "routeTablesSummaryName", input)
+	}
+
+	return nil
 }
 
 // ValidateRouteTablesSummaryID checks that 'input' can be parsed as a Route Tables Summary ID

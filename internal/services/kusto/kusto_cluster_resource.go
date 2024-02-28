@@ -45,7 +45,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := clusters.ParseClusterID(id)
+			_, err := commonids.ParseKustoClusterID(id)
 			return err
 		}),
 
@@ -281,7 +281,7 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster creation.")
 
-	id := clusters.NewClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewKustoClusterID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -293,36 +293,12 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	locks.ByName(id.ClusterName, "azurerm_kusto_cluster")
-	defer locks.UnlockByName(id.ClusterName, "azurerm_kusto_cluster")
+	locks.ByName(id.KustoClusterName, "azurerm_kusto_cluster")
+	defer locks.UnlockByName(id.KustoClusterName, "azurerm_kusto_cluster")
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
 		return err
-	}
-
-	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
-
-	if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
-		if sku.Capacity == nil {
-			return fmt.Errorf("sku.capacity could not be empty")
-		}
-		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
-		if *sku.Capacity < optimizedAutoScale.Minimum {
-			sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
-		}
-		if *sku.Capacity > optimizedAutoScale.Maximum {
-			sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
-		}
-
-		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
-		if d.HasChange("sku.0.capacity") && !d.IsNewResource() {
-			return fmt.Errorf("cannot change `sku.capacity` when `optimized_auto_scaling.enabled` is set to `true`")
-		}
-
-		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
-			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
-		}
 	}
 
 	publicNetworkAccess := clusters.PublicNetworkAccessEnabled
@@ -333,7 +309,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	publicIPType := clusters.PublicIPType(d.Get("public_ip_type").(string))
 
 	clusterProperties := clusters.ClusterProperties{
-		OptimizedAutoscale:     optimizedAutoScale,
 		EnableAutoStop:         utils.Bool(d.Get("auto_stop_enabled").(bool)),
 		EnableDiskEncryption:   utils.Bool(d.Get("disk_encryption_enabled").(bool)),
 		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
@@ -380,7 +355,6 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	kustoCluster := clusters.Cluster{
-		Name:       utils.String(id.ClusterName),
 		Location:   location.Normalize(d.Get("location").(string)),
 		Identity:   expandedIdentity,
 		Sku:        *sku,
@@ -399,6 +373,32 @@ func resourceKustoClusterCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	d.SetId(id.ID())
 
+	// optimized_auto_scale can't be updated when the sku is also being updated so we'll update it separately
+	// todo rework this when we split create/update
+	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
+	if optimizedAutoScale != nil && optimizedAutoScale.IsEnabled {
+		if sku.Capacity == nil {
+			return fmt.Errorf("sku.capacity could not be empty")
+		}
+		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+		if *sku.Capacity < optimizedAutoScale.Minimum {
+			sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
+		}
+		if *sku.Capacity > optimizedAutoScale.Maximum {
+			sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
+		}
+
+		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
+			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+		}
+
+		clusterProperties.OptimizedAutoscale = optimizedAutoScale
+
+		if err := client.CreateOrUpdateThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}); err != nil {
+			return fmt.Errorf("creating/updating %s: %+v", id, err)
+		}
+	}
+
 	return resourceKustoClusterRead(d, meta)
 }
 
@@ -407,7 +407,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters.ParseClusterID(d.Id())
+	id, err := commonids.ParseKustoClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -421,7 +421,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.ClusterName)
+	d.Set("name", id.KustoClusterName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
@@ -486,7 +486,7 @@ func resourceKustoClusterDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := clusters.ParseClusterID(d.Id())
+	id, err := commonids.ParseKustoClusterID(d.Id())
 	if err != nil {
 		return err
 	}

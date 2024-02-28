@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProductGroupId{}
+var _ resourceids.ResourceId = &ProductGroupId{}
 
 // ProductGroupId is a struct representing the Resource ID for a Product Group
 type ProductGroupId struct {
@@ -34,33 +34,15 @@ func NewProductGroupID(subscriptionId string, resourceGroupName string, serviceN
 
 // ParseProductGroupID parses 'input' into a ProductGroupId
 func ParseProductGroupID(input string) (*ProductGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProductGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProductGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProductGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.ProductId, ok = parsed.Parsed["productId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "productId", *parsed)
-	}
-
-	if id.GroupId, ok = parsed.Parsed["groupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "groupId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseProductGroupID(input string) (*ProductGroupId, error) {
 // ParseProductGroupIDInsensitively parses 'input' case-insensitively into a ProductGroupId
 // note: this method should only be used for API response data and not user input
 func ParseProductGroupIDInsensitively(input string) (*ProductGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProductGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProductGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProductGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.ProductId, ok = parsed.Parsed["productId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "productId", *parsed)
-	}
-
-	if id.GroupId, ok = parsed.Parsed["groupId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "groupId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProductGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.ProductId, ok = input.Parsed["productId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "productId", input)
+	}
+
+	if id.GroupId, ok = input.Parsed["groupId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "groupId", input)
+	}
+
+	return nil
 }
 
 // ValidateProductGroupID checks that 'input' can be parsed as a Product Group ID

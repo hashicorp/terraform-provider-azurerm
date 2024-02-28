@@ -20,7 +20,8 @@ type BySubscriptionListOperationResponse struct {
 }
 
 type BySubscriptionListCompleteResult struct {
-	Items []AzureTrafficCollector
+	LatestHttpResponse *http.Response
+	Items              []AzureTrafficCollector
 }
 
 // BySubscriptionList ...
@@ -84,7 +85,8 @@ func (c AzureTrafficCollectorsClient) BySubscriptionListCompleteMatchingPredicat
 	}
 
 	result = BySubscriptionListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

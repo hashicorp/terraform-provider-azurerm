@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AccessPolicyId{}
+var _ resourceids.ResourceId = &AccessPolicyId{}
 
 // AccessPolicyId is a struct representing the Resource ID for a Access Policy
 type AccessPolicyId struct {
@@ -32,29 +32,15 @@ func NewAccessPolicyID(subscriptionId string, resourceGroupName string, redisNam
 
 // ParseAccessPolicyID parses 'input' into a AccessPolicyId
 func ParseAccessPolicyID(input string) (*AccessPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccessPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccessPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AccessPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RedisName, ok = parsed.Parsed["redisName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "redisName", *parsed)
-	}
-
-	if id.AccessPolicyName, ok = parsed.Parsed["accessPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accessPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseAccessPolicyID(input string) (*AccessPolicyId, error) {
 // ParseAccessPolicyIDInsensitively parses 'input' case-insensitively into a AccessPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseAccessPolicyIDInsensitively(input string) (*AccessPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccessPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccessPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AccessPolicyId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RedisName, ok = parsed.Parsed["redisName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "redisName", *parsed)
-	}
-
-	if id.AccessPolicyName, ok = parsed.Parsed["accessPolicyName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "accessPolicyName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AccessPolicyId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RedisName, ok = input.Parsed["redisName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "redisName", input)
+	}
+
+	if id.AccessPolicyName, ok = input.Parsed["accessPolicyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "accessPolicyName", input)
+	}
+
+	return nil
 }
 
 // ValidateAccessPolicyID checks that 'input' can be parsed as a Access Policy ID

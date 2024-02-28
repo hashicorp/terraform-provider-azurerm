@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedLockId{}
+var _ resourceids.ResourceId = &ScopedLockId{}
 
 // ScopedLockId is a struct representing the Resource ID for a Scoped Lock
 type ScopedLockId struct {
@@ -28,21 +28,15 @@ func NewScopedLockID(scope string, lockName string) ScopedLockId {
 
 // ParseScopedLockID parses 'input' into a ScopedLockId
 func ParseScopedLockID(input string) (*ScopedLockId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedLockId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedLockId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedLockId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.LockName, ok = parsed.Parsed["lockName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "lockName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParseScopedLockID(input string) (*ScopedLockId, error) {
 // ParseScopedLockIDInsensitively parses 'input' case-insensitively into a ScopedLockId
 // note: this method should only be used for API response data and not user input
 func ParseScopedLockIDInsensitively(input string) (*ScopedLockId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedLockId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedLockId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedLockId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.LockName, ok = parsed.Parsed["lockName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "lockName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedLockId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.LockName, ok = input.Parsed["lockName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "lockName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedLockID checks that 'input' can be parsed as a Scoped Lock ID

@@ -19,7 +19,8 @@ type ListByProjectOperationResponse struct {
 }
 
 type ListByProjectCompleteResult struct {
-	Items []DevBoxDefinition
+	LatestHttpResponse *http.Response
+	Items              []DevBoxDefinition
 }
 
 // ListByProject ...
@@ -83,7 +84,8 @@ func (c DevBoxDefinitionsClient) ListByProjectCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListByProjectCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

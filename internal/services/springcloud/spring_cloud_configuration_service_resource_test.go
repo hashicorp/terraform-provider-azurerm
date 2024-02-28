@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudConfigurationServiceResource struct{}
@@ -138,18 +139,18 @@ func TestAccSpringCloudConfigurationService_caCertificateId(t *testing.T) {
 }
 
 func (r SpringCloudConfigurationServiceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SpringCloudConfigurationServiceID(state.ID)
+	id, err := appplatform.ParseConfigurationServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.AppPlatform.ConfigurationServiceClient.Get(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName)
+	resp, err := client.AppPlatform.AppPlatformClient.ConfigurationServicesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SpringCloudConfigurationServiceResource) template(data acceptance.TestData) string {
@@ -214,6 +215,7 @@ resource "azurerm_spring_cloud_configuration_service" "test" {
     username                 = "adminuser"
     password                 = "H@Sh1CoR3!"
   }
+  refresh_interval_in_seconds = 10
 }
 `, template)
 }

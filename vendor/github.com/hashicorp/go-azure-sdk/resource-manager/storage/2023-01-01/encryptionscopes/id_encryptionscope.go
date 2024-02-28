@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EncryptionScopeId{}
+var _ resourceids.ResourceId = &EncryptionScopeId{}
 
 // EncryptionScopeId is a struct representing the Resource ID for a Encryption Scope
 type EncryptionScopeId struct {
@@ -32,29 +32,15 @@ func NewEncryptionScopeID(subscriptionId string, resourceGroupName string, stora
 
 // ParseEncryptionScopeID parses 'input' into a EncryptionScopeId
 func ParseEncryptionScopeID(input string) (*EncryptionScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EncryptionScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&EncryptionScopeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EncryptionScopeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
-	}
-
-	if id.EncryptionScopeName, ok = parsed.Parsed["encryptionScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "encryptionScopeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseEncryptionScopeID(input string) (*EncryptionScopeId, error) {
 // ParseEncryptionScopeIDInsensitively parses 'input' case-insensitively into a EncryptionScopeId
 // note: this method should only be used for API response data and not user input
 func ParseEncryptionScopeIDInsensitively(input string) (*EncryptionScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EncryptionScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&EncryptionScopeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := EncryptionScopeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
-	}
-
-	if id.EncryptionScopeName, ok = parsed.Parsed["encryptionScopeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "encryptionScopeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *EncryptionScopeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StorageAccountName, ok = input.Parsed["storageAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", input)
+	}
+
+	if id.EncryptionScopeName, ok = input.Parsed["encryptionScopeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "encryptionScopeName", input)
+	}
+
+	return nil
 }
 
 // ValidateEncryptionScopeID checks that 'input' can be parsed as a Encryption Scope ID

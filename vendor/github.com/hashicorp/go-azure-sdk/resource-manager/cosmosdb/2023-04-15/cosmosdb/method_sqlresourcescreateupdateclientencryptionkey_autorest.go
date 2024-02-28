@@ -16,6 +16,7 @@ import (
 type SqlResourcesCreateUpdateClientEncryptionKeyOperationResponse struct {
 	Poller       polling.LongRunningPoller
 	HttpResponse *http.Response
+	Model        *ClientEncryptionKeyGetResults
 }
 
 // SqlResourcesCreateUpdateClientEncryptionKey ...

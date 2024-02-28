@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VpnSiteLinkId{}
+var _ resourceids.ResourceId = &VpnSiteLinkId{}
 
 // VpnSiteLinkId is a struct representing the Resource ID for a Vpn Site Link
 type VpnSiteLinkId struct {
@@ -32,29 +32,15 @@ func NewVpnSiteLinkID(subscriptionId string, resourceGroupName string, vpnSiteNa
 
 // ParseVpnSiteLinkID parses 'input' into a VpnSiteLinkId
 func ParseVpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VpnSiteLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VpnSiteLinkId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VpnSiteLinkId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VpnSiteName, ok = parsed.Parsed["vpnSiteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnSiteName", *parsed)
-	}
-
-	if id.VpnSiteLinkName, ok = parsed.Parsed["vpnSiteLinkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnSiteLinkName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseVpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
 // ParseVpnSiteLinkIDInsensitively parses 'input' case-insensitively into a VpnSiteLinkId
 // note: this method should only be used for API response data and not user input
 func ParseVpnSiteLinkIDInsensitively(input string) (*VpnSiteLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VpnSiteLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VpnSiteLinkId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VpnSiteLinkId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VpnSiteName, ok = parsed.Parsed["vpnSiteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnSiteName", *parsed)
-	}
-
-	if id.VpnSiteLinkName, ok = parsed.Parsed["vpnSiteLinkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vpnSiteLinkName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VpnSiteLinkId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VpnSiteName, ok = input.Parsed["vpnSiteName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vpnSiteName", input)
+	}
+
+	if id.VpnSiteLinkName, ok = input.Parsed["vpnSiteLinkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vpnSiteLinkName", input)
+	}
+
+	return nil
 }
 
 // ValidateVpnSiteLinkID checks that 'input' can be parsed as a Vpn Site Link ID

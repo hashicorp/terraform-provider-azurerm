@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualWANId{}
+var _ resourceids.ResourceId = &VirtualWANId{}
 
 // VirtualWANId is a struct representing the Resource ID for a Virtual W A N
 type VirtualWANId struct {
@@ -30,25 +30,15 @@ func NewVirtualWANID(subscriptionId string, resourceGroupName string, virtualWan
 
 // ParseVirtualWANID parses 'input' into a VirtualWANId
 func ParseVirtualWANID(input string) (*VirtualWANId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualWANId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualWANId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualWANId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualWanName, ok = parsed.Parsed["virtualWanName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualWanName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseVirtualWANID(input string) (*VirtualWANId, error) {
 // ParseVirtualWANIDInsensitively parses 'input' case-insensitively into a VirtualWANId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualWANIDInsensitively(input string) (*VirtualWANId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualWANId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualWANId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VirtualWANId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VirtualWanName, ok = parsed.Parsed["virtualWanName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "virtualWanName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VirtualWANId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VirtualWanName, ok = input.Parsed["virtualWanName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "virtualWanName", input)
+	}
+
+	return nil
 }
 
 // ValidateVirtualWANID checks that 'input' can be parsed as a Virtual W A N ID

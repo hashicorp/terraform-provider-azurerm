@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HostnameConfigurationId{}
+var _ resourceids.ResourceId = &HostnameConfigurationId{}
 
 // HostnameConfigurationId is a struct representing the Resource ID for a Hostname Configuration
 type HostnameConfigurationId struct {
@@ -34,33 +34,15 @@ func NewHostnameConfigurationID(subscriptionId string, resourceGroupName string,
 
 // ParseHostnameConfigurationID parses 'input' into a HostnameConfigurationId
 func ParseHostnameConfigurationID(input string) (*HostnameConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HostnameConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&HostnameConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HostnameConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.GatewayId, ok = parsed.Parsed["gatewayId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", *parsed)
-	}
-
-	if id.HcId, ok = parsed.Parsed["hcId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hcId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseHostnameConfigurationID(input string) (*HostnameConfigurationId, error
 // ParseHostnameConfigurationIDInsensitively parses 'input' case-insensitively into a HostnameConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseHostnameConfigurationIDInsensitively(input string) (*HostnameConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HostnameConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&HostnameConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HostnameConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.GatewayId, ok = parsed.Parsed["gatewayId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", *parsed)
-	}
-
-	if id.HcId, ok = parsed.Parsed["hcId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hcId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *HostnameConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.GatewayId, ok = input.Parsed["gatewayId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "gatewayId", input)
+	}
+
+	if id.HcId, ok = input.Parsed["hcId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hcId", input)
+	}
+
+	return nil
 }
 
 // ValidateHostnameConfigurationID checks that 'input' can be parsed as a Hostname Configuration ID

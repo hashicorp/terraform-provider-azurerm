@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedViewId{}
+var _ resourceids.ResourceId = &ScopedViewId{}
 
 // ScopedViewId is a struct representing the Resource ID for a Scoped View
 type ScopedViewId struct {
@@ -28,21 +28,15 @@ func NewScopedViewID(scope string, viewName string) ScopedViewId {
 
 // ParseScopedViewID parses 'input' into a ScopedViewId
 func ParseScopedViewID(input string) (*ScopedViewId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedViewId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedViewId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedViewId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ViewName, ok = parsed.Parsed["viewName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "viewName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +45,32 @@ func ParseScopedViewID(input string) (*ScopedViewId, error) {
 // ParseScopedViewIDInsensitively parses 'input' case-insensitively into a ScopedViewId
 // note: this method should only be used for API response data and not user input
 func ParseScopedViewIDInsensitively(input string) (*ScopedViewId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedViewId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedViewId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedViewId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.ViewName, ok = parsed.Parsed["viewName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "viewName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedViewId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.ViewName, ok = input.Parsed["viewName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "viewName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedViewID checks that 'input' can be parsed as a Scoped View ID

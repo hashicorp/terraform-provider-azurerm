@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = UserSubscriptions2Id{}
+var _ resourceids.ResourceId = &UserSubscriptions2Id{}
 
 // UserSubscriptions2Id is a struct representing the Resource ID for a User Subscriptions 2
 type UserSubscriptions2Id struct {
@@ -34,33 +34,15 @@ func NewUserSubscriptions2ID(subscriptionId string, resourceGroupName string, se
 
 // ParseUserSubscriptions2ID parses 'input' into a UserSubscriptions2Id
 func ParseUserSubscriptions2ID(input string) (*UserSubscriptions2Id, error) {
-	parser := resourceids.NewParserFromResourceIdType(UserSubscriptions2Id{})
+	parser := resourceids.NewParserFromResourceIdType(&UserSubscriptions2Id{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := UserSubscriptions2Id{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.UserId, ok = parsed.Parsed["userId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userId", *parsed)
-	}
-
-	if id.SubscriptionName, ok = parsed.Parsed["subscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseUserSubscriptions2ID(input string) (*UserSubscriptions2Id, error) {
 // ParseUserSubscriptions2IDInsensitively parses 'input' case-insensitively into a UserSubscriptions2Id
 // note: this method should only be used for API response data and not user input
 func ParseUserSubscriptions2IDInsensitively(input string) (*UserSubscriptions2Id, error) {
-	parser := resourceids.NewParserFromResourceIdType(UserSubscriptions2Id{})
+	parser := resourceids.NewParserFromResourceIdType(&UserSubscriptions2Id{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := UserSubscriptions2Id{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ServiceName, ok = parsed.Parsed["serviceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "serviceName", *parsed)
-	}
-
-	if id.UserId, ok = parsed.Parsed["userId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "userId", *parsed)
-	}
-
-	if id.SubscriptionName, ok = parsed.Parsed["subscriptionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *UserSubscriptions2Id) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
+	}
+
+	if id.UserId, ok = input.Parsed["userId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "userId", input)
+	}
+
+	if id.SubscriptionName, ok = input.Parsed["subscriptionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionName", input)
+	}
+
+	return nil
 }
 
 // ValidateUserSubscriptions2ID checks that 'input' can be parsed as a User Subscriptions 2 ID

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ExpressRouteCircuitId{}
+var _ resourceids.ResourceId = &ExpressRouteCircuitId{}
 
 // ExpressRouteCircuitId is a struct representing the Resource ID for a Express Route Circuit
 type ExpressRouteCircuitId struct {
@@ -30,25 +30,15 @@ func NewExpressRouteCircuitID(subscriptionId string, resourceGroupName string, e
 
 // ParseExpressRouteCircuitID parses 'input' into a ExpressRouteCircuitId
 func ParseExpressRouteCircuitID(input string) (*ExpressRouteCircuitId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRouteCircuitId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRouteCircuitId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExpressRouteCircuitId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ExpressRouteCircuitName, ok = parsed.Parsed["expressRouteCircuitName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCircuitName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseExpressRouteCircuitID(input string) (*ExpressRouteCircuitId, error) {
 // ParseExpressRouteCircuitIDInsensitively parses 'input' case-insensitively into a ExpressRouteCircuitId
 // note: this method should only be used for API response data and not user input
 func ParseExpressRouteCircuitIDInsensitively(input string) (*ExpressRouteCircuitId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRouteCircuitId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRouteCircuitId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ExpressRouteCircuitId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ExpressRouteCircuitName, ok = parsed.Parsed["expressRouteCircuitName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCircuitName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ExpressRouteCircuitId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ExpressRouteCircuitName, ok = input.Parsed["expressRouteCircuitName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "expressRouteCircuitName", input)
+	}
+
+	return nil
 }
 
 // ValidateExpressRouteCircuitID checks that 'input' can be parsed as a Express Route Circuit ID

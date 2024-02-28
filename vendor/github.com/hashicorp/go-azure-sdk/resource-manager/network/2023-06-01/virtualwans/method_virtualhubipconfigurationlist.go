@@ -19,7 +19,8 @@ type VirtualHubIPConfigurationListOperationResponse struct {
 }
 
 type VirtualHubIPConfigurationListCompleteResult struct {
-	Items []HubIPConfiguration
+	LatestHttpResponse *http.Response
+	Items              []HubIPConfiguration
 }
 
 // VirtualHubIPConfigurationList ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) VirtualHubIPConfigurationListCompleteMatchingPredicat
 	}
 
 	result = VirtualHubIPConfigurationListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -164,7 +164,7 @@ resource "azurerm_storage_account" "test" {
 
 func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
   server_id                  = azurerm_mssql_server.test.id
@@ -176,19 +176,19 @@ resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
 
 func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_mssql_server_microsoft_support_auditing_policy" "import" {
   server_id                  = azurerm_mssql_server.test.id
   blob_storage_endpoint      = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r MsSqlServerMicrosoftSupportAuditingPolicyResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_mssql_server_microsoft_support_auditing_policy" "test" {
   server_id                  = azurerm_mssql_server.test.id

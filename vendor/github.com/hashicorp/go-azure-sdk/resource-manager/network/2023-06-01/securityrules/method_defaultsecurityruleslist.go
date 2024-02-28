@@ -19,7 +19,8 @@ type DefaultSecurityRulesListOperationResponse struct {
 }
 
 type DefaultSecurityRulesListCompleteResult struct {
-	Items []SecurityRule
+	LatestHttpResponse *http.Response
+	Items              []SecurityRule
 }
 
 // DefaultSecurityRulesList ...
@@ -83,7 +84,8 @@ func (c SecurityRulesClient) DefaultSecurityRulesListCompleteMatchingPredicate(c
 	}
 
 	result = DefaultSecurityRulesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = IPGroupId{}
+var _ resourceids.ResourceId = &IPGroupId{}
 
 // IPGroupId is a struct representing the Resource ID for a I P Group
 type IPGroupId struct {
@@ -30,25 +30,15 @@ func NewIPGroupID(subscriptionId string, resourceGroupName string, ipGroupName s
 
 // ParseIPGroupID parses 'input' into a IPGroupId
 func ParseIPGroupID(input string) (*IPGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IPGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&IPGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IPGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.IpGroupName, ok = parsed.Parsed["ipGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ipGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseIPGroupID(input string) (*IPGroupId, error) {
 // ParseIPGroupIDInsensitively parses 'input' case-insensitively into a IPGroupId
 // note: this method should only be used for API response data and not user input
 func ParseIPGroupIDInsensitively(input string) (*IPGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IPGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&IPGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := IPGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.IpGroupName, ok = parsed.Parsed["ipGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "ipGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *IPGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.IpGroupName, ok = input.Parsed["ipGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "ipGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateIPGroupID checks that 'input' can be parsed as a I P Group ID

@@ -18,29 +18,21 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_custom_location" "example" {
-  name = "example-cl"
-}
-
 resource "azurerm_system_center_virtual_machine_manager_server" "example" {
-  name                = "example-scvmms"
+  name                = "example-scvmmms"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  custom_location_id  = azurerm_custom_location.example.id
-  fqdn                = "exampledomain.com"
-}
-
-resource "azurerm_system_center_virtual_machine_manager_server_inventory_item" "example" {
-  name                = "example-scvmmsii"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  custom_location_id  = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ExtendedLocation/customLocations/customLocation1"
+  fqdn                = "example.labtest"
+  username            = "testUser"
+  password            = "H@Sh1CoR3!"
 }
 
 resource "azurerm_system_center_virtual_machine_manager_cloud" "example" {
-  name                                                           = "example-scvmmc"
-  location                                                       = azurerm_resource_group.example.location
+  name                                                           = "example-scvmmcloud"
   resource_group_name                                            = azurerm_resource_group.example.name
-  custom_location_id                                             = azurerm_custom_location.example.id
+  location                                                       = azurerm_resource_group.example.location
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
   system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.example.id
   system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.example.id
   uuid                                                           = "37437563-5205-4fd3-aa74-6bc16702748a"
@@ -51,19 +43,19 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this System Center Virtual Machine Manager Cloud. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the System Center Virtual Machine Manager Cloud. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the System Center Virtual Machine Cloud should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region where the System Center Virtual Machine Manager Cloud should exist. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group within which this System Center Virtual Machine Manager Cloud should exist. Changing this forces a new resource to be created.
+* `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Cloud. Changing this forces a new resource to be created.
 
-* `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Cloud.
+* `system_center_virtual_machine_manager_server_id` - (Required) The ID of the System Center Virtual Machine Manager Server. Changing this forces a new resource to be created.
 
-* `system_center_virtual_machine_manager_server_id` - (Optional) The ID of the System Center Virtual Machine Manager Server.
+* `system_center_virtual_machine_manager_server_inventory_item_id` - (Optional) The ID of the System Center Virtual Machine Manager Server Inventory Item. Changing this forces a new resource to be created.
 
-* `system_center_virtual_machine_manager_server_inventory_item_id` - (Optional) The ID of the System Center Virtual Machine Manager Server Inventory Item.
-
-* `uuid` - (Optional) The unique ID of the System Center Virtual Machine Manager Cloud.
+* `uuid` - (Optional) The unique ID of the System Center Virtual Machine Manager Cloud. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the System Center Virtual Machine Manager Cloud.
 

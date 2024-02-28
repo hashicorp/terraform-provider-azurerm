@@ -429,6 +429,13 @@ func TestAccLinuxVirtualMachineScaleSet_networkPublicIPFromPrefix(t *testing.T) 
 			),
 		},
 		data.ImportStep("admin_password"),
+		{
+			Config: r.networkPublicIPFromPrefixUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -638,6 +645,10 @@ resource "azurerm_application_security_group" "test" {
   name                = "acctestasg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -686,12 +697,20 @@ resource "azurerm_application_security_group" "test" {
   name                = "acctestasg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_application_security_group" "other" {
   name                = "acctestasg2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -1308,6 +1327,10 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -1356,12 +1379,20 @@ resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_network_security_group" "other" {
   name                = "acctestnsg2-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -1579,8 +1610,62 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
 
       public_ip_address {
-        name                = "first"
-        public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+        name                    = "first"
+        idle_timeout_in_minutes = 4
+        public_ip_prefix_id     = azurerm_public_ip_prefix.test.id
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) networkPublicIPFromPrefixUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "primary"
+    primary = true
+
+    ip_configuration {
+      name      = "first"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "first"
+        idle_timeout_in_minutes = 5
+        public_ip_prefix_id     = azurerm_public_ip_prefix.test.id
       }
     }
   }

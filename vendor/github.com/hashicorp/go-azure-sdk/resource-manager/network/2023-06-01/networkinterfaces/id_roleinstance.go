@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RoleInstanceId{}
+var _ resourceids.ResourceId = &RoleInstanceId{}
 
 // RoleInstanceId is a struct representing the Resource ID for a Role Instance
 type RoleInstanceId struct {
@@ -32,29 +32,15 @@ func NewRoleInstanceID(subscriptionId string, resourceGroupName string, cloudSer
 
 // ParseRoleInstanceID parses 'input' into a RoleInstanceId
 func ParseRoleInstanceID(input string) (*RoleInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RoleInstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&RoleInstanceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RoleInstanceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CloudServiceName, ok = parsed.Parsed["cloudServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cloudServiceName", *parsed)
-	}
-
-	if id.RoleInstanceName, ok = parsed.Parsed["roleInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleInstanceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseRoleInstanceID(input string) (*RoleInstanceId, error) {
 // ParseRoleInstanceIDInsensitively parses 'input' case-insensitively into a RoleInstanceId
 // note: this method should only be used for API response data and not user input
 func ParseRoleInstanceIDInsensitively(input string) (*RoleInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RoleInstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&RoleInstanceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := RoleInstanceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.CloudServiceName, ok = parsed.Parsed["cloudServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "cloudServiceName", *parsed)
-	}
-
-	if id.RoleInstanceName, ok = parsed.Parsed["roleInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "roleInstanceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *RoleInstanceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.CloudServiceName, ok = input.Parsed["cloudServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "cloudServiceName", input)
+	}
+
+	if id.RoleInstanceName, ok = input.Parsed["roleInstanceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "roleInstanceName", input)
+	}
+
+	return nil
 }
 
 // ValidateRoleInstanceID checks that 'input' can be parsed as a Role Instance ID

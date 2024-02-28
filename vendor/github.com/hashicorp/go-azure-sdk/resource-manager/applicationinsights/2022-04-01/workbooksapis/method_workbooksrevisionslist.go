@@ -19,7 +19,8 @@ type WorkbooksRevisionsListOperationResponse struct {
 }
 
 type WorkbooksRevisionsListCompleteResult struct {
-	Items []Workbook
+	LatestHttpResponse *http.Response
+	Items              []Workbook
 }
 
 // WorkbooksRevisionsList ...
@@ -83,7 +84,8 @@ func (c WorkbooksAPIsClient) WorkbooksRevisionsListCompleteMatchingPredicate(ctx
 	}
 
 	result = WorkbooksRevisionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

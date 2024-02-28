@@ -20,7 +20,8 @@ type ListKeysOperationResponse struct {
 }
 
 type ListKeysCompleteResult struct {
-	Items []SharedAccessSignatureAuthorizationRuleAccessRightsDescription
+	LatestHttpResponse *http.Response
+	Items              []SharedAccessSignatureAuthorizationRuleAccessRightsDescription
 }
 
 // ListKeys ...
@@ -84,7 +85,8 @@ func (c IotDpsResourceClient) ListKeysCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListKeysCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

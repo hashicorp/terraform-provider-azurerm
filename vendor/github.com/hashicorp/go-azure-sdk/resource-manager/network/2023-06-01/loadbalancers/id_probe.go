@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProbeId{}
+var _ resourceids.ResourceId = &ProbeId{}
 
 // ProbeId is a struct representing the Resource ID for a Probe
 type ProbeId struct {
@@ -32,29 +32,15 @@ func NewProbeID(subscriptionId string, resourceGroupName string, loadBalancerNam
 
 // ParseProbeID parses 'input' into a ProbeId
 func ParseProbeID(input string) (*ProbeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProbeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProbeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProbeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadBalancerName, ok = parsed.Parsed["loadBalancerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", *parsed)
-	}
-
-	if id.ProbeName, ok = parsed.Parsed["probeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "probeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseProbeID(input string) (*ProbeId, error) {
 // ParseProbeIDInsensitively parses 'input' case-insensitively into a ProbeId
 // note: this method should only be used for API response data and not user input
 func ParseProbeIDInsensitively(input string) (*ProbeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProbeId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProbeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProbeId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadBalancerName, ok = parsed.Parsed["loadBalancerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", *parsed)
-	}
-
-	if id.ProbeName, ok = parsed.Parsed["probeName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "probeName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProbeId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.LoadBalancerName, ok = input.Parsed["loadBalancerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", input)
+	}
+
+	if id.ProbeName, ok = input.Parsed["probeName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "probeName", input)
+	}
+
+	return nil
 }
 
 // ValidateProbeID checks that 'input' can be parsed as a Probe ID

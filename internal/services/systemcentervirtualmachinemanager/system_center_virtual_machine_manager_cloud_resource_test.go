@@ -3,6 +3,7 @@ package systemcentervirtualmachinemanager_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/clouds"
@@ -16,12 +17,29 @@ import (
 
 type SystemCenterVirtualMachineManagerCloudResource struct{}
 
-func TestAccSystemCenterVirtualMachineManagerCloud_basic(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerCloudSequential(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
+
+	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
+	}
+
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"scvmmCloud": {
+			"basic":          testAccSystemCenterVirtualMachineManagerCloud_basic,
+			"requiresImport": testAccSystemCenterVirtualMachineManagerCloud_requiresImport,
+			"complete":       testAccSystemCenterVirtualMachineManagerCloud_complete,
+			"update":         testAccSystemCenterVirtualMachineManagerCloud_update,
+		},
+	})
+}
+
+func testAccSystemCenterVirtualMachineManagerCloud_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_cloud", "test")
 	r := SystemCenterVirtualMachineManagerCloudResource{}
 	randomUuid, _ := uuid.GenerateUUID()
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, randomUuid),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -32,12 +50,12 @@ func TestAccSystemCenterVirtualMachineManagerCloud_basic(t *testing.T) {
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerCloud_requiresImport(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerCloud_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_cloud", "test")
 	r := SystemCenterVirtualMachineManagerCloudResource{}
 	randomUuid, _ := uuid.GenerateUUID()
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data, randomUuid),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -51,12 +69,12 @@ func TestAccSystemCenterVirtualMachineManagerCloud_requiresImport(t *testing.T) 
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerCloud_complete(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerCloud_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_cloud", "test")
 	r := SystemCenterVirtualMachineManagerCloudResource{}
 	randomUuid, _ := uuid.GenerateUUID()
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data, randomUuid),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -67,12 +85,19 @@ func TestAccSystemCenterVirtualMachineManagerCloud_complete(t *testing.T) {
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerCloud_update(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerCloud_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_cloud", "test")
 	r := SystemCenterVirtualMachineManagerCloudResource{}
 	randomUuid, _ := uuid.GenerateUUID()
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, randomUuid),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data, randomUuid),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -82,6 +107,13 @@ func TestAccSystemCenterVirtualMachineManagerCloud_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data, randomUuid),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, randomUuid),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -107,6 +139,10 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Exists(ctx context.Conte
 func (r SystemCenterVirtualMachineManagerCloudResource) basic(data acceptance.TestData, uuid string) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   name                                                           = "acctest-scvmmc-%d"
@@ -140,6 +176,10 @@ func (r SystemCenterVirtualMachineManagerCloudResource) complete(data acceptance
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   name                                                           = "acctest-scvmmc-%d"
   location                                                       = azurerm_resource_group.test.location
@@ -160,6 +200,10 @@ func (r SystemCenterVirtualMachineManagerCloudResource) update(data acceptance.T
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   name                                                           = "acctest-scvmmc-%d"
   location                                                       = azurerm_resource_group.test.location
@@ -178,31 +222,19 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
 
 func (r SystemCenterVirtualMachineManagerCloudResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-scvmmas-%d"
+  name     = "acctestrg-scvmmcloud-%d"
   location = "%s"
-}
-
-resource "azurerm_custom_location" "test" {
-  name = "acctest-cl-%d"
 }
 
 resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   name                = "acctest-scvmmms-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = azurerm_custom_location.test.id
-  fqdn                = "testdomain.com"
+  custom_location_id  = "%s"
+  fqdn                = "%s"
+  username            = "%s"
+  password            = "%s"
 }
-
-resource "azurerm_system_center_virtual_machine_manager_server_inventory_item" "test" {
-  name                = "acctest-scvmmsii-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FrontendIPConfigurationId{}
+var _ resourceids.ResourceId = &FrontendIPConfigurationId{}
 
 // FrontendIPConfigurationId is a struct representing the Resource ID for a Frontend I P Configuration
 type FrontendIPConfigurationId struct {
@@ -32,29 +32,15 @@ func NewFrontendIPConfigurationID(subscriptionId string, resourceGroupName strin
 
 // ParseFrontendIPConfigurationID parses 'input' into a FrontendIPConfigurationId
 func ParseFrontendIPConfigurationID(input string) (*FrontendIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontendIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontendIPConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FrontendIPConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadBalancerName, ok = parsed.Parsed["loadBalancerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", *parsed)
-	}
-
-	if id.FrontendIPConfigurationName, ok = parsed.Parsed["frontendIPConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontendIPConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseFrontendIPConfigurationID(input string) (*FrontendIPConfigurationId, e
 // ParseFrontendIPConfigurationIDInsensitively parses 'input' case-insensitively into a FrontendIPConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseFrontendIPConfigurationIDInsensitively(input string) (*FrontendIPConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FrontendIPConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&FrontendIPConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := FrontendIPConfigurationId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.LoadBalancerName, ok = parsed.Parsed["loadBalancerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", *parsed)
-	}
-
-	if id.FrontendIPConfigurationName, ok = parsed.Parsed["frontendIPConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "frontendIPConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *FrontendIPConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.LoadBalancerName, ok = input.Parsed["loadBalancerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "loadBalancerName", input)
+	}
+
+	if id.FrontendIPConfigurationName, ok = input.Parsed["frontendIPConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "frontendIPConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateFrontendIPConfigurationID checks that 'input' can be parsed as a Frontend I P Configuration ID

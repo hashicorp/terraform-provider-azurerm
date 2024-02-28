@@ -4,22 +4,23 @@
 package netapp
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -56,6 +57,8 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"location": commonschema.Location(),
+
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"active_directory": {
 				Type:     pluginsdk.TypeList,
@@ -118,6 +121,10 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	defer cancel()
 
 	id := netappaccounts.NewNetAppAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	if d.IsNewResource() {
 		existing, err := client.AccountsGet(ctx, id)
 		if err != nil {
@@ -131,20 +138,38 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	accountParameters := netappaccounts.NetAppAccount{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
-		Properties: &netappaccounts.AccountProperties{
-			ActiveDirectories: expandNetAppActiveDirectories(d.Get("active_directory").([]interface{})),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Location:   azure.NormalizeLocation(d.Get("location").(string)),
+		Properties: &netappaccounts.AccountProperties{},
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	activeDirectoryRaw := d.Get("active_directory")
+	if activeDirectoryRaw != nil {
+		activeDirectories := activeDirectoryRaw.([]interface{})
+		activeDirectoriesExpanded := expandNetAppActiveDirectories(activeDirectories)
+		if len(pointer.From(activeDirectoriesExpanded)) > 0 {
+			accountParameters.Properties.ActiveDirectories = activeDirectoriesExpanded
+		}
+	}
+
+	anfAccountIdentityRaw := d.Get("identity")
+	if anfAccountIdentityRaw != nil {
+		anfAccountIdentity, ok := anfAccountIdentityRaw.([]interface{})
+
+		if ok && len(anfAccountIdentity) > 0 {
+
+			anfAccountIdentityExpanded, err := identity.ExpandLegacySystemAndUserAssignedMap(anfAccountIdentity)
+			if err != nil {
+				return err
+			}
+			if anfAccountIdentity != nil {
+				accountParameters.Identity = anfAccountIdentityExpanded
+			}
+		}
 	}
 
 	if err := client.AccountsCreateOrUpdateThenPoll(ctx, id, accountParameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	// Wait for account to complete create
-	if err := waitForAccountCreateOrUpdate(ctx, client, id); err != nil {
-		return err
 	}
 
 	d.SetId(id.ID())
@@ -160,6 +185,9 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
+
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
 
 	shouldUpdate := false
 	update := netappaccounts.NetAppAccountPatch{
@@ -179,14 +207,19 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
+	if d.HasChange("identity") {
+		shouldUpdate = true
+		anfAccountIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		update.Identity = anfAccountIdentity
+	}
+
 	if shouldUpdate {
 		if err = client.AccountsUpdateThenPoll(ctx, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id.ID(), err)
-		}
-
-		// Wait for account to complete update
-		if err = waitForAccountCreateOrUpdate(ctx, client, *id); err != nil {
-			return err
 		}
 	}
 
@@ -219,6 +252,17 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
 
+		if model.Identity != nil {
+			anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+
+			if err := d.Set("identity", anfAccountIdentity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+		}
+
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 
@@ -235,6 +279,9 @@ func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
+	locks.ByID(id.ID())
+	defer locks.UnlockByID(id.ID())
+
 	if err := client.AccountsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -244,6 +291,10 @@ func resourceNetAppAccountDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.ActiveDirectory {
 	results := make([]netappaccounts.ActiveDirectory, 0)
+	if input == nil {
+		return &results
+	}
+
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		dns := strings.Join(*utils.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
@@ -260,43 +311,4 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 		results = append(results, result)
 	}
 	return &results
-}
-
-func waitForAccountCreateOrUpdate(ctx context.Context, client *netappaccounts.NetAppAccountsClient, id netappaccounts.NetAppAccountId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	stateConf := &pluginsdk.StateChangeConf{
-		ContinuousTargetOccurence: 5,
-		Delay:                     10 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Pending:                   []string{"204", "404"},
-		Target:                    []string{"200", "202"},
-		Refresh:                   netappAccountStateRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
-	}
-
-	return nil
-}
-
-func netappAccountStateRefreshFunc(ctx context.Context, client *netappaccounts.NetAppAccountsClient, id netappaccounts.NetAppAccountId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.AccountsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving %s: %s", id.ID(), err)
-			}
-		}
-
-		statusCode := "dropped connection"
-		if res.HttpResponse != nil {
-			statusCode = strconv.Itoa(res.HttpResponse.StatusCode)
-		}
-		return res, statusCode, nil
-	}
 }

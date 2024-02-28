@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DomainId{}
+var _ resourceids.ResourceId = &DomainId{}
 
 // DomainId is a struct representing the Resource ID for a Domain
 type DomainId struct {
@@ -30,25 +30,15 @@ func NewDomainID(subscriptionId string, resourceGroupName string, domainName str
 
 // ParseDomainID parses 'input' into a DomainId
 func ParseDomainID(input string) (*DomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DomainId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DomainName, ok = parsed.Parsed["domainName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "domainName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseDomainID(input string) (*DomainId, error) {
 // ParseDomainIDInsensitively parses 'input' case-insensitively into a DomainId
 // note: this method should only be used for API response data and not user input
 func ParseDomainIDInsensitively(input string) (*DomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DomainId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DomainName, ok = parsed.Parsed["domainName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "domainName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DomainId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DomainName, ok = input.Parsed["domainName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "domainName", input)
+	}
+
+	return nil
 }
 
 // ValidateDomainID checks that 'input' can be parsed as a Domain ID

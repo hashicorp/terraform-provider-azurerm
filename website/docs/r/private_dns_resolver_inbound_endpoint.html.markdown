@@ -79,7 +79,7 @@ The following arguments are supported:
 
 An `ip_configurations` block supports the following:
 
-* `private_ip_allocation_method` - (Optional) Private IP address allocation method. Allowed value is `Dynamic`. Defaults to `Dynamic`.
+* `private_ip_allocation_method` - (Optional) Private IP address allocation method. Allowed value is `Dynamic` and `Static`. Defaults to `Dynamic`.
 
 * `subnet_id` - (Required) The subnet ID of the IP configuration.
 

@@ -19,7 +19,8 @@ type VpnConnectionsListByVpnGatewayOperationResponse struct {
 }
 
 type VpnConnectionsListByVpnGatewayCompleteResult struct {
-	Items []VpnConnection
+	LatestHttpResponse *http.Response
+	Items              []VpnConnection
 }
 
 // VpnConnectionsListByVpnGateway ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) VpnConnectionsListByVpnGatewayCompleteMatchingPredica
 	}
 
 	result = VpnConnectionsListByVpnGatewayCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

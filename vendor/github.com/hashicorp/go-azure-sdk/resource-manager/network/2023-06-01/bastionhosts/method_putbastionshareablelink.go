@@ -22,7 +22,8 @@ type PutBastionShareableLinkOperationResponse struct {
 }
 
 type PutBastionShareableLinkCompleteResult struct {
-	Items []BastionShareableLink
+	LatestHttpResponse *http.Response
+	Items              []BastionShareableLink
 }
 
 // PutBastionShareableLink ...
@@ -55,15 +56,6 @@ func (c BastionHostsClient) PutBastionShareableLink(ctx context.Context, id Bast
 	if err != nil {
 		return
 	}
-
-	var values struct {
-		Values *[]BastionShareableLink `json:"value"`
-	}
-	if err = resp.Unmarshal(&values); err != nil {
-		return
-	}
-
-	result.Model = values.Values
 
 	result.Poller, err = resourcemanager.PollerFromResponse(resp, c.Client)
 	if err != nil {

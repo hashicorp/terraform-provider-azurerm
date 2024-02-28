@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []VMMServer
+	LatestHttpResponse *http.Response
+	Items              []VMMServer
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c VMmServersClient) ListBySubscriptionCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

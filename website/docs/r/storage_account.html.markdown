@@ -92,7 +92,7 @@ The following arguments are supported:
 
 -> **NOTE:** Blobs with a tier of `Premium` are of account kind `StorageV2`.
 
-* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`.
+* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `true`.
 
@@ -147,6 +147,8 @@ The following arguments are supported:
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
+
+* `local_user_enabled` - (Optional) Is Local User Enabled? Defaults to `true`.
 
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
@@ -284,7 +286,7 @@ An `identity` block supports the following:
 
 An `immutability_policy` block supports the following:
 
-~> **NOTE**: This argument specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy.
+~> **NOTE:** This argument specifies the default account-level immutability policy which is inherited and applied to objects that do not possess an explicit immutability policy at the object level. The object-level immutability policy has higher precedence than the container-level immutability policy, which has a higher precedence than the account-level immutability policy.
 
 * `allow_protected_append_writes` - (Required) When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
 
@@ -342,7 +344,7 @@ A `network_rules` block supports the following:
 
 A `private_link_access` block supports the following:
 
-* `endpoint_resource_id` - (Required) The resource id of the resource access rule to be granted access.
+* `endpoint_resource_id` - (Required) The ID of the Azure resource that should be allowed access to the target storage account.
 
 * `endpoint_tenant_id` - (Optional) The tenant id of the resource of the resource access rule to be granted access. Defaults to the current tenant id.
 
@@ -454,49 +456,129 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `primary_blob_host` - The hostname with port if applicable for blob storage in the primary location.
 
+* `primary_blob_internet_endpoint` - The internet routing endpoint URL for blob storage in the primary location.
+
+* `primary_blob_internet_host` - The internet routing hostname with port if applicable for blob storage in the primary location.
+
+* `primary_blob_microsoft_endpoint` - The microsoft routing endpoint URL for blob storage in the primary location.
+
+* `primary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the primary location.
+
 * `secondary_blob_endpoint` - The endpoint URL for blob storage in the secondary location.
 
 * `secondary_blob_host` - The hostname with port if applicable for blob storage in the secondary location.
+
+* `secondary_blob_internet_endpoint` - The internet routing endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_internet_host` - The internet routing hostname with port if applicable for blob storage in the secondary location.
+
+* `secondary_blob_microsoft_endpoint` - The microsoft routing endpoint URL for blob storage in the secondary location.
+
+* `secondary_blob_microsoft_host` - The microsoft routing hostname with port if applicable for blob storage in the secondary location.
 
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.
 
 * `primary_queue_host` - The hostname with port if applicable for queue storage in the primary location.
 
+* `primary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the primary location.
+
+* `primary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the primary location.
+
 * `secondary_queue_endpoint` - The endpoint URL for queue storage in the secondary location.
 
 * `secondary_queue_host` - The hostname with port if applicable for queue storage in the secondary location.
+
+* `secondary_queue_microsoft_endpoint` - The microsoft routing endpoint URL for queue storage in the secondary location.
+
+* `secondary_queue_microsoft_host` - The microsoft routing hostname with port if applicable for queue storage in the secondary location.
 
 * `primary_table_endpoint` - The endpoint URL for table storage in the primary location.
 
 * `primary_table_host` - The hostname with port if applicable for table storage in the primary location.
 
+* `primary_table_microsoft_endpoint` - The microsoft routing endpoint URL for table storage in the primary location.
+
+* `primary_table_microsoft_host` - The microsoft routing hostname with port if applicable for table storage in the primary location.
+
 * `secondary_table_endpoint` - The endpoint URL for table storage in the secondary location.
 
 * `secondary_table_host` - The hostname with port if applicable for table storage in the secondary location.
+
+* `secondary_table_microsoft_endpoint` - The microsoft routing endpoint URL for table storage in the secondary location.
+
+* `secondary_table_microsoft_host` - The microsoft routing hostname with port if applicable for table storage in the secondary location.
 
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 
 * `primary_file_host` - The hostname with port if applicable for file storage in the primary location.
 
+* `primary_file_internet_endpoint` - The internet routing endpoint URL for file storage in the primary location.
+
+* `primary_file_internet_host` - The internet routing hostname with port if applicable for file storage in the primary location.
+
+* `primary_file_microsoft_endpoint` - The microsoft routing endpoint URL for file storage in the primary location.
+
+* `primary_file_microsoft_host` - The microsoft routing hostname with port if applicable for file storage in the primary location.
+
 * `secondary_file_endpoint` - The endpoint URL for file storage in the secondary location.
 
 * `secondary_file_host` - The hostname with port if applicable for file storage in the secondary location.
+
+* `secondary_file_internet_endpoint` - The internet routing endpoint URL for file storage in the secondary location.
+
+* `secondary_file_internet_host` - The internet routing hostname with port if applicable for file storage in the secondary location.
+
+* `secondary_file_microsoft_endpoint` - The microsoft routing endpoint URL for file storage in the secondary location.
+
+* `secondary_file_microsoft_host` - The microsoft routing hostname with port if applicable for file storage in the secondary location.
 
 * `primary_dfs_endpoint` - The endpoint URL for DFS storage in the primary location.
 
 * `primary_dfs_host` - The hostname with port if applicable for DFS storage in the primary location.
 
+* `primary_dfs_internet_endpoint` - The internet routing endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_internet_host` - The internet routing hostname with port if applicable for DFS storage in the primary location.
+
+* `primary_dfs_microsoft_endpoint` - The microsoft routing endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_microsoft_host` - The microsoft routing hostname with port if applicable for DFS storage in the primary location.
+
 * `secondary_dfs_endpoint` - The endpoint URL for DFS storage in the secondary location.
 
 * `secondary_dfs_host` - The hostname with port if applicable for DFS storage in the secondary location.
+
+* `secondary_dfs_internet_endpoint` - The internet routing endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_internet_host` - The internet routing hostname with port if applicable for DFS storage in the secondary location.
+
+* `secondary_dfs_microsoft_endpoint` - The microsoft routing endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_microsoft_host` - The microsoft routing hostname with port if applicable for DFS storage in the secondary location.
 
 * `primary_web_endpoint` - The endpoint URL for web storage in the primary location.
 
 * `primary_web_host` - The hostname with port if applicable for web storage in the primary location.
 
+* `primary_web_internet_endpoint` - The internet routing endpoint URL for web storage in the primary location.
+
+* `primary_web_internet_host` - The internet routing hostname with port if applicable for web storage in the primary location.
+
+* `primary_web_microsoft_endpoint` - The microsoft routing endpoint URL for web storage in the primary location.
+
+* `primary_web_microsoft_host` - The microsoft routing hostname with port if applicable for web storage in the primary location.
+
 * `secondary_web_endpoint` - The endpoint URL for web storage in the secondary location.
 
 * `secondary_web_host` - The hostname with port if applicable for web storage in the secondary location.
+
+* `secondary_web_internet_endpoint` - The internet routing endpoint URL for web storage in the secondary location.
+
+* `secondary_web_internet_host` - The internet routing hostname with port if applicable for web storage in the secondary location.
+
+* `secondary_web_microsoft_endpoint` - The microsoft routing endpoint URL for web storage in the secondary location.
+
+* `secondary_web_microsoft_host` - The microsoft routing hostname with port if applicable for web storage in the secondary location.
 
 * `primary_access_key` - The primary access key for the storage account.
 

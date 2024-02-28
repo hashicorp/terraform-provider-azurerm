@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -217,13 +218,14 @@ func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *c
 	if err != nil {
 		return nil, err
 	}
+	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, automationId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.AutomationProperties != nil), nil
+	return utils.Bool(resp.Model.Properties != nil), nil
 }
 
 func (SecurityCenterAutomationResource) logicApp(data acceptance.TestData) string {

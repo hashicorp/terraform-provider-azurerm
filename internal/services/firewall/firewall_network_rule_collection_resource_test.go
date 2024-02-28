@@ -879,7 +879,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
-`, FirewallResource{}.enableDNS(data, "1.1.1.1", "8.8.8.8"))
+`, FirewallResource{}.enableDNS(data, true, "1.1.1.1", "8.8.8.8"))
 }
 
 func (r FirewallNetworkRuleCollectionResource) noSource(data acceptance.TestData) string {

@@ -1,0 +1,26 @@
+name: Comment Failure
+
+on:
+  # This file is reused, and called from other workflows
+  workflow_call:
+
+jobs:
+  comment-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get run url
+        if: failure()
+        run: |
+          echo "gha_url=https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}" >> $GITHUB_ENV
+      - name: Send build failure comment
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          result-encoding: string
+          script: |
+            github.rest.issues.createComment({
+             issue_number: ${{ github.event.number }},
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             body: '<b>Build failure</b> \n\n This pull request contains a build failure which needs addressed [here](${{ env.gha_url}}) .'
+             })

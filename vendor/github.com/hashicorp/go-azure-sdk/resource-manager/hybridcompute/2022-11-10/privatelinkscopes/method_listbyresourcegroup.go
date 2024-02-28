@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []HybridComputePrivateLinkScope
+	LatestHttpResponse *http.Response
+	Items              []HybridComputePrivateLinkScope
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c PrivateLinkScopesClient) ListByResourceGroupCompleteMatchingPredicate(ct
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicationProtectionContainerId{}
+var _ resourceids.ResourceId = &ReplicationProtectionContainerId{}
 
 // ReplicationProtectionContainerId is a struct representing the Resource ID for a Replication Protection Container
 type ReplicationProtectionContainerId struct {
@@ -34,33 +34,15 @@ func NewReplicationProtectionContainerID(subscriptionId string, resourceGroupNam
 
 // ParseReplicationProtectionContainerID parses 'input' into a ReplicationProtectionContainerId
 func ParseReplicationProtectionContainerID(input string) (*ReplicationProtectionContainerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationProtectionContainerId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationProtectionContainerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReplicationProtectionContainerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.ReplicationFabricName, ok = parsed.Parsed["replicationFabricName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationFabricName", *parsed)
-	}
-
-	if id.ReplicationProtectionContainerName, ok = parsed.Parsed["replicationProtectionContainerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectionContainerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -69,36 +51,44 @@ func ParseReplicationProtectionContainerID(input string) (*ReplicationProtection
 // ParseReplicationProtectionContainerIDInsensitively parses 'input' case-insensitively into a ReplicationProtectionContainerId
 // note: this method should only be used for API response data and not user input
 func ParseReplicationProtectionContainerIDInsensitively(input string) (*ReplicationProtectionContainerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationProtectionContainerId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationProtectionContainerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReplicationProtectionContainerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.ReplicationFabricName, ok = parsed.Parsed["replicationFabricName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationFabricName", *parsed)
-	}
-
-	if id.ReplicationProtectionContainerName, ok = parsed.Parsed["replicationProtectionContainerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectionContainerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ReplicationProtectionContainerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VaultName, ok = input.Parsed["vaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vaultName", input)
+	}
+
+	if id.ReplicationFabricName, ok = input.Parsed["replicationFabricName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "replicationFabricName", input)
+	}
+
+	if id.ReplicationProtectionContainerName, ok = input.Parsed["replicationProtectionContainerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "replicationProtectionContainerName", input)
+	}
+
+	return nil
 }
 
 // ValidateReplicationProtectionContainerID checks that 'input' can be parsed as a Replication Protection Container ID

@@ -216,6 +216,21 @@ func TestAccSynapseWorkspace_azureAdOnlyAuthentication(t *testing.T) {
 	})
 }
 
+func TestAccSynapseWorkspace_cmkWithAADAdmin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkWithAADAdmin(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+	})
+}
+
 func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
@@ -675,4 +690,87 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
   storage_account_id = azurerm_storage_account.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r SynapseWorkspaceResource) cmkWithAADAdmin(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuaid%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "acckv%[2]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Create",
+      "Get",
+      "Delete",
+      "Purge",
+      "GetRotationPolicy",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts = [
+    "unwrapKey",
+    "wrapKey"
+  ]
+}
+
+resource "azurerm_synapse_workspace" "test" {
+  name                                 = "acctestsw%[2]d"
+  resource_group_name                  = azurerm_resource_group.test.name
+  location                             = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login              = "sqladminuser"
+  sql_administrator_login_password     = "H@Sh1CoR3!"
+  azuread_authentication_only          = true
+
+  customer_managed_key {
+    key_versionless_id        = azurerm_key_vault_key.test.versionless_id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, template, data.RandomInteger)
 }

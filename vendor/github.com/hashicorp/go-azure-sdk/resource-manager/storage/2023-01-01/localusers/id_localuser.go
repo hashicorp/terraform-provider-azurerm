@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LocalUserId{}
+var _ resourceids.ResourceId = &LocalUserId{}
 
 // LocalUserId is a struct representing the Resource ID for a Local User
 type LocalUserId struct {
@@ -32,29 +32,15 @@ func NewLocalUserID(subscriptionId string, resourceGroupName string, storageAcco
 
 // ParseLocalUserID parses 'input' into a LocalUserId
 func ParseLocalUserID(input string) (*LocalUserId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalUserId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocalUserId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LocalUserId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
-	}
-
-	if id.LocalUserName, ok = parsed.Parsed["localUserName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localUserName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseLocalUserID(input string) (*LocalUserId, error) {
 // ParseLocalUserIDInsensitively parses 'input' case-insensitively into a LocalUserId
 // note: this method should only be used for API response data and not user input
 func ParseLocalUserIDInsensitively(input string) (*LocalUserId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LocalUserId{})
+	parser := resourceids.NewParserFromResourceIdType(&LocalUserId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LocalUserId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageAccountName, ok = parsed.Parsed["storageAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", *parsed)
-	}
-
-	if id.LocalUserName, ok = parsed.Parsed["localUserName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "localUserName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LocalUserId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StorageAccountName, ok = input.Parsed["storageAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "storageAccountName", input)
+	}
+
+	if id.LocalUserName, ok = input.Parsed["localUserName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "localUserName", input)
+	}
+
+	return nil
 }
 
 // ValidateLocalUserID checks that 'input' can be parsed as a Local User ID

@@ -37,13 +37,23 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Backup Vault should exist. Changing this forces a new Backup Vault to be created.
 
-* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `SnapshotStore` and `VaultStore`. Changing this forces a new resource to be created.
+* `datastore_type` - (Required) Specifies the type of the data store. Possible values are `ArchiveStore`, `OperationalStore`, `SnapshotStore` and `VaultStore`. Changing this forces a new resource to be created.
 
-* `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant` and `LocallyRedundant`. Changing this forces a new Backup Vault to be created.
+-> **Note:** The `SnapshotStore` will be removed in version 4.0 as it has been replaced by `OperationalStore`.
+
+* `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
 ---
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `retention_duration_in_days` - (Optional) The soft delete retention duration for this Backup Vault. Possible values are between `14` and `180`. Defaults to `14`.
+
+-> **Note:** The `retention_duration_in_days` is the number of days for which deleted data is retained before being permanently deleted. Retention period till 14 days are free of cost, however, retention beyond 14 days may incur additional charges. The `retention_duration_in_days` is required when the `soft_delete` is set to `On`.
+
+* `soft_delete` - (Optional) The state of soft delete for this Backup Vault. Possible values are `AlwaysOn`, `Off` and `On`. Defaults to `On`.
+
+-> **Note:** Once the `soft_delete` is set to `AlwaysOn`, the setting cannot be changed.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Backup Vault.
 

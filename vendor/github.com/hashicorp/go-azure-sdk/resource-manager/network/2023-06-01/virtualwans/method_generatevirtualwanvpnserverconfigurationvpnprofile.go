@@ -18,6 +18,7 @@ type GeneratevirtualwanvpnserverconfigurationvpnprofileOperationResponse struct 
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *VpnProfileResponse
 }
 
 // Generatevirtualwanvpnserverconfigurationvpnprofile ...

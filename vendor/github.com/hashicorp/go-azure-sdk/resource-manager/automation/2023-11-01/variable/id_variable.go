@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VariableId{}
+var _ resourceids.ResourceId = &VariableId{}
 
 // VariableId is a struct representing the Resource ID for a Variable
 type VariableId struct {
@@ -32,29 +32,15 @@ func NewVariableID(subscriptionId string, resourceGroupName string, automationAc
 
 // ParseVariableID parses 'input' into a VariableId
 func ParseVariableID(input string) (*VariableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VariableId{})
+	parser := resourceids.NewParserFromResourceIdType(&VariableId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VariableId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.VariableName, ok = parsed.Parsed["variableName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "variableName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseVariableID(input string) (*VariableId, error) {
 // ParseVariableIDInsensitively parses 'input' case-insensitively into a VariableId
 // note: this method should only be used for API response data and not user input
 func ParseVariableIDInsensitively(input string) (*VariableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VariableId{})
+	parser := resourceids.NewParserFromResourceIdType(&VariableId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VariableId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.AutomationAccountName, ok = parsed.Parsed["automationAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", *parsed)
-	}
-
-	if id.VariableName, ok = parsed.Parsed["variableName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "variableName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VariableId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.AutomationAccountName, ok = input.Parsed["automationAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "automationAccountName", input)
+	}
+
+	if id.VariableName, ok = input.Parsed["variableName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "variableName", input)
+	}
+
+	return nil
 }
 
 // ValidateVariableID checks that 'input' can be parsed as a Variable ID

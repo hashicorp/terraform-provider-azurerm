@@ -19,7 +19,8 @@ type ListByBatchAccountOperationResponse struct {
 }
 
 type ListByBatchAccountCompleteResult struct {
-	Items []Certificate
+	LatestHttpResponse *http.Response
+	Items              []Certificate
 }
 
 type ListByBatchAccountOperationOptions struct {
@@ -119,7 +120,8 @@ func (c CertificateClient) ListByBatchAccountCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByBatchAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

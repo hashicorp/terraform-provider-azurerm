@@ -19,7 +19,8 @@ type ConfigurationPolicyGroupsListByVpnServerConfigurationOperationResponse stru
 }
 
 type ConfigurationPolicyGroupsListByVpnServerConfigurationCompleteResult struct {
-	Items []VpnServerConfigurationPolicyGroup
+	LatestHttpResponse *http.Response
+	Items              []VpnServerConfigurationPolicyGroup
 }
 
 // ConfigurationPolicyGroupsListByVpnServerConfiguration ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) ConfigurationPolicyGroupsListByVpnServerConfiguration
 	}
 
 	result = ConfigurationPolicyGroupsListByVpnServerConfigurationCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

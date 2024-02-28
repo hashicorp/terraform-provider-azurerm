@@ -19,7 +19,8 @@ type InboundNatRulesListOperationResponse struct {
 }
 
 type InboundNatRulesListCompleteResult struct {
-	Items []InboundNatRule
+	LatestHttpResponse *http.Response
+	Items              []InboundNatRule
 }
 
 // InboundNatRulesList ...
@@ -83,7 +84,8 @@ func (c LoadBalancersClient) InboundNatRulesListCompleteMatchingPredicate(ctx co
 	}
 
 	result = InboundNatRulesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

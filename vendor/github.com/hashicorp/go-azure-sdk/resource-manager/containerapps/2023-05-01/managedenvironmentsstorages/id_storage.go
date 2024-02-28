@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StorageId{}
+var _ resourceids.ResourceId = &StorageId{}
 
 // StorageId is a struct representing the Resource ID for a Storage
 type StorageId struct {
@@ -32,29 +32,15 @@ func NewStorageID(subscriptionId string, resourceGroupName string, managedEnviro
 
 // ParseStorageID parses 'input' into a StorageId
 func ParseStorageID(input string) (*StorageId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := StorageId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedEnvironmentName", *parsed)
-	}
-
-	if id.StorageName, ok = parsed.Parsed["storageName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseStorageID(input string) (*StorageId, error) {
 // ParseStorageIDInsensitively parses 'input' case-insensitively into a StorageId
 // note: this method should only be used for API response data and not user input
 func ParseStorageIDInsensitively(input string) (*StorageId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := StorageId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedEnvironmentName, ok = parsed.Parsed["managedEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedEnvironmentName", *parsed)
-	}
-
-	if id.StorageName, ok = parsed.Parsed["storageName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *StorageId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ManagedEnvironmentName, ok = input.Parsed["managedEnvironmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managedEnvironmentName", input)
+	}
+
+	if id.StorageName, ok = input.Parsed["storageName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "storageName", input)
+	}
+
+	return nil
 }
 
 // ValidateStorageID checks that 'input' can be parsed as a Storage ID

@@ -19,7 +19,8 @@ type GetBastionShareableLinkOperationResponse struct {
 }
 
 type GetBastionShareableLinkCompleteResult struct {
-	Items []BastionShareableLink
+	LatestHttpResponse *http.Response
+	Items              []BastionShareableLink
 }
 
 // GetBastionShareableLink ...
@@ -83,7 +84,8 @@ func (c BastionHostsClient) GetBastionShareableLinkCompleteMatchingPredicate(ctx
 	}
 
 	result = GetBastionShareableLinkCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

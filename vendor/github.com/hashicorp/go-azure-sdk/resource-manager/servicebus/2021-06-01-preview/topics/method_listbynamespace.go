@@ -19,7 +19,8 @@ type ListByNamespaceOperationResponse struct {
 }
 
 type ListByNamespaceCompleteResult struct {
-	Items []SBTopic
+	LatestHttpResponse *http.Response
+	Items              []SBTopic
 }
 
 type ListByNamespaceOperationOptions struct {
@@ -115,7 +116,8 @@ func (c TopicsClient) ListByNamespaceCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListByNamespaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
