@@ -3,6 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,23 +15,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type StaticSiteCustomDomainResource struct{}
+type StaticWebAppCustomDomainResource struct{}
 
-var _ sdk.Resource = StaticSiteCustomDomainResource{}
+var _ sdk.Resource = StaticWebAppCustomDomainResource{}
 
-const (
-	txtValidationType   = "dns-txt-token"
-	cnameValidationType = "cname-delegation"
-)
-
-type StaticSiteCustomDomainResourceModel struct {
+type StaticWebAppCustomDomainResourceModel struct {
 	DomainName      string `tfschema:"domain_name"`
 	StaticSiteId    string `tfschema:"static_site_id"`
 	ValidationType  string `tfschema:"validation_type"`
 	ValidationToken string `tfschema:"validation_token"`
 }
 
-func (r StaticSiteCustomDomainResource) Arguments() map[string]*schema.Schema {
+func (r StaticWebAppCustomDomainResource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"static_site_id": {
 			Type:         pluginsdk.TypeString,
@@ -49,17 +45,17 @@ func (r StaticSiteCustomDomainResource) Arguments() map[string]*schema.Schema {
 		"validation_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  txtValidationType,
+			Default:  helpers.ValidationTypeTXT,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				txtValidationType,
-				cnameValidationType,
+				helpers.ValidationTypeTXT,
+				helpers.ValidationTypeCName,
 			}, false),
 		},
 	}
 }
 
-func (r StaticSiteCustomDomainResource) Attributes() map[string]*schema.Schema {
+func (r StaticWebAppCustomDomainResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 		"validation_token": {
 			Type:      pluginsdk.TypeString,
@@ -69,21 +65,21 @@ func (r StaticSiteCustomDomainResource) Attributes() map[string]*schema.Schema {
 	}
 }
 
-func (r StaticSiteCustomDomainResource) ModelObject() interface{} {
-	return &StaticSiteCustomDomainResource{}
+func (r StaticWebAppCustomDomainResource) ModelObject() interface{} {
+	return &StaticWebAppCustomDomainResource{}
 }
 
-func (r StaticSiteCustomDomainResource) ResourceType() string {
-	return "azurerm_static_site_custom_domain"
+func (r StaticWebAppCustomDomainResource) ResourceType() string {
+	return "azurerm_static_web_app_custom_domain"
 }
 
-func (r StaticSiteCustomDomainResource) Create() sdk.ResourceFunc {
+func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.StaticSitesClient
 
-			model := StaticSiteCustomDomainResourceModel{}
+			model := StaticWebAppCustomDomainResourceModel{}
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -123,7 +119,7 @@ func (r StaticSiteCustomDomainResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r StaticSiteCustomDomainResource) Read() sdk.ResourceFunc {
+func (r StaticWebAppCustomDomainResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -135,7 +131,7 @@ func (r StaticSiteCustomDomainResource) Read() sdk.ResourceFunc {
 			}
 
 			// Some values are not retrievable from the API so we try and load the config.
-			state := StaticSiteCustomDomainResourceModel{}
+			state := StaticWebAppCustomDomainResourceModel{}
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -162,7 +158,7 @@ func (r StaticSiteCustomDomainResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r StaticSiteCustomDomainResource) Delete() sdk.ResourceFunc {
+func (r StaticWebAppCustomDomainResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -182,6 +178,6 @@ func (r StaticSiteCustomDomainResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r StaticSiteCustomDomainResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r StaticWebAppCustomDomainResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return staticsites.ValidateCustomDomainID
 }

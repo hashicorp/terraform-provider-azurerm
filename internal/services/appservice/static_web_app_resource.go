@@ -46,7 +46,7 @@ func (r StaticWebAppResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StaticSiteName,
+			ValidateFunc: validate.StaticWebAppName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -107,7 +107,7 @@ func (r StaticWebAppResource) ModelObject() interface{} {
 }
 
 func (r StaticWebAppResource) ResourceType() string {
-	return "azurerm_static_site"
+	return "azurerm_static_web_app"
 }
 
 func (r StaticWebAppResource) Create() sdk.ResourceFunc {
