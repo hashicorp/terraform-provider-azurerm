@@ -34,8 +34,8 @@ func (k KeyVaultManagedHSMKeyResource) template(data acceptance.TestData, purge 
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy    = "%[3]t"
-      recover_soft_deleted_key_vaults = true
+      purge_soft_deleted_keys_on_destroy = "%[3]t"
+      recover_soft_deleted_key_vaults    = true
     }
   }
 }
@@ -231,7 +231,6 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
     }
 
     expire_after = "P60D"
-    // notify_before_expiry = "P7D"
   }
   tags = {
     Env = "test"
