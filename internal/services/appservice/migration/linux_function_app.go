@@ -1603,6 +1603,11 @@ func (l LinuxFunctionAppV0toV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 		},
+
+		"managed_environment_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+		},
 	}
 }
 
