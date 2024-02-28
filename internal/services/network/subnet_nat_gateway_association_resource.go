@@ -56,7 +56,7 @@ func resourceSubnetNatGatewayAssociation() *pluginsdk.Resource {
 }
 
 func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	vnetClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,7 +114,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(network.ProvisioningStateUpdating)},
 		Target:     []string{string(network.ProvisioningStateSucceeded)},
-		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
+		Refresh:    LegacySubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
@@ -140,7 +140,7 @@ func resourceSubnetNatGatewayAssociationCreate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -177,7 +177,7 @@ func resourceSubnetNatGatewayAssociationRead(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceSubnetNatGatewayAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

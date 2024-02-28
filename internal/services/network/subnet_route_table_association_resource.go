@@ -55,7 +55,7 @@ func resourceSubnetRouteTableAssociation() *pluginsdk.Resource {
 }
 
 func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	vnetClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +121,7 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(network.ProvisioningStateUpdating)},
 		Target:     []string{string(network.ProvisioningStateSucceeded)},
-		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
+		Refresh:    LegacySubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
@@ -147,7 +147,7 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -188,7 +188,7 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

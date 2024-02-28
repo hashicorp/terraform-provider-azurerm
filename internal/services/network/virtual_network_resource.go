@@ -541,7 +541,7 @@ func resourceAzureSubnetHash(v interface{}) int {
 }
 
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
-	subnetClient := meta.(*clients.Client).Network.SubnetsClient
+	subnetClient := meta.(*clients.Client).Network.LegacySubnetsClient
 	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {

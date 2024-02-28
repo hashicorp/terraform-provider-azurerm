@@ -6,11 +6,11 @@ package network
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var SubnetResourceName = "azurerm_subnet"
@@ -834,5 +835,16 @@ func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.Sub
 			return res, string(*res.Model.Properties.ProvisioningState), nil
 		}
 		return nil, "", fmt.Errorf("unable to read provisioning state")
+	}
+}
+
+func LegacySubnetProvisioningStateRefreshFunc(ctx context.Context, client *network.SubnetsClient, id commonids.SubnetId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+		}
+
+		return res, string(res.ProvisioningState), nil
 	}
 }

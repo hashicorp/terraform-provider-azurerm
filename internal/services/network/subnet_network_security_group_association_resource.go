@@ -56,7 +56,7 @@ func resourceSubnetNetworkSecurityGroupAssociation() *pluginsdk.Resource {
 }
 
 func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	vnetClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +121,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(network.ProvisioningStateUpdating)},
 		Target:     []string{string(network.ProvisioningStateSucceeded)},
-		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
+		Refresh:    LegacySubnetProvisioningStateRefreshFunc(ctx, client, *parsedSubnetId),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(timeout),
 	}
@@ -147,7 +147,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 }
 
 func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -185,7 +185,7 @@ func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData
 }
 
 func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SubnetsClient
+	client := meta.(*clients.Client).Network.LegacySubnetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
