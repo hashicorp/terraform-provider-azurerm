@@ -120,7 +120,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 		return err
 	}
 
-	read, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	read, err := client.Network.LegacySubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(read.Response) {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -129,11 +129,11 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 
 	read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
 
-	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, read)
+	future, err := client.Network.LegacySubnetsClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, read)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Network.LegacySubnetsClient.Client); err != nil {
 		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 

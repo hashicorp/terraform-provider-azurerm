@@ -126,7 +126,7 @@ func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *
 	virtualNetworkName := parsedId.VirtualNetworkName
 	subnetName := parsedId.SubnetName
 
-	read, err := client.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	read, err := client.Network.LegacySubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(read.Response) {
 			return fmt.Errorf("retrieving Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
@@ -135,11 +135,11 @@ func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *
 
 	read.SubnetPropertiesFormat.RouteTable = nil
 
-	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
+	future, err := client.Network.LegacySubnetsClient.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
 	if err != nil {
 		return fmt.Errorf("updating Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Network.LegacySubnetsClient.Client); err != nil {
 		return fmt.Errorf("waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
