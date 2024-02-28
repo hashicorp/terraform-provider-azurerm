@@ -45,7 +45,10 @@ func (c AppPlatformClient) ConfigServersGet(ctx context.Context, id commonids.Sp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ConfigServerResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

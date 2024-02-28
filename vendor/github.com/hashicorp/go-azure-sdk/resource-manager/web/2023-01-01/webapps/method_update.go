@@ -49,7 +49,10 @@ func (c WebAppsClient) Update(ctx context.Context, id commonids.AppServiceId, in
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Site
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

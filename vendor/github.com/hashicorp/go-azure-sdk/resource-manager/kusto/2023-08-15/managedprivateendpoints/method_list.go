@@ -45,7 +45,10 @@ func (c ManagedPrivateEndpointsClient) List(ctx context.Context, id commonids.Ku
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedPrivateEndpointListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

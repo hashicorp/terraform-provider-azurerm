@@ -73,7 +73,10 @@ func (c SubnetsClient) Get(ctx context.Context, id commonids.SubnetId, options G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Subnet
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

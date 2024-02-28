@@ -43,7 +43,10 @@ func (c HybridRunbookWorkerClient) Get(ctx context.Context, id HybridRunbookWork
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HybridRunbookWorker
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

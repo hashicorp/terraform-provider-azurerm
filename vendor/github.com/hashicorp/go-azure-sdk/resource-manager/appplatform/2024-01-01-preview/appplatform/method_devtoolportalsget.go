@@ -43,7 +43,10 @@ func (c AppPlatformClient) DevToolPortalsGet(ctx context.Context, id DevToolPort
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DevToolPortalResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

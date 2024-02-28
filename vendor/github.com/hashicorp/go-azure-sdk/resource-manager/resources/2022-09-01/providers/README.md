@@ -93,12 +93,13 @@ for _, item := range items {
 ctx := context.TODO()
 id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
 
-read, err := client.ProviderPermissions(ctx, id)
+// alternatively `client.ProviderPermissions(ctx, id)` can be used to do batched pagination
+items, err := client.ProviderPermissionsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -109,12 +110,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
 
-read, err := client.ProviderResourceTypesList(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())
+// alternatively `client.ProviderResourceTypesList(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())` can be used to do batched pagination
+items, err := client.ProviderResourceTypesListComplete(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

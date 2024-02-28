@@ -44,7 +44,10 @@ func (c TagsClient) CreateOrUpdateValue(ctx context.Context, id TagValueId) (res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TagValue
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c CustomLocationsClient) Get(ctx context.Context, id CustomLocationId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomLocation
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c LogFilesClient) ListByServer(ctx context.Context, id ServerId) (result L
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LogFileListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

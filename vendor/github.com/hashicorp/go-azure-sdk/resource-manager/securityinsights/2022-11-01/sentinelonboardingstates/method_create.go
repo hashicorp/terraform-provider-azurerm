@@ -48,7 +48,10 @@ func (c SentinelOnboardingStatesClient) Create(ctx context.Context, id Onboardin
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SentinelOnboardingState
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

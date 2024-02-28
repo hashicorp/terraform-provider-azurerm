@@ -49,7 +49,10 @@ func (c ResourceGroupsClient) CreateOrUpdate(ctx context.Context, id commonids.R
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ResourceGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

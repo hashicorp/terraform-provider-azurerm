@@ -72,7 +72,10 @@ func (c ContainerAppsClient) ListCustomHostNameAnalysis(ctx context.Context, id 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomHostnameAnalysisResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

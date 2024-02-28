@@ -44,7 +44,10 @@ func (c WorkspacesClient) ListNotebookAccessToken(ctx context.Context, id Worksp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NotebookAccessTokenResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

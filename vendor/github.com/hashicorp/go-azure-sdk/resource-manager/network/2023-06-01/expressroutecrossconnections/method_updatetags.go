@@ -47,7 +47,10 @@ func (c ExpressRouteCrossConnectionsClient) UpdateTags(ctx context.Context, id E
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRouteCrossConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

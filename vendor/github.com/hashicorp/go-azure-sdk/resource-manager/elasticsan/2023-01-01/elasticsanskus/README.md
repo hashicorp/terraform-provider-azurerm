@@ -27,11 +27,12 @@ client.Client.Authorizer = authorizer
 ctx := context.TODO()
 id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-read, err := client.SkusList(ctx, id, elasticsanskus.DefaultSkusListOperationOptions())
+// alternatively `client.SkusList(ctx, id, elasticsanskus.DefaultSkusListOperationOptions())` can be used to do batched pagination
+items, err := client.SkusListComplete(ctx, id, elasticsanskus.DefaultSkusListOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```

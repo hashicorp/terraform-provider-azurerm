@@ -43,7 +43,10 @@ func (c AppPlatformClient) StoragesGet(ctx context.Context, id StorageId) (resul
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StorageResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

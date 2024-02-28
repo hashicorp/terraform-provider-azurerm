@@ -76,7 +76,10 @@ func (c OutputsClient) Update(ctx context.Context, id OutputId, input Output, op
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Output
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

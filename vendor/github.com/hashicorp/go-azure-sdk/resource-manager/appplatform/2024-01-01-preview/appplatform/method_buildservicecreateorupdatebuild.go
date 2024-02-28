@@ -48,7 +48,10 @@ func (c AppPlatformClient) BuildServiceCreateOrUpdateBuild(ctx context.Context, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Build
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

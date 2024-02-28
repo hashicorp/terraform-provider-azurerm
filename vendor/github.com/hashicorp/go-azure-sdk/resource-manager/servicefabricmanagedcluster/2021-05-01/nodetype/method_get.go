@@ -43,7 +43,10 @@ func (c NodeTypeClient) Get(ctx context.Context, id NodeTypeId) (result GetOpera
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NodeType
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

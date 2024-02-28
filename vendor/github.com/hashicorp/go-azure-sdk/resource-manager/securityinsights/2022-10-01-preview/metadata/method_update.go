@@ -47,7 +47,10 @@ func (c MetadataClient) Update(ctx context.Context, id MetadataId, input Metadat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MetadataModel
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c ProductGroupClient) CreateOrUpdate(ctx context.Context, id ProductGroupI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GroupContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

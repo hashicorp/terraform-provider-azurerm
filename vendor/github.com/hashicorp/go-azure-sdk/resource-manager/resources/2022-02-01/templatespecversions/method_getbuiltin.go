@@ -43,7 +43,10 @@ func (c TemplateSpecVersionsClient) GetBuiltIn(ctx context.Context, id VersionId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TemplateSpecVersion
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

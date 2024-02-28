@@ -43,7 +43,10 @@ func (c RoleDefinitionsClient) Get(ctx context.Context, id ScopedRoleDefinitionI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleDefinition
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

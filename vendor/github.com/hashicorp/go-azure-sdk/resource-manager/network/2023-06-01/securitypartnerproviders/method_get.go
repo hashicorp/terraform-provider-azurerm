@@ -43,7 +43,10 @@ func (c SecurityPartnerProvidersClient) Get(ctx context.Context, id SecurityPart
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SecurityPartnerProvider
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

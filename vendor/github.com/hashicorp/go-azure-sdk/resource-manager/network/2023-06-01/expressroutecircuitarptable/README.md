@@ -26,7 +26,12 @@ client.Client.Authorizer = authorizer
 ctx := context.TODO()
 id := expressroutecircuitarptable.NewArpTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCircuitValue", "peeringValue", "arpTableValue")
 
-if err := client.ExpressRouteCircuitsListArpTableThenPoll(ctx, id); err != nil {
+// alternatively `client.ExpressRouteCircuitsListArpTable(ctx, id)` can be used to do batched pagination
+items, err := client.ExpressRouteCircuitsListArpTableComplete(ctx, id)
+if err != nil {
 	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```

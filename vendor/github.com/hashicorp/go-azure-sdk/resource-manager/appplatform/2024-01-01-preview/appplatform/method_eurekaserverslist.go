@@ -16,7 +16,12 @@ import (
 type EurekaServersListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *EurekaServerResourceCollection
+	Model        *[]EurekaServerResource
+}
+
+type EurekaServersListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []EurekaServerResource
 }
 
 // EurekaServersList ...
@@ -36,7 +41,7 @@ func (c AppPlatformClient) EurekaServersList(ctx context.Context, id commonids.S
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -45,9 +50,43 @@ func (c AppPlatformClient) EurekaServersList(ctx context.Context, id commonids.S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]EurekaServerResource `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// EurekaServersListComplete retrieves all the results into a single object
+func (c AppPlatformClient) EurekaServersListComplete(ctx context.Context, id commonids.SpringCloudServiceId) (EurekaServersListCompleteResult, error) {
+	return c.EurekaServersListCompleteMatchingPredicate(ctx, id, EurekaServerResourceOperationPredicate{})
+}
+
+// EurekaServersListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c AppPlatformClient) EurekaServersListCompleteMatchingPredicate(ctx context.Context, id commonids.SpringCloudServiceId, predicate EurekaServerResourceOperationPredicate) (result EurekaServersListCompleteResult, err error) {
+	items := make([]EurekaServerResource, 0)
+
+	resp, err := c.EurekaServersList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = EurekaServersListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

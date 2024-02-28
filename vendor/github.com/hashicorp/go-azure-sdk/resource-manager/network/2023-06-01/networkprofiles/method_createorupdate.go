@@ -48,7 +48,10 @@ func (c NetworkProfilesClient) CreateOrUpdate(ctx context.Context, id NetworkPro
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkProfile
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -76,7 +76,10 @@ func (c BackendClient) Update(ctx context.Context, id BackendId, input BackendUp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BackendContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

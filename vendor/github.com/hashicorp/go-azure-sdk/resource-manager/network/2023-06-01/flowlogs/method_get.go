@@ -43,7 +43,10 @@ func (c FlowLogsClient) Get(ctx context.Context, id FlowLogId) (result GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FlowLog
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

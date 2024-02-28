@@ -47,7 +47,10 @@ func (c JobScheduleClient) Create(ctx context.Context, id JobScheduleId, input J
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model JobSchedule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

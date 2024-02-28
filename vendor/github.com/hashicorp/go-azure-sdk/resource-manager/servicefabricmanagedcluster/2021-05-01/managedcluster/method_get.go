@@ -43,7 +43,10 @@ func (c ManagedClusterClient) Get(ctx context.Context, id ManagedClusterId) (res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedCluster
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

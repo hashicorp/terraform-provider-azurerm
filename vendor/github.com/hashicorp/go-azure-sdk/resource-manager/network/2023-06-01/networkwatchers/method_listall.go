@@ -45,7 +45,10 @@ func (c NetworkWatchersClient) ListAll(ctx context.Context, id commonids.Subscri
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkWatcherListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

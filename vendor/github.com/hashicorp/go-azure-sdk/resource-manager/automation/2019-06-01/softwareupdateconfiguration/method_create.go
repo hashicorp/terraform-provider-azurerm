@@ -77,7 +77,10 @@ func (c SoftwareUpdateConfigurationClient) Create(ctx context.Context, id Softwa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SoftwareUpdateConfiguration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

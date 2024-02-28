@@ -72,7 +72,10 @@ func (c IPGroupsClient) Get(ctx context.Context, id IPGroupId, options GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IPGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

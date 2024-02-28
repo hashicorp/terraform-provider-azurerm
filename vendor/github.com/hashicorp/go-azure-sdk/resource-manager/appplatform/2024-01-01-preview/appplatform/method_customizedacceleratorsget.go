@@ -43,7 +43,10 @@ func (c AppPlatformClient) CustomizedAcceleratorsGet(ctx context.Context, id Cus
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomizedAcceleratorResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

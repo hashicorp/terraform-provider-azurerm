@@ -43,7 +43,10 @@ func (c WebAppsClient) GetConfigurationSnapshotSlot(ctx context.Context, id WebS
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteConfigResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c NginxDeploymentClient) DeploymentsGet(ctx context.Context, id NginxDeplo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NginxDeployment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

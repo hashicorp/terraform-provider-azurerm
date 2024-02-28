@@ -49,7 +49,10 @@ func (c NetworkManagerEffectiveConnectivityConfigurationClient) ListNetworkManag
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkManagerEffectiveConnectivityConfigurationListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

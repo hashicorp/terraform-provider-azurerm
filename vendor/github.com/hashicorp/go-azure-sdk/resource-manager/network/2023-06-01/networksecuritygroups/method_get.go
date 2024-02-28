@@ -72,7 +72,10 @@ func (c NetworkSecurityGroupsClient) Get(ctx context.Context, id NetworkSecurity
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkSecurityGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

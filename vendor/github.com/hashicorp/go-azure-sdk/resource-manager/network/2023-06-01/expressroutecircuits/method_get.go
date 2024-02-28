@@ -43,7 +43,10 @@ func (c ExpressRouteCircuitsClient) Get(ctx context.Context, id ExpressRouteCirc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRouteCircuit
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

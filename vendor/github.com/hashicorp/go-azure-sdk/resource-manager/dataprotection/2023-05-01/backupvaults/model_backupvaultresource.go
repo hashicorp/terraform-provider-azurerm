@@ -11,7 +11,7 @@ type BackupVaultResource struct {
 	ETag       *string                `json:"eTag,omitempty"`
 	Id         *string                `json:"id,omitempty"`
 	Identity   *DppIdentityDetails    `json:"identity,omitempty"`
-	Location   string                 `json:"location"`
+	Location   *string                `json:"location,omitempty"`
 	Name       *string                `json:"name,omitempty"`
 	Properties BackupVault            `json:"properties"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
