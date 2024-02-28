@@ -69,7 +69,7 @@ func (r *Client) JobClient(ctx context.Context, accountId batchaccount.BatchAcco
 
 	endpoint := ""
 	if account.Model != nil && account.Model.Properties != nil {
-		endpoint = fmt.Sprintf("https://%s", account.Model.Properties.AccountEndpoint)
+		endpoint = fmt.Sprintf("https://%s", *account.Model.Properties.AccountEndpoint)
 	}
 	if endpoint == "" {
 		return nil, fmt.Errorf("retrieving %s: `properties.AccountEndpoint` was empty", accountId)
