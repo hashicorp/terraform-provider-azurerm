@@ -31,10 +31,12 @@ type RoleDefinitionDataSourceModel struct {
 }
 
 type PermissionDataSourceModel struct {
-	Actions        []string `tfschema:"actions"`
-	NotActions     []string `tfschema:"not_actions"`
-	DataActions    []string `tfschema:"data_actions"`
-	NotDataActions []string `tfschema:"not_data_actions"`
+	Actions          []string `tfschema:"actions"`
+	NotActions       []string `tfschema:"not_actions"`
+	DataActions      []string `tfschema:"data_actions"`
+	NotDataActions   []string `tfschema:"not_data_actions"`
+	Condition        string   `tfschema:"condition"`
+	ConditionVersion string   `tfschema:"condition_version"`
 }
 
 func (a RoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -118,6 +120,16 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 							Type: pluginsdk.TypeString,
 						},
 						Set: pluginsdk.HashString,
+					},
+
+					"condition": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"condition_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
@@ -233,10 +245,12 @@ func flattenDataSourceRoleDefinitionPermissions(input *[]roledefinitions.Permiss
 	}
 	for _, permission := range *input {
 		permissions = append(permissions, PermissionDataSourceModel{
-			Actions:        pointer.From(permission.Actions),
-			DataActions:    pointer.From(permission.DataActions),
-			NotActions:     pointer.From(permission.NotActions),
-			NotDataActions: pointer.From(permission.NotDataActions),
+			Actions:          pointer.From(permission.Actions),
+			DataActions:      pointer.From(permission.DataActions),
+			NotActions:       pointer.From(permission.NotActions),
+			NotDataActions:   pointer.From(permission.NotDataActions),
+			Condition:        pointer.From(permission.Condition),
+			ConditionVersion: pointer.From(permission.ConditionVersion),
 		})
 	}
 	return permissions
