@@ -81,7 +81,8 @@ type LinuxFunctionAppModel struct {
 	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
 
-	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
+	SiteCredentials      []helpers.SiteCredential `tfschema:"site_credential"`
+	ManagedEnvironmentId string                   `tfschema:"managed_environment_id"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppResource{}
@@ -543,6 +544,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionApp.VirtualNetworkSubnetID)
 			}
 
+			if functionApp.ManagedEnvironmentId != "" {
+				siteEnvelope.Properties.ManagedEnvironmentId = pointer.To(functionApp.ManagedEnvironmentId)
+			}
+
 			if functionApp.ClientCertExclusionPaths != "" {
 				siteEnvelope.Properties.ClientCertExclusionPaths = pointer.To(functionApp.ClientCertExclusionPaths)
 			}
@@ -810,6 +815,8 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkSubnetID = subnetId
 					}
 
+					state.ManagedEnvironmentId = pointer.From(props.ManagedEnvironmentId)
+
 					// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 					if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
 						state.ZipDeployFile = deployFile
@@ -927,6 +934,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("managed_environment_id") {
+				model.Properties.ManagedEnvironmentId = pointer.To(state.ManagedEnvironmentId)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
