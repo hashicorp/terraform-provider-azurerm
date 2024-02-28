@@ -338,6 +338,7 @@ func TestAccKubernetesCluster_upgrade(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
 		{
@@ -345,6 +346,7 @@ func TestAccKubernetesCluster_upgrade(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(currentKubernetesVersion),
+				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
 	})

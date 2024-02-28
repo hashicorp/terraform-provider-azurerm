@@ -961,6 +961,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The Kubernetes Managed Cluster ID.
 
+* `current_kubernetes_version` - The current version running on the Azure Kubernetes Managed Cluster.
+
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
 * `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
