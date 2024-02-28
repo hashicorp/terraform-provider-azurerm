@@ -243,6 +243,8 @@ The following arguments are supported:
 
 * `storage_account_type` - (Optional) Specifies the storage account type used to store backups for this database. Changing this forces a new resource to be created. Possible values are `GRS`, `LRS` and `ZRS`. Defaults to `GRS`.
 
+* `zone_redundant_enabled` - (Optional) Specifies whether or not the SQL Managed Instance is zone redundant. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
