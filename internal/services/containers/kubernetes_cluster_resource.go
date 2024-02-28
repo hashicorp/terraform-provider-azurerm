@@ -978,6 +978,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"node_provisioning_mode": "",
+
 			"key_management_service": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
