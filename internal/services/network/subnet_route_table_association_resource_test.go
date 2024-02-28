@@ -103,7 +103,7 @@ func (SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *
 	virtualNetworkName := id.VirtualNetworkName
 	subnetName := id.SubnetName
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	resp, err := clients.Network.LegacySubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet Route Table Association (%s): %+v", id, err)
 	}

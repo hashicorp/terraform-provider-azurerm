@@ -100,7 +100,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	resp, err := clients.Network.LegacySubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
