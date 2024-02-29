@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = OutputId{}
+var _ resourceids.ResourceId = &OutputId{}
 
 // OutputId is a struct representing the Resource ID for a Output
 type OutputId struct {
@@ -32,7 +32,7 @@ func NewOutputID(subscriptionId string, resourceGroupName string, streamingJobNa
 
 // ParseOutputID parses 'input' into a OutputId
 func ParseOutputID(input string) (*OutputId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OutputId{})
+	parser := resourceids.NewParserFromResourceIdType(&OutputId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseOutputID(input string) (*OutputId, error) {
 // ParseOutputIDInsensitively parses 'input' case-insensitively into a OutputId
 // note: this method should only be used for API response data and not user input
 func ParseOutputIDInsensitively(input string) (*OutputId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OutputId{})
+	parser := resourceids.NewParserFromResourceIdType(&OutputId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

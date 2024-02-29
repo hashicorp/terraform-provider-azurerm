@@ -252,7 +252,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		vault.Sku.Tier = utils.String("Standard")
 	}
 
-	requireAddtionalUpdate := false
+	requireAdditionalUpdate := false
 	updatePatch := vaults.PatchVault{
 		Properties: &vaults.VaultProperties{},
 	}
@@ -263,10 +263,22 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		// Locked <- Unlocked <-> Disabled
 		if immutability == string(vaults.ImmutabilityStateLocked) {
 			updatePatch.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
-			requireAddtionalUpdate = true
+			requireAdditionalUpdate = true
 			immutability = string(vaults.ImmutabilityStateUnlocked)
 		}
 		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
+	}
+
+	// Async Operaation of creation with `UserAssigned` identity is returned with 404
+	// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/27869
+	// `SystemAssigned, UserAssigned` Identity require an additional update to work
+	// Trakced on https://github.com/Azure/azure-rest-api-specs/issues/27851
+	if expandedIdentity.Type == identity.TypeUserAssigned || expandedIdentity.Type == identity.TypeSystemAssignedUserAssigned {
+		requireAdditionalUpdate = true
+		updatePatch.Identity = expandedIdentity
+		vault.Identity = &identity.SystemAndUserAssignedMap{
+			Type: identity.TypeNone,
+		}
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, vault)
@@ -277,11 +289,15 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	// `encryption` needs to be set before `cross_region_restore_enabled` is set. Or the service will return an error. "If CRR is enabled for the Vault, the storage state will be locked and it will interfere with further operations"
 	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
 	if _, ok := d.GetOk("encryption"); ok {
-		requireAddtionalUpdate = true
-		updatePatch.Properties.Encryption = expandEncryption(d)
+		encryption, err := expandEncryption(d)
+		if err != nil {
+			return err
+		}
+		requireAdditionalUpdate = true
+		updatePatch.Properties.Encryption = encryption
 	}
 
-	if requireAddtionalUpdate {
+	if requireAdditionalUpdate {
 		err := client.UpdateThenPoll(ctx, id, updatePatch)
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
@@ -414,7 +430,10 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		VaultName:         id.VaultName,
 	}
 
-	encryption := expandEncryption(d)
+	encryption, err := expandEncryption(d)
+	if err != nil {
+		return err
+	}
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("checking for presence of existing Recovery Service %s: %+v", id.String(), err)
@@ -448,7 +467,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if model.Identity != nil && !validateIdentityUpdate(*existing.Model.Identity, *expandedIdentity) {
-		return fmt.Errorf("`Once `identity` sepcified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
+		return fmt.Errorf("`Once `identity` specified, the managed identity must not be disabled (even temporarily). Disabling the managed identity may lead to inconsistent behavior. Details could be found on https://learn.microsoft.com/en-us/azure/backup/encryption-at-rest-with-cmk?tabs=portal#enable-system-assigned-managed-identity-for-the-vault")
 	}
 
 	storageMode := d.Get("storage_mode_type").(string)
@@ -542,7 +561,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	requireAddtionalUpdate := false
+	requireAdditionalUpdate := false
 	additionalUpdatePatch := vaults.PatchVault{
 		Properties: &vaults.VaultProperties{},
 	}
@@ -579,7 +598,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		immutability := d.Get("immutability")
 		if currentImmutability != nil && string(*currentImmutability) == string(vaults.ImmutabilityStateDisabled) && immutability == string(vaults.ImmutabilityStateLocked) {
 			additionalUpdatePatch.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
-			requireAddtionalUpdate = true
+			requireAdditionalUpdate = true
 			immutability = string(vaults.ImmutabilityStateUnlocked)
 		}
 		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
@@ -590,7 +609,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("updating  %s: %+v", id, err)
 	}
 
-	if requireAddtionalUpdate {
+	if requireAdditionalUpdate {
 		err := client.UpdateThenPoll(ctx, id, additionalUpdatePatch)
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
@@ -800,14 +819,14 @@ func validateIdentityUpdate(origin identity.SystemAndUserAssignedMap, target ide
 	return true
 }
 
-func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncryption {
+func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncryption, error) {
 	encryptionRaw := d.Get("encryption")
 	if encryptionRaw == nil {
-		return nil
+		return nil, nil
 	}
 	settings := encryptionRaw.([]interface{})
 	if len(settings) == 0 {
-		return nil
+		return nil, nil
 	}
 	encryptionMap := settings[0].(map[string]interface{})
 	keyUri := encryptionMap["key_id"].(string)
@@ -826,9 +845,12 @@ func expandEncryption(d *pluginsdk.ResourceData) *vaults.VaultPropertiesEncrypti
 		InfrastructureEncryption: &infraEncryptionState,
 	}
 	if v, ok := encryptionMap["user_assigned_identity_id"].(string); ok && v != "" {
+		if *encryption.KekIdentity.UseSystemAssignedIdentity {
+			return nil, fmt.Errorf(" `use_system_assigned_identity` must be disabled when `user_assigned_identity_id` is set.")
+		}
 		encryption.KekIdentity.UserAssignedIdentity = utils.String(v)
 	}
-	return encryption
+	return encryption, nil
 }
 
 func flattenVaultEncryption(model vaults.Vault) interface{} {

@@ -43,7 +43,10 @@ func (c BastionHostsClient) Get(ctx context.Context, id BastionHostId) (result G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BastionHost
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

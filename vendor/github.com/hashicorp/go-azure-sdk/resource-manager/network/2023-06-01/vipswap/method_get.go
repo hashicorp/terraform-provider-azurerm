@@ -44,7 +44,10 @@ func (c VipSwapClient) Get(ctx context.Context, id CloudServiceId) (result GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SwapResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

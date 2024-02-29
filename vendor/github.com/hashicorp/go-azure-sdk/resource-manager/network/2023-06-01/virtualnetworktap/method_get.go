@@ -43,7 +43,10 @@ func (c VirtualNetworkTapClient) Get(ctx context.Context, id VirtualNetworkTapId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualNetworkTap
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

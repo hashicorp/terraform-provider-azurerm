@@ -43,7 +43,10 @@ func (c VirtualNetworkGatewaysClient) VirtualNetworkGatewayNatRulesGet(ctx conte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualNetworkGatewayNatRule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

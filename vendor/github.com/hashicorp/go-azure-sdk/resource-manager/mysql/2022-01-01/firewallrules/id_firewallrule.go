@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FirewallRuleId{}
+var _ resourceids.ResourceId = &FirewallRuleId{}
 
 // FirewallRuleId is a struct representing the Resource ID for a Firewall Rule
 type FirewallRuleId struct {
@@ -32,7 +32,7 @@ func NewFirewallRuleID(subscriptionId string, resourceGroupName string, flexible
 
 // ParseFirewallRuleID parses 'input' into a FirewallRuleId
 func ParseFirewallRuleID(input string) (*FirewallRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FirewallRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&FirewallRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseFirewallRuleID(input string) (*FirewallRuleId, error) {
 // ParseFirewallRuleIDInsensitively parses 'input' case-insensitively into a FirewallRuleId
 // note: this method should only be used for API response data and not user input
 func ParseFirewallRuleIDInsensitively(input string) (*FirewallRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FirewallRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&FirewallRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

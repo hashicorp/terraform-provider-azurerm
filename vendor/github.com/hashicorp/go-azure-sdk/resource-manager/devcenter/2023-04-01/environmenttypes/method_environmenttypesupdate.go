@@ -47,7 +47,10 @@ func (c EnvironmentTypesClient) EnvironmentTypesUpdate(ctx context.Context, id D
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EnvironmentType
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

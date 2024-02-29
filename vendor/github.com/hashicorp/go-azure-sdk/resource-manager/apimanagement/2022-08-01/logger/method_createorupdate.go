@@ -77,7 +77,10 @@ func (c LoggerClient) CreateOrUpdate(ctx context.Context, id LoggerId, input Log
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LoggerContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

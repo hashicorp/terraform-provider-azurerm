@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = DiskEncryptionSetId{}
+var _ resourceids.ResourceId = &DiskEncryptionSetId{}
 
 // DiskEncryptionSetId is a struct representing the Resource ID for a Disk Encryption Set
 type DiskEncryptionSetId struct {
@@ -30,7 +30,7 @@ func NewDiskEncryptionSetID(subscriptionId string, resourceGroupName string, dis
 
 // ParseDiskEncryptionSetID parses 'input' into a DiskEncryptionSetId
 func ParseDiskEncryptionSetID(input string) (*DiskEncryptionSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DiskEncryptionSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&DiskEncryptionSetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,14 +47,14 @@ func ParseDiskEncryptionSetID(input string) (*DiskEncryptionSetId, error) {
 // ParseDiskEncryptionSetIDInsensitively parses 'input' case-insensitively into a DiskEncryptionSetId
 // note: this method should only be used for API response data and not user input
 func ParseDiskEncryptionSetIDInsensitively(input string) (*DiskEncryptionSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DiskEncryptionSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&DiskEncryptionSetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := DiskEncryptionSetId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

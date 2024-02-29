@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -796,20 +796,17 @@ func testAccHDInsightHadoopCluster_securityProfile(t *testing.T) {
 }
 
 func (t HDInsightHadoopClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ClusterID(state.ID)
+	id, err := commonids.ParseHDInsightClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clients.HDInsight.ClustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.HDInsight.Clusters.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading HDInsight Hadoop Cluster (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving Hadoop %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r HDInsightHadoopClusterResource) basic(data acceptance.TestData) string {
@@ -1308,7 +1305,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       vm_size               = "%s"
       install_script_action {
         name = "script1"
-        uri  = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
+        uri  = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/8b3b3506159c370f032028664a84d604548b3e88/quickstarts/microsoft.hdinsight/hdinsight-linux-add-edge-node/scripts/EmptyNodeSetup.sh"
       }
     }
   }

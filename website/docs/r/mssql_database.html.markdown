@@ -220,7 +220,11 @@ The following arguments are supported:
 
 * `recover_database_id` - (Optional) The ID of the database to be recovered. This property is only applicable when the `create_mode` is `Recovery`.
 
+* `recovery_point_id` - (Optional) The ID of the Recovery Services Recovery Point Id to be restored. This property is only applicable when the `create_mode` is `Recovery`.
+
 * `restore_dropped_database_id` - (Optional) The ID of the database to be restored. This property is only applicable when the `create_mode` is `Restore`.
+
+* `restore_long_term_retention_backup_id` - (Optional) The ID of the long term retention backup to be restored. This property is only applicable when the `create_mode` is `RestoreLongTermRetentionBackup`.
 
 * `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.
 
@@ -284,6 +288,7 @@ A `long_term_retention_policy` block supports the following:
 * `monthly_retention` - (Optional) The monthly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 120 months. e.g. `P1Y`, `P1M`, `P4W` or `P30D`.
 * `yearly_retention` - (Optional) The yearly retention policy for an LTR backup in an ISO 8601 format. Valid value is between 1 to 10 years. e.g. `P1Y`, `P12M`, `P52W` or `P365D`.
 * `week_of_year` - (Optional) The week of year to take the yearly backup. Value has to be between `1` and `52`.
+* `immutable_backups_enabled` - (Optional) Specifies if the backups are immutable. Defaults to `false`.
 
 ---
 
@@ -314,7 +319,7 @@ A `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Database.
 
--> You can access the Principal ID via `azurerm_mssql_database.example.identity.0.principal_id` and the Tenant ID via `azurerm_mssql_database.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_mssql_database.example.identity[0].principal_id` and the Tenant ID via `azurerm_mssql_database.example.identity[0].tenant_id`
 
 ## Timeouts
 

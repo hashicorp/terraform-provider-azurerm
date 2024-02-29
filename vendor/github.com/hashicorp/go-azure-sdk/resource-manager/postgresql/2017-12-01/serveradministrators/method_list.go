@@ -44,7 +44,10 @@ func (c ServerAdministratorsClient) List(ctx context.Context, id ServerId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServerAdministratorResourceListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

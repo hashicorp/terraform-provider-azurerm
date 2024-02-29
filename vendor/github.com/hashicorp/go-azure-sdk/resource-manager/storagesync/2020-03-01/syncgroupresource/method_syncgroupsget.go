@@ -43,7 +43,10 @@ func (c SyncGroupResourceClient) SyncGroupsGet(ctx context.Context, id SyncGroup
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SyncGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

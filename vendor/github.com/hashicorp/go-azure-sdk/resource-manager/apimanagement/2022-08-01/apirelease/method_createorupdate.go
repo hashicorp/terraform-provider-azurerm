@@ -77,7 +77,10 @@ func (c ApiReleaseClient) CreateOrUpdate(ctx context.Context, id ReleaseId, inpu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiReleaseContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

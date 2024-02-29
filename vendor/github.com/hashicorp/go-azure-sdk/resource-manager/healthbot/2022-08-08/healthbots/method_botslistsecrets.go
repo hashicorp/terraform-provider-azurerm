@@ -44,7 +44,10 @@ func (c HealthbotsClient) BotsListSecrets(ctx context.Context, id HealthBotId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HealthBotKeysResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

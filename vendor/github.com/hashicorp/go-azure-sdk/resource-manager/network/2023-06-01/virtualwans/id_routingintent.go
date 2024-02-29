@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RoutingIntentId{}
+var _ resourceids.ResourceId = &RoutingIntentId{}
 
 // RoutingIntentId is a struct representing the Resource ID for a Routing Intent
 type RoutingIntentId struct {
@@ -32,7 +32,7 @@ func NewRoutingIntentID(subscriptionId string, resourceGroupName string, virtual
 
 // ParseRoutingIntentID parses 'input' into a RoutingIntentId
 func ParseRoutingIntentID(input string) (*RoutingIntentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RoutingIntentId{})
+	parser := resourceids.NewParserFromResourceIdType(&RoutingIntentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseRoutingIntentID(input string) (*RoutingIntentId, error) {
 // ParseRoutingIntentIDInsensitively parses 'input' case-insensitively into a RoutingIntentId
 // note: this method should only be used for API response data and not user input
 func ParseRoutingIntentIDInsensitively(input string) (*RoutingIntentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RoutingIntentId{})
+	parser := resourceids.NewParserFromResourceIdType(&RoutingIntentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

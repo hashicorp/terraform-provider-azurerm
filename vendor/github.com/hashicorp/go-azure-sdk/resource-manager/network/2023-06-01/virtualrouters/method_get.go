@@ -72,7 +72,10 @@ func (c VirtualRoutersClient) Get(ctx context.Context, id VirtualRouterId, optio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualRouter
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

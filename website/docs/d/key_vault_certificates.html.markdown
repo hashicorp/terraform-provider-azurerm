@@ -49,9 +49,13 @@ In addition to the arguments above, the following attributes are exported:
 
 A `certificates` block supports following:
 
-* `name` - The name of secret.
+* `name` - The name of certificate.
 
-* `enabled` - Whether this secret is enabled.
+* `enabled` - Whether this certificate is enabled.
+
+* `id` - The ID of this certificate.
+
+* `tags` - The tags of this certificate.
 
 ## Timeouts
 

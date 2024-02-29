@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = WorkerId{}
+var _ resourceids.ResourceId = &WorkerId{}
 
 // WorkerId is a struct representing the Resource ID for a Worker
 type WorkerId struct {
@@ -32,7 +32,7 @@ func NewWorkerID(subscriptionId string, resourceGroupName string, serverFarmName
 
 // ParseWorkerID parses 'input' into a WorkerId
 func ParseWorkerID(input string) (*WorkerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WorkerId{})
+	parser := resourceids.NewParserFromResourceIdType(&WorkerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseWorkerID(input string) (*WorkerId, error) {
 // ParseWorkerIDInsensitively parses 'input' case-insensitively into a WorkerId
 // note: this method should only be used for API response data and not user input
 func ParseWorkerIDInsensitively(input string) (*WorkerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WorkerId{})
+	parser := resourceids.NewParserFromResourceIdType(&WorkerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

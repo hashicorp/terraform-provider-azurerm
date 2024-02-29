@@ -9,11 +9,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	azautorest "github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -43,7 +45,17 @@ import (
 )
 
 var (
-	storageAccountResourceName = "azurerm_storage_account"
+	storageAccountResourceName  = "azurerm_storage_account"
+	storageKindsSupportsSkuTier = []storage.Kind{
+		storage.KindBlobStorage,
+		storage.KindStorageV2,
+		storage.KindFileStorage,
+	}
+	storageKindsSupportHns = []storage.Kind{
+		storage.KindBlobStorage,
+		storage.KindStorageV2,
+		storage.KindBlockBlobStorage,
+	}
 )
 
 type storageAccountServiceSupportLevel struct {
@@ -154,7 +166,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
+			// Only valid for FileStorage, BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
 			"access_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -852,6 +864,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"local_user_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"primary_location": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1246,6 +1264,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
 					}
 				}
+
+				if d.Get("access_tier") != "" {
+					if accountKind := d.Get("account_kind").(string); !slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
+						return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
+					}
+				}
+
 				return nil
 			}),
 			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1333,6 +1358,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowCrossTenantReplication:  &crossTenantReplication,
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 			IsSftpEnabled:                &isSftpEnabled,
+			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
 		},
 	}
 
@@ -1383,17 +1409,19 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
-	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorageV2) || accountKind == string(storage.KindFileStorage) {
-		accessTier, ok := d.GetOk("access_tier")
+	accessTier, ok := d.GetOk("access_tier")
+	if slices.Contains(storageKindsSupportsSkuTier, storage.Kind(accountKind)) {
 		if !ok {
 			// default to "Hot"
 			accessTier = string(storage.AccessTierHot)
 		}
-
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else if isHnsEnabled && accountKind != string(storage.KindBlockBlobStorage) {
-		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
+	} else if ok {
+		return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
+	}
+
+	if isHnsEnabled && !slices.Contains(storageKindsSupportHns, storage.Kind(accountKind)) {
+		return fmt.Errorf("`is_hns_enabled` can only be used with account of kinds: %v", storageKindsSupportHns)
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
@@ -1434,8 +1462,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if accountTier != string(storage.AccessTierPremium) && accountKind != string(storage.KindStorageV2) {
 			return fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
 		}
-		if storageAccountIdentity.Type != storage.IdentityTypeUserAssigned {
-			return fmt.Errorf("customer managed key can only be used with identity type `UserAssigned`")
+		if storageAccountIdentity.Type != storage.IdentityTypeUserAssigned && storageAccountIdentity.Type != storage.IdentityTypeSystemAssignedUserAssigned {
+			return fmt.Errorf("customer managed key can only be used with identity type `UserAssigned` or `SystemAssigned, UserAssigned`")
 		}
 		encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, v.([]interface{}))
 		if err != nil {
@@ -1532,9 +1560,20 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
-		if (blobProperties.IsVersioningEnabled != nil && !*blobProperties.IsVersioningEnabled) && (blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled) {
-			// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
-			return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
+		if blobProperties.IsVersioningEnabled != nil && !*blobProperties.IsVersioningEnabled {
+			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+				// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
+				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
+			}
+			if account.AccountProperties != nil &&
+				account.AccountProperties.ImmutableStorageWithVersioning != nil &&
+				account.AccountProperties.ImmutableStorageWithVersioning.ImmutabilityPolicy != nil &&
+				account.AccountProperties.ImmutableStorageWithVersioning.Enabled != nil &&
+				*account.AccountProperties.ImmutableStorageWithVersioning.Enabled {
+				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
+				// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
+				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
+			}
 		}
 
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
@@ -1654,10 +1693,54 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	allowSharedKeyAccess := true
-	if d.HasChange("shared_access_key_enabled") {
-		allowSharedKeyAccess = d.Get("shared_access_key_enabled").(bool)
+	existing, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	if err != nil {
+		return fmt.Errorf("reading for %s: %+v", id, err)
+	}
 
+	if existing.AccountProperties == nil {
+		return fmt.Errorf("unexpected nil AccountProperties of %s", id)
+	}
+
+	params := storage.AccountCreateParameters{
+		Sku:              existing.Sku,
+		Kind:             existing.Kind,
+		Location:         existing.Location,
+		ExtendedLocation: existing.ExtendedLocation,
+		Tags:             existing.Tags,
+		Identity:         existing.Identity,
+		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
+			AllowedCopyScope:                      existing.AccountProperties.AllowedCopyScope,
+			PublicNetworkAccess:                   existing.AccountProperties.PublicNetworkAccess,
+			SasPolicy:                             existing.AccountProperties.SasPolicy,
+			KeyPolicy:                             existing.AccountProperties.KeyPolicy,
+			CustomDomain:                          existing.AccountProperties.CustomDomain,
+			Encryption:                            existing.AccountProperties.Encryption,
+			NetworkRuleSet:                        existing.AccountProperties.NetworkRuleSet,
+			AccessTier:                            existing.AccountProperties.AccessTier,
+			AzureFilesIdentityBasedAuthentication: existing.AccountProperties.AzureFilesIdentityBasedAuthentication,
+			EnableHTTPSTrafficOnly:                existing.AccountProperties.EnableHTTPSTrafficOnly,
+			IsSftpEnabled:                         existing.AccountProperties.IsSftpEnabled,
+			IsLocalUserEnabled:                    existing.AccountProperties.IsLocalUserEnabled,
+			IsHnsEnabled:                          existing.AccountProperties.IsHnsEnabled,
+			LargeFileSharesState:                  existing.AccountProperties.LargeFileSharesState,
+			RoutingPreference:                     existing.AccountProperties.RoutingPreference,
+			AllowBlobPublicAccess:                 existing.AccountProperties.AllowBlobPublicAccess,
+			MinimumTLSVersion:                     existing.AccountProperties.MinimumTLSVersion,
+			AllowSharedKeyAccess:                  existing.AccountProperties.AllowSharedKeyAccess,
+			EnableNfsV3:                           existing.AccountProperties.EnableNfsV3,
+			AllowCrossTenantReplication:           existing.AccountProperties.AllowCrossTenantReplication,
+			DefaultToOAuthAuthentication:          existing.AccountProperties.DefaultToOAuthAuthentication,
+			ImmutableStorageWithVersioning:        existing.AccountProperties.ImmutableStorageWithVersioning,
+			DNSEndpointType:                       existing.AccountProperties.DNSEndpointType,
+		},
+	}
+
+	props := params.AccountPropertiesCreateParameters
+
+	if d.HasChange("shared_access_key_enabled") {
+		props.AllowSharedKeyAccess = pointer.To(d.Get("shared_access_key_enabled").(bool))
+	} else {
 		// If AllowSharedKeyAccess is nil that breaks the Portal UI as reported in https://github.com/hashicorp/terraform-provider-azurerm/issues/11689
 		// currently the Portal UI reports nil as false, and per the ARM API documentation nil is true. This manifests itself in the Portal UI
 		// when a storage account is created by terraform that the AllowSharedKeyAccess is Disabled when it is actually Enabled, thus confusing out customers
@@ -1666,160 +1749,66 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// account already exists. since I have also switched up the default behaviour for net new storage accounts to always set this value as true, this issue
 		// should automatically correct itself over time with these changes.
 		// TODO: Remove code when Portal UI team fixes their code
-	} else {
-		existing, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
-		if err == nil {
-			if sharedKeyAccess := existing.AccountProperties.AllowSharedKeyAccess; sharedKeyAccess != nil {
-				allowSharedKeyAccess = *sharedKeyAccess
-			}
-		} else {
-			// Should never hit this, but added due to an abundance of caution
-			return fmt.Errorf("retrieving the properties for %s: %+v", *id, err)
+		if sharedKeyAccess := props.AllowSharedKeyAccess; sharedKeyAccess == nil {
+			props.AllowSharedKeyAccess = pointer.To(true)
 		}
-	}
-	// TODO: end remove changes when Portal UI team fixed their code
-
-	opts := storage.AccountUpdateParameters{
-		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-			AllowSharedKeyAccess: &allowSharedKeyAccess,
-		},
 	}
 
 	if d.HasChange("default_to_oauth_authentication") {
-		defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
-		opts.AccountPropertiesUpdateParameters.DefaultToOAuthAuthentication = &defaultToOAuthAuthentication
+		props.DefaultToOAuthAuthentication = pointer.To(d.Get("default_to_oauth_authentication").(bool))
 	}
 
 	if d.HasChange("cross_tenant_replication_enabled") {
-		crossTenantReplication := d.Get("cross_tenant_replication_enabled").(bool)
-		opts.AccountPropertiesUpdateParameters.AllowCrossTenantReplication = &crossTenantReplication
-	}
-
-	if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-		return fmt.Errorf("updating AllowSharedKeyAccess for %s: %+v", *id, err)
+		props.AllowCrossTenantReplication = pointer.To(d.Get("cross_tenant_replication_enabled").(bool))
 	}
 
 	if d.HasChange("account_replication_type") {
-		sku := storage.Sku{
+		// storageType is derived from "account_replication_type" and "account_tier" (force-new)
+		params.Sku = &storage.Sku{
 			Name: storage.SkuName(storageType),
-		}
-
-		opts := storage.AccountUpdateParameters{
-			Sku: &sku,
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Sku for %s: %+v", *id, err)
 		}
 	}
 
 	if d.HasChange("account_kind") {
-		opts := storage.AccountUpdateParameters{
-			Kind: storage.Kind(accountKind),
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Account Kind for %s: %+v", *id, err)
-		}
+		params.Kind = storage.Kind(accountKind)
 	}
 
 	if d.HasChange("access_tier") {
-		accessTier := d.Get("access_tier").(string)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AccessTier: storage.AccessTier(accessTier),
-			},
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Access Tier for %s: %+v", *id, err)
-		}
+		props.AccessTier = storage.AccessTier(d.Get("access_tier").(string))
 	}
 
 	if d.HasChange("tags") {
-		t := d.Get("tags").(map[string]interface{})
-
-		opts := storage.AccountUpdateParameters{
-			Tags: tags.Expand(t),
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Tags for %s: %+v", *id, err)
-		}
+		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if d.HasChange("custom_domain") {
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				CustomDomain: expandStorageAccountCustomDomain(d),
-			},
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Custom Domain for %s: %+v", *id, err)
-		}
+		props.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
 
-	// Updating `identity` should occur before updating `customer_managed_key`, as the latter depends on an identity.
 	if d.HasChange("identity") {
-		storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
+		params.Identity, err = expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
 		if err != nil {
 			return err
-		}
-		opts := storage.AccountUpdateParameters{
-			Identity: storageAccountIdentity,
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Identity for %s: %+v", *id, err)
 		}
 	}
 
 	if d.HasChange("customer_managed_key") {
-		cmk := d.Get("customer_managed_key").([]interface{})
-		encryption, err := expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.StorageAccountName, cmk)
+		props.Encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.StorageAccountName, d.Get("customer_managed_key").([]interface{}))
 		if err != nil {
 			return err
 		}
+	}
 
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: encryption,
-			},
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
-		}
+	if d.HasChange("local_user_enabled") {
+		props.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
 	}
 
 	if d.HasChange("sftp_enabled") {
-		sftpEnabled := d.Get("sftp_enabled").(bool)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				IsSftpEnabled: &sftpEnabled,
-			},
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `sftp_enabled` for %s: %+v", *id, err)
-		}
+		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
 	}
 
 	if d.HasChange("enable_https_traffic_only") {
-		enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			},
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `enable_https_traffic_only` for %q: %+v", *id, err)
-		}
+		props.EnableHTTPSTrafficOnly = pointer.To(d.Get("enable_https_traffic_only").(bool))
 	}
 
 	if d.HasChange("min_tls_version") {
@@ -1834,15 +1823,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
 		} else {
-			opts := storage.AccountUpdateParameters{
-				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-					MinimumTLSVersion: storage.MinimumTLSVersion(minimumTLSVersion),
-				},
-			}
-
-			if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-				return fmt.Errorf("updating `min_tls_version` for %s: %+v", *id, err)
-			}
+			props.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
 		}
 	}
 
@@ -1858,15 +1839,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("allow_nested_items_to_be_public is not supported for a Storage Account located in %q", envName)
 			}
 		} else {
-			opts := storage.AccountUpdateParameters{
-				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-					AllowBlobPublicAccess: &allowBlobPublicAccess,
-				},
-			}
-
-			if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-				return fmt.Errorf("updating `allow_blob_public_access` for %s: %+v", *id, err)
-			}
+			props.AllowBlobPublicAccess = pointer.To(allowBlobPublicAccess)
 		}
 	}
 
@@ -1875,27 +1848,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if d.Get("public_network_access_enabled").(bool) {
 			publicNetworkAccess = storage.PublicNetworkAccessEnabled
 		}
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				PublicNetworkAccess: publicNetworkAccess,
-			},
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `public_network_access_enabled` for %s: %+v", *id, err)
-		}
+		props.PublicNetworkAccess = publicNetworkAccess
 	}
 
 	if d.HasChange("network_rules") {
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				NetworkRuleSet: expandStorageAccountNetworkRules(d, tenantId),
-			},
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `network_rules` for %s: %+v", *id, err)
-		}
+		props.NetworkRuleSet = expandStorageAccountNetworkRules(d, tenantId)
 	}
 
 	if d.HasChange("large_file_share_enabled") {
@@ -1903,27 +1860,31 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if v := d.Get("large_file_share_enabled").(bool); v {
 			isEnabled = storage.LargeFileSharesStateEnabled
 		}
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				LargeFileSharesState: isEnabled,
-			},
-		}
-
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `network_rules` for %s: %+v", *id, err)
-		}
+		props.LargeFileSharesState = isEnabled
 	}
 
 	if d.HasChange("routing") {
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				RoutingPreference: expandArmStorageAccountRouting(d.Get("routing").([]interface{})),
-			},
-		}
+		props.RoutingPreference = expandArmStorageAccountRouting(d.Get("routing").([]interface{}))
+	}
 
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `routing` for %s: %+v", *id, err)
-		}
+	if d.HasChange("sas_policy") {
+		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
+		props.SasPolicy = expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{}))
+	}
+
+	if d.HasChange("allowed_copy_scope") {
+		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `allowed_copy_scope` can not be disabled once enabled.
+		props.AllowedCopyScope = storage.AllowedCopyScope(d.Get("allowed_copy_scope").(string))
+	}
+
+	// Update (via PUT) for the above changes
+	future, err := client.Create(ctx, id.ResourceGroupName, id.StorageAccountName, params)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	// azure_files_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
@@ -1959,30 +1920,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("sas_policy") {
-		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				SasPolicy: expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
-			},
-		}
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `sas_policy` for %s: %+v", *id, err)
-		}
-	}
-
-	if d.HasChange("allowed_copy_scope") {
-		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `allowed_copy_scope` can not be disabled once enabled.
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AllowedCopyScope: storage.AllowedCopyScope(d.Get("allowed_copy_scope").(string)),
-			},
-		}
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
-			return fmt.Errorf("updating `allowed_copy_scope` for %s: %+v", *id, err)
-		}
-	}
-
+	// Followings are updates to the sub-services
 	supportLevel := resolveStorageAccountServiceSupportLevel(storage.Kind(accountKind), storage.SkuTier(accountTier))
 
 	if d.HasChange("blob_properties") {
@@ -2259,6 +2197,13 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if props.LargeFileSharesState != "" {
 			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
 		}
+
+		// local_user_enabled defaults to true at service side when not specified in the API request.
+		isLocalEnabled := true
+		if props.IsLocalUserEnabled != nil {
+			isLocalEnabled = *props.IsLocalUserEnabled
+		}
+		d.Set("local_user_enabled", isLocalEnabled)
 
 		allowSharedKeyAccess := true
 		if props.AllowSharedKeyAccess != nil {
@@ -3847,6 +3792,22 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 		if err := setEndpointAndHost(d, "primary", primary.InternetEndpoints.Web, "web_internet"); err != nil {
 			return err
 		}
+	} else {
+		if err := setEndpointAndHost(d, "primary", nil, "blob_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "dfs_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "file_internet"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "web_internet"); err != nil {
+			return err
+		}
 	}
 
 	if routingInputs != nil && routingInputs.PublishMicrosoftEndpoints != nil && *routingInputs.PublishMicrosoftEndpoints {
@@ -3871,6 +3832,30 @@ func flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d *pluginsdk.ResourceDat
 		}
 
 		if err := setEndpointAndHost(d, "primary", primary.MicrosoftEndpoints.Queue, "queue_microsoft"); err != nil {
+			return err
+		}
+	} else {
+		if err := setEndpointAndHost(d, "primary", nil, "blob_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "dfs_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "file_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "web_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "table_microsoft"); err != nil {
+			return err
+		}
+
+		if err := setEndpointAndHost(d, "primary", nil, "queue_microsoft"); err != nil {
 			return err
 		}
 	}

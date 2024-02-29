@@ -47,7 +47,10 @@ func (c ResourceGuardsClient) Patch(ctx context.Context, id ResourceGuardId, inp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ResourceGuardResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

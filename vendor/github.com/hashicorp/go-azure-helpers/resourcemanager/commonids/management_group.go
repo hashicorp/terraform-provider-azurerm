@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ManagementGroupId{}
+var _ resourceids.ResourceId = &ManagementGroupId{}
 
 // ManagementGroupId is a struct representing the Resource ID for a Management Group
 type ManagementGroupId struct {
@@ -26,7 +26,7 @@ func NewManagementGroupID(groupId string) ManagementGroupId {
 
 // ParseManagementGroupID parses 'input' into a ManagementGroupId
 func ParseManagementGroupID(input string) (*ManagementGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagementGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagementGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -43,14 +43,14 @@ func ParseManagementGroupID(input string) (*ManagementGroupId, error) {
 // ParseManagementGroupIDInsensitively parses 'input' case-insensitively into a ManagementGroupId
 // note: this method should only be used for API response data and not user input
 func ParseManagementGroupIDInsensitively(input string) (*ManagementGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ManagementGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ManagementGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := ManagementGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

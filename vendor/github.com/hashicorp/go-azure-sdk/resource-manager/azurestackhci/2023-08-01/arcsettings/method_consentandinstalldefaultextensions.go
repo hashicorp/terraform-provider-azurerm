@@ -44,7 +44,10 @@ func (c ArcSettingsClient) ConsentAndInstallDefaultExtensions(ctx context.Contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ArcSetting
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

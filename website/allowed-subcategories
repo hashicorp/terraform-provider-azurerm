@@ -20,6 +20,7 @@ Billing
 Blueprints
 Bot
 CDN
+Chaos Studio
 Cognitive Services
 Communication
 Compute
@@ -89,6 +90,7 @@ Private DNS
 Private DNS Resolver
 Purview
 Recovery Services
+Red Hat OpenShift
 Redis
 Redis Enterprise
 Search
@@ -102,6 +104,7 @@ Storage
 Storage Mover
 Stream Analytics
 Synapse
+System Center Virtual Machine Manager
 Template
 Time Series Insights
 VMware (AVS)

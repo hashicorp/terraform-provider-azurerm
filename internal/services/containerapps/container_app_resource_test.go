@@ -49,6 +49,22 @@ func TestAccContainerAppResource_workloadProfile(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
+func TestAccContainerAppResource_smallerGranularityCPUMemoryCombinations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withSmallerGranularityCPUMemoryCombinations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppResource_workloadProfileUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -374,6 +390,21 @@ func TestAccContainerAppResource_scaleRules(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.scaleRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_multipleScaleRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleScaleRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -806,6 +837,57 @@ resource "azurerm_container_app" "test" {
       image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
       cpu    = 0.25
       memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    target_port                = 5000
+    transport                  = "http"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  tags = {
+    foo     = "Bar"
+    accTest = "1"
+  }
+}
+`, r.templateWorkloadProfile(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) withSmallerGranularityCPUMemoryCombinations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
+}
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  workload_profile_name = local.workload_profiles.0.name
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.1
+      memory = "0.4Gi"
+    }
+
+    init_container {
+      name   = "init-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.1
+      memory = "0.2Gi"
     }
   }
 
@@ -1692,6 +1774,70 @@ resource "azurerm_container_app" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppResource) multipleScaleRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  secret {
+    name  = "queue-auth-secret"
+    value = "VGhpcyBJcyBOb3QgQSBHb29kIFBhc3N3b3JkCg=="
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+
+    azure_queue_scale_rule {
+      name         = "azq-1"
+      queue_name   = "foo"
+      queue_length = 10
+
+      authentication {
+        secret_name       = "queue-auth-secret"
+        trigger_parameter = "password"
+      }
+    }
+
+    custom_scale_rule {
+      name             = "csr-1"
+      custom_rule_type = "azure-monitor"
+      metadata = {
+        foo = "bar"
+      }
+    }
+
+    custom_scale_rule {
+      name             = "csr-2"
+      custom_rule_type = "azure-monitor"
+      metadata = {
+        foo = "bar2"
+      }
+    }
+
+    http_scale_rule {
+      name                = "http-1"
+      concurrent_requests = "100"
+    }
+
+    tcp_scale_rule {
+      name                = "tcp-1"
+      concurrent_requests = "1000"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppResource) ingressSecurityRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -2061,29 +2207,29 @@ resource "azurerm_container_app" "test" {
 
 func (r ContainerAppResource) trafficBlockMoreThanOne() string {
 	return `
-    traffic_weight {
-      percentage      = 50
-    }
-    traffic_weight {
-      percentage      = 50
-    }
+traffic_weight {
+  percentage = 50
+}
+traffic_weight {
+  percentage = 50
+}
 `
 }
 
 func (r ContainerAppResource) trafficBlockLatestRevisionNotSet() string {
 	return `
-    traffic_weight {
-      percentage      = 100
-    }
+traffic_weight {
+  percentage = 100
+}
 `
 }
 
 func (r ContainerAppResource) trafficBlockRevisionSuffixSet() string {
 	return `
-    traffic_weight {
-      percentage      = 100
-	  latest_revision = true
-	  revision_suffix = "foo"
-    }
+traffic_weight {
+  percentage      = 100
+  latest_revision = true
+  revision_suffix = "foo"
+}
 `
 }

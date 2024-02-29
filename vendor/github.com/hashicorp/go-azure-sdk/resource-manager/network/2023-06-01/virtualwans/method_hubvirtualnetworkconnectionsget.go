@@ -43,7 +43,10 @@ func (c VirtualWANsClient) HubVirtualNetworkConnectionsGet(ctx context.Context, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HubVirtualNetworkConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

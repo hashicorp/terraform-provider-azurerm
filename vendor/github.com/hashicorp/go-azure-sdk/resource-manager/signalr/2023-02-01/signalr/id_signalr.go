@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SignalRId{}
+var _ resourceids.ResourceId = &SignalRId{}
 
 // SignalRId is a struct representing the Resource ID for a Signal R
 type SignalRId struct {
@@ -30,7 +30,7 @@ func NewSignalRID(subscriptionId string, resourceGroupName string, signalRName s
 
 // ParseSignalRID parses 'input' into a SignalRId
 func ParseSignalRID(input string) (*SignalRId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SignalRId{})
+	parser := resourceids.NewParserFromResourceIdType(&SignalRId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseSignalRID(input string) (*SignalRId, error) {
 // ParseSignalRIDInsensitively parses 'input' case-insensitively into a SignalRId
 // note: this method should only be used for API response data and not user input
 func ParseSignalRIDInsensitively(input string) (*SignalRId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SignalRId{})
+	parser := resourceids.NewParserFromResourceIdType(&SignalRId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ArpTableId{}
+var _ resourceids.ResourceId = &ArpTableId{}
 
 // ArpTableId is a struct representing the Resource ID for a Arp Table
 type ArpTableId struct {
@@ -34,7 +34,7 @@ func NewArpTableID(subscriptionId string, resourceGroupName string, expressRoute
 
 // ParseArpTableID parses 'input' into a ArpTableId
 func ParseArpTableID(input string) (*ArpTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ArpTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&ArpTableId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseArpTableID(input string) (*ArpTableId, error) {
 // ParseArpTableIDInsensitively parses 'input' case-insensitively into a ArpTableId
 // note: this method should only be used for API response data and not user input
 func ParseArpTableIDInsensitively(input string) (*ArpTableId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ArpTableId{})
+	parser := resourceids.NewParserFromResourceIdType(&ArpTableId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

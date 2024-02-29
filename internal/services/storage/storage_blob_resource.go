@@ -262,18 +262,6 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
-	if d.HasChange("access_tier") {
-		// this is only applicable for Gen2/BlobStorage accounts
-		log.Printf("[DEBUG] Updating Access Tier for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
-		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
-
-		if _, err := blobsClient.SetTier(ctx, id.AccountName, id.ContainerName, id.BlobName, accessTier); err != nil {
-			return fmt.Errorf("updating Access Tier for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
-		}
-
-		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
-	}
-
 	if d.HasChange("content_type") || d.HasChange("cache_control") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
 		input := blobs.SetPropertiesInput{
@@ -307,6 +295,18 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("updating MetaData for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 		}
 		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	}
+
+	if d.HasChange("access_tier") {
+		// this is only applicable for Gen2/BlobStorage accounts
+		log.Printf("[DEBUG] Updating Access Tier for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
+
+		if _, err := blobsClient.SetTier(ctx, id.AccountName, id.ContainerName, id.BlobName, accessTier); err != nil {
+			return fmt.Errorf("updating Access Tier for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
 	return resourceStorageBlobRead(d, meta)

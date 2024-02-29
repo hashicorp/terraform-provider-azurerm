@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-04-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -53,6 +53,7 @@ type DeploymentModel struct {
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
+	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
@@ -76,6 +77,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			// docs: <https://docs.nginx.com/nginx-for-azure/billing/overview/>
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
 				[]string{
 					"publicpreview_Monthly_gmz7xq9ge3py",
@@ -193,6 +195,17 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"automatic_upgrade_channel": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "stable",
+			ValidateFunc: validation.StringInSlice(
+				[]string{
+					"stable",
+					"preview",
+				}, false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -308,6 +321,12 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if model.UpgradeChannel != "" {
+				prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+					UpgradeChannel: model.UpgradeChannel,
+				}
+			}
+
 			req.Properties = prop
 
 			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
@@ -411,6 +430,10 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
 					}
 
+					if props.AutoUpgradeProfile != nil {
+						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
+					}
+
 					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %v", err)
@@ -477,6 +500,12 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("email") {
 				req.Properties.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
 					PreferredEmail: pointer.FromString(model.Email),
+				}
+			}
+
+			if meta.ResourceData.HasChange("automatic_upgrade_channel") {
+				req.Properties.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+					UpgradeChannel: model.UpgradeChannel,
 				}
 			}
 

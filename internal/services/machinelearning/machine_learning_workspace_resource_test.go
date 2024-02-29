@@ -262,6 +262,78 @@ func TestAccMachineLearningWorkspace_systemAssignedAndCustomManagedKey(t *testin
 	})
 }
 
+func TestAccMachineLearningWorkspace_featureStore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.featureStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMachineLearningWorkspace_featureStoreUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.featureStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.featureStoreUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMachineLearningWorkspace_kindUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.featureStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.featureStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	workspacesClient := client.MachineLearning.Workspaces
 	id, err := workspaces.ParseWorkspaceID(state.ID)
@@ -335,7 +407,7 @@ resource "azurerm_container_registry" "test" {
   name                = "acctestacr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku                 = "Premium"
   admin_enabled       = true
 }
 
@@ -382,6 +454,10 @@ resource "azurerm_machine_learning_workspace" "test" {
     key_id       = azurerm_key_vault_key.test.id
   }
 
+  managed_network {
+    isolation_mode = "AllowInternetOutbound"
+  }
+
   tags = {
     ENV = "Test"
   }
@@ -398,7 +474,7 @@ resource "azurerm_container_registry" "test" {
   name                = "acctestacr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku                 = "Premium"
   admin_enabled       = true
 }
 
@@ -850,4 +926,60 @@ resource "azurerm_machine_learning_workspace" "test" {
   ]
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r WorkspaceResource) featureStore(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  kind = "FeatureStore"
+
+  feature_store {
+    computer_spark_runtime_version = "3.1"
+    offline_connection_name        = "offlineStoreConnectionName"
+    online_connection_name         = "onlineStoreConnectionName"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r WorkspaceResource) featureStoreUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  kind = "FeatureStore"
+
+  feature_store {
+    computer_spark_runtime_version = "3.5"
+    offline_connection_name        = "offlineStoreConnectionNameUpdate"
+    online_connection_name         = "onlineStoreConnectionNameUpdate"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
 }

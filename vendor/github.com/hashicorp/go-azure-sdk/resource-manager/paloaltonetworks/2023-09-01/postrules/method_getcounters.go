@@ -72,7 +72,10 @@ func (c PostRulesClient) GetCounters(ctx context.Context, id PostRuleId, options
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RuleCounter
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -72,7 +72,10 @@ func (c NetworkProfilesClient) Get(ctx context.Context, id NetworkProfileId, opt
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkProfile
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

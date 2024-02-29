@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ExpressRouteCircuitPeeringId{}
+var _ resourceids.ResourceId = &ExpressRouteCircuitPeeringId{}
 
 // ExpressRouteCircuitPeeringId is a struct representing the Resource ID for a Express Route Circuit Peering
 type ExpressRouteCircuitPeeringId struct {
@@ -32,7 +32,7 @@ func NewExpressRouteCircuitPeeringID(subscriptionId string, resourceGroupName st
 
 // ParseExpressRouteCircuitPeeringID parses 'input' into a ExpressRouteCircuitPeeringId
 func ParseExpressRouteCircuitPeeringID(input string) (*ExpressRouteCircuitPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRouteCircuitPeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRouteCircuitPeeringId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseExpressRouteCircuitPeeringID(input string) (*ExpressRouteCircuitPeerin
 // ParseExpressRouteCircuitPeeringIDInsensitively parses 'input' case-insensitively into a ExpressRouteCircuitPeeringId
 // note: this method should only be used for API response data and not user input
 func ParseExpressRouteCircuitPeeringIDInsensitively(input string) (*ExpressRouteCircuitPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ExpressRouteCircuitPeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&ExpressRouteCircuitPeeringId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := ExpressRouteCircuitPeeringId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

@@ -43,7 +43,10 @@ func (c PacketCapturesClient) Get(ctx context.Context, id PacketCaptureId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PacketCaptureResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

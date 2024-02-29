@@ -48,7 +48,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 }
 
 output "client_certificate" {
-  value     = azurerm_kubernetes_cluster.example.kube_config.0.client_certificate
+  value     = azurerm_kubernetes_cluster.example.kube_config[0].client_certificate
   sensitive = true
 }
 
@@ -95,8 +95,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `azure_active_directory_role_based_access_control` - (Optional) A `azure_active_directory_role_based_access_control` block as defined below.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/AKS-PrometheusAddonPreview` is enabled, see [the documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/prometheus-metrics-enable?tabs=azure-portal) for more information.
-
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
 * `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
@@ -122,8 +120,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `image_cleaner_enabled` - (Optional) Specifies whether Image Cleaner is enabled.
 
 * `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up. Defaults to `48`.
-
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableImageCleanerPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/image-cleaner) for more information.
 
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
@@ -154,6 +150,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
 
 * `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
+  
+-> **Note:** If deploying Managed Prometheus, the `monitor_metrics` properties are required to configure the cluster for metrics collection. If no value is needed, set properties to `null`.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
 
@@ -372,6 +370,8 @@ An `monitor_metrics` block supports the following:
 
 * `labels_allowed` - (Optional) Specifies a Comma-separated list of additional Kubernetes label keys that will be used in the resource's labels metric.
 
+-> **Note:** Both properties `annotations_allowed` and `labels_allowed` are required if you are enabling Managed Prometheus with an existing Azure Monitor Workspace. 
+  
 ---
 
 A `default_node_pool` block supports the following:
@@ -396,7 +396,7 @@ A `default_node_pool` block supports the following:
 
 * `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? `temporary_name_for_rotation` must be specified when changing this property.
 
--> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/EnableEncryptionAtHostPreview` is enabled and the Resource Provider is re-registered.
+-> **Note:** This requires that the  Feature `Microsoft.ContainerService/EnableEncryptionAtHost` is enabled and the Resource Provider is registered. 
 
 * `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? `temporary_name_for_rotation` must be specified when changing this property.
 
@@ -432,7 +432,7 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `CBLMariner`, `Mariner`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
@@ -494,7 +494,7 @@ An `identity` block supports the following:
 
 A `key_management_service` block supports the following:
 
-* `key_vault_key_id` - (Required) Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details. When Azure Key Vault key management service is enabled, this field is required and must be a valid key identifier. When `enabled` is `false`, leave the field empty.
+* `key_vault_key_id` - (Required) Identifier of Azure Key Vault key. See [key identifier format](https://learn.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates#vault-name-and-object-name) for more details.
 
 * `key_vault_network_access` - (Optional) Network access of the key vault Network access of key vault. The possible values are `Public` and `Private`. `Public` means the key vault allows public access from all networks. `Private` means the key vault disables public access and enables private link. Defaults to `Public`.
 
@@ -560,9 +560,23 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
+* `allowed_host_ports` - (Optional)  One or more `allowed_host_ports` blocks as defined below.
+
+* `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
+
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
 -> **Note:** This requires that the Preview Feature `Microsoft.ContainerService/NodePublicIPTagsPreview` is enabled and the Resource Provider is re-registered, see [the documentation](https://learn.microsoft.com/en-us/azure/aks/use-node-public-ips#use-public-ip-tags-on-node-public-ips-preview) for more information.
+
+---
+
+An `allowed_host_ports` block supports the following:
+
+* `port_start` - (Optional) Specifies the start of the port range.
+
+* `port_end` - (Optional) Specifies the end of the port range.
+
+* `protocol` - (Optional) Specifies the protocol of the port range. Possible values are `TCP` and `UDP`.
 
 ---
 
@@ -689,7 +703,7 @@ A `network_profile` block supports the following:
 
 ~> **Note:** When `network_plugin_mode` is set to `overlay`, the `network_plugin` field can only be set to `azure`. When upgrading from Azure CNI without overlay, `pod_subnet_id` must be specified.
 
-* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. Changing this forces a new resource to be created.
+* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. More information on supported migration paths for `outbound_type` can be found in [this documentation](https://learn.microsoft.com/azure/aks/egress-outboundtype#updating-outboundtype-after-cluster-creation).
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
@@ -927,7 +941,7 @@ A `http_proxy_config` block supports the following:
 
 * `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 
--> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
+-> **Note:** If you specify the `default_node_pool[0].vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
 
 -> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
 
@@ -946,6 +960,8 @@ A `upgrade_settings` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Kubernetes Managed Cluster ID.
+
+* `current_kubernetes_version` - The current version running on the Azure Kubernetes Managed Cluster.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
@@ -995,6 +1011,16 @@ The `connector_identity` block exports the following:
 
 ---
 
+The `kubelet_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity to be assigned to the Kubelets.
+
+* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
+
+---
+
 A `load_balancer_profile` block exports the following:
 
 * `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
@@ -1039,12 +1065,12 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 ```hcl
 provider "kubernetes" {
-  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
-  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
-  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
-  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
-  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+  host                   = azurerm_kubernetes_cluster.main.kube_config[0].host
+  username               = azurerm_kubernetes_cluster.main.kube_config[0].username
+  password               = azurerm_kubernetes_cluster.main.kube_config[0].password
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config[0].client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config[0].client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config[0].cluster_ca_certificate)
 }
 ```
 

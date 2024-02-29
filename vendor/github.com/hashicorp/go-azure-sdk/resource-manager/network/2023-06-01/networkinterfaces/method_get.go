@@ -73,7 +73,10 @@ func (c NetworkInterfacesClient) Get(ctx context.Context, id commonids.NetworkIn
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkInterface
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

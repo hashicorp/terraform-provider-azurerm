@@ -906,7 +906,7 @@ The casing on the values for the `storage_permissions` field have been updated t
 
 ### Resource: `azurerm_key_vault_certificate`
 
-The field `x509_certificate_properties.0.key_usage`  will be moved from a List to a Set, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
+The field `x509_certificate_properties[0].key_usage`  will be moved from a List to a Set, meaning that the order of these items no longer matters. Note that if you're referencing these nested items within your Terraform Configuration, then this may require some code changes.
 
 ### Resource: `azurerm_key_vault_key`
 

@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
@@ -489,6 +489,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.Any(
 								dnsValidate.ValidateDnsZoneID,
+								privatezones.ValidatePrivateDnsZoneID,
 								validation.StringIsEmpty,
 							),
 						},
@@ -1135,7 +1136,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"outbound_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							Default:  string(managedclusters.OutboundTypeLoadBalancer),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.OutboundTypeLoadBalancer),
@@ -1267,6 +1267,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+
+			"current_kubernetes_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"node_resource_group_id": {
@@ -1838,13 +1843,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
@@ -1935,12 +1936,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Secret:   utils.String(clientSecret),
 		}
 
-		future, err := clusterClient.ResetServicePrincipalProfile(ctx, *id, params)
+		err = clusterClient.ResetServicePrincipalProfileThenPoll(ctx, *id, params)
 		if err != nil {
 			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
-		}
-		if err = future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for update of Service Principal for %s: %+v", *id, err)
 		}
 		log.Printf("[DEBUG] Updated the Service Principal for %s.", *id)
 
@@ -1984,13 +1982,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.AadProfile = azureADProfile
 		if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
 			log.Printf("[DEBUG] Updating the RBAC AAD profile")
-			future, err := clusterClient.ResetAADProfile(ctx, *id, *props.AadProfile)
+			err = clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile)
 			if err != nil {
 				return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
-			}
-
-			if err = future.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for update of RBAC AAD profile of %s: %+v", *id, err)
 			}
 		}
 
@@ -2169,6 +2163,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			ebpfDataPlane := d.Get(key).(string)
 			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
 		}
+
+		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
+			existing.Model.Properties.NetworkProfile.OutboundType = pointer.To(managedclusters.OutboundType(d.Get(key).(string)))
+		}
 	}
 	if d.HasChange("service_mesh_profile") {
 		updateCluster = true
@@ -2345,14 +2343,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		log.Printf("[DEBUG] Updating %s..", *id)
-		future, err := clusterClient.CreateOrUpdate(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 
-		if err = future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
-		}
 		log.Printf("[DEBUG] Updated %s..", *id)
 	}
 
@@ -2370,13 +2365,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
 		existing.Model.Properties.KubernetesVersion = utils.String(kubernetesVersion)
 
-		future, err := clusterClient.CreateOrUpdate(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 		if err != nil {
 			return fmt.Errorf("updating Kubernetes Version for %s: %+v", *id, err)
-		}
-
-		if err = future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 		}
 
 		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
@@ -2620,6 +2611,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("portal_fqdn", props.AzurePortalFQDN)
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("kubernetes_version", props.KubernetesVersion)
+			d.Set("current_kubernetes_version", props.CurrentKubernetesVersion)
 			d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 			d.Set("local_account_disabled", props.DisableLocalAccounts)
 
@@ -2905,15 +2897,11 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	ignorePodDisruptionBudget := true
-	future, err := client.Delete(ctx, *id, managedclusters.DeleteOperationOptions{
+	err = client.DeleteThenPoll(ctx, *id, managedclusters.DeleteOperationOptions{
 		IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
 	})
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

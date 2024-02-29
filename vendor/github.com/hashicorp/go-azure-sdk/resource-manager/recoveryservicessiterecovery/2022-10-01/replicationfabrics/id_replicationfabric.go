@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicationFabricId{}
+var _ resourceids.ResourceId = &ReplicationFabricId{}
 
 // ReplicationFabricId is a struct representing the Resource ID for a Replication Fabric
 type ReplicationFabricId struct {
@@ -32,7 +32,7 @@ func NewReplicationFabricID(subscriptionId string, resourceGroupName string, vau
 
 // ParseReplicationFabricID parses 'input' into a ReplicationFabricId
 func ParseReplicationFabricID(input string) (*ReplicationFabricId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationFabricId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationFabricId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseReplicationFabricID(input string) (*ReplicationFabricId, error) {
 // ParseReplicationFabricIDInsensitively parses 'input' case-insensitively into a ReplicationFabricId
 // note: this method should only be used for API response data and not user input
 func ParseReplicationFabricIDInsensitively(input string) (*ReplicationFabricId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationFabricId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationFabricId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

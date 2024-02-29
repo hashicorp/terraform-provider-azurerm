@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SecurityAdminConfigurationId{}
+var _ resourceids.ResourceId = &SecurityAdminConfigurationId{}
 
 // SecurityAdminConfigurationId is a struct representing the Resource ID for a Security Admin Configuration
 type SecurityAdminConfigurationId struct {
@@ -32,7 +32,7 @@ func NewSecurityAdminConfigurationID(subscriptionId string, resourceGroupName st
 
 // ParseSecurityAdminConfigurationID parses 'input' into a SecurityAdminConfigurationId
 func ParseSecurityAdminConfigurationID(input string) (*SecurityAdminConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SecurityAdminConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&SecurityAdminConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseSecurityAdminConfigurationID(input string) (*SecurityAdminConfiguratio
 // ParseSecurityAdminConfigurationIDInsensitively parses 'input' case-insensitively into a SecurityAdminConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseSecurityAdminConfigurationIDInsensitively(input string) (*SecurityAdminConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SecurityAdminConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&SecurityAdminConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

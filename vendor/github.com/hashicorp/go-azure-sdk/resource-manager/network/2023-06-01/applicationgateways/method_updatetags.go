@@ -47,7 +47,10 @@ func (c ApplicationGatewaysClient) UpdateTags(ctx context.Context, id Applicatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplicationGateway
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

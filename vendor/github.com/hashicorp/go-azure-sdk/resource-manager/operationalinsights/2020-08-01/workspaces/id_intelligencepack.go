@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = IntelligencePackId{}
+var _ resourceids.ResourceId = &IntelligencePackId{}
 
 // IntelligencePackId is a struct representing the Resource ID for a Intelligence Pack
 type IntelligencePackId struct {
@@ -32,7 +32,7 @@ func NewIntelligencePackID(subscriptionId string, resourceGroupName string, work
 
 // ParseIntelligencePackID parses 'input' into a IntelligencePackId
 func ParseIntelligencePackID(input string) (*IntelligencePackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IntelligencePackId{})
+	parser := resourceids.NewParserFromResourceIdType(&IntelligencePackId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseIntelligencePackID(input string) (*IntelligencePackId, error) {
 // ParseIntelligencePackIDInsensitively parses 'input' case-insensitively into a IntelligencePackId
 // note: this method should only be used for API response data and not user input
 func ParseIntelligencePackIDInsensitively(input string) (*IntelligencePackId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IntelligencePackId{})
+	parser := resourceids.NewParserFromResourceIdType(&IntelligencePackId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

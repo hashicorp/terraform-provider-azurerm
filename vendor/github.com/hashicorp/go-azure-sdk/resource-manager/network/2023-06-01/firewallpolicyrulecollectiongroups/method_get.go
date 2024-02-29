@@ -43,7 +43,10 @@ func (c FirewallPolicyRuleCollectionGroupsClient) Get(ctx context.Context, id Ru
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FirewallPolicyRuleCollectionGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

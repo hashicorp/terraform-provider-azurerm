@@ -112,7 +112,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
@@ -285,6 +284,35 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 			},
+
+			"encryption_key_source": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
+			},
+
+			"key_vault_private_endpoint_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: azure.ValidateResourceID,
+				RequiredWith: []string{"encryption_key_source"},
+			},
+
+			"smb_non_browsable_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"smb_access_based_enumeration_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -327,6 +355,16 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		networkFeatures = volumes.NetworkFeaturesBasic
 	}
 	networkFeatures = volumes.NetworkFeatures(networkFeaturesString)
+
+	smbNonBrowsable := volumes.SmbNonBrowsableDisabled
+	if d.Get("smb_non_browsable_enabled").(bool) {
+		smbNonBrowsable = volumes.SmbNonBrowsableEnabled
+	}
+
+	smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
+	if d.Get("smb_access_based_enumeration_enabled").(bool) {
+		smbAccessBasedEnumeration = volumes.SmbAccessBasedEnumerationEnabled
+	}
 
 	protocols := d.Get("protocols").(*pluginsdk.Set).List()
 	if len(protocols) == 0 {
@@ -439,16 +477,18 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	parameters := volumes.Volume{
 		Location: location,
 		Properties: volumes.VolumeProperties{
-			CreationToken:   volumePath,
-			ServiceLevel:    &serviceLevel,
-			SubnetId:        subnetID,
-			NetworkFeatures: &networkFeatures,
-			ProtocolTypes:   utils.ExpandStringSlice(protocols),
-			SecurityStyle:   &securityStyle,
-			UsageThreshold:  storageQuotaInGB,
-			ExportPolicy:    exportPolicyRule,
-			VolumeType:      utils.String(volumeType),
-			SnapshotId:      utils.String(snapshotID),
+			CreationToken:             volumePath,
+			ServiceLevel:              &serviceLevel,
+			SubnetId:                  subnetID,
+			NetworkFeatures:           &networkFeatures,
+			SmbNonBrowsable:           &smbNonBrowsable,
+			SmbAccessBasedEnumeration: &smbAccessBasedEnumeration,
+			ProtocolTypes:             utils.ExpandStringSlice(protocols),
+			SecurityStyle:             &securityStyle,
+			UsageThreshold:            storageQuotaInGB,
+			ExportPolicy:              exportPolicyRule,
+			VolumeType:                utils.String(volumeType),
+			SnapshotId:                utils.String(snapshotID),
 			DataProtection: &volumes.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
@@ -462,6 +502,19 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
 		parameters.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+	}
+
+	if encryptionKeySource, ok := d.GetOk("encryption_key_source"); ok {
+		// Validating Microsoft.KeyVault encryption key provider is enabled only on Standard network features
+		if volumes.EncryptionKeySource(encryptionKeySource.(string)) == volumes.EncryptionKeySourceMicrosoftPointKeyVault && networkFeatures == volumes.NetworkFeaturesBasic {
+			return fmt.Errorf("volume encryption cannot be enabled when network features is set to basic: %s", id.ID())
+		}
+
+		parameters.Properties.EncryptionKeySource = pointer.To(volumes.EncryptionKeySource(encryptionKeySource.(string)))
+	}
+
+	if keyVaultPrivateEndpointID, ok := d.GetOk("key_vault_private_endpoint_id"); ok {
+		parameters.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(keyVaultPrivateEndpointID.(string))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -553,6 +606,26 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
+	if d.HasChange("smb_non_browsable_enabled") {
+		shouldUpdate = true
+		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
+		update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		if d.Get("smb_non_browsable_enabled").(bool) {
+			smbNonBrowsable := volumes.SmbNonBrowsableEnabled
+			update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		}
+	}
+
+	if d.HasChange("smb_access_based_enumeration_enabled") {
+		shouldUpdate = true
+		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
+		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		if d.Get("smb_access_based_enumeration_enabled").(bool) {
+			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
+			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		}
+	}
+
 	if d.HasChange("tags") {
 		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
@@ -619,6 +692,20 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("snapshot_directory_visible", props.SnapshotDirectoryVisible)
 		d.Set("throughput_in_mibps", props.ThroughputMibps)
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
+		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
+		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
+
+		smbNonBrowsable := false
+		if props.SmbNonBrowsable != nil {
+			smbNonBrowsable = strings.EqualFold(string(*props.SmbNonBrowsable), string(volumes.SmbNonBrowsableEnabled))
+		}
+		d.Set("smb_non_browsable_enabled", smbNonBrowsable)
+
+		smbAccessBasedEnumeration := false
+		if props.SmbAccessBasedEnumeration != nil {
+			smbAccessBasedEnumeration = strings.EqualFold(string(*props.SmbAccessBasedEnumeration), string(volumes.SmbAccessBasedEnumerationEnabled))
+		}
+		d.Set("smb_access_based_enumeration_enabled", smbAccessBasedEnumeration)
 
 		avsDataStore := false
 		if props.AvsDataStore != nil {

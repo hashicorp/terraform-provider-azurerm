@@ -18,6 +18,12 @@ type ExpressRouteCircuitsListRoutesTableOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *[]ExpressRouteCircuitRoutesTable
+}
+
+type ExpressRouteCircuitsListRoutesTableCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []ExpressRouteCircuitRoutesTable
 }
 
 // ExpressRouteCircuitsListRoutesTable ...

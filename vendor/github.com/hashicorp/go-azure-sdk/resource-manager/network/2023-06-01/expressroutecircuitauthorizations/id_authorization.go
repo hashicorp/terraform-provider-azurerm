@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AuthorizationId{}
+var _ resourceids.ResourceId = &AuthorizationId{}
 
 // AuthorizationId is a struct representing the Resource ID for a Authorization
 type AuthorizationId struct {
@@ -32,7 +32,7 @@ func NewAuthorizationID(subscriptionId string, resourceGroupName string, express
 
 // ParseAuthorizationID parses 'input' into a AuthorizationId
 func ParseAuthorizationID(input string) (*AuthorizationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationId{})
+	parser := resourceids.NewParserFromResourceIdType(&AuthorizationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseAuthorizationID(input string) (*AuthorizationId, error) {
 // ParseAuthorizationIDInsensitively parses 'input' case-insensitively into a AuthorizationId
 // note: this method should only be used for API response data and not user input
 func ParseAuthorizationIDInsensitively(input string) (*AuthorizationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AuthorizationId{})
+	parser := resourceids.NewParserFromResourceIdType(&AuthorizationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

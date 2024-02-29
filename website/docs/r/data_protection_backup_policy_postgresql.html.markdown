@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
 
-* `time_zone` - (Optional) Specifies the Time Zone which should be used by the backup schedule. Changing this forces a new Backup Policy Disk to be created.
+* `time_zone` - (Optional) Specifies the Time Zone which should be used by the backup schedule. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 ---
 

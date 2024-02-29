@@ -73,7 +73,10 @@ func (c BlobContainersClient) DeleteImmutabilityPolicy(ctx context.Context, id c
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ImmutabilityPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

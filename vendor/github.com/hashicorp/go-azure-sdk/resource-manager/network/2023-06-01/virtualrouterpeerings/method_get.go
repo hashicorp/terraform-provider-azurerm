@@ -44,7 +44,10 @@ func (c VirtualRouterPeeringsClient) Get(ctx context.Context, id commonids.Virtu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualRouterPeering
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

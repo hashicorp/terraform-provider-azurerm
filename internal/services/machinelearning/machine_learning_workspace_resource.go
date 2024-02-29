@@ -5,6 +5,7 @@ package machinelearning
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -94,6 +95,39 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
 
+			"kind": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Default",
+					"FeatureStore",
+				}, false),
+				Default: "Default",
+			},
+
+			"feature_store": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"computer_spark_runtime_version": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+						"offline_connection_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+
+						"online_connection_name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"primary_user_assigned_identity": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -138,7 +172,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+						"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 						"key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -155,6 +189,23 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"managed_network": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"isolation_mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
+						},
+					},
+				},
+			},
+
 			"friendly_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -163,6 +214,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"high_business_impact": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"sku_name": {
@@ -249,15 +301,17 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 			Name: d.Get("sku_name").(string),
 			Tier: pointer.To(workspaces.SkuTier(d.Get("sku_name").(string))),
 		},
+		Kind: utils.String(d.Get("kind").(string)),
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
-			Encryption:          expandedEncryption,
-			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
 			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
+			Encryption:          expandedEncryption,
 			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
+			ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
 			PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccessDisabled),
+			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
+			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
 		},
 	}
 
@@ -287,6 +341,18 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 	if v, ok := d.GetOk("primary_user_assigned_identity"); ok {
 		workspace.Properties.PrimaryUserAssignedIdentity = pointer.To(v.(string))
+	}
+
+	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]interface{}))
+	if strings.EqualFold(*workspace.Kind, "Default") {
+		if featureStore != nil {
+			return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
+		}
+	} else {
+		if featureStore == nil {
+			return fmt.Errorf("`feature_store` can not be empty when `kind` is `FeatureStore`")
+		}
+		workspace.Properties.FeatureStoreSettings = featureStore
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id, workspace)
@@ -332,6 +398,8 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("sku_name", sku.Name)
 	}
 
+	d.Set("kind", resp.Model.Kind)
+
 	if props := resp.Model.Properties; props != nil {
 		d.Set("application_insights_id", props.ApplicationInsights)
 		d.Set("storage_account_id", props.StorageAccount)
@@ -345,6 +413,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 		d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 		d.Set("workspace_id", props.WorkspaceId)
+		d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork))
 
 		kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
 		if err != nil {
@@ -364,6 +433,11 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 
 	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(resp.Model.Properties.FeatureStoreSettings)
+	if err := d.Set("feature_store", featureStoreSettings); err != nil {
+		return fmt.Errorf("setting `feature_store`: %+v", err)
 	}
 
 	flattenedEncryption, err := flattenMachineLearningWorkspaceEncryption(resp.Model.Properties.Encryption)
@@ -509,4 +583,83 @@ func flattenMachineLearningWorkspaceEncryption(input *workspaces.EncryptionPrope
 			"key_id":                    keyVaultKeyId,
 		},
 	}, nil
+}
+
+func expandMachineLearningWorkspaceFeatureStore(input []interface{}) *workspaces.FeatureStoreSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	out := workspaces.FeatureStoreSettings{}
+
+	if raw["computer_spark_runtime_version"].(string) != "" {
+		out.ComputeRuntime = &workspaces.ComputeRuntimeDto{
+			SparkRuntimeVersion: utils.String(raw["computer_spark_runtime_version"].(string)),
+		}
+	}
+
+	if raw["offline_connection_name"].(string) != "" {
+		out.OfflineStoreConnectionName = utils.String(raw["offline_connection_name"].(string))
+	}
+
+	if raw["online_connection_name"].(string) != "" {
+		out.OnlineStoreConnectionName = utils.String(raw["online_connection_name"].(string))
+	}
+	return &out
+}
+
+func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreSettings) *[]interface{} {
+	if input == nil {
+		return &[]interface{}{}
+	}
+
+	computerSparkRunTimeVersion := ""
+	offlineConnectionName := ""
+	onlineConnectionName := ""
+
+	if input.ComputeRuntime != nil && input.ComputeRuntime.SparkRuntimeVersion != nil {
+		computerSparkRunTimeVersion = *input.ComputeRuntime.SparkRuntimeVersion
+	}
+	if input.OfflineStoreConnectionName != nil {
+		offlineConnectionName = *input.OfflineStoreConnectionName
+	}
+
+	if input.OnlineStoreConnectionName != nil {
+		onlineConnectionName = *input.OnlineStoreConnectionName
+	}
+
+	return &[]interface{}{
+		map[string]interface{}{
+			"computer_spark_runtime_version": computerSparkRunTimeVersion,
+			"offline_connection_name":        offlineConnectionName,
+			"online_connection_name":         onlineConnectionName,
+		},
+	}
+}
+
+func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) *workspaces.ManagedNetworkSettings {
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+
+	v := i[0].(map[string]interface{})
+
+	return &workspaces.ManagedNetworkSettings{
+		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
+	}
+}
+
+func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings) *[]interface{} {
+	if i == nil {
+		return &[]interface{}{}
+	}
+
+	out := map[string]interface{}{}
+
+	if i.IsolationMode != nil {
+		out["isolation_mode"] = *i.IsolationMode
+	}
+
+	return &[]interface{}{out}
 }

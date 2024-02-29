@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PeerConnectionId{}
+var _ resourceids.ResourceId = &PeerConnectionId{}
 
 // PeerConnectionId is a struct representing the Resource ID for a Peer Connection
 type PeerConnectionId struct {
@@ -34,7 +34,7 @@ func NewPeerConnectionID(subscriptionId string, resourceGroupName string, expres
 
 // ParsePeerConnectionID parses 'input' into a PeerConnectionId
 func ParsePeerConnectionID(input string) (*PeerConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PeerConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&PeerConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParsePeerConnectionID(input string) (*PeerConnectionId, error) {
 // ParsePeerConnectionIDInsensitively parses 'input' case-insensitively into a PeerConnectionId
 // note: this method should only be used for API response data and not user input
 func ParsePeerConnectionIDInsensitively(input string) (*PeerConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PeerConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&PeerConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

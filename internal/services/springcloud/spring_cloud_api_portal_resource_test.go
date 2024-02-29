@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -172,6 +172,7 @@ resource "azurerm_spring_cloud_api_portal" "test" {
   https_only_enabled            = false
   public_network_access_enabled = false
   instance_count                = 1
+  api_try_out_enabled           = true
 
   sso {
     client_id     = "%s"

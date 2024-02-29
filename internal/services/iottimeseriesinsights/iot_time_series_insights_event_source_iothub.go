@@ -136,7 +136,7 @@ func resourceIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *pluginsdk.Res
 			SharedAccessKey:       d.Get("shared_access_key").(string),
 			ConsumerGroupName:     d.Get("consumer_group_name").(string),
 			KeyName:               d.Get("shared_access_key_name").(string),
-			EventSourceResourceId: utils.String(d.Get("event_source_resource_id").(string)),
+			EventSourceResourceId: d.Get("event_source_resource_id").(string),
 			TimestampPropertyName: utils.String(d.Get("timestamp_property_name").(string)),
 		},
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = HyperVSiteMachineId{}
+var _ resourceids.ResourceId = &HyperVSiteMachineId{}
 
 // HyperVSiteMachineId is a struct representing the Resource ID for a Hyper V Site Machine
 type HyperVSiteMachineId struct {
@@ -32,7 +32,7 @@ func NewHyperVSiteMachineID(subscriptionId string, resourceGroupName string, hyp
 
 // ParseHyperVSiteMachineID parses 'input' into a HyperVSiteMachineId
 func ParseHyperVSiteMachineID(input string) (*HyperVSiteMachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HyperVSiteMachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&HyperVSiteMachineId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,14 +49,14 @@ func ParseHyperVSiteMachineID(input string) (*HyperVSiteMachineId, error) {
 // ParseHyperVSiteMachineIDInsensitively parses 'input' case-insensitively into a HyperVSiteMachineId
 // note: this method should only be used for API response data and not user input
 func ParseHyperVSiteMachineIDInsensitively(input string) (*HyperVSiteMachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HyperVSiteMachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&HyperVSiteMachineId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
 	id := HyperVSiteMachineId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

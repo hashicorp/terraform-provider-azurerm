@@ -43,7 +43,10 @@ func (c SecurityRulesClient) Get(ctx context.Context, id SecurityRuleId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SecurityRule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

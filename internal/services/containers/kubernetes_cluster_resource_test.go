@@ -7,10 +7,11 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,10 +22,10 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.25.11"
-	currentKubernetesVersion      = "1.26.6"
-	olderKubernetesVersionAlias   = "1.25"
-	currentKubernetesVersionAlias = "1.26"
+	olderKubernetesVersion        = "1.28.5"
+	currentKubernetesVersion      = "1.29.0"
+	olderKubernetesVersionAlias   = "1.28"
+	currentKubernetesVersionAlias = "1.29"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
@@ -237,13 +238,12 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 
 		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
 
-		future, err := clients.Containers.AgentPoolsClient.CreateOrUpdate(ctx, agentPoolId, *nodePool.Model)
+		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+		defer cancel()
+
+		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model)
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
-		}
-
-		if err := future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
 		}
 
 		return nil
