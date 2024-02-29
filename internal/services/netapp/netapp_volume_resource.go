@@ -134,6 +134,11 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				},
 			},
 
+			"kerberos_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"security_style": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -188,6 +193,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 									"NFSv3",
 									"NFSv4.1",
 									"CIFS",
+									"Kerberos5RO",
+									"Kerberos5RW",
+									"Kerberos5iRO",
+									"Kerberos5iRW",
+									"Kerberos5pRO",
+									"Kerberos5pRW",
 								}, false),
 							},
 						},
@@ -348,6 +359,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
+	kerberosEnabled := d.Get("kerberos_enabled").(bool)
 
 	var networkFeatures volumes.NetworkFeatures
 	networkFeaturesString := d.Get("network_features").(string)
@@ -480,6 +492,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			CreationToken:             volumePath,
 			ServiceLevel:              &serviceLevel,
 			SubnetId:                  subnetID,
+			KerberosEnabled:           &kerberosEnabled,
 			NetworkFeatures:           &networkFeatures,
 			SmbNonBrowsable:           &smbNonBrowsable,
 			SmbAccessBasedEnumeration: &smbAccessBasedEnumeration,
@@ -686,6 +699,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
+		d.Set("kerberos_enabled", bool(pointer.From(props.KerberosEnabled)))
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
@@ -821,6 +835,12 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			cifsEnabled := false
 			nfsv3Enabled := false
 			nfsv41Enabled := false
+			kerberos5ro := false
+			kerberos5rw := false
+			kerberos5iro := false
+			kerberos5irw := false
+			kerberos5pro := false
+			kerberos5prw := false
 
 			if vpe := v["protocols_enabled"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
@@ -834,6 +854,18 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
+							case "kerberos5ro":
+								kerberos5ro = true
+							case "kerberos5rw":
+								kerberos5rw = true
+							case "kerberos5iro":
+								kerberos5iro = true
+							case "kerberos5irw":
+								kerberos5irw = true
+							case "kerberos5pro":
+								kerberos5pro = true
+							case "kerberos5prw":
+								kerberos5prw = true
 							}
 						}
 					}
@@ -845,14 +877,20 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients: utils.String(allowedClients),
-				Cifs:           utils.Bool(cifsEnabled),
-				Nfsv3:          utils.Bool(nfsv3Enabled),
-				Nfsv41:         utils.Bool(nfsv41Enabled),
-				RuleIndex:      utils.Int64(ruleIndex),
-				UnixReadOnly:   utils.Bool(unixReadOnly),
-				UnixReadWrite:  utils.Bool(unixReadWrite),
-				HasRootAccess:  utils.Bool(rootAccessEnabled),
+				AllowedClients:      utils.String(allowedClients),
+				Cifs:                utils.Bool(cifsEnabled),
+				Nfsv3:               utils.Bool(nfsv3Enabled),
+				Nfsv41:              utils.Bool(nfsv41Enabled),
+				Kerberos5ReadOnly:   utils.Bool(kerberos5ro),
+				Kerberos5ReadWrite:  utils.Bool(kerberos5rw),
+				Kerberos5iReadOnly:  utils.Bool(kerberos5iro),
+				Kerberos5iReadWrite: utils.Bool(kerberos5irw),
+				Kerberos5pReadOnly:  utils.Bool(kerberos5pro),
+				Kerberos5pReadWrite: utils.Bool(kerberos5prw),
+				RuleIndex:           utils.Int64(ruleIndex),
+				UnixReadOnly:        utils.Bool(unixReadOnly),
+				UnixReadWrite:       utils.Bool(unixReadWrite),
+				HasRootAccess:       utils.Bool(rootAccessEnabled),
 			}
 
 			results = append(results, result)
