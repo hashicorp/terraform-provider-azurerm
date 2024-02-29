@@ -473,14 +473,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		// if the 'managed_cmk_key_vault_id' was not defined assume
 		// the key vault exists in the same subscription as the workspace...
 		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-
 		if managedKeyVaultId != "" {
-			kvId, err := commonids.ParseKeyVaultID(managedKeyVaultId)
-			if err != nil {
-				return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedKeyVaultId, err)
-			}
-
-			subscriptionResourceId = commonids.NewSubscriptionID(kvId.SubscriptionId)
+			subscriptionResourceId = commonids.NewSubscriptionID(managedKeyVaultId)
 		}
 
 		// make sure the key vault exists
@@ -511,14 +505,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		// if the 'managed_cmk_key_vault_id' was not defined assume
 		// the key vault exists in the same subscription as the workspace...
 		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-
 		if managedKeyVaultId != "" {
-			kvId, err := commonids.ParseKeyVaultID(managedKeyVaultId)
-			if err != nil {
-				return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedKeyVaultId, err)
-			}
-
-			subscriptionResourceId = commonids.NewSubscriptionID(kvId.SubscriptionId)
+			subscriptionResourceId = commonids.NewSubscriptionID(managedKeyVaultId)
 		}
 
 		// make sure the key vault exists
