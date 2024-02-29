@@ -22,14 +22,14 @@ func TestNewNestedItemID(t *testing.T) {
 		},
 		{
 			Scenario:        "valid, no port",
-			keyVaultBaseUrl: "https://test.vault.azure.net",
-			Expected:        "https://test.vault.azure.net/keys/test/testVersionString",
+			keyVaultBaseUrl: "https://test.managedhsm.azure.net",
+			Expected:        "https://test.managedhsm.azure.net/keys/test/testVersionString",
 			ExpectError:     false,
 		},
 		{
 			Scenario:        "valid, with port",
-			keyVaultBaseUrl: "https://test.vault.azure.net:443",
-			Expected:        "https://test.vault.azure.net/keys/test/testVersionString",
+			keyVaultBaseUrl: "https://test.managedhsm.azure.net:443",
+			Expected:        "https://test.managedhsm.azure.net/keys/test/testVersionString",
 			ExpectError:     false,
 		},
 		{
@@ -77,58 +77,28 @@ func TestParseNestedItemID(t *testing.T) {
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net",
+			Input:       "https://my-keyvault.managedhsm.azure.net",
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net/",
+			Input:       "https://my-keyvault.managedhsm.azure.net/",
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net/secrets",
+			Input:       "https://my-keyvault.managedhsm.azure.net/invalidNestedItemObjectType/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net/secrets/bird",
-			ExpectError: true,
-		},
-		{
-			Input:       "https://my-keyvault.vault.azure.net/invalidNestedItemObjectType/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
-			ExpectError: true,
-		},
-		{
-			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
-			ExpectError: false,
-			Expected: ManagedHSMKeyID{
-				Name:       "bird",
-				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
-				Version:    "fdf067c93bbb4b22bff4d8b7a9a56217",
-			},
-		},
-		{
-			Input:       "https://my-keyvault.vault.azure.net/certificates/hello/world",
-			ExpectError: false,
-			Expected: ManagedHSMKeyID{
-				Name:       "hello",
-				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
-				Version:    "world",
-			},
-		},
-		{
-			Input:       "https://my-keyvault.vault.azure.net/keys/castle/1492",
+			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
 			ExpectError: false,
 			Expected: ManagedHSMKeyID{
 				Name:       "castle",
-				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
+				HSMBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Version:    "1492",
 			},
 		},
 		{
 			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
-			ExpectError: true,
-		},
-		{
-			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217/XXX",
 			ExpectError: true,
 		},
 	}
@@ -151,7 +121,7 @@ func TestParseNestedItemID(t *testing.T) {
 		}
 
 		if tc.Expected.HSMBaseUrl != secretId.HSMBaseUrl {
-			t.Fatalf("Expected 'KeyVaultBaseUrl' to be '%s', got '%s' for ID '%s'", tc.Expected.HSMBaseUrl, secretId.HSMBaseUrl, tc.Input)
+			t.Fatalf("Expected 'HSMBaseUrl' to be '%s', got '%s' for ID '%s'", tc.Expected.HSMBaseUrl, secretId.HSMBaseUrl, tc.Input)
 		}
 
 		if tc.Expected.Name != secretId.Name {
@@ -180,56 +150,39 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net/secrets",
+			Input:       "https://my-keyvault.managedhsm.azure.net/secrets",
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net/invalidNestedItemObjectType/hello/world",
+			Input:       "https://my-keyvault.managedhsm.azure.net/invalidNestedItemObjectType/hello/world",
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net/secrets/bird",
+			Input:       "https://my-keyvault.managedhsm.azure.net/keys/bird",
 			ExpectError: false,
 			Expected: ManagedHSMKeyID{
 				Name:       "bird",
-				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
+				HSMBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Version:    "",
 			},
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
+			Input:       "https://my-keyvault.managedhsm.azure.net/keys/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
 			ExpectError: false,
 			Expected: ManagedHSMKeyID{
 				Name:       "bird",
-				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
+				HSMBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Version:    "fdf067c93bbb4b22bff4d8b7a9a56217",
 			},
 		},
 		{
-			Input:       "https://my-keyvault.vault.azure.net/certificates/hello/world",
-			ExpectError: false,
-			Expected: ManagedHSMKeyID{
-				Name:       "hello",
-				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
-				Version:    "world",
-			},
-		},
-		{
-			Input:       "https://my-keyvault.vault.azure.net/keys/castle/1492",
+			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
 			ExpectError: false,
 			Expected: ManagedHSMKeyID{
 				Name:       "castle",
-				HSMBaseUrl: "https://my-keyvault.vault.azure.net/",
+				HSMBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Version:    "1492",
 			},
-		},
-		{
-			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
-			ExpectError: true,
-		},
-		{
-			Input:       "https://my-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217/XXX",
-			ExpectError: true,
 		},
 	}
 

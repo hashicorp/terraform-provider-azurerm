@@ -98,8 +98,8 @@ func parseNestedItemId(id string) (*ManagedHSMKeyID, error) {
 	if !strings.Contains(strings.ToLower(id), ".managedhsm.") {
 		return nil, fmt.Errorf("internal-error: only support Managed HSM IDs as managed HSM Nested Items")
 	}
-	// versioned example: https://tharvey-managedhsm.managedhsm.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
-	// versionless example: https://tharvey-managedhsm.managedhsm.azure.net/type/bird/
+	// versioned example: https://tharvey-managedhsm.managedhsm.azure.net/keys/bird/fdf067c93bbb4b22bff4d8b7a9a56217
+	// versionless example: https://tharvey-managedhsm.managedhsm.azure.net/keys/bird/
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
 		return nil, fmt.Errorf("cannot parse azure managed HSM child ID: %s", err)
@@ -116,13 +116,17 @@ func parseNestedItemId(id string) (*ManagedHSMKeyID, error) {
 		return nil, fmt.Errorf("managed HSM nested item should contain 2 or 3 segments, found %d segment(s) in %q", len(components), id)
 	}
 
+	if components[0] != "keys" {
+		return nil, fmt.Errorf("expected a managed HSM nested item of type 'keys' but got %q", components[0])
+	}
+
 	version := ""
 	if len(components) == 3 {
 		version = components[2]
 	}
 
 	childId := ManagedHSMKeyID{
-		HSMBaseUrl: fmt.Sprintf("https://%s/keys/", idURL.Host),
+		HSMBaseUrl: fmt.Sprintf("https://%s/", idURL.Host),
 		Name:       components[1],
 		Version:    version,
 	}
