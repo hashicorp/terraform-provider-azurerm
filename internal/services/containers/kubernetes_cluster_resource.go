@@ -1268,6 +1268,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"current_kubernetes_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"node_resource_group_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -2605,6 +2610,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("portal_fqdn", props.AzurePortalFQDN)
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("kubernetes_version", props.KubernetesVersion)
+			d.Set("current_kubernetes_version", props.CurrentKubernetesVersion)
 			d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 			d.Set("local_account_disabled", props.DisableLocalAccounts)
 
