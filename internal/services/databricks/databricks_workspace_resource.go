@@ -463,18 +463,26 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	encrypt := &workspaces.WorkspacePropertiesEncryption{}
 	encrypt.Entities = workspaces.EncryptionEntitiesDefinition{}
 	servicesKeyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
+
+	// if the 'managed_cmk_key_vault_id' was not defined assume
+	// the key vault exists in the same subscription as the workspace...
+	subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+	if managedKeyVaultId != "" {
+		// If they passed the 'managed_cmk_key_vault_id' parse the Key Vault ID
+		// to extract the correct key vault subscription for the exists call...
+		v, err := commonids.ParseKeyVaultID(managedKeyVaultId)
+		if err != nil {
+			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedKeyVaultId, err)
+		}
+
+		subscriptionResourceId = commonids.NewSubscriptionID(v.SubscriptionId)
+	}
+
 	if servicesKeyIdRaw != "" {
 		setEncrypt = true
 		key, err := keyVaultParse.ParseNestedItemID(servicesKeyIdRaw)
 		if err != nil {
 			return err
-		}
-
-		// if the 'managed_cmk_key_vault_id' was not defined assume
-		// the key vault exists in the same subscription as the workspace...
-		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-		if managedKeyVaultId != "" {
-			subscriptionResourceId = commonids.NewSubscriptionID(managedKeyVaultId)
 		}
 
 		// make sure the key vault exists
@@ -500,13 +508,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		key, err := keyVaultParse.ParseNestedItemID(diskKeyIdRaw)
 		if err != nil {
 			return err
-		}
-
-		// if the 'managed_cmk_key_vault_id' was not defined assume
-		// the key vault exists in the same subscription as the workspace...
-		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-		if managedKeyVaultId != "" {
-			subscriptionResourceId = commonids.NewSubscriptionID(managedKeyVaultId)
 		}
 
 		// make sure the key vault exists
@@ -586,6 +587,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
 	}
 
+	// Always set these even if they are empty to keep the state file
+	// consistent with the configuration file...
 	d.Set("managed_services_cmk_key_vault_key_id", servicesKeyIdRaw)
 	d.Set("managed_disk_cmk_key_vault_key_id", diskKeyIdRaw)
 	d.Set("managed_cmk_key_vault_id", managedKeyVaultId)
@@ -674,38 +677,47 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
 
+		var workspaceUrl string
 		if model.Properties.WorkspaceUrl != nil {
-			d.Set("workspace_url", model.Properties.WorkspaceUrl)
+			workspaceUrl = *model.Properties.WorkspaceUrl
 		}
+		d.Set("workspace_url", workspaceUrl)
 
+		var workspaceId string
 		if model.Properties.WorkspaceId != nil {
-			d.Set("workspace_id", model.Properties.WorkspaceId)
+			workspaceId = *model.Properties.WorkspaceId
 		}
+		d.Set("workspace_id", workspaceId)
 
 		// customer managed key for managed services
-		encryptKeyName := ""
-		encryptKeyVersion := ""
-		encryptKeyVaultURI := ""
+		var encryptKeyName string
+		var encryptKeyVersion string
+		var encryptKeyVaultURI string
+		var managedServicesKeyId string
 
 		if encryption := model.Properties.Encryption; encryption != nil {
 			if encryptionProps := encryption.Entities.ManagedServices; encryptionProps != nil {
 				encryptKeyName = encryptionProps.KeyVaultProperties.KeyName
 				encryptKeyVersion = encryptionProps.KeyVaultProperties.KeyVersion
 				encryptKeyVaultURI = encryptionProps.KeyVaultProperties.KeyVaultUri
-			}
-		}
 
-		if encryptKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptKeyName, encryptKeyVersion)
-			if err == nil {
-				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
+				if encryptKeyVaultURI != "" {
+					key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptKeyName, encryptKeyVersion)
+					if err == nil {
+						managedServicesKeyId = key.ID()
+					}
+				}
 			}
 		}
+		d.Set("managed_services_cmk_key_vault_key_id", managedServicesKeyId)
+
 		// customer managed key for managed disk
-		encryptDiskKeyName := ""
-		encryptDiskKeyVersion := ""
-		encryptDiskKeyVaultURI := ""
-		encryptDiskRotationEnabled := false
+		var encryptDiskKeyName string
+		var encryptDiskKeyVersion string
+		var encryptDiskKeyVaultURI string
+		var encryptDiskEncryptionSetId string
+		var managedDiskKeyId string
+		var encryptDiskRotationEnabled bool
 
 		if encryption := model.Properties.Encryption; encryption != nil {
 			if encryptionProps := encryption.Entities.ManagedDisk; encryptionProps != nil {
@@ -715,16 +727,20 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 				encryptDiskRotationEnabled = *encryptionProps.RotationToLatestKeyVersionEnabled
 			}
 
-		}
-
-		if encryptDiskKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptDiskKeyName, encryptDiskKeyVersion)
-			if err == nil {
-				d.Set("managed_disk_cmk_key_vault_key_id", key.ID())
+			if encryptDiskKeyVaultURI != "" {
+				key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptDiskKeyName, encryptDiskKeyVersion)
+				if err == nil {
+					managedDiskKeyId = key.ID()
+				}
 			}
-			d.Set("managed_disk_cmk_rotation_to_latest_version_enabled", encryptDiskRotationEnabled)
-			d.Set("disk_encryption_set_id", model.Properties.DiskEncryptionSetId)
 		}
+		d.Set("managed_disk_cmk_rotation_to_latest_version_enabled", encryptDiskRotationEnabled)
+		d.Set("managed_disk_cmk_key_vault_key_id", managedDiskKeyId)
+
+		if model.Properties.DiskEncryptionSetId != nil {
+			encryptDiskEncryptionSetId = *model.Properties.DiskEncryptionSetId
+		}
+		d.Set("disk_encryption_set_id", encryptDiskEncryptionSetId)
 
 		managedKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
 		d.Set("managed_cmk_key_vault_id", managedKeyVaultId)
