@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type StaticSiteCustomDomainResource struct{}
+type StaticWebAppCustomDomainResource struct{}
 
 func TestAccAzureStaticSiteCustomDomain_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site_custom_domain", "test")
-	r := StaticSiteCustomDomainResource{}
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app_custom_domain", "test")
+	r := StaticWebAppCustomDomainResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,8 +35,8 @@ func TestAccAzureStaticSiteCustomDomain_basic(t *testing.T) {
 }
 
 func TestAccAzureStaticSiteCustomDomain_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site_custom_domain", "test")
-	r := StaticSiteCustomDomainResource{}
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app_custom_domain", "test")
+	r := StaticWebAppCustomDomainResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccAzureStaticSiteCustomDomain_requiresImport(t *testing.T) {
 	})
 }
 
-func (r StaticSiteCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StaticWebAppCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.StaticSiteCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (r StaticSiteCustomDomainResource) Exists(ctx context.Context, clients *cli
 	return utils.Bool(true), nil
 }
 
-func (r StaticSiteCustomDomainResource) basic(data acceptance.TestData) string {
+func (r StaticWebAppCustomDomainResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -77,7 +77,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "acctestSS-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -85,23 +85,23 @@ resource "azurerm_static_site" "test" {
   sku_tier            = "Standard"
 }
 
-resource "azurerm_static_site_custom_domain" "test" {
-  static_site_id  = azurerm_static_site.test.id
-  domain_name     = "acctestSS-%d.contoso.com"
-  validation_type = "dns-txt-token"
+resource "azurerm_static_web_app_custom_domain" "test" {
+  static_web_app_id = azurerm_static_web_app.test.id
+  domain_name       = "acctestSS-%d.contoso.com"
+  validation_type   = "dns-txt-token"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r StaticSiteCustomDomainResource) requiresImport(data acceptance.TestData) string {
+func (r StaticWebAppCustomDomainResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_static_site_custom_domain" "import" {
-  static_site_id  = azurerm_static_site.test.id
-  domain_name     = "acctestSS-%d.contoso.com"
-  validation_type = "dns-txt-token"
+resource "azurerm_static_web_app_custom_domain" "import" {
+  static_web_app_id = azurerm_static_web_app.test.id
+  domain_name       = "acctestSS-%d.contoso.com"
+  validation_type   = "dns-txt-token"
 }
 `, template, data.RandomInteger)
 }

@@ -6,6 +6,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StaticSiteResource struct{}
+type StaticWebAppResource struct{}
 
-func TestAccAzureStaticSite_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
-	r := StaticSiteResource{}
+func TestAccAzureStaticWebApp_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,9 +38,61 @@ func TestAccAzureStaticSite_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticSite_withSystemAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
-	r := StaticSiteResource{}
+func TestAccAzureStaticWebApp_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_host_name").Exists(),
+				check.That(data.ResourceName).Key("api_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureStaticWebApp_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_host_name").Exists(),
+				check.That(data.ResourceName).Key("api_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_host_name").Exists(),
+				check.That(data.ResourceName).Key("api_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_host_name").Exists(),
+				check.That(data.ResourceName).Key("api_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureStaticWebApp_withSystemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,9 +108,9 @@ func TestAccAzureStaticSite_withSystemAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticSite_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
-	r := StaticSiteResource{}
+func TestAccAzureStaticWebApp_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,19 +135,19 @@ func TestAccAzureStaticSite_identity(t *testing.T) {
 		},
 		data.ImportStep(),
 		// TODO: re-enable this once the API issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18253
-		// {
-		// 	Config: r.basic(data),
-		// 	Check: acceptance.ComposeTestCheckFunc(
-		// 		check.That(data.ResourceName).ExistsInAzure(r),
-		// 	),
-		// },
-		// data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureStaticSite_withSystemAssignedUserAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
-	r := StaticSiteResource{}
+func TestAccAzureStaticWebApp_withSystemAssignedUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -110,9 +163,9 @@ func TestAccAzureStaticSite_withSystemAssignedUserAssignedIdentity(t *testing.T)
 	})
 }
 
-func TestAccAzureStaticSite_withUserAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
-	r := StaticSiteResource{}
+func TestAccAzureStaticWebApp_withUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -127,9 +180,9 @@ func TestAccAzureStaticSite_withUserAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticSite_basicUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
-	r := StaticSiteResource{}
+func TestAccAzureStaticWebApp_basicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -155,9 +208,9 @@ func TestAccAzureStaticSite_basicUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticSite_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
-	r := StaticSiteResource{}
+func TestAccAzureStaticWebApp_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -170,9 +223,9 @@ func TestAccAzureStaticSite_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStaticSite_appSettings(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
-	r := StaticSiteResource{}
+func TestAccStaticWebApp_appSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -201,7 +254,52 @@ func TestAccStaticSite_appSettings(t *testing.T) {
 	})
 }
 
-func (r StaticSiteResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func TestAccStaticWebApp_basicAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBasicAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("basic_auth.0.password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureStaticWebApp_basicWithConfigShouldFail(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_static_web_app", "test")
+	r := StaticWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.freeWithAuth(data),
+			ExpectError: regexp.MustCompile("basic_auth cannot be used with the Free tier of Static Web Apps"),
+		},
+		{
+			Config:      r.freeWithIdentity(data),
+			ExpectError: regexp.MustCompile("identities cannot be used with the Free tier of Static Web Apps"),
+		},
+	})
+}
+
+func (r StaticWebAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := staticsites.ParseStaticSiteID(state.ID)
 	if err != nil {
 		return nil, err
@@ -218,7 +316,7 @@ func (r StaticSiteResource) Exists(ctx context.Context, clients *clients.Client,
 	return pointer.To(true), nil
 }
 
-func (r StaticSiteResource) basic(data acceptance.TestData) string {
+func (r StaticWebAppResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -229,21 +327,19 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "acctestSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku_size            = "Standard"
-  sku_tier            = "Standard"
 
   tags = {
     environment = "acceptance"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
 }
 
-func (r StaticSiteResource) withSystemAssignedIdentity(data acceptance.TestData) string {
+func (r StaticWebAppResource) withSystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -254,7 +350,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "acctestSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -265,10 +361,35 @@ resource "azurerm_static_site" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r StaticSiteResource) withSystemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+func (r StaticWebAppResource) freeWithIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_static_web_app" "test" {
+  name                = "acctestSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_size            = "Free"
+  sku_tier            = "Free"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r StaticWebAppResource) withSystemAssignedUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -286,7 +407,7 @@ resource "azurerm_user_assigned_identity" "test" {
   name = "acctest-%[1]d"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "acctestSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -298,10 +419,10 @@ resource "azurerm_static_site" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
 }
 
-func (r StaticSiteResource) withUserAssignedIdentity(data acceptance.TestData) string {
+func (r StaticWebAppResource) withUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -319,7 +440,7 @@ resource "azurerm_user_assigned_identity" "test" {
   name = "acctest-%[1]d"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "acctestSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -331,10 +452,10 @@ resource "azurerm_static_site" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
 }
 
-func (r StaticSiteResource) basicUpdate(data acceptance.TestData) string {
+func (r StaticWebAppResource) basicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -345,7 +466,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "acctestSS-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -357,25 +478,25 @@ resource "azurerm_static_site" "test" {
     updated     = "true"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary) // TODO - Put back to primary when support ticket is resolved
+`, data.RandomInteger, data.Locations.Primary) // TODO - Put back to primary when support ticket is resolved
 }
 
-func (r StaticSiteResource) requiresImport(data acceptance.TestData) string {
+func (r StaticWebAppResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_static_site" "import" {
-  name                = azurerm_static_site.test.name
-  location            = azurerm_static_site.test.location
-  resource_group_name = azurerm_static_site.test.resource_group_name
-  sku_size            = azurerm_static_site.test.sku_size
-  sku_tier            = azurerm_static_site.test.sku_tier
+resource "azurerm_static_web_app" "import" {
+  name                = azurerm_static_web_app.test.name
+  location            = azurerm_static_web_app.test.location
+  resource_group_name = azurerm_static_web_app.test.resource_group_name
+  sku_size            = azurerm_static_web_app.test.sku_size
+  sku_tier            = azurerm_static_web_app.test.sku_tier
 }
 `, template)
 }
 
-func (r StaticSiteResource) appSettings(data acceptance.TestData) string {
+func (r StaticWebAppResource) appSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -386,7 +507,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "acctestSS-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -397,10 +518,10 @@ resource "azurerm_static_site" "test" {
     "foo" = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r StaticSiteResource) appSettingsUpdate(data acceptance.TestData) string {
+func (r StaticWebAppResource) appSettingsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -411,7 +532,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_static_site" "test" {
+resource "azurerm_static_web_app" "test" {
   name                = "acctestSS-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -421,5 +542,102 @@ resource "azurerm_static_site" "test" {
     "baz" = "foo"
   }
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StaticWebAppResource) withBasicAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_static_web_app" "test" {
+  name                = "acctestSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_size            = "Standard"
+  sku_tier            = "Standard"
+
+  basic_auth {
+    password     = "Super$3cretPassW0rd"
+    environments = "AllEnvironments"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StaticWebAppResource) freeWithAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_static_web_app" "test" {
+  name                = "acctestSS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_size            = "Free"
+  sku_tier            = "Free"
+
+  basic_auth {
+    password     = "Super$3cretPassW0rd"
+    environments = "AllEnvironments"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r StaticWebAppResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_static_web_app" "test" {
+  name                = "acctestSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_size            = "Standard"
+  sku_tier            = "Standard"
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  app_settings = {
+    "foo" = "bar"
+  }
+
+  basic_auth {
+    password     = "Super$3cretPassW0rd"
+    environments = "AllEnvironments"
+  }
+
+  tags = {
+    environment = "acceptance"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

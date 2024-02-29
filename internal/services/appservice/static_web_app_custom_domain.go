@@ -3,7 +3,7 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -21,14 +22,14 @@ var _ sdk.Resource = StaticWebAppCustomDomainResource{}
 
 type StaticWebAppCustomDomainResourceModel struct {
 	DomainName      string `tfschema:"domain_name"`
-	StaticSiteId    string `tfschema:"static_site_id"`
+	StaticSiteId    string `tfschema:"static_web_app_id"`
 	ValidationType  string `tfschema:"validation_type"`
 	ValidationToken string `tfschema:"validation_token"`
 }
 
 func (r StaticWebAppCustomDomainResource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-		"static_site_id": {
+		"static_web_app_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -108,8 +109,56 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateOrUpdateStaticSiteCustomDomainThenPoll(ctx, id, customDomain); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if strings.EqualFold(model.ValidationType, helpers.ValidationTypeCName) {
+				if err = client.CreateOrUpdateStaticSiteCustomDomainThenPoll(ctx, id, customDomain); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+			} else {
+				if _, err := client.CreateOrUpdateStaticSiteCustomDomain(ctx, id, customDomain); err != nil {
+					return fmt.Errorf("creating %s: %+v", id, err)
+				}
+				deadline, ok := ctx.Deadline()
+				if !ok {
+					return fmt.Errorf("context was missing a deadline")
+				}
+				stateConf := &pluginsdk.StateChangeConf{
+					Pending: []string{
+						string(staticsites.CustomDomainStatusRetrievingValidationToken),
+					},
+					Target: []string{
+						string(staticsites.CustomDomainStatusValidating),
+					},
+					MinTimeout: 20 * time.Second,
+					Timeout:    time.Until(deadline),
+					Refresh: func() (interface{}, string, error) {
+						domain, err := client.GetStaticSiteCustomDomain(ctx, id)
+						if err != nil {
+							return domain, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+						}
+
+						if domain.Model == nil || domain.Model.Properties == nil {
+							return nil, "Failed", fmt.Errorf("`properties` was missing from the response")
+						}
+						return domain, string(pointer.From(domain.Model.Properties.Status)), nil
+					},
+				}
+
+				if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+					return fmt.Errorf("waiting for DNS Validation after Creation of %s %+v", id, err)
+				}
+			}
+
+			// Once validated the token value is zeroed,
+			domain, err := client.GetStaticSiteCustomDomain(ctx, id)
+			if err != nil {
+				return fmt.Errorf("reading validation token for %s: %+v", id, err)
+			}
+			if m := domain.Model; m != nil {
+				if m.Properties != nil {
+					if err = metadata.ResourceData.Set("validation_token", m.Properties.ValidationToken); err != nil {
+						return fmt.Errorf("setting validation_toekn value for %s: %+v", id, err)
+					}
+				}
 			}
 
 			metadata.SetID(id)
