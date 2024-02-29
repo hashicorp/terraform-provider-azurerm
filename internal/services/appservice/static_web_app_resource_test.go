@@ -134,7 +134,6 @@ func TestAccAzureStaticWebApp_identity(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		// TODO: re-enable this once the API issue is resolved: https://github.com/Azure/azure-rest-api-specs/issues/18253
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
