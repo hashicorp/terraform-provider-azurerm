@@ -192,7 +192,7 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 			}
 
 			var config PimActiveRoleAssignmentResourceSchema
-			if err := metadata.Decode(&config); err != nil {
+			if err = metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -202,7 +202,7 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			payload.Properties.RequestType = roleassignmentschedulerequests.RequestTypeAdminAssign
 
-			uuid, err := uuid.GenerateUUID()
+			roleAssignmentScheduleRequestId, err := uuid.GenerateUUID()
 			if err != nil {
 				return fmt.Errorf("generating uuid: %+v", err)
 			}
@@ -212,7 +212,7 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("internal error: context has no deadline")
 			}
 
-			requestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(config.Scope, uuid)
+			requestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(config.Scope, roleAssignmentScheduleRequestId)
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Missing"},
 				Target:     []string{"Created"},
@@ -224,7 +224,7 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
 			}
 
-			// wait for resource to exist
+			// Wait for resource to exist
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:    []string{"Missing"},
 				Target:     []string{"Found"},
@@ -281,11 +281,11 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 
 			schema.Scope = id.Scope
 
-			guid, err := parse.RoleAssignmentScheduleRequestIdFromSchedule(schedule)
+			roleAssignmentScheduleRequestId, err := parse.RoleAssignmentScheduleRequestIdFromSchedule(schedule)
 			if err != nil {
 				return err
 			}
-			scheduleRequestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, *guid)
+			scheduleRequestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, *roleAssignmentScheduleRequestId)
 
 			resp, err := clientRequest.Get(ctx, scheduleRequestId)
 			if err != nil {
@@ -298,7 +298,7 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Scope = id.Scope
 
-				if err := r.mapRoleAssignmentScheduleRequestToPimActiveRoleAssignmentResourceSchema(*model, &schema); err != nil {
+				if err = r.mapRoleAssignmentScheduleRequestToPimActiveRoleAssignmentResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)
 				}
 			}
@@ -330,7 +330,7 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			}
 
 			var config PimActiveRoleAssignmentResourceSchema
-			if err := metadata.Decode(&config); err != nil {
+			if err = metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -339,14 +339,15 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("internal error: context has no deadline")
 			}
 
-			filter := &roleassignmentschedules.ListForScopeOperationOptions{
+			filter := roleassignmentschedules.ListForScopeOperationOptions{
 				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 			}
 
-			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), *filter)
+			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), filter)
 			if err != nil {
 				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
 			}
+
 			var schedule *roleassignmentschedules.RoleAssignmentSchedule
 			for _, item := range items.Items {
 				if *item.Properties.MemberType == roleassignmentschedules.MemberTypeDirect &&
@@ -361,28 +362,21 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				return nil
 			}
 
-			pendingStatusMap := map[roleassignmentschedules.Status]roleassignmentschedules.Status{
-				roleassignmentschedules.StatusPendingApproval:             roleassignmentschedules.StatusPendingApproval,
-				roleassignmentschedules.StatusPendingApprovalProvisioning: roleassignmentschedules.StatusPendingApprovalProvisioning,
-				roleassignmentschedules.StatusPendingEvaluation:           roleassignmentschedules.StatusPendingEvaluation,
-				roleassignmentschedules.StatusGranted:                     roleassignmentschedules.StatusGranted,
-				roleassignmentschedules.StatusPendingProvisioning:         roleassignmentschedules.StatusPendingProvisioning,
-				roleassignmentschedules.StatusPendingAdminDecision:        roleassignmentschedules.StatusPendingAdminDecision,
-			}
-
-			// pending role assignment should be removed by cancel API
-			if _, ok := pendingStatusMap[*schedule.Properties.Status]; ok {
-				guid, err := parse.RoleAssignmentScheduleRequestIdFromSchedule(schedule)
+			switch *schedule.Properties.Status {
+			case roleassignmentschedules.StatusPendingApproval, roleassignmentschedules.StatusPendingApprovalProvisioning,
+				roleassignmentschedules.StatusPendingEvaluation, roleassignmentschedules.StatusGranted,
+				roleassignmentschedules.StatusPendingProvisioning, roleassignmentschedules.StatusPendingAdminDecision:
+				// Pending role assignments should be removed by Cancel operation
+				roleAssignmentScheduleRequestId, err := parse.RoleAssignmentScheduleRequestIdFromSchedule(schedule)
 				if err != nil {
 					return err
 				}
-				scheduleRequestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, *guid)
-				_, err = clientRequest.Cancel(ctx, scheduleRequestId)
-				if err != nil {
+				scheduleRequestId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, *roleAssignmentScheduleRequestId)
+				if _, err = clientRequest.Cancel(ctx, scheduleRequestId); err != nil {
 					return err
 				}
-			} else {
-				// remove active role assignment
+			default:
+				// Remove active role assignment by sending an AdminRemove request
 				payload := roleassignmentschedulerequests.RoleAssignmentScheduleRequest{}
 				payload.Properties = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{}
 				payload.Properties.PrincipalId = id.PrincipalId
@@ -399,13 +393,13 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 					payload.Properties.TicketInfo.TicketSystem = &config.TicketInfo[0].TicketSystem
 				}
 
-				uuid, err := uuid.GenerateUUID()
+				roleAssignmentScheduleRequestId, err := uuid.GenerateUUID()
 				if err != nil {
 					return fmt.Errorf("generating uuid: %+v", err)
 				}
-				deleteId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, uuid)
+				deleteId := roleassignmentschedulerequests.NewScopedRoleAssignmentScheduleRequestID(id.Scope, roleAssignmentScheduleRequestId)
 
-				// wait for resource to deleted
+				// Wait for resource to deleted
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending:    []string{"Exist"},
 					Target:     []string{"Deleted"},
@@ -419,7 +413,7 @@ func (PimActiveRoleAssignmentResource) Delete() sdk.ResourceFunc {
 				}
 			}
 
-			// wait for role assignment to be missing
+			// Wait for role assignment to be missing
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:    []string{"Found"},
 				Target:     []string{"Missing"},
@@ -651,7 +645,6 @@ func (r PimActiveRoleAssignmentResource) mapRoleAssignmentScheduleRequestPropert
 
 func createActiveRoleAssignment(ctx context.Context, client *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient, id roleassignmentschedulerequests.ScopedRoleAssignmentScheduleRequestId, payload *roleassignmentschedulerequests.RoleAssignmentScheduleRequest) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-
 		// Azure can error when the subject doesn't exist yet due to AAD replication
 		// Retry deletes while that error exists.
 		result, err := client.Create(ctx, id, *payload)
@@ -703,7 +696,6 @@ func waitForActiveRoleAssignment(ctx context.Context, client *roleassignmentsche
 
 func deleteActiveRoleAssignment(ctx context.Context, client *roleassignmentschedulerequests.RoleAssignmentScheduleRequestsClient, id roleassignmentschedulerequests.ScopedRoleAssignmentScheduleRequestId, payload *roleassignmentschedulerequests.RoleAssignmentScheduleRequest) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-
 		// Azure can error when the role hasn't existed for less than 5 minutes.
 		// Retry deletes while that error exists.
 		result, err := client.Create(ctx, id, *payload)
