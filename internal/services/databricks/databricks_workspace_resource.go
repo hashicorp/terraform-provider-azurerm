@@ -92,7 +92,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"managed_services_cmk_key_vault_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: commonids.ValidateKeyVaultKeyID,
+				ValidateFunc: commonids.ValidateKeyVaultID,
 			},
 
 			"managed_services_cmk_key_vault_key_id": {
