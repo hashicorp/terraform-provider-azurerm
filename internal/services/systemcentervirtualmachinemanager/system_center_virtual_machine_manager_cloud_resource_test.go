@@ -148,7 +148,7 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   name                                                           = "acctest-scvmmc-%d"
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_custom_location.test.id
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
   system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
   uuid                                                           = "%s"
@@ -184,7 +184,7 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   name                                                           = "acctest-scvmmc-%d"
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_custom_location.test.id
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
   system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
   uuid                                                           = "%s"
@@ -208,7 +208,7 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   name                                                           = "acctest-scvmmc-%d"
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_custom_location.test.id
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
   system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
   system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
   uuid                                                           = "%s"
