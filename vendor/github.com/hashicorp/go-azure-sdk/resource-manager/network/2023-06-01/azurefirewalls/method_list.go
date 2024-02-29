@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []AzureFirewall
+	LatestHttpResponse *http.Response
+	Items              []AzureFirewall
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c AzureFirewallsClient) ListCompleteMatchingPredicate(ctx context.Context,
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

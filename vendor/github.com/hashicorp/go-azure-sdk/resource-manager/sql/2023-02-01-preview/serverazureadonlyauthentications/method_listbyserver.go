@@ -20,7 +20,8 @@ type ListByServerOperationResponse struct {
 }
 
 type ListByServerCompleteResult struct {
-	Items []ServerAzureADOnlyAuthentication
+	LatestHttpResponse *http.Response
+	Items              []ServerAzureADOnlyAuthentication
 }
 
 // ListByServer ...
@@ -84,7 +85,8 @@ func (c ServerAzureADOnlyAuthenticationsClient) ListByServerCompleteMatchingPred
 	}
 
 	result = ListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

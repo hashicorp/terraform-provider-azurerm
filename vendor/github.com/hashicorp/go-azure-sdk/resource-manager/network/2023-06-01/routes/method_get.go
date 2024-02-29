@@ -43,7 +43,10 @@ func (c RoutesClient) Get(ctx context.Context, id RouteId) (result GetOperationR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Route
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

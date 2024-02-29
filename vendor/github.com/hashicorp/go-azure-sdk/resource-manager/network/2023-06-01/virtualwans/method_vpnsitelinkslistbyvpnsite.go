@@ -19,7 +19,8 @@ type VpnSiteLinksListByVpnSiteOperationResponse struct {
 }
 
 type VpnSiteLinksListByVpnSiteCompleteResult struct {
-	Items []VpnSiteLink
+	LatestHttpResponse *http.Response
+	Items              []VpnSiteLink
 }
 
 // VpnSiteLinksListByVpnSite ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) VpnSiteLinksListByVpnSiteCompleteMatchingPredicate(ct
 	}
 
 	result = VpnSiteLinksListByVpnSiteCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

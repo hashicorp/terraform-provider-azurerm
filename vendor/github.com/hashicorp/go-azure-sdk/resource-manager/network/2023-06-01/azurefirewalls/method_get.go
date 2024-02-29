@@ -43,7 +43,10 @@ func (c AzureFirewallsClient) Get(ctx context.Context, id AzureFirewallId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AzureFirewall
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

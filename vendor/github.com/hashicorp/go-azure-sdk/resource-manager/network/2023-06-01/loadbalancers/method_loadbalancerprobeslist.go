@@ -19,7 +19,8 @@ type LoadBalancerProbesListOperationResponse struct {
 }
 
 type LoadBalancerProbesListCompleteResult struct {
-	Items []Probe
+	LatestHttpResponse *http.Response
+	Items              []Probe
 }
 
 // LoadBalancerProbesList ...
@@ -83,7 +84,8 @@ func (c LoadBalancersClient) LoadBalancerProbesListCompleteMatchingPredicate(ctx
 	}
 
 	result = LoadBalancerProbesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

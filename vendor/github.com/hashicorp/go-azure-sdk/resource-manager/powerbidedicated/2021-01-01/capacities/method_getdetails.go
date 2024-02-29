@@ -43,7 +43,10 @@ func (c CapacitiesClient) GetDetails(ctx context.Context, id CapacityId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DedicatedCapacity
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

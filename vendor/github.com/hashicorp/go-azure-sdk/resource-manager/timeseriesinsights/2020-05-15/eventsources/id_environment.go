@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EnvironmentId{}
+var _ resourceids.ResourceId = &EnvironmentId{}
 
 // EnvironmentId is a struct representing the Resource ID for a Environment
 type EnvironmentId struct {
@@ -30,7 +30,7 @@ func NewEnvironmentID(subscriptionId string, resourceGroupName string, environme
 
 // ParseEnvironmentID parses 'input' into a EnvironmentId
 func ParseEnvironmentID(input string) (*EnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&EnvironmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseEnvironmentID(input string) (*EnvironmentId, error) {
 // ParseEnvironmentIDInsensitively parses 'input' case-insensitively into a EnvironmentId
 // note: this method should only be used for API response data and not user input
 func ParseEnvironmentIDInsensitively(input string) (*EnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&EnvironmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

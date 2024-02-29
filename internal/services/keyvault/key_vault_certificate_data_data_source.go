@@ -43,7 +43,7 @@ func dataSourceKeyVaultCertificateData() *pluginsdk.Resource {
 				ValidateFunc: validate.NestedItemName,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 
 			"version": {
 				Type:     pluginsdk.TypeString,

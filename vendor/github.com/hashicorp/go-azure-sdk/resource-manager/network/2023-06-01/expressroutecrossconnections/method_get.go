@@ -43,7 +43,10 @@ func (c ExpressRouteCrossConnectionsClient) Get(ctx context.Context, id ExpressR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRouteCrossConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

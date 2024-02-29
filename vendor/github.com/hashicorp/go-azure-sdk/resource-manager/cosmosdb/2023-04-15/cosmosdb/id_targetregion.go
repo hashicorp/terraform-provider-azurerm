@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TargetRegionId{}
+var _ resourceids.ResourceId = &TargetRegionId{}
 
 // TargetRegionId is a struct representing the Resource ID for a Target Region
 type TargetRegionId struct {
@@ -32,7 +32,7 @@ func NewTargetRegionID(subscriptionId string, resourceGroupName string, database
 
 // ParseTargetRegionID parses 'input' into a TargetRegionId
 func ParseTargetRegionID(input string) (*TargetRegionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TargetRegionId{})
+	parser := resourceids.NewParserFromResourceIdType(&TargetRegionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseTargetRegionID(input string) (*TargetRegionId, error) {
 // ParseTargetRegionIDInsensitively parses 'input' case-insensitively into a TargetRegionId
 // note: this method should only be used for API response data and not user input
 func ParseTargetRegionIDInsensitively(input string) (*TargetRegionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TargetRegionId{})
+	parser := resourceids.NewParserFromResourceIdType(&TargetRegionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

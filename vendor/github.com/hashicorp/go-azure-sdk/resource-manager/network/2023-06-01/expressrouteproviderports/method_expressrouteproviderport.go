@@ -43,7 +43,10 @@ func (c ExpressRouteProviderPortsClient) ExpressRouteProviderPort(ctx context.Co
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRouteProviderPort
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

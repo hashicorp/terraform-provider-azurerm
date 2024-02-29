@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -20,6 +23,14 @@ import (
 // TODO: this resource should be split into data_export_setting and alert_sync_setting
 
 func resourceSecurityCenterSetting() *pluginsdk.Resource {
+	validSettingName := settings.PossibleValuesForSettingName()
+
+	if !features.FourPointOhBeta() {
+		// This is for backward compatibility.. The swagger defines the valid enum to be "Sensinel" (see below), so this ("SENTINEL") shall be removed since 4.0.
+		// https://github.com/Azure/azure-rest-api-specs/blob/b52464f520b77222ac8b0bdeb80a030c0fdf5b1b/specification/security/resource-manager/Microsoft.Security/stable/2021-06-01/settings.json#L285
+		validSettingName = append(validSettingName, "SENTINEL")
+	}
+
 	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSettingUpdate,
 		Read:   resourceSecurityCenterSettingRead,
@@ -38,16 +49,24 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(10 * time.Minute),
 		},
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SecurityCenterSettingsV0ToV1{},
+		}),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"setting_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"MCAS",
-					"WDATP",
-					"SENTINEL",
-				}, false),
+				DiffSuppressFunc: func() func(string, string, string, *schema.ResourceData) bool {
+					// This is a workaround for `SENTINEL` value.
+					if !features.FourPointOhBeta() {
+						return suppress.CaseDifference
+					}
+					return nil
+				}(),
+				ValidateFunc: validation.StringInSlice(validSettingName, false),
 			},
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -63,27 +82,36 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSettingID(subscriptionId, d.Get("setting_name").(string))
+	settingName := d.Get("setting_name").(string)
+
+	if !features.FourPointOhBeta() && settingName == "SENTINEL" {
+		settingName = "Sentinel"
+	}
+
+	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
 	if d.IsNewResource() {
-		// TODO: switch back when Swagger/API bug has been fixed:
-		// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
-		existing, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 		}
 
-		if existing.DataExportSettingProperties != nil && existing.DataExportSettingProperties.Enabled != nil && *existing.DataExportSettingProperties.Enabled {
-			return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+		if existing.Model != nil {
+			if alertSyncSettings, ok := (*existing.Model).(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
+				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+			}
+			if dataExportSettings, ok := (*existing.Model).(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
+				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
+			}
 		}
 	}
 
-	setting, err := expandSecurityCenterSetting(id.Name, d.Get("enabled").(bool))
+	setting, err := expandSecurityCenterSetting(id.SettingName, d.Get("enabled").(bool))
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Update(ctx, id.Name, setting); err != nil {
+	if _, err := client.Update(ctx, id, setting); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -96,22 +124,26 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SettingID(d.Id())
+	id, err := settings.ParseSettingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	// TODO: switch to back when Swagger/API bug has been fixed:
-	// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
-	resp, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	if properties := resp.DataExportSettingProperties; properties != nil {
-		d.Set("enabled", properties.Enabled)
+	if resp.Model != nil {
+		if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil {
+			d.Set("enabled", alertSyncSettings.Properties.Enabled)
+		}
+		if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok && dataExportSettings.Properties != nil {
+			d.Set("enabled", dataExportSettings.Properties.Enabled)
+		}
 	}
-	d.Set("setting_name", id.Name)
+
+	d.Set("setting_name", id.SettingName)
 
 	return nil
 }
@@ -121,35 +153,39 @@ func resourceSecurityCenterSettingDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SettingID(d.Id())
+	id, err := settings.ParseSettingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	setting, err := expandSecurityCenterSetting(id.Name, false)
+	setting, err := expandSecurityCenterSetting(id.SettingName, false)
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Update(ctx, id.Name, setting); err != nil {
+	if _, err := client.Update(ctx, *id, setting); err != nil {
 		return fmt.Errorf("disabling %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandSecurityCenterSetting(name string, enabled bool) (security.BasicSetting, error) {
+func expandSecurityCenterSetting(name settings.SettingName, enabled bool) (settings.Setting, error) {
 	switch name {
-	case "MCAS", "WDATP":
-		return security.DataExportSettings{
-			DataExportSettingProperties: &security.DataExportSettingProperties{
-				Enabled: &enabled,
+	case settings.SettingNameMCAS,
+		settings.SettingNameWDATP,
+		settings.SettingNameWDATPEXCLUDELINUXPUBLICPREVIEW,
+		settings.SettingNameWDATPUNIFIEDSOLUTION:
+		return settings.DataExportSettings{
+			Properties: &settings.DataExportSettingProperties{
+				Enabled: enabled,
 			},
 		}, nil
-	case "SENTINEL":
-		return security.AlertSyncSettings{
-			AlertSyncSettingProperties: &security.AlertSyncSettingProperties{
-				Enabled: &enabled,
+	case "SENTINEL",
+		settings.SettingNameSentinel:
+		return settings.AlertSyncSettings{
+			Properties: &settings.AlertSyncSettingProperties{
+				Enabled: enabled,
 			},
 		}, nil
 	default:

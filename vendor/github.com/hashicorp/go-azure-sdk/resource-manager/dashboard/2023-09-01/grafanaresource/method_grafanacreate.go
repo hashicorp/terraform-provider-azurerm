@@ -18,6 +18,7 @@ type GrafanaCreateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ManagedGrafana
 }
 
 // GrafanaCreate ...

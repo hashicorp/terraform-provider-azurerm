@@ -47,7 +47,10 @@ func (c IPAllocationsClient) UpdateTags(ctx context.Context, id IPAllocationId, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IPAllocation
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

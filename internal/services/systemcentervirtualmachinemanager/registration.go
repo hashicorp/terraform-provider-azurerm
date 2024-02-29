@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package systemcentervirtualmachinemanager
 
 import (
@@ -6,7 +9,7 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
+var _ sdk.TypedServiceRegistration = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/systemcentervirtualmachinemanager"
@@ -31,8 +34,6 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		SystemCenterVirtualMachineManagerServerCloudInventoryItemResource{},
-		SystemCenterVirtualMachineManagerServerVirtualMachineInventoryItemResource{},
-		SystemCenterVirtualMachineManagerServerVirtualMachineTemplateInventoryItemResource{},
-		SystemCenterVirtualMachineManagerServerVirtualNetworkInventoryItemResource{},
+		SystemCenterVirtualMachineManagerServerResource{},
 	}
 }

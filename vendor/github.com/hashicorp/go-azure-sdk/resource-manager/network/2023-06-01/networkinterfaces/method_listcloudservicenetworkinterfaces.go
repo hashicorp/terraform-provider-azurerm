@@ -19,7 +19,8 @@ type ListCloudServiceNetworkInterfacesOperationResponse struct {
 }
 
 type ListCloudServiceNetworkInterfacesCompleteResult struct {
-	Items []NetworkInterface
+	LatestHttpResponse *http.Response
+	Items              []NetworkInterface
 }
 
 // ListCloudServiceNetworkInterfaces ...
@@ -83,7 +84,8 @@ func (c NetworkInterfacesClient) ListCloudServiceNetworkInterfacesCompleteMatchi
 	}
 
 	result = ListCloudServiceNetworkInterfacesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

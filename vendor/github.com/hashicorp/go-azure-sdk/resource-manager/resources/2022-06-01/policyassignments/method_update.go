@@ -47,7 +47,10 @@ func (c PolicyAssignmentsClient) Update(ctx context.Context, id ScopedPolicyAssi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PolicyAssignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

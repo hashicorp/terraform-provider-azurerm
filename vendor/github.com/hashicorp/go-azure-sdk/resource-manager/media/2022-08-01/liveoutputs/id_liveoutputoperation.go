@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LiveOutputOperationId{}
+var _ resourceids.ResourceId = &LiveOutputOperationId{}
 
 // LiveOutputOperationId is a struct representing the Resource ID for a Live Output Operation
 type LiveOutputOperationId struct {
@@ -32,7 +32,7 @@ func NewLiveOutputOperationID(subscriptionId string, resourceGroupName string, m
 
 // ParseLiveOutputOperationID parses 'input' into a LiveOutputOperationId
 func ParseLiveOutputOperationID(input string) (*LiveOutputOperationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LiveOutputOperationId{})
+	parser := resourceids.NewParserFromResourceIdType(&LiveOutputOperationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseLiveOutputOperationID(input string) (*LiveOutputOperationId, error) {
 // ParseLiveOutputOperationIDInsensitively parses 'input' case-insensitively into a LiveOutputOperationId
 // note: this method should only be used for API response data and not user input
 func ParseLiveOutputOperationIDInsensitively(input string) (*LiveOutputOperationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LiveOutputOperationId{})
+	parser := resourceids.NewParserFromResourceIdType(&LiveOutputOperationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

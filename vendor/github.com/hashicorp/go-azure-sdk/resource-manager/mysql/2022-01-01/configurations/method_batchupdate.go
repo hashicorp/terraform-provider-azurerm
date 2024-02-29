@@ -18,6 +18,12 @@ type BatchUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *[]Configuration
+}
+
+type BatchUpdateCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Configuration
 }
 
 // BatchUpdate ...

@@ -72,7 +72,10 @@ func (c ServiceEndpointPoliciesClient) Get(ctx context.Context, id ServiceEndpoi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServiceEndpointPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

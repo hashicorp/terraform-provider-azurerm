@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []PublicIPAddress
+	LatestHttpResponse *http.Response
+	Items              []PublicIPAddress
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c PublicIPAddressesClient) ListCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

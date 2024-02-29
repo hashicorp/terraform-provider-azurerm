@@ -77,7 +77,10 @@ func (c BackendClient) CreateOrUpdate(ctx context.Context, id BackendId, input B
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BackendContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

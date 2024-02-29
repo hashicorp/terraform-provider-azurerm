@@ -208,6 +208,32 @@ resource "azurerm_ip_group" "test" {
     cost_center = "MSFT"
   }
 }
+
+resource "azurerm_ip_group" "test2" {
+  name                = "acceptanceTestIpGroup2"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cidrs = ["192.168.0.1", "172.16.240.0/20", "10.48.0.0/12"]
+
+  tags = {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
+}
+
+resource "azurerm_ip_group" "test3" {
+  name                = "acceptanceTestIpGroup3"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cidrs = ["192.168.0.1", "172.16.240.0/20", "10.48.0.0/12"]
+
+  tags = {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -311,7 +337,6 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     }
   }
 }
-
 
 resource "azurerm_virtual_network" "test" {
   name                = "testvnet"

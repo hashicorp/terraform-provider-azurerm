@@ -19,6 +19,12 @@ type GetEffectiveRouteTableOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *[]EffectiveRoute
+}
+
+type GetEffectiveRouteTableCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []EffectiveRoute
 }
 
 // GetEffectiveRouteTable ...

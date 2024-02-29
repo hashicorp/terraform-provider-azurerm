@@ -19,7 +19,8 @@ type ListByAccountOperationResponse struct {
 }
 
 type ListByAccountCompleteResult struct {
-	Items []Creator
+	LatestHttpResponse *http.Response
+	Items              []Creator
 }
 
 // ListByAccount ...
@@ -83,7 +84,8 @@ func (c CreatorsClient) ListByAccountCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListByAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -77,7 +77,10 @@ func (c ProductClient) CreateOrUpdate(ctx context.Context, id ProductId, input P
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ProductContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

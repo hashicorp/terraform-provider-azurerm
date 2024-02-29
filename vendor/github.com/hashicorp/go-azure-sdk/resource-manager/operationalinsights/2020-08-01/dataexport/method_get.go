@@ -43,7 +43,10 @@ func (c DataExportClient) Get(ctx context.Context, id DataExportId) (result GetO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataExport
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

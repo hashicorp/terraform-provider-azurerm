@@ -77,7 +77,10 @@ func (c ConnectionsClient) List(ctx context.Context, id commonids.ResourceGroupI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiConnectionDefinitionCollection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

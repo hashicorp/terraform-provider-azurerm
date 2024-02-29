@@ -82,6 +82,10 @@ The following arguments are supported:
 
 * `principal_id` - (Required) The ID of the Principal (User, Group or Service Principal) to assign the Synapse Role Definition to. Changing this forces a new resource to be created.
 
+* `principal_type` - (Optional) The Type of the Principal. One of `User`, `Group` or `ServicePrincipal`. Changing this forces a new resource to be created.
+
+-> **NOTE:** While `principal_type` is optional, it's still recommended to set this value, as some Synapse use-cases may not work correctly if this is not specified. Service Principals for example can't run SQL statements using `Entra ID` authentication if `principal_type` is not set to `ServicePrincipal`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

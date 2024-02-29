@@ -44,7 +44,10 @@ func (c FluidRelayServersClient) GetKeys(ctx context.Context, id FluidRelayServe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FluidRelayServerKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

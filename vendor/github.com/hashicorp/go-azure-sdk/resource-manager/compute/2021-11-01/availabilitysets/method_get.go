@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -18,7 +19,7 @@ type GetOperationResponse struct {
 }
 
 // Get ...
-func (c AvailabilitySetsClient) Get(ctx context.Context, id AvailabilitySetId) (result GetOperationResponse, err error) {
+func (c AvailabilitySetsClient) Get(ctx context.Context, id commonids.AvailabilitySetId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -43,7 +44,10 @@ func (c AvailabilitySetsClient) Get(ctx context.Context, id AvailabilitySetId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AvailabilitySet
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = SqlManagedInstanceId{}
+var _ resourceids.ResourceId = &SqlManagedInstanceId{}
 
 // SqlManagedInstanceId is a struct representing the Resource ID for a Sql Managed Instance
 type SqlManagedInstanceId struct {
@@ -30,25 +30,15 @@ func NewSqlManagedInstanceID(subscriptionId string, resourceGroupName string, ma
 
 // ParseSqlManagedInstanceID parses 'input' into a SqlManagedInstanceId
 func ParseSqlManagedInstanceID(input string) (*SqlManagedInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlManagedInstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlManagedInstanceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SqlManagedInstanceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedInstanceName, ok = parsed.Parsed["managedInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedInstanceName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +47,36 @@ func ParseSqlManagedInstanceID(input string) (*SqlManagedInstanceId, error) {
 // ParseSqlManagedInstanceIDInsensitively parses 'input' case-insensitively into a SqlManagedInstanceId
 // note: this method should only be used for API response data and not user input
 func ParseSqlManagedInstanceIDInsensitively(input string) (*SqlManagedInstanceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SqlManagedInstanceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SqlManagedInstanceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SqlManagedInstanceId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ManagedInstanceName, ok = parsed.Parsed["managedInstanceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "managedInstanceName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SqlManagedInstanceId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ManagedInstanceName, ok = input.Parsed["managedInstanceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "managedInstanceName", input)
+	}
+
+	return nil
 }
 
 // ValidateSqlManagedInstanceID checks that 'input' can be parsed as a Sql Managed Instance ID

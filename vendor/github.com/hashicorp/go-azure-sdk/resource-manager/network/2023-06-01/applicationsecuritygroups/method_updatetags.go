@@ -47,7 +47,10 @@ func (c ApplicationSecurityGroupsClient) UpdateTags(ctx context.Context, id Appl
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplicationSecurityGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

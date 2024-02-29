@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/expressrouteproviderports"
 ```
 
@@ -40,13 +41,14 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := expressrouteproviderports.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-read, err := client.LocationList(ctx, id, expressrouteproviderports.DefaultLocationListOperationOptions())
+// alternatively `client.LocationList(ctx, id, expressrouteproviderports.DefaultLocationListOperationOptions())` can be used to do batched pagination
+items, err := client.LocationListComplete(ctx, id, expressrouteproviderports.DefaultLocationListOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```

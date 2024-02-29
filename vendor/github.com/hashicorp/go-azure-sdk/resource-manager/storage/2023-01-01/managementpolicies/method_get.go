@@ -45,7 +45,10 @@ func (c ManagementPoliciesClient) Get(ctx context.Context, id commonids.StorageA
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagementPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

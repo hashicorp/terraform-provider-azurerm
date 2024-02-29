@@ -47,7 +47,10 @@ func (c VirtualNetworkTapClient) UpdateTags(ctx context.Context, id VirtualNetwo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualNetworkTap
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

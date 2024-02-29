@@ -19,7 +19,8 @@ type AvailableDelegationsListOperationResponse struct {
 }
 
 type AvailableDelegationsListCompleteResult struct {
-	Items []AvailableDelegation
+	LatestHttpResponse *http.Response
+	Items              []AvailableDelegation
 }
 
 // AvailableDelegationsList ...
@@ -83,7 +84,8 @@ func (c AvailableDelegationsClient) AvailableDelegationsListCompleteMatchingPred
 	}
 
 	result = AvailableDelegationsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

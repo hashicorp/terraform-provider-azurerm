@@ -112,9 +112,12 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 
 	params := sql.ServerDevOpsAuditingSettings{
 		ServerDevOpsAuditSettingsProperties: &sql.ServerDevOpsAuditSettingsProperties{
-			StorageEndpoint:             utils.String(d.Get("blob_storage_endpoint").(string)),
 			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
+	}
+
+	if v := d.Get("blob_storage_endpoint").(string); v != "" {
+		params.ServerDevOpsAuditSettingsProperties.StorageEndpoint = utils.String(v)
 	}
 
 	if d.Get("enabled").(bool) {

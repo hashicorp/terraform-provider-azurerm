@@ -18,6 +18,7 @@ type VirtualHubsGetOutboundRoutesOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *EffectiveRouteMapRouteList
 }
 
 // VirtualHubsGetOutboundRoutes ...

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = InboundEndpointId{}
+var _ resourceids.ResourceId = &InboundEndpointId{}
 
 // InboundEndpointId is a struct representing the Resource ID for a Inbound Endpoint
 type InboundEndpointId struct {
@@ -32,7 +32,7 @@ func NewInboundEndpointID(subscriptionId string, resourceGroupName string, dnsRe
 
 // ParseInboundEndpointID parses 'input' into a InboundEndpointId
 func ParseInboundEndpointID(input string) (*InboundEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(InboundEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&InboundEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseInboundEndpointID(input string) (*InboundEndpointId, error) {
 // ParseInboundEndpointIDInsensitively parses 'input' case-insensitively into a InboundEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseInboundEndpointIDInsensitively(input string) (*InboundEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(InboundEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&InboundEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

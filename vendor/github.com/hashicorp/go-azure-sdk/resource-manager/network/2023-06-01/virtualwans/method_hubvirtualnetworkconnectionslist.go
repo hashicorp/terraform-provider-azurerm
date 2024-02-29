@@ -19,7 +19,8 @@ type HubVirtualNetworkConnectionsListOperationResponse struct {
 }
 
 type HubVirtualNetworkConnectionsListCompleteResult struct {
-	Items []HubVirtualNetworkConnection
+	LatestHttpResponse *http.Response
+	Items              []HubVirtualNetworkConnection
 }
 
 // HubVirtualNetworkConnectionsList ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) HubVirtualNetworkConnectionsListCompleteMatchingPredi
 	}
 
 	result = HubVirtualNetworkConnectionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -116,12 +116,11 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"aad_admin": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				Computed:      true,
-				MaxItems:      1,
-				ConfigMode:    pluginsdk.SchemaConfigModeAttr,
-				ConflictsWith: []string{"customer_managed_key"},
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"login": {
@@ -294,7 +293,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
-				ConflictsWith: []string{"aad_admin", "sql_aad_admin"},
+				ConflictsWith: []string{"sql_aad_admin"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_versionless_id": {
@@ -308,6 +307,11 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 							Default:  "cmk",
+						},
+
+						"user_assigned_identity_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -528,7 +532,10 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
 		d.Set("public_network_access_enabled", resp.PublicNetworkAccess == synapse.WorkspacePublicNetworkAccessEnabled)
 		d.Set("azuread_authentication_only", props.AzureADOnlyAuthentication)
-		cmk := flattenEncryptionDetails(props.Encryption)
+		cmk, err := flattenEncryptionDetails(props.Encryption)
+		if err != nil {
+			return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
+		}
 		if err := d.Set("customer_managed_key", cmk); err != nil {
 			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 		}
@@ -894,7 +901,8 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetails {
 	if cmkList, ok := d.GetOk("customer_managed_key"); ok {
 		cmk := cmkList.([]interface{})[0].(map[string]interface{})
-		return &synapse.EncryptionDetails{
+
+		encryptionDetails := &synapse.EncryptionDetails{
 			Cmk: &synapse.CustomerManagedKeyDetails{
 				Key: &synapse.WorkspaceKeyDetails{
 					Name:        utils.String(cmk["key_name"].(string)),
@@ -902,6 +910,15 @@ func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetai
 				},
 			},
 		}
+
+		if v, ok := cmk["user_assigned_identity_id"]; ok && v.(string) != "" {
+			encryptionDetails.Cmk.KekIdentity = &synapse.KekIdentityProperties{
+				UserAssignedIdentity:      pointer.To(v.(string)),
+				UseSystemAssignedIdentity: false,
+			}
+		}
+
+		return encryptionDetails
 	}
 
 	return nil
@@ -992,25 +1009,25 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 	return false
 }
 
-func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface{} {
-	if encryption != nil {
-		if cmk := encryption.Cmk; cmk != nil {
-			if cmk.Key != nil {
-				resultMap := map[string]interface{}{}
-				resultMap["key_name"] = *cmk.Key.Name
-				resultMap["key_versionless_id"] = *cmk.Key.KeyVaultURL
-				return []interface{}{resultMap}
-			}
-		}
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) ([]interface{}, error) {
+	output := make([]interface{}, 0)
+	if encryption == nil || encryption.Cmk == nil || encryption.Cmk.Key == nil {
+		return output, nil
+	}
+	resultMap := map[string]interface{}{}
 
-		// if cmk := encryption.Cmk; cmk != nil {
-		// 	if key := cmk.Key; key != nil {
-		// 		return key.Name, key.KeyVaultURL
-		// 	}
-		// }
+	resultMap["key_name"] = pointer.From(encryption.Cmk.Key.Name)
+	resultMap["key_versionless_id"] = pointer.From(encryption.Cmk.Key.KeyVaultURL)
+
+	if encryption.Cmk.KekIdentity != nil && encryption.Cmk.KekIdentity.UserAssignedIdentity != nil {
+		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encryption.Cmk.KekIdentity.UserAssignedIdentity))
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", pointer.From(encryption.Cmk.KekIdentity.UserAssignedIdentity), err)
+		}
+		resultMap["user_assigned_identity_id"] = parsed.ID()
 	}
 
-	return make([]interface{}, 0)
+	return append(output, resultMap), nil
 }
 
 func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {

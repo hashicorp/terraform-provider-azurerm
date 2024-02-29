@@ -15,7 +15,12 @@ import (
 type NamespacesListNetworkRuleSetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *NetworkRuleSetListResult
+	Model        *[]NetworkRuleSet
+}
+
+type NamespacesListNetworkRuleSetCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []NetworkRuleSet
 }
 
 // NamespacesListNetworkRuleSet ...
@@ -35,7 +40,7 @@ func (c NetworkRuleSetsClient) NamespacesListNetworkRuleSet(ctx context.Context,
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c NetworkRuleSetsClient) NamespacesListNetworkRuleSet(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]NetworkRuleSet `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// NamespacesListNetworkRuleSetComplete retrieves all the results into a single object
+func (c NetworkRuleSetsClient) NamespacesListNetworkRuleSetComplete(ctx context.Context, id NamespaceId) (NamespacesListNetworkRuleSetCompleteResult, error) {
+	return c.NamespacesListNetworkRuleSetCompleteMatchingPredicate(ctx, id, NetworkRuleSetOperationPredicate{})
+}
+
+// NamespacesListNetworkRuleSetCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c NetworkRuleSetsClient) NamespacesListNetworkRuleSetCompleteMatchingPredicate(ctx context.Context, id NamespaceId, predicate NetworkRuleSetOperationPredicate) (result NamespacesListNetworkRuleSetCompleteResult, err error) {
+	items := make([]NetworkRuleSet, 0)
+
+	resp, err := c.NamespacesListNetworkRuleSet(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = NamespacesListNetworkRuleSetCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -169,7 +170,7 @@ func TestAccDedicatedHost_requiresImport(t *testing.T) {
 }
 
 func (t DedicatedHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := dedicatedhosts.ParseHostID(state.ID)
+	id, err := commonids.ParseDedicatedHostID(state.ID)
 	if err != nil {
 		return nil, err
 	}

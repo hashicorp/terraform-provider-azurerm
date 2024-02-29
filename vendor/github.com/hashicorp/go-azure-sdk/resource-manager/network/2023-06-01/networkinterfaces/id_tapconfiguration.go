@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TapConfigurationId{}
+var _ resourceids.ResourceId = &TapConfigurationId{}
 
 // TapConfigurationId is a struct representing the Resource ID for a Tap Configuration
 type TapConfigurationId struct {
@@ -32,7 +32,7 @@ func NewTapConfigurationID(subscriptionId string, resourceGroupName string, netw
 
 // ParseTapConfigurationID parses 'input' into a TapConfigurationId
 func ParseTapConfigurationID(input string) (*TapConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TapConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&TapConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseTapConfigurationID(input string) (*TapConfigurationId, error) {
 // ParseTapConfigurationIDInsensitively parses 'input' case-insensitively into a TapConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseTapConfigurationIDInsensitively(input string) (*TapConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TapConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&TapConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

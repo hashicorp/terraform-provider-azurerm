@@ -20,7 +20,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []Cluster
+	LatestHttpResponse *http.Response
+	Items              []Cluster
 }
 
 // List ...
@@ -84,7 +85,8 @@ func (c RedisEnterpriseClient) ListCompleteMatchingPredicate(ctx context.Context
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

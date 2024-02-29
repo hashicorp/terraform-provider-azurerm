@@ -55,12 +55,13 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_nginx_deployment" "example" {
-  name                     = "example-nginx"
-  resource_group_name      = azurerm_resource_group.example.name
-  sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
-  location                 = azurerm_resource_group.example.location
-  managed_resource_group   = "example"
-  diagnose_support_enabled = true
+  name                      = "example-nginx"
+  resource_group_name       = azurerm_resource_group.example.name
+  sku                       = "publicpreview_Monthly_gmz7xq9ge3py"
+  location                  = azurerm_resource_group.example.location
+  managed_resource_group    = "example"
+  diagnose_support_enabled  = true
+  automatic_upgrade_channel = "stable"
 
   frontend_public {
     ip_address = [azurerm_public_ip.example.id]
@@ -85,7 +86,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Nginx Deployment should exist. Changing this forces a new Nginx Deployment to be created.
 
-* `sku` - (Required) Specify the Name of Nginx deployment SKU. The possible value are `publicpreview_Monthly_gmz7xq9ge3py` and `standard_Monthly`.
+* `sku` - (Required) Specify the Name of Nginx deployment SKU. The possible value are `publicpreview_Monthly_gmz7xq9ge3py` and `standard_Monthly`. Changing this forces a new Nginx Deployment to be created.
 
 * `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new Nginx Deployment to be created.
 
@@ -109,21 +110,25 @@ The following arguments are supported:
 
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new Nginx Deployment to be created.
 
+* `automatic_upgrade_channel` - (Optional) Specify the automatic upgrade channel for the NGINX deployment. Defaults to `stable`. The possible values are `stable` and `preview`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Nginx Deployment.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values is `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field.
+* `type` - (Required) Specifies the identity type of the Nginx Deployment. Possible values are `UserAssigned`, `SystemAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
 A `frontend_private` block supports the following:
 
-* `allocation_method` - (Required) Specify the methos of allocating the private IP. Possible values are `Static` and `Dynamic`.
+* `allocation_method` - (Required) Specify the method of allocating the private IP. Possible values are `Static` and `Dynamic`.
 
 * `ip_address` - (Required) Specify the IP Address of this private IP.
 
@@ -139,7 +144,7 @@ A `frontend_public` block supports the following:
 
 A `logging_storage_account` block supports the following:
 
-* `container_name` - (Optional) Specify the container name of Stoage Account for logging.
+* `container_name` - (Optional) Specify the container name of Storage Account for logging.
 
 * `name` - (Optional) The account name of the StorageAccount for Nginx Logging.
 

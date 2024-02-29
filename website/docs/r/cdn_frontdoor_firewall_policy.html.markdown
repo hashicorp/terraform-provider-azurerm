@@ -143,6 +143,8 @@ The following arguments are supported:
 
 * `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`.
 
+* `request_body_check_enabled` - (Optional) Should policy managed rules inspect the request body content? Defaults to `true`.
+
 -> **NOTE:** When run in `Detection` mode, the Front Door Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched Front Door Rule to the Web Application Firewall logs.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.

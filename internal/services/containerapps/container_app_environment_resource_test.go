@@ -64,7 +64,22 @@ func TestAccContainerAppEnvironment_complete(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppEnvironment_completeUpdate(t *testing.T) {
+func TestAccContainerAppEnvironment_withWorkloadProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeWithWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id"),
+	})
+}
+
+func TestAccContainerAppEnvironment_updateWorkloadProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
 
@@ -77,9 +92,17 @@ func TestAccContainerAppEnvironment_completeUpdate(t *testing.T) {
 		},
 		data.ImportStep("log_analytics_workspace_id"),
 		{
+			Config: r.completeWithWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id"),
+		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("workload_profile.0.maximum_count").HasValue("3"),
 			),
 		},
 		data.ImportStep("log_analytics_workspace_id"),
@@ -113,6 +136,21 @@ func TestAccContainerAppEnvironment_zoneRedundant(t *testing.T) {
 			),
 		},
 		data.ImportStep("log_analytics_workspace_id"),
+	})
+}
+
+func TestAccContainerAppEnvironment_infraResourceGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.infraResourceGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -189,6 +227,59 @@ resource "azurerm_container_app_environment" "test" {
 `, r.templateVNet(data), data.RandomInteger)
 }
 
+func (r ContainerAppEnvironmentResource) completeWithWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "control" {
+  name                 = "control-plane"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+  delegation {
+    name = "acctestdelegation%[2]d"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.App/environments"
+    }
+  }
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  infrastructure_subnet_id = azurerm_subnet.control.id
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "My-GP-01"
+    workload_profile_type = "D4"
+  }
+
+  zone_redundancy_enabled = true
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+`, r.template(data), data.RandomInteger)
+
+}
+
 func (r ContainerAppEnvironmentResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -196,6 +287,27 @@ provider "azurerm" {
 }
 
 %[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "control" {
+  name                 = "control-plane"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+  delegation {
+    name = "acctestdelegation%[2]d"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.App/environments"
+    }
+  }
+}
 
 resource "azurerm_container_app_environment" "test" {
   name                       = "acctest-CAEnv%[2]d"
@@ -207,11 +319,18 @@ resource "azurerm_container_app_environment" "test" {
 
   internal_load_balancer_enabled = true
 
+  workload_profile {
+    maximum_count         = 3
+    minimum_count         = 0
+    name                  = "My-GP-01"
+    workload_profile_type = "D4"
+  }
+
   tags = {
     Foo = "test"
   }
 }
-`, r.templateVNet(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) completeZoneRedundant(data acceptance.TestData) string {
@@ -300,5 +419,59 @@ resource "azurerm_subnet" "control" {
   address_prefixes     = ["10.0.0.0/23"]
 }
 
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) infraResourceGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "control" {
+  name                 = "control-plane"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/23"]
+  delegation {
+    name = "acctestdelegation%[2]d"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.App/environments"
+    }
+  }
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                     = "acctest-CAEnv%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  infrastructure_subnet_id = azurerm_subnet.control.id
+
+  infrastructure_resource_group_name = "rg-acctest-CAEnv%[2]d"
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "My-GP-01"
+    workload_profile_type = "D4"
+  }
+
+  zone_redundancy_enabled = true
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
 `, r.template(data), data.RandomInteger)
 }

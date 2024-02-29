@@ -37,6 +37,8 @@ output "location" {
 
 * `capacity` - The capacity of the ServiceBus Namespace.
 
+* `premium_messaging_partitions` - The messaging partitions of the ServiceBus Namespace.
+
 * `zone_redundant` - Whether or not this ServiceBus Namespace is zone redundant.
 
 * `endpoint` - The URL to access the ServiceBus Namespace.

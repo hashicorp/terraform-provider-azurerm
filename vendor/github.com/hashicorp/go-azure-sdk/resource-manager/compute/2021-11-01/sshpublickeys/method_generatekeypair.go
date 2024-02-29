@@ -44,7 +44,10 @@ func (c SshPublicKeysClient) GenerateKeyPair(ctx context.Context, id SshPublicKe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SshPublicKeyGenerateKeyPairResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

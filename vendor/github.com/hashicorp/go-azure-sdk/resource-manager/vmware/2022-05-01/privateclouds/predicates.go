@@ -16,7 +16,7 @@ func (p PrivateCloudOperationPredicate) Matches(input PrivateCloud) bool {
 		return false
 	}
 
-	if p.Location != nil && *p.Location != input.Location {
+	if p.Location != nil && (input.Location == nil || *p.Location != *input.Location) {
 		return false
 	}
 

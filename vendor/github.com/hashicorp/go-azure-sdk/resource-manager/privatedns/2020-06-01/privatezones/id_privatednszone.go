@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateDnsZoneId{}
+var _ resourceids.ResourceId = &PrivateDnsZoneId{}
 
 // PrivateDnsZoneId is a struct representing the Resource ID for a Private Dns Zone
 type PrivateDnsZoneId struct {
@@ -30,7 +30,7 @@ func NewPrivateDnsZoneID(subscriptionId string, resourceGroupName string, privat
 
 // ParsePrivateDnsZoneID parses 'input' into a PrivateDnsZoneId
 func ParsePrivateDnsZoneID(input string) (*PrivateDnsZoneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateDnsZoneId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateDnsZoneId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParsePrivateDnsZoneID(input string) (*PrivateDnsZoneId, error) {
 // ParsePrivateDnsZoneIDInsensitively parses 'input' case-insensitively into a PrivateDnsZoneId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateDnsZoneIDInsensitively(input string) (*PrivateDnsZoneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateDnsZoneId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateDnsZoneId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -77,7 +77,10 @@ func (c PolicyClient) CreateOrUpdate(ctx context.Context, id ServiceId, input Po
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PolicyContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

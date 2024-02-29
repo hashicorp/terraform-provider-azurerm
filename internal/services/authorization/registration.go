@@ -8,11 +8,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type Registration struct {
-}
+type Registration struct{}
 
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/authorization"
@@ -33,8 +34,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_client_config":   dataSourceArmClientConfig(),
-		"azurerm_role_definition": dataSourceArmRoleDefinition(),
+		"azurerm_client_config": dataSourceArmClientConfig(),
 	}
 }
 
@@ -42,12 +42,13 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_role_assignment": resourceArmRoleAssignment(),
-		"azurerm_role_definition": resourceArmRoleDefinition(),
 	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		RoleDefinitionDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
@@ -55,6 +56,7 @@ func (r Registration) Resources() []sdk.Resource {
 		PimActiveRoleAssignmentResource{},
 		PimEligibleRoleAssignmentResource{},
 		RoleAssignmentMarketplaceResource{},
+		RoleDefinitionResource{},
 	}
 	return resources
 }

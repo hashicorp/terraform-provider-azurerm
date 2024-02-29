@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
@@ -74,8 +77,13 @@ func (r *ResourceDiff) DiffAll() {
 	if r.md == nil {
 		mark := md.MustNewMarkFromFile(r.MDFile)
 		r.md = mark.BuildResourceDoc()
-
 	}
+
+	if name := r.md.HasCircularRef(); name != "" {
+		r.Diff = append(r.Diff, newCircularRef(name, r.md))
+		return
+	}
+
 	r.Diff = checkPossibleValues(r.tf, r.md)
 
 	missDiff := crossCheckProperty(r.tf, r.md)

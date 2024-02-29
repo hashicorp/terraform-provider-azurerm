@@ -47,7 +47,10 @@ func (c RouteFiltersClient) UpdateTags(ctx context.Context, id RouteFilterId, in
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RouteFilter
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

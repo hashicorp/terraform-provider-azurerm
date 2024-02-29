@@ -172,7 +172,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku_name                    = "ess-monthly-consumption_Monthly"
+  sku_name                    = "ess-consumption-2024_Monthly"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -207,7 +207,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku_name                    = "ess-monthly-consumption_Monthly"
+  sku_name                    = "ess-consumption-2024_Monthly"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
 
   tags = {
@@ -232,7 +232,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku_name                    = "ess-monthly-consumption_Monthly"
+  sku_name                    = "ess-consumption-2024_Monthly"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
   monitoring_enabled          = false
 
@@ -258,7 +258,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku_name                    = "ess-monthly-consumption_Monthly"
+  sku_name                    = "ess-consumption-2024_Monthly"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
 
   logs {
@@ -292,7 +292,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   name                        = "acctest-estc%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
-  sku_name                    = "ess-monthly-consumption_Monthly"
+  sku_name                    = "ess-consumption-2024_Monthly"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
 
   logs {

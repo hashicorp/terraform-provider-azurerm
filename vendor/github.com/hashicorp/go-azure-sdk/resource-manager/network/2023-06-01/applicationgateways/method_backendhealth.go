@@ -18,6 +18,7 @@ type BackendHealthOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApplicationGatewayBackendHealth
 }
 
 type BackendHealthOperationOptions struct {

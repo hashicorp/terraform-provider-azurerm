@@ -72,7 +72,10 @@ func (c SoftwareUpdateConfigurationMachineRunClient) GetById(ctx context.Context
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SoftwareUpdateConfigurationMachineRun
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

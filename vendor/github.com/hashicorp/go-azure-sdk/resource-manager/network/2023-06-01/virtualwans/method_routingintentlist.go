@@ -19,7 +19,8 @@ type RoutingIntentListOperationResponse struct {
 }
 
 type RoutingIntentListCompleteResult struct {
-	Items []RoutingIntent
+	LatestHttpResponse *http.Response
+	Items              []RoutingIntent
 }
 
 // RoutingIntentList ...
@@ -83,7 +84,8 @@ func (c VirtualWANsClient) RoutingIntentListCompleteMatchingPredicate(ctx contex
 	}
 
 	result = RoutingIntentListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -43,7 +43,10 @@ func (c GalleriesClient) Get(ctx context.Context, id GalleryId) (result GetOpera
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Gallery
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -19,7 +19,8 @@ type ListByReplicationNetworksOperationResponse struct {
 }
 
 type ListByReplicationNetworksCompleteResult struct {
-	Items []NetworkMapping
+	LatestHttpResponse *http.Response
+	Items              []NetworkMapping
 }
 
 // ListByReplicationNetworks ...
@@ -83,7 +84,8 @@ func (c ReplicationNetworkMappingsClient) ListByReplicationNetworksCompleteMatch
 	}
 
 	result = ListByReplicationNetworksCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

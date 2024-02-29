@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RemoteRenderingAccountId{}
+var _ resourceids.ResourceId = &RemoteRenderingAccountId{}
 
 // RemoteRenderingAccountId is a struct representing the Resource ID for a Remote Rendering Account
 type RemoteRenderingAccountId struct {
@@ -30,7 +30,7 @@ func NewRemoteRenderingAccountID(subscriptionId string, resourceGroupName string
 
 // ParseRemoteRenderingAccountID parses 'input' into a RemoteRenderingAccountId
 func ParseRemoteRenderingAccountID(input string) (*RemoteRenderingAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RemoteRenderingAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&RemoteRenderingAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseRemoteRenderingAccountID(input string) (*RemoteRenderingAccountId, err
 // ParseRemoteRenderingAccountIDInsensitively parses 'input' case-insensitively into a RemoteRenderingAccountId
 // note: this method should only be used for API response data and not user input
 func ParseRemoteRenderingAccountIDInsensitively(input string) (*RemoteRenderingAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RemoteRenderingAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&RemoteRenderingAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

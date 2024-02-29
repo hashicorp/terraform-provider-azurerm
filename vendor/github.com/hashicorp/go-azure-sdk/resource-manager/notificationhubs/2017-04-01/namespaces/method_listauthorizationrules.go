@@ -19,7 +19,8 @@ type ListAuthorizationRulesOperationResponse struct {
 }
 
 type ListAuthorizationRulesCompleteResult struct {
-	Items []SharedAccessAuthorizationRuleResource
+	LatestHttpResponse *http.Response
+	Items              []SharedAccessAuthorizationRuleResource
 }
 
 // ListAuthorizationRules ...
@@ -83,7 +84,8 @@ func (c NamespacesClient) ListAuthorizationRulesCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

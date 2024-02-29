@@ -72,7 +72,10 @@ func (c WebCategoriesClient) Get(ctx context.Context, id AzureWebCategoryId, opt
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AzureWebCategory
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

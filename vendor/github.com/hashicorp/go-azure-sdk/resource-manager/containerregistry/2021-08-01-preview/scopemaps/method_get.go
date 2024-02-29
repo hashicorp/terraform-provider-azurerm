@@ -43,7 +43,10 @@ func (c ScopeMapsClient) Get(ctx context.Context, id ScopeMapId) (result GetOper
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScopeMap
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

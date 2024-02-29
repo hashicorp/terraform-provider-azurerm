@@ -26,7 +26,12 @@ client.Client.Authorizer = authorizer
 ctx := context.TODO()
 id := expressroutecrossconnectionroutetable.NewExpressRouteCrossConnectionPeeringRouteTableID("12345678-1234-9876-4563-123456789012", "example-resource-group", "expressRouteCrossConnectionValue", "peeringValue", "routeTableValue")
 
-if err := client.ExpressRouteCrossConnectionsListRoutesTableThenPoll(ctx, id); err != nil {
+// alternatively `client.ExpressRouteCrossConnectionsListRoutesTable(ctx, id)` can be used to do batched pagination
+items, err := client.ExpressRouteCrossConnectionsListRoutesTableComplete(ctx, id)
+if err != nil {
 	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```

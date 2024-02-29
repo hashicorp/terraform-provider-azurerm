@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProtectionContainerId{}
+var _ resourceids.ResourceId = &ProtectionContainerId{}
 
 // ProtectionContainerId is a struct representing the Resource ID for a Protection Container
 type ProtectionContainerId struct {
@@ -34,7 +34,7 @@ func NewProtectionContainerID(subscriptionId string, resourceGroupName string, v
 
 // ParseProtectionContainerID parses 'input' into a ProtectionContainerId
 func ParseProtectionContainerID(input string) (*ProtectionContainerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProtectionContainerId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProtectionContainerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseProtectionContainerID(input string) (*ProtectionContainerId, error) {
 // ParseProtectionContainerIDInsensitively parses 'input' case-insensitively into a ProtectionContainerId
 // note: this method should only be used for API response data and not user input
 func ParseProtectionContainerIDInsensitively(input string) (*ProtectionContainerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProtectionContainerId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProtectionContainerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -19,7 +19,8 @@ type SkusListByOfferOperationResponse struct {
 }
 
 type SkusListByOfferCompleteResult struct {
-	Items []Sku
+	LatestHttpResponse *http.Response
+	Items              []Sku
 }
 
 type SkusListByOfferOperationOptions struct {
@@ -111,7 +112,8 @@ func (c SkusesClient) SkusListByOfferCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = SkusListByOfferCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SliceId{}
+var _ resourceids.ResourceId = &SliceId{}
 
 // SliceId is a struct representing the Resource ID for a Slice
 type SliceId struct {
@@ -32,7 +32,7 @@ func NewSliceID(subscriptionId string, resourceGroupName string, mobileNetworkNa
 
 // ParseSliceID parses 'input' into a SliceId
 func ParseSliceID(input string) (*SliceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SliceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SliceId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseSliceID(input string) (*SliceId, error) {
 // ParseSliceIDInsensitively parses 'input' case-insensitively into a SliceId
 // note: this method should only be used for API response data and not user input
 func ParseSliceIDInsensitively(input string) (*SliceId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SliceId{})
+	parser := resourceids.NewParserFromResourceIdType(&SliceId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

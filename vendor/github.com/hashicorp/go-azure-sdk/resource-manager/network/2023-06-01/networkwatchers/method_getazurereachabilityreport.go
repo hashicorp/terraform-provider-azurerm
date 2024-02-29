@@ -18,6 +18,7 @@ type GetAzureReachabilityReportOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AzureReachabilityReport
 }
 
 // GetAzureReachabilityReport ...

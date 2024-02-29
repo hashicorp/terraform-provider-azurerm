@@ -20,7 +20,8 @@ type VirtualMachineInstanceHybridIdentityMetadataListOperationResponse struct {
 }
 
 type VirtualMachineInstanceHybridIdentityMetadataListCompleteResult struct {
-	Items []VMInstanceHybridIdentityMetadata
+	LatestHttpResponse *http.Response
+	Items              []VMInstanceHybridIdentityMetadata
 }
 
 // VirtualMachineInstanceHybridIdentityMetadataList ...
@@ -84,7 +85,8 @@ func (c VMInstanceHybridIdentityMetadataClient) VirtualMachineInstanceHybridIden
 	}
 
 	result = VirtualMachineInstanceHybridIdentityMetadataListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

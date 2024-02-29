@@ -77,7 +77,10 @@ func (c GroupClient) CreateOrUpdate(ctx context.Context, id GroupId, input Group
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GroupContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

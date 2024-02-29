@@ -43,7 +43,10 @@ func (c VirtualApplianceSkusClient) Get(ctx context.Context, id NetworkVirtualAp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkVirtualApplianceSku
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

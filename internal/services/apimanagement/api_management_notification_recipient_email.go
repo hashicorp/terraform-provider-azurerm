@@ -94,17 +94,15 @@ func (r ApiManagementNotificationRecipientEmailResource) Create() sdk.ResourceFu
 
 			// CheckEntityExists can not be used, it returns autorest error
 			notificationId := notificationrecipientemail.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientemail.NotificationName(model.NotificationName))
-			emails, err := client.ListByNotification(ctx, notificationId)
+			emails, err := client.ListByNotificationComplete(ctx, notificationId)
 			if err != nil {
-				if !response.WasNotFound(emails.HttpResponse) {
+				if !response.WasNotFound(emails.LatestHttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if m := emails.Model; m != nil && m.Value != nil {
-				for _, existing := range *m.Value {
-					if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == model.Email {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
-					}
+			for _, existing := range emails.Items {
+				if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == model.Email {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
@@ -132,19 +130,17 @@ func (r ApiManagementNotificationRecipientEmailResource) Read() sdk.ResourceFunc
 
 			// CheckEntityExists can not be used, it returns autorest error
 			notificationId := notificationrecipientemail.NewNotificationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.NotificationName)
-			emails, err := client.ListByNotification(ctx, notificationId)
+			emails, err := client.ListByNotificationComplete(ctx, notificationId)
 			if err != nil {
-				if !response.WasNotFound(emails.HttpResponse) {
+				if !response.WasNotFound(emails.LatestHttpResponse) {
 					return fmt.Errorf("retrieving %s: %+v", notificationId, err)
 				}
 			}
 
 			found := false
-			if model := emails.Model; model != nil && model.Value != nil {
-				for _, existing := range *model.Value {
-					if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == id.RecipientEmailName {
-						found = true
-					}
+			for _, existing := range emails.Items {
+				if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == id.RecipientEmailName {
+					found = true
 				}
 			}
 
