@@ -436,7 +436,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	requireNsgRules := d.Get("network_security_group_rules_required").(string)
 	customParamsRaw := d.Get("custom_parameters").([]interface{})
-	managedServicesKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
+	managedKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
 	customParams, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, customerEncryptionEnabled, infrastructureEncryptionEnabled, backendPoolName, loadBalancerId)
 
 	if len(customParamsRaw) > 0 && customParamsRaw[0] != nil {
@@ -474,10 +474,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		// the key vault exists in the same subscription as the workspace...
 		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
 
-		if managedServicesKeyVaultId != "" {
-			kvId, err := commonids.ParseKeyVaultID(managedServicesKeyVaultId)
+		if managedKeyVaultId != "" {
+			kvId, err := commonids.ParseKeyVaultID(managedKeyVaultId)
 			if err != nil {
-				return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedServicesKeyVaultId, err)
+				return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedKeyVaultId, err)
 			}
 
 			subscriptionResourceId = commonids.NewSubscriptionID(kvId.SubscriptionId)
@@ -512,10 +512,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		// the key vault exists in the same subscription as the workspace...
 		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
 
-		if managedServicesKeyVaultId != "" {
-			kvId, err := commonids.ParseKeyVaultID(managedServicesKeyVaultId)
+		if managedKeyVaultId != "" {
+			kvId, err := commonids.ParseKeyVaultID(managedKeyVaultId)
 			if err != nil {
-				return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedServicesKeyVaultId, err)
+				return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedKeyVaultId, err)
 			}
 
 			subscriptionResourceId = commonids.NewSubscriptionID(kvId.SubscriptionId)
@@ -600,7 +600,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	d.Set("managed_services_cmk_key_vault_key_id", servicesKeyIdRaw)
 	d.Set("managed_disk_cmk_key_vault_key_id", diskKeyIdRaw)
-	d.Set("managed_cmk_key_vault_id", managedServicesKeyVaultId)
+	d.Set("managed_cmk_key_vault_id", managedKeyVaultId)
 
 	return resourceDatabricksWorkspaceRead(d, meta)
 }
@@ -738,8 +738,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("disk_encryption_set_id", model.Properties.DiskEncryptionSetId)
 		}
 
-		managedServicesKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
-		d.Set("managed_cmk_key_vault_id", managedServicesKeyVaultId)
+		managedKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
+		d.Set("managed_cmk_key_vault_id", managedKeyVaultId)
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}
