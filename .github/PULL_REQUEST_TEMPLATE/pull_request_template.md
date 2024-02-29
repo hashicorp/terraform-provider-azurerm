@@ -60,6 +60,7 @@ Fixes #0000
 
 - [ ] Bug Fix
 - [ ] New Feature
+- [ ] Enhancement
 
 
 
