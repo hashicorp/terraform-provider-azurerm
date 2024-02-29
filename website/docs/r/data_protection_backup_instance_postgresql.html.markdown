@@ -92,8 +92,8 @@ resource "azurerm_key_vault" "example" {
   }
 
   access_policy {
-    tenant_id = azurerm_data_protection_backup_vault.example.identity.0.tenant_id
-    object_id = azurerm_data_protection_backup_vault.example.identity.0.principal_id
+    tenant_id = azurerm_data_protection_backup_vault.example.identity[0].tenant_id
+    object_id = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 
     key_permissions = ["Create", "Get"]
 
@@ -124,7 +124,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = azurerm_postgresql_server.example.id
   role_definition_name = "Reader"
-  principal_id         = azurerm_data_protection_backup_vault.example.identity.0.principal_id
+  principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 
 resource "azurerm_data_protection_backup_instance_postgresql" "example" {
