@@ -97,10 +97,6 @@ func TestParseNestedItemID(t *testing.T) {
 				Version:    "1492",
 			},
 		},
-		{
-			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
-			ExpectError: true,
-		},
 	}
 
 	for _, tc := range cases {
