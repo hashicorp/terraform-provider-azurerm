@@ -51,7 +51,7 @@ func TestAccAzureStaticWebApp_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("api_key").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("basic_auth.0.password"),
 	})
 }
 
@@ -77,7 +77,7 @@ func TestAccAzureStaticWebApp_completeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("api_key").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("basic_auth.0.password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -619,6 +619,9 @@ resource "azurerm_static_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_size            = "Standard"
   sku_tier            = "Standard"
+
+  configuration_file_changes_enabled = false
+  preview_environments_enabled       = false
 
   identity {
     type         = "SystemAssigned, UserAssigned"

@@ -362,12 +362,15 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-				if ident.Type != identity.TypeNone {
-					model.Identity = ident
-				} else {
-					model.Identity = &identity.SystemAndUserAssignedMap{}
+				model.Identity = ident
+				// If we're changing to `Free` we must remove the Identity first
+				if strings.EqualFold(string(resourceproviders.SkuNameFree), config.SkuTier) {
+					if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, *id, model); err != nil {
+						return fmt.Errorf("creating %s: %+v", id, err)
+					}
+					// Once removed, the identity payload needs to be nilled or the API validation for `Free` will reject the request
+					model.Identity = nil
 				}
-
 			}
 
 			if metadata.ResourceData.HasChanges("sku_tier", "sku_size") {
@@ -382,7 +385,7 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("preview_environments_enabled") {
-				if config.PreviewEnvironments {
+				if !config.PreviewEnvironments {
 					model.Properties.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyDisabled)
 				} else {
 					model.Properties.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyEnabled)
