@@ -75,7 +75,7 @@ Examples of poorly written PR titles:
 
 ### Body
 
-Our PR template will include a community note and a PR checklist. It will have additional checkboxes for new feature submissions, updating existing resources, documentation changes depending on the type of PR. Finally it will have a description section, linked issues and the changelog.
+An example of our PR template is shown below.
 
 #### Community Note
 <!-- Please leave the community note as is. -->
