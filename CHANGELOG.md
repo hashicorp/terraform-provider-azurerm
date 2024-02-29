@@ -6,9 +6,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240227.1172434` of `github.com/hashicorp/go-azure-sdk` [GH-25055]
+* dependencies: updating to `v0.20240228.1142829` of `github.com/hashicorp/go-azure-sdk` [GH-25081]
 * `servicefabric`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25002]
 * `springcloud`: updating to API Version `2024-01-01-preview` [GH-24937]
+* `securitycenter`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25081]
 * Data Source: `azurerm_storage_table_entities` - support for `select` [GH-24987]
 * Data Source: `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
 * `azurerm_cosmosdb_account` - add support for `minimal_tls_version` [GH-24966]
