@@ -489,6 +489,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.Any(
 								dnsValidate.ValidateDnsZoneID,
+								privatezones.ValidatePrivateDnsZoneID,
 								validation.StringIsEmpty,
 							),
 						},
