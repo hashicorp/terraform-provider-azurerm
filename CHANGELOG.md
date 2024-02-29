@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_pool` - support for the `encryption_type` property [GH-24993]
 * `azurerm_role_definition` - upgrade to the API version `2022-05-01-preview` [GH-25008]
 * `azurerm_redis_cache` - allow AAD auth for all SKUs [GH-25006]
+* `azurerm_sql_managed_instance` - support for the `zone_redundant_enabled` property [GH-25089]
 * `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_ids` property [GH-24919]
 * `azurerm_spring_cloud_configuration_service` - support for the `refresh_interval_in_seconds` property [GH-25009]
 * `azurerm_synapse_workspace` - add support for `user_assigned_identity_id` within `customer_managed_key` [GH-25027]
