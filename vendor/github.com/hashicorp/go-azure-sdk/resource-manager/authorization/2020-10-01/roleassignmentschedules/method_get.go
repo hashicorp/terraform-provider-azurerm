@@ -43,7 +43,10 @@ func (c RoleAssignmentSchedulesClient) Get(ctx context.Context, id ScopedRoleAss
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleAssignmentSchedule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
