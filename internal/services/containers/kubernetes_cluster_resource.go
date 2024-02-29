@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
@@ -978,7 +978,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"node_provisioning_mode": "",
+			"node_provisioning_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.NodeProvisioningModeManual),
+					string(managedclusters.NodeProvisioningModeAuto),
+				}, false),
+			},
 
 			"key_management_service": {
 				Type:     pluginsdk.TypeList,
@@ -2164,6 +2171,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.NetworkProfile.OutboundType = pointer.To(managedclusters.OutboundType(d.Get(key).(string)))
 		}
 	}
+
+	if key := "node_provisioning_mode"; d.HasChange(key) {
+		updateCluster = true
+		nodeProvisioningMode := d.Get(key).(string)
+		existing.Model.Properties.NodeProvisioningProfile.Mode = pointer.To(managedclusters.NodeProvisioningProfileMode(nodeProvisioningMode))
+	}
+
 	if d.HasChange("service_mesh_profile") {
 		updateCluster = true
 		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), existing.Model.Properties.ServiceMeshProfile); serviceMeshProfile != nil {
