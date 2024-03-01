@@ -49,7 +49,7 @@ Example:
 Fixes #0000
 
 ## Change Log
-Below please provide what should go into the changelog (if anything) conforning to the [Changelog Format documentated here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-changelog.md).
+Below please provide what should go into the changelog (if anything) conforming to the [Changelog Format documented here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-changelog.md).
 
 <!-- Replace the changelog example below with your entry. One resource per line. -->
 
