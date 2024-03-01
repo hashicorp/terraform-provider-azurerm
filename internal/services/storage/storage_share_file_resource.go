@@ -134,19 +134,6 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := files.NewFileID(*accountId, storageShareId.ShareName, path, fileName)
 
-	fileSharesClient, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-	if err != nil {
-		return fmt.Errorf("building File Share Directories Client: %v", err)
-	}
-
-	share, err := fileSharesClient.Get(ctx, storageShareId.ShareName)
-	if err != nil {
-		return fmt.Errorf("retrieving Share %q for File %q: %v", storageShareId.ShareName, fileName, err)
-	}
-	if share == nil {
-		return fmt.Errorf("unable to locate Storage Share %q", storageShareId.ShareName)
-	}
-
 	client, err := storageClient.FileShareFilesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building File Share Directories Client: %s", err)
@@ -226,19 +213,6 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 	}
 
-	fileSharesClient, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-	if err != nil {
-		return fmt.Errorf("building File Share Directories Client: %v", err)
-	}
-
-	share, err := fileSharesClient.Get(ctx, id.ShareName)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %v", id, err)
-	}
-	if share == nil {
-		return fmt.Errorf("unable to locate Storage Share %q", id.ShareName)
-	}
-
 	client, err := storageClient.FileShareFilesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building File Share Files Client: %v", err)
@@ -288,21 +262,6 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	if account == nil {
 		log.Printf("[WARN] Unable to determine Storage Account for %s - assuming removed & removing from state", id)
-		d.SetId("")
-		return nil
-	}
-
-	fileSharesClient, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-	if err != nil {
-		return fmt.Errorf("building File Share Directories Client: %s", err)
-	}
-
-	share, err := fileSharesClient.Get(ctx, id.ShareName)
-	if err != nil {
-		return fmt.Errorf("retrieving Share %q for File %q: %s", id.ShareName, id.FileName, err)
-	}
-	if share == nil {
-		log.Printf("[WARN] Unable to determine Storage Share for %s - assuming removed & removing from state", id)
 		d.SetId("")
 		return nil
 	}

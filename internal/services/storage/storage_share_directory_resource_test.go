@@ -34,6 +34,21 @@ func TestAccStorageShareDirectory_basic(t *testing.T) {
 	})
 }
 
+func TestAccStorageShareDirectory_basicAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
+	r := StorageShareDirectoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAzureADAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageShareDirectory_basicDeprecated(t *testing.T) {
 	// TODO: remove test in v4.0
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
@@ -201,6 +216,39 @@ resource "azurerm_storage_share_directory" "test" {
   storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
+}
+
+func (r StorageShareDirectoryResource) basicAzureADAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "fileshare"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 50
+}
+
+resource "azurerm_storage_share_directory" "test" {
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageShareDirectoryResource) basicDeprecated(data acceptance.TestData) string {

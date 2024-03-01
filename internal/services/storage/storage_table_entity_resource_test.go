@@ -34,6 +34,21 @@ func TestAccTableEntity_basic(t *testing.T) {
 	})
 }
 
+func TestAccTableEntity_basicAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
+	r := StorageTableEntityResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAzureADAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccTableEntity_basicDeprecated(t *testing.T) {
 	// TODO: remove test in v4.0
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
@@ -210,6 +225,43 @@ resource "azurerm_storage_table_entity" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r StorageTableEntityResource) basicAzureADAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%[1]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_storage_table_entity" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+
+  partition_key = "test_partition%[1]d"
+  row_key       = "test_row%[1]d"
+  entity = {
+    Foo = "Bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageTableEntityResource) basicDeprecated(data acceptance.TestData) string {

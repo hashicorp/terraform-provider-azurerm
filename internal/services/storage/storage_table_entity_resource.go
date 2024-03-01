@@ -176,7 +176,7 @@ func resourceStorageTableEntityCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if !response.WasNotFound(existing.HttpResponse) {
+	if !response.WasNotFound(existing.HttpResponse) && !response.WasForbidden(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_storage_table_entity", id.ID())
 	}
 

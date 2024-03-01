@@ -176,7 +176,7 @@ func (client Client) DataLakePathsDataPlaneClient(ctx context.Context, account a
 }
 
 func (client Client) FileShareDirectoriesDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (*directories.Client, error) {
-	const clientName = "File Storage Shares"
+	const clientName = "File Storage Share Directories"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
 	baseUri, err := account.DataPlaneEndpoint(EndpointTypeFile)
@@ -220,7 +220,7 @@ func (client Client) FileShareFilesDataPlaneClient(ctx context.Context, account 
 }
 
 func (client Client) FileSharesDataPlaneClient(ctx context.Context, account accountDetails, operation DataPlaneOperation) (shim.StorageShareWrapper, error) {
-	const clientName = "File Storage Share Shares"
+	const clientName = "File Storage Shares"
 	operation.sharedKeyAuthenticationType = auth.SharedKey
 
 	baseUri, err := account.DataPlaneEndpoint(EndpointTypeFile)
