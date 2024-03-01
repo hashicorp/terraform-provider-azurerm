@@ -37,6 +37,7 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
+						"Consumption",
 						"D4",
 						"D8",
 						"D16",
