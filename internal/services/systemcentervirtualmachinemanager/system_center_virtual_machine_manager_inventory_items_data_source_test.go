@@ -31,6 +31,8 @@ func (d SystemCenterVirtualMachineManagerInventoryItemsDataSource) basic(data ac
 	return fmt.Sprintf(`
 %s
 
+// Inventory Items List API doesn't immediately return the list of Inventory Items after System Center Virtual Machine Manager Server is created
+// Once the issue https://github.com/Azure/azure-rest-api-specs/issues/28022 is fixed, this part could be removed
 resource "time_sleep" "wait_1_minute" {
   depends_on = [azurerm_system_center_virtual_machine_manager_server.test]
 
