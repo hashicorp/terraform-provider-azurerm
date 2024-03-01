@@ -343,7 +343,7 @@ service/synapse:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_synapse_((.|\n)*)###'
 
 service/systemcentervirtualmachinemanager:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_system_center_virtual_machine_manager_server((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_system_center_virtual_machine_manager_((.|\n)*)###'
 
 service/traffic-manager:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_traffic_manager_((.|\n)*)###'
