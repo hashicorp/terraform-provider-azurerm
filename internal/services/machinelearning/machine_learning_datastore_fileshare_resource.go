@@ -161,6 +161,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 
 			props := &datastore.AzureFileDatastore{
 				AccountName:                   fileShareId.StorageAccountName,
+				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				FileShareName:                 fileShareId.FileshareName,
 				Description:                   pointer.To(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
