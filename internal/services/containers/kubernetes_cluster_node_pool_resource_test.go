@@ -565,25 +565,27 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data, "2"),
+			Config: r.upgradeSettingsConfig(data, "2", 35),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("2"),
 				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("2"),
+				check.That(data.ResourceName).Key("upgrade_settings.0.drain_timeout_in_minutes").HasValue("35"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, "4"),
+			Config: r.upgradeSettingsConfig(data, "4", 40),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("2"),
 				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("4"),
+				check.That(data.ResourceName).Key("upgrade_settings.0.drain_timeout_in_minutes").HasValue("40"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, "10%"),
+			Config: r.upgradeSettingsConfig(data, "", 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),

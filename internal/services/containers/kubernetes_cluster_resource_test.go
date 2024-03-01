@@ -707,11 +707,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
 }
 
-func (r KubernetesClusterResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
+func (r KubernetesClusterResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string, drainTimeoutInMinutes int) string {
 	if maxSurge != "" {
 		maxSurge = fmt.Sprintf(`upgrade_settings {
-    max_surge = %q
-  }`, maxSurge)
+    max_surge                = %q
+    drain_timeout_in_minutes = %d
+  }`, maxSurge, drainTimeoutInMinutes)
 	}
 
 	return fmt.Sprintf(`
