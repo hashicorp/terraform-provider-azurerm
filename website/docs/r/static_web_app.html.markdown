@@ -55,9 +55,9 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The Type of Managed Identity assigned to this Static Site resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The Type of Managed Identity assigned to this Static Web App resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) A list of Managed Identity IDs which should be assigned to this Static Site resource.
+* `identity_ids` - (Optional) A list of Managed Identity IDs which should be assigned to this Static Web App resource.
 
 ---
 
@@ -77,15 +77,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_host_name` - The default host name of the Static Web App.
 
-* `identity` - (Optional) An `identity` block as defined below which contains the Managed Service Identity information for this resource.
-
----
-
-An `identity` block exports the following:
-
-* `type` - (Required) The Type of Managed Identity assigned to this resource. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
-
-* `principal_id` - (Optional) The Principal ID associated with this Managed Service Identity.
 
 ## Timeouts
 

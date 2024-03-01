@@ -28,22 +28,16 @@ type StaticWebAppDataSourceModel struct {
 	Name                string                                     `tfschema:"name"`
 	ResourceGroupName   string                                     `tfschema:"resource_group_name"`
 	Location            string                                     `tfschema:"location"`
+	ApiKey              string                                     `tfschema:"api_key"`
 	AppSettings         map[string]string                          `tfschema:"app_settings"`
-	BasicAuth           []helpers.BasicAuth                        `tfschema:"basic_auth"`
+	BasicAuth           []helpers.BasicAuthComputed                `tfschema:"basic_auth"`
 	ConfigFileChanges   bool                                       `tfschema:"configuration_file_changes_enabled"`
+	DefaultHostName     string                                     `tfschema:"default_host_name"`
 	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	PreviewEnvironments bool                                       `tfschema:"preview_environments_enabled"`
 	SkuTier             string                                     `tfschema:"sku_tier"`
 	SkuSize             string                                     `tfschema:"sku_size"`
 	Tags                map[string]string                          `tfschema:"tags"`
-
-	// TODO
-	// CustomDomains []string `tfschema:"custom_domains"`
-	// DatabaseConnections ??
-	//
-
-	ApiKey          string `tfschema:"api_key"`
-	DefaultHostName string `tfschema:"default_host_name"`
 }
 
 func (s StaticWebAppDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -189,9 +183,8 @@ func (s StaticWebAppDataSource) Read() sdk.ResourceFunc {
 			}
 			if !response.WasNotFound(auth.HttpResponse) {
 				if authModel := auth.Model; authModel != nil && authModel.Properties != nil && !strings.EqualFold(authModel.Properties.ApplicableEnvironmentsMode, helpers.EnvironmentsTypeSpecifiedEnvironments) {
-					state.BasicAuth = []helpers.BasicAuth{
+					state.BasicAuth = []helpers.BasicAuthComputed{
 						{
-							Password:     metadata.ResourceData.Get("basic_auth.0.password").(string), // Grab this from the config, if we can.
 							Environments: authModel.Properties.ApplicableEnvironmentsMode,
 						},
 					}

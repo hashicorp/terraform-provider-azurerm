@@ -12,6 +12,10 @@ type BasicAuth struct {
 	Environments string `tfschema:"environments"` // AllEnvironments, StagingEnvironments
 }
 
+type BasicAuthComputed struct {
+	Environments string `tfschema:"environments"` // AllEnvironments, StagingEnvironments
+}
+
 const (
 	EnvironmentsTypeAllEnvironments       string = "AllEnvironments"
 	EnvironmentsTypeStagingEnvironments   string = "StagingEnvironments"
@@ -53,11 +57,6 @@ func BasicAuthSchemaComputed() *pluginsdk.Schema {
 		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*schema.Schema{
-				"password": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-
 				"environments": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
