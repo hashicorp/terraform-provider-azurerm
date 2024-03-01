@@ -31,8 +31,7 @@ func (d SystemCenterVirtualMachineManagerInventoryItemsDataSource) basic(data ac
 	return fmt.Sprintf(`
 %s
 
-// Inventory Items List API doesn't immediately return the list of Inventory Items after System Center Virtual Machine Manager Server is created
-// Once the issue https://github.com/Azure/azure-rest-api-specs/issues/28022 is fixed, this part could be removed
+// Service team confirmed that waiting to sync Inventory Items in System Center Virtual Machine Manager Server is expected behaviour since the backend operator creates CRD (Custom Resource Definitions) for all the existing resources from onPrem and create InventoryItem resources which takes some time depending upon the number of resources after PUT System Center Virtual Machine Manager Server operation
 resource "time_sleep" "wait_1_minute" {
   depends_on = [azurerm_system_center_virtual_machine_manager_server.test]
 
