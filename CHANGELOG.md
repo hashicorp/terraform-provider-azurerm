@@ -12,11 +12,11 @@ ENHANCEMENTS:
 * `securitycenter`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25081]
 * Data Source: `azurerm_storage_table_entities` - support for `select` [GH-24987]
 * Data Source: `azurerm_netapp_volume` - support for the `smb_access_based_enumeration` and `smb_non_browsable` properties [GH-24514]
-* `azurerm_cosmosdb_account` - add support for `minimal_tls_version` [GH-24966]
+* `azurerm_cosmosdb_account` - add support for the `minimal_tls_version` property [GH-24966]
 * `azurerm_federated_identity_credential` - the federated credentials can now be changed without creating a new resource [GH-25003]
 * `azurerm_kubernetes_cluster` - support for the `current_kubernetes_version` property [GH-25079]
-* `azurerm_kubernetes_cluster` - private DNS is now allowed for `web_app_routing` [GH-25038]
-* `azurerm_kubernetes_cluster` - migration between different `outbound_type` is now allowed [GH-25021]
+* `azurerm_kubernetes_cluster` - private DNS is now allowed for the `web_app_routing` property [GH-25038]
+* `azurerm_kubernetes_cluster` - migration between different `outbound_type`s is now allowed [GH-25021]
 * `azurerm_mssql_database` - support for the `recovery_point_id` and `restore_long_term_retention_backup_id` properties [GH-24904]
 * `azurerm_linux_virtual_machine` - support for the `automatic_upgrade_enabled`, `disk_controller_type`, `os_image_notification`, `treat_failure_as_deployment_failure_enabled`, and `vm_agent_platform_updates_enabled`properties [GH-23394]
 * `azurerm_nginx_deployment` - support for the `automatic_upgrade_channel` property [GH-24867]
@@ -27,7 +27,7 @@ ENHANCEMENTS:
 * `azurerm_sql_managed_instance` - support for the `zone_redundant_enabled` property [GH-25089]
 * `azurerm_spring_cloud_gateway` - support for the `application_performance_monitoring_ids` property [GH-24919]
 * `azurerm_spring_cloud_configuration_service` - support for the `refresh_interval_in_seconds` property [GH-25009]
-* `azurerm_synapse_workspace` - add support for `user_assigned_identity_id` within `customer_managed_key` [GH-25027]
+* `azurerm_synapse_workspace` - support for using the `user_assigned_identity_id` property within the `customer_managed_key` block [GH-25027]
 * `azurerm_windows_virtual_machine` - support for the `automatic_upgrade_enabled`, `disk_controller_type`, `os_image_notification`, `treat_failure_as_deployment_failure_enabled`, and `vm_agent_platform_updates_enabled`properties [GH-23394]
 
 BUG FIXES:
