@@ -9,12 +9,12 @@
 
 ## PR Checklist
 
-- [ ] Have you followed the guidelines in our [Contributing Documentation](../contributing/README.md)?
-- [ ] Have you checked to ensure there aren't other open [Pull Requests](../../../pulls) for the same update/change?
-- [ ] Have you used a meaningful PR description to help maintainers and other users understand this change and help prevent duplicate work?
+- [ ] I have followed the guidelines in our [Contributing Documentation](../contributing/README.md).
+- [ ] I have checked to ensure there aren't other open [Pull Requests](../../../pulls) for the same update/change.
+- [ ] I have used a meaningful PR description to help maintainers and other users understand this change and help prevent duplicate work.
 Example:
 “`resource_name_here` - description of change e.g. adding property `new_property_name_here`”
-- [ ] Do your changes close any open issues? If so please include appropriate [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) below.
+- [ ] I have checked if my changes close any open issues. If so please include appropriate [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) below.
 
 
 <!-- You can erase any parts of this template below this point that are not applicable to your Pull Request. -->
@@ -22,14 +22,14 @@ Example:
 
 ## New Feature Submissions
 
-- [ ] Does your submission include Test coverage as described in the [Contribution Guide](../contributing/topics/guide-new-resource.md) and the tests pass? (if this is not possible for any reason, please include details of why below)
+- [ ] My submission includes Test coverage as described in the [Contribution Guide](../contributing/topics/guide-new-resource.md) and the tests pass. (if this is not possible for any reason, please include details of why below)
 
 
 ## Changes to existing Resource / Data Source
 
-- [ ] Have you added an explanation of what your changes do and why you'd like us to include them? (This may be covered by linking to an issue above, but may benefit from additional explanation)
-- [ ] Have you written new tests for your resource or datasource changes?
-- [ ] Have you successfully run tests with your changes locally? If not, please provide details on testing challenges that prevented you running the tests.
+- [ ] I have added an explanation of what my changes do and why I'd like you to include them (This may be covered by linking to an issue above, but may benefit from additional explanation).
+- [ ] I have written new tests for my resource or datasource changes.
+- [ ] I have successfully run tests with my changes locally. If not, please provide details on testing challenges that prevented you running the tests.
 
 
 ## Documentation Changes
@@ -47,9 +47,9 @@ Example:
 
 ## Related Issue(s)
 Fixes #0000
-## Change Log
 
-[Changelog Format](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-changelog.md)
+## Change Log
+Below please provide what should go into the changelog (if anything) conforning to the [Changelog Format documentated here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-changelog.md).
 
 <!-- Replace the changelog example below with your entry. One resource per line. -->
 
@@ -57,6 +57,7 @@ Fixes #0000
 
 
 <!-- What type of PR is this? -->
+This is a (please select all that apply):
 
 - [ ] Bug Fix
 - [ ] New Feature
@@ -65,6 +66,7 @@ Fixes #0000
 
 
 
-> [!NOTE] If this PR changes meaningfully during the course of review please update the title and description as required.
+> [!NOTE] 
+> If this PR changes meaningfully during the course of review please update the title and description as required.
 
 
