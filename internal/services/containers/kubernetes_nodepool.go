@@ -1179,8 +1179,13 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		agentpool.Properties.ScaleDownMode = pointer.To(agentpools.ScaleDownMode(string(*scaleDownModeNodePool)))
 	}
 	agentpool.Properties.UpgradeSettings = &agentpools.AgentPoolUpgradeSettings{}
-	if upgradeSettingsNodePool := defaultCluster.UpgradeSettings; upgradeSettingsNodePool != nil && upgradeSettingsNodePool.MaxSurge != nil && *upgradeSettingsNodePool.MaxSurge != "" {
-		agentpool.Properties.UpgradeSettings.MaxSurge = upgradeSettingsNodePool.MaxSurge
+	if upgradeSettingsNodePool := defaultCluster.UpgradeSettings; upgradeSettingsNodePool != nil {
+		if upgradeSettingsNodePool.MaxSurge != nil && *upgradeSettingsNodePool.MaxSurge != "" {
+			agentpool.Properties.UpgradeSettings.MaxSurge = upgradeSettingsNodePool.MaxSurge
+		}
+		if upgradeSettingsNodePool.DrainTimeoutInMinutes != nil && *upgradeSettingsNodePool.DrainTimeoutInMinutes != int64(0) {
+			agentpool.Properties.UpgradeSettings.DrainTimeoutInMinutes = upgradeSettingsNodePool.DrainTimeoutInMinutes
+		}
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
 		agentpool.Properties.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
@@ -1829,20 +1834,17 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
-	maxSurge := ""
-	if input != nil && input.MaxSurge != nil {
-		maxSurge = *input.MaxSurge
+	values := make(map[string]interface{})
+
+	if input != nil && input.MaxSurge != nil && *input.MaxSurge != "" {
+		values["max_surge"] = *input.MaxSurge
 	}
 
-	if maxSurge == "" {
-		return []interface{}{}
+	if input != nil && input.DrainTimeoutInMinutes != nil && *input.DrainTimeoutInMinutes != 0 {
+		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"max_surge": maxSurge,
-		},
-	}
+	return []interface{}{values}
 }
 
 func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) []interface{} {
@@ -2199,12 +2201,21 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.AgentPoolUpgradeSettings {
 	setting := &managedclusters.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
+		fmt.Println("No upgrade settings found")
 		return setting
 	}
 
 	v := input[0].(map[string]interface{})
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = utils.String(maxSurgeRaw)
+		fmt.Println("Setting max surge to", maxSurgeRaw)
+	}
+	if drainTimeoutInMinutesRaw := int64(v["drain_timeout_in_minutes"].(int)); drainTimeoutInMinutesRaw != int64(0) {
+		setting.DrainTimeoutInMinutes = utils.Int64(drainTimeoutInMinutesRaw)
+		fmt.Println("Setting drain timeout in minutes to", drainTimeoutInMinutesRaw)
+	}
+	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int64); drainTimeoutInMinutesRaw != int64(0) {
+		setting.DrainTimeoutInMinutes = utils.Int64(drainTimeoutInMinutesRaw)
 	}
 	return setting
 }
