@@ -291,7 +291,9 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 			Config: r.upgradeSettingsConfig(data, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("0"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
 			),
 		},
 		data.ImportStep(),

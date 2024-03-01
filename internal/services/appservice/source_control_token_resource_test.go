@@ -9,11 +9,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // (@jackofallops) Note: These tests require a valid GitHub token for ARM_GITHUB_ACCESS_TOKEN. This token needs the `repo` and `workflow` permissions on the referenced repositories.
@@ -65,17 +67,17 @@ func TestAccSourceControlGitHubToken_requiresImport(t *testing.T) {
 }
 
 func (r AppServiceGitHubTokenResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resp, err := client.AppService.BaseClient.GetSourceControl(ctx, "GitHub")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), err
+	resp, err := client.AppService.ResourceProvidersClient.GetSourceControl(ctx, resourceproviders.NewSourceControlID("GitHub"))
+	if err != nil || resp.Model == nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), err
 		}
 		return nil, fmt.Errorf("retrieving Source Control GitHub Token")
 	}
-	if resp.Token == nil || *resp.Token == "" {
-		return utils.Bool(false), nil
+	if resp.Model.Properties == nil || pointer.From(resp.Model.Properties.Token) == "" {
+		return pointer.To(false), nil
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r AppServiceGitHubTokenResource) basic(token string) string {

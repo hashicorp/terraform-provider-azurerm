@@ -1153,20 +1153,17 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 }
 
 func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []interface{} {
-	maxSurge := ""
-	if input != nil && input.MaxSurge != nil {
-		maxSurge = *input.MaxSurge
+	values := make(map[string]interface{})
+
+	if input != nil && input.MaxSurge != nil && *input.MaxSurge != "" {
+		values["max_surge"] = *input.MaxSurge
 	}
 
-	if maxSurge == "" {
-		return []interface{}{}
+	if input != nil && input.DrainTimeoutInMinutes != nil && *input.DrainTimeoutInMinutes != 0 {
+		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"max_surge": maxSurge,
-		},
-	}
+	return []interface{}{values}
 }
 
 func expandNodeLabels(input map[string]interface{}) *map[string]string {
