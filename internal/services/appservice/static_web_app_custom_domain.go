@@ -45,8 +45,7 @@ func (r StaticWebAppCustomDomainResource) Arguments() map[string]*schema.Schema 
 
 		"validation_type": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  helpers.ValidationTypeTXT,
+			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				helpers.ValidationTypeTXT,
