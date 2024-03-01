@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -87,7 +88,11 @@ func (td TestData) CheckWithClientForResource(check ClientCheckFunc, resourceNam
 			if err != nil {
 				return fmt.Errorf("building client: %+v", err)
 			}
-			return check(client.StopContext, client, rs.Primary)
+
+			ctx, cancel := context.WithTimeout(client.StopContext, 5*time.Minute)
+			defer cancel()
+
+			return check(ctx, client, rs.Primary)
 		},
 	)
 }
@@ -101,7 +106,11 @@ func (td TestData) CheckWithClientWithoutResource(check ClientCheckFunc) resourc
 			if err != nil {
 				return fmt.Errorf("building client: %+v", err)
 			}
-			return check(client.StopContext, client, nil)
+
+			ctx, cancel := context.WithTimeout(client.StopContext, 5*time.Minute)
+			defer cancel()
+
+			return check(ctx, client, nil)
 		},
 	)
 }
