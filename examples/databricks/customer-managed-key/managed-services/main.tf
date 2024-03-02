@@ -24,7 +24,7 @@ resource "azurerm_databricks_workspace" "example" {
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.example.id
 
   tags = {
-    Environment = "Production"
+    Environment = "Sandbox"
   }
 }
 
@@ -62,20 +62,22 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
-    "get",
-    "list",
-    "create",
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-    "delete",
-    "restore",
-    "recover",
-    "update",
-    "purge",
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
   ]
 }
 
@@ -85,8 +87,8 @@ resource "azurerm_key_vault_access_policy" "managed" {
   object_id    = "See the README.md file for instructions on how to lookup the correct value to enter here"
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
