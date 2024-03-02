@@ -89,10 +89,6 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return err
 	}
 
-	// TODO: Update this code to also be subscription aware?
-	// or should we just update the documentation to state they
-	// should use an aliased provider block for this resource
-	// if the key vault key exists in a different subscription.
 	keyIdRaw := d.Get("key_vault_key_id").(string)
 	key, err := keyVaultParse.ParseNestedItemID(keyIdRaw)
 	if err != nil {
@@ -133,7 +129,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
 	}
 
-	// if the 'managed_cmk_key_vault_id' was not defined assume
+	// If the 'managed_cmk_key_vault_id' was not defined assume
 	// the key vault exists in the same subscription as the workspace...
 	resourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
 	managedKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
@@ -304,7 +300,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
 	}
 
-	// if the 'managed_cmk_key_vault_id' was not defined assume
+	// If the 'managed_cmk_key_vault_id' was not defined assume
 	// the key vault exists in the same subscription as the workspace...
 	resourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
 	managedKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
