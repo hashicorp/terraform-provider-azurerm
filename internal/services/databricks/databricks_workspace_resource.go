@@ -466,7 +466,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	// if the 'managed_cmk_key_vault_id' was not defined assume
 	// the key vault exists in the same subscription as the workspace...
-	subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+	resourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
 	if managedKeyVaultId != "" {
 		// If they passed the 'managed_cmk_key_vault_id' parse the Key Vault ID
 		// to extract the correct key vault subscription for the exists call...
@@ -475,7 +475,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedKeyVaultId, err)
 		}
 
-		subscriptionResourceId = commonids.NewSubscriptionID(v.SubscriptionId)
+		resourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
 	}
 
 	if servicesKeyIdRaw != "" {
@@ -486,9 +486,9 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		// make sure the key vault exists
-		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, key.KeyVaultBaseUrl)
+		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourceSubscriptionId, key.KeyVaultBaseUrl)
 		if err != nil || keyVaultIdRaw == nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", subscriptionResourceId, key.KeyVaultBaseUrl, err)
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", resourceSubscriptionId, key.KeyVaultBaseUrl, err)
 		}
 
 		encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
@@ -511,9 +511,9 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		// make sure the key vault exists
-		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, key.KeyVaultBaseUrl)
+		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourceSubscriptionId, key.KeyVaultBaseUrl)
 		if err != nil || keyVaultIdRaw == nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", subscriptionResourceId, key.KeyVaultBaseUrl, err)
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", resourceSubscriptionId, key.KeyVaultBaseUrl, err)
 		}
 
 		encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
