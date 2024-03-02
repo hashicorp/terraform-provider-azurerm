@@ -67,6 +67,13 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 				Required:     true,
 				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
+
+			// added to support cross subscription cmk's
+			"managed_cmk_key_vault_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateKeyVaultID,
+			},
 		},
 	}
 }
@@ -126,9 +133,24 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
 	}
 
+	// if the 'managed_cmk_key_vault_id' was not defined assume
+	// the key vault exists in the same subscription as the workspace...
+	resourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+	managedKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
+
+	if managedKeyVaultId != "" {
+		// If they passed the 'managed_cmk_key_vault_id' parse the Key Vault ID
+		// to extract the correct key vault subscription for the exists call...
+		v, err := commonids.ParseKeyVaultID(managedKeyVaultId)
+		if err != nil {
+			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedKeyVaultId, err)
+		}
+
+		resourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
+	}
+
 	// make sure the key vault exists
-	subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, key.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourceSubscriptionId, key.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
 		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
 	}
@@ -161,6 +183,11 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	}
 
 	d.SetId(id.ID())
+
+	// Always set this even if it's empty to keep the state file
+	// consistent with the configuration file...
+	d.Set("managed_cmk_key_vault_id", managedKeyVaultId)
+
 	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }
 
@@ -225,6 +252,9 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 		}
 	}
 
+	managedKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
+	d.Set("managed_cmk_key_vault_id", managedKeyVaultId)
+
 	return nil
 }
 
@@ -274,11 +304,26 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("%s: `customer_managed_key_enabled` must be set to `true`", *id)
 	}
 
+	// if the 'managed_cmk_key_vault_id' was not defined assume
+	// the key vault exists in the same subscription as the workspace...
+	resourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+	managedKeyVaultId := d.Get("managed_cmk_key_vault_id").(string)
+
+	if managedKeyVaultId != "" {
+		// If they passed the 'managed_cmk_key_vault_id' parse the Key Vault ID
+		// to extract the correct key vault subscription for the exists call...
+		v, err := commonids.ParseKeyVaultID(managedKeyVaultId)
+		if err != nil {
+			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", managedKeyVaultId, err)
+		}
+
+		resourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
+	}
+
 	// make sure the key vault exists
-	subscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionId, key.KeyVaultBaseUrl)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourceSubscriptionId, key.KeyVaultBaseUrl)
 	if err != nil || keyVaultIdRaw == nil {
-		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID for the Key Vault in subscription %q at URL %q: %+v", resourceSubscriptionId, key.KeyVaultBaseUrl, err)
 	}
 
 	// We need to pull all of the custom params from the parent
@@ -302,6 +347,8 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 	if err = workspaceClient.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating Root DBFS Customer Managed Key for %s: %+v", *id, err)
 	}
+
+	d.Set("managed_cmk_key_vault_id", managedKeyVaultId)
 
 	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }
