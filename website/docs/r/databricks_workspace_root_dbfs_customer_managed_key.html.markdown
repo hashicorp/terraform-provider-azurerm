@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `managed_cmk_key_vault_id` - (Optional) Specifies the Resource ID of the Key Vault which contains the `key_vault_key_id`.
 
-~> **Note:** The `managed_cmk_key_vault_id` field only needs to be specified if the Key Vault wich contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `managed_cmk_key_vault_id` field is not specified the current subscriptioin will be used.
+~> **Note:** The `managed_cmk_key_vault_id` field only needs to be specified if the Key Vault which contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `managed_cmk_key_vault_id` field is not specified the current subscriptioin will be used.
 
 ## Attributes Reference
 
