@@ -138,8 +138,13 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
-				return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+			// Don't set the contacts unless there are contacts defined...
+			if len(*contacts.ContactList) != 0 {
+				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+				}
+			} else {
+				metadata.Logger.Infof("[CREATE] Contacts are empty - NoOp, but still set the ID since the resource was defined in the configuration file")
 			}
 
 			metadata.SetID(id)
@@ -168,7 +173,7 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 			}
 
 			if keyVaultIdRaw == nil {
-				metadata.Logger.Infof("unable to retrieve Key Vault resource ID from Key Vault Base URL %q in %s - removing from state", id.KeyVaultBaseUrl, subscriptionResourceId)
+				metadata.Logger.Infof("[READ] unable to retrieve Key Vault resource ID from Key Vault Base URL %q in %s - removing from state", id.KeyVaultBaseUrl, subscriptionResourceId)
 				return metadata.MarkAsGone(id)
 			}
 
@@ -185,12 +190,12 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 				// in the state file so once we do regain access to the dataplane we will be able
 				// to diff the resources contacts with the key vaults contacts...
 				if utils.ResponseWasForbidden(existing.Response) {
-					metadata.Logger.Infof("unable to enumerate key vault certificate contacts at URL %s in %s - ignore error", id.KeyVaultBaseUrl, subscriptionResourceId)
+					metadata.Logger.Infof("[READ] unable to enumerate key vault certificate contacts at URL %s in %s - ignore error", id.KeyVaultBaseUrl, subscriptionResourceId)
 					return nil
 				}
 
 				if utils.ResponseWasNotFound(existing.Response) {
-					metadata.Logger.Infof("no certificate contacts were returned from key vault URL %s in %s - set empty contact list to state", id.KeyVaultBaseUrl, subscriptionResourceId)
+					metadata.Logger.Infof("[READ] no certificate contacts were returned from key vault URL %s in %s - set empty contact list to state", id.KeyVaultBaseUrl, subscriptionResourceId)
 
 					state := KeyVaultCertificateContactsResourceModel{
 						KeyVaultId: keyVaultId.ID(),
@@ -237,10 +242,17 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				// If we don't have access to the dataplane due to the public network access
 				// being disabled just return and keep the state unchanged...
 				if utils.ResponseWasForbidden(existing.Response) {
+					metadata.Logger.Infof("'GetCertificateContacts' error result was 'Forbidden' for key vault URL %s - dataplane access denied, keep current state", id.KeyVaultBaseUrl)
 					return nil
 				}
 
-				return fmt.Errorf("retrieving existing Certificate Contacts from key vault base URL: %q: %+v", id.KeyVaultBaseUrl, err)
+				// Since contacts can now be empty Not Found is no longer a reason to return
+				// an error...
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("retrieving existing Certificate Contacts from key vault base URL: %q: %+v", id.KeyVaultBaseUrl, err)
+				} else {
+					metadata.Logger.Infof("'GetCertificateContacts' error result was 'NotFound' for key vault URL %s - ignore error", id.KeyVaultBaseUrl)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("contact") {
@@ -277,8 +289,28 @@ func (r KeyVaultCertificateContactsResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+			// first check to see if contacts exists or not, if they do
+			// delete them, else just remove them from the state file...
+			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
+
+			if err != nil {
+				// If we don't have access to the dataplane due to the public network access
+				// being disabled just return error and keep the state unchanged...
+				if utils.ResponseWasForbidden(existing.Response) {
+					metadata.Logger.Infof("[DELETE] 'GetCertificateContacts' error result was 'Forbidden' for key vault URL %s - dataplane access denied, keep current state and return error", id.KeyVaultBaseUrl)
+					return fmt.Errorf("unable to delete %s due to data plane access restrictions: %+v", id, err)
+				}
+
+				// Since contacts can now be empty Not Found is no longer a reason to return an error...
+				if !utils.ResponseWasNotFound(existing.Response) {
+					// The GET call found Key Vault contacts, try to delete them...
+					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+						return fmt.Errorf("deleting %s: %+v", id, err)
+					}
+				} else {
+					metadata.Logger.Infof("[DELETE] 'GetCertificateContacts' error result was 'NotFound' for key vault URL %s - removing from state file", id.KeyVaultBaseUrl)
+					return metadata.MarkAsGone(id)
+				}
 			}
 
 			return nil

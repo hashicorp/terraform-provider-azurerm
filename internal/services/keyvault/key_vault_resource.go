@@ -201,6 +201,9 @@ func resourceKeyVault() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(7, 90),
 			},
 
+			// TODO: Wrap commented sections in 4.0 Beta tags and mark contact as deprecated,
+			// This is just a POC of how to get around the current dataplane issue...
+
 			// "contact": {
 			// 	Type:     pluginsdk.TypeSet,
 			// 	Optional: true,
