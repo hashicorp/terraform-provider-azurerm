@@ -49,6 +49,28 @@ func TestAccContactProfile_multipleChannels(t *testing.T) {
 	})
 }
 
+func TestAccContactProfile_addChannel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
+	r := ContactProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleChannels(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContactProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
 	r := ContactProfileResource{}
