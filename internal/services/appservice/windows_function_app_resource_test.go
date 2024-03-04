@@ -918,7 +918,7 @@ func TestAccWindowsFunctionApp_withIPRestrictions(t *testing.T) {
 			Config: r.withIPRestrictions(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,windows"),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -934,7 +934,7 @@ func TestAccWindowsFunctionApp_withIPRestrictionsDefaultAction(t *testing.T) {
 			Config: r.withIPRestrictionsDefaultActionDeny(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,windows"),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -950,7 +950,7 @@ func TestAccWindowsFunctionApp_withIPRestrictionsDefaultActionUpdate(t *testing.
 			Config: r.withIPRestrictions(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,windows"),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -958,7 +958,7 @@ func TestAccWindowsFunctionApp_withIPRestrictionsDefaultActionUpdate(t *testing.
 			Config: r.withIPRestrictionsDefaultActionDeny(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,windows"),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -966,7 +966,7 @@ func TestAccWindowsFunctionApp_withIPRestrictionsDefaultActionUpdate(t *testing.
 			Config: r.withIPRestrictions(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kind").HasValue("functionapp,windows"),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),

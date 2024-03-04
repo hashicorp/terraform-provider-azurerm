@@ -985,7 +985,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		expanded.IPSecurityRestrictions = ipRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("ip_restriction_default_action") {
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
 		expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	}
 
@@ -997,7 +997,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
 
-	if metadata.ResourceData.HasChange("scm_ip_restriction_default_action") {
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction_default_action") {
 		expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
 	}
 

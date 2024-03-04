@@ -2011,7 +2011,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 		HealthCheckPath:               pointer.From(functionAppSiteConfig.HealthCheckPath),
 		Http2Enabled:                  pointer.From(functionAppSiteConfig.HTTP20Enabled),
 		IpRestrictionDefaultAction:    string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
+		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
 		LinuxFxVersion:                pointer.From(functionAppSiteConfig.LinuxFxVersion),
 		LoadBalancing:                 string(pointer.From(functionAppSiteConfig.LoadBalancing)),
 		ManagedPipelineMode:           string(pointer.From(functionAppSiteConfig.ManagedPipelineMode)),
@@ -2096,7 +2096,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSiteConfig.VnetRouteAllEnabled),
 		IpRestrictionDefaultAction:    string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.IPSecurityRestrictionsDefaultAction)),
+		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
 	}
 
 	if v := functionAppSiteConfig.ApiDefinition; v != nil && v.Url != nil {
