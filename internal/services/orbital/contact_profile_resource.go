@@ -266,12 +266,18 @@ func (r ContactProfileResource) Update() sdk.ResourceFunc {
 				SubnetId: state.NetworkConfigurationSubnetId,
 			}
 
+			// The service only accept `null` or non-empty value, empty string will cause a 400 response
+			var eventHubUri *string
+			if state.EventHubUri != "" {
+				eventHubUri = pointer.To(state.EventHubUri)
+			}
+
 			if metadata.ResourceData.HasChangesExcept("name", "resource_group_name") {
 				contactProfile := contactprofile.ContactProfile{
 					Location: state.Location,
 					Properties: contactprofile.ContactProfilesProperties{
 						AutoTrackingConfiguration:    pointer.To(autoTrackingConfiguration),
-						EventHubUri:                  pointer.To(state.EventHubUri),
+						EventHubUri:                  eventHubUri,
 						Links:                        contactProfileLinks,
 						MinimumElevationDegrees:      pointer.To(state.MinimumElevationDegrees),
 						MinimumViableContactDuration: pointer.To(state.MinimumVariableContactDuration),
