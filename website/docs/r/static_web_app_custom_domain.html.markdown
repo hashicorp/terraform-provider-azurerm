@@ -37,9 +37,9 @@ resource "azurerm_dns_cname_record" "example" {
 }
 
 resource "azurerm_static_web_app_custom_domain" "example" {
-  static_web_app_id  = azurerm_static_web_app.example.id
-  domain_name     = "${azurerm_dns_cname_record.example.name}.${azurerm_dns_cname_record.example.zone_name}"
-  validation_type = "cname-delegation"
+  static_web_app_id = azurerm_static_web_app.example.id
+  domain_name       = "${azurerm_dns_cname_record.example.name}.${azurerm_dns_cname_record.example.zone_name}"
+  validation_type   = "cname-delegation"
 }
 ```
 
@@ -58,9 +58,9 @@ resource "azurerm_static_web_app" "example" {
 }
 
 resource "azurerm_static_web_app_custom_domain" "example" {
-  static_web_app_id  = azurerm_static_web_app.example.id
-  domain_name     = "my-domain.contoso.com"
-  validation_type = "dns-txt-token"
+  static_web_app_id = azurerm_static_web_app.example.id
+  domain_name       = "my-domain.contoso.com"
+  validation_type   = "dns-txt-token"
 }
 
 resource "azurerm_dns_txt_record" "example" {
