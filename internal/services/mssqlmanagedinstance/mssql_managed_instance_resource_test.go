@@ -850,16 +850,6 @@ const managedInstanceStaticRoutes = `
     next_hop_type  = "Internet"
   }
   route {
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-102-37-18-nexthop-internet"
-    address_prefix = "102.37.0.0/18"
-    next_hop_type  = "Internet"
-  }
-  route {
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-102-133-16-nexthop-internet"
-    address_prefix = "102.133.0.0/16"
-    next_hop_type  = "Internet"
-  }
-  route {
     name           = "Microsoft.Sql-managedInstances_UseOnly_mi-199-30-16-20-nexthop-internet"
     address_prefix = "199.30.16.0/20"
     next_hop_type  = "Internet"
@@ -1062,13 +1052,27 @@ func TestAccMsSqlManagedInstance_premium(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlManagedInstance_backupRedundancyLRS(t *testing.T) {
+func TestAccMsSqlManagedInstance_backupRedundancyZRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageType(data, "LRS"),
+			Config: r.storageType(data, "ZRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.zoneRedundantBackupEnabled(data, "ZRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.storageType(data, "ZRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1296,6 +1300,39 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Secondary), data.RandomInteger)
 }
 
+func (r MsSqlManagedInstanceResource) zoneRedundantBackupEnabled(data acceptance.TestData, storageAccountType string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type         = "BasePrice"
+  sku_name             = "GP_Gen5"
+  storage_account_type = "%[3]s"
+  storage_size_in_gb   = 32
+  subnet_id            = azurerm_subnet.test.id
+  vcores               = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+  zone_redundant_enabled       = true
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger, storageAccountType)
+}
+
 func (r MsSqlManagedInstanceResource) storageType(data acceptance.TestData, storageAccountType string) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1381,7 +1418,6 @@ resource "azurerm_mssql_managed_instance" "test" {
   subnet_id                    = azurerm_subnet.test.id
   timezone_id                  = "Pacific Standard Time"
   vcores                       = 8
-  zone_redundant_enabled       = true
 
   administrator_login          = "missadministrator"
   administrator_login_password = "NCC-1701-D"
