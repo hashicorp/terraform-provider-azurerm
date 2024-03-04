@@ -43,7 +43,10 @@ func (c ConnectivityConfigurationsClient) Get(ctx context.Context, id Connectivi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ConnectivityConfiguration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

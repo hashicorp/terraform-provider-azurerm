@@ -43,7 +43,10 @@ func (c DaprComponentsClient) ConnectedEnvironmentsDaprComponentsGet(ctx context
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DaprComponent
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

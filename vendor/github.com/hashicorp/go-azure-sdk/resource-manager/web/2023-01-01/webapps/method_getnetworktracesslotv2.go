@@ -43,7 +43,10 @@ func (c WebAppsClient) GetNetworkTracesSlotV2(ctx context.Context, id SiteSlotNe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model []NetworkTrace
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

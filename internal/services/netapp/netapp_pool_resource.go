@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -88,6 +89,17 @@ func resourceNetAppPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"encryption_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  capacitypools.EncryptionTypeSingle,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(capacitypools.EncryptionTypeSingle),
+					string(capacitypools.EncryptionTypeDouble),
+				}, false),
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -116,11 +128,14 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	sizeInMB := sizeInTB * 1024 * 1024
 	sizeInBytes := sizeInMB * 1024 * 1024
 
+	encryptionType := capacitypools.EncryptionType(d.Get("encryption_type").(string))
+
 	capacityPoolParameters := capacitypools.CapacityPool{
 		Location: azure.NormalizeLocation(d.Get("location").(string)),
 		Properties: capacitypools.PoolProperties{
-			ServiceLevel: capacitypools.ServiceLevel(d.Get("service_level").(string)),
-			Size:         sizeInBytes,
+			ServiceLevel:   capacitypools.ServiceLevel(d.Get("service_level").(string)),
+			Size:           sizeInBytes,
+			EncryptionType: &encryptionType,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -234,6 +249,7 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			qosType = string(*poolProperties.QosType)
 		}
 		d.Set("qos_type", qosType)
+		d.Set("encryption_type", string(pointer.From(poolProperties.EncryptionType)))
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}

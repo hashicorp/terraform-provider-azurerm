@@ -3,6 +3,32 @@ package networkinterfaces
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type EffectiveNetworkSecurityGroupOperationPredicate struct {
+}
+
+func (p EffectiveNetworkSecurityGroupOperationPredicate) Matches(input EffectiveNetworkSecurityGroup) bool {
+
+	return true
+}
+
+type EffectiveRouteOperationPredicate struct {
+	DisableBgpRoutePropagation *bool
+	Name                       *string
+}
+
+func (p EffectiveRouteOperationPredicate) Matches(input EffectiveRoute) bool {
+
+	if p.DisableBgpRoutePropagation != nil && (input.DisableBgpRoutePropagation == nil || *p.DisableBgpRoutePropagation != *input.DisableBgpRoutePropagation) {
+		return false
+	}
+
+	if p.Name != nil && (input.Name == nil || *p.Name != *input.Name) {
+		return false
+	}
+
+	return true
+}
+
 type LoadBalancerOperationPredicate struct {
 	Etag     *string
 	Id       *string

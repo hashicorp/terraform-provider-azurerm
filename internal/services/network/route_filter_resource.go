@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -127,7 +128,7 @@ func resourceRouteFilterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	routeSet := routefilters.RouteFilter{
 		Name:     &id.RouteFilterName,
-		Location: location,
+		Location: pointer.To(location),
 		Properties: &routefilters.RouteFilterPropertiesFormat{
 			Rules: expandRouteFilterRules(d),
 		},
@@ -166,7 +167,7 @@ func resourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("rule", flattenRouteFilterRules(props.Rules)); err != nil {

@@ -30,6 +30,8 @@ The following arguments are supported:
 
 * `filter` - The filter used to retrieve the entities.
 
+* `select` - (Optional) A list of properties to select from the returned Storage Table Entities.
+
 ## Attributes Reference
 
 * `id` - The ID of the storage table entity.

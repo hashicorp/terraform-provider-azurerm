@@ -43,7 +43,10 @@ func (c VolumeGroupsClient) Get(ctx context.Context, id VolumeGroupId) (result G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VolumeGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

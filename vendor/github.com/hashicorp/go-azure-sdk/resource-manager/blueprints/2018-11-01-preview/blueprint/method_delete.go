@@ -44,7 +44,10 @@ func (c BlueprintClient) Delete(ctx context.Context, id ScopedBlueprintId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Blueprint
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c ManagedEnvironmentsStoragesClient) Get(ctx context.Context, id StorageId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedEnvironmentStorage
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c VirtualWANsClient) NetworkVirtualApplianceConnectionsGet(ctx context.Con
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkVirtualApplianceConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

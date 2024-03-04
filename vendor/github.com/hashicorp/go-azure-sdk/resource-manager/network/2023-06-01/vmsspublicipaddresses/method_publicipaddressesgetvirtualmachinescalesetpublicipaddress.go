@@ -73,7 +73,10 @@ func (c VMSSPublicIPAddressesClient) PublicIPAddressesGetVirtualMachineScaleSetP
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PublicIPAddress
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

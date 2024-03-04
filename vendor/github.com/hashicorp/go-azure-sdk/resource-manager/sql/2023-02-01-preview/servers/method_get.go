@@ -73,7 +73,10 @@ func (c ServersClient) Get(ctx context.Context, id commonids.SqlServerId, option
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Server
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

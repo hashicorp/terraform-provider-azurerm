@@ -46,7 +46,10 @@ func (c WebAppsClient) GetSourceControlSlot(ctx context.Context, id SlotId) (res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteSourceControl
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -76,7 +76,10 @@ func (c FactoriesClient) CreateOrUpdate(ctx context.Context, id FactoryId, input
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Factory
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

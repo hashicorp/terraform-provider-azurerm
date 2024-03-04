@@ -56,17 +56,15 @@ func (ApiManagementNotificationRecipientUserResource) Exists(ctx context.Context
 	}
 
 	notificationId := notificationrecipientuser.NewNotificationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.NotificationName)
-	users, err := client.ApiManagement.NotificationRecipientUserClient.ListByNotification(ctx, notificationId)
+	users, err := client.ApiManagement.NotificationRecipientUserClient.ListByNotificationComplete(ctx, notificationId)
 	if err != nil {
-		if !response.WasNotFound(users.HttpResponse) {
+		if !response.WasNotFound(users.LatestHttpResponse) {
 			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 	}
-	if model := users.Model; model != nil && model.Value != nil {
-		for _, existing := range *model.Value {
-			if existing.Name != nil && *existing.Name == id.UserId {
-				return pointer.To(true), nil
-			}
+	for _, existing := range users.Items {
+		if existing.Name != nil && *existing.Name == id.UserId {
+			return pointer.To(true), nil
 		}
 	}
 	return pointer.To(false), nil

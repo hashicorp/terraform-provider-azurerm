@@ -105,11 +105,12 @@ func (a DeploymentResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standard_Monthly"
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = true
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standard_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = true
+  automatic_upgrade_channel = "stable"
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]

@@ -43,7 +43,10 @@ func (c AppPlatformClient) ServiceRegistriesGet(ctx context.Context, id ServiceR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServiceRegistryResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

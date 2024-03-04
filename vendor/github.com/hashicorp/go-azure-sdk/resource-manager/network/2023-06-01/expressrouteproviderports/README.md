@@ -43,11 +43,12 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
-read, err := client.LocationList(ctx, id, expressrouteproviderports.DefaultLocationListOperationOptions())
+// alternatively `client.LocationList(ctx, id, expressrouteproviderports.DefaultLocationListOperationOptions())` can be used to do batched pagination
+items, err := client.LocationListComplete(ctx, id, expressrouteproviderports.DefaultLocationListOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```

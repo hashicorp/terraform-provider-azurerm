@@ -43,7 +43,10 @@ func (c PacketCoreDataPlaneClient) Get(ctx context.Context, id PacketCoreDataPla
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PacketCoreDataPlane
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

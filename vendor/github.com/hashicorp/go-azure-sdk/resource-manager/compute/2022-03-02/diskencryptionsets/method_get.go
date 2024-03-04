@@ -44,7 +44,10 @@ func (c DiskEncryptionSetsClient) Get(ctx context.Context, id commonids.DiskEncr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DiskEncryptionSet
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c ClustersClient) Get(ctx context.Context, id commonids.KustoClusterId) (r
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Cluster
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

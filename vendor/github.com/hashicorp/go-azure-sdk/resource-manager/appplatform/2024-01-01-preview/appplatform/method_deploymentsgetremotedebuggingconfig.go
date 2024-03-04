@@ -44,7 +44,10 @@ func (c AppPlatformClient) DeploymentsGetRemoteDebuggingConfig(ctx context.Conte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RemoteDebugging
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

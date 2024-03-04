@@ -43,7 +43,10 @@ func (c AppPlatformClient) BuildpackBindingGet(ctx context.Context, id BuildPack
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BuildpackBindingResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

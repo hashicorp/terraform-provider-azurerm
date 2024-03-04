@@ -43,7 +43,10 @@ func (c VirtualWANsClient) VpnGatewaysGet(ctx context.Context, id VpnGatewayId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VpnGateway
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

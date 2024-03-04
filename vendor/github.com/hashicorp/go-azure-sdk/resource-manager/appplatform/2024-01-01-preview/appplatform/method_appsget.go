@@ -72,7 +72,10 @@ func (c AppPlatformClient) AppsGet(ctx context.Context, id AppId, options AppsGe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AppResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

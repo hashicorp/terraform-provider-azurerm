@@ -44,7 +44,10 @@ func (c TasksClient) GetDetails(ctx context.Context, id TaskId) (result GetDetai
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Task
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

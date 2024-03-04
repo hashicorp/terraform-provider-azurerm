@@ -43,7 +43,10 @@ func (c HealthbotsClient) BotsGet(ctx context.Context, id HealthBotId) (result B
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HealthBot
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

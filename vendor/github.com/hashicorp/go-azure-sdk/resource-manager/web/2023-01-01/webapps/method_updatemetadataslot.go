@@ -48,7 +48,10 @@ func (c WebAppsClient) UpdateMetadataSlot(ctx context.Context, id SlotId, input 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StringDictionary
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c AppPlatformClient) CertificatesGet(ctx context.Context, id CertificateId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CertificateResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

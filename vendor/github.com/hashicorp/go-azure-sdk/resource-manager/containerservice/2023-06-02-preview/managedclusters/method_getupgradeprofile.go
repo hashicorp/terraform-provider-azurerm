@@ -45,7 +45,10 @@ func (c ManagedClustersClient) GetUpgradeProfile(ctx context.Context, id commoni
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedClusterUpgradeProfile
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

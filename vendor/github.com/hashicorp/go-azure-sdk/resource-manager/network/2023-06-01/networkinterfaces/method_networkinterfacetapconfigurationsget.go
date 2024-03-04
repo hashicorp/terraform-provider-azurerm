@@ -43,7 +43,10 @@ func (c NetworkInterfacesClient) NetworkInterfaceTapConfigurationsGet(ctx contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkInterfaceTapConfiguration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

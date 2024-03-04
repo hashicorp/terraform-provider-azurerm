@@ -43,7 +43,10 @@ func (c ExpressRoutePortAuthorizationsClient) Get(ctx context.Context, id Expres
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRoutePortAuthorization
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c ReplicationVaultSettingClient) Get(ctx context.Context, id ReplicationVa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VaultSetting
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

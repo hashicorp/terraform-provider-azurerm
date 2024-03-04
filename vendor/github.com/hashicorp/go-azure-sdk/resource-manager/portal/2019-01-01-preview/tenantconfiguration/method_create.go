@@ -48,7 +48,10 @@ func (c TenantConfigurationClient) Create(ctx context.Context, input Configurati
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Configuration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

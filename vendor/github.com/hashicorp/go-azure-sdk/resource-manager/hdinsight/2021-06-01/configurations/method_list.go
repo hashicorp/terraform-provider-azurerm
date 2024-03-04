@@ -45,7 +45,10 @@ func (c ConfigurationsClient) List(ctx context.Context, id commonids.HDInsightCl
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ClusterConfigurations
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

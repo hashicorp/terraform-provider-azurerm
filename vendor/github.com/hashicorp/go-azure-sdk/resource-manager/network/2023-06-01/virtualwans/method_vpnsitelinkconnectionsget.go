@@ -43,7 +43,10 @@ func (c VirtualWANsClient) VpnSiteLinkConnectionsGet(ctx context.Context, id Vpn
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VpnSiteLinkConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

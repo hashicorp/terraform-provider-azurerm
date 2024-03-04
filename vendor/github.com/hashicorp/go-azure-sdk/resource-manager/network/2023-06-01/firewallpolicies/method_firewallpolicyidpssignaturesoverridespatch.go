@@ -48,7 +48,10 @@ func (c FirewallPoliciesClient) FirewallPolicyIdpsSignaturesOverridesPatch(ctx c
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SignaturesOverrides
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

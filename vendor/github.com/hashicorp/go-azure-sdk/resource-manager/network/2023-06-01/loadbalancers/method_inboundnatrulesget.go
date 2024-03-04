@@ -72,7 +72,10 @@ func (c LoadBalancersClient) InboundNatRulesGet(ctx context.Context, id InboundN
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model InboundNatRule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

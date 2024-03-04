@@ -45,7 +45,10 @@ func (c ApplicationGatewaysClient) ListAvailableResponseHeaders(ctx context.Cont
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model []string
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

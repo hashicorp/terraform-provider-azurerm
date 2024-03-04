@@ -12,10 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -164,7 +163,7 @@ func (r RoleDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			var config RoleDefinitionModel
 			if err := metadata.Decode(&config); err != nil {
@@ -232,7 +231,7 @@ func (r RoleDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			stateId, err := parse.RoleDefinitionId(metadata.ResourceData.Id())
 			if err != nil {
@@ -276,8 +275,7 @@ func (r RoleDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			sdkClient := metadata.Client.Authorization.RoleDefinitionsClient
-			client := azuresdkhacks.NewRoleDefinitionsWorkaroundClient(sdkClient.Client)
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			stateId, err := parse.RoleDefinitionId(metadata.ResourceData.Id())
 			if err != nil {
@@ -291,16 +289,16 @@ func (r RoleDefinitionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			exisiting, err := client.Get(ctx, id)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", stateId, err)
 			}
 
-			if exisiting.Model == nil {
+			if existing.Model == nil {
 				return fmt.Errorf("retrieving %s: model was nil", stateId)
 			}
 
-			model := *exisiting.Model
+			model := *existing.Model
 
 			if model.Properties == nil {
 				return fmt.Errorf("retrieving %s: properties was nil", stateId)
@@ -378,7 +376,7 @@ func (r RoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			stateId, err := parse.RoleDefinitionId(metadata.ResourceData.Id())
 			if err != nil {
@@ -432,7 +430,7 @@ func (RoleDefinitionResource) StateUpgraders() sdk.StateUpgradeData {
 	}
 }
 
-func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client azuresdkhacks.RoleDefinitionsWorkaroundClient, id roledefinitions.ScopedRoleDefinitionId, updateRequestDate string) pluginsdk.StateRefreshFunc {
+func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client *roledefinitions.RoleDefinitionsClient, id roledefinitions.ScopedRoleDefinitionId, updateRequestDate string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, id)
 		if err != nil {

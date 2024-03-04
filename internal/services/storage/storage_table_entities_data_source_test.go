@@ -26,6 +26,19 @@ func TestAccDataSourceStorageTableEntities_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceStorageTableEntities_withSelector(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entities", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableEntitiesDataSource{}.basicWithDataSourceAndSelector(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("items.#").HasValue("1"),
+			),
+		},
+	})
+}
+
 func (d StorageTableEntitiesDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -76,6 +89,19 @@ resource "azurerm_storage_table_entity" "test2" {
     testkey = "testval2"
   }
 }
+
+resource "azurerm_storage_table_entity" "testselector" {
+  storage_account_name = azurerm_storage_account.test.name
+  table_name           = azurerm_storage_table.test.name
+
+  partition_key = "testselectorpartition"
+  row_key       = "testrow"
+
+  entity = {
+    testkey      = "testval"
+    testselector = "testselectorval"
+  }
+}
 `, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
@@ -92,6 +118,26 @@ data "azurerm_storage_table_entities" "test" {
   depends_on = [
     azurerm_storage_table_entity.test,
     azurerm_storage_table_entity.test2,
+  ]
+}
+`, config)
+}
+
+func (d StorageTableEntitiesDataSource) basicWithDataSourceAndSelector(data acceptance.TestData) string {
+	config := d.basic(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_storage_table_entities" "test" {
+  table_name           = azurerm_storage_table_entity.test.table_name
+  storage_account_name = azurerm_storage_table_entity.test.storage_account_name
+  filter               = "PartitionKey eq 'testselectorpartition'"
+  select               = ["testselector"]
+
+  depends_on = [
+    azurerm_storage_table_entity.test,
+    azurerm_storage_table_entity.test2,
+    azurerm_storage_table_entity.testselector,
   ]
 }
 `, config)

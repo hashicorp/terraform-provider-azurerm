@@ -47,7 +47,10 @@ func (c SAPVirtualInstancesClient) Update(ctx context.Context, id SapVirtualInst
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SAPVirtualInstance
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

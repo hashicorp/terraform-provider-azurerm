@@ -73,7 +73,10 @@ func (c VirtualNetworksClient) Get(ctx context.Context, id commonids.VirtualNetw
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualNetwork
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

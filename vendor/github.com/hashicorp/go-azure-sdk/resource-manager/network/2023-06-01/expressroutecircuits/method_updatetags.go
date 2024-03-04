@@ -47,7 +47,10 @@ func (c ExpressRouteCircuitsClient) UpdateTags(ctx context.Context, id ExpressRo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRouteCircuit
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

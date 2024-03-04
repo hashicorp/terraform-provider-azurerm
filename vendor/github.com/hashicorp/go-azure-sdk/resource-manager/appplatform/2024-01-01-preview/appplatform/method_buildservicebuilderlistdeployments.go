@@ -44,7 +44,10 @@ func (c AppPlatformClient) BuildServiceBuilderListDeployments(ctx context.Contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DeploymentList
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

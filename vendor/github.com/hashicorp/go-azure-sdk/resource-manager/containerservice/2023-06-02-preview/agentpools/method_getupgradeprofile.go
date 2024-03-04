@@ -44,7 +44,10 @@ func (c AgentPoolsClient) GetUpgradeProfile(ctx context.Context, id AgentPoolId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AgentPoolUpgradeProfile
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

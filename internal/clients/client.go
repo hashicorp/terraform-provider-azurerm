@@ -600,7 +600,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)
 	}
-	client.SecurityCenter = securityCenter.NewClient(o)
+	if client.SecurityCenter, err = securityCenter.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Security Center: %+v", err)
+	}
 	if client.Sentinel, err = sentinel.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Sentinel: %+v", err)
 	}

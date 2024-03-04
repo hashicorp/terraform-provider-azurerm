@@ -48,7 +48,10 @@ func (c NetworkWatchersClient) GetTopology(ctx context.Context, id NetworkWatche
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Topology
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

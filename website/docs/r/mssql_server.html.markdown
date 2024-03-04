@@ -187,7 +187,7 @@ An `azuread_administrator` block supports the following:
 
 * `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Server.
 
-* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators (e.g. `azuread_administrator.0.login_username`) can be used to login, or also local database users (e.g. `administrator_login`). When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted.
+* `azuread_authentication_only` - (Optional) Specifies whether only AD Users and administrators (e.g. `azuread_administrator[0].login_username`) can be used to login, or also local database users (e.g. `administrator_login`). When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted.
 
 ## Attributes Reference
 
@@ -207,7 +207,7 @@ A `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
--> You can access the Principal ID via `azurerm_mssql_server.example.identity.0.principal_id` and the Tenant ID via `azurerm_mssql_server.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_mssql_server.example.identity[0].principal_id` and the Tenant ID via `azurerm_mssql_server.example.identity[0].tenant_id`
 
 ### Timeouts
 
