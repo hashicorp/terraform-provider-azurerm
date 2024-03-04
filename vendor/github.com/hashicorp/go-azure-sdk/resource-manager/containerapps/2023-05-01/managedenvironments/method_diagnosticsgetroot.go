@@ -44,7 +44,10 @@ func (c ManagedEnvironmentsClient) DiagnosticsGetRoot(ctx context.Context, id Ma
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedEnvironment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

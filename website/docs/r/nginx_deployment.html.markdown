@@ -55,12 +55,13 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_nginx_deployment" "example" {
-  name                     = "example-nginx"
-  resource_group_name      = azurerm_resource_group.example.name
-  sku                      = "publicpreview_Monthly_gmz7xq9ge3py"
-  location                 = azurerm_resource_group.example.location
-  managed_resource_group   = "example"
-  diagnose_support_enabled = true
+  name                      = "example-nginx"
+  resource_group_name       = azurerm_resource_group.example.name
+  sku                       = "publicpreview_Monthly_gmz7xq9ge3py"
+  location                  = azurerm_resource_group.example.location
+  managed_resource_group    = "example"
+  diagnose_support_enabled  = true
+  automatic_upgrade_channel = "stable"
 
   frontend_public {
     ip_address = [azurerm_public_ip.example.id]
@@ -85,7 +86,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Nginx Deployment should exist. Changing this forces a new Nginx Deployment to be created.
 
-* `sku` - (Required) Specify the Name of Nginx deployment SKU. The possible value are `publicpreview_Monthly_gmz7xq9ge3py` and `standard_Monthly`.
+* `sku` - (Required) Specify the Name of Nginx deployment SKU. The possible value are `publicpreview_Monthly_gmz7xq9ge3py` and `standard_Monthly`. Changing this forces a new Nginx Deployment to be created.
 
 * `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new Nginx Deployment to be created.
 
@@ -108,6 +109,8 @@ The following arguments are supported:
 * `logging_storage_account` - (Optional) One or more `logging_storage_account` blocks as defined below.
 
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new Nginx Deployment to be created.
+
+* `automatic_upgrade_channel` - (Optional) Specify the automatic upgrade channel for the NGINX deployment. Defaults to `stable`. The possible values are `stable` and `preview`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Nginx Deployment.
 

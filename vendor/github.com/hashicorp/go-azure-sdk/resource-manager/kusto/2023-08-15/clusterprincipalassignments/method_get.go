@@ -43,7 +43,10 @@ func (c ClusterPrincipalAssignmentsClient) Get(ctx context.Context, id Principal
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ClusterPrincipalAssignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

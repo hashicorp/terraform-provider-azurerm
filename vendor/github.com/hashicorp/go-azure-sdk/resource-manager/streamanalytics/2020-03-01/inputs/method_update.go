@@ -76,7 +76,10 @@ func (c InputsClient) Update(ctx context.Context, id InputId, input Input, optio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Input
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

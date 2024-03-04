@@ -76,7 +76,10 @@ func (c TagClient) Update(ctx context.Context, id TagId, input TagCreateUpdatePa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TagContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -45,7 +45,10 @@ func (c ConfigurationAssignmentsClient) List(ctx context.Context, id commonids.S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ListConfigurationAssignmentsResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

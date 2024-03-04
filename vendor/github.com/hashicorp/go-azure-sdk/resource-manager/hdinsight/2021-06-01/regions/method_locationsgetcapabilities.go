@@ -44,7 +44,10 @@ func (c RegionsClient) LocationsGetCapabilities(ctx context.Context, id Location
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CapabilitiesResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

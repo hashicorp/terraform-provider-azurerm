@@ -73,7 +73,10 @@ func (c StorageAccountsClient) ListKeys(ctx context.Context, id commonids.Storag
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StorageAccountListKeysResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

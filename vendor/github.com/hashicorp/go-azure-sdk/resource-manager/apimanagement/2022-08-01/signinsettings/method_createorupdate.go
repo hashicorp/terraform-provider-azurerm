@@ -76,7 +76,10 @@ func (c SignInSettingsClient) CreateOrUpdate(ctx context.Context, id ServiceId, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PortalSigninSettings
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

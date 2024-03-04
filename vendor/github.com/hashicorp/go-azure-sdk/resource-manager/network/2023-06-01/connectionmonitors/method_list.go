@@ -44,7 +44,10 @@ func (c ConnectionMonitorsClient) List(ctx context.Context, id NetworkWatcherId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ConnectionMonitorListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -53,14 +53,14 @@ The following arguments are supported:
 * `location` - (Required) The Azure Region where the VMware Private Cloud should exist. Changing this forces a new VMware Private Cloud to be created.
 
 * `management_cluster` - (Required) A `management_cluster` block as defined below.
-~> **NOTE :** `internet_connection_enabled` and `management_cluster.0.size` cannot be updated at the same time.
+~> **NOTE :** `internet_connection_enabled` and `management_cluster[0].size` cannot be updated at the same time.
 
 * `network_subnet_cidr` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new VMware Private Cloud to be created.
 
 * `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36`, `av36t`, `av36p`, `av36pt`, `av52`, `av52t`, and `av64`. Changing this forces a new VMware Private Cloud to be created.
 
-* `internet_connection_enabled` - (Optional) Is the Private Cluster connected to the internet? This field can not updated with `management_cluster.0.size` together.
-~> **NOTE :** `internet_connection_enabled` and `management_cluster.0.size` cannot be updated at the same time.
+* `internet_connection_enabled` - (Optional) Is the Private Cluster connected to the internet? This field can not updated with `management_cluster[0].size` together.
+~> **NOTE :** `internet_connection_enabled` and `management_cluster[0].size` cannot be updated at the same time.
 
 * `nsxt_password` - (Optional) The password of the NSX-T Manager. Changing this forces a new VMware Private Cloud to be created.
 

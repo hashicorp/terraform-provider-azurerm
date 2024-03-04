@@ -47,7 +47,10 @@ func (c ResourceProvidersClient) UpdateSourceControl(ctx context.Context, id Sou
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SourceControl
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

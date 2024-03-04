@@ -44,7 +44,10 @@ func (c WebAppsClient) GetInstanceProcessDump(ctx context.Context, id InstancePr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model []byte
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

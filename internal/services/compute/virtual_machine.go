@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -426,6 +427,26 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	}, nil
 }
 
+func virtualMachineOsImageNotificationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"timeout": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"PT15M",
+					}, false),
+					Default: "PT15M",
+				},
+			},
+		},
+	}
+}
+
 func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -449,12 +470,26 @@ func virtualMachineTerminationNotificationSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineScheduledEventsProfile(input []interface{}) *compute.ScheduledEventsProfile {
+func expandOsImageNotificationProfile(input []interface{}) *compute.OSImageNotificationProfile {
 	if len(input) == 0 {
-		return &compute.ScheduledEventsProfile{
-			TerminateNotificationProfile: &compute.TerminateNotificationProfile{
-				Enable: utils.Bool(false),
-			},
+		return &compute.OSImageNotificationProfile{
+			Enable: utils.Bool(false),
+		}
+	}
+
+	raw := input[0].(map[string]interface{})
+	timeout := raw["timeout"].(string)
+
+	return &compute.OSImageNotificationProfile{
+		Enable:           utils.Bool(true),
+		NotBeforeTimeout: &timeout,
+	}
+}
+
+func expandTerminateNotificationProfile(input []interface{}) *compute.TerminateNotificationProfile {
+	if len(input) == 0 {
+		return &compute.TerminateNotificationProfile{
+			Enable: utils.Bool(false),
 		}
 	}
 
@@ -462,26 +497,41 @@ func expandVirtualMachineScheduledEventsProfile(input []interface{}) *compute.Sc
 	enabled := raw["enabled"].(bool)
 	timeout := raw["timeout"].(string)
 
-	return &compute.ScheduledEventsProfile{
-		TerminateNotificationProfile: &compute.TerminateNotificationProfile{
-			Enable:           &enabled,
-			NotBeforeTimeout: &timeout,
+	return &compute.TerminateNotificationProfile{
+		Enable:           &enabled,
+		NotBeforeTimeout: &timeout,
+	}
+}
+
+func flattenOsImageNotificationProfile(input *compute.OSImageNotificationProfile) []interface{} {
+	if input == nil || !pointer.From(input.Enable) {
+		return nil
+	}
+
+	timeout := "PT15M"
+	if input.NotBeforeTimeout != nil {
+		timeout = *input.NotBeforeTimeout
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"timeout": timeout,
 		},
 	}
 }
 
-func flattenVirtualMachineScheduledEventsProfile(input *compute.ScheduledEventsProfile) []interface{} {
+func flattenTerminateNotificationProfile(input *compute.TerminateNotificationProfile) []interface{} {
 	// if enabled is set to false, there will be no ScheduledEventsProfile in response, to avoid plan non empty when
 	// a user explicitly set enabled to false, we need to assign a default block to this field
 
 	enabled := false
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.Enable != nil {
-		enabled = *input.TerminateNotificationProfile.Enable
+	if input != nil && input.Enable != nil {
+		enabled = *input.Enable
 	}
 
 	timeout := "PT5M"
-	if input != nil && input.TerminateNotificationProfile != nil && input.TerminateNotificationProfile.NotBeforeTimeout != nil {
-		timeout = *input.TerminateNotificationProfile.NotBeforeTimeout
+	if input != nil && input.NotBeforeTimeout != nil {
+		timeout = *input.NotBeforeTimeout
 	}
 
 	return []interface{}{
@@ -505,6 +555,12 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
+				"automatic_upgrade_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
 				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
 				"configuration_blob_uri": {
 					Type:         pluginsdk.TypeString,
@@ -525,6 +581,12 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+
+				"treat_failure_as_deployment_failure_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
@@ -538,15 +600,19 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]compute.VMGa
 
 	for _, v := range input {
 		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
+		automaticUpgradeEnabled := v.(map[string]interface{})["automatic_upgrade_enabled"].(bool)
 		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
 		order := v.(map[string]interface{})["order"].(int)
 		tag := v.(map[string]interface{})["tag"].(string)
+		treatFailureAsDeploymentFailureEnabled := v.(map[string]interface{})["treat_failure_as_deployment_failure_enabled"].(bool)
 
 		app := &compute.VMGalleryApplication{
-			PackageReferenceID:     utils.String(packageReferenceId),
-			ConfigurationReference: utils.String(configurationReference),
-			Order:                  utils.Int32(int32(order)),
-			Tags:                   utils.String(tag),
+			PackageReferenceID:              utils.String(packageReferenceId),
+			ConfigurationReference:          utils.String(configurationReference),
+			Order:                           utils.Int32(int32(order)),
+			Tags:                            utils.String(tag),
+			EnableAutomaticUpgrade:          utils.Bool(automaticUpgradeEnabled),
+			TreatFailureAsDeploymentFailure: utils.Bool(treatFailureAsDeploymentFailureEnabled),
 		}
 
 		out = append(out, *app)
@@ -565,6 +631,7 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 	for _, v := range *input {
 		var packageReferenceId, configurationReference, tag string
 		var order int
+		var automaticUpgradeEnabled, treatFailureAsDeploymentFailureEnabled bool
 
 		if v.PackageReferenceID != nil {
 			packageReferenceId = *v.PackageReferenceID
@@ -572,6 +639,10 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 
 		if v.ConfigurationReference != nil {
 			configurationReference = *v.ConfigurationReference
+		}
+
+		if v.EnableAutomaticUpgrade != nil {
+			automaticUpgradeEnabled = *v.EnableAutomaticUpgrade
 		}
 
 		if v.Order != nil {
@@ -582,11 +653,17 @@ func flattenVirtualMachineGalleryApplication(input *[]compute.VMGalleryApplicati
 			tag = *v.Tags
 		}
 
+		if v.TreatFailureAsDeploymentFailure != nil {
+			treatFailureAsDeploymentFailureEnabled = *v.TreatFailureAsDeploymentFailure
+		}
+
 		app := map[string]interface{}{
-			"version_id":             packageReferenceId,
-			"configuration_blob_uri": configurationReference,
-			"order":                  order,
-			"tag":                    tag,
+			"version_id":                packageReferenceId,
+			"automatic_upgrade_enabled": automaticUpgradeEnabled,
+			"configuration_blob_uri":    configurationReference,
+			"order":                     order,
+			"tag":                       tag,
+			"treat_failure_as_deployment_failure_enabled": treatFailureAsDeploymentFailureEnabled,
 		}
 
 		out = append(out, app)

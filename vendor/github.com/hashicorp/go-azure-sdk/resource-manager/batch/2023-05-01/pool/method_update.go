@@ -76,7 +76,10 @@ func (c PoolClient) Update(ctx context.Context, id PoolId, input Pool, options U
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Pool
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

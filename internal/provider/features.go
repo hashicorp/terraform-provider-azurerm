@@ -226,6 +226,11 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
+					"reimage_on_manual_upgrade": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
 					"roll_instances_when_required": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -454,6 +459,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			scaleSetRaw := items[0].(map[string]interface{})
+			if v, ok := scaleSetRaw["reimage_on_manual_upgrade"]; ok {
+				featuresMap.VirtualMachineScaleSet.ReimageOnManualUpgrade = v.(bool)
+			}
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
 				featuresMap.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
 			}

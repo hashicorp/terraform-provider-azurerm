@@ -47,7 +47,10 @@ func (c SecurityPartnerProvidersClient) UpdateTags(ctx context.Context, id Secur
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SecurityPartnerProvider
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

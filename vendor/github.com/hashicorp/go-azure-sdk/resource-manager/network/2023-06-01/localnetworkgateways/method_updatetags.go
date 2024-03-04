@@ -47,7 +47,10 @@ func (c LocalNetworkGatewaysClient) UpdateTags(ctx context.Context, id LocalNetw
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LocalNetworkGateway
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

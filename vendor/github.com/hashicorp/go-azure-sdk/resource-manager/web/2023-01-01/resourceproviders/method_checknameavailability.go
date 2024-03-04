@@ -49,7 +49,10 @@ func (c ResourceProvidersClient) CheckNameAvailability(ctx context.Context, id c
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ResourceNameAvailability
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

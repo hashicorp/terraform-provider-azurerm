@@ -43,7 +43,10 @@ func (c SIMClient) Get(ctx context.Context, id SimId) (result GetOperationRespon
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Sim
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

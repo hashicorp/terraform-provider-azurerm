@@ -43,7 +43,10 @@ func (c VirtualWANsClient) RouteMapsGet(ctx context.Context, id RouteMapId) (res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RouteMap
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c PartnerRegistrationsClient) Get(ctx context.Context, id PartnerRegistrat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PartnerRegistration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

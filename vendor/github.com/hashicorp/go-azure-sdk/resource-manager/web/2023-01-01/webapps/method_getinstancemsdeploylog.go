@@ -44,7 +44,10 @@ func (c WebAppsClient) GetInstanceMSDeployLog(ctx context.Context, id InstanceId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MSDeployLog
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

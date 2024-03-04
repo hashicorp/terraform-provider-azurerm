@@ -75,7 +75,10 @@ func (c SoftwareUpdateConfigurationClient) List(ctx context.Context, id Automati
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SoftwareUpdateConfigurationListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

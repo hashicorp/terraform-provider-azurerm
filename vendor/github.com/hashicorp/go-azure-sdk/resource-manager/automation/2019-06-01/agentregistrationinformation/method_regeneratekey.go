@@ -48,7 +48,10 @@ func (c AgentRegistrationInformationClient) RegenerateKey(ctx context.Context, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AgentRegistration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

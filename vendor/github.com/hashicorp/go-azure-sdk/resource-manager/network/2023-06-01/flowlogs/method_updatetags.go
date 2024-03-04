@@ -47,7 +47,10 @@ func (c FlowLogsClient) UpdateTags(ctx context.Context, id FlowLogId, input Tags
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FlowLog
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

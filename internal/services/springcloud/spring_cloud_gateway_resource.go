@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-11-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -22,6 +22,7 @@ type SpringCloudGatewayModel struct {
 	Name                                  string                     `tfschema:"name"`
 	SpringCloudServiceId                  string                     `tfschema:"spring_cloud_service_id"`
 	ApiMetadata                           []ApiMetadataModel         `tfschema:"api_metadata"`
+	ApplicationPerformanceMonitoringIds   []string                   `tfschema:"application_performance_monitoring_ids"`
 	ApplicationPerformanceMonitoringTypes []string                   `tfschema:"application_performance_monitoring_types"`
 	ClientAuthorization                   []ClientAuthorizationModel `tfschema:"client_authorization"`
 	Cors                                  []CorsModel                `tfschema:"cors"`
@@ -148,6 +149,16 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
+			},
+		},
+
+		"application_performance_monitoring_ids": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: appplatform.ValidateApmID,
 			},
 		},
 
@@ -462,6 +473,7 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				Properties: &appplatform.GatewayProperties{
 					ClientAuth:              expandGatewayClientAuth(model.ClientAuthorization),
 					ApiMetadataProperties:   expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata),
+					Apms:                    expandGatewayApms(model.ApplicationPerformanceMonitoringIds),
 					ApmTypes:                expandGatewayGatewayApmTypes(model.ApplicationPerformanceMonitoringTypes),
 					CorsProperties:          expandGatewayGatewayCorsProperties(model.Cors),
 					EnvironmentVariables:    expandGatewayGatewayEnvironmentVariables(model.EnvironmentVariables, model.SensitiveEnvironmentVariables),
@@ -528,6 +540,10 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("api_metadata") {
 				properties.ApiMetadataProperties = expandGatewayGatewayAPIMetadataProperties(model.ApiMetadata)
+			}
+
+			if metadata.ResourceData.HasChange("application_performance_monitoring_ids") {
+				properties.Apms = expandGatewayApms(model.ApplicationPerformanceMonitoringIds)
 			}
 
 			if metadata.ResourceData.HasChange("application_performance_monitoring_types") {
@@ -614,6 +630,11 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 			if resp.Model != nil {
 				if props := resp.Model.Properties; props != nil {
 					state.ApiMetadata = flattenGatewayGatewayAPIMetadataProperties(props.ApiMetadataProperties)
+					apms, err := flattenGatewayApms(props.Apms)
+					if err != nil {
+						return err
+					}
+					state.ApplicationPerformanceMonitoringIds = apms
 					state.ApplicationPerformanceMonitoringTypes = flattenGatewayGatewayApmTypes(props.ApmTypes)
 					state.ClientAuthorization = flattenGatewayClientAuth(props.ClientAuth)
 					state.Cors = flattenGatewayGatewayCorsProperties(props.CorsProperties)
@@ -766,6 +787,19 @@ func expandGatewayResponseCacheProperties(input SpringCloudGatewayModel) appplat
 	return appplatform.RawGatewayResponseCachePropertiesImpl{}
 }
 
+func expandGatewayApms(input []string) *[]appplatform.ApmReference {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]appplatform.ApmReference, 0)
+	for _, v := range input {
+		out = append(out, appplatform.ApmReference{
+			ResourceId: v,
+		})
+	}
+	return pointer.To(out)
+}
+
 func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayApiMetadataProperties) []ApiMetadataModel {
 	if input == nil {
 		return make([]ApiMetadataModel, 0)
@@ -906,4 +940,19 @@ func flattenGatewayLocalResponseCachePerInstanceProperties(input appplatform.Gat
 		}
 	}
 	return make([]ResponseCacheModel, 0)
+}
+
+func flattenGatewayApms(input *[]appplatform.ApmReference) ([]string, error) {
+	out := make([]string, 0)
+	if input == nil {
+		return out, nil
+	}
+	for _, v := range *input {
+		id, err := appplatform.ParseApmIDInsensitively(v.ResourceId)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, id.ID())
+	}
+	return out, nil
 }

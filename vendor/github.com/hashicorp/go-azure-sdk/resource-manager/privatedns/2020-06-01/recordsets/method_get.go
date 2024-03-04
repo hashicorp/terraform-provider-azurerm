@@ -43,7 +43,10 @@ func (c RecordSetsClient) Get(ctx context.Context, id RecordTypeId) (result GetO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RecordSet
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

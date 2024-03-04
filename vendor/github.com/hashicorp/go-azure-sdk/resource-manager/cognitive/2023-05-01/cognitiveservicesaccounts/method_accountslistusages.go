@@ -15,7 +15,12 @@ import (
 type AccountsListUsagesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *UsageListResult
+	Model        *[]Usage
+}
+
+type AccountsListUsagesCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Usage
 }
 
 type AccountsListUsagesOperationOptions struct {
@@ -63,7 +68,7 @@ func (c CognitiveServicesAccountsClient) AccountsListUsages(ctx context.Context,
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -72,9 +77,43 @@ func (c CognitiveServicesAccountsClient) AccountsListUsages(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]Usage `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// AccountsListUsagesComplete retrieves all the results into a single object
+func (c CognitiveServicesAccountsClient) AccountsListUsagesComplete(ctx context.Context, id AccountId, options AccountsListUsagesOperationOptions) (AccountsListUsagesCompleteResult, error) {
+	return c.AccountsListUsagesCompleteMatchingPredicate(ctx, id, options, UsageOperationPredicate{})
+}
+
+// AccountsListUsagesCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c CognitiveServicesAccountsClient) AccountsListUsagesCompleteMatchingPredicate(ctx context.Context, id AccountId, options AccountsListUsagesOperationOptions, predicate UsageOperationPredicate) (result AccountsListUsagesCompleteResult, err error) {
+	items := make([]Usage, 0)
+
+	resp, err := c.AccountsListUsages(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = AccountsListUsagesCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

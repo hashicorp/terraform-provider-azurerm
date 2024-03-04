@@ -48,7 +48,10 @@ func (c WebAppsClient) UpdateFtpAllowedSlot(ctx context.Context, id SlotId, inpu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CsmPublishingCredentialsPoliciesEntity
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

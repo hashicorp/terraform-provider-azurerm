@@ -49,7 +49,10 @@ func (c WebAppsClient) UpdateAuthSettingsV2(ctx context.Context, id commonids.Ap
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteAuthSettingsV2
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

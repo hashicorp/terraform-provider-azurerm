@@ -43,7 +43,10 @@ func (c WebAppsClient) GetHybridConnectionSlot(ctx context.Context, id SlotHybri
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HybridConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

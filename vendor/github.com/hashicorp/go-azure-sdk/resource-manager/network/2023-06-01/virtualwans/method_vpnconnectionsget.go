@@ -44,7 +44,10 @@ func (c VirtualWANsClient) VpnConnectionsGet(ctx context.Context, id commonids.V
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VpnConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

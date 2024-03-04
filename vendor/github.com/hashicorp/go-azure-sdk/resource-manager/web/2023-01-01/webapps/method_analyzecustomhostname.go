@@ -73,7 +73,10 @@ func (c WebAppsClient) AnalyzeCustomHostname(ctx context.Context, id commonids.A
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomHostnameAnalysisResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

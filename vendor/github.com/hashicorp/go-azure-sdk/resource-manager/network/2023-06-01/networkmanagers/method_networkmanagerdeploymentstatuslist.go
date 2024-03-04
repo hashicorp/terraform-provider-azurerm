@@ -48,7 +48,10 @@ func (c NetworkManagersClient) NetworkManagerDeploymentStatusList(ctx context.Co
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkManagerDeploymentStatusListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

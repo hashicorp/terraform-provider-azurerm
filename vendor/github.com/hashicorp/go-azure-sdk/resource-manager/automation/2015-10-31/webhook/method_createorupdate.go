@@ -48,7 +48,10 @@ func (c WebhookClient) CreateOrUpdate(ctx context.Context, id WebHookId, input W
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Webhook
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -76,7 +76,10 @@ func (c IdentityProviderClient) Update(ctx context.Context, id IdentityProviderI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IdentityProviderContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

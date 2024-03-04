@@ -47,7 +47,10 @@ func (c RunbookClient) Update(ctx context.Context, id RunbookId, input RunbookUp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Runbook
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

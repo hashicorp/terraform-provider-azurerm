@@ -47,7 +47,10 @@ func (c DaprComponentsClient) CreateOrUpdate(ctx context.Context, id DaprCompone
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DaprComponent
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
