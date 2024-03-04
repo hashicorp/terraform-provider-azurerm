@@ -489,6 +489,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.Any(
 								dnsValidate.ValidateDnsZoneID,
+								privatezones.ValidatePrivateDnsZoneID,
 								validation.StringIsEmpty,
 							),
 						},
@@ -1135,7 +1136,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"outbound_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							Default:  string(managedclusters.OutboundTypeLoadBalancer),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.OutboundTypeLoadBalancer),
@@ -1267,6 +1267,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+
+			"current_kubernetes_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"node_resource_group_id": {
@@ -2158,6 +2163,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			ebpfDataPlane := d.Get(key).(string)
 			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
 		}
+
+		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
+			existing.Model.Properties.NetworkProfile.OutboundType = pointer.To(managedclusters.OutboundType(d.Get(key).(string)))
+		}
 	}
 	if d.HasChange("service_mesh_profile") {
 		updateCluster = true
@@ -2602,6 +2611,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("portal_fqdn", props.AzurePortalFQDN)
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("kubernetes_version", props.KubernetesVersion)
+			d.Set("current_kubernetes_version", props.CurrentKubernetesVersion)
 			d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 			d.Set("local_account_disabled", props.DisableLocalAccounts)
 

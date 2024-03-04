@@ -43,7 +43,10 @@ func (c PrivateDnsZoneGroupsClient) Get(ctx context.Context, id PrivateDnsZoneGr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PrivateDnsZoneGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -48,7 +48,10 @@ func (c WatcherClient) CreateOrUpdate(ctx context.Context, id WatcherId, input W
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Watcher
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

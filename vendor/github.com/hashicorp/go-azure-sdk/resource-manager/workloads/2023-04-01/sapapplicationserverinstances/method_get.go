@@ -43,7 +43,10 @@ func (c SAPApplicationServerInstancesClient) Get(ctx context.Context, id Applica
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SAPApplicationServerInstance
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

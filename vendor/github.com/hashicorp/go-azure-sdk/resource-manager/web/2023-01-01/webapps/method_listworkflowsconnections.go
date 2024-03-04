@@ -45,7 +45,10 @@ func (c WebAppsClient) ListWorkflowsConnections(ctx context.Context, id commonid
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WorkflowEnvelope
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

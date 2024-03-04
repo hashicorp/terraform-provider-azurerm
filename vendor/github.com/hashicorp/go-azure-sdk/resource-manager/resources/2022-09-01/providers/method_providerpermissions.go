@@ -15,7 +15,12 @@ import (
 type ProviderPermissionsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ProviderPermissionListResult
+	Model        *[]ProviderPermission
+}
+
+type ProviderPermissionsCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []ProviderPermission
 }
 
 // ProviderPermissions ...
@@ -35,7 +40,7 @@ func (c ProvidersClient) ProviderPermissions(ctx context.Context, id Subscriptio
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c ProvidersClient) ProviderPermissions(ctx context.Context, id Subscriptio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]ProviderPermission `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ProviderPermissionsComplete retrieves all the results into a single object
+func (c ProvidersClient) ProviderPermissionsComplete(ctx context.Context, id SubscriptionProviderId) (ProviderPermissionsCompleteResult, error) {
+	return c.ProviderPermissionsCompleteMatchingPredicate(ctx, id, ProviderPermissionOperationPredicate{})
+}
+
+// ProviderPermissionsCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ProvidersClient) ProviderPermissionsCompleteMatchingPredicate(ctx context.Context, id SubscriptionProviderId, predicate ProviderPermissionOperationPredicate) (result ProviderPermissionsCompleteResult, err error) {
+	items := make([]ProviderPermission, 0)
+
+	resp, err := c.ProviderPermissions(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ProviderPermissionsCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

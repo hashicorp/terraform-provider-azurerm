@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-preview/redisenterprise"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
@@ -56,13 +55,7 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.RedisEnterpriseClusterLocation,
-				StateFunc:    azure.NormalizeLocation,
-			},
+			"location": commonschema.Location(),
 
 			"sku_name": {
 				Type:         pluginsdk.TypeString,

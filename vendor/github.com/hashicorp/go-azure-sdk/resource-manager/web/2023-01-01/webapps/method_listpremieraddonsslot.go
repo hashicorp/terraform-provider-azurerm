@@ -44,7 +44,10 @@ func (c WebAppsClient) ListPremierAddOnsSlot(ctx context.Context, id SlotId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PremierAddOn
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

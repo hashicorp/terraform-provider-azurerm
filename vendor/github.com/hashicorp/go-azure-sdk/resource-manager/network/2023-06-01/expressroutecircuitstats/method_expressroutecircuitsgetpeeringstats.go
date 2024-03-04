@@ -45,7 +45,10 @@ func (c ExpressRouteCircuitStatsClient) ExpressRouteCircuitsGetPeeringStats(ctx 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExpressRouteCircuitStats
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

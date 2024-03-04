@@ -44,7 +44,10 @@ func (c ManagedEnvironmentsClient) GetAuthToken(ctx context.Context, id ManagedE
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EnvironmentAuthToken
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

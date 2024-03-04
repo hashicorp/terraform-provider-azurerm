@@ -87,6 +87,8 @@ The following arguments are supported:
 
 * `api_metadata` - (Optional) A `api_metadata` block as defined below.
 
+* `application_performance_monitoring_ids` - (Optional) Specifies a list of Spring Cloud Application Performance Monitoring IDs.
+
 * `application_performance_monitoring_types` - (Optional) Specifies a list of application performance monitoring types used in the Spring Cloud Gateway. The allowed values are `AppDynamics`, `ApplicationInsights`, `Dynatrace`, `ElasticAPM` and `NewRelic`.
 
 * `client_authorization` - (Optional) A `client_authorization` block as defined below.

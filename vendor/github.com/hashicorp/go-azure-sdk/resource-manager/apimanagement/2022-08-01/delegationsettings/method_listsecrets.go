@@ -44,7 +44,10 @@ func (c DelegationSettingsClient) ListSecrets(ctx context.Context, id ServiceId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PortalSettingValidationKeyContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c AgentPoolsClient) Get(ctx context.Context, id AgentPoolId) (result GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AgentPool
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

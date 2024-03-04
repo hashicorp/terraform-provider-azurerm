@@ -49,7 +49,10 @@ func (c WebAppsClient) UpdateSitePushSettings(ctx context.Context, id commonids.
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PushSettings
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

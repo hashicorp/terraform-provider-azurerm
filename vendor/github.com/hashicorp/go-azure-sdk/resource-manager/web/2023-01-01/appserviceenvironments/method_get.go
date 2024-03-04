@@ -44,7 +44,10 @@ func (c AppServiceEnvironmentsClient) Get(ctx context.Context, id commonids.AppS
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AppServiceEnvironmentResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

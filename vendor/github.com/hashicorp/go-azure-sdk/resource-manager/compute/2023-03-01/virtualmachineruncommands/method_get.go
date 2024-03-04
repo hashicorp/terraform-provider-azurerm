@@ -43,7 +43,10 @@ func (c VirtualMachineRunCommandsClient) Get(ctx context.Context, id RunCommandI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RunCommandDocument
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

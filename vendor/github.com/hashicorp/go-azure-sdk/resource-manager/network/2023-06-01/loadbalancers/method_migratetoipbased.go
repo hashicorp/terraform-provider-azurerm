@@ -48,7 +48,10 @@ func (c LoadBalancersClient) MigrateToIPBased(ctx context.Context, id LoadBalanc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MigratedPools
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2018-01-01-preview/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,10 +31,12 @@ type RoleDefinitionDataSourceModel struct {
 }
 
 type PermissionDataSourceModel struct {
-	Actions        []string `tfschema:"actions"`
-	NotActions     []string `tfschema:"not_actions"`
-	DataActions    []string `tfschema:"data_actions"`
-	NotDataActions []string `tfschema:"not_data_actions"`
+	Actions          []string `tfschema:"actions"`
+	NotActions       []string `tfschema:"not_actions"`
+	DataActions      []string `tfschema:"data_actions"`
+	NotDataActions   []string `tfschema:"not_data_actions"`
+	Condition        string   `tfschema:"condition"`
+	ConditionVersion string   `tfschema:"condition_version"`
 }
 
 func (a RoleDefinitionDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -119,6 +121,16 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 						},
 						Set: pluginsdk.HashString,
 					},
+
+					"condition": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"condition_version": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -145,7 +157,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Authorization.RoleDefinitionsClient
+			client := metadata.Client.Authorization.ScopedRoleDefinitionsClient
 
 			var config RoleDefinitionDataSourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -218,7 +230,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			// The sdk managed id start with two "/" when scope is tenant level (empty).
-			// So we use the id from response without parsing and reformating it.
+			// So we use the id from response without parsing and reformatting it.
 			// Tracked on https://github.com/hashicorp/pandora/issues/3257
 			metadata.ResourceData.SetId(*role.Id)
 			return metadata.Encode(&state)
@@ -233,10 +245,12 @@ func flattenDataSourceRoleDefinitionPermissions(input *[]roledefinitions.Permiss
 	}
 	for _, permission := range *input {
 		permissions = append(permissions, PermissionDataSourceModel{
-			Actions:        pointer.From(permission.Actions),
-			DataActions:    pointer.From(permission.DataActions),
-			NotActions:     pointer.From(permission.NotActions),
-			NotDataActions: pointer.From(permission.NotDataActions),
+			Actions:          pointer.From(permission.Actions),
+			DataActions:      pointer.From(permission.DataActions),
+			NotActions:       pointer.From(permission.NotActions),
+			NotDataActions:   pointer.From(permission.NotDataActions),
+			Condition:        pointer.From(permission.Condition),
+			ConditionVersion: pointer.From(permission.ConditionVersion),
 		})
 	}
 	return permissions

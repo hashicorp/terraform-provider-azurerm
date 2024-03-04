@@ -48,7 +48,10 @@ func (c ExpressRoutePortsClient) GenerateLOA(ctx context.Context, id ExpressRout
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GenerateExpressRoutePortsLOAResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

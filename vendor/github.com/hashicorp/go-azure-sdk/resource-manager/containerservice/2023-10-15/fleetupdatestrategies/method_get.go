@@ -43,7 +43,10 @@ func (c FleetUpdateStrategiesClient) Get(ctx context.Context, id UpdateStrategyI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FleetUpdateStrategy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

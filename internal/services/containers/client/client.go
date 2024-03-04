@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleetupdatestrategies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/updateruns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -28,6 +29,7 @@ type Client struct {
 	ContainerRegistryClient_v2021_08_01_preview *containerregistry_v2021_08_01_preview.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
+	FleetUpdateRunsClient                       *updateruns.UpdateRunsClient
 	FleetUpdateStrategiesClient                 *fleetupdatestrategies.FleetUpdateStrategiesClient
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
 	KubernetesExtensionsClient                  *extensions.ExtensionsClient
@@ -57,6 +59,12 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	// AKS
+	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Fleet Update Runs Client: %+v", err)
+	}
+	o.Configure(fleetUpdateRunsClient.Client, o.Authorizers.ResourceManager)
+
 	fleetUpdateStrategiesClient, err := fleetupdatestrategies.NewFleetUpdateStrategiesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Fleet Update Strategies Client: %+v", err)
@@ -110,6 +118,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		ContainerInstanceClient:                     &containerInstanceClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
+		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
 		FleetUpdateStrategiesClient:                 fleetUpdateStrategiesClient,
 		KubernetesClustersClient:                    kubernetesClustersClient,
 		KubernetesExtensionsClient:                  kubernetesExtensionsClient,

@@ -45,7 +45,10 @@ func (c ClustersClient) ListFollowerDatabases(ctx context.Context, id commonids.
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FollowerDatabaseListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

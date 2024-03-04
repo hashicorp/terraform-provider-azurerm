@@ -81,7 +81,10 @@ func (c RecordSetsClient) CreateOrUpdate(ctx context.Context, id RecordTypeId, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RecordSet
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

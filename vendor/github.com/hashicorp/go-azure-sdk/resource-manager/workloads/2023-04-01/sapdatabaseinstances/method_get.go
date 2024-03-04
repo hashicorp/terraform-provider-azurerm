@@ -43,7 +43,10 @@ func (c SAPDatabaseInstancesClient) Get(ctx context.Context, id DatabaseInstance
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SAPDatabaseInstance
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

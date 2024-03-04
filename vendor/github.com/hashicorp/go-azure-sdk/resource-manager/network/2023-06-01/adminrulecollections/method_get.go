@@ -43,7 +43,10 @@ func (c AdminRuleCollectionsClient) Get(ctx context.Context, id RuleCollectionId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AdminRuleCollection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -16,7 +16,12 @@ import (
 type SkusListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SkuInformationList
+	Model        *[]SkuInformation
+}
+
+type SkusListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []SkuInformation
 }
 
 type SkusListOperationOptions struct {
@@ -64,7 +69,7 @@ func (c ElasticSanSkusClient) SkusList(ctx context.Context, id commonids.Subscri
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -73,9 +78,43 @@ func (c ElasticSanSkusClient) SkusList(ctx context.Context, id commonids.Subscri
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]SkuInformation `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// SkusListComplete retrieves all the results into a single object
+func (c ElasticSanSkusClient) SkusListComplete(ctx context.Context, id commonids.SubscriptionId, options SkusListOperationOptions) (SkusListCompleteResult, error) {
+	return c.SkusListCompleteMatchingPredicate(ctx, id, options, SkuInformationOperationPredicate{})
+}
+
+// SkusListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ElasticSanSkusClient) SkusListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options SkusListOperationOptions, predicate SkuInformationOperationPredicate) (result SkusListCompleteResult, err error) {
+	items := make([]SkuInformation, 0)
+
+	resp, err := c.SkusList(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = SkusListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

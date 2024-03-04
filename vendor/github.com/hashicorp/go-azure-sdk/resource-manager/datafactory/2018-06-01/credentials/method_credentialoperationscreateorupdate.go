@@ -76,7 +76,10 @@ func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedIdentityCredentialResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

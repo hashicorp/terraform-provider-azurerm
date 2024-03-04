@@ -44,7 +44,10 @@ func (c WebAppsClient) GetFunctionsAdminTokenSlot(ctx context.Context, id SlotId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model string
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

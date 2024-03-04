@@ -47,7 +47,10 @@ func (c ModuleClient) PowerShell72ModuleUpdate(ctx context.Context, id PowerShel
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Module
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c ProviderInstancesClient) Get(ctx context.Context, id ProviderInstanceId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ProviderInstance
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

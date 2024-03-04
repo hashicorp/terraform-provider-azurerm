@@ -72,7 +72,10 @@ func (c SkusesClient) SkusGet(ctx context.Context, id SkuId, options SkusGetOper
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Sku
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

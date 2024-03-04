@@ -72,7 +72,10 @@ func (c VirtualMachineRunCommandsClient) GetByVirtualMachine(ctx context.Context
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualMachineRunCommand
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -72,7 +72,10 @@ func (c PrivateEndpointsClient) Get(ctx context.Context, id PrivateEndpointId, o
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PrivateEndpoint
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

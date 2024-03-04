@@ -43,7 +43,10 @@ func (c VirtualWANsClient) HubRouteTablesGet(ctx context.Context, id HubRouteTab
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HubRouteTable
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

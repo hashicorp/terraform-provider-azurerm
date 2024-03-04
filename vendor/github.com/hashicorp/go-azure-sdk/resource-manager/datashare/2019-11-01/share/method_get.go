@@ -43,7 +43,10 @@ func (c ShareClient) Get(ctx context.Context, id ShareId) (result GetOperationRe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Share
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

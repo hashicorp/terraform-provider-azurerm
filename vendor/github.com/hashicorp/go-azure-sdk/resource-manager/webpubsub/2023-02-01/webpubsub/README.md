@@ -333,12 +333,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := webpubsub.NewWebPubSubID("12345678-1234-9876-4563-123456789012", "example-resource-group", "webPubSubValue")
 
-read, err := client.ListSkus(ctx, id)
+// alternatively `client.ListSkus(ctx, id)` can be used to do batched pagination
+items, err := client.ListSkusComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

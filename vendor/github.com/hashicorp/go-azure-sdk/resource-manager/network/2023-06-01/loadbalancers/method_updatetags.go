@@ -47,7 +47,10 @@ func (c LoadBalancersClient) UpdateTags(ctx context.Context, id ProviderLoadBala
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LoadBalancer
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -48,7 +48,10 @@ func (c AvailabilitySetsClient) Update(ctx context.Context, id commonids.Availab
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AvailabilitySet
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

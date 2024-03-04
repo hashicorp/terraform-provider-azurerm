@@ -73,7 +73,10 @@ func (c AssignmentClient) Delete(ctx context.Context, id ScopedBlueprintAssignme
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Assignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

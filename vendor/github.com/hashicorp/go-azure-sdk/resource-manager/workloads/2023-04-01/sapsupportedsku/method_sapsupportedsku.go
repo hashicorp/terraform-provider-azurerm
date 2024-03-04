@@ -48,7 +48,10 @@ func (c SAPSupportedSkuClient) SAPSupportedSku(ctx context.Context, id LocationI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SAPSupportedResourceSkusResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

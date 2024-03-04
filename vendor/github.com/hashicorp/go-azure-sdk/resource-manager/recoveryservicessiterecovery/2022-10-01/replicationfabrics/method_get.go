@@ -72,7 +72,10 @@ func (c ReplicationFabricsClient) Get(ctx context.Context, id ReplicationFabricI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Fabric
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

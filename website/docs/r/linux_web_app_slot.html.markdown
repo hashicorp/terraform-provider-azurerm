@@ -184,7 +184,7 @@ An `application_stack` block supports the following:
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10`, `3.11` and `3.12`.
 
-* `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
+* `ruby_version` - (Optional) The version of Ruby to run. Possible values include `2.6` and `2.7`.
 
 ---
 
@@ -840,7 +840,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_linux_web_app.example.identity.0.principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_linux_web_app.example.identity[0].principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity[0].tenant_id`
 
 ---
 

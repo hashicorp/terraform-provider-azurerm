@@ -19,6 +19,9 @@ type virtualMachineScaleSetUpdateMetaData struct {
 	// is "automaticOSUpgrade" enable in the upgradeProfile block
 	AutomaticOSUpgradeIsEnabled bool
 
+	// can we reimage instances when `upgrade_mode` is set to `Manual`? this is a feature toggle
+	CanReimageOnManualUpgrade bool
+
 	// can we roll instances if we need too? this is a feature toggle
 	CanRollInstancesWhenRequired bool
 
@@ -170,20 +173,21 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 		}
 		log.Printf("[DEBUG] Updated Instance %q to the Latest Configuration.", instanceId)
 
-		// TODO: does this want to be a separate, user-configurable toggle?
-		log.Printf("[DEBUG] Reimaging Instance %q..", instanceId)
-		reimageInput := &compute.VirtualMachineScaleSetReimageParameters{
-			InstanceIds: &instanceIds,
-		}
-		reimageFuture, err := client.Reimage(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, reimageInput)
-		if err != nil {
-			return fmt.Errorf("reimaging Instance %q (%s %s): %+v", instanceId, metadata.OSType, id, err)
-		}
+		if metadata.CanReimageOnManualUpgrade {
+			log.Printf("[DEBUG] Reimaging Instance %q..", instanceId)
+			reimageInput := &compute.VirtualMachineScaleSetReimageParameters{
+				InstanceIds: &instanceIds,
+			}
+			reimageFuture, err := client.Reimage(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, reimageInput)
+			if err != nil {
+				return fmt.Errorf("reimaging Instance %q (%s %s): %+v", instanceId, metadata.OSType, id, err)
+			}
 
-		if err = reimageFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for reimage of Instance %q (%s %s): %+v", instanceId, metadata.OSType, id, err)
+			if err = reimageFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("waiting for reimage of Instance %q (%s %s): %+v", instanceId, metadata.OSType, id, err)
+			}
+			log.Printf("[DEBUG] Reimaged Instance %q..", instanceId)
 		}
-		log.Printf("[DEBUG] Reimaged Instance %q..", instanceId)
 	}
 
 	log.Printf("[DEBUG] Rolled the VM Instances for %s %s.", metadata.OSType, id)
