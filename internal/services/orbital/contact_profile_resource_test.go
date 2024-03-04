@@ -233,6 +233,12 @@ resource "azurerm_eventhub" "test" {
   message_retention   = 1
 }
 
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_eventhub.test.id
+  role_definition_name = "Azure Event Hubs Data Sender"
+  principal_id         = "4fa46669-56c9-44e7-a69b-182480b952a8"
+}
+
 resource "azurerm_orbital_contact_profile" "test" {
   name                              = "testcontactprofile-%d"
   resource_group_name               = azurerm_resource_group.test.name
