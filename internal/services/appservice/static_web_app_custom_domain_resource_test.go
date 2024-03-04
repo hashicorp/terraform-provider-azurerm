@@ -9,17 +9,18 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StaticWebAppCustomDomainResource struct{}
 
-func TestAccAzureStaticSiteCustomDomain_basic(t *testing.T) {
+func TestAccAzureStaticWebAppCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app_custom_domain", "test")
 	r := StaticWebAppCustomDomainResource{}
 
@@ -35,7 +36,7 @@ func TestAccAzureStaticSiteCustomDomain_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticSiteCustomDomain_cnameValidation(t *testing.T) {
+func TestAccAzureStaticWebAppCustomDomain_cnameValidation(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
 		t.Skipf("Skipping Static Web App Test CNAME test as ARM_TEST_DNS_ZONE is not set.")
 	}
@@ -53,7 +54,7 @@ func TestAccAzureStaticSiteCustomDomain_cnameValidation(t *testing.T) {
 	})
 }
 
-func TestAccAzureStaticSiteCustomDomain_requiresImport(t *testing.T) {
+func TestAccAzureStaticWebAppCustomDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_web_app_custom_domain", "test")
 	r := StaticWebAppCustomDomainResource{}
 
@@ -69,20 +70,20 @@ func TestAccAzureStaticSiteCustomDomain_requiresImport(t *testing.T) {
 }
 
 func (r StaticWebAppCustomDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StaticSiteCustomDomainID(state.ID)
+	id, err := staticsites.ParseCustomDomainID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.StaticSitesClient.GetStaticSiteCustomDomain(ctx, id.ResourceGroup, id.StaticSiteName, id.CustomDomainName)
+	resp, err := clients.AppService.StaticSitesClient.GetStaticSiteCustomDomain(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Static Site %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StaticWebAppCustomDomainResource) basic(data acceptance.TestData) string {
