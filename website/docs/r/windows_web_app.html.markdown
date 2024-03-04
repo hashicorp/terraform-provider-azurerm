@@ -733,6 +733,8 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
+* `ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `ip_restriction` rule. Possibles values include `Allow` and `Deny`. Defaults to `Allow`.
+
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
 * `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
@@ -746,6 +748,8 @@ A `site_config` block supports the following:
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`.
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
+
+* `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. Possibles values include `Allow` and `Deny`. Defaults to `Allow`.
 
 * `scm_minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
