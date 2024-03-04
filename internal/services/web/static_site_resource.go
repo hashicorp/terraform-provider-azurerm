@@ -26,10 +26,11 @@ import (
 
 func resourceStaticSite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStaticSiteCreateOrUpdate,
-		Read:   resourceStaticSiteRead,
-		Update: resourceStaticSiteCreateOrUpdate,
-		Delete: resourceStaticSiteDelete,
+		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app` and will be removed in a future release.",
+		Create:             resourceStaticSiteCreateOrUpdate,
+		Read:               resourceStaticSiteRead,
+		Update:             resourceStaticSiteCreateOrUpdate,
+		Delete:             resourceStaticSiteDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StaticSiteID(id)
 			return err
