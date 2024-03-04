@@ -909,7 +909,7 @@ func FlattenSiteConfigWindowsFunctionAppSlot(functionAppSlotSiteConfig *webapps.
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
 		IpRestrictionDefaultAction:    string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
+		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
 	}
 
 	if v := functionAppSlotSiteConfig.ApiDefinition; v != nil && v.Url != nil {
@@ -1252,7 +1252,7 @@ func FlattenSiteConfigLinuxFunctionAppSlot(functionAppSlotSiteConfig *webapps.Si
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSlotSiteConfig.RemoteDebuggingVersion)),
 		VnetRouteAllEnabled:           pointer.From(functionAppSlotSiteConfig.VnetRouteAllEnabled),
 		IpRestrictionDefaultAction:    string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
-		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.IPSecurityRestrictionsDefaultAction)),
+		ScmIpRestrictionDefaultAction: string(pointer.From(functionAppSlotSiteConfig.ScmIPSecurityRestrictionsDefaultAction)),
 	}
 
 	if v := functionAppSlotSiteConfig.ApiDefinition; v != nil && v.Url != nil {
