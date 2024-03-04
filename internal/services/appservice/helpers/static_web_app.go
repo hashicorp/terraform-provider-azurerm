@@ -9,11 +9,11 @@ import (
 
 type BasicAuth struct {
 	Password     string `tfschema:"password"`
-	Environments string `tfschema:"environments"` // AllEnvironments, StagingEnvironments
+	Environments string `tfschema:"environments"`
 }
 
 type BasicAuthComputed struct {
-	Environments string `tfschema:"environments"` // AllEnvironments, StagingEnvironments
+	Environments string `tfschema:"environments"`
 }
 
 const (

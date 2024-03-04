@@ -309,10 +309,10 @@ func (r StaticWebAppResource) Exists(ctx context.Context, clients *clients.Clien
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Static Site %q: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r StaticWebAppResource) basic(data acceptance.TestData) string {

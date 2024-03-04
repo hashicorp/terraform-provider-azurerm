@@ -43,7 +43,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	staticSitesClient, err := staticsites.NewStaticSitesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building ServicePlan client: %+v", err)
+		return nil, fmt.Errorf("building StaticSites client: %+v", err)
 	}
 	o.Configure(staticSitesClient.Client, o.Authorizers.ResourceManager)
 

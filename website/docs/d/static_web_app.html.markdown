@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `basic_auth` - A `basic_auth` block as defined below.
 
-* `configuration_file_changes_enabled` - Are changes to the configuration file be permitted. 
+* `configuration_file_changes_enabled` - Are changes to the configuration file permitted. 
 
 * `default_host_name` - The default host name of the Static Web App.
 
@@ -57,7 +57,7 @@ An `identity` block exports the following:
 
 * `type` - The Type of Managed Identity assigned to this Static Web App resource.
 
-* `identity_ids` -The list of Managed Identity IDs which are assigned to this Static Web App resource.
+* `identity_ids` - The list of Managed Identity IDs which are assigned to this Static Web App resource.
 
 ---
 

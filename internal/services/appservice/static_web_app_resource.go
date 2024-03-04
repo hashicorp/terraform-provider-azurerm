@@ -151,7 +151,7 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 			existing, err := client.GetStaticSite(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {

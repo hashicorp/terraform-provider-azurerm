@@ -95,7 +95,7 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 			existing, err := client.GetStaticSiteCustomDomain(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("failed checking for presence of existing %s: %+v", id, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -118,7 +118,7 @@ func (r StaticWebAppCustomDomainResource) Create() sdk.ResourceFunc {
 				}
 				deadline, ok := ctx.Deadline()
 				if !ok {
-					return fmt.Errorf("context was missing a deadline")
+					return fmt.Errorf("internal-error: context was missing a deadline")
 				}
 				stateConf := &pluginsdk.StateChangeConf{
 					Pending: []string{
