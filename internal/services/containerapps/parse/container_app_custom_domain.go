@@ -60,7 +60,7 @@ func ContainerAppCustomDomainIDInsensitively(input string) (*ContainerAppCustomD
 	return &id, nil
 }
 
-func (id *ContainerAppCustomDomainId) FromParseResult(input resourceids.ParseResult) error {
+func (id ContainerAppCustomDomainId) FromParseResult(input resourceids.ParseResult) error {
 	var ok bool
 
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
