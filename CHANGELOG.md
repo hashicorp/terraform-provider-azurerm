@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* New Resource: `azurerm_container_app_custom_domain` [GH-24421]
 * `azurerm_linux_function_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
 * `azurerm_linux_function_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
 * `azurerm_linux_web_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
