@@ -240,7 +240,7 @@ data "azuread_service_principal" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_eventhub.test.id
   role_definition_name = "Azure Event Hubs Data Sender"
-  principal_id         = data.azuread_service_principal.test.application_id
+  principal_id         = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_orbital_contact_profile" "test" {
@@ -270,6 +270,8 @@ resource "azurerm_orbital_contact_profile" "test" {
     polarization = "RHCP"
   }
   network_configuration_subnet_id = azurerm_subnet.test.id
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
