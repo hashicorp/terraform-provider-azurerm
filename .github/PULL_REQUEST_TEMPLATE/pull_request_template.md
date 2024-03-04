@@ -30,6 +30,7 @@ Example:
 - [ ] I have added an explanation of what my changes do and why I'd like you to include them (This may be covered by linking to an issue above, but may benefit from additional explanation).
 - [ ] I have written new tests for my resource or datasource changes.
 - [ ] I have successfully run tests with my changes locally. If not, please provide details on testing challenges that prevented you running the tests.
+- [ ] (For changes that include a **state migration only**). I have manually tested the migration path between relevant versions of the provider.
 
 
 ## Documentation Changes
@@ -40,10 +41,12 @@ Example:
 
 ## Description
 
-<!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. It also helps to paste the output from running the acceptance tests. -->
+<!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. -->
 
+## Testing Evidence
 
-
+<!-- Please include your testing evidence here or an explanation on why no testing evidence can be provided. 
+For state migrations please test the changes locally and provide details here, such as the versions involved in testing the migration path. For further details on testing state migration changes please see our guide on [state migrations](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-state-migrations.md#testing) in the contributor documentation. -->
 
 ## Related Issue(s)
 Fixes #0000
