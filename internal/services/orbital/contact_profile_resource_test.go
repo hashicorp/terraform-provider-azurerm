@@ -256,7 +256,7 @@ resource "azurerm_orbital_contact_profile" "test" {
       name                       = "channelname"
       bandwidth_mhz              = 100
       center_frequency_mhz       = 101
-      demodulation_configuration = "na"
+      demodulation_configuration = "aqua_direct_broadcast"
       modulation_configuration   = "AQUA_UPLINK_BPSK"
       end_point {
         end_point_name = "AQUA_command"
