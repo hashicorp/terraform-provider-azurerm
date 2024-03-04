@@ -47,7 +47,10 @@ func (c StaticSitesClient) UpdateBuildDatabaseConnection(ctx context.Context, id
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatabaseConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c StaticSitesClient) ListStaticSiteAppSettings(ctx context.Context, id Sta
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StringDictionary
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

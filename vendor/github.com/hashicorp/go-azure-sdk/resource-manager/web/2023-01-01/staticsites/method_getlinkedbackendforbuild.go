@@ -43,7 +43,10 @@ func (c StaticSitesClient) GetLinkedBackendForBuild(ctx context.Context, id Buil
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StaticSiteLinkedBackendARMResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

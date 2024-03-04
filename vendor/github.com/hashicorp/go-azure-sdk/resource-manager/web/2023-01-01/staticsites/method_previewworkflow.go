@@ -48,7 +48,10 @@ func (c StaticSitesClient) PreviewWorkflow(ctx context.Context, id ProviderLocat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StaticSitesWorkflowPreview
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

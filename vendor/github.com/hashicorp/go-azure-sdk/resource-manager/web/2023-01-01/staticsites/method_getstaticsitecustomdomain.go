@@ -43,7 +43,10 @@ func (c StaticSitesClient) GetStaticSiteCustomDomain(ctx context.Context, id Cus
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StaticSiteCustomDomainOverviewARMResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
