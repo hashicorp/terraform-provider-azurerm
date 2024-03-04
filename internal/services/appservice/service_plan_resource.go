@@ -175,12 +175,17 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			if isServicePlanSupportScaleOut(servicePlan.Sku) {
+				servicePlan.PremiumElasticScaling = true
+			}
+
 			appServicePlan := appserviceplans.AppServicePlan{
 				Properties: &appserviceplans.AppServicePlanProperties{
-					PerSiteScaling: pointer.To(servicePlan.PerSiteScaling),
-					Reserved:       pointer.To(servicePlan.OSType == OSTypeLinux),
-					HyperV:         pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
-					ZoneRedundant:  pointer.To(servicePlan.ZoneBalancing),
+					PerSiteScaling:      pointer.To(servicePlan.PerSiteScaling),
+					Reserved:            pointer.To(servicePlan.OSType == OSTypeLinux),
+					HyperV:              pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
+					ZoneRedundant:       pointer.To(servicePlan.ZoneBalancing),
+					ElasticScaleEnabled: pointer.To(servicePlan.PremiumElasticScaling),
 				},
 				Sku: &appserviceplans.SkuDescription{
 					Name: pointer.To(servicePlan.Sku),
@@ -251,9 +256,13 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				state.Kind = pointer.From(model.Kind)
 
 				// sku read
+				isElasticSku := false
 				if sku := model.Sku; sku != nil {
 					if sku.Name != nil {
 						state.Sku = *sku.Name
+						if isServicePlanSupportScaleOut(*sku.Name) {
+							isElasticSku = true
+						}
 						if sku.Capacity != nil {
 							state.WorkerCount = int(*sku.Capacity)
 						}
@@ -281,8 +290,13 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 					state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
 
 					state.MaximumElasticWorkerCount = int(pointer.From(props.MaximumElasticWorkerCount))
+
+					if !isElasticSku {
+						state.PremiumElasticScaling = pointer.From(props.ElasticScaleEnabled)
+					}
 					state.PremiumElasticScaling = pointer.From(props.ElasticScaleEnabled)
 				}
+
 				state.Tags = pointer.From(model.Tags)
 			}
 
