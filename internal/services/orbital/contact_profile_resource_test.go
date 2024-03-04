@@ -233,10 +233,14 @@ resource "azurerm_eventhub" "test" {
   message_retention   = 1
 }
 
+data "azuread_service_principal" "test" {
+  display_name = "Azure Orbital Resource Provider"
+}
+
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_eventhub.test.id
   role_definition_name = "Azure Event Hubs Data Sender"
-  principal_id         = "4fa46669-56c9-44e7-a69b-182480b952a8"
+  principal_id         = data.azuread_service_principal.test.application_id
 }
 
 resource "azurerm_orbital_contact_profile" "test" {
