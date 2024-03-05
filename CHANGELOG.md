@@ -1,3 +1,28 @@
+## 3.95.0 (Unreleased)
+
+FEATURES:
+
+* New Resource: `azurerm_container_app_custom_domain` [GH-24421]
+* New Resource: `azurerm_static_web_app` [GH-25117]
+* New resource: `azurerm_static_web_app_custom_domain` [GH-25117]
+
+ENHANCEMENTS:
+
+* `azurerm_linux_function_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+* `azurerm_linux_function_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+* `azurerm_linux_web_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+* `azurerm_linux_web_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+* `azurerm_windows_function_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+* `azurerm_windows_function_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+* `azurerm_windows_web_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+* `azurerm_windows_web_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+
+DEPRECATIONS:
+
+* Deprecated Resource: `azurerm_static_site` [GH-25117]
+* Deprecated Resource: `azurerm_static_site_custom_domain` [GH-25117]
+
+
 ## 3.94.0 (February 29, 2024)
 
 FEATURES:

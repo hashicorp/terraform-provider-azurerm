@@ -323,9 +323,11 @@ type CustomDomain struct {
 
 func ContainerAppIngressCustomDomainSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:       pluginsdk.TypeList,
+		Optional:   true,
+		Computed:   true,
+		MaxItems:   1,
+		Deprecated: "This property is deprecated in favour of the new `azurerm_container_app_custom_domain` resource and will become computed only in a future release.",
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"certificate_binding_type": {
