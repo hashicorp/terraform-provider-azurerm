@@ -143,7 +143,7 @@ func (SubnetNatGatewayAssociationResource) destroy(ctx context.Context, client *
 	}
 	props.NatGateway = nil
 
-	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *parsedSubnetId, *model); err != nil {
+	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *parsedSubnetId, *subnet.Model); err != nil {
 		return fmt.Errorf("updating Subnet %q (Network %q / Resource Group %q): %+v", parsedSubnetId.SubnetName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.ResourceGroupName, err)
 	}
 
