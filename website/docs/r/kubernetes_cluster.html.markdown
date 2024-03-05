@@ -432,7 +432,7 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `CBLMariner`, `Mariner`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. `temporary_name_for_rotation` must be specified when attempting a change.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
 
@@ -560,7 +560,7 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
-* `allowed_host_ports` - (Optional)  One or more `allowed_host_ports` blocks as defined below.
+* `allowed_host_ports` - (Optional) One or more `allowed_host_ports` blocks as defined below.
 
 * `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
 
