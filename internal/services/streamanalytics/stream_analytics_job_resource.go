@@ -523,7 +523,6 @@ func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccou
 	if input == nil {
 		return nil
 	}
-
 	v := input[0].(map[string]interface{})
 	authenticationMode := v["authentication_mode"].(string)
 	accountName := v["account_name"].(string)
