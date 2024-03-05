@@ -5,6 +5,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
@@ -228,7 +229,16 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	subnetID, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
+	existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.ConfigName, id.SlotName)
+	if err != nil {
+		return err
+	}
+
+	if existing.SwiftVirtualNetworkProperties == nil {
+		return fmt.Errorf("properties was nil for %s", *existing.ID)
+	}
+
+	subnetID, err := commonids.ParseSubnetID(pointer.From(existing.SwiftVirtualNetworkProperties.SubnetResourceID))
 	if err != nil {
 		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
 	}
