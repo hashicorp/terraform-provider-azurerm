@@ -159,12 +159,12 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsd
 		return fmt.Errorf("retrieving App Service Slot VNet association between %q (App Service %q / Resource Group %q) and Virtual Network %q: %s", slotName, name, resourceGroup, virtualNetworkName, err)
 	}
 
-	swiftVirtualNetworkId, err := parse.SlotVirtualNetworkSwiftConnectionID(*read.ID)
+	slotSwiftVirtualNetworkId, err := parse.SlotVirtualNetworkSwiftConnectionID(*read.ID)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(swiftVirtualNetworkId.ID())
+	d.SetId(slotSwiftVirtualNetworkId.ID())
 
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }

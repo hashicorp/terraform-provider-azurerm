@@ -143,7 +143,11 @@ func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.Re
 	if err != nil {
 		return fmt.Errorf("retrieving App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
-	d.SetId(*read.ID)
+	swiftVirtualNetworkId, err := parse.VirtualNetworkSwiftConnectionID(*read.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(swiftVirtualNetworkId.ID())
 
 	return resourceAppServiceVirtualNetworkSwiftConnectionRead(d, meta)
 }
