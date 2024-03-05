@@ -10,14 +10,15 @@ FEATURES:
 ENHANCEMENTS:
 
 * `network`: updating to API Version `2023-09-01` [GH-25095]
-* `azurerm_linux_function_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
-* `azurerm_linux_function_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
-* `azurerm_linux_web_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
-* `azurerm_linux_web_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
-* `azurerm_windows_function_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
-* `azurerm_windows_function_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
-* `azurerm_windows_web_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
-* `azurerm_windows_web_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
+* `azurerm_linux_function_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_linux_function_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_linux_web_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_linux_web_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_orbital_contact_profile` - changing the `channels` property no longer creates a new resource [GH-25129]
+* `azurerm_windows_function_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_windows_function_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_windows_web_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_windows_web_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
 
 DEPRECATIONS:
 
