@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+id := commonids.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
 
 payload := databases.DatabasePrincipalListRequest{
 	// ...
@@ -45,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 payload := databases.CheckNameRequest{
 	// ...
@@ -66,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+id := commonids.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
 
 payload := databases.Database{
 	// ...
@@ -83,7 +84,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, databases.DefaultCreat
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+id := commonids.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
 
 payload := databases.DatabaseInviteFollowerRequest{
 	// ...
@@ -104,7 +105,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+id := commonids.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -116,7 +117,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+id := commonids.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -132,7 +133,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
+id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue")
 
 // alternatively `client.ListByCluster(ctx, id, databases.DefaultListByClusterOperationOptions())` can be used to do batched pagination
 items, err := client.ListByClusterComplete(ctx, id, databases.DefaultListByClusterOperationOptions())
@@ -149,7 +150,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+id := commonids.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
 
 read, err := client.ListPrincipals(ctx, id)
 if err != nil {
@@ -165,7 +166,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+id := commonids.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
 
 payload := databases.DatabasePrincipalListRequest{
 	// ...
@@ -186,7 +187,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := databases.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
+id := commonids.NewKustoDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterValue", "databaseValue")
 
 payload := databases.Database{
 	// ...

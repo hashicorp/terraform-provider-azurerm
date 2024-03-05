@@ -43,7 +43,10 @@ func (c ServerKeysClient) Get(ctx context.Context, id KeyId) (result GetOperatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServerKey
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

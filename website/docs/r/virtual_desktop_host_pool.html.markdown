@@ -79,6 +79,8 @@ The following arguments are supported:
 
 * `scheduled_agent_updates` - (Optional) A `scheduled_agent_updates` block as defined below. This enables control of when Agent Updates will be applied to Session Hosts.
 
+* `vm_template` - (Optional) A VM template for session hosts configuration within hostpool. This is a JSON string.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

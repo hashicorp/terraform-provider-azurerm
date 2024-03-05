@@ -49,7 +49,10 @@ func (c WebAppsClient) UpdateScmAllowed(ctx context.Context, id commonids.AppSer
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CsmPublishingCredentialsPoliciesEntity
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

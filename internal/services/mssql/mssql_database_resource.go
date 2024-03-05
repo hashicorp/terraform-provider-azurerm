@@ -324,6 +324,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		if _, dbok := d.GetOk("restore_dropped_database_id"); !dbok {
 			return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode)
 		}
+	case databases.CreateModeRestoreLongTermRetentionBackup:
+		if _, dbok := d.GetOk("long_term_retention_backup_id"); !dbok {
+			return fmt.Errorf("'long_term_retention_backup_id' is required for create_mode %s", createMode)
+		}
 	}
 
 	// we should not specify the value of `maintenance_configuration_name` when `elastic_pool_id` is set since its value depends on the elastic pool's `maintenance_configuration_name` value.
@@ -377,8 +381,16 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Properties.RecoverableDatabaseId = pointer.To(v.(string))
 	}
 
+	if v, ok := d.GetOk("recovery_point_id"); ok {
+		input.Properties.RecoveryServicesRecoveryPointId = pointer.To(v.(string))
+	}
+
 	if v, ok := d.GetOk("restore_dropped_database_id"); ok {
 		input.Properties.RestorableDroppedDatabaseId = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("restore_long_term_retention_backup_id"); ok {
+		input.Properties.LongTermRetentionBackupResourceId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
@@ -580,196 +592,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	return resourceMsSqlDatabaseRead(d, meta)
-}
-
-func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
-
-	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
-	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
-	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
-
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := commonids.ParseSqlDatabaseID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
-	d.Set("server_id", serverId.ID())
-
-	resp, err := client.Get(ctx, pointer.From(id), databases.DefaultGetOperationOptions())
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	geoBackupPolicy := true
-	skuName := ""
-	elasticPoolId := ""
-	minCapacity := float64(0)
-	ledgerEnabled := false
-	enclaveType := ""
-
-	if model := resp.Model; model != nil {
-		d.Set("name", id.DatabaseName)
-
-		if props := model.Properties; props != nil {
-			minCapacity = pointer.From(props.MinCapacity)
-
-			requestedBackupStorageRedundancy := ""
-			if props.RequestedBackupStorageRedundancy != nil {
-				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
-			}
-
-			d.Set("auto_pause_delay_in_minutes", pointer.From(props.AutoPauseDelay))
-			d.Set("collation", pointer.From(props.Collation))
-			d.Set("read_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
-			d.Set("storage_account_type", requestedBackupStorageRedundancy)
-			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
-			d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScaleEnabled)
-
-			if props.ElasticPoolId != nil {
-				elasticPoolId = pointer.From(props.ElasticPoolId)
-			}
-
-			if props.LicenseType != nil {
-				d.Set("license_type", string(pointer.From(props.LicenseType)))
-			} else {
-				// value not returned, try to set from state
-				d.Set("license_type", d.Get("license_type").(string))
-			}
-
-			if props.MaxSizeBytes != nil {
-				d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
-			}
-
-			if props.CurrentServiceObjectiveName != nil {
-				skuName = *props.CurrentServiceObjectiveName
-			}
-
-			if props.IsLedgerOn != nil {
-				ledgerEnabled = *props.IsLedgerOn
-			}
-
-			// NOTE: Always set the PreferredEnclaveType to an empty string unless it isn't 'Default'...
-			if v := props.PreferredEnclaveType; v != nil && pointer.From(v) != databases.AlwaysEncryptedEnclaveTypeDefault {
-				enclaveType = string(pointer.From(v))
-			}
-
-			configurationName := ""
-			if v := props.MaintenanceConfigurationId; v != nil {
-				maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(pointer.From(v))
-				if err != nil {
-					return err
-				}
-				configurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
-			}
-
-			d.Set("elastic_pool_id", elasticPoolId)
-			d.Set("min_capacity", minCapacity)
-			d.Set("sku_name", skuName)
-			d.Set("maintenance_configuration_name", configurationName)
-			d.Set("ledger_enabled", ledgerEnabled)
-			d.Set("enclave_type", enclaveType)
-			d.Set("transparent_data_encryption_key_vault_key_id", props.EncryptionProtector)
-			d.Set("transparent_data_encryption_key_automatic_rotation_enabled", pointer.From(props.EncryptionProtectorAutoRotation))
-
-			identity, err := identity.FlattenUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
-
-			if err := d.Set("identity", identity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
-
-			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-				return err
-			}
-		}
-
-		// DW SKU's do not currently support LRP and do not honour normal SRP operations
-		if !strings.HasPrefix(skuName, "DW") {
-			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
-			if err != nil {
-				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
-			}
-
-			if model := longTermPolicy.Model; model != nil {
-				if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(model)); err != nil {
-					return fmt.Errorf("setting `long_term_retention_policy`: %+v", err)
-				}
-			}
-
-			shortTermPolicy, err := shortTermRetentionClient.Get(ctx, pointer.From(id))
-
-			if model := shortTermPolicy.Model; model != nil {
-				if err != nil {
-					return fmt.Errorf("retrieving Short Term Retention Policies for %s: %+v", id, err)
-				}
-
-				if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(model)); err != nil {
-					return fmt.Errorf("setting `short_term_retention_policy`: %+v", err)
-				}
-			}
-		} else {
-			// DW SKUs need the retention policies to be empty for state consistency
-			emptySlice := make([]interface{}, 0)
-			d.Set("long_term_retention_policy", emptySlice)
-			d.Set("short_term_retention_policy", emptySlice)
-
-			geoPoliciesResponse, err := geoBackupPoliciesClient.Get(ctx, pointer.From(id))
-			if err != nil {
-				if response.WasNotFound(geoPoliciesResponse.HttpResponse) {
-					d.SetId("")
-					return nil
-				}
-
-				return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
-			}
-
-			// For Datawarehouse SKUs, set the geo-backup policy setting
-			if model := geoPoliciesResponse.Model; model != nil {
-				if strings.HasPrefix(skuName, "DW") && model.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
-					geoBackupPolicy = false
-				}
-			}
-		}
-	}
-
-	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
-		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
-	}
-
-	securityAlertPolicy, err := securityAlertPoliciesClient.Get(ctx, pointer.From(id))
-	if err == nil && securityAlertPolicy.Model != nil {
-		if err := d.Set("threat_detection_policy", flattenMsSqlServerSecurityAlertPolicy(d, pointer.From(securityAlertPolicy.Model))); err != nil {
-			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
-		}
-	}
-
-	tde, err := transparentEncryptionClient.Get(ctx, pointer.From(id))
-	if err != nil {
-		return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, err)
-	}
-
-	tdeState := false
-	if model := tde.Model; model != nil {
-		if props := model.Properties; props != nil {
-			tdeState = (props.State == transparentdataencryptions.TransparentDataEncryptionStateEnabled)
-		}
-	}
-	d.Set("transparent_data_encryption_enabled", tdeState)
-
-	return nil
 }
 
 func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1004,8 +826,16 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		props.RecoverableDatabaseId = pointer.To(d.Get("recover_database_id").(string))
 	}
 
+	if d.HasChange("recovery_point_id") {
+		props.RecoveryServicesRecoveryPointId = pointer.To(d.Get("recovery_point_id").(string))
+	}
+
 	if d.HasChange("restore_dropped_database_id") {
 		props.RestorableDroppedDatabaseId = pointer.To(d.Get("restore_dropped_database_id").(string))
+	}
+
+	if d.HasChange("restore_long_term_retention_backup_id") {
+		props.LongTermRetentionBackupResourceId = pointer.To(d.Get("restore_long_term_retention_backup_id").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -1214,6 +1044,196 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	return resourceMsSqlDatabaseRead(d, meta)
 }
 
+func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
+
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
+	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
+	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
+
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseSqlDatabaseID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
+	d.Set("server_id", serverId.ID())
+
+	resp, err := client.Get(ctx, pointer.From(id), databases.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	geoBackupPolicy := true
+	skuName := ""
+	elasticPoolId := ""
+	minCapacity := float64(0)
+	ledgerEnabled := false
+	enclaveType := ""
+
+	if model := resp.Model; model != nil {
+		d.Set("name", id.DatabaseName)
+
+		if props := model.Properties; props != nil {
+			minCapacity = pointer.From(props.MinCapacity)
+
+			requestedBackupStorageRedundancy := ""
+			if props.RequestedBackupStorageRedundancy != nil {
+				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
+			}
+
+			d.Set("auto_pause_delay_in_minutes", pointer.From(props.AutoPauseDelay))
+			d.Set("collation", pointer.From(props.Collation))
+			d.Set("read_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
+			d.Set("storage_account_type", requestedBackupStorageRedundancy)
+			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
+			d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScaleEnabled)
+
+			if props.ElasticPoolId != nil {
+				elasticPoolId = pointer.From(props.ElasticPoolId)
+			}
+
+			if props.LicenseType != nil {
+				d.Set("license_type", string(pointer.From(props.LicenseType)))
+			} else {
+				// value not returned, try to set from state
+				d.Set("license_type", d.Get("license_type").(string))
+			}
+
+			if props.MaxSizeBytes != nil {
+				d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
+			}
+
+			if props.CurrentServiceObjectiveName != nil {
+				skuName = *props.CurrentServiceObjectiveName
+			}
+
+			if props.IsLedgerOn != nil {
+				ledgerEnabled = *props.IsLedgerOn
+			}
+
+			// NOTE: Always set the PreferredEnclaveType to an empty string unless it isn't 'Default'...
+			if v := props.PreferredEnclaveType; v != nil && pointer.From(v) != databases.AlwaysEncryptedEnclaveTypeDefault {
+				enclaveType = string(pointer.From(v))
+			}
+
+			configurationName := ""
+			if v := props.MaintenanceConfigurationId; v != nil {
+				maintenanceConfigId, err := publicmaintenanceconfigurations.ParsePublicMaintenanceConfigurationIDInsensitively(pointer.From(v))
+				if err != nil {
+					return err
+				}
+				configurationName = maintenanceConfigId.PublicMaintenanceConfigurationName
+			}
+
+			d.Set("elastic_pool_id", elasticPoolId)
+			d.Set("min_capacity", minCapacity)
+			d.Set("sku_name", skuName)
+			d.Set("maintenance_configuration_name", configurationName)
+			d.Set("ledger_enabled", ledgerEnabled)
+			d.Set("enclave_type", enclaveType)
+			d.Set("transparent_data_encryption_key_vault_key_id", props.EncryptionProtector)
+			d.Set("transparent_data_encryption_key_automatic_rotation_enabled", pointer.From(props.EncryptionProtectorAutoRotation))
+
+			identity, err := identity.FlattenUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			if err := d.Set("identity", identity); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return err
+			}
+		}
+
+		// DW SKU's do not currently support LRP and do not honour normal SRP operations
+		if !strings.HasPrefix(skuName, "DW") {
+			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
+			if err != nil {
+				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
+			}
+
+			if model := longTermPolicy.Model; model != nil {
+				if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(model)); err != nil {
+					return fmt.Errorf("setting `long_term_retention_policy`: %+v", err)
+				}
+			}
+
+			shortTermPolicy, err := shortTermRetentionClient.Get(ctx, pointer.From(id))
+
+			if model := shortTermPolicy.Model; model != nil {
+				if err != nil {
+					return fmt.Errorf("retrieving Short Term Retention Policies for %s: %+v", id, err)
+				}
+
+				if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(model)); err != nil {
+					return fmt.Errorf("setting `short_term_retention_policy`: %+v", err)
+				}
+			}
+		} else {
+			// DW SKUs need the retention policies to be empty for state consistency
+			emptySlice := make([]interface{}, 0)
+			d.Set("long_term_retention_policy", emptySlice)
+			d.Set("short_term_retention_policy", emptySlice)
+
+			geoPoliciesResponse, err := geoBackupPoliciesClient.Get(ctx, pointer.From(id))
+			if err != nil {
+				if response.WasNotFound(geoPoliciesResponse.HttpResponse) {
+					d.SetId("")
+					return nil
+				}
+
+				return fmt.Errorf("retrieving Geo Backup Policies for %s: %+v", id, err)
+			}
+
+			// For Datawarehouse SKUs, set the geo-backup policy setting
+			if model := geoPoliciesResponse.Model; model != nil {
+				if strings.HasPrefix(skuName, "DW") && model.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
+					geoBackupPolicy = false
+				}
+			}
+		}
+	}
+
+	if err := d.Set("geo_backup_enabled", geoBackupPolicy); err != nil {
+		return fmt.Errorf("setting `geo_backup_enabled`: %+v", err)
+	}
+
+	securityAlertPolicy, err := securityAlertPoliciesClient.Get(ctx, pointer.From(id))
+	if err == nil && securityAlertPolicy.Model != nil {
+		if err := d.Set("threat_detection_policy", flattenMsSqlServerSecurityAlertPolicy(d, pointer.From(securityAlertPolicy.Model))); err != nil {
+			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
+		}
+	}
+
+	tde, err := transparentEncryptionClient.Get(ctx, pointer.From(id))
+	if err != nil {
+		return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, err)
+	}
+
+	tdeState := false
+	if model := tde.Model; model != nil {
+		if props := model.Properties; props != nil {
+			tdeState = (props.State == transparentdataencryptions.TransparentDataEncryptionStateEnabled)
+		}
+	}
+	d.Set("transparent_data_encryption_enabled", tdeState)
+
+	return nil
+}
+
 func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -1412,6 +1432,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 				false),
 			ConflictsWith: []string{"import"},
 		},
+
 		"import": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -1522,10 +1543,22 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.RecoverableDatabaseID,
 		},
 
+		"recovery_point_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"restore_dropped_database_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.RestorableDatabaseID,
+		},
+
+		"restore_long_term_retention_backup_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"read_replica_count": {

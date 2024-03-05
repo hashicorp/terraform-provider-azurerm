@@ -44,7 +44,10 @@ func (c ServiceResourceClient) ServicesCheckStatus(ctx context.Context, id Servi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataMigrationServiceStatusResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c WebAppsClient) GetHostNameBindingSlot(ctx context.Context, id SlotHostNa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HostNameBinding
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

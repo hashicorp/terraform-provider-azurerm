@@ -5,6 +5,7 @@ package batch
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -667,7 +668,7 @@ func resourceBatchPool() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
-						"protected_settings": {
+						"protected_settings": { // todo 4.0 - should this actually be a map of key value pairs?
 							Type:      pluginsdk.TypeString,
 							Optional:  true,
 							Sensitive: true,
@@ -904,6 +905,8 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.DeploymentConfiguration = &pool.DeploymentConfiguration{
 			VirtualMachineConfiguration: vmDeploymentConfiguration,
 		}
+	} else {
+		return deploymentErr
 	}
 
 	certificates := d.Get("certificate").([]interface{})
@@ -1208,10 +1211,11 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 								extension["automatic_upgrade_enabled"] = *item.EnableAutomaticUpgrade
 							}
 							if item.Settings != nil {
-								extension["settings_json"], err = pluginsdk.FlattenJsonToString((*item.Settings).(map[string]interface{}))
+								settingValue, err := json.Marshal((*item.Settings).(map[string]interface{}))
 								if err != nil {
 									return fmt.Errorf("flattening `settings_json`: %+v", err)
 								}
+								extension["settings_json"] = string(settingValue)
 							}
 
 							for i := 0; i < n; i++ {

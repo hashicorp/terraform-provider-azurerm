@@ -43,7 +43,10 @@ func (c WebAppsClient) GetSiteConnectionStringKeyVaultReference(ctx context.Cont
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiKVReference
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

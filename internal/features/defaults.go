@@ -50,11 +50,15 @@ func Default() UserFeatures {
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			ForceDelete:               false,
+			ReimageOnManualUpgrade:    true,
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
 		},
 		Subscription: SubscriptionFeatures{
 			PreventCancellationOnDestroy: false,
+		},
+		PostgresqlFlexibleServer: PostgresqlFlexibleServerFeatures{
+			RestartServerOnConfigurationValueChange: true,
 		},
 	}
 }

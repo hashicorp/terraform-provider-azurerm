@@ -43,7 +43,10 @@ func (c GraphservicesprodsClient) AccountsGet(ctx context.Context, id AccountId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccountResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -49,7 +49,10 @@ func (c ResourceProvidersClient) Validate(ctx context.Context, id commonids.Reso
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ValidateResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

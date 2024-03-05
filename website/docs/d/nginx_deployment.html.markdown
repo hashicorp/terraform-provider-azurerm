@@ -63,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku` - Name of the SKU for this Nginx Deployment.
 
+* `automatic_upgrade_channel` - The automatic upgrade channel for this NGINX deployment.
+
 * `tags` - A mapping of tags assigned to the Nginx Deployment.
 
 ---

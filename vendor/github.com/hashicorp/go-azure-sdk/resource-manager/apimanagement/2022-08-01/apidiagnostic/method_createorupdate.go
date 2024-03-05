@@ -77,7 +77,10 @@ func (c ApiDiagnosticClient) CreateOrUpdate(ctx context.Context, id ApiDiagnosti
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DiagnosticContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

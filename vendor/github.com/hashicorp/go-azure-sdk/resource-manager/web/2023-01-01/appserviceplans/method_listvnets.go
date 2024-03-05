@@ -45,7 +45,10 @@ func (c AppServicePlansClient) ListVnets(ctx context.Context, id commonids.AppSe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model []VnetInfoResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

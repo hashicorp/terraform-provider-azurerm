@@ -72,7 +72,10 @@ func (c QueryKeysClient) Create(ctx context.Context, id CreateQueryKeyId, option
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model QueryKey
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

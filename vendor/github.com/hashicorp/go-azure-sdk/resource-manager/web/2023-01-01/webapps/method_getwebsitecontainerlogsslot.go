@@ -45,7 +45,10 @@ func (c WebAppsClient) GetWebSiteContainerLogsSlot(ctx context.Context, id SlotI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model []byte
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

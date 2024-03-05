@@ -43,7 +43,10 @@ func (c PreRulesClient) Get(ctx context.Context, id PreRuleId) (result GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PreRulesResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

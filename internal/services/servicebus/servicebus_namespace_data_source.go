@@ -50,6 +50,11 @@ func dataSourceServiceBusNamespace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"premium_messaging_partitions": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"default_primary_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -116,6 +121,7 @@ func dataSourceServiceBusNamespaceRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props := model.Properties; props != nil {
+			d.Set("premium_messaging_partitions", props.PremiumMessagingPartitions)
 			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("endpoint", props.ServiceBusEndpoint)
 		}

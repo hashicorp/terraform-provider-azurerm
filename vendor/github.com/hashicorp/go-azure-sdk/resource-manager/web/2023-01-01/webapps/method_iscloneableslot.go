@@ -44,7 +44,10 @@ func (c WebAppsClient) IsCloneableSlot(ctx context.Context, id SlotId) (result I
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteCloneability
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

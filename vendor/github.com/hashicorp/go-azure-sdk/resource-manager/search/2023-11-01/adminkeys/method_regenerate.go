@@ -72,7 +72,10 @@ func (c AdminKeysClient) Regenerate(ctx context.Context, id KeyKindId, options R
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AdminKeyResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

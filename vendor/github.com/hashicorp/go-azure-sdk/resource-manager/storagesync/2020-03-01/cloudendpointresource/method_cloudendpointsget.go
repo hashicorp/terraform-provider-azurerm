@@ -43,7 +43,10 @@ func (c CloudEndpointResourceClient) CloudEndpointsGet(ctx context.Context, id C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CloudEndpoint
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

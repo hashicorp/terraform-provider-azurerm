@@ -49,7 +49,10 @@ func (c BlobContainersClient) ClearLegalHold(ctx context.Context, id commonids.S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LegalHold
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

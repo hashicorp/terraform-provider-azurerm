@@ -43,7 +43,10 @@ func (c WebAppsClient) GetInstanceInfo(ctx context.Context, id InstanceId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WebSiteInstanceStatus
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

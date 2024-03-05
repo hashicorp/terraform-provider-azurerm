@@ -52,7 +52,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_spring_cloud_build_deployment":         resourceSpringCloudBuildDeployment(),
 		"azurerm_spring_cloud_build_pack_binding":       resourceSpringCloudBuildPackBinding(),
 		"azurerm_spring_cloud_certificate":              resourceSpringCloudCertificate(),
-		"azurerm_spring_cloud_configuration_service":    resourceSpringCloudConfigurationService(),
 		"azurerm_spring_cloud_custom_domain":            resourceSpringCloudCustomDomain(),
 		"azurerm_spring_cloud_gateway_custom_domain":    resourceSpringCloudGatewayCustomDomain(),
 		"azurerm_spring_cloud_gateway_route_config":     resourceSpringCloudGatewayRouteConfig(),
@@ -69,14 +68,16 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		SpringCloudDynatraceApplicationPerformanceMonitoringResource{},
-		SpringCloudGatewayResource{},
+		SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{},
 		SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{},
 		SpringCloudAPIPortalResource{},
 		SpringCloudAcceleratorResource{},
 		SpringCloudApplicationLiveViewResource{},
-		SpringCloudDevToolPortalResource{},
+		SpringCloudConfigurationServiceResource{},
 		SpringCloudCustomizedAcceleratorResource{},
+		SpringCloudDevToolPortalResource{},
+		SpringCloudDynatraceApplicationPerformanceMonitoringResource{},
+		SpringCloudGatewayResource{},
 		SpringCloudElasticApplicationPerformanceMonitoringResource{},
 		SpringCloudNewRelicApplicationPerformanceMonitoringResource{},
 	}

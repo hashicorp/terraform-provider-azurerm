@@ -334,6 +334,50 @@ func TestAccWindowsWebApp_withIPRestrictions(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebApp_withIPRestrictionDefaultActionDeny(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRestrictionDefaultActionDeny(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsWebApp_withIPRestrictionDefaultActionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
+	r := WindowsWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withIPRestrictions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withIPRestrictionDefaultActionDeny(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withIPRestrictions(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebApp_withIPRangeRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app", "test")
 	r := WindowsWebAppResource{}
@@ -1972,6 +2016,40 @@ resource "azurerm_windows_web_app" "test" {
         x_forwarded_host  = ["example.com"]
       }
       description = "Allow ip address 10.10.10.10/32"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r WindowsWebAppResource) withIPRestrictionDefaultActionDeny(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {
+    ip_restriction_default_action = "Deny"
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
     }
   }
 }

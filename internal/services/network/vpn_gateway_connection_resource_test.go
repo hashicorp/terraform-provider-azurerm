@@ -328,7 +328,7 @@ resource "azurerm_vpn_gateway_connection" "test" {
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id
     ipsec_policy {
       sa_lifetime_sec          = 300
-      sa_data_size_kb          = 1024
+      sa_data_size_kb          = 0
       encryption_algorithm     = "AES256"
       integrity_algorithm      = "SHA256"
       ike_encryption_algorithm = "AES128"
@@ -374,7 +374,7 @@ resource "azurerm_vpn_gateway_connection" "test" {
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id
     ipsec_policy {
       sa_lifetime_sec          = 300
-      sa_data_size_kb          = 1024
+      sa_data_size_kb          = 0
       encryption_algorithm     = "AES256"
       integrity_algorithm      = "SHA256"
       ike_encryption_algorithm = "AES128"
@@ -738,7 +738,7 @@ resource "azurerm_vpn_gateway_connection" "test" {
 
     ipsec_policy {
       sa_lifetime_sec          = 300
-      sa_data_size_kb          = 1024
+      sa_data_size_kb          = 0
       encryption_algorithm     = "AES256"
       integrity_algorithm      = "SHA256"
       ike_encryption_algorithm = "AES128"

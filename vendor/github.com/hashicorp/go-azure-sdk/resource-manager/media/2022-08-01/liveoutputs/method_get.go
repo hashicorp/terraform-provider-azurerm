@@ -43,7 +43,10 @@ func (c LiveOutputsClient) Get(ctx context.Context, id LiveOutputId) (result Get
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LiveOutput
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c ResourceGuardsClient) GetDefaultBackupSecurityPINRequestsObject(ctx cont
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DppBaseResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

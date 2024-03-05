@@ -43,7 +43,10 @@ func (c AttachedDatabaseConfigurationsClient) Get(ctx context.Context, id Attach
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AttachedDatabaseConfiguration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

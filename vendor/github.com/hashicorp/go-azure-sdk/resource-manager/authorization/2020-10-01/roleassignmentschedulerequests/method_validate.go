@@ -48,7 +48,10 @@ func (c RoleAssignmentScheduleRequestsClient) Validate(ctx context.Context, id S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleAssignmentScheduleRequest
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

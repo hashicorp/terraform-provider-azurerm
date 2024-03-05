@@ -91,39 +91,48 @@ type Request struct {
 func (r *Request) Marshal(payload interface{}) error {
 	contentType := strings.ToLower(r.Header.Get("Content-Type"))
 
-	if strings.Contains(contentType, "application/json") {
+	switch {
+	case strings.Contains(contentType, "application/json"):
 		body, err := json.Marshal(payload)
 		if err == nil {
 			r.ContentLength = int64(len(body))
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
+		return nil
+
+	case strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml"):
 		body, err := xml.Marshal(payload)
 		if err == nil {
+			// Prepend the xml doctype declaration if not detected
+			if !strings.HasPrefix(strings.TrimSpace(strings.ToLower(string(body[0:5]))), "<?xml") {
+				body = append([]byte(xml.Header), body...)
+			}
+
 			r.ContentLength = int64(len(body))
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
+
 		return nil
 	}
 
-	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		switch v := payload.(type) {
-		case *[]byte:
+	switch v := payload.(type) {
+	case *[]byte:
+		if v == nil {
+			r.ContentLength = int64(len([]byte{}))
+			r.Body = io.NopCloser(bytes.NewReader([]byte{}))
+		} else {
 			r.ContentLength = int64(len(*v))
 			r.Body = io.NopCloser(bytes.NewReader(*v))
-		case []byte:
-			r.ContentLength = int64(len(v))
-			r.Body = io.NopCloser(bytes.NewReader(v))
-		default:
-			return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 		}
-		return nil
+	case []byte:
+		r.ContentLength = int64(len(v))
+		r.Body = io.NopCloser(bytes.NewReader(v))
+	default:
+		return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 	}
 
-	return fmt.Errorf("internal-error: unimplemented marshal function for content type %q", contentType)
+	return nil
 }
 
 // Execute invokes the Execute method for the Request's Client
@@ -173,12 +182,14 @@ func (r *Response) Unmarshal(model interface{}) error {
 			contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
 		}
 	}
-	// the maintenance API returns a 200 for a delete with no content-type and no content length so we should skip
-	// trying to unmarshal this
+
+	// Some APIs (e.g. Maintenance) return 200 without a body, don't unmarshal these
 	if r.ContentLength == 0 && (r.Body == nil || r.Body == http.NoBody) {
 		return nil
 	}
-	if strings.Contains(contentType, "application/json") {
+
+	switch {
+	case strings.Contains(contentType, "application/json"):
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -189,6 +200,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
+		// In some cases the respBody is empty, but not nil, so don't attempt to unmarshal this
+		if len(respBody) == 0 {
+			return nil
+		}
+
 		// Unmarshal into provided model
 		if err := json.Unmarshal(respBody, model); err != nil {
 			return fmt.Errorf("unmarshaling response body: %+v", err)
@@ -196,10 +212,10 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
+		return nil
+
+	case strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml"):
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -209,6 +225,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+
+		// In some cases the respBody is empty, but not nil, so don't attempt to unmarshal this
+		if len(respBody) == 0 {
+			return nil
+		}
 
 		// Unmarshal into provided model
 		if err := xml.Unmarshal(respBody, model); err != nil {
@@ -217,13 +238,13 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		ptr, ok := model.(**[]byte)
+		return nil
+
+	case strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell"):
+		ptr, ok := model.(*[]byte)
 		if !ok || ptr == nil {
-			return fmt.Errorf("internal-error: `model` must be a non-nil `**[]byte` but got %+v", model)
+			return fmt.Errorf("internal-error: `model` must be a non-nil `*[]byte` but got %[1]T: %+[1]v", model)
 		}
 
 		// Read the response body and close it
@@ -233,14 +254,17 @@ func (r *Response) Unmarshal(model interface{}) error {
 		}
 		r.Body.Close()
 
-		// Trim away a BOM if present
-		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+		if strings.HasPrefix(contentType, "text/") {
+			// Trim away a BOM if present
+			respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+		}
 
 		// copy the byte stream across
-		*ptr = &respBody
+		*ptr = respBody
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+
 		return nil
 	}
 
@@ -289,6 +313,49 @@ func NewClient(baseUri string, serviceName, apiVersion string) *Client {
 	}
 }
 
+// SetAuthorizer configures the request authorizer for the client
+func (c *Client) SetAuthorizer(authorizer auth.Authorizer) {
+	c.Authorizer = authorizer
+}
+
+// SetUserAgent configures the user agent to be included in requests
+func (c *Client) SetUserAgent(userAgent string) {
+	c.UserAgent = userAgent
+}
+
+// GetUserAgent retrieves the configured user agent for the client
+func (c *Client) GetUserAgent() string {
+	return c.UserAgent
+}
+
+// AppendRequestMiddleware appends a request middleware function for the client
+func (c *Client) AppendRequestMiddleware(f RequestMiddleware) {
+	if c.RequestMiddlewares == nil {
+		m := make([]RequestMiddleware, 0)
+		c.RequestMiddlewares = &m
+	}
+	*c.RequestMiddlewares = append(*c.RequestMiddlewares, f)
+}
+
+// ClearRequestMiddlewares removes all request middleware functions for the client
+func (c *Client) ClearRequestMiddlewares() {
+	c.RequestMiddlewares = nil
+}
+
+// AppendResponseMiddleware appends a response middleware function for the client
+func (c *Client) AppendResponseMiddleware(f ResponseMiddleware) {
+	if c.ResponseMiddlewares == nil {
+		m := make([]ResponseMiddleware, 0)
+		c.ResponseMiddlewares = &m
+	}
+	*c.ResponseMiddlewares = append(*c.ResponseMiddlewares, f)
+}
+
+// ClearResponseMiddlewares removes all response middleware functions for the client
+func (c *Client) ClearResponseMiddlewares() {
+	c.ResponseMiddlewares = nil
+}
+
 // NewRequest configures a new *Request
 func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request, error) {
 	req := (&http.Request{}).WithContext(ctx)
@@ -321,6 +388,7 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 		Client:           c,
 		Request:          req,
 		Pager:            input.Pager,
+		RetryFunc:        input.RetryFunc,
 		ValidStatusCodes: input.ExpectedStatusCodes,
 	}
 
