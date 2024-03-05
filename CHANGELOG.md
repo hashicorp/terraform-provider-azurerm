@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `network`: updating to API Version `2023-09-01` [GH-25095]
 * `azurerm_linux_function_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
 * `azurerm_linux_function_app_slot` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
 * `azurerm_linux_web_app` - Add support for `ip_restriction_default_action` and `scm_ip_restriction_default_action` [GH-25131]
