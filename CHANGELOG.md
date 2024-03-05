@@ -5,6 +5,7 @@ FEATURES:
 * New Resource: `azurerm_container_app_custom_domain` [GH-24421]
 * New Resource: `azurerm_static_web_app` [GH-25117]
 * New resource: `azurerm_static_web_app_custom_domain` [GH-25117]
+* New resource: `azurerm_system_center_virtual_machine_manager_availability_set` [GH-24975]
 
 ENHANCEMENTS:
 
