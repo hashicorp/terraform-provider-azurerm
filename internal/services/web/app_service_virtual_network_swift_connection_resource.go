@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -203,7 +204,15 @@ func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Resource
 		return err
 	}
 
-	subnetID, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
+	existing, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		return err
+	}
+	if existing.SwiftVirtualNetworkProperties == nil {
+		return fmt.Errorf("properties was nil for %s", *existing.ID)
+	}
+
+	subnetID, err := commonids.ParseSubnetID(pointer.From(existing.SwiftVirtualNetworkProperties.SubnetResourceID))
 	if err != nil {
 		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
 	}
