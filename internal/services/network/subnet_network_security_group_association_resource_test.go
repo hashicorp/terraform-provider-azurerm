@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,17 +102,22 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	props := resp.SubnetPropertiesFormat
+	model := resp.Model
+	if model == nil {
+		return nil, fmt.Errorf("model was nil for %s", *id)
+	}
+
+	props := model.Properties
 	if props == nil || props.NetworkSecurityGroup == nil {
 		return nil, fmt.Errorf("properties was nil for %s", *id)
 	}
 
-	return utils.Bool(props.NetworkSecurityGroup.ID != nil), nil
+	return utils.Bool(props.NetworkSecurityGroup.Id != nil), nil
 }
 
 func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -120,21 +127,17 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 		return err
 	}
 
-	read, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	read, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		if !utils.ResponseWasNotFound(read.Response) {
+		if !response.WasNotFound(read.HttpResponse) {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 	}
 
-	read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
+	read.Model.Properties.NetworkSecurityGroup = nil
 
-	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, read)
-	if err != nil {
+	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	return nil

@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -541,18 +540,21 @@ func resourceAzureSubnetHash(v interface{}) int {
 }
 
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
-	subnetClient := meta.(*clients.Client).Network.SubnetsClient
-	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
+	vnetClient := meta.(*clients.Client).Network.VnetClient
+	resp, err := vnetClient.Get(ctx, resGroup, vnetName, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
-			return &network.Subnet{}, nil
-		}
-		// raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
 	}
 
-	// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
-	return &resp, nil
+	for _, subnet := range pointer.From(resp.Subnets) {
+		if subnetName == pointer.From(subnet.Name) {
+			// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
+			return pointer.To(subnet), nil
+		}
+	}
+
+	// Return empty object when the specified subnet isn't found
+	return pointer.To(network.Subnet{}), nil
 }
 
 func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.ResourceData) ([]string, error) {
