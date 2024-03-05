@@ -76,7 +76,10 @@ func (c StreamingJobsClient) Update(ctx context.Context, id StreamingJobId, inpu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StreamingJob
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

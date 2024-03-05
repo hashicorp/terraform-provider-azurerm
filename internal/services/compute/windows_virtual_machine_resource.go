@@ -186,6 +186,16 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
+			"disk_controller_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskControllerTypesNVMe),
+					string(compute.DiskControllerTypesSCSI),
+				}, false),
+			},
+
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 			// TODO 4.0: change this from enable_* to *_enabled
@@ -347,6 +357,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 
+			"os_image_notification": virtualMachineOsImageNotificationSchema(),
+
 			"termination_notification": virtualMachineTerminationNotificationSchema(),
 
 			"timezone": {
@@ -363,6 +375,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					"availability_set_id",
 				},
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
+			},
+
+			"vm_agent_platform_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"platform_fault_domain": {
@@ -502,6 +520,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	sourceImageId := d.Get("source_image_id").(string)
 	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
+	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
+
 	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
@@ -524,9 +544,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				ComputerName:             utils.String(computerName),
 				AllowExtensionOperations: utils.Bool(allowExtensionOperations),
 				WindowsConfiguration: &compute.WindowsConfiguration{
-					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
-					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
-					WinRM:                  winRmListeners,
+					ProvisionVMAgent:             utils.Bool(provisionVMAgent),
+					EnableAutomaticUpdates:       utils.Bool(enableAutomaticUpdates),
+					EnableVMAgentPlatformUpdates: utils.Bool(vmAgentPlatformUpdatesEnabled),
+					WinRM:                        winRmListeners,
 				},
 				Secrets: secrets,
 			},
@@ -549,6 +570,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		params.StorageProfile.DiskControllerType = compute.DiskControllerTypes(diskControllerType.(string))
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
@@ -753,8 +778,22 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
+	var osImageNotificationProfile *compute.OSImageNotificationProfile
+	var terminateNotificationProfile *compute.TerminateNotificationProfile
+
+	if v, ok := d.GetOk("os_image_notification"); ok {
+		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("termination_notification"); ok {
-		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
+		terminateNotificationProfile = expandTerminateNotificationProfile(v.([]interface{}))
+	}
+
+	if terminateNotificationProfile != nil || osImageNotificationProfile != nil {
+		params.VirtualMachineProperties.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if v, ok := d.GetOk("timezone"); ok {
@@ -913,8 +952,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
-
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+			d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 			assessmentMode := string(compute.WindowsPatchAssessmentModeImageDefault)
 			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
@@ -961,6 +1000,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 	if profile := props.StorageProfile; profile != nil {
+		d.Set("disk_controller_type", string(props.StorageProfile.DiskControllerType))
+
 		// the storage_account_type isn't returned so we need to look it up
 		flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
 		if err != nil {
@@ -988,7 +1029,11 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
-		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+		if err := d.Set("os_image_notification", flattenOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
+		}
+
+		if err := d.Set("termination_notification", flattenTerminateNotificationProfile(scheduleProfile.TerminateNotificationProfile)); err != nil {
 			return fmt.Errorf("setting `termination_notification`: %+v", err)
 		}
 	}
@@ -1113,6 +1158,19 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
+	if d.HasChange("vm_agent_platform_updates_enabled") {
+		shouldUpdate = true
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		update.OsProfile.WindowsConfiguration.EnableVMAgentPlatformUpdates = utils.Bool(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {
@@ -1336,6 +1394,17 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if d.HasChange("disk_controller_type") {
+		shouldUpdate = true
+		shouldDeallocate = true
+
+		if update.VirtualMachineProperties.StorageProfile == nil {
+			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
+		}
+
+		update.VirtualMachineProperties.StorageProfile.DiskControllerType = compute.DiskControllerTypes(d.Get("disk_controller_type").(string))
+	}
+
 	if d.HasChange("os_disk") {
 		shouldUpdate = true
 
@@ -1349,9 +1418,11 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
 		}
 
-		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
-			OsDisk: osDisk,
+		if update.VirtualMachineProperties.StorageProfile == nil {
+			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
 		}
+
+		update.VirtualMachineProperties.StorageProfile.OsDisk = osDisk
 	}
 
 	if d.HasChange("virtual_machine_scale_set_id") {
@@ -1432,11 +1503,24 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
+	var osImageNotificationProfile *compute.OSImageNotificationProfile
+	var terminateNotificationProfile *compute.TerminateNotificationProfile
+
+	if d.HasChange("os_image_notification") {
+		shouldUpdate = true
+		osImageNotificationProfile = expandOsImageNotificationProfile(d.Get("os_image_notification").([]interface{}))
+	}
+
 	if d.HasChange("termination_notification") {
 		shouldUpdate = true
+		terminateNotificationProfile = expandTerminateNotificationProfile(d.Get("termination_notification").([]interface{}))
+	}
 
-		notificationRaw := d.Get("termination_notification").([]interface{})
-		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		update.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if d.HasChange("additional_capabilities") {

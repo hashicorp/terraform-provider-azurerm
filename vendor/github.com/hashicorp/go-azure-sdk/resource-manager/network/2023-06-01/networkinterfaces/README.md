@@ -88,8 +88,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
 
-if err := client.GetEffectiveRouteTableThenPoll(ctx, id); err != nil {
+// alternatively `client.GetEffectiveRouteTable(ctx, id)` can be used to do batched pagination
+items, err := client.GetEffectiveRouteTableComplete(ctx, id)
+if err != nil {
 	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -200,8 +205,13 @@ for _, item := range items {
 ctx := context.TODO()
 id := commonids.NewNetworkInterfaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "networkInterfaceValue")
 
-if err := client.ListEffectiveNetworkSecurityGroupsThenPoll(ctx, id); err != nil {
+// alternatively `client.ListEffectiveNetworkSecurityGroups(ctx, id)` can be used to do batched pagination
+items, err := client.ListEffectiveNetworkSecurityGroupsComplete(ctx, id)
+if err != nil {
 	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```
 

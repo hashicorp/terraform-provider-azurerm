@@ -48,7 +48,10 @@ func (c AppPlatformClient) ServicesCheckNameAvailability(ctx context.Context, id
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NameAvailability
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

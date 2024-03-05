@@ -48,7 +48,10 @@ func (c WatchlistsClient) CreateOrUpdate(ctx context.Context, id WatchlistId, in
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Watchlist
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

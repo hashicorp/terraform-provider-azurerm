@@ -34,6 +34,7 @@ type DeploymentDataSourceModel struct {
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
+	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
@@ -164,6 +165,11 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"automatic_upgrade_channel": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"tags": commonschema.TagsDataSource(),
 	}
 }
@@ -266,6 +272,10 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 
 					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
 						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
+					}
+
+					if props.AutoUpgradeProfile != nil {
+						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
 					}
 				}
 			}

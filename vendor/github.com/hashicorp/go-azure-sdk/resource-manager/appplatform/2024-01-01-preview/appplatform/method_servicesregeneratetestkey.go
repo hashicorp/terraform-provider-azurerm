@@ -49,7 +49,10 @@ func (c AppPlatformClient) ServicesRegenerateTestKey(ctx context.Context, id com
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TestKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

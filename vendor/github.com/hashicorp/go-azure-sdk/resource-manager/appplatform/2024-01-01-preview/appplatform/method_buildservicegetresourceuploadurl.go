@@ -44,7 +44,10 @@ func (c AppPlatformClient) BuildServiceGetResourceUploadUrl(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ResourceUploadDefinition
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

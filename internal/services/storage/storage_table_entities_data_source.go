@@ -26,6 +26,7 @@ type TableEntitiesDataSourceModel struct {
 	TableName          string                        `tfschema:"table_name"`
 	StorageAccountName string                        `tfschema:"storage_account_name"`
 	Filter             string                        `tfschema:"filter"`
+	Select             []string                      `tfschema:"select"`
 	Items              []TableEntitiyDataSourceModel `tfschema:"items"`
 }
 
@@ -53,6 +54,14 @@ func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"select": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 	}
 }
@@ -124,6 +133,11 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				MetaDataLevel: entities.MinimalMetaData,
 			}
 
+			if model.Select != nil {
+				model.Select = append(model.Select, "RowKey", "PartitionKey")
+				input.PropertyNamesToSelect = &model.Select
+			}
+
 			id := parse.NewStorageTableEntitiesId(model.StorageAccountName, storageClient.Environment.StorageEndpointSuffix, model.TableName, model.Filter)
 
 			result, err := client.Query(ctx, model.StorageAccountName, model.TableName, input)
@@ -134,6 +148,10 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 			var flattenedEntities []TableEntitiyDataSourceModel
 			for _, entity := range result.Entities {
 				flattenedEntity := flattenEntityWithMetadata(entity)
+				if len(flattenedEntity.Properties) == 0 {
+					// if we use selector, we get empty objects back, skip them
+					continue
+				}
 				flattenedEntities = append(flattenedEntities, flattenedEntity)
 			}
 			model.Items = flattenedEntities

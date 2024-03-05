@@ -215,6 +215,7 @@ resource "azurerm_spring_cloud_configuration_service" "test" {
     username                 = "adminuser"
     password                 = "H@Sh1CoR3!"
   }
+  refresh_interval_in_seconds = 10
 }
 `, template)
 }

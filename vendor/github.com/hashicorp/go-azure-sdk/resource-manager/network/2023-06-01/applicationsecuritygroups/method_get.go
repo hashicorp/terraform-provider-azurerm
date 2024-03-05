@@ -43,7 +43,10 @@ func (c ApplicationSecurityGroupsClient) Get(ctx context.Context, id Application
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplicationSecurityGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

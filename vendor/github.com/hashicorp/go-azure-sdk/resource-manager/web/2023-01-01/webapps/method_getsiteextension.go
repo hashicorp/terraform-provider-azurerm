@@ -43,7 +43,10 @@ func (c WebAppsClient) GetSiteExtension(ctx context.Context, id SiteExtensionId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteExtensionInfo
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

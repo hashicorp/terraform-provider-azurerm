@@ -221,7 +221,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
 	bgpSettings := expandVPNGatewayBGPSettings(bgpSettingsRaw)
 	payload := virtualwans.VpnGateway{
-		Location: location.Normalize(d.Get("location").(string)),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.VpnGatewayProperties{
 			EnableBgpRouteTranslationForNat: pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
 			BgpSettings:                     bgpSettings,
@@ -361,7 +361,7 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("bgp_settings", flattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {

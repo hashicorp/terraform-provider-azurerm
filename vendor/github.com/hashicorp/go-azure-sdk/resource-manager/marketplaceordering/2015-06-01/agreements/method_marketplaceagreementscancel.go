@@ -44,7 +44,10 @@ func (c AgreementsClient) MarketplaceAgreementsCancel(ctx context.Context, id Pl
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model OldAgreementTerms
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

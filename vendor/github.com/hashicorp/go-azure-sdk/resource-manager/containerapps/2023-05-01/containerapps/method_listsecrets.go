@@ -44,7 +44,10 @@ func (c ContainerAppsClient) ListSecrets(ctx context.Context, id ContainerAppId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SecretsCollection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

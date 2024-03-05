@@ -43,7 +43,10 @@ func (c ScriptsClient) Get(ctx context.Context, id ScriptId) (result GetOperatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Script
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -155,12 +155,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountValue")
 
-read, err := client.AccountsListUsages(ctx, id, cognitiveservicesaccounts.DefaultAccountsListUsagesOperationOptions())
+// alternatively `client.AccountsListUsages(ctx, id, cognitiveservicesaccounts.DefaultAccountsListUsagesOperationOptions())` can be used to do batched pagination
+items, err := client.AccountsListUsagesComplete(ctx, id, cognitiveservicesaccounts.DefaultAccountsListUsagesOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

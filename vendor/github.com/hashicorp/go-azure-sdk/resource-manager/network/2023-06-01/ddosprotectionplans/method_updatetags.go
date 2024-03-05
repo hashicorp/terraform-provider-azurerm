@@ -47,7 +47,10 @@ func (c DdosProtectionPlansClient) UpdateTags(ctx context.Context, id DdosProtec
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DdosProtectionPlan
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

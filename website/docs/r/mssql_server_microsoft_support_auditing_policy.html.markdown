@@ -83,7 +83,7 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_role_assignment" "example" {
   scope                = data.azurerm_subscription.primary.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_mssql_server.example.identity.0.principal_id
+  principal_id         = azurerm_mssql_server.example.identity[0].principal_id
 }
 
 resource "azurerm_mssql_server" "example" {

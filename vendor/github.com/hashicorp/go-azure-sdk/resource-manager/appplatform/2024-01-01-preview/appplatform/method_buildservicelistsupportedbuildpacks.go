@@ -15,7 +15,12 @@ import (
 type BuildServiceListSupportedBuildpacksOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SupportedBuildpacksCollection
+	Model        *[]SupportedBuildpackResource
+}
+
+type BuildServiceListSupportedBuildpacksCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []SupportedBuildpackResource
 }
 
 // BuildServiceListSupportedBuildpacks ...
@@ -35,7 +40,7 @@ func (c AppPlatformClient) BuildServiceListSupportedBuildpacks(ctx context.Conte
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c AppPlatformClient) BuildServiceListSupportedBuildpacks(ctx context.Conte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]SupportedBuildpackResource `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// BuildServiceListSupportedBuildpacksComplete retrieves all the results into a single object
+func (c AppPlatformClient) BuildServiceListSupportedBuildpacksComplete(ctx context.Context, id BuildServiceId) (BuildServiceListSupportedBuildpacksCompleteResult, error) {
+	return c.BuildServiceListSupportedBuildpacksCompleteMatchingPredicate(ctx, id, SupportedBuildpackResourceOperationPredicate{})
+}
+
+// BuildServiceListSupportedBuildpacksCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c AppPlatformClient) BuildServiceListSupportedBuildpacksCompleteMatchingPredicate(ctx context.Context, id BuildServiceId, predicate SupportedBuildpackResourceOperationPredicate) (result BuildServiceListSupportedBuildpacksCompleteResult, err error) {
+	items := make([]SupportedBuildpackResource, 0)
+
+	resp, err := c.BuildServiceListSupportedBuildpacks(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = BuildServiceListSupportedBuildpacksCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

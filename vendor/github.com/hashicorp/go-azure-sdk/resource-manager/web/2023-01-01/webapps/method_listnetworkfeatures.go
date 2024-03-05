@@ -43,7 +43,10 @@ func (c WebAppsClient) ListNetworkFeatures(ctx context.Context, id NetworkFeatur
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkFeatures
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

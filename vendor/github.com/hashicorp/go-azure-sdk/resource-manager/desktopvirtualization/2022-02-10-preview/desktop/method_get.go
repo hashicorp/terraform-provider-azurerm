@@ -43,7 +43,10 @@ func (c DesktopClient) Get(ctx context.Context, id DesktopId) (result GetOperati
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Desktop
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

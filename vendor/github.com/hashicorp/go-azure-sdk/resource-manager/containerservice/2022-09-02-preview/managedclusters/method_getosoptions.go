@@ -72,7 +72,10 @@ func (c ManagedClustersClient) GetOSOptions(ctx context.Context, id LocationId, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model OSOptionProfile
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

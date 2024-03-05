@@ -44,7 +44,10 @@ func (c ReferenceDataSetsClient) ListByEnvironment(ctx context.Context, id Envir
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ReferenceDataSetListResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

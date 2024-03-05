@@ -43,7 +43,10 @@ func (c VirtualApplianceSitesClient) Get(ctx context.Context, id VirtualApplianc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualApplianceSite
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

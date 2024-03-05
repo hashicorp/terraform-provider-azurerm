@@ -47,7 +47,10 @@ func (c NetworkWatchersClient) UpdateTags(ctx context.Context, id NetworkWatcher
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NetworkWatcher
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

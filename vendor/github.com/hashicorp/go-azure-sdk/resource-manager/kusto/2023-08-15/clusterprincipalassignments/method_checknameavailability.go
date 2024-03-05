@@ -49,7 +49,10 @@ func (c ClusterPrincipalAssignmentsClient) CheckNameAvailability(ctx context.Con
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CheckNameResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

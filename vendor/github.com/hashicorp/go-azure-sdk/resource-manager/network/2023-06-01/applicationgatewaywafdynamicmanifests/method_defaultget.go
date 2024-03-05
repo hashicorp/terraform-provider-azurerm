@@ -44,7 +44,10 @@ func (c ApplicationGatewayWafDynamicManifestsClient) DefaultGet(ctx context.Cont
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplicationGatewayWafDynamicManifestResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

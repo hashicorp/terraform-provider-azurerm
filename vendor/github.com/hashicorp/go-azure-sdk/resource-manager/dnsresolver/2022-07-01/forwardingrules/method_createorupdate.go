@@ -81,7 +81,10 @@ func (c ForwardingRulesClient) CreateOrUpdate(ctx context.Context, id Forwarding
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ForwardingRule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

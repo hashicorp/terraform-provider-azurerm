@@ -44,7 +44,10 @@ func (c WebAppsClient) ListAzureStorageAccountsSlot(ctx context.Context, id Slot
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AzureStoragePropertyDictionaryResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

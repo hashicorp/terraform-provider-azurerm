@@ -43,7 +43,10 @@ func (c AppPlatformClient) BuildServiceGetBuildResult(ctx context.Context, id Re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BuildResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

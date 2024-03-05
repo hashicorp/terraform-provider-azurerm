@@ -96,7 +96,7 @@ func dataSourceRouteFilterRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err = d.Set("rule", flattenRouteFilterDataSourceRules(props.Rules)); err != nil {

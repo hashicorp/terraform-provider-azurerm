@@ -72,7 +72,10 @@ func (c PublicIPPrefixesClient) Get(ctx context.Context, id PublicIPPrefixId, op
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PublicIPPrefix
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

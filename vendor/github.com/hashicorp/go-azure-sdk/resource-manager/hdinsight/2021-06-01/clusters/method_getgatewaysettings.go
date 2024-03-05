@@ -45,7 +45,10 @@ func (c ClustersClient) GetGatewaySettings(ctx context.Context, id commonids.HDI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GatewaySettings
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c ManagedClustersClient) GetAccessProfile(ctx context.Context, id AccessPr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedClusterAccessProfile
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

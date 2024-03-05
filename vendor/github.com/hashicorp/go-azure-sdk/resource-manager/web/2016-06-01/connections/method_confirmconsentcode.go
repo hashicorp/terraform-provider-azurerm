@@ -48,7 +48,10 @@ func (c ConnectionsClient) ConfirmConsentCode(ctx context.Context, id Connection
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ConfirmConsentCodeDefinition
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c AppPlatformClient) GatewaysListEnvSecrets(ctx context.Context, id Gatewa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model map[string]string
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -72,7 +72,10 @@ func (c LabsClient) Get(ctx context.Context, id LabId, options GetOperationOptio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Lab
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

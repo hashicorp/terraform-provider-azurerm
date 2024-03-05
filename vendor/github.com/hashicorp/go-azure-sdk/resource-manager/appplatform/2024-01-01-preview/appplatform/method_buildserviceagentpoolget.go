@@ -43,7 +43,10 @@ func (c AppPlatformClient) BuildServiceAgentPoolGet(ctx context.Context, id Agen
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BuildServiceAgentPoolResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

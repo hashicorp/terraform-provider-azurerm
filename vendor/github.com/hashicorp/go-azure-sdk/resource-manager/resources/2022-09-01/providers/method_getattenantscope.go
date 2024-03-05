@@ -72,7 +72,10 @@ func (c ProvidersClient) GetAtTenantScope(ctx context.Context, id ProviderId, op
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Provider
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

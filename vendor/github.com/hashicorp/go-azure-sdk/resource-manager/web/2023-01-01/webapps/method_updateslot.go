@@ -48,7 +48,10 @@ func (c WebAppsClient) UpdateSlot(ctx context.Context, id SlotId, input SitePatc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Site
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

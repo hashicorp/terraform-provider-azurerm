@@ -16,7 +16,12 @@ import (
 type ServiceAssociationLinksListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ServiceAssociationLinksListResult
+	Model        *[]ServiceAssociationLink
+}
+
+type ServiceAssociationLinksListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []ServiceAssociationLink
 }
 
 // ServiceAssociationLinksList ...
@@ -36,7 +41,7 @@ func (c VirtualNetworksClient) ServiceAssociationLinksList(ctx context.Context, 
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -45,9 +50,43 @@ func (c VirtualNetworksClient) ServiceAssociationLinksList(ctx context.Context, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]ServiceAssociationLink `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ServiceAssociationLinksListComplete retrieves all the results into a single object
+func (c VirtualNetworksClient) ServiceAssociationLinksListComplete(ctx context.Context, id commonids.SubnetId) (ServiceAssociationLinksListCompleteResult, error) {
+	return c.ServiceAssociationLinksListCompleteMatchingPredicate(ctx, id, ServiceAssociationLinkOperationPredicate{})
+}
+
+// ServiceAssociationLinksListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c VirtualNetworksClient) ServiceAssociationLinksListCompleteMatchingPredicate(ctx context.Context, id commonids.SubnetId, predicate ServiceAssociationLinkOperationPredicate) (result ServiceAssociationLinksListCompleteResult, err error) {
+	items := make([]ServiceAssociationLink, 0)
+
+	resp, err := c.ServiceAssociationLinksList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ServiceAssociationLinksListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

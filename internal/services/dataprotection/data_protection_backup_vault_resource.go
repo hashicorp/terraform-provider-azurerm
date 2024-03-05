@@ -157,7 +157,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	storageSettingType := backupvaults.StorageSettingTypes(d.Get("redundancy").(string))
 
 	parameters := backupvaults.BackupVaultResource{
-		Location: location.Normalize(d.Get("location").(string)),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: backupvaults.BackupVault{
 			StorageSettings: []backupvaults.StorageSetting{
 				{
@@ -211,7 +211,7 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 		props := model.Properties
 		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {
 			d.Set("datastore_type", string(pointer.From((props.StorageSettings)[0].DatastoreType)))

@@ -44,7 +44,10 @@ func (c ConfigurationAssignmentsClient) Delete(ctx context.Context, id ScopedCon
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ConfigurationAssignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

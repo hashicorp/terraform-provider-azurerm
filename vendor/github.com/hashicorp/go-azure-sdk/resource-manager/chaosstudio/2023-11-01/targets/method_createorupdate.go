@@ -48,7 +48,10 @@ func (c TargetsClient) CreateOrUpdate(ctx context.Context, id commonids.ChaosStu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Target
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

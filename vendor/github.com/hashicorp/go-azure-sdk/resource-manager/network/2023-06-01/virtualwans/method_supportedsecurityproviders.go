@@ -44,7 +44,10 @@ func (c VirtualWANsClient) SupportedSecurityProviders(ctx context.Context, id Vi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualWanSecurityProviders
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

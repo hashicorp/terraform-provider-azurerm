@@ -48,7 +48,10 @@ func (c PublicIPAddressesClient) UpdateTags(ctx context.Context, id commonids.Pu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PublicIPAddress
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

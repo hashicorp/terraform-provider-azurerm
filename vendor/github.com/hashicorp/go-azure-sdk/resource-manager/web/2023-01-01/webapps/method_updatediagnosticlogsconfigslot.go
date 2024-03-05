@@ -48,7 +48,10 @@ func (c WebAppsClient) UpdateDiagnosticLogsConfigSlot(ctx context.Context, id Sl
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteLogsConfig
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -16,7 +16,12 @@ import (
 type LocationListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ExpressRouteProviderPortListResult
+	Model        *[]ExpressRouteProviderPort
+}
+
+type LocationListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []ExpressRouteProviderPort
 }
 
 type LocationListOperationOptions struct {
@@ -64,7 +69,7 @@ func (c ExpressRouteProviderPortsClient) LocationList(ctx context.Context, id co
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -73,9 +78,43 @@ func (c ExpressRouteProviderPortsClient) LocationList(ctx context.Context, id co
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]ExpressRouteProviderPort `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// LocationListComplete retrieves all the results into a single object
+func (c ExpressRouteProviderPortsClient) LocationListComplete(ctx context.Context, id commonids.SubscriptionId, options LocationListOperationOptions) (LocationListCompleteResult, error) {
+	return c.LocationListCompleteMatchingPredicate(ctx, id, options, ExpressRouteProviderPortOperationPredicate{})
+}
+
+// LocationListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ExpressRouteProviderPortsClient) LocationListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, options LocationListOperationOptions, predicate ExpressRouteProviderPortOperationPredicate) (result LocationListCompleteResult, err error) {
+	items := make([]ExpressRouteProviderPort, 0)
+
+	resp, err := c.LocationList(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = LocationListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

@@ -72,7 +72,10 @@ func (c ManagedPrivateEndpointsClient) Get(ctx context.Context, id ManagedPrivat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedPrivateEndpointResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

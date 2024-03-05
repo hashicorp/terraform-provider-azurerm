@@ -44,7 +44,10 @@ func (c RunAsAccountsClient) GetRunAsAccount(ctx context.Context, id commonids.V
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VMwareRunAsAccount
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
