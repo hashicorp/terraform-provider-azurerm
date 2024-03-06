@@ -27,7 +27,7 @@ DEPRECATIONS:
 
 * Deprecated Resource: `azurerm_static_site` [GH-25117]
 * Deprecated Resource: `azurerm_static_site_custom_domain` [GH-25117]
-
+* `azurerm_kubernetes_fleet_manager` - the `hub_profile` property has been deprecated [GH-25010]
 
 ## 3.94.0 (February 29, 2024)
 
