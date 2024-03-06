@@ -207,8 +207,9 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "example" {
           virtual_machine_name    = "appvm0"
           network_interface_names = ["appnic0"]
 
-          data_disk_names = {
-            default = "app0disk0"
+          data_disk {
+            volume_name = "default"
+            names       = ["app0disk0"]
           }
         }
       }
@@ -229,8 +230,9 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "example" {
           virtual_machine_name    = "ascsvm"
           network_interface_names = ["ascsnic"]
 
-          data_disk_names = {
-            default = "ascsdisk"
+          data_disk {
+            volume_name = "default"
+            names       = ["ascsdisk"]
           }
         }
       }
@@ -251,11 +253,24 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "example" {
           virtual_machine_name    = "dbvmpr"
           network_interface_names = ["dbprnic"]
 
-          data_disk_names = {
-            hanaData   = "hanadatapr0,hanadatapr1"
-            hanaLog    = "hanalogpr0,hanalogpr1,hanalogpr2"
-            usrSap     = "usrsappr0"
-            hanaShared = "hanasharedpr0,hanasharedpr1"
+          data_disk {
+            volume_name = "hanaData"
+            names       = ["hanadatapr0", "hanadatapr1"]
+          }
+
+          data_disk {
+            volume_name = "hanaLog"
+            names       = ["hanalogpr0", "hanalogpr1", "hanalogpr2"]
+          }
+
+          data_disk {
+            volume_name = "usrSap"
+            names       = ["usrsappr0"]
+          }
+
+          data_disk {
+            volume_name = "hanaShared"
+            names       = ["hanasharedpr0", "hanasharedpr1"]
           }
         }
       }
@@ -366,7 +381,7 @@ A `three_tier_configuration` block supports the following:
 
 * `app_resource_group_name` - (Required) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
 
-~> **Note:** While creating an SAP Three Tier Virtual Instance, the service would provision the extra SAP system/component in the `app_resource_group_name` that isn't defined in the HCL Configurations. At this time, if the `app_resource_group_name` is different from the Resource Group where SAP Three Tier Virtual Instance exists, you can set `prevent_deletion_if_contains_resources` to `false` to delete all resources defined in the HCL Configurations and the resources created in the `app_resource_group_name` with `terraform destroy`. However, if the `app_resource_group_name` is the same with the Resource Group where SAP Three Tier Virtual Instance exists, some resources such as the subnet defined in the HCL Configurations cannot be deleted with `terraform destroy` since the resources defined in the HCL Configurations are being referenced by the SAP system/component. In this case, you have to manually delete the SAP system/component before deleting the resources in the HCL Configurations.
+~> **Note:** While creating an SAP Three Tier Virtual Instance, the service will provision the extra SAP systems/components in the `app_resource_group_name` that are not defined in the HCL Configuration. At this time, if the `app_resource_group_name` is different from the Resource Group where SAP Three Tier Virtual Instance exists, you can set `prevent_deletion_if_contains_resources` to `false` to delete all resources defined in the HCL Configurations and the resources created in the `app_resource_group_name` with `terraform destroy`. However, if the `app_resource_group_name` is the same with the Resource Group where SAP Three Tier Virtual Instance exists, some resources, such as the subnet defined in the HCL Configuration, cannot be deleted with `terraform destroy` since the resources defined in the HCL Configuration are being referenced by the SAP system/component. In this case, you have to manually delete the SAP system/component before deleting the resources in the HCL Configuration.
 
 * `application_server_configuration` - (Required) An `application_server_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -384,7 +399,7 @@ A `three_tier_configuration` block supports the following:
 
 ~> **Note:** The file share configuration uses `skip` by default when `transport_create_and_mount` isn't set.
 
-~> **Note:** Currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected. The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209. So the feature of `TransportMount` isn't supported by TF for now due to this service API bug.
+~> **Note:** Due to [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/25209) where the Storage File Share Id is not defined correctly, it is not currently possible to support using Transport Mount.
 
 ---
 
