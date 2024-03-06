@@ -15,8 +15,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
 var _ pollers.PollerType = &longRunningOperationPoller{}
@@ -77,6 +79,14 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		return nil, fmt.Errorf("internal error: cannot poll without a pollingUrl")
 	}
 
+	// Retry the polling operation if a 404 was returned
+	retryOn404 := func(resp *http.Response, _ *odata.OData) (bool, error) {
+		if resp != nil && response.WasStatusCode(resp, http.StatusNotFound) {
+			return true, nil
+		}
+		return false, nil
+	}
+
 	reqOpts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -88,6 +98,7 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		HttpMethod:    http.MethodGet,
 		OptionsObject: nil,
 		Path:          p.pollingUrl.Path,
+		RetryFunc:     client.RequestRetryAny(append(defaultRetryFunctions, retryOn404)...),
 	}
 
 	// TODO: port over the `api-version` header
@@ -97,9 +108,6 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 		return nil, fmt.Errorf("building request for long-running-operation: %+v", err)
 	}
 	req.URL.RawQuery = p.pollingUrl.RawQuery
-
-	// Custom RetryFunc to inspect the operation payload and check the status
-	req.RetryFunc = client.RequestRetryAny(defaultRetryFunctions...)
 
 	result = &pollers.PollResult{
 		PollInterval: p.initialRetryDuration,
