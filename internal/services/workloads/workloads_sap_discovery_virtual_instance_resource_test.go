@@ -25,10 +25,10 @@ func TestAccWorkloadsSAPDiscoveryVirtualInstanceSequential(t *testing.T) {
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"sapVirtualInstance": {
-			"basic": testAccWorkloadsSAPDiscoveryVirtualInstance_basic,
-			//"requiresImport": testAccWorkloadsSAPDiscoveryVirtualInstance_requiresImport,
-			//"complete":       testAccWorkloadsSAPDiscoveryVirtualInstance_complete,
-			//"update":         testAccWorkloadsSAPDiscoveryVirtualInstance_update,
+			"basic":          testAccWorkloadsSAPDiscoveryVirtualInstance_basic,
+			"requiresImport": testAccWorkloadsSAPDiscoveryVirtualInstance_requiresImport,
+			"complete":       testAccWorkloadsSAPDiscoveryVirtualInstance_complete,
+			"update":         testAccWorkloadsSAPDiscoveryVirtualInstance_update,
 		},
 	})
 }
@@ -143,6 +143,10 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
   sap_product                       = "S4HANA"
   central_server_virtual_machine_id = "%s"
   managed_storage_account_name      = "managedsa%s"
+
+  lifecycle {
+    ignore_changes = [managed_resource_group_name]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_SAP_VIRTUAL_INSTANCE_NAME"), os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString)
 }
