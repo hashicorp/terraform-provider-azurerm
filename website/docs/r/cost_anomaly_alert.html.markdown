@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name which should be used for this Cost Anomaly Alert.
 
-* `subscription_id` - The ID of the Subscription this Cost Anomaly Alert is scoped to. Changing this forces a new resource to be created. When not supplied this defaults to the subscription configured in the provider.
+* `subscription_id` - (Optional) The ID of the Subscription this Cost Anomaly Alert is scoped to. Changing this forces a new resource to be created. When not supplied this defaults to the subscription configured in the provider.
 
 * `email_addresses` - (Required) Specifies a list of email addresses which the Anomaly Alerts are send to.
 

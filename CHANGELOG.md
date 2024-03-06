@@ -9,6 +9,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `dependencies`: updating to v0.20240229.1102109 of `github.com/hashicorp/go-azure-sdk` [GH-25102]
+* `monitor`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-#25102]
 * `network`: updating to API Version `2023-09-01` [GH-25095]
 * `azurerm_linux_function_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
 * `azurerm_linux_function_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
@@ -25,7 +27,7 @@ DEPRECATIONS:
 
 * Deprecated Resource: `azurerm_static_site` [GH-25117]
 * Deprecated Resource: `azurerm_static_site_custom_domain` [GH-25117]
-
+* `azurerm_kubernetes_fleet_manager` - the `hub_profile` property has been deprecated [GH-25010]
 
 ## 3.94.0 (February 29, 2024)
 

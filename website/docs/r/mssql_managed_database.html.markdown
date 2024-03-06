@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `short_term_retention_days` - (Optional) The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
 
-* `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below.
+* `point_in_time_restore` - (Optional) A `point_in_time_restore` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

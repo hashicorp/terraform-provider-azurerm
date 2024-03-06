@@ -153,7 +153,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240228.1142829
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240229.1102109
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -345,18 +345,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/webhooks
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/agentpools
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/fleetmembers
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/fleets
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/maintenanceconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclusters
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/managedclustersnapshots
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/privateendpointconnections
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/privatelinkresources
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/resolveprivatelinkserviceid
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/snapshots
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2022-09-02-preview/trustedaccess
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/agentpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/maintenanceconfigurations
@@ -1057,7 +1045,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240228.1142829
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240229.1102109
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
