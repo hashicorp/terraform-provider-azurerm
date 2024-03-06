@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -121,6 +122,9 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 }
 
 func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	subnetId := state.Attributes["subnet_id"]
 	id, err := commonids.ParseSubnetID(subnetId)
 	if err != nil {
