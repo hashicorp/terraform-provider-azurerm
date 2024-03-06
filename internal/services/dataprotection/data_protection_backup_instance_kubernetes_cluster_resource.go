@@ -38,7 +38,7 @@ type BackupDatasourceParameters struct {
 	ExcludedResourceTypes       []string `tfschema:"excluded_resource_types"`
 	LabelSelectors              []string `tfschema:"label_selectors"`
 	VolumeSnapshotEnabled       bool     `tfschema:"volume_snapshot_enabled"`
-	ClusterScopeResourceEnabled bool     `tfschema:"cluster_scope_resource_enabled"`
+	ClusterScopeResourceEnabled bool     `tfschema:"cluster_scoped_resources_enabled"`
 }
 
 type DataProtectionBackupInstanceKubernatesClusterResource struct{}
@@ -113,7 +113,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 							Type: schema.TypeString,
 						},
 					},
-					"cluster_scope_resource_enabled": {
+					"cluster_scoped_resources_enabled": {
 						Type:     pluginsdk.TypeBool,
 						ForceNew: true,
 						Optional: true,
@@ -227,7 +227,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-				return fmt.Errorf("creating DataProtection Backup Instance (%q): %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -308,7 +308,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Delete() sdk.Reso
 
 			err = client.DeleteThenPoll(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("deleting DataProtection Backup Instance (%q): %+v", *id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -334,11 +334,11 @@ func expandBackupDatasourceParameters(input []BackupDatasourceParameters) *[]bac
 }
 
 func flattenBackupDatasourceParameters(input []backupinstances.BackupDatasourceParameters) *[]BackupDatasourceParameters {
+	results := make([]BackupDatasourceParameters, 0)
 	if len(input) == 0 {
-		return nil
+		return &results
 	}
 
-	results := make([]BackupDatasourceParameters, 0)
 	if item, ok := input[0].(backupinstances.KubernetesClusterBackupDatasourceParameters); ok {
 		results = append(results, BackupDatasourceParameters{
 			ExcludedNamespaces:          pointer.From(item.ExcludedNamespaces),

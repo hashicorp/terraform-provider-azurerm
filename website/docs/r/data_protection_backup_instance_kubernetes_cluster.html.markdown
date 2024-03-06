@@ -3,12 +3,12 @@ subcategory: "DataProtection"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_protection_backup_instance_kubernetes_cluster"
 description: |-
-  Manages a Backup Instance to back up Kubernetes Cluster.
+  Manages a Backup Instance to back up a Kubernetes Cluster.
 ---
 
 # azurerm_data_protection_backup_instance_kubernetes_cluster
 
-Manages a Backup Instance to back up Kubernetes Cluster.
+Manages a Backup Instance to back up a Kubernetes Cluster.
 
 ## Example Usage
 
@@ -36,7 +36,6 @@ resource "azurerm_data_protection_backup_vault" "example" {
     type = "SystemAssigned"
   }
 }
-
 
 resource "azurerm_kubernetes_cluster" "example" {
   name                = "example"
@@ -157,13 +156,13 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "example" 
   backup_policy_id             = azurerm_data_protection_backup_policy_kubernetes_cluster.example.id
 
   backup_datasource_parameters {
-    excluded_namespaces            = ["test-excluded-namespaces"]
-    excluded_resource_types        = ["exvolumesnapshotcontents.snapshot.storage.k8s.io"]
-    cluster_scope_resource_enabled = true
-    included_namespaces            = ["test-included-namespaces"]
-    included_resource_types        = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
-    label_selectors                = ["kubernetes.io/metadata.name:test"]
-    volume_snapshot_enabled        = true
+    excluded_namespaces              = ["test-excluded-namespaces"]
+    excluded_resource_types          = ["exvolumesnapshotcontents.snapshot.storage.k8s.io"]
+    cluster_scoped_resources_enabled = true
+    included_namespaces              = ["test-included-namespaces"]
+    included_resource_types          = ["involumesnapshotcontents.snapshot.storage.k8s.io"]
+    label_selectors                  = ["kubernetes.io/metadata.name:test"]
+    volume_snapshot_enabled          = true
   }
 
   depends_on = [
@@ -198,7 +197,7 @@ A `backup_datasource_parameters` block supports the following:
 
 * `excluded_resource_types` - (Optional) Specifies the resource types to be excluded during backup. Changing this forces a new resource to be created.
 
-* `cluster_scope_resource_enabled` - (Optional) Whether to include cluster scope resources during backup. Default to `false`. Changing this forces a new resource to be created.
+* `cluster_scoped_resources_enabled` - (Optional) Whether to include cluster scope resources during backup. Default to `false`. Changing this forces a new resource to be created.
 
 * `included_namespaces` - (Optional) Specifies the namespaces to be included during backup. Changing this forces a new resource to be created.
 
