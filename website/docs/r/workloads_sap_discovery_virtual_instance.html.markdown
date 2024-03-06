@@ -63,7 +63,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that should be configured on this SAP Discovery Virtual Instance. Only possible value is `UserAssigned`.
+* `type` - (Required) The type of Managed Service Identity that should be configured on this SAP Discovery Virtual Instance. The only possible value is `UserAssigned`.
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this SAP Discovery Virtual Instance.
 
