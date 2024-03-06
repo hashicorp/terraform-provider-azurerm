@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -543,6 +544,11 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 	vnetClient := meta.(*clients.Client).Network.VnetClient
 	resp, err := vnetClient.Get(ctx, resGroup, vnetName, "")
 	if err != nil {
+		// The Subnet doesn't exist when the Virtual Network doesn't exist
+		if resp.StatusCode == http.StatusNotFound {
+			return pointer.To(network.Subnet{}), nil
+		}
+		// raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
 	}
 
@@ -553,7 +559,7 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 		}
 	}
 
-	// Return empty object when the specified subnet isn't found
+	// Return empty object when the Subnet isn't found
 	return pointer.To(network.Subnet{}), nil
 }
 
