@@ -190,7 +190,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
   app_location                = azurerm_resource_group.app.location
-  managed_resource_group_name = "managedTestRG%d"
+  managed_resource_group_name = "acctestManagedRG%d"
   sap_fqdn                    = "sap.bpaas.com"
 
   single_server_configuration {
@@ -303,7 +303,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
   location                    = azurerm_resource_group.test.location
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
-  managed_resource_group_name = "managedTestRG%d"
+  managed_resource_group_name = "acctestManagedRG%d"
   app_location                = azurerm_resource_group.app.location
   sap_fqdn                    = "sap.bpaas.com"
 
@@ -429,7 +429,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
   location                    = azurerm_resource_group.test.location
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
-  managed_resource_group_name = "managedTestRG%d"
+  managed_resource_group_name = "acctestManagedRG%d"
   app_location                = azurerm_resource_group.app.location
   sap_fqdn                    = "sap.bpaas.com"
 
