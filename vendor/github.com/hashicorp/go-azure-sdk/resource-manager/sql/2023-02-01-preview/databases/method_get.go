@@ -77,7 +77,10 @@ func (c DatabasesClient) Get(ctx context.Context, id commonids.SqlDatabaseId, op
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Database
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

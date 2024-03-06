@@ -48,7 +48,10 @@ func (c PartnerTopicsClient) CreateOrUpdate(ctx context.Context, id PartnerTopic
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PartnerTopic
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

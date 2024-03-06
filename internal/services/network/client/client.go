@@ -6,14 +6,14 @@ package client
 import (
 	"fmt"
 
-	network_2023_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01"
+	network_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type Client struct {
-	*network_2023_06_01.Client
+	*network_2023_09_01.Client
 
 	// Usages of the clients below use `Azure/azure-sdk-for-go` and should be updated
 	// to use `hashicorp/go-azure-sdk` (available above).
@@ -176,7 +176,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ResourceNavigationLinkClient := network.NewResourceNavigationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ResourceNavigationLinkClient.Client, o.ResourceManagerAuthorizer)
 
-	client, err := network_2023_06_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	client, err := network_2023_09_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

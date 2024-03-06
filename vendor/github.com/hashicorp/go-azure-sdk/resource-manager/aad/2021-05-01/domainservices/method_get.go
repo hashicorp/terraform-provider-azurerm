@@ -43,7 +43,10 @@ func (c DomainServicesClient) Get(ctx context.Context, id DomainServiceId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DomainService
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

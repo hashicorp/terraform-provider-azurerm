@@ -45,7 +45,10 @@ func (c WebAppsClient) ListSlotConfigurationNames(ctx context.Context, id common
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SlotConfigNamesResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

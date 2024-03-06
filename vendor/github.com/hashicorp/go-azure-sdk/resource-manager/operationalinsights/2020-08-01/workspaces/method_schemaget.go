@@ -44,7 +44,10 @@ func (c WorkspacesClient) SchemaGet(ctx context.Context, id WorkspaceId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SearchGetSchemaResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

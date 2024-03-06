@@ -44,7 +44,10 @@ func (c RegionsClient) LocationsListBillingSpecs(ctx context.Context, id Locatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BillingResponseListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

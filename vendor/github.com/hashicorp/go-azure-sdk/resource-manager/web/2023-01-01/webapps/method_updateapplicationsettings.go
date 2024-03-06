@@ -49,7 +49,10 @@ func (c WebAppsClient) UpdateApplicationSettings(ctx context.Context, id commoni
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StringDictionary
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

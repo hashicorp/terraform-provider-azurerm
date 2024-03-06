@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `grafana_major_version` - (Optional) Which major version of Grafana to deploy. Defaults to `9`. Possible values are `9`, `10`. Changing this forces a new resource to be created.
 
+* `smtp` - (Optional) A `smtp` block as defined below.
+
 * `azure_monitor_workspace_integrations` - (Optional) A `azure_monitor_workspace_integrations` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Dashboard Grafana to be created.
@@ -65,6 +67,26 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana.
 
 * `zone_redundancy_enabled` - (Optional) Whether to enable the zone redundancy setting of the Grafana instance. Defaults to `false`. Changing this forces a new Dashboard Grafana to be created.
+
+---
+
+A `smtp` block supports the following:
+
+* `enabled` - (Optional) Whether to enable the smtp setting of the Grafana instance. Defaults to `false`.
+
+* `host` - (Required) SMTP server hostname with port, e.g. test.email.net:587
+
+* `user` - (Required) User of SMTP authentication.
+
+* `password` - (Required) Password of SMTP authentication.
+
+* `start_tls_policy` - (Required) Whether to use TLS when connecting to SMTP server. Possible values are `OpportunisticStartTLS`, `NoStartTLS`, `MandatoryStartTLS`.
+
+* `from_address` - (Required) Address used when sending emails.
+
+* `from_name` - (Optional) Name used when sending emails. Defaults to `Azure Managed Grafana Notification`.
+
+* `verification_skip_enabled` - (Optional) Whether verify SSL for SMTP server. Defaults to `false`.
 
 ---
 

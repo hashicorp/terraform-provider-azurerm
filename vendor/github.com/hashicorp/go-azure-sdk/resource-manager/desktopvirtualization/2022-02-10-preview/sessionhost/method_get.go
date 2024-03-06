@@ -43,7 +43,10 @@ func (c SessionHostClient) Get(ctx context.Context, id SessionHostId) (result Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SessionHost
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

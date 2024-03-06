@@ -83,7 +83,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `extensions_time_budget` - (Optional) Specifies the time alloted for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `PT1H30M`.
 
-* `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
+* `eviction_policy` - (Optional) The Policy which should be used by Spot Virtual Machines that are Evicted from the Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -171,6 +171,8 @@ A `windows_configuration` block supports the following:
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
+* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
+
 ---
 
 A `linux_configuration` block supports the following:
@@ -208,6 +210,14 @@ A `secret` block supports the following:
 * `certificate` - (Required) One or more `certificate` blocks as defined below.
 
 -> **NOTE:** The schema of the `certificate` block is slightly different depending on if you are provisioning a `windows_configuration` or a `linux_configuration`.
+
+---
+
+An `additional_unattend_content` block supports the following:
+
+* `content` - (Required) The XML formatted content that is added to the unattend.xml file for the specified path and component. Changing this forces a new resource to be created.
+
+* `setting` - (Required) The name of the setting to which the content applies. Possible values are `AutoLogon` and `FirstLogonCommands`. Changing this forces a new resource to be created.
 
 ---
 
@@ -283,9 +293,9 @@ A `data_disk` block supports the following:
 
 * `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are Empty and FromImage. Defaults to `Empty`. (FromImage should only be used if the source image includes data disks).
 
-* `disk_size_gb` - (Required) The size of the Data Disk which should be created.
+* `disk_size_gb` - (Optional) The size of the Data Disk which should be created. Required if `create_option` is specified as `Empty`.
 
-* `lun` - (Required) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine.
+* `lun` - (Optional) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine. Required if `create_option` is specified as `Empty`.
 
 * `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS` and `UltraSSD_LRS`.
 

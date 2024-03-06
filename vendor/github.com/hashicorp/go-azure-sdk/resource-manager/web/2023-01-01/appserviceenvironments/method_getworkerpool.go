@@ -43,7 +43,10 @@ func (c AppServiceEnvironmentsClient) GetWorkerPool(ctx context.Context, id Work
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WorkerPoolResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -15,7 +15,12 @@ import (
 type ListByServiceOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PolicyCollection
+	Model        *[]PolicyContract
+}
+
+type ListByServiceCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []PolicyContract
 }
 
 // ListByService ...
@@ -35,7 +40,7 @@ func (c PolicyClient) ListByService(ctx context.Context, id ServiceId) (result L
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c PolicyClient) ListByService(ctx context.Context, id ServiceId) (result L
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]PolicyContract `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByServiceComplete retrieves all the results into a single object
+func (c PolicyClient) ListByServiceComplete(ctx context.Context, id ServiceId) (ListByServiceCompleteResult, error) {
+	return c.ListByServiceCompleteMatchingPredicate(ctx, id, PolicyContractOperationPredicate{})
+}
+
+// ListByServiceCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c PolicyClient) ListByServiceCompleteMatchingPredicate(ctx context.Context, id ServiceId, predicate PolicyContractOperationPredicate) (result ListByServiceCompleteResult, err error) {
+	items := make([]PolicyContract, 0)
+
+	resp, err := c.ListByService(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByServiceCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

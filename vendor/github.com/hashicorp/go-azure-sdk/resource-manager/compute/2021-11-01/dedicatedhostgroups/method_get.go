@@ -73,7 +73,10 @@ func (c DedicatedHostGroupsClient) Get(ctx context.Context, id commonids.Dedicat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DedicatedHostGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

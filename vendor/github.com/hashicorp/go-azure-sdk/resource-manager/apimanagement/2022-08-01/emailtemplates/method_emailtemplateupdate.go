@@ -76,7 +76,10 @@ func (c EmailTemplatesClient) EmailTemplateUpdate(ctx context.Context, id Templa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EmailTemplateContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -1129,6 +1130,7 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 		nodePoolName := state.Attributes["name"]
 		kubernetesClusterId := state.Attributes["kubernetes_cluster_id"]
 		parsedK8sId, err := commonids.ParseKubernetesClusterID(kubernetesClusterId)
+
 		if err != nil {
 			return fmt.Errorf("parsing kubernetes cluster id: %+v", err)
 		}
@@ -1152,13 +1154,12 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 
 		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
 
-		future, err := clients.Containers.AgentPoolsClient.CreateOrUpdate(ctx, parsedAgentPoolId, *nodePool.Model)
+		ctx, cancel := context.WithDeadline(clients.StopContext, time.Now().Add(1*time.Hour))
+		defer cancel()
+
+		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model)
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
-		}
-
-		if err := future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
 		}
 
 		return nil

@@ -3,6 +3,19 @@ package localrulestacks
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AdvSecurityObjectModelOperationPredicate struct {
+	Type *string
+}
+
+func (p AdvSecurityObjectModelOperationPredicate) Matches(input AdvSecurityObjectModel) bool {
+
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
+		return false
+	}
+
+	return true
+}
+
 type CountryOperationPredicate struct {
 	Code        *string
 	Description *string
@@ -61,6 +74,19 @@ func (p PredefinedUrlCategoryOperationPredicate) Matches(input PredefinedUrlCate
 	}
 
 	if p.Name != nil && *p.Name != input.Name {
+		return false
+	}
+
+	return true
+}
+
+type SecurityServicesTypeListOperationPredicate struct {
+	Type *string
+}
+
+func (p SecurityServicesTypeListOperationPredicate) Matches(input SecurityServicesTypeList) bool {
+
+	if p.Type != nil && (input.Type == nil || *p.Type != *input.Type) {
 		return false
 	}
 

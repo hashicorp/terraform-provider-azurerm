@@ -72,7 +72,10 @@ func (c AppliancesClient) ListKeys(ctx context.Context, id ApplianceId, options 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplianceListKeysResults
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

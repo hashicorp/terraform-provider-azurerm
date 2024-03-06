@@ -77,7 +77,10 @@ func (c ServicesClient) CheckNameAvailability(ctx context.Context, id commonids.
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CheckNameAvailabilityOutput
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

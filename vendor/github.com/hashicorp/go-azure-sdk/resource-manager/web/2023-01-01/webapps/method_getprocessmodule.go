@@ -43,7 +43,10 @@ func (c WebAppsClient) GetProcessModule(ctx context.Context, id ModuleId) (resul
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ProcessModuleInfo
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

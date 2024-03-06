@@ -43,7 +43,10 @@ func (c ResourceProvidersClient) GetPublishingUser(ctx context.Context) (result 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model User
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

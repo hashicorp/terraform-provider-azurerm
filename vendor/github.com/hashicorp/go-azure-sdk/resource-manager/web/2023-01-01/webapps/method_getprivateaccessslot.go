@@ -44,7 +44,10 @@ func (c WebAppsClient) GetPrivateAccessSlot(ctx context.Context, id SlotId) (res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PrivateAccess
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -392,6 +392,28 @@ func TestAccKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_outboundTypeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedNatGatewayConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.outboundTypeLoadBalancerConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_natGatewayProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -2121,7 +2143,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin    = "kubenet"
-    load_balancer_sku = "basic"
+    load_balancer_sku = "standard"
     pod_cidr          = "10.244.0.0/16"
     service_cidr      = "10.0.0.0/16"
     dns_service_ip    = "10.0.0.10"

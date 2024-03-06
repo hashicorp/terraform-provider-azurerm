@@ -84,7 +84,7 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		props := model.Properties
 		if props.StorageSettings != nil && len(props.StorageSettings) > 0 {

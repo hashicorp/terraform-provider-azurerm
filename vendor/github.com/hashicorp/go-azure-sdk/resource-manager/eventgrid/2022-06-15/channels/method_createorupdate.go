@@ -48,7 +48,10 @@ func (c ChannelsClient) CreateOrUpdate(ctx context.Context, id ChannelId, input 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Channel
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

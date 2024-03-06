@@ -43,7 +43,10 @@ func (c WebAppsClient) GetNetworkTraces(ctx context.Context, id NetworkTraceId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model []NetworkTrace
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

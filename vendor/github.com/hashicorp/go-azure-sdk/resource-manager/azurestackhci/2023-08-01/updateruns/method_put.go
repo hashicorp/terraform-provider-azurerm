@@ -47,7 +47,10 @@ func (c UpdateRunsClient) Put(ctx context.Context, id UpdateRunId, input UpdateR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model UpdateRun
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

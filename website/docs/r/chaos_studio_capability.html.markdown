@@ -45,7 +45,7 @@ resource "azurerm_chaos_studio_capability" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
-* 
+
 * `capability_type` - (Required) The capability that should be applied to the Chaos Studio Target. For supported values please see this Chaos Studio [Fault Library](https://learn.microsoft.com/azure/chaos-studio/chaos-studio-fault-library). Changing this forces a new Chaos Studio Capability to be created.
 
 * `chaos_studio_target_id` - (Required) The Chaos Studio Target that the capability should be applied to. Changing this forces a new Chaos Studio Capability to be created.

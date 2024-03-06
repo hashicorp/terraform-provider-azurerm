@@ -43,7 +43,10 @@ func (c WorkbooksAPIsClient) WorkbooksRevisionGet(ctx context.Context, id Revisi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Workbook
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

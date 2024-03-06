@@ -43,7 +43,10 @@ func (c PrivateCloudsClient) Get(ctx context.Context, id PrivateCloudId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PrivateCloud
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
