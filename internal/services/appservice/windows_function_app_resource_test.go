@@ -3347,6 +3347,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.identityTemplate(data, planSku), data.RandomString, data.RandomInteger)
 }
 
+// nolint: unparam
 func (r WindowsFunctionAppResource) withIPRestrictions(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
