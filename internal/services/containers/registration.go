@@ -74,6 +74,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerConnectedRegistryResource{},
 		KubernetesClusterExtensionResource{},
 		KubernetesFluxConfigurationResource{},
+		KubernetesFleetManagerResource{},
 		KubernetesFleetUpdateRunResource{},
 		KubernetesFleetUpdateStrategyResource{},
 	}
