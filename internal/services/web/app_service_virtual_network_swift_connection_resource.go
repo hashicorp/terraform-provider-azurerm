@@ -204,27 +204,6 @@ func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Resource
 		return err
 	}
 
-	existing, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return err
-	}
-	if existing.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("properties was nil for %s", *existing.ID)
-	}
-
-	subnetID, err := commonids.ParseSubnetID(pointer.From(existing.SwiftVirtualNetworkProperties.SubnetResourceID))
-	if err != nil {
-		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
-	}
-	subnetName := subnetID.SubnetName
-	virtualNetworkName := subnetID.VirtualNetworkName
-
-	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
-
-	locks.ByName(subnetName, network.SubnetResourceName)
-	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
-
 	read, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		return fmt.Errorf("making read request on virtual network properties (App Service %q / Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
@@ -238,6 +217,19 @@ func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Resource
 		// assume deleted
 		return nil
 	}
+
+	subnetID, err := commonids.ParseSubnetID(pointer.From(subnet))
+	if err != nil {
+		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
+	}
+	subnetName := subnetID.SubnetName
+	virtualNetworkName := subnetID.VirtualNetworkName
+
+	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
+
+	locks.ByName(subnetName, network.SubnetResourceName)
+	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 
 	resp, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {

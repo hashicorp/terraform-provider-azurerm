@@ -229,28 +229,6 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.ConfigName, id.SlotName)
-	if err != nil {
-		return err
-	}
-
-	if existing.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("properties was nil for %s", *existing.ID)
-	}
-
-	subnetID, err := commonids.ParseSubnetID(pointer.From(existing.SwiftVirtualNetworkProperties.SubnetResourceID))
-	if err != nil {
-		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
-	}
-	subnetName := subnetID.SubnetName
-	virtualNetworkName := subnetID.VirtualNetworkName
-
-	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
-
-	locks.ByName(subnetName, network.SubnetResourceName)
-	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
-
 	read, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		return fmt.Errorf("making read request on virtual network properties (Slot Name %q / App Service %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
@@ -264,6 +242,19 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Reso
 		// assume deleted
 		return nil
 	}
+
+	subnetID, err := commonids.ParseSubnetID(pointer.From(subnet))
+	if err != nil {
+		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
+	}
+	subnetName := subnetID.SubnetName
+	virtualNetworkName := subnetID.VirtualNetworkName
+
+	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
+
+	locks.ByName(subnetName, network.SubnetResourceName)
+	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 
 	resp, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
