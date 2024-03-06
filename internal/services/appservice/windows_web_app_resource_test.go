@@ -1087,7 +1087,7 @@ func TestAccWindowsWebApp_withNode20(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
