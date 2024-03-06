@@ -103,9 +103,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 			}
 
 			var payload fleets.Fleet
-			if err := r.mapKubernetesFleetManagerResourceSchemaToFleet(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
-			}
+			r.mapKubernetesFleetManagerResourceSchemaToFleet(config, &payload)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload, fleets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -139,9 +137,7 @@ func (r KubernetesFleetManagerResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Name = id.FleetName
 				schema.ResourceGroupName = id.ResourceGroupName
-				if err := r.mapFleetToKubernetesFleetManagerResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
-				}
+				r.mapFleetToKubernetesFleetManagerResourceSchema(*model, &schema)
 			}
 
 			return metadata.Encode(&schema)
@@ -192,9 +188,7 @@ func (r KubernetesFleetManagerResource) Update() sdk.ResourceFunc {
 			}
 			payload := *existing.Model
 
-			if err := r.mapKubernetesFleetManagerResourceSchemaToFleet(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
-			}
+			r.mapKubernetesFleetManagerResourceSchemaToFleet(config, &payload)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload, fleets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -205,24 +199,20 @@ func (r KubernetesFleetManagerResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceSchemaToFleet(input KubernetesFleetManagerResourceSchema, output *fleets.Fleet) error {
+func (r KubernetesFleetManagerResource) mapKubernetesFleetManagerResourceSchemaToFleet(input KubernetesFleetManagerResourceSchema, output *fleets.Fleet) {
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Expand(input.Tags)
 
 	if output.Properties == nil {
 		output.Properties = &fleets.FleetProperties{}
 	}
-
-	return nil
 }
 
-func (r KubernetesFleetManagerResource) mapFleetToKubernetesFleetManagerResourceSchema(input fleets.Fleet, output *KubernetesFleetManagerResourceSchema) error {
+func (r KubernetesFleetManagerResource) mapFleetToKubernetesFleetManagerResourceSchema(input fleets.Fleet, output *KubernetesFleetManagerResourceSchema) {
 	output.Location = location.Normalize(input.Location)
 	output.Tags = tags.Flatten(input.Tags)
 
 	if input.Properties == nil {
 		input.Properties = &fleets.FleetProperties{}
 	}
-
-	return nil
 }
