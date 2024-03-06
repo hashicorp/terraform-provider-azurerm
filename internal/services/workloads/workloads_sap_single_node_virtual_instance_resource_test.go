@@ -378,8 +378,9 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
       virtual_machine_name    = "appvm0"
       network_interface_names = ["appnic0"]
 
-      data_disk_names = {
-        default = "app0disk0"
+      data_disk {
+        volume_name = "default"
+        names       = ["app0disk0"]
       }
     }
   }
@@ -504,8 +505,9 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
       virtual_machine_name    = "appvm0"
       network_interface_names = ["appnic0"]
 
-      data_disk_names = {
-        default = "app0disk0"
+      data_disk {
+        volume_name = "default"
+        names       = ["app0disk0"]
       }
     }
   }
