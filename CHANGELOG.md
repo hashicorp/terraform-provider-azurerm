@@ -1,3 +1,34 @@
+## 3.95.0 (Unreleased)
+
+FEATURES:
+
+* New Resource: `azurerm_container_app_custom_domain` [GH-24421]
+* New Resource: `azurerm_static_web_app` [GH-25117]
+* New resource: `azurerm_static_web_app_custom_domain` [GH-25117]
+* New resource: `azurerm_system_center_virtual_machine_manager_availability_set` [GH-24975]
+
+ENHANCEMENTS:
+
+* `dependencies`: updating to v0.20240229.1102109 of `github.com/hashicorp/go-azure-sdk` [GH-25102]
+* `monitor`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-#25102]
+* `network`: updating to API Version `2023-09-01` [GH-25095]
+* `azurerm_linux_function_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_linux_function_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_linux_web_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_linux_web_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_mysql_flexible_server` - setting the `storage.size_gb` property to a smaller value now forces a new resource to be created [GH-25074]
+* `azurerm_orbital_contact_profile` - changing the `channels` property no longer creates a new resource [GH-25129]
+* `azurerm_windows_function_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_windows_function_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_windows_web_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+* `azurerm_windows_web_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
+
+DEPRECATIONS:
+
+* Deprecated Resource: `azurerm_static_site` [GH-25117]
+* Deprecated Resource: `azurerm_static_site_custom_domain` [GH-25117]
+
+
 ## 3.94.0 (February 29, 2024)
 
 FEATURES:

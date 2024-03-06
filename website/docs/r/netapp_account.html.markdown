@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `active_directory` - (Optional) A `active_directory` block as defined below.
 
-* `identity` - (Optional) The identity block where it is used when customer managed keys based encryption will be enabled.
+* `identity` - (Optional) The `identity` block where it is used when customer managed keys based encryption will be enabled as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -94,7 +94,7 @@ The `identity` block supports the following:
 * `identity_ids` - (Optional) The identity id of the user assigned identity to use when type is `UserAssigned`
 ---
 
-~> **IMPORTANT:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module. 
+~> **IMPORTANT:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module.
 
 ## Attributes Reference
 
