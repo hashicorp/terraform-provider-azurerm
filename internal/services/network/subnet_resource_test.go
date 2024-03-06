@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -581,6 +582,9 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 }
 
 func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
@@ -611,6 +615,9 @@ func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Clien
 }
 
 func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
@@ -643,6 +650,9 @@ func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *cli
 }
 
 func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
