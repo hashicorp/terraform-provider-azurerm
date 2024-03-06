@@ -222,7 +222,7 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
-* `allowed_host_ports` - (Optional)  One or more `allowed_host_ports` blocks as defined below.
+* `allowed_host_ports` - (Optional) One or more `allowed_host_ports` blocks as defined below.
 
 * `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
 
