@@ -101,7 +101,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	sqlDedicatedGatewayClient, err := sqldedicatedgateway.NewSqlDedicatedGatewayClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Mongorbacs client: %+v", err)
+		return nil, fmt.Errorf("building Sql Dedicated Gateway client: %+v", err)
 	}
 	o.Configure(sqlDedicatedGatewayClient.Client, o.Authorizers.ResourceManager)
 
