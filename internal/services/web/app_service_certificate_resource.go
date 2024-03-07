@@ -245,6 +245,7 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateKeyVaultID,
+			RequiredWith: []string{"key_vault_secret_id"},
 		},
 
 		"key_vault_secret_id": {
