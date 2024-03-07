@@ -4,10 +4,12 @@
 package dataprotection
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -172,25 +174,169 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			if !features.FourPointOhBeta() {
+				retentionRules := diff.Get("retention_rule")
+				defaultRetentionDuration := diff.Get("default_retention_duration")
+				defaultRetentionRule := diff.Get("default_retention_rule")
+
+				for i, rule := range retentionRules.([]interface{}) {
+					v := rule.(map[string]interface{})
+					if v["duration"].(string) == "" && len(v["life_cycle"].([]interface{})) == 0 || v["duration"].(string) != "" && len(v["life_cycle"].([]interface{})) > 0 {
+						return fmt.Errorf(`one of "retention_rule.%s.duration", "retention_rule.%s.life_cycle" must be specified`, strconv.Itoa(i), strconv.Itoa(i))
+					}
+
+					if defaultRetentionDuration != "" && v["duration"].(string) == "" {
+						return fmt.Errorf(`"default_retention_duration", "retention_rule.%s.duration" must be specified at the same time`, strconv.Itoa(i))
+					}
+
+					if len(defaultRetentionRule.([]interface{})) > 0 && len(v["life_cycle"].([]interface{})) == 0 {
+						return fmt.Errorf(`"default_retention_rule", "retention_rule.%s.life_cycle" must be specified at the same time`, strconv.Itoa(i))
+					}
+				}
+			}
+			return nil
+		}),
 	}
 
 	if !features.FourPointOhBeta() {
-		// remove 'default_retention_duration' in tf 4.0 is replaced by `default_retention_rule.0.life_cycle.#.duration`
 		resource.Schema["default_retention_duration"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
+			ExactlyOneOf: []string{"default_retention_duration", "default_retention_rule"},
+			Deprecated:   "`default_retention_duration` should be removed in favour of the `default_retention_rule.0.life_cycle.#.duration` property in version 4.0 of the AzureRM Provider.",
 			ValidateFunc: validate.ISO8601Duration,
 		}
-		// remove 'duration' in tf 4.0 is replaced by `retention_rule.#.life_cycle.#.duration`
 		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["duration"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
+			Deprecated:   "`retention_rule.#.duration` should be removed in favour of the `retention_rule.#.life_cycle.#.duration` property in version 4.0 of the AzureRM Provider.",
 			ValidateFunc: validate.ISO8601Duration,
 		}
+		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"data_store_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							// confirmed with the service team that the possible values do not include `OperationalStore`.
+							string(backuppolicies.DataStoreTypesVaultStore),
+							string(backuppolicies.DataStoreTypesArchiveStore),
+						}, false),
+					},
+
+					"duration": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.ISO8601Duration,
+					},
+
+					"target_copy_setting": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						ForceNew: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"copy_option": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsJSON,
+								},
+								"data_store_type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
+										// However, in view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+										// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
+										string(backuppolicies.DataStoreTypesArchiveStore),
+									}, false),
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		resource.Schema["default_retention_rule"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ForceNew:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"default_retention_duration", "default_retention_rule"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"life_cycle": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"data_store_type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// confirmed with the service team that the possible values do not include `OperationalStore`.
+										string(backuppolicies.DataStoreTypesVaultStore),
+										string(backuppolicies.DataStoreTypesArchiveStore),
+									}, false),
+								},
+
+								"duration": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validate.ISO8601Duration,
+								},
+
+								"target_copy_setting": {
+									Type:     pluginsdk.TypeList,
+									Optional: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"copy_option": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ForceNew:     true,
+												ValidateFunc: validation.StringIsJSON,
+											},
+											"data_store_type": {
+												Type:     pluginsdk.TypeString,
+												Required: true,
+												ForceNew: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													// since the following feedback from the service team, the current possible values only support `ArchiveStore`.
+													// In view of possible support for `VaultStore` in the future, the `data_store_type` property is exposed for users to set in version 4.0.
+													// feedback from the service team: Theoretically all 3 values possible. But currently only logical combination is from VaultStore to ArchiveStore. So in target data store it can only be ArchiveStore. OperationalStore isn’t supported for this workload.
+													string(backuppolicies.DataStoreTypesArchiveStore),
+												}, false),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
 	} else {
-		// Add `life_cycle` in tf 4.0 since `retention_rule.#.life_cycle.#.target_copy_setting` and `retention_rule.#.life_cycle.#.data_store_type` should be specified by user and are not fixed.
 		resource.Schema["retention_rule"].Elem.(*pluginsdk.Resource).Schema["life_cycle"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -246,7 +392,6 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 			},
 		}
 
-		// Add `default_retention_rule` in tf 4.0 since `default_retention_rule.0.data_store_type` and `default_retention_rule.0.target_copy_setting` should be specified by user and are not fixed.
 		resource.Schema["default_retention_rule"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -312,6 +457,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 			},
 		}
 	}
+
 	return resource
 }
 
@@ -345,8 +491,8 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
 
-	if !features.FourPointOhBeta() {
-		policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(d.Get("default_retention_duration")))
+	if v, ok := d.GetOk("default_retention_duration"); ok && !features.FourPointOhBeta() {
+		policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(v))
 		policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
 	} else {
 		policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultRetentionRule(d.Get("default_retention_rule").([]interface{})))
@@ -398,7 +544,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 					return fmt.Errorf("setting `backup_rule`: %+v", err)
 				}
 
-				if !features.FourPointOhBeta() {
+				if _, ok := d.GetOk("default_retention_duration"); ok && !features.FourPointOhBeta() {
 					if err := d.Set("default_retention_duration", flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(&props.PolicyRules)); err != nil {
 						return fmt.Errorf("setting `default_retention_duration`: %+v", err)
 					}
