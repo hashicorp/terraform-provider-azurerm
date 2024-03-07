@@ -183,9 +183,6 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   name                = "acctestkfm${var.random_string}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  hub_profile {
-    dns_prefix = "val-${var.random_string}"
-  }
 }
 
 

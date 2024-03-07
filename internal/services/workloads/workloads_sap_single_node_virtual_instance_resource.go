@@ -35,56 +35,51 @@ type WorkloadsSAPSingleNodeVirtualInstanceModel struct {
 	Tags                      map[string]string            `tfschema:"tags"`
 }
 
-type DeployerVmPackages struct {
-	StorageAccountId string `tfschema:"storage_account_id"`
-	Url              string `tfschema:"url"`
-}
-
 type SingleServerConfiguration struct {
-	AppResourceGroupName        string                        `tfschema:"app_resource_group_name"`
-	DatabaseType                string                        `tfschema:"database_type"`
-	DiskVolumeConfigurations    []DiskVolumeConfiguration     `tfschema:"disk_volume_configuration"`
-	IsSecondaryIpEnabled        bool                          `tfschema:"secondary_ip_enabled"`
-	SubnetId                    string                        `tfschema:"subnet_id"`
-	VirtualMachineConfiguration []VirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
-	VirtualMachineResourceNames []VirtualMachineResourceNames `tfschema:"virtual_machine_resource_names"`
+	AppResourceGroupName        string                                    `tfschema:"app_resource_group_name"`
+	DatabaseType                string                                    `tfschema:"database_type"`
+	DiskVolumeConfigurations    []SingleServerDiskVolumeConfiguration     `tfschema:"disk_volume_configuration"`
+	IsSecondaryIpEnabled        bool                                      `tfschema:"secondary_ip_enabled"`
+	SubnetId                    string                                    `tfschema:"subnet_id"`
+	VirtualMachineConfiguration []SingleServerVirtualMachineConfiguration `tfschema:"virtual_machine_configuration"`
+	VirtualMachineResourceNames []SingleServerVirtualMachineResourceNames `tfschema:"virtual_machine_resource_names"`
 }
 
-type DiskVolumeConfiguration struct {
+type SingleServerDiskVolumeConfiguration struct {
 	VolumeName    string `tfschema:"volume_name"`
 	NumberOfDisks int    `tfschema:"number_of_disks"`
 	SizeGb        int    `tfschema:"size_in_gb"`
 	SkuName       string `tfschema:"sku_name"`
 }
 
-type VirtualMachineConfiguration struct {
-	ImageReference []ImageReference `tfschema:"image"`
-	OSProfile      []OSProfile      `tfschema:"os_profile"`
-	VmSize         string           `tfschema:"virtual_machine_size"`
+type SingleServerVirtualMachineConfiguration struct {
+	ImageReference []SingleServerImageReference `tfschema:"image"`
+	OSProfile      []SingleServerOSProfile      `tfschema:"os_profile"`
+	VmSize         string                       `tfschema:"virtual_machine_size"`
 }
 
-type ImageReference struct {
+type SingleServerImageReference struct {
 	Offer     string `tfschema:"offer"`
 	Publisher string `tfschema:"publisher"`
 	Sku       string `tfschema:"sku"`
 	Version   string `tfschema:"version"`
 }
 
-type OSProfile struct {
+type SingleServerOSProfile struct {
 	AdminUsername string `tfschema:"admin_username"`
 	SshPrivateKey string `tfschema:"ssh_private_key"`
 	SshPublicKey  string `tfschema:"ssh_public_key"`
 }
 
-type VirtualMachineResourceNames struct {
-	DataDisks             []DataDisk `tfschema:"data_disk"`
-	HostName              string     `tfschema:"host_name"`
-	NetworkInterfaceNames []string   `tfschema:"network_interface_names"`
-	OSDiskName            string     `tfschema:"os_disk_name"`
-	VMName                string     `tfschema:"virtual_machine_name"`
+type SingleServerVirtualMachineResourceNames struct {
+	DataDisks             []SingleServerDataDisk `tfschema:"data_disk"`
+	HostName              string                 `tfschema:"host_name"`
+	NetworkInterfaceNames []string               `tfschema:"network_interface_names"`
+	OSDiskName            string                 `tfschema:"os_disk_name"`
+	VMName                string                 `tfschema:"virtual_machine_name"`
 }
 
-type DataDisk struct {
+type SingleServerDataDisk struct {
 	VolumeName string   `tfschema:"volume_name"`
 	Names      []string `tfschema:"names"`
 }
@@ -406,7 +401,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) CustomizeDiff() sdk.Resou
 
 			if v := rd.Get("single_server_configuration.0.disk_volume_configuration"); v != nil {
 				diskVolumes := v.(*pluginsdk.Set).List()
-				if hasDuplicateVolumeName(diskVolumes) {
+				if hasDuplicateVolumeNameForSAPSingleNodeVirtualInstance(diskVolumes) {
 					return fmt.Errorf("`volume_name` cannot be duplicated")
 				}
 			}
@@ -416,7 +411,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) CustomizeDiff() sdk.Resou
 	}
 }
 
-func hasDuplicateVolumeName(input []interface{}) bool {
+func hasDuplicateVolumeNameForSAPSingleNodeVirtualInstance(input []interface{}) bool {
 	seen := make(map[string]bool)
 
 	for _, v := range input {
@@ -620,7 +615,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Delete() sdk.ResourceFunc
 	}
 }
 
-func expandVirtualMachineConfiguration(input []VirtualMachineConfiguration) *sapvirtualinstances.VirtualMachineConfiguration {
+func expandSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(input []SingleServerVirtualMachineConfiguration) *sapvirtualinstances.VirtualMachineConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -628,15 +623,15 @@ func expandVirtualMachineConfiguration(input []VirtualMachineConfiguration) *sap
 	virtualMachineConfiguration := input[0]
 
 	result := &sapvirtualinstances.VirtualMachineConfiguration{
-		ImageReference: pointer.From(expandImageReference(virtualMachineConfiguration.ImageReference)),
-		OsProfile:      pointer.From(expandOsProfile(virtualMachineConfiguration.OSProfile)),
+		ImageReference: pointer.From(expandSAPSingleNodeVirtualInstanceImageReference(virtualMachineConfiguration.ImageReference)),
+		OsProfile:      pointer.From(expandSAPSingleNodeVirtualInstanceOsProfile(virtualMachineConfiguration.OSProfile)),
 		VMSize:         virtualMachineConfiguration.VmSize,
 	}
 
 	return result
 }
 
-func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageReference {
+func expandSAPSingleNodeVirtualInstanceImageReference(input []SingleServerImageReference) *sapvirtualinstances.ImageReference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -653,7 +648,7 @@ func expandImageReference(input []ImageReference) *sapvirtualinstances.ImageRefe
 	return result
 }
 
-func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
+func expandSAPSingleNodeVirtualInstanceOsProfile(input []SingleServerOSProfile) *sapvirtualinstances.OSProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -674,7 +669,7 @@ func expandOsProfile(input []OSProfile) *sapvirtualinstances.OSProfile {
 	return result
 }
 
-func expandVirtualMachineFullResourceNames(input []VirtualMachineResourceNames) *sapvirtualinstances.SingleServerFullResourceNames {
+func expandSAPSingleNodeVirtualInstanceVirtualMachineFullResourceNames(input []SingleServerVirtualMachineResourceNames) *sapvirtualinstances.SingleServerFullResourceNames {
 	if len(input) == 0 {
 		return nil
 	}
@@ -683,8 +678,8 @@ func expandVirtualMachineFullResourceNames(input []VirtualMachineResourceNames) 
 
 	result := &sapvirtualinstances.SingleServerFullResourceNames{
 		VirtualMachine: &sapvirtualinstances.VirtualMachineResourceNames{
-			DataDiskNames:     expandDataDisks(virtualMachineFullResourceNames.DataDisks),
-			NetworkInterfaces: expandNetworkInterfaceNames(virtualMachineFullResourceNames.NetworkInterfaceNames),
+			DataDiskNames:     expandSAPSingleNodeVirtualInstanceDataDisks(virtualMachineFullResourceNames.DataDisks),
+			NetworkInterfaces: expandSAPSingleNodeVirtualInstanceNetworkInterfaceNames(virtualMachineFullResourceNames.NetworkInterfaceNames),
 		},
 	}
 
@@ -703,7 +698,7 @@ func expandVirtualMachineFullResourceNames(input []VirtualMachineResourceNames) 
 	return result
 }
 
-func expandNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkInterfaceResourceNames {
+func expandSAPSingleNodeVirtualInstanceNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkInterfaceResourceNames {
 	result := make([]sapvirtualinstances.NetworkInterfaceResourceNames, 0)
 	if len(input) == 0 {
 		return &result
@@ -720,7 +715,7 @@ func expandNetworkInterfaceNames(input []string) *[]sapvirtualinstances.NetworkI
 	return &result
 }
 
-func expandDataDisks(input []DataDisk) *map[string][]string {
+func expandSAPSingleNodeVirtualInstanceDataDisks(input []SingleServerDataDisk) *map[string][]string {
 	result := make(map[string][]string)
 	if len(input) == 0 {
 		return &result
@@ -733,7 +728,7 @@ func expandDataDisks(input []DataDisk) *map[string][]string {
 	return &result
 }
 
-func expandDiskVolumeConfigurations(input []DiskVolumeConfiguration) *sapvirtualinstances.DiskConfiguration {
+func expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input []SingleServerDiskVolumeConfiguration) *sapvirtualinstances.DiskConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -766,13 +761,13 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 
 	result := &sapvirtualinstances.SingleServerConfiguration{
 		AppResourceGroup:    singleServerConfiguration.AppResourceGroupName,
-		CustomResourceNames: expandVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineResourceNames),
-		DbDiskConfiguration: expandDiskVolumeConfigurations(singleServerConfiguration.DiskVolumeConfigurations),
+		CustomResourceNames: expandSAPSingleNodeVirtualInstanceVirtualMachineFullResourceNames(singleServerConfiguration.VirtualMachineResourceNames),
+		DbDiskConfiguration: expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(singleServerConfiguration.DiskVolumeConfigurations),
 		NetworkConfiguration: &sapvirtualinstances.NetworkConfiguration{
 			IsSecondaryIPEnabled: utils.Bool(singleServerConfiguration.IsSecondaryIpEnabled),
 		},
 		SubnetId:                    singleServerConfiguration.SubnetId,
-		VirtualMachineConfiguration: pointer.From(expandVirtualMachineConfiguration(singleServerConfiguration.VirtualMachineConfiguration)),
+		VirtualMachineConfiguration: pointer.From(expandSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(singleServerConfiguration.VirtualMachineConfiguration)),
 	}
 
 	if v := singleServerConfiguration.DatabaseType; v != "" {
@@ -783,14 +778,14 @@ func expandSingleServerConfiguration(input []SingleServerConfiguration) *sapvirt
 	return result
 }
 
-func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguration) []DiskVolumeConfiguration {
-	result := make([]DiskVolumeConfiguration, 0)
+func flattenSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguration) []SingleServerDiskVolumeConfiguration {
+	result := make([]SingleServerDiskVolumeConfiguration, 0)
 	if input == nil || input.DiskVolumeConfigurations == nil {
 		return result
 	}
 
 	for k, v := range *input.DiskVolumeConfigurations {
-		diskVolumeConfiguration := DiskVolumeConfiguration{
+		diskVolumeConfiguration := SingleServerDiskVolumeConfiguration{
 			NumberOfDisks: int(pointer.From(v.Count)),
 			SizeGb:        int(pointer.From(v.SizeGB)),
 			VolumeName:    k,
@@ -806,16 +801,16 @@ func flattenDiskVolumeConfigurations(input *sapvirtualinstances.DiskConfiguratio
 	return result
 }
 
-func flattenVirtualMachineFullResourceNames(input sapvirtualinstances.SingleServerFullResourceNames) []VirtualMachineResourceNames {
-	result := make([]VirtualMachineResourceNames, 0)
+func flattenSAPSingleNodeVirtualInstanceVirtualMachineFullResourceNames(input sapvirtualinstances.SingleServerFullResourceNames) []SingleServerVirtualMachineResourceNames {
+	result := make([]SingleServerVirtualMachineResourceNames, 0)
 
 	if vm := input.VirtualMachine; vm != nil {
-		vmFullResourceNames := VirtualMachineResourceNames{
+		vmFullResourceNames := SingleServerVirtualMachineResourceNames{
 			HostName:              pointer.From(vm.HostName),
 			OSDiskName:            pointer.From(vm.OsDiskName),
 			VMName:                pointer.From(vm.VirtualMachineName),
-			NetworkInterfaceNames: flattenNetworkInterfaceResourceNames(vm.NetworkInterfaces),
-			DataDisks:             flattenDataDisks(vm.DataDiskNames),
+			NetworkInterfaceNames: flattenSAPSingleNodeVirtualInstanceNetworkInterfaceResourceNames(vm.NetworkInterfaces),
+			DataDisks:             flattenSAPSingleNodeVirtualInstanceDataDisks(vm.DataDiskNames),
 		}
 
 		result = append(result, vmFullResourceNames)
@@ -824,7 +819,7 @@ func flattenVirtualMachineFullResourceNames(input sapvirtualinstances.SingleServ
 	return result
 }
 
-func flattenNetworkInterfaceResourceNames(input *[]sapvirtualinstances.NetworkInterfaceResourceNames) []string {
+func flattenSAPSingleNodeVirtualInstanceNetworkInterfaceResourceNames(input *[]sapvirtualinstances.NetworkInterfaceResourceNames) []string {
 	result := make([]string, 0)
 	if input == nil {
 		return result
@@ -837,14 +832,14 @@ func flattenNetworkInterfaceResourceNames(input *[]sapvirtualinstances.NetworkIn
 	return result
 }
 
-func flattenDataDisks(input *map[string][]string) []DataDisk {
-	results := make([]DataDisk, 0)
+func flattenSAPSingleNodeVirtualInstanceDataDisks(input *map[string][]string) []SingleServerDataDisk {
+	results := make([]SingleServerDataDisk, 0)
 	if input == nil {
 		return results
 	}
 
 	for k, v := range *input {
-		dataDisk := DataDisk{
+		dataDisk := SingleServerDataDisk{
 			VolumeName: k,
 			Names:      v,
 		}
@@ -855,20 +850,20 @@ func flattenDataDisks(input *map[string][]string) []DataDisk {
 	return results
 }
 
-func flattenVirtualMachineConfiguration(input sapvirtualinstances.VirtualMachineConfiguration, d *pluginsdk.ResourceData) []VirtualMachineConfiguration {
-	result := make([]VirtualMachineConfiguration, 0)
+func flattenSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(input sapvirtualinstances.VirtualMachineConfiguration, d *pluginsdk.ResourceData) []SingleServerVirtualMachineConfiguration {
+	result := make([]SingleServerVirtualMachineConfiguration, 0)
 
-	return append(result, VirtualMachineConfiguration{
-		ImageReference: flattenImageReference(input.ImageReference),
-		OSProfile:      flattenOSProfile(input.OsProfile, d),
+	return append(result, SingleServerVirtualMachineConfiguration{
+		ImageReference: flattenSAPSingleNodeVirtualInstanceImageReference(input.ImageReference),
+		OSProfile:      flattenSAPSingleNodeVirtualInstanceOSProfile(input.OsProfile, d),
 		VmSize:         input.VMSize,
 	})
 }
 
-func flattenImageReference(input sapvirtualinstances.ImageReference) []ImageReference {
-	result := make([]ImageReference, 0)
+func flattenSAPSingleNodeVirtualInstanceImageReference(input sapvirtualinstances.ImageReference) []SingleServerImageReference {
+	result := make([]SingleServerImageReference, 0)
 
-	return append(result, ImageReference{
+	return append(result, SingleServerImageReference{
 		Offer:     pointer.From(input.Offer),
 		Publisher: pointer.From(input.Publisher),
 		Sku:       pointer.From(input.Sku),
@@ -876,10 +871,10 @@ func flattenImageReference(input sapvirtualinstances.ImageReference) []ImageRefe
 	})
 }
 
-func flattenOSProfile(input sapvirtualinstances.OSProfile, d *pluginsdk.ResourceData) []OSProfile {
-	result := make([]OSProfile, 0)
+func flattenSAPSingleNodeVirtualInstanceOSProfile(input sapvirtualinstances.OSProfile, d *pluginsdk.ResourceData) []SingleServerOSProfile {
+	result := make([]SingleServerOSProfile, 0)
 
-	osProfile := OSProfile{
+	osProfile := SingleServerOSProfile{
 		AdminUsername: pointer.From(input.AdminUsername),
 	}
 
@@ -901,9 +896,9 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 	singleServerConfig := SingleServerConfiguration{
 		AppResourceGroupName:        input.AppResourceGroup,
 		DatabaseType:                string(pointer.From(input.DatabaseType)),
-		DiskVolumeConfigurations:    flattenDiskVolumeConfigurations(input.DbDiskConfiguration),
+		DiskVolumeConfigurations:    flattenSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input.DbDiskConfiguration),
 		SubnetId:                    input.SubnetId,
-		VirtualMachineConfiguration: flattenVirtualMachineConfiguration(input.VirtualMachineConfiguration, d),
+		VirtualMachineConfiguration: flattenSAPSingleNodeVirtualInstanceVirtualMachineConfiguration(input.VirtualMachineConfiguration, d),
 	}
 
 	if networkConfiguration := input.NetworkConfiguration; networkConfiguration != nil {
@@ -912,7 +907,7 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 
 	if customResourceNames := input.CustomResourceNames; customResourceNames != nil {
 		if v, ok := customResourceNames.(sapvirtualinstances.SingleServerFullResourceNames); ok {
-			singleServerConfig.VirtualMachineResourceNames = flattenVirtualMachineFullResourceNames(v)
+			singleServerConfig.VirtualMachineResourceNames = flattenSAPSingleNodeVirtualInstanceVirtualMachineFullResourceNames(v)
 		}
 	}
 

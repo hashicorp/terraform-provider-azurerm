@@ -21,7 +21,7 @@ type WorkloadsSAPSingleNodeVirtualInstanceResource struct{}
 func TestAccWorkloadsSAPSingleNodeVirtualInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_single_node_virtual_instance", "test")
 	r := WorkloadsSAPSingleNodeVirtualInstanceResource{}
-	sapVISNameSuffix := RandomInt()
+	sapVISNameSuffix := SAPSingleNodeVirtualInstanceNameSuffix()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccWorkloadsSAPSingleNodeVirtualInstance_basic(t *testing.T) {
 func TestAccWorkloadsSAPSingleNodeVirtualInstance_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_single_node_virtual_instance", "test")
 	r := WorkloadsSAPSingleNodeVirtualInstanceResource{}
-	sapVISNameSuffix := RandomInt()
+	sapVISNameSuffix := SAPSingleNodeVirtualInstanceNameSuffix()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -56,7 +56,7 @@ func TestAccWorkloadsSAPSingleNodeVirtualInstance_requiresImport(t *testing.T) {
 func TestAccWorkloadsSAPSingleNodeVirtualInstance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_single_node_virtual_instance", "test")
 	r := WorkloadsSAPSingleNodeVirtualInstanceResource{}
-	sapVISNameSuffix := RandomInt()
+	sapVISNameSuffix := SAPSingleNodeVirtualInstanceNameSuffix()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,7 +72,7 @@ func TestAccWorkloadsSAPSingleNodeVirtualInstance_complete(t *testing.T) {
 func TestAccWorkloadsSAPSingleNodeVirtualInstance_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_single_node_virtual_instance", "test")
 	r := WorkloadsSAPSingleNodeVirtualInstanceResource{}
-	sapVISNameSuffix := RandomInt()
+	sapVISNameSuffix := SAPSingleNodeVirtualInstanceNameSuffix()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -519,7 +519,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
 `, r.template(data), data.RandomString, sapVISNameSuffix, data.RandomInteger)
 }
 
-func RandomInt() int {
+func SAPSingleNodeVirtualInstanceNameSuffix() int {
 	rand.NewSource(time.Now().UnixNano())
 	num := rand.Intn(90) + 10
 
