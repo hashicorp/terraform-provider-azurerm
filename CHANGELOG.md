@@ -8,6 +8,7 @@ FEATURES:
 * New resource: `azurerm_static_web_app_custom_domain` [GH-25117]
 * New resource: `azurerm_system_center_virtual_machine_manager_availability_set` [GH-24975]
 * New Resource: `azurerm_workloads_sap_three_tier_virtual_instance` [GH-24384]
+* New Resource: `azurerm_workloads_sap_single_node_virtual_instance` [GH-24331]
 
 ENHANCEMENTS:
 
