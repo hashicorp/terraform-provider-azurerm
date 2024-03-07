@@ -1847,19 +1847,20 @@ resource "azurerm_linux_web_app" "test" {
       "third.aspx",
       "hostingstart.html",
     ]
-    http2_enabled               = true
-    scm_use_main_ip_restriction = true
-    local_mysql_enabled         = true
-    managed_pipeline_mode       = "Integrated"
-    remote_debugging_enabled    = true
-    remote_debugging_version    = "VS2022"
-    use_32_bit_worker           = false
-    websockets_enabled          = true
-    ftps_state                  = "FtpsOnly"
-    health_check_path           = "/health"
-    worker_count                = 1
-    minimum_tls_version         = "1.1"
-    scm_minimum_tls_version     = "1.1"
+    http2_enabled                  = true
+    scm_use_main_ip_restriction    = true
+    local_mysql_enabled            = true
+    managed_pipeline_mode          = "Integrated"
+    remote_debugging_enabled       = true
+    remote_debugging_version       = "VS2022"
+    failed_request_tracing_enabled = true
+    use_32_bit_worker              = false
+    websockets_enabled             = true
+    ftps_state                     = "FtpsOnly"
+    health_check_path              = "/health"
+    worker_count                   = 1
+    minimum_tls_version            = "1.1"
+    scm_minimum_tls_version        = "1.1"
 
     cors {
       allowed_origins = [

@@ -724,6 +724,8 @@ A `site_config` block supports the following:
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`.
 
+* `failed_request_tracing_enabled` - (Optional) Should Failed Request Trace be enabled? Defaults to `false`.
+
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
 
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.

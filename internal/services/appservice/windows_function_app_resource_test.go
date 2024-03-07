@@ -517,6 +517,38 @@ func TestAccWindowsFunctionApp_elasticPremiumComplete(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_elasticPremiumCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("5"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.elasticComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("5"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuElasticPremiumPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("5"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsFunctionApp_standardComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -524,6 +556,35 @@ func TestAccWindowsFunctionApp_standardComplete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standardComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsFunctionApp_standardCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.standardComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2144,6 +2205,7 @@ resource "azurerm_windows_function_app" "test" {
     load_balancing_mode      = "LeastResponseTime"
     remote_debugging_enabled = true
     remote_debugging_version = "VS2022"
+    failed_request_tracing_enabled = true
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -2335,6 +2397,7 @@ resource "azurerm_windows_function_app" "test" {
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
     remote_debugging_version  = "VS2017"
+    failed_request_tracing_enabled = true
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -2479,6 +2542,7 @@ resource "azurerm_windows_function_app" "test" {
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
     remote_debugging_version  = "VS2017"
+    failed_request_tracing_enabled = true
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"

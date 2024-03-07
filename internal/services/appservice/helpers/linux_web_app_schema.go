@@ -50,6 +50,7 @@ type SiteConfigLinux struct {
 	ScmMinTlsVersion              string                  `tfschema:"scm_minimum_tls_version"`
 	Cors                          []CorsSetting           `tfschema:"cors"`
 	DetailedErrorLogging          bool                    `tfschema:"detailed_error_logging_enabled"`
+	FailedRequestTracingEnabled   bool                    `tfschema:"failed_request_tracing_enabled"`
 	LinuxFxVersion                string                  `tfschema:"linux_fx_version"`
 	VnetRouteAllEnabled           bool                    `tfschema:"vnet_route_all_enabled"`
 	// SiteLimits []SiteLimitsSettings `tfschema:"site_limits"` // TODO - New block to (possibly) support? No way to configure this in the portal?
@@ -266,6 +267,13 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
+				"failed_request_tracing_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Is failed request tracing enabled",
+				},
+
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -440,6 +448,11 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"failed_request_tracing_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -757,6 +770,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.LoadBalancing = pointer.To(webapps.SiteLoadBalancing(s.LoadBalancing))
 	expanded.ManagedPipelineMode = pointer.To(webapps.ManagedPipelineMode(s.ManagedPipelineMode))
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
+	expanded.RequestTracingEnabled = pointer.To(s.FailedRequestTracingEnabled)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
 	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
@@ -893,6 +907,7 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
+	expanded.RequestTracingEnabled = pointer.To(s.FailedRequestTracingEnabled)
 	expanded.ScmIPSecurityRestrictionsUseMain = pointer.To(s.ScmUseMainIpRestriction)
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
@@ -1071,6 +1086,7 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 		s.NumberOfWorkers = pointer.From(appSiteConfig.NumberOfWorkers)
 		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
 		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
+		s.FailedRequestTracingEnabled = pointer.From(appSiteConfig.RequestTracingEnabled)
 		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
 		s.ScmMinTlsVersion = string(pointer.From(appSiteConfig.ScmMinTlsVersion))
 		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)

@@ -52,6 +52,7 @@ type SiteConfigWindows struct {
 	ScmMinTlsVersion              string                    `tfschema:"scm_minimum_tls_version"`
 	Cors                          []CorsSetting             `tfschema:"cors"`
 	DetailedErrorLogging          bool                      `tfschema:"detailed_error_logging_enabled"`
+	FailedRequestTracingEnabled   bool                      `tfschema:"failed_request_tracing_enabled"`
 	WindowsFxVersion              string                    `tfschema:"windows_fx_version"`
 	VnetRouteAllEnabled           bool                      `tfschema:"vnet_route_all_enabled"`
 	// TODO new properties / blocks
@@ -273,6 +274,13 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
+				"failed_request_tracing_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Is failed request tracing enabled",
+				},
+
 				"detailed_error_logging_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
@@ -457,6 +465,11 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
+
+				"failed_request_tracing_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -481,6 +494,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
 	expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
+	expanded.RequestTracingEnabled = pointer.To(s.FailedRequestTracingEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
 
@@ -627,6 +641,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
+	expanded.RequestTracingEnabled = pointer.To(s.FailedRequestTracingEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.api_management_api_id") {
 		expanded.ApiManagementConfig = &webapps.ApiManagementConfig{
@@ -829,6 +844,7 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.WorkerCount = pointer.From(appSiteConfig.NumberOfWorkers)
 		s.RemoteDebugging = pointer.From(appSiteConfig.RemoteDebuggingEnabled)
 		s.RemoteDebuggingVersion = strings.ToUpper(pointer.From(appSiteConfig.RemoteDebuggingVersion))
+		s.FailedRequestTracingEnabled = pointer.From(appSiteConfig.RequestTracingEnabled)
 		s.ScmIpRestriction = FlattenIpRestrictions(appSiteConfig.ScmIPSecurityRestrictions)
 		s.ScmMinTlsVersion = string(pointer.From(appSiteConfig.ScmMinTlsVersion))
 		s.ScmType = string(pointer.From(appSiteConfig.ScmType))

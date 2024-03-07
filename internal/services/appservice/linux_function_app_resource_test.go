@@ -635,6 +635,35 @@ func TestAccLinuxFunctionApp_standardComplete(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionApp_standardCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
+	r := LinuxFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.standardComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Individual Settings / Blocks
 
 func TestAccLinuxFunctionApp_withAuthSettingsStandard(t *testing.T) {
@@ -3057,9 +3086,10 @@ resource "azurerm_linux_function_app" "test" {
         x_forwarded_host  = ["example.com"]
       }
     }
-    load_balancing_mode      = "LeastResponseTime"
-    remote_debugging_enabled = true
-    remote_debugging_version = "VS2022"
+    load_balancing_mode            = "LeastResponseTime"
+    remote_debugging_enabled       = true
+    remote_debugging_version       = "VS2022"
+    failed_request_tracing_enabled = true
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -3247,10 +3277,11 @@ resource "azurerm_linux_function_app" "test" {
       }
     }
 
-    load_balancing_mode       = "LeastResponseTime"
-    pre_warmed_instance_count = 2
-    remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    load_balancing_mode            = "LeastResponseTime"
+    pre_warmed_instance_count      = 2
+    remote_debugging_enabled       = true
+    remote_debugging_version       = "VS2017"
+    failed_request_tracing_enabled = true
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -3402,10 +3433,11 @@ resource "azurerm_linux_function_app" "test" {
       }
     }
 
-    load_balancing_mode       = "LeastResponseTime"
-    pre_warmed_instance_count = 2
-    remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    load_balancing_mode            = "LeastResponseTime"
+    pre_warmed_instance_count      = 2
+    remote_debugging_enabled       = true
+    remote_debugging_version       = "VS2017"
+    failed_request_tracing_enabled = true
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
