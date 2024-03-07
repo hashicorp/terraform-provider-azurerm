@@ -200,7 +200,7 @@ A `single_server_configuration` block supports the following:
 
 * `app_resource_group_name` - (Required) The name of the application Resource Group where SAP system resources will be deployed. Changing this forces a new resource to be created.
 
-~> **Note:** While creating an SAP Single Node Virtual Instance, the service would provision the extra SAP system/component in the `app_resource_group_name` that isn't defined in the HCL Configurations. At this time, if the `app_resource_group_name` is different from the Resource Group where SAP Single Node Virtual Instance exists, you can set `prevent_deletion_if_contains_resources` to `false` to delete all resources defined in the HCL Configurations and the resources created in the `app_resource_group_name` with `terraform destroy`. However, if the `app_resource_group_name` is the same with the Resource Group where SAP Single Node Virtual Instance exists, some resources such as the subnet defined in the HCL Configurations cannot be deleted with `terraform destroy` since the resources defined in the HCL Configurations are being referenced by the SAP system/component. In this case, you have to manually delete the SAP system/component before deleting the resources in the HCL Configurations.
+~> **Note:** While creating an SAP Single Node Virtual Instance, the service will provision the extra SAP systems/components in the `app_resource_group_name` that are not defined in the HCL Configuration. At this time, if the `app_resource_group_name` is different from the Resource Group where SAP Single Node Virtual Instance exists, you can set `prevent_deletion_if_contains_resources` to `false` to delete all resources defined in the HCL Configuration and the resources created in the `app_resource_group_name` with `terraform destroy`. However, if the `app_resource_group_name` is the same with the Resource Group where SAP Single Node Virtual Instance exists, some resources, such as the subnet defined in the HCL Configuration, cannot be deleted with `terraform destroy` since the resources defined in the HCL Configuration are being referenced by the SAP system/component. In this case, you have to manually delete the SAP system/component before deleting the resources in the HCL Configuration.
 
 * `subnet_id` - (Required) The resource ID of the Subnet for the SAP Single Node Virtual Instance. Changing this forces a new resource to be created.
 
@@ -276,7 +276,7 @@ A `virtual_machine_resource_names` block supports the following:
 
 A `data_disk` block supports the following:
 
-* `volume_name` - (Required) The name of the Volume. Possible value is `default`. Changing this forces a new resource to be created.
+* `volume_name` - (Required) The name of the Volume. The only possible value is `default`. Changing this forces a new resource to be created.
 
 * `names` - (Required) A list of full names of Data Disks per Volume. Changing this forces a new resource to be created.
 
@@ -284,7 +284,7 @@ A `data_disk` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Service Identity that should be configured on this SAP Single Node Virtual Instance. Only possible value is `UserAssigned`.
+* `type` - (Required) The type of Managed Service Identity that should be configured on this SAP Single Node Virtual Instance. The only possible value is `UserAssigned`.
 
 * `identity_ids` - (Required) A list of User Assigned Managed Identity IDs to be assigned to this SAP Single Node Virtual Instance.
 
