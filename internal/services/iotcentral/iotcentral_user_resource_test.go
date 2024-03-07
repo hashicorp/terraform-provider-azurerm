@@ -121,36 +121,36 @@ func (IotCentralUserResource) Exists(ctx context.Context, clients *clients.Clien
 
 func (r IotCentralUserResource) basic_type_servicePrincipal(data acceptance.TestData, roleId string) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	}
-	
-	provider "azuread" {}
-	
-	data "azurerm_client_config" "current" {}
-	
-	resource "azuread_application" "test" {
-		display_name = "acctest-iotcentralsp-%d"
-	}
-	
-	resource "azuread_service_principal" "test" {
-		application_id = azuread_application.test.application_id
-	}
-	
-	%s
-	
-	resource "azurerm_iotcentral_user" "test" {
-	  iotcentral_application_id = azurerm_iotcentral_application.test.id
-		user_id                   = "test-user-id"
-		object_id                 = azuread_service_principal.test.object_id
-		tenant_id                 = data.azurerm_client_config.current.tenant_id
-		
-		type = "ServicePrincipal"
+provider "azurerm" {
+  features {}
+}
 
-		role {
-			role_id = "%s"
-		}
-	}
+provider "azuread" {}
+
+data "azurerm_client_config" "current" {}
+
+resource "azuread_application" "test" {
+  display_name = "acctest-iotcentralsp-%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+	%s
+
+resource "azurerm_iotcentral_user" "test" {
+  iotcentral_application_id = azurerm_iotcentral_application.test.id
+  user_id                   = "test-user-id"
+  object_id                 = azuread_service_principal.test.object_id
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+
+  type = "ServicePrincipal"
+
+  role {
+    role_id = "%s"
+  }
+}
 	`, data.RandomInteger, r.templateBasic(data), roleId)
 }
 
@@ -161,26 +161,26 @@ provider "azurerm" {
 }
 
 provider "azuread" {}
-	
+
 data "azurerm_client_config" "current" {}
-	
+
 resource "azuread_application" "test" {
-	display_name = "acctest-iotcentralsp-%d"
+  display_name = "acctest-iotcentralsp-%d"
 }
-	
+
 resource "azuread_service_principal" "test" {
-	application_id = azuread_application.test.application_id
+  application_id = azuread_application.test.application_id
 }
 
 %s
 
 resource "azurerm_iotcentral_user" "test" {
   iotcentral_application_id = azurerm_iotcentral_application.test.id
-	user_id                   = "test-user-id"
-	object_id                 = azuread_service_principal.test.object_id
-	tenant_id                 = data.azurerm_client_config.current.tenant_id
-		
-	type = "ServicePrincipal"
+  user_id                   = "test-user-id"
+  object_id                 = azuread_service_principal.test.object_id
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+
+  type = "ServicePrincipal"
 
   role {
     role_id         = "%s"
@@ -197,26 +197,26 @@ provider "azurerm" {
 }
 
 provider "azuread" {}
-	
+
 data "azurerm_client_config" "current" {}
-	
+
 resource "azuread_application" "test" {
-	display_name = "acctest-iotcentralsp-%d"
+  display_name = "acctest-iotcentralsp-%d"
 }
-	
+
 resource "azuread_service_principal" "test" {
-	application_id = azuread_application.test.application_id
+  application_id = azuread_application.test.application_id
 }
 
 %s
 
 resource "azurerm_iotcentral_user" "test" {
   iotcentral_application_id = azurerm_iotcentral_application.test.id
-	user_id                   = "test-user-id"
-	object_id                 = azuread_service_principal.test.object_id
-	tenant_id                 = data.azurerm_client_config.current.tenant_id
-		
-	type = "ServicePrincipal"
+  user_id                   = "test-user-id"
+  object_id                 = azuread_service_principal.test.object_id
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+
+  type = "ServicePrincipal"
 
   role {
     role_id = "%s"
