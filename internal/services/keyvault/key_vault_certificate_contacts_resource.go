@@ -119,8 +119,7 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				// If we don't have access to the dataplane due to the public network access
 				// being disabled just ignore the error and set the ID...
 				if utils.ResponseWasForbidden(existing.Response) {
-					metadata.SetID(id)
-					return nil
+					return fmt.Errorf("unable to create %s due to data plane access restrictions: %+v", id, err)
 				}
 
 				if !utils.ResponseWasNotFound(existing.Response) {
@@ -139,6 +138,9 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 			}
 
 			// Don't set the contacts unless there are contacts defined...
+			// but we do need to create the empty resource to track resource drift
+			// over time, incase contacts were added to the key vault via some other tool
+			// set (e.g., Azure Portal, Cli, AzAPI, etc.)...
 			if len(*contacts.ContactList) != 0 {
 				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
 					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
@@ -191,7 +193,7 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 				// to diff the resources contacts with the key vaults contacts...
 				if utils.ResponseWasForbidden(existing.Response) {
 					metadata.Logger.Infof("[READ] unable to enumerate key vault certificate contacts at URL %s in %s - ignore error", id.KeyVaultBaseUrl, subscriptionResourceId)
-					return nil
+					return fmt.Errorf("unable to read %s due to data plane access restrictions: %+v", keyVaultId.ID(), err)
 				}
 
 				if utils.ResponseWasNotFound(existing.Response) {
@@ -243,7 +245,7 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				// being disabled just return and keep the state unchanged...
 				if utils.ResponseWasForbidden(existing.Response) {
 					metadata.Logger.Infof("'GetCertificateContacts' error result was 'Forbidden' for key vault URL %s - dataplane access denied, keep current state", id.KeyVaultBaseUrl)
-					return nil
+					return fmt.Errorf("unable to update %s due to data plane access restrictions: %+v", id.KeyVaultBaseUrl, err)
 				}
 
 				// Since contacts can now be empty Not Found is no longer a reason to return
