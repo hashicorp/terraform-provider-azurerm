@@ -109,43 +109,87 @@ func (IotCentralUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.UserID
 }
 
-func (u IotCentralUserModel) AsADGroupUser() (*dataplane.ADGroupUser, bool) {
+func (u IotCentralUserModel) AsADGroupUser() (dataplane.ADGroupUser, bool) {
 	if u.Type == "Group" {
-		return &dataplane.ADGroupUser{
-			ObjectID: &u.ObjectId,
+		return dataplane.ADGroupUser{
 			TenantID: &u.TenantId,
+			ObjectID: &u.ObjectId,
+			ID:       &u.UserId,
 			Type:     dataplane.TypeBasicUserTypeAdGroup,
 			Roles:    convertToRoleAssignments(u.Role),
 		}, true
 	}
-	return nil, false
+	return dataplane.ADGroupUser{}, false
 }
 
-func (u IotCentralUserModel) AsEmailUser() (*dataplane.EmailUser, bool) {
+func (u IotCentralUserModel) AsEmailUser() (dataplane.EmailUser, bool) {
 	if u.Type == "Email" {
-		return &dataplane.EmailUser{
+		return dataplane.EmailUser{
 			Email: &u.Email,
+			ID:    &u.UserId,
 			Type:  dataplane.TypeBasicUserTypeEmail,
 			Roles: convertToRoleAssignments(u.Role),
 		}, true
 	}
-	return nil, false
+	return dataplane.EmailUser{}, false
 }
 
-func (u IotCentralUserModel) AsServicePrincipalUser() (*dataplane.ServicePrincipalUser, bool) {
+func (u IotCentralUserModel) AsServicePrincipalUser() (dataplane.ServicePrincipalUser, bool) {
 	if u.Type == "ServicePrincipal" {
-		return &dataplane.ServicePrincipalUser{
-			ObjectID: &u.ObjectId,
+		return dataplane.ServicePrincipalUser{
 			TenantID: &u.TenantId,
+			ObjectID: &u.ObjectId,
+			ID:       &u.UserId,
 			Type:     dataplane.TypeBasicUserTypeServicePrincipal,
 			Roles:    convertToRoleAssignments(u.Role),
 		}, true
 	}
-	return nil, false
+	return dataplane.ServicePrincipalUser{}, false
 }
 
-func (u IotCentralUserModel) AsUser() (*dataplane.User, bool) {
-	return nil, false
+func (u IotCentralUserModel) AsAppropriateType() (dataplane.BasicUser, bool) {
+	switch u.Type {
+	case "Group":
+		return u.AsADGroupUser()
+	case "Email":
+		return u.AsEmailUser()
+	case "ServicePrincipal":
+		return u.AsServicePrincipalUser()
+	default:
+		return nil, false
+	}
+}
+
+func TryValidateUserExistence(user dataplane.BasicUser, posibleTypes ...string) (string, string, bool) {
+	existingTypes := []string{"Group", "Email", "ServicePrincipal"}
+	if len(posibleTypes) == 0 {
+		posibleTypes = existingTypes
+	}
+
+	userId, isValid := "", false
+
+	for _, userType := range posibleTypes {
+		switch userType {
+		case "Group":
+			if userValue, ok := user.AsADGroupUser(); ok {
+				userId, isValid = *userValue.ID, true
+			}
+		case "Email":
+			if userValue, ok := user.AsEmailUser(); ok {
+				userId, isValid = *userValue.ID, true
+			}
+		case "ServicePrincipal":
+			if userValue, ok := user.AsServicePrincipalUser(); ok {
+				userId, isValid = *userValue.ID, true
+			}
+		}
+
+		if isValid {
+			return userType, userId, true
+		}
+	}
+
+	return "", "", false
 }
 
 func (r IotCentralUserResource) Create() sdk.ResourceFunc {
@@ -172,19 +216,24 @@ func (r IotCentralUserResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating user client: %+v", err)
 			}
 
-			user, err := userClient.Create(ctx, state.UserId, state)
+			userToCreate, isConverted := state.AsAppropriateType()
+			if !isConverted {
+				return fmt.Errorf("unable to convert user to appropriate type, got type: %+v", state.Type)
+			}
+
+			user, err := userClient.Create(ctx, state.UserId, userToCreate)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", state.UserId, err)
 			}
 
-			userValue, valid := user.Value.AsUser()
-			if !valid {
-				return fmt.Errorf("unable to convert user to type User")
+			_, _, isValid := TryValidateUserExistence(user.Value, state.Type)
+			if !isValid {
+				return fmt.Errorf("unable to validate existence of user: id = %+v, type = %+v after creating user: %+v", state.UserId, state.Type, userToCreate)
 			}
 
-			orgId := parse.NewUserID(appId.SubscriptionId, appId.ResourceGroupName, appId.IotAppName, *userValue.ID)
+			id := parse.NewUserID(appId.SubscriptionId, appId.ResourceGroupName, appId.IotAppName, state.UserId)
 
-			metadata.SetID(orgId)
+			metadata.SetID(id)
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -216,55 +265,50 @@ func (r IotCentralUserResource) Read() sdk.ResourceFunc {
 			}
 
 			user, err := userClient.Get(ctx, id.Name)
+			userType, _, isValid := TryValidateUserExistence(user.Value)
 			if err != nil {
-				userValue, isValid := user.Value.AsUser()
-				if !isValid || userValue.ID == nil || *userValue.ID == "" {
+				if !isValid {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			userValue, isValid := user.Value.AsUser()
-			if !isValid {
-				return fmt.Errorf("unable to convert user to type User")
-			}
-
 			var state IotCentralUserModel
-			switch userValue.Type {
-			case dataplane.TypeBasicUserTypeAdGroup:
+			switch userType {
+			case "Group":
 				adGroupUser, isValid := user.Value.AsADGroupUser()
 				if !isValid {
 					return fmt.Errorf("unable to convert user to type ADGroupUser")
 				}
 				state = IotCentralUserModel{
-					IotCentralApplicationId: id.IotAppName,
+					IotCentralApplicationId: appId.ID(),
 					UserId:                  id.Name,
 					Type:                    "Group",
 					TenantId:                *adGroupUser.TenantID,
 					ObjectId:                *adGroupUser.ObjectID,
 					Role:                    convertFromRoleAssignments(adGroupUser.Roles),
 				}
-			case dataplane.TypeBasicUserTypeServicePrincipal:
+			case "ServicePrincipal":
 				servicePrincipalUser, isValid := user.Value.AsServicePrincipalUser()
 				if !isValid {
 					return fmt.Errorf("unable to convert user to type ServicePrincipalUser")
 				}
 				state = IotCentralUserModel{
-					IotCentralApplicationId: id.IotAppName,
+					IotCentralApplicationId: appId.ID(),
 					UserId:                  id.Name,
 					Type:                    "ServicePrincipal",
 					TenantId:                *servicePrincipalUser.TenantID,
 					ObjectId:                *servicePrincipalUser.ObjectID,
 					Role:                    convertFromRoleAssignments(servicePrincipalUser.Roles),
 				}
-			case dataplane.TypeBasicUserTypeEmail:
+			case "Email":
 				emailUser, isValid := user.Value.AsEmailUser()
 				if !isValid {
 					return fmt.Errorf("unable to convert user to type EmailUser")
 				}
 				state = IotCentralUserModel{
-					IotCentralApplicationId: id.IotAppName,
+					IotCentralApplicationId: appId.ID(),
 					UserId:                  id.Name,
 					Type:                    "Email",
 					Email:                   *emailUser.Email,
@@ -308,27 +352,50 @@ func (r IotCentralUserResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := userClient.Get(ctx, id.Name)
+			userType, _, isValid := TryValidateUserExistence(existing.Value)
 			if err != nil {
-				userValue, isValid := existing.Value.AsUser()
-				if !isValid || userValue.ID == nil || *userValue.ID == "" {
+				if !isValid {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			userValue, isValid := existing.Value.AsUser()
-			if !isValid {
-				return fmt.Errorf("unable to convert user to type User")
-			}
+			switch userType {
+			case "Group":
+				groupUser, _ := existing.Value.AsADGroupUser()
 
-			if metadata.ResourceData.HasChange("role") {
-				userValue.Roles = convertToRoleAssignments(state.Role)
-			}
+				if metadata.ResourceData.HasChange("role") {
+					groupUser.Roles = convertToRoleAssignments(state.Role)
+				}
 
-			_, err = userClient.Update(ctx, *userValue.ID, userValue, "*")
-			if err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+				_, err = userClient.Update(ctx, *groupUser.ID, groupUser, "*")
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+			case "ServicePrincipal":
+				servicePrincipalUser, _ := existing.Value.AsServicePrincipalUser()
+
+				if metadata.ResourceData.HasChange("role") {
+					servicePrincipalUser.Roles = convertToRoleAssignments(state.Role)
+				}
+
+				_, err = userClient.Update(ctx, *servicePrincipalUser.ID, servicePrincipalUser, "*")
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+			case "Email":
+				emailUser, _ := existing.Value.AsEmailUser()
+
+				if metadata.ResourceData.HasChange("role") {
+					emailUser.Roles = convertToRoleAssignments(state.Role)
+				}
+
+				_, err = userClient.Update(ctx, *emailUser.ID, emailUser, "*")
+				if err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
 			}
 
 			return nil
