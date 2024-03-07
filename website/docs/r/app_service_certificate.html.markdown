@@ -62,9 +62,7 @@ data "azuread_service_principal" "MicrosoftWebApp" {
 }
 ```
 
-* `key_vault_id` - (Optional) The ID of the Key Vault. Must be specified if Key Vault of `key_vault_secret_id` is in different subscription from the App Service Certificate. Changing this forces a new resource to be created.
-
--> **NOTE:** `key_vault_id` must be specified with `key_vault_secret_id`.
+* `key_vault_id` - (Optional) The ID of the Key Vault. Must be specified if the Key Vault of `key_vault_secret_id` is in a different subscription from the App Service Certificate. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
