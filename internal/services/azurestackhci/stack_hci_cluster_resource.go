@@ -127,11 +127,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		expandedIdentity, err := expandSystemAssigned(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding identity: %+v", err)
-		}
-		cluster.Identity = expandedIdentity
+		cluster.Identity = expandSystemAssigned(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
@@ -262,11 +258,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("identity") {
-		expandedIdentity, err := expandSystemAssigned(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding identity: %+v", err)
-		}
-		cluster.Identity = expandedIdentity
+		cluster.Identity = expandSystemAssigned(d.Get("identity").([]interface{}))
 	}
 
 	if _, err := client.Update(ctx, *id, cluster); err != nil {
@@ -346,16 +338,16 @@ func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandSystemAssigned(input []interface{}) (*identity.SystemAndUserAssignedMap, error) {
+func expandSystemAssigned(input []interface{}) *identity.SystemAndUserAssignedMap {
 	if len(input) == 0 || input[0] == nil {
 		return &identity.SystemAndUserAssignedMap{
 			Type: identity.TypeNone,
-		}, nil
+		}
 	}
 
 	return &identity.SystemAndUserAssignedMap{
 		Type: identity.TypeSystemAssigned,
-	}, nil
+	}
 }
 
 func flattenSystemAssigned(input *identity.SystemAndUserAssignedMap) []interface{} {
