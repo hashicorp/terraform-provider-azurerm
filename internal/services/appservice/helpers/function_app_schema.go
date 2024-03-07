@@ -59,7 +59,6 @@ type SiteConfigLinuxFunctionApp struct {
 	ScmMinTlsVersion              string                             `tfschema:"scm_minimum_tls_version"`
 	Cors                          []CorsSetting                      `tfschema:"cors"`
 	DetailedErrorLogging          bool                               `tfschema:"detailed_error_logging_enabled"`
-	FailedRequestTracingEnabled   bool                               `tfschema:"failed_request_tracing_enabled"`
 	LinuxFxVersion                string                             `tfschema:"linux_fx_version"`
 	VnetRouteAllEnabled           bool                               `tfschema:"vnet_route_all_enabled"` // Not supported in Dynamic plans
 }
@@ -322,13 +321,6 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Description: "Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.",
 				},
 
-				"failed_request_tracing_enabled": {
-					Type:        pluginsdk.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Is failed request tracing enabled",
-				},
-
 				"detailed_error_logging_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
@@ -517,11 +509,6 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 				"cors": CorsSettingsSchemaComputed(),
 
 				"vnet_route_all_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
-
-				"failed_request_tracing_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Computed: true,
 				},
@@ -1728,10 +1715,6 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.RemoteDebuggingVersion = pointer.To(linuxSiteConfig.RemoteDebuggingVersion)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.failed_request_tracing_enabled") {
-		expanded.RequestTracingEnabled = pointer.To(linuxSiteConfig.FailedRequestTracingEnabled)
-	}
-
 	expanded.Use32BitWorkerProcess = pointer.To(linuxSiteConfig.Use32BitWorker)
 
 	if metadata.ResourceData.HasChange("site_config.0.websockets_enabled") {
@@ -2063,7 +2046,6 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 		UseManagedIdentityACR:         pointer.From(functionAppSiteConfig.AcrUseManagedIdentityCreds),
 		RemoteDebugging:               pointer.From(functionAppSiteConfig.RemoteDebuggingEnabled),
 		RemoteDebuggingVersion:        strings.ToUpper(pointer.From(functionAppSiteConfig.RemoteDebuggingVersion)),
-		FailedRequestTracingEnabled:   pointer.From(functionAppSiteConfig.RequestTracingEnabled),
 		VnetRouteAllEnabled:           pointer.From(functionAppSiteConfig.VnetRouteAllEnabled),
 	}
 
