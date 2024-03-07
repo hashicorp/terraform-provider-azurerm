@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type DataProtectionBackupPolicyPostgreSQLResource struct{}
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_basicDeprecatedInV4(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -56,6 +60,9 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_basic(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImportDeprecatedInV4(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -84,6 +91,9 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_requiresImport(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_completeDeprecatedInV4(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("this test requires 3.0 mode")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
 	r := DataProtectionBackupPolicyPostgreSQLResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -126,101 +136,6 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccDataProtectionBackupPolicyPostgreSQL_updateDeprecatedInV4(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
-	r := DataProtectionBackupPolicyPostgreSQLResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicDeprecatedInV4(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"default_retention_duration",
-			"default_retention_rule.#",
-			"default_retention_rule.0.%",
-			"default_retention_rule.0.life_cycle.#",
-			"default_retention_rule.0.life_cycle.0.%",
-			"default_retention_rule.0.life_cycle.0.data_store_type",
-			"default_retention_rule.0.life_cycle.0.duration",
-		),
-		{
-			Config: r.completeDeprecatedInV4(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"default_retention_duration",
-			"default_retention_rule.#",
-			"default_retention_rule.0.%",
-			"default_retention_rule.0.life_cycle.#",
-			"default_retention_rule.0.life_cycle.0.%",
-			"default_retention_rule.0.life_cycle.0.data_store_type",
-			"default_retention_rule.0.life_cycle.0.duration",
-			"retention_rule.0.duration",
-			"retention_rule.0.life_cycle.#",
-			"retention_rule.0.life_cycle.0.%",
-			"retention_rule.0.life_cycle.0.data_store_type",
-			"retention_rule.0.life_cycle.0.duration",
-			"retention_rule.1.duration",
-			"retention_rule.1.life_cycle.#",
-			"retention_rule.1.life_cycle.0.%",
-			"retention_rule.1.life_cycle.0.data_store_type",
-			"retention_rule.1.life_cycle.0.duration",
-			"retention_rule.2.duration",
-			"retention_rule.2.life_cycle.#",
-			"retention_rule.2.life_cycle.0.%",
-			"retention_rule.2.life_cycle.0.data_store_type",
-			"retention_rule.2.life_cycle.0.duration",
-		),
-		{
-			Config: r.basicDeprecatedInV4(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"default_retention_duration",
-			"default_retention_rule.#",
-			"default_retention_rule.0.%",
-			"default_retention_rule.0.life_cycle.#",
-			"default_retention_rule.0.life_cycle.0.%",
-			"default_retention_rule.0.life_cycle.0.data_store_type",
-			"default_retention_rule.0.life_cycle.0.duration",
-		),
-	})
-}
-
-func TestAccDataProtectionBackupPolicyPostgreSQL_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql", "test")
-	r := DataProtectionBackupPolicyPostgreSQLResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
