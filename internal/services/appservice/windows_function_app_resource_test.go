@@ -2202,9 +2202,9 @@ resource "azurerm_windows_function_app" "test" {
       action      = "Allow"
     }
 
-    load_balancing_mode      = "LeastResponseTime"
-    remote_debugging_enabled = true
-    remote_debugging_version = "VS2022"
+    load_balancing_mode            = "LeastResponseTime"
+    remote_debugging_enabled       = true
+    remote_debugging_version       = "VS2022"
     failed_request_tracing_enabled = true
 
     scm_ip_restriction {
@@ -2393,10 +2393,10 @@ resource "azurerm_windows_function_app" "test" {
       description = "Allow ip address 10.10.10.10/32"
     }
 
-    load_balancing_mode       = "LeastResponseTime"
-    pre_warmed_instance_count = 2
-    remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    load_balancing_mode            = "LeastResponseTime"
+    pre_warmed_instance_count      = 2
+    remote_debugging_enabled       = true
+    remote_debugging_version       = "VS2017"
     failed_request_tracing_enabled = true
 
     scm_ip_restriction {
@@ -2538,10 +2538,10 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
-    load_balancing_mode       = "LeastResponseTime"
-    pre_warmed_instance_count = 2
-    remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    load_balancing_mode            = "LeastResponseTime"
+    pre_warmed_instance_count      = 2
+    remote_debugging_enabled       = true
+    remote_debugging_version       = "VS2017"
     failed_request_tracing_enabled = true
 
     scm_ip_restriction {
