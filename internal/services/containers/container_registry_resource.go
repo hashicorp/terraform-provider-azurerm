@@ -65,11 +65,9 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
 
-			hasGeoReplications := false
 			geoReplications := d.Get("georeplications").([]interface{})
-			hasGeoReplicationsApplied := hasGeoReplications || len(geoReplications) > 0
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
-			if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+			if len(geoReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 			}
 
@@ -318,24 +316,13 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	var hasGeoReplicationLocationsChanges bool
-	var hasNewGeoReplicationLocations bool
-	oldGeoReplicationLocations := make([]interface{}, 0)
-	newGeoReplicationLocations := make([]interface{}, 0)
-
 	// geo replication is only supported by Premium Sku
-	hasGeoReplicationsApplied := hasNewGeoReplicationLocations || len(newReplications) > 0
-	if hasGeoReplicationsApplied && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+	if len(newReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
 	}
 
 	if hasGeoReplicationsChanges {
 		err := applyGeoReplicationLocations(ctx, meta, *id, expandReplications(oldReplications), expandReplications(newReplications))
-		if err != nil {
-			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
-		}
-	} else if hasGeoReplicationLocationsChanges {
-		err := applyGeoReplicationLocations(ctx, meta, *id, expandReplicationsFromLocations(oldGeoReplicationLocations), expandReplicationsFromLocations(newGeoReplicationLocations))
 		if err != nil {
 			return fmt.Errorf("applying geo replications for %s: %+v", id, err)
 		}
@@ -432,7 +419,7 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 		// each properties are non-nil. Whilst we are still doing nil check here in case.
 		if oprop, nprop := oldRepl.Properties, newRepl.Properties; oprop != nil && nprop != nil {
 			// zoneRedundency can't be updated in place
-			if oprop.ZoneRedundancy != nprop.ZoneRedundancy {
+			if ov, nv := oprop.ZoneRedundancy, nprop.ZoneRedundancy; ov != nil && nv != nil && *ov != *nv {
 				needUpdate = true
 				needReplace = true
 			}
@@ -741,18 +728,6 @@ func expandExportPolicy(enabled bool) *registries.ExportPolicy {
 	}
 
 	return &exportPolicy
-}
-
-func expandReplicationsFromLocations(p []interface{}) []replications.Replication {
-	reps := make([]replications.Replication, 0)
-	for _, value := range p {
-		location := azure.NormalizeLocation(value)
-		reps = append(reps, replications.Replication{
-			Location: location,
-			Name:     &location,
-		})
-	}
-	return reps
 }
 
 func expandReplications(p []interface{}) []replications.Replication {
