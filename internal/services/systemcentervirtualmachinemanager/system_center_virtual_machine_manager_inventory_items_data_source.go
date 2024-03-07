@@ -107,7 +107,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 			}
 
 			if model := resp.Model; model != nil {
-				inventoryItems := getInventoryItems(model)
+				inventoryItems := flattenInventoryItems(model)
 				if len(inventoryItems) == 0 {
 					return fmt.Errorf("no inventory items were found for the System Center Virtual Machine Manager Server %q", scvmmServerId)
 				}
@@ -121,7 +121,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 	}
 }
 
-func getInventoryItems(input *[]inventoryitems.InventoryItem) []InventoryItem {
+func flattenInventoryItems(input *[]inventoryitems.InventoryItem) []InventoryItem {
 	results := make([]InventoryItem, 0)
 	if input == nil {
 		return results
