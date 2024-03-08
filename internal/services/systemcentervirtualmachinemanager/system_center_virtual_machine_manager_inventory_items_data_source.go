@@ -109,7 +109,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 			if model := resp.Model; model != nil {
 				inventoryItems := flattenInventoryItems(model)
 				if len(inventoryItems) == 0 {
-					return fmt.Errorf("no inventory items were found for the System Center Virtual Machine Manager Server %q", scvmmServerId)
+					return fmt.Errorf("no inventory items were found for %s", scvmmServerId)
 				}
 				state.InventoryItems = inventoryItems
 			}
