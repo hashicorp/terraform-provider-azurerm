@@ -217,8 +217,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
-
-			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
 		),
 	}
 
@@ -383,6 +381,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	aadOnlyAuthenticationsEnabled := expandMsSqlServerAADOnlyAuthentications(d.Get("azuread_administrator").([]interface{}))
+	if _, ok := d.GetOk("administrator_login_password"); ok && aadOnlyAuthenticationsEnabled && d.HasChange("administrator_login_password") {
+		return fmt.Errorf("`administrator_login_password` cannot be changed when `azuread_administrator.0.azuread_authentication_only = true`")
+	}
+
 	id, err := commonids.ParseSqlServerID(d.Id())
 	if err != nil {
 		return err
@@ -391,6 +394,62 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := client.Get(ctx, *id, servers.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if d.HasChange("azuread_administrator") {
+		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
+		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
+			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
+			if err != nil {
+				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
+			}
+		} else {
+			_, err := adminClient.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
+			}
+
+			err = adminClient.DeleteThenPoll(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
+			}
+		}
+	}
+
+	if d.HasChange("azuread_administrator") && d.HasChange("azuread_administrator.0.azuread_authentication_only") {
+		if aadOnlyAuthenticationsEnabled {
+			aadOnlyAuthenticationProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
+				Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
+					AzureADOnlyAuthentication: true,
+				},
+			}
+
+			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
+			if err != nil {
+				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
+			}
+		} else {
+			resp, err := aadOnlyAuthenticationsClient.Delete(ctx, *id)
+			if err != nil {
+				log.Printf("[INFO] Deletion of Azure Active Directory Only Authentication failed for %s: %+v", pointer.From(id), err)
+				return fmt.Errorf("deleting Azure Active Directory Only Authentications for %s: %+v", pointer.From(id), err)
+			}
+
+			// NOTE: This call does not return a future it returns a response, but you will get a future back if the status code is 202...
+			// https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-only-authentications/delete?view=rest-sql-2023-05-01-preview&tabs=HTTP
+			if response.WasStatusCode(resp.HttpResponse, 202) {
+				// NOTE: It was accepted but not completed, it is now an async operation...
+				// create a custom poller and wait for it to complete as 'Succeeded'...
+				log.Printf("[INFO] Delete Azure Active Directory Only Administrators response was a 202 WaitForStateContext...")
+
+				initialDelayDuration := 5 * time.Second
+				pollerType := custompollers.NewMsSqlServerDeleteServerAzureADOnlyAuthenticationPoller(aadOnlyAuthenticationsClient, pointer.From(id))
+				poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("waiting for the deletion of the Azure Active Directory Only Administrator: %+v", err)
+				}
+			}
+		}
 	}
 
 	if payload := existing.Model; payload != nil {
@@ -457,62 +516,6 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-	}
-
-	if d.HasChange("azuread_administrator") {
-		log.Printf("[INFO] Expanding 'azuread_administrator' to see if we need Create or Delete")
-		if adminProps := expandMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminProps != nil {
-			err := adminClient.CreateOrUpdateThenPoll(ctx, *id, pointer.From(adminProps))
-			if err != nil {
-				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
-			}
-		} else {
-			_, err := adminClient.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
-			}
-
-			err = adminClient.DeleteThenPoll(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("deleting Azure Active Directory Administrator %s: %+v", id, err)
-			}
-		}
-	}
-
-	if d.HasChange("azuread_administrator") && d.HasChange("azuread_administrator.0.azuread_authentication_only") {
-		if aadOnlyAuthenticationEnabled := expandMsSqlServerAADOnlyAuthentication(d.Get("azuread_administrator").([]interface{})); aadOnlyAuthenticationEnabled {
-			aadOnlyAuthenticationProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
-				Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
-					AzureADOnlyAuthentication: true,
-				},
-			}
-
-			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
-			if err != nil {
-				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
-			}
-		} else {
-			resp, err := aadOnlyAuthenticationsClient.Delete(ctx, *id)
-			if err != nil {
-				log.Printf("[INFO] Deletion of Azure Active Directory Only Authentication failed for %s: %+v", pointer.From(id), err)
-				return fmt.Errorf("deleting Azure Active Directory Only Authentications for %s: %+v", pointer.From(id), err)
-			}
-
-			// NOTE: This call does not return a future it returns a response, but you will get a future back if the status code is 202...
-			// https://learn.microsoft.com/en-us/rest/api/sql/server-azure-ad-only-authentications/delete?view=rest-sql-2023-05-01-preview&tabs=HTTP
-			if response.WasStatusCode(resp.HttpResponse, 202) {
-				// NOTE: It was accepted but not completed, it is now an async operation...
-				// create a custom poller and wait for it to complete as 'Succeeded'...
-				log.Printf("[INFO] Delete Azure Active Directory Only Administrators response was a 202 WaitForStateContext...")
-
-				initialDelayDuration := 5 * time.Second
-				pollerType := custompollers.NewMsSqlServerDeleteServerAzureADOnlyAuthenticationPoller(aadOnlyAuthenticationsClient, pointer.From(id))
-				poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-				if err := poller.PollUntilDone(ctx); err != nil {
-					return fmt.Errorf("waiting for the deletion of the Azure Active Directory Only Administrator: %+v", err)
-				}
-			}
 		}
 	}
 
@@ -671,7 +674,7 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandMsSqlServerAADOnlyAuthentication(input []interface{}) bool {
+func expandMsSqlServerAADOnlyAuthentications(input []interface{}) bool {
 	if len(input) == 0 || input[0] == nil {
 		return false
 	}
@@ -784,14 +787,6 @@ func msSqlMinimumTLSVersionDiff(ctx context.Context, d *pluginsdk.ResourceDiff, 
 	// todo remove `old != "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
 	if old != "" && old != "None" && old != "Disabled" && new == "Disabled" {
 		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
-	}
-	return
-}
-
-func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
-	old, _ := d.GetChange("azuread_administrator.0.azuread_authentication_only")
-	if old.(bool) && d.HasChange("administrator_login_password") {
-		err = fmt.Errorf("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
 	}
 	return
 }
