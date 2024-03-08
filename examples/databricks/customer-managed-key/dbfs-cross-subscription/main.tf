@@ -42,9 +42,9 @@ resource "azurerm_databricks_workspace" "example" {
 resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example" {
   depends_on = [azurerm_key_vault_access_policy.databricks]
 
-  workspace_id             = azurerm_databricks_workspace.example.id
-  key_vault_key_id         = azurerm_key_vault_key.example.id
-  managed_cmk_key_vault_id = azurerm_key_vault.example.id
+  workspace_id               = azurerm_databricks_workspace.example.id
+  key_vault_key_id           = azurerm_key_vault_key.example.id
+  root_dbfs_cmk_key_vault_id = azurerm_key_vault.example.id
 }
 
 resource "azurerm_key_vault" "example" {

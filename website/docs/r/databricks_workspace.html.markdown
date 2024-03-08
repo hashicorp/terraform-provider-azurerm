@@ -48,9 +48,13 @@ The following arguments are supported:
 
 ~> **Note:** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 
-* `managed_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_services_cmk_key_vault_key_id` and `managed_disk_cmk_key_vault_key_id` keys.
+* `managed_services_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_services_cmk_key_vault_key_id` key.
 
-~> **Note:** The `managed_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_cmk_key_vault_id` field is defined in the configuration file both `managed_services_cmk_key_vault_key_id` and `managed_disk_cmk_key_vault_key_id` must be hosted in the same Key Vault resource which belongs to a different subscription than the Databricks Workspace.
+~> **Note:** The `managed_services_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_services_cmk_key_vault_id` field is not specified it is assumed that the the `managed_services_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
+
+* `managed_disk_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_disk_cmk_key_vault_key_id` key.
+
+~> **Note:** The `managed_disk_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_disk_cmk_key_vault_id` field is not specified it is assumed that the the `managed_disk_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
 
 * `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
 

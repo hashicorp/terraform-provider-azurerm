@@ -122,9 +122,9 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The resource ID of the Key Vault Key to be used.
 
-* `managed_cmk_key_vault_id` - (Optional) Specifies the Resource ID of the Key Vault which contains the `key_vault_key_id`.
+* `root_dbfs_cmk_key_vault_id` - (Optional) Specifies the Resource ID of the Key Vault which contains the `key_vault_key_id`.
 
-~> **Note:** The `managed_cmk_key_vault_id` field only needs to be specified if the Key Vault which contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `managed_cmk_key_vault_id` field is not specified the current subscriptioin will be used.
+~> **Note:** The `root_dbfs_cmk_key_vault_id` field only needs to be specified if the Key Vault which contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `root_dbfs_cmk_key_vault_id` field is not specified it is assumed that the the `key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
 
 ## Attributes Reference
 
