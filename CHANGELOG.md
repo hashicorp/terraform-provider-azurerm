@@ -1,4 +1,4 @@
-## 3.95.0 (Unreleased)
+## 3.95.0 (March 08, 2024)
 
 FEATURES:
 
