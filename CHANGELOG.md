@@ -48,6 +48,7 @@ BUG FIXES:
 * `azurerm_recovery_services_vault` - prevent a panic when `immutability` is updated [GH-25132]
 * `azurerm_storage_account` - fix issue where the queue encryption key type was set as the table encryption key type [GH-25046]
 * `azurerm_web_app_hybrid_connection` - fix issue where `SendKeyValue` was not populated in the API payload [GH-23761]
+* `azurerm_mssql_database` - fix incorrect error due to typo when using `restore_long_term_retention_backup_id` [GH-25180]
 
 DEPRECATIONS:
 
