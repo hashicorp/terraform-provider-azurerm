@@ -318,7 +318,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	defer cancel()
 
 	aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{}))
-	if aadOnlyAuthentictionsEnabled && d.HasChange("administrator_login_password") {
+	if _, ok := d.GetOk("administrator_login_password"); ok && aadOnlyAuthentictionsEnabled && d.HasChange("administrator_login_password") {
 		return fmt.Errorf("`administrator_login_password` cannot be changed when `azuread_administrator.0.azuread_authentication_only = true`")
 	}
 
