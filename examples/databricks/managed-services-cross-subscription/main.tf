@@ -8,7 +8,7 @@ provider "azurerm" {
 provider "azurerm" {
   features {}
   alias           = "keyVaultSubscription"
-  subscription_id = "{subscription where the Key Vault should be hosted}"
+  subscription_id = "00000000-0000-0000-0000-000000000000" # Subscription where the Key Vault should be hosted
 }
 
 data "azurerm_client_config" "current" {}
