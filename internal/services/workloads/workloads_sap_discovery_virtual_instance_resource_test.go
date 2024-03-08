@@ -142,7 +142,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
   environment                       = "NonProd"
   sap_product                       = "S4HANA"
   central_server_virtual_machine_id = "%s"
-  managed_storage_account_name      = "managedsa%s"
+  managed_storage_account_name      = "acctestManagedSA%s"
 
   lifecycle {
     ignore_changes = [managed_resource_group_name]
@@ -162,7 +162,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "import" {
   environment                       = azurerm_workloads_sap_discovery_virtual_instance.test.environment
   sap_product                       = azurerm_workloads_sap_discovery_virtual_instance.test.sap_product
   central_server_virtual_machine_id = "%s"
-  managed_storage_account_name      = "managedsa%s"
+  managed_storage_account_name      = "acctestManagedSA%s"
 }
 `, r.basic(data), os.Getenv("ARM_TEST_CENTRAL_SERVER_VM_ID"), data.RandomString)
 }
@@ -186,7 +186,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
   sap_product                       = "S4HANA"
   managed_resource_group_name       = "managedTestRG%d"
   central_server_virtual_machine_id = "%s"
-  managed_storage_account_name      = "managedsa%s"
+  managed_storage_account_name      = "acctestManagedSA%s"
 
   identity {
     type = "UserAssigned"
