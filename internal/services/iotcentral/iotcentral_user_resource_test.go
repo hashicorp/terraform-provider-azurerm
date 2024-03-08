@@ -44,6 +44,26 @@ func TestAccIoTCentralUser_basic_type_servicePrincipal(t *testing.T) {
 	})
 }
 
+func TestAccIoTCentralUser_basic_type_email(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_user", "test")
+	r := IotCentralUserResource{}
+
+	email := fmt.Sprintf("basic%d@example.ex", data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic_type_email(data, email, appAdminRoleId),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("type").HasValue("Email"),
+				check.That(data.ResourceName).Key("email").HasValue(email),
+				check.That(data.ResourceName).Key("role.0.role_id").HasValue(appAdminRoleId),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccIoTCentralUser_complete_type_servicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_user", "test")
 	r := IotCentralUserResource{}
@@ -56,6 +76,27 @@ func TestAccIoTCentralUser_complete_type_servicePrincipal(t *testing.T) {
 				check.That(data.ResourceName).Key("type").HasValue("ServicePrincipal"),
 				check.That(data.ResourceName).Key("object_id").IsNotEmpty(),
 				check.That(data.ResourceName).Key("tenant_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("role.0.role_id").HasValue(orgAdminRoleId),
+				check.That(data.ResourceName).Key("role.0.organization_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccIoTCentralUser_complete_type_email(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_user", "test")
+	r := IotCentralUserResource{}
+
+	email := fmt.Sprintf("complete%d@example.ex", data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete_type_email(data, email, orgAdminRoleId),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("type").HasValue("Email"),
+				check.That(data.ResourceName).Key("email").HasValue(email),
 				check.That(data.ResourceName).Key("role.0.role_id").HasValue(orgAdminRoleId),
 				check.That(data.ResourceName).Key("role.0.organization_id").IsNotEmpty(),
 			),
@@ -78,10 +119,36 @@ func TestAccIoTCentralUser_basicUpdateRole_type_servicePrincipal(t *testing.T) {
 			),
 		},
 		{
-			Config: r.basicUpdateRole_type_servicePrincipal(data, appBuilderRoleId),
+			Config: r.basic_type_servicePrincipal(data, appBuilderRoleId),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("type").HasValue("ServicePrincipal"),
+				check.That(data.ResourceName).Key("role.0.role_id").HasValue(appBuilderRoleId),
+			),
+		},
+	})
+}
+
+func TestAccIoTCentralUser_basicUpdateRole_type_email(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iotcentral_user", "test")
+	r := IotCentralUserResource{}
+
+	email := fmt.Sprintf("basic%d@example.ex", data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic_type_email(data, email, appAdminRoleId),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("type").HasValue("Email"),
+				check.That(data.ResourceName).Key("role.0.role_id").HasValue(appAdminRoleId),
+			),
+		},
+		{
+			Config: r.basic_type_email(data, email, appBuilderRoleId),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("type").HasValue("Email"),
 				check.That(data.ResourceName).Key("role.0.role_id").HasValue(appBuilderRoleId),
 			),
 		},
@@ -154,6 +221,28 @@ resource "azurerm_iotcentral_user" "test" {
 	`, data.RandomInteger, r.templateBasic(data), roleId)
 }
 
+func (r IotCentralUserResource) basic_type_email(data acceptance.TestData, email string, roleId string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+	%s
+
+resource "azurerm_iotcentral_user" "test" {
+  iotcentral_application_id = azurerm_iotcentral_application.test.id
+  user_id                   = "test-user-id"
+  email                     = "%s"
+
+  type = "Email"
+
+  role {
+    role_id = "%s"
+  }
+}
+	`, r.templateBasic(data), email, roleId)
+}
+
 func (r IotCentralUserResource) complete_type_servicePrincipal(data acceptance.TestData, roleId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -190,22 +279,10 @@ resource "azurerm_iotcentral_user" "test" {
 `, data.RandomInteger, r.templateComplete(data), roleId)
 }
 
-func (r IotCentralUserResource) basicUpdateRole_type_servicePrincipal(data acceptance.TestData, roleId string) string {
+func (r IotCentralUserResource) complete_type_email(data acceptance.TestData, email string, roleId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
-}
-
-provider "azuread" {}
-
-data "azurerm_client_config" "current" {}
-
-resource "azuread_application" "test" {
-  display_name = "acctest-iotcentralsp-%d"
-}
-
-resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
 }
 
 %s
@@ -213,16 +290,16 @@ resource "azuread_service_principal" "test" {
 resource "azurerm_iotcentral_user" "test" {
   iotcentral_application_id = azurerm_iotcentral_application.test.id
   user_id                   = "test-user-id"
-  object_id                 = azuread_service_principal.test.object_id
-  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  email                     = "%s"
 
-  type = "ServicePrincipal"
+  type = "Email"
 
   role {
-    role_id = "%s"
+    role_id         = "%s"
+    organization_id = azurerm_iotcentral_organization.test.organization_id
   }
 }
-`, data.RandomInteger, r.templateBasic(data), roleId)
+`, r.templateComplete(data), email, roleId)
 }
 
 func (IotCentralUserResource) templateBasic(data acceptance.TestData) string {
