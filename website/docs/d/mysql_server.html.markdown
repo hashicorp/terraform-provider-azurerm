@@ -11,6 +11,8 @@ description: |-
 
 Use this data source to access information about an existing MySQL Server.
 
+-> **Note:** Azure Database for MySQL - Single Server is scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024. Migrate (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL- Flexible Server now.
+
 ## Example Usage
 
 ```hcl
