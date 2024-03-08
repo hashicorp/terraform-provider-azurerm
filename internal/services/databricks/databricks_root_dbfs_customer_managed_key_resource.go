@@ -69,7 +69,7 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 			},
 
 			// added to support cross subscription cmk's
-			"root_dbfs_cmk_key_vault_id": {
+			"key_vault_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: commonids.ValidateKeyVaultID,
@@ -135,7 +135,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 
 	// If they passed the 'root_dbfs_cmk_key_vault_id' parse the Key Vault ID
 	// to extract the correct key vault subscription for the exists call...
-	rootDbfsKeyVaultId := d.Get("root_dbfs_cmk_key_vault_id").(string)
+	rootDbfsKeyVaultId := d.Get("key_vault_id").(string)
 
 	if rootDbfsKeyVaultId != "" {
 		keyVaultId, err := commonids.ParseKeyVaultID(rootDbfsKeyVaultId)
@@ -183,7 +183,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 
 	// Always set this even if it's empty to keep the state file
 	// consistent with the configuration file...
-	d.Set("root_dbfs_cmk_key_vault_id", rootDbfsKeyVaultId)
+	d.Set("key_vault_id", rootDbfsKeyVaultId)
 
 	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }
@@ -252,10 +252,10 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	// Always set this even if it's empty to keep the state file
 	// consistent with the configuration file...
 	var rootDbfsKeyVaultId string
-	if v, ok := d.GetOk("root_dbfs_cmk_key_vault_id"); ok {
+	if v, ok := d.GetOk("key_vault_id"); ok {
 		rootDbfsKeyVaultId = v.(string)
 	}
-	d.Set("root_dbfs_cmk_key_vault_id", rootDbfsKeyVaultId)
+	d.Set("key_vault_id", rootDbfsKeyVaultId)
 
 	return nil
 }
@@ -312,7 +312,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 
 	// If they passed the 'root_dbfs_cmk_key_vault_id' parse the Key Vault ID
 	// to extract the correct key vault subscription for the exists call...
-	rootDbfsKeyVaultId := d.Get("root_dbfs_cmk_key_vault_id").(string)
+	rootDbfsKeyVaultId := d.Get("key_vault_id").(string)
 
 	if rootDbfsKeyVaultId != "" {
 		v, err := commonids.ParseKeyVaultID(rootDbfsKeyVaultId)
@@ -353,7 +353,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 
 	// Always set this even if it's empty to keep the state file
 	// consistent with the configuration file...
-	d.Set("root_dbfs_cmk_key_vault_id", rootDbfsKeyVaultId)
+	d.Set("key_vault_id", rootDbfsKeyVaultId)
 
 	return databricksWorkspaceRootDbfsCustomerManagedKeyRead(d, meta)
 }

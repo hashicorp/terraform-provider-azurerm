@@ -35,8 +35,11 @@ resource "azurerm_databricks_workspace" "example" {
   managed_resource_group_name = "${var.prefix}-DBW-managed-services"
 
   managed_services_cmk_key_vault_id     = azurerm_key_vault.example.id
-  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.example.id
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
 
+  managed_disk_cmk_key_vault_id     = azurerm_key_vault.example.id
+  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
+  
   tags = {
     Environment = "Sandbox"
   }
@@ -54,7 +57,27 @@ resource "azurerm_key_vault" "example" {
   soft_delete_retention_days = 7
 }
 
-resource "azurerm_key_vault_key" "example" {
+resource "azurerm_key_vault_key" "services" {
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+
+  provider = azurerm.keyVaultSubscription
+
+  name         = "${var.prefix}-certificate"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_key_vault_key" "disk" {
   depends_on = [azurerm_key_vault_access_policy.terraform]
 
   provider = azurerm.keyVaultSubscription
