@@ -1793,7 +1793,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("customer_managed_key") {
-		props.Encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.StorageAccountName, d.Get("customer_managed_key").([]interface{}))
+		props.Encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, d.Get("customer_managed_key").([]interface{}))
 		if err != nil {
 			return err
 		}
