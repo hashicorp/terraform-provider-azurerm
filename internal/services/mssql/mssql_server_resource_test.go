@@ -200,6 +200,28 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlServer_passwordUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aadAdminWithAADAuthOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.aadAdminWithAADAuthOnlyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
@@ -791,6 +813,9 @@ resource "azurerm_mssql_server" "test" {
   location            = azurerm_resource_group.test.location
   version             = "12.0"
 
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
   azuread_administrator {
     login_username              = "AzureAD Admin2"
     object_id                   = data.azurerm_client_config.test.object_id
@@ -798,6 +823,39 @@ resource "azurerm_mssql_server" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (MsSqlServerResource) aadAdminWithAADAuthOnlyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                = "acctestsqlserver%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  version             = "12.0"
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat1120240308!"
+
+  azuread_administrator {
+    login_username              = "AzureAD Admin2"
+    object_id                   = data.azurerm_client_config.test.object_id
+    azuread_authentication_only = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MsSqlServerResource) updateAzureadAuthenticationOnlyWithIdentity(data acceptance.TestData, enableAzureadAuthenticationOnly bool) string {
