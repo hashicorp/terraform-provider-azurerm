@@ -26,7 +26,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app_slot` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
 * `azurerm_mysql_flexible_server` - setting the `storage.size_gb` property to a smaller value now forces a new resource to be created [GH-25074]
 * `azurerm_orbital_contact_profile` - changing the `channels` property no longer creates a new resource [GH-25129]
-* `azurerm_private_dns_resolver_inbound_endpoint` - `private_ip_address` is no longer required when `private_ip_allocation_method` is `Dynamic` [GH-25035]
+* `azurerm_private_dns_resolver_inbound_endpoint` - the `private_ip_address` property is no longer required when `private_ip_allocation_method` is `Dynamic` [GH-25035]
 * `stream_analytics_output_blob` - support for the `blob_write_mode` property [GH-25127]
 * `azurerm_windows_function_app` - support for the `description` property in the `ip_restriction` block [GH-24527]
 * `azurerm_windows_function_app` - support for the `ip_restriction_default_action` and `scm_ip_restriction_default_action` properties [GH-25131]
