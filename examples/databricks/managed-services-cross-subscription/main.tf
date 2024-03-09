@@ -39,7 +39,7 @@ resource "azurerm_databricks_workspace" "example" {
 
   managed_disk_cmk_key_vault_id     = azurerm_key_vault.example.id
   managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
-  
+
   tags = {
     Environment = "Sandbox"
   }
