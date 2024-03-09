@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
@@ -66,6 +67,8 @@ func resourceHealthcareService() *pluginsdk.Resource {
 					string(service.KindFhirNegativeStuThree),
 				}, false),
 			},
+
+			"identity": commonschema.SystemAssignedIdentityOptional(),
 
 			"cosmosdb_throughput": {
 				Type:         pluginsdk.TypeInt,
@@ -198,6 +201,12 @@ func resourceHealthcareService() *pluginsdk.Resource {
 				},
 			},
 
+			"configuration_export_storage_account_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -243,8 +252,15 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			CosmosDbConfiguration:       cosmosDbConfiguration,
 			CorsConfiguration:           expandCorsConfiguration(d),
 			AuthenticationConfiguration: expandAuthentication(d),
+			ExportConfiguration:         expandExportConfiguration(d),
 		},
 	}
+
+	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	healthcareServiceDescription.Identity = identity
 
 	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
 	if !publicNetworkAccess {
@@ -292,6 +308,11 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if kind := m.Kind; string(kind) != "" {
 			d.Set("kind", kind)
 		}
+
+		if identity := m.Identity; identity != nil {
+			d.Set("identity", *identity)
+		}
+
 		if props := m.Properties; props != nil {
 			if err := d.Set("access_policy_object_ids", flattenAccessPolicies(props.AccessPolicies)); err != nil {
 				return fmt.Errorf("setting `access_policy_object_ids`: %+v", err)
@@ -419,6 +440,20 @@ func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCo
 
 	return cosmosdb, nil
 }
+func expandExportConfiguration(d *pluginsdk.ResourceData) *service.ServiceExportConfigurationInfo {
+	storageAcc := d.Get("configuration_export_storage_account_name")
+
+	// if string is null or empty, return nil
+	if storageAcc == nil || storageAcc.(string) == "" {
+		return nil
+	}
+
+	export := &service.ServiceExportConfigurationInfo{
+		StorageAccountName: pointer.To(storageAcc.(string)),
+	}
+
+	return export
+}
 
 func flattenAccessPolicies(policies *[]service.ServiceAccessPolicyEntry) []string {
 	result := make([]string, 0)
@@ -483,5 +518,15 @@ func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{
 			"allowed_origins":    utils.FlattenStringSlice(input.Origins),
 			"max_age_in_seconds": maxAge,
 		},
+	}
+}
+
+func flattenExportConfiguration(input *service.ServiceExportConfigurationInfo) map[string]interface{} {
+	if input == nil {
+		return map[string]interface{}{}
+	}
+
+	return map[string]interface{}{
+		"storage_account_name": *input.StorageAccountName,
 	}
 }
