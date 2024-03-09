@@ -165,14 +165,14 @@ provider "azurerm" {
   }
 }
 
-// provider "azuread" {}
+provider "azuread" {}
 
 data "azurerm_client_config" "current" {
 }
 
-// data "azuread_service_principal" "cosmosdb" {
-//   display_name = "Azure Cosmos DB"
-// }
+data "azuread_service_principal" "cosmosdb" {
+  display_name = "Azure Cosmos DB"
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-health-%d"
@@ -212,17 +212,17 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  // access_policy {
-  //   tenant_id = data.azurerm_client_config.current.tenant_id
-  //   object_id = data.azuread_service_principal.cosmosdb.id
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azuread_service_principal.cosmosdb.id
 
-  //   key_permissions = [
-  //     "Get",
-  //     "UnwrapKey",
-  //     "WrapKey",
-  //     "GetRotationPolicy"
-  //   ]
-  // }
+    key_permissions = [
+      "Get",
+      "UnwrapKey",
+      "WrapKey",
+      "GetRotationPolicy"
+    ]
+  }
 }
 
 resource "azurerm_key_vault_key" "test" {
