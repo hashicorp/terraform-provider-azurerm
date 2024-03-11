@@ -9,8 +9,8 @@
 
 ## PR Checklist
 
-- [ ] I have followed the guidelines in our [Contributing Documentation](../contributing/README.md).
-- [ ] I have checked to ensure there aren't other open [Pull Requests](../../../pulls) for the same update/change.
+- [ ] I have followed the guidelines in our [Contributing Documentation](../blob/main/contributing/README.md).
+- [ ] I have checked to ensure there aren't other open [Pull Requests](../pulls) for the same update/change.
 - [ ] I have used a meaningful PR description to help maintainers and other users understand this change and help prevent duplicate work.
 Example:
 “`resource_name_here` - description of change e.g. adding property `new_property_name_here`”
@@ -22,7 +22,7 @@ Example:
 
 ## New Feature Submissions
 
-- [ ] My submission includes Test coverage as described in the [Contribution Guide](../contributing/topics/guide-new-resource.md) and the tests pass. (if this is not possible for any reason, please include details of why below)
+- [ ] My submission includes Test coverage as described in the [Contribution Guide](../blob/main/contributing/topics/guide-new-resource.md) and the tests pass. (if this is not possible for any reason, please include details of why below)
 
 
 ## Changes to existing Resource / Data Source
@@ -52,7 +52,7 @@ For state migrations please test the changes locally and provide details here, s
 Fixes #0000
 
 ## Change Log
-Below please provide what should go into the changelog (if anything) conforming to the [Changelog Format documented here](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/maintainer-changelog.md).
+Below please provide what should go into the changelog (if anything) conforming to the [Changelog Format documented here](../blob/main/contributing/topics/maintainer-changelog.md).
 
 <!-- Replace the changelog example below with your entry. One resource per line. -->
 
