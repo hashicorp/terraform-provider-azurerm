@@ -817,6 +817,21 @@ func TestAccWindowsWebAppSlot_withNode18(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_withNode20(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "~20"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebAppSlot_withNodeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -831,6 +846,13 @@ func TestAccWindowsWebAppSlot_withNodeUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.node(data, "~18"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.node(data, "~20"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
