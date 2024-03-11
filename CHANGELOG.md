@@ -9,6 +9,9 @@ ENHANCEMENTS:
 * `azurerm_windows_web_app` - Add support for Node `~20` Runtime [GH-24073]
 * `azurerm_windows_web_app_slot` - Add support for Node `~20` Runtime [GH-24073]
 
+BUG FIXES:
+
+* `azurerm_container_app_custom_domain` - Fix resource ID parsing bug preventing import [GH-25192]
 
 ## 3.95.0 (March 08, 2024)
 
