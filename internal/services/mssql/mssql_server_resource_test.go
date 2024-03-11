@@ -200,20 +200,20 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlServer_passwordUpdate(t *testing.T) {
+func TestAccMsSqlServer_azureadAdminWithAADAuthOnlyWithPasswordUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.password(data),
+			Config: r.aadAdminWithAADAuthOnlyWithPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.passwordUpdate(data),
+			Config: r.aadAdminWithAADAuthOnlyWithPasswordUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -822,7 +822,7 @@ resource "azurerm_mssql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (MsSqlServerResource) password(data acceptance.TestData) string {
+func (MsSqlServerResource) aadAdminWithAADAuthOnlyWithPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -855,7 +855,7 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlServerResource) passwordUpdate(data acceptance.TestData) string {
+func (MsSqlServerResource) aadAdminWithAADAuthOnlyWithPasswordUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
