@@ -1775,14 +1775,14 @@ const managedInstanceStaticRoutesSecondary = `
     next_hop_type  = "Internet"
   }
   route {
-    address_prefix = "AzureCloud.francecentral"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_optional-AzureCloud.francecentral"
-    next_hop_type  = "Internet"
+   address_prefix = "AzureCloud.centralfrance"
+   name           = "Microsoft.Sql-managedInstances_UseOnly_optional-AzureCloud.francecentral"
+   next_hop_type  = "Internet"
   }
   route {
-    address_prefix = "AzureCloud.francesouth"
-    name           = "Microsoft.Sql-managedInstances_UseOnly_optional-AzureCloud.francesouth"
-    next_hop_type  = "Internet"
+   address_prefix = "AzureCloud.southfrance"
+   name           = "Microsoft.Sql-managedInstances_UseOnly_optional-AzureCloud.francesouth"
+   next_hop_type  = "Internet"
   }
 `
 
@@ -2483,6 +2483,10 @@ resource "azurerm_mssql_managed_instance" "secondary_2" {
 
 func (r MsSqlManagedInstanceResource) template(data acceptance.TestData, location string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG1-sql-%[1]d"
   location = "%[2]s"
