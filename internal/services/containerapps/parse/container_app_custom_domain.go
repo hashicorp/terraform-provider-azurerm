@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = ContainerAppCustomDomainId{}
+var _ resourceids.ResourceId = &ContainerAppCustomDomainId{}
 
 // ContainerAppCustomDomainId is a struct representing the Resource ID for a Container App
 type ContainerAppCustomDomainId struct {
@@ -32,7 +32,7 @@ func NewContainerAppCustomDomainId(subscriptionId string, resourceGroupName stri
 
 // ContainerAppCustomDomainID parses 'input' into a ContainerAppCustomDomainId
 func ContainerAppCustomDomainID(input string) (*ContainerAppCustomDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContainerAppCustomDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContainerAppCustomDomainId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ContainerAppCustomDomainID(input string) (*ContainerAppCustomDomainId, erro
 // ContainerAppCustomDomainIDInsensitively parses 'input' case-insensitively into a ContainerAppCustomDomainId
 // note: this method should only be used for API response data and not user input
 func ContainerAppCustomDomainIDInsensitively(input string) (*ContainerAppCustomDomainId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContainerAppCustomDomainId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContainerAppCustomDomainId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -63,7 +63,7 @@ func ContainerAppCustomDomainIDInsensitively(input string) (*ContainerAppCustomD
 	return &id, nil
 }
 
-func (id ContainerAppCustomDomainId) FromParseResult(input resourceids.ParseResult) error {
+func (id *ContainerAppCustomDomainId) FromParseResult(input resourceids.ParseResult) error {
 	var ok bool
 
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
