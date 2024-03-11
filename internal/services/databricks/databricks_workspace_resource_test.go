@@ -299,7 +299,7 @@ func TestAccDatabricksWorkspace_managedServicesRootDbfsCMKAndPrivateLink(t *test
 func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
-	if altSubscription == nil {
+	if altSubscription.ID == "" {
 		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` environment variable to be specified")
 	}
 
@@ -321,7 +321,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
-	if altSubscription == nil {
+	if altSubscription.ID == "" {
 		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` environment variable to be specified")
 	}
 
@@ -343,7 +343,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
-	if altSubscription == nil {
+	if altSubscription.ID == "" {
 		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` environment variable to be specified")
 	}
 
@@ -371,13 +371,10 @@ func getDatabricksPrincipalId(subscriptionId string) string {
 	return databricksPrincipalID
 }
 
-func altSubscriptionCheck() *DatabricksWorkspaceAlternateSubscription {
+func altSubscriptionCheck() DatabricksWorkspaceAlternateSubscription {
 	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
-	if altSubscriptonID == "" {
-		return nil
-	}
 
-	return &DatabricksWorkspaceAlternateSubscription{ID: altSubscriptonID}
+	return DatabricksWorkspaceAlternateSubscription{ID: altSubscriptonID}
 }
 
 func (DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
