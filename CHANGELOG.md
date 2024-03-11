@@ -1,3 +1,15 @@
+## 3.96.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_linux_function_app` - Add support for Node `20` Runtime [GH-24073]
+* `azurerm_linux_function_app_slot` - Add support for Node `20` Runtime [GH-24073]
+* `azurerm_windows_function_app` - Add support for Node `~20` Runtime [GH-24073]
+* `azurerm_windows_function_app_slot` - Add support for Node `~20` Runtime [GH-24073]
+* `azurerm_windows_web_app` - Add support for Node `~20` Runtime [GH-24073]
+* `azurerm_windows_web_app_slot` - Add support for Node `~20` Runtime [GH-24073]
+
+
 ## 3.95.0 (March 08, 2024)
 
 FEATURES:
