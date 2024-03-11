@@ -136,7 +136,7 @@ func TestAccServiceBusQueue_enablePartitioningForPremiumError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.partitioningForPremiumError(data),
-			ExpectError: regexp.MustCompile("Non-partitioned entities are not allowed in partitioned namespace"),
+			ExpectError: regexp.MustCompile("non-partitioned entities are not allowed in partitioned namespace"),
 		},
 	})
 }
