@@ -520,6 +520,9 @@ func (r VirtualMachineRunCommandResource) Update() sdk.ResourceFunc {
 				// otherwise, the response will not contain instanceView
 				Expand: pointer.To("instanceView"),
 			})
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
 			if resp.Model == nil {
 				return fmt.Errorf("unexpected null model of %s", *id)
 			}
