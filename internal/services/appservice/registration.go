@@ -30,6 +30,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		LinuxFunctionAppDataSource{},
 		LinuxWebAppDataSource{},
 		ServicePlanDataSource{},
+		StaticWebAppDataSource{},
 		WindowsFunctionAppDataSource{},
 		WindowsWebAppDataSource{},
 	}
@@ -49,6 +50,8 @@ func (r Registration) Resources() []sdk.Resource {
 		ServicePlanResource{},
 		SourceControlResource{},
 		SourceControlSlotResource{},
+		StaticWebAppResource{},
+		StaticWebAppCustomDomainResource{},
 		WebAppActiveSlotResource{},
 		WebAppHybridConnectionResource{},
 		WindowsFunctionAppResource{},

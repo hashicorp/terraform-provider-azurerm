@@ -19,7 +19,7 @@ data "azurerm_databricks_workspace_private_endpoint_connection" "example" {
 }
 
 output "databricks_workspace_private_endpoint_connection_status" {
-  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections.0.status
+  value = data.azurerm_databricks_workspace_private_endpoint_connection.example.connections[0].status
 }
 ```
 

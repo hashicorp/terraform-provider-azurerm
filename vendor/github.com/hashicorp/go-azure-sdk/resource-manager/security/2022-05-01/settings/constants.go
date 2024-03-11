@@ -1,6 +1,10 @@
 package settings
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForSettingKind() []string {
 		string(SettingKindAlertSyncSettings),
 		string(SettingKindDataExportSettings),
 	}
+}
+
+func (s *SettingKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSettingKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSettingKind(input string) (*SettingKind, error) {
@@ -54,6 +71,19 @@ func PossibleValuesForSettingName() []string {
 		string(SettingNameWDATPEXCLUDELINUXPUBLICPREVIEW),
 		string(SettingNameWDATPUNIFIEDSOLUTION),
 	}
+}
+
+func (s *SettingName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSettingName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSettingName(input string) (*SettingName, error) {

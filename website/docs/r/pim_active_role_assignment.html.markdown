@@ -102,11 +102,11 @@ The following arguments are supported:
 
 A `expiration` block supports the following:
 
-* `duration_days` - (Optional) The duration of the role assignment in days. Conflicts with `schedule.0.expiration.0.duration_hours`,`schedule.0.expiration.0.end_date_time` Changing this forces a new Pim Active Role Assignment to be created.
+* `duration_days` - (Optional) The duration of the role assignment in days. Conflicts with `schedule[0].expiration[0].duration_hours`,`schedule[0].expiration[0].end_date_time` Changing this forces a new Pim Active Role Assignment to be created.
 
-* `duration_hours` - (Optional) The duration of the role assignment in hours. Conflicts with `schedule.0.expiration.0.duration_days`,`schedule.0.expiration.0.end_date_time` Changing this forces a new Pim Active Role Assignment to be created.
+* `duration_hours` - (Optional) The duration of the role assignment in hours. Conflicts with `schedule[0].expiration[0].duration_days`,`schedule[0].expiration[0].end_date_time` Changing this forces a new Pim Active Role Assignment to be created.
 
-* `end_date_time` - (Optional) The end date time of the role assignment. Conflicts with `schedule.0.expiration.0.duration_days`,`schedule.0.expiration.0.duration_hours` Changing this forces a new Pim Active Role Assignment to be created.
+* `end_date_time` - (Optional) The end date time of the role assignment. Conflicts with `schedule[0].expiration[0].duration_days`,`schedule[0].expiration[0].duration_hours` Changing this forces a new Pim Active Role Assignment to be created.
 
 ---
 

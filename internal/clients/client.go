@@ -23,6 +23,7 @@ import (
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
+	workloads_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -149,6 +150,7 @@ import (
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
+	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
 
 type Client struct {
@@ -284,6 +286,7 @@ type Client struct {
 	Vmware                            *vmware.Client
 	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
+	Workloads                         *workloads_v2023_04_01.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -597,7 +600,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)
 	}
-	client.SecurityCenter = securityCenter.NewClient(o)
+	if client.SecurityCenter, err = securityCenter.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Security Center: %+v", err)
+	}
 	if client.Sentinel, err = sentinel.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Sentinel: %+v", err)
 	}
@@ -653,6 +658,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Voice Services: %+v", err)
 	}
 	client.Web = web.NewClient(o)
+
+	if client.Workloads, err = workloads.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Workloads: %+v", err)
+	}
 
 	return nil
 }

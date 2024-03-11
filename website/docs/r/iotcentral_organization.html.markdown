@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `iotcentral_application_id` - (Required) The application `id`. Changing this forces a new resource to be created.
 
-* `organization_id` - The ID of the organization. Changing this forces a new resource to be created.
+* `organization_id` - (Required) The ID of the organization. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) Custom `display_name` for the organization.
 

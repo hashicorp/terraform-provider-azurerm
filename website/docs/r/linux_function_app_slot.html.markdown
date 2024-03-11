@@ -478,6 +478,8 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) an `ip_restriction` block as detailed below.
 
+* `ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
+
 * `linux_fx_version` - The Linux FX Version
 
 * `load_balancing_mode` - (Optional) The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
@@ -497,6 +499,8 @@ A `site_config` block supports the following:
 ~> **NOTE:** Functions runtime scale monitoring can only be enabled for Elastic Premium Function Apps or Workflow Standard Logic Apps and requires a minimum prewarmed instance count of 1.
 
 * `scm_ip_restriction` - (Optional) a `scm_ip_restriction` block as detailed below.
+
+* `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
 * `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
@@ -632,7 +636,7 @@ An `application_stack` block supports the following:
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11` & `17` (In-Preview).
 
-* `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16` and `18`
+* `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16`, `18` and `20`
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , and `7.2`.
 
@@ -700,6 +704,7 @@ An `ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
 ---
 
 A `scm_ip_restriction` block supports the following:
@@ -720,6 +725,7 @@ A `scm_ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
 ---
 
 A `storage_account` block supports the following:

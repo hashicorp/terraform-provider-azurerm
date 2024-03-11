@@ -48,7 +48,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 }
 
 output "client_certificate" {
-  value     = azurerm_kubernetes_cluster.example.kube_config.0.client_certificate
+  value     = azurerm_kubernetes_cluster.example.kube_config[0].client_certificate
   sensitive = true
 }
 
@@ -150,7 +150,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `microsoft_defender` - (Optional) A `microsoft_defender` block as defined below.
 
 * `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
-  
+
 -> **Note:** If deploying Managed Prometheus, the `monitor_metrics` properties are required to configure the cluster for metrics collection. If no value is needed, set properties to `null`.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
@@ -370,8 +370,8 @@ An `monitor_metrics` block supports the following:
 
 * `labels_allowed` - (Optional) Specifies a Comma-separated list of additional Kubernetes label keys that will be used in the resource's labels metric.
 
--> **Note:** Both properties `annotations_allowed` and `labels_allowed` are required if you are enabling Managed Prometheus with an existing Azure Monitor Workspace. 
-  
+-> **Note:** Both properties `annotations_allowed` and `labels_allowed` are required if you are enabling Managed Prometheus with an existing Azure Monitor Workspace.
+
 ---
 
 A `default_node_pool` block supports the following:
@@ -396,7 +396,7 @@ A `default_node_pool` block supports the following:
 
 * `enable_host_encryption` - (Optional) Should the nodes in the Default Node Pool have host encryption enabled? `temporary_name_for_rotation` must be specified when changing this property.
 
--> **Note:** This requires that the  Feature `Microsoft.ContainerService/EnableEncryptionAtHost` is enabled and the Resource Provider is registered. 
+-> **Note:** This requires that the  Feature `Microsoft.ContainerService/EnableEncryptionAtHost` is enabled and the Resource Provider is registered.
 
 * `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? `temporary_name_for_rotation` must be specified when changing this property.
 
@@ -560,7 +560,7 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
-* `allowed_host_ports` - (Optional)  One or more `allowed_host_ports` blocks as defined below.
+* `allowed_host_ports` - (Optional) One or more `allowed_host_ports` blocks as defined below.
 
 * `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
 
@@ -941,7 +941,7 @@ A `http_proxy_config` block supports the following:
 
 * `no_proxy` - (Optional) The list of domains that will not use the proxy for communication.
 
--> **Note:** If you specify the `default_node_pool.0.vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
+-> **Note:** If you specify the `default_node_pool[0].vnet_subnet_id`, be sure to include the Subnet CIDR in the `no_proxy` list.
 
 -> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
 
@@ -960,6 +960,8 @@ A `upgrade_settings` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Kubernetes Managed Cluster ID.
+
+* `current_kubernetes_version` - The current version running on the Azure Kubernetes Managed Cluster.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
@@ -1063,12 +1065,12 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 ```hcl
 provider "kubernetes" {
-  host                   = azurerm_kubernetes_cluster.main.kube_config.0.host
-  username               = azurerm_kubernetes_cluster.main.kube_config.0.username
-  password               = azurerm_kubernetes_cluster.main.kube_config.0.password
-  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
-  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+  host                   = azurerm_kubernetes_cluster.main.kube_config[0].host
+  username               = azurerm_kubernetes_cluster.main.kube_config[0].username
+  password               = azurerm_kubernetes_cluster.main.kube_config[0].password
+  client_certificate     = base64decode(azurerm_kubernetes_cluster.main.kube_config[0].client_certificate)
+  client_key             = base64decode(azurerm_kubernetes_cluster.main.kube_config[0].client_key)
+  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.main.kube_config[0].cluster_ca_certificate)
 }
 ```
 
