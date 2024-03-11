@@ -11,7 +11,7 @@ description: |-
 
 Use this data source to access information about an existing MySQL Server.
 
--> **Note:** The `azurerm_mysql_server` resource will be deprecated since Azure Database for MySQL - Single Server is scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024 and it migrates (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL - Flexible Server now. Please use the `azurerm_mysql_flexible_server` resource instead.
+-> **Note:** The `azurerm_mysql_server` data source will be deprecated since Azure Database for MySQL - Single Server is scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024 and it migrates (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL - Flexible Server now. Please use the `azurerm_mysql_flexible_server` data source instead.
 
 ## Example Usage
 
