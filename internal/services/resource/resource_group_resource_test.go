@@ -9,6 +9,9 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -120,31 +123,46 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 }
 
 func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	resourceGroup := state.Attributes["name"]
-
-	groupsClient := client.Resource.GroupsClient
-	deleteFuture, err := groupsClient.Delete(ctx, resourceGroup, "Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
+	// NOTE: Due to the Resource Group resource still using the old Azure SDK and sourcing the Resource Group ID
+	// from the Azure API, we need to support both `resourceGroups` and the legacy `resourcegroups` value here
+	// thus we parse this case-insensitively. This behaviour will be fixed in the future once the Resource is
+	// updated and a state migration is added to account for it, but this required additional coordination.
+	//
+	// If you're using this as a reference when building resources, please use the case-sensitive Resource ID
+	// parsing method instead.
+	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("deleting Resource Group %q: %+v", resourceGroup, err)
+		return nil, err
 	}
 
-	err = deleteFuture.WaitForCompletionRef(ctx, groupsClient.Client)
-	if err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Resource Group %q: %+v", resourceGroup, err)
+	opts := resourcegroups.DefaultDeleteOperationOptions()
+	opts.ForceDeletionTypes = pointer.To("Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
+	if err := client.Resource.ResourceGroupsClient.DeleteThenPoll(ctx, *id, opts); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
 }
 
 func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-
-	resp, err := client.Resource.GroupsClient.Get(ctx, name)
+	// NOTE: Due to the Resource Group resource still using the old Azure SDK and sourcing the Resource Group ID
+	// from the Azure API, we need to support both `resourceGroups` and the legacy `resourcegroups` value here
+	// thus we parse this case-insensitively. This behaviour will be fixed in the future once the Resource is
+	// updated and a state migration is added to account for it, but this required additional coordination.
+	//
+	// If you're using this as a reference when building resources, please use the case-sensitive Resource ID
+	// parsing method instead.
+	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Resource Group %q: %+v", name, err)
+		return nil, err
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	resp, err := client.Resource.ResourceGroupsClient.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
