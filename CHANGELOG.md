@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `azurerm_kusto_cluster` - support `None` pattern for the `virtual_network_configuration` block [GH-24733]
 * `azurerm_linux_function_app` - support for the Node `20` runtime [GH-24073]
 * `azurerm_linux_function_app_slot` - support for the Node `20` runtime [GH-24073]
 * `azurerm_windows_function_app` - support for the Node `20` runtime [GH-24073]
