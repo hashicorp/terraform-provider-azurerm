@@ -5,6 +5,7 @@ package systemcentervirtualmachinemanager_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -14,6 +15,10 @@ import (
 type SystemCenterVirtualMachineManagerInventoryItemsDataSource struct{}
 
 func TestAccDataSourceSystemCenterVirtualMachineManagerInventoryItems_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_system_center_virtual_machine_manager_inventory_items", "test")
 	r := SystemCenterVirtualMachineManagerInventoryItemsDataSource{}
 
