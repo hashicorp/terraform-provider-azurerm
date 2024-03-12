@@ -288,10 +288,11 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, ""),
+			Config: r.upgradeSettingsConfig(data, "10%"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("0"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("10%"),
 			),
 		},
 		data.ImportStep(),
@@ -437,6 +438,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     enable_auto_scaling = true
     min_count           = %d
     max_count           = %d
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
