@@ -309,8 +309,9 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("kind", kind)
 		}
 
-		if identity := m.Identity; identity != nil {
-			d.Set("identity", *identity)
+		i := identity.FlattenSystemAssigned(m.Identity)
+		if err := d.Set("identity", i); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
 		if props := m.Properties; props != nil {
