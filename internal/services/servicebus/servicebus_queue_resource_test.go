@@ -105,7 +105,7 @@ func TestAccServiceBusQueue_maxMessageSizePremium(t *testing.T) {
 	r := ServiceBusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.Premium(data),
+			Config: r.PremiumNamespacePartitioned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -119,7 +119,7 @@ func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	r := ServiceBusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.Premium(data),
+			Config: r.PremiumNamespacePartitioned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
@@ -130,13 +130,24 @@ func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	})
 }
 
-func TestAccServiceBusQueue_enablePartitioningForPremiumError(t *testing.T) {
+func TestAccServiceBusQueue_partitionedPremiumNamespaceError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.partitioningForPremiumError(data),
 			ExpectError: regexp.MustCompile("non-partitioned entities are not allowed in partitioned namespace"),
+		},
+	})
+}
+
+func TestAccServiceBusQueue_nonPartitionedPremiumNamespaceError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	r := ServiceBusQueueResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.nonPartitionedPremiumNamespaceError(data),
+			ExpectError: regexp.MustCompile("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation"),
 		},
 	})
 }
@@ -423,7 +434,7 @@ resource "azurerm_servicebus_queue" "import" {
 `, r.basic(data))
 }
 
-func (ServiceBusQueueResource) Premium(data acceptance.TestData) string {
+func (ServiceBusQueueResource) PremiumNamespaceNonPartitioned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -441,6 +452,37 @@ resource "azurerm_servicebus_namespace" "test" {
   sku                          = "Premium"
   premium_messaging_partitions = 1
   capacity                     = 1
+}
+
+resource "azurerm_servicebus_queue" "test" {
+  name                = "acctestservicebusqueue-%d"
+  namespace_id        = azurerm_servicebus_namespace.test.id
+  enable_partitioning = false
+  enable_express      = false
+
+  max_message_size_in_kilobytes = 102400
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ServiceBusQueueResource) PremiumNamespacePartitioned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                         = "acctestservicebusnamespace-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku                          = "Premium"
+  premium_messaging_partitions = 2
+  capacity                     = 2
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -470,6 +512,33 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   sku                          = "Premium"
+  premium_messaging_partitions = 2
+  capacity                     = 2
+}
+
+resource "azurerm_servicebus_queue" "test" {
+  name         = "acctestservicebusqueue-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ServiceBusQueueResource) nonPartitionedPremiumNamespaceError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                         = "acctestservicebusnamespace-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku                          = "Premium"
   premium_messaging_partitions = 1
   capacity                     = 1
 }
@@ -477,6 +546,8 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
   name         = "acctestservicebusqueue-%d"
   namespace_id = azurerm_servicebus_namespace.test.id
+
+  enable_partitioning = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -223,8 +223,8 @@ resource "azurerm_servicebus_namespace" "primary_namespace_test" {
   location                     = azurerm_resource_group.primary.location
   resource_group_name          = azurerm_resource_group.primary.name
   sku                          = "Premium"
-  capacity                     = "1"
-  premium_messaging_partitions = 1
+  capacity                     = 2
+  premium_messaging_partitions = 2
 }
 
 resource "azurerm_servicebus_queue" "example" {
