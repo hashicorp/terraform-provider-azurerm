@@ -40,7 +40,9 @@ Example:
 
 ## Description
 
-<!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. -->
+<!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. 
+
+If this is a breaking change for users please detail how it cannot be avoided and why it should be made in a minor version of the provider -->
 
 ## Testing Logs/Evidence
 
