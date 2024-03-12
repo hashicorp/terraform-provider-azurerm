@@ -168,8 +168,8 @@ func flattenEntityWithMetadata(entity map[string]interface{}) TableEntitiyDataSo
 
 	result := TableEntitiyDataSourceModel{}
 
+	properties := map[string]interface{}{}
 	for k, v := range entity {
-		properties := map[string]interface{}{}
 		if k == "PartitionKey" {
 			result.PartitionKey = v.(string)
 			continue
@@ -200,7 +200,6 @@ func flattenEntityWithMetadata(entity map[string]interface{}) TableEntitiyDataSo
 			}
 
 			properties[k+"@odata.type"] = dtype
-			result.Properties = properties
 		} else {
 			// special handling for property types that do not require the annotation to be present
 			// https://docs.microsoft.com/en-us/rest/api/storageservices/payload-format-for-table-service-operations#property-types-in-a-json-feed
@@ -223,9 +222,9 @@ func flattenEntityWithMetadata(entity map[string]interface{}) TableEntitiyDataSo
 			default:
 				log.Printf("[WARN] key %q with unexpected type %T", k, c)
 			}
-			result.Properties = properties
 		}
 	}
+	result.Properties = properties
 
 	return result
 }
