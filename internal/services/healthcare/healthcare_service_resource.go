@@ -252,8 +252,14 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			CosmosDbConfiguration:       cosmosDbConfiguration,
 			CorsConfiguration:           expandCorsConfiguration(d),
 			AuthenticationConfiguration: expandAuthentication(d),
-			ExportConfiguration:         expandExportConfiguration(d),
 		},
+	}
+
+	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
+	if hasValues {
+		healthcareServiceDescription.Properties.ExportConfiguration = &service.ServiceExportConfigurationInfo{
+			StorageAccountName: pointer.To(storageAcc.(string)),
+		}
 	}
 
 	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
@@ -331,6 +337,11 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("cosmosdb_key_vault_key_versionless_id", cosmodDbKeyVaultKeyVersionlessId)
 			d.Set("cosmosdb_throughput", cosmosDbThroughput)
+
+			if props.ExportConfiguration != nil && props.ExportConfiguration.StorageAccountName != nil {
+				d.Set("configuration_export_storage_account_name", props.ExportConfiguration.StorageAccountName)
+			}
+
 			if pointer.From(props.PublicNetworkAccess) == service.PublicNetworkAccessEnabled {
 				d.Set("public_network_access_enabled", true)
 			} else {
@@ -441,20 +452,6 @@ func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCo
 
 	return cosmosdb, nil
 }
-func expandExportConfiguration(d *pluginsdk.ResourceData) *service.ServiceExportConfigurationInfo {
-	storageAcc := d.Get("configuration_export_storage_account_name")
-
-	// if string is null or empty, return nil
-	if storageAcc == nil || storageAcc.(string) == "" {
-		return nil
-	}
-
-	export := &service.ServiceExportConfigurationInfo{
-		StorageAccountName: pointer.To(storageAcc.(string)),
-	}
-
-	return export
-}
 
 func flattenAccessPolicies(policies *[]service.ServiceAccessPolicyEntry) []string {
 	result := make([]string, 0)
@@ -519,15 +516,5 @@ func flattenCorsConfig(input *service.ServiceCorsConfigurationInfo) []interface{
 			"allowed_origins":    utils.FlattenStringSlice(input.Origins),
 			"max_age_in_seconds": maxAge,
 		},
-	}
-}
-
-func flattenExportConfiguration(input *service.ServiceExportConfigurationInfo) map[string]interface{} {
-	if input == nil {
-		return map[string]interface{}{}
-	}
-
-	return map[string]interface{}{
-		"storage_account_name": *input.StorageAccountName,
 	}
 }
