@@ -11,7 +11,7 @@
 
 - [ ] I have followed the guidelines in our [Contributing Documentation](../blob/main/contributing/README.md).
 - [ ] I have checked to ensure there aren't other open [Pull Requests](../pulls) for the same update/change.
-- [ ] I have used a meaningful PR description to help maintainers and other users understand this change and help prevent duplicate work.
+- [ ] I have used a meaningful PR title to help maintainers and other users understand this change and help prevent duplicate work.
 Example:
 “`resource_name_here` - description of change e.g. adding property `new_property_name_here`”
 - [ ] I have checked if my changes close any open issues. If so please include appropriate [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) below.
