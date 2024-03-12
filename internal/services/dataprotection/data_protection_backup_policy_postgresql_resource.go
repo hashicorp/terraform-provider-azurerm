@@ -240,14 +240,14 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 						ValidateFunc: validate.ISO8601Duration,
 					},
 
-					"target_copy_setting": {
+					"target_copy": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						ForceNew: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"copy_option": {
+								"option_json": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -303,14 +303,14 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 									ValidateFunc: validate.ISO8601Duration,
 								},
 
-								"target_copy_setting": {
+								"target_copy": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
 									ForceNew: true,
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											"copy_option": {
+											"option_json": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
@@ -361,14 +361,14 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 						ValidateFunc: validate.ISO8601Duration,
 					},
 
-					"target_copy_setting": {
+					"target_copy": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						ForceNew: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"copy_option": {
+								"option_json": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
 									ForceNew:     true,
@@ -423,14 +423,14 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 									ValidateFunc: validate.ISO8601Duration,
 								},
 
-								"target_copy_setting": {
+								"target_copy": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
 									ForceNew: true,
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
-											"copy_option": {
+											"option_json": {
 												Type:         pluginsdk.TypeString,
 												Required:     true,
 												ForceNew:     true,
@@ -686,9 +686,9 @@ func expandBackupPolicyPostgreSQLLifeCycle(input []interface{}) []backuppolicies
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		targetCopySettingList := make([]backuppolicies.TargetCopySetting, 0)
-		if tcs := v["target_copy_setting"].([]interface{}); len(tcs) > 0 {
+		if tcs := v["target_copy"].([]interface{}); len(tcs) > 0 {
 			tcsv := tcs[0].(map[string]interface{})
-			copyAfter, err := expandTargetCopySettingFromJSON(tcsv["copy_option"].(string))
+			copyAfter, err := expandTargetCopySettingFromJSON(tcsv["option_json"].(string))
 			if err != nil {
 				return results
 			}
@@ -1059,9 +1059,9 @@ func flattenBackupPolicyPostgreSQLBackupLifeCycleArray(input []backuppolicies.So
 		dataStoreType = string(item.SourceDataStore.DataStoreType)
 
 		results = append(results, map[string]interface{}{
-			"duration":            duration,
-			"target_copy_setting": targetDataStoreCopySetting,
-			"data_store_type":     dataStoreType,
+			"duration":        duration,
+			"target_copy":     targetDataStoreCopySetting,
+			"data_store_type": dataStoreType,
 		})
 	}
 	return results
@@ -1081,7 +1081,7 @@ func flattenBackupPolicyPostgreSQLBackupTargetDataStoreCopySettingArray(input *[
 		dataStoreType := string(item.DataStore.DataStoreType)
 
 		results = append(results, map[string]interface{}{
-			"copy_option":     copyAfter,
+			"option_json":     copyAfter,
 			"data_store_type": dataStoreType,
 		})
 	}

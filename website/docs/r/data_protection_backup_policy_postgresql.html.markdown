@@ -133,13 +133,13 @@ A `life_cycle` block supports the following:
 
 * `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL to be created.
 
-* `target_copy_setting` - (Optional) A `target_copy_setting` block as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
+* `target_copy` - (Optional) A `target_copy` block as defined below. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 ---
 
-A `target_copy_setting` block supports the following:
+A `target_copy` block supports the following:
 
-* `copy_option` - (Required) Specifies when the backups are tiered across two or more selected data stores as a json encoded string. Changing this forces a new Backup Policy PostgreSQL to be created.
+* `option_json` - (Required) Specifies when the backups are tiered across two or more selected data stores as a json encoded string. Changing this forces a new Backup Policy PostgreSQL to be created.
 
 * `data_store_type` - (Required) The type of data store. The only possible value is `ArchiveStore`. Changing this forces a new Backup Policy PostgreSQL to be created.
 
