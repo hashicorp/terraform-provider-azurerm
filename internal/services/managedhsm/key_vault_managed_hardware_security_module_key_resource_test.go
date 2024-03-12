@@ -187,7 +187,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
   key_type       = "EC-HSM"
 
-  key_opts = [
+  key_options = [
     "sign",
     "verify",
   ]
@@ -218,7 +218,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   key_type       = "RSA-HSM"
   key_size       = 2048
 
-  key_opts = [
+  key_options = [
     "sign",
     "verify",
     "encrypt",
