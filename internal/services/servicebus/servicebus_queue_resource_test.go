@@ -122,7 +122,7 @@ func TestAccServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 			Config: r.Premium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
 				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
 			),
 		},
@@ -135,8 +135,8 @@ func TestAccServiceBusQueue_enablePartitioningForPremiumError(t *testing.T) {
 	r := ServiceBusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.enablePartitioningForPremiumError(data),
-			ExpectError: regexp.MustCompile("partitioning Entities is not supported in Premium SKU and must be disabled"),
+			Config:      r.partitioningForPremiumError(data),
+			ExpectError: regexp.MustCompile("non-partitioned entities are not allowed in partitioned namespace"),
 		},
 	})
 }
@@ -446,7 +446,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
   name                = "acctestservicebusqueue-%d"
   namespace_id        = azurerm_servicebus_namespace.test.id
-  enable_partitioning = false
+  enable_partitioning = true
   enable_express      = false
 
   max_message_size_in_kilobytes = 102400
@@ -454,7 +454,7 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ServiceBusQueueResource) enablePartitioningForPremiumError(data acceptance.TestData) string {
+func (ServiceBusQueueResource) partitioningForPremiumError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -475,9 +475,8 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
-  enable_partitioning = true
+  name         = "acctestservicebusqueue-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
