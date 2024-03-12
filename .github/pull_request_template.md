@@ -62,7 +62,7 @@ Below please provide what should go into the changelog (if anything) conforming 
 This is a (please select all that apply):
 
 - [ ] Bug Fix
-- [ ] New Feature
+- [ ] New Feature (ie adding a service, resource, or data source)
 - [ ] Enhancement
 
 
