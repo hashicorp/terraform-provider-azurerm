@@ -321,8 +321,8 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
     life_cycle {
       duration        = "P12W"
       data_store_type = "VaultStore"
-      target_copy_setting {
-        copy_option = jsonencode({
+      target_copy {
+        option_json = jsonencode({
           objectType = "CopyOnExpiryOption"
         })
         data_store_type = "ArchiveStore"
@@ -342,8 +342,8 @@ resource "azurerm_data_protection_backup_policy_postgresql" "test" {
     life_cycle {
       duration        = "P12M"
       data_store_type = "VaultStore"
-      target_copy_setting {
-        copy_option = jsonencode({
+      target_copy {
+        option_json = jsonencode({
           objectType = "CopyOnExpiryOption"
         })
         data_store_type = "ArchiveStore"
