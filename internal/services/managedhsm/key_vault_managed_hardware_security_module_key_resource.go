@@ -41,8 +41,8 @@ import (
 )
 
 type AutomaticModel struct {
-	TimeAfterCreation string `tfschema:"time_after_creation"`
-	TimeBeforeExpiry  string `tfschema:"time_before_expiry"`
+	DurationAfterCreation string `tfschema:"duration_after_creation"`
+	TimeBeforeExpiry      string `tfschema:"time_before_expiry"`
 }
 type RotationPolicyModel struct {
 	Automatic   []AutomaticModel `tfschema:"automatic"`
@@ -53,13 +53,13 @@ type KeyVaultManagedHardwareSecurityModuleKeyModel struct {
 	Curve                 string                `tfschema:"curve"`
 	E                     string                `tfschema:"e"`
 	ExpirationDate        string                `tfschema:"expiration_date"`
-	KeyOpts               []string              `tfschema:"key_opts"`
+	KeyOptions            []string              `tfschema:"key_options"`
 	KeySize               int                   `tfschema:"key_size"`
 	KeyType               string                `tfschema:"key_type"`
 	ManagedHsmId          string                `tfschema:"managed_hsm_id"`
 	N                     string                `tfschema:"n"`
 	Name                  string                `tfschema:"name"`
-	NotBeforeDate         string                `tfschema:"not_before_date"`
+	NotUsableBeforeDate   string                `tfschema:"not_usable_before_date"`
 	PublicKeyOpenssh      string                `tfschema:"public_key_openssh"`
 	PublicKeyPem          string                `tfschema:"public_key_pem"`
 	ResourceId            string                `tfschema:"resource_id"`
@@ -152,7 +152,7 @@ func (KeyVaultManagedHardwareSecurityModuleKeyResouece) Arguments() map[string]*
 			ConflictsWith: []string{"curve"},
 		},
 
-		"key_opts": {
+		"key_options": {
 			// API Response order not stable
 			Type:     pluginsdk.TypeSet,
 			Set:      pluginsdk.HashString,
@@ -197,7 +197,7 @@ func (KeyVaultManagedHardwareSecurityModuleKeyResouece) Arguments() map[string]*
 			ConflictsWith: []string{"key_size"},
 		},
 
-		"not_before_date": {
+		"not_usable_before_date": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsRFC3339Time,
@@ -234,12 +234,12 @@ func (KeyVaultManagedHardwareSecurityModuleKeyResouece) Arguments() map[string]*
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"time_after_creation": {
+								"duration_after_creation": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.ISO8601Duration,
 									AtLeastOneOf: []string{
-										"rotation_policy.0.automatic.0.time_after_creation",
+										"rotation_policy.0.automatic.0.duration_after_creation",
 										"rotation_policy.0.automatic.0.time_before_expiry",
 									},
 								},
@@ -248,7 +248,7 @@ func (KeyVaultManagedHardwareSecurityModuleKeyResouece) Arguments() map[string]*
 									Optional:     true,
 									ValidateFunc: validate.ISO8601Duration,
 									AtLeastOneOf: []string{
-										"rotation_policy.0.automatic.0.time_after_creation",
+										"rotation_policy.0.automatic.0.duration_after_creation",
 										"rotation_policy.0.automatic.0.time_before_expiry",
 									},
 								},
@@ -385,7 +385,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) Create() sdk.ResourceF
 				parameters.KeySize = utils.Int32(int32(model.KeySize))
 			}
 
-			if v := model.NotBeforeDate; v != "" {
+			if v := model.NotUsableBeforeDate; v != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, v) // validated by schema
 				notBeforeUnixTime := date.UnixTime(notBeforeDate)
 				parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
@@ -494,7 +494,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) Read() sdk.ResourceFun
 
 			if key := resp.Key; key != nil {
 				model.KeyType = string(key.Kty)
-				model.KeyOpts = pointer.From(key.KeyOps)
+				model.KeyOptions = pointer.From(key.KeyOps)
 
 				model.N = pointer.From(key.N)
 				model.E = pointer.From(key.N)
@@ -513,7 +513,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) Read() sdk.ResourceFun
 
 			if attributes := resp.Attributes; attributes != nil {
 				if v := attributes.NotBefore; v != nil {
-					model.NotBeforeDate = time.Time(*v).Format(time.RFC3339)
+					model.NotUsableBeforeDate = time.Time(*v).Format(time.RFC3339)
 				}
 
 				if v := attributes.Expires; v != nil {
@@ -629,7 +629,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) Update() sdk.ResourceF
 
 			parameters := keyvault.KeyUpdateParameters{}
 
-			if meta.ResourceData.HasChange("key_opts") {
+			if meta.ResourceData.HasChange("key_options") {
 				keyOptions := k.expandManagedHSMKeyOptions(&model)
 				parameters.KeyOps = keyOptions
 			}
@@ -638,11 +638,11 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) Update() sdk.ResourceF
 				parameters.Tags = expandTags(model.Tags)
 			}
 
-			if meta.ResourceData.HasChanges("not_before_date", "expiration_date") {
+			if meta.ResourceData.HasChanges("not_usable_before_date", "expiration_date") {
 				parameters.KeyAttributes = &keyvault.KeyAttributes{
 					Enabled: pointer.To(true),
 				}
-				if v := model.NotBeforeDate; v != "" {
+				if v := model.NotUsableBeforeDate; v != "" {
 					notBeforeDate, _ := time.Parse(time.RFC3339, v) // validated by schema
 					notBeforeUnixTime := date.UnixTime(notBeforeDate)
 					parameters.KeyAttributes.NotBefore = &notBeforeUnixTime
@@ -733,7 +733,7 @@ var _ sdk.ResourceWithCustomizeDiff = KeyVaultManagedHardwareSecurityModuleKeyRe
 func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) expandManagedHSMKeyOptions(d *KeyVaultManagedHardwareSecurityModuleKeyModel) *[]keyvault.JSONWebKeyOperation {
 	results := make([]keyvault.JSONWebKeyOperation, 0)
 
-	for _, option := range d.KeyOpts {
+	for _, option := range d.KeyOptions {
 		results = append(results, keyvault.JSONWebKeyOperation(option))
 	}
 
@@ -763,8 +763,8 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) expandKeyVaultKeyRotat
 		}
 		autoRotationRaw := policy.Automatic[0]
 
-		if autoRotationRaw.TimeAfterCreation != "" {
-			lifetimeActionRotate.Trigger.TimeAfterCreate = &autoRotationRaw.TimeAfterCreation
+		if autoRotationRaw.DurationAfterCreation != "" {
+			lifetimeActionRotate.Trigger.TimeAfterCreate = &autoRotationRaw.DurationAfterCreation
 		}
 
 		if autoRotationRaw.TimeBeforeExpiry != "" {
@@ -800,7 +800,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) flattenKeyVaultKeyRota
 			if action != nil && trigger != nil {
 				if strings.EqualFold(string(action.Type), string(keyvault.ActionTypeRotate)) {
 					var autoRotation AutomaticModel
-					autoRotation.TimeAfterCreation = pointer.From(trigger.TimeAfterCreate)
+					autoRotation.DurationAfterCreation = pointer.From(trigger.TimeAfterCreate)
 					autoRotation.TimeBeforeExpiry = pointer.From(trigger.TimeBeforeExpiry)
 					policy.Automatic = append(policy.Automatic, autoRotation)
 				}

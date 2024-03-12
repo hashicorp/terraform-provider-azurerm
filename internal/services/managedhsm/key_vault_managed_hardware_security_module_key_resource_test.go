@@ -162,7 +162,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
   key_type       = "EC-HSM"
 
-  key_opts = [
+  key_options = [
     "sign",
     "verify",
   ]

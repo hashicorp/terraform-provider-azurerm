@@ -187,13 +187,13 @@ The following arguments are supported:
 
 * `key_type` - (Required) Specifies the Key Type to use for this Managed Hardware Security Module Key. Possible values are `EC-HSM`, `RSA-HSM` and `oct-HSM`. Changing this forces a new resource to be created.
 
-* `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, 1024 or 2048. *Note*: This field is required if `key_type` is `RSA-HSM`. Changing this forces a new resource to be created.
+* `key_size` - (Optional) Specifies the Size of the RSA key to create in bytes. For example, `1024` or `2048`. *Note*: This field is required if `key_type` is `RSA-HSM`. Changing this forces a new resource to be created.
 
 * `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC-HSM`. The API will default to `P-256` if nothing is specified. Changing this forces a new resource to be created.
 
-* `key_opts` - (Required) A list of JSON web key operations. Possible values are `decrypt`, `encrypt`, `import`, `export`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case sensitive.
+* `key_options` - (Required) A list of JSON web key operations. Possible values are `decrypt`, `encrypt`, `import`, `export`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case sensitive.
 
-* `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
+* `not_usable_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
 
 * `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
 
@@ -213,7 +213,7 @@ A `rotation_policy` block supports the following:
 
 An `automatic` block supports the following:
 
-* `time_after_creation` - (Optional) Rotate automatically at a duration after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+* `duration_after_creation` - (Optional) Rotate automatically at a duration after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
 * `time_before_expiry` - (Optional) Rotate automatically at a duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
