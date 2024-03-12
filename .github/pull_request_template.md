@@ -35,7 +35,6 @@ Example:
 
 ## Documentation Changes
 
-- [ ] Documentation is written in International English.
 - [ ] Documentation is written in a helpful and kind way to assist users that may be unfamiliar with the resource / data source.
 
 
