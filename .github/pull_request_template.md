@@ -42,7 +42,7 @@ Example:
 
 <!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. -->
 
-## Testing Evidence
+## Testing Logs/Evidence
 
 <!-- Please include your testing evidence here or an explanation on why no testing evidence can be provided. 
 For state migrations please test the changes locally and provide details here, such as the versions involved in testing the migration path. For further details on testing state migration changes please see our guide on [state migrations](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-state-migrations.md#testing) in the contributor documentation. -->
