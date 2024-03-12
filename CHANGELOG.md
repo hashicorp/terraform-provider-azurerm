@@ -13,6 +13,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_container_app_custom_domain` - fix resource ID parsing bug preventing import [GH-25192]
+* `azurerm_windows_web_app` - fix incorrect warning message when checking name availability [GH-25214]
 * `azurerm_virtual_machine_run_command` - prevent a bug during updates [GH-25186]
 
 ## 3.95.0 (March 08, 2024)
