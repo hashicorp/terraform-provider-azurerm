@@ -156,6 +156,10 @@ A `gateway` block supports the following:
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
+* `certificate_source` - (Optional) The source of the Custom Domain certificate. The only possible value is `Managed`.
+
+-> **NOTE:** Please check the [Limitations](https://learn.microsoft.com/en-us/azure/api-management/configure-custom-domain?WT.mc_id=Portal-fx&tabs=managed#limitations) of `Managed` certificate for details.
+
 * `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to `false`.
 
 * `key_vault_certificate_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.

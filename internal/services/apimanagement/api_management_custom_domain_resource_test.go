@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -90,6 +91,46 @@ func TestAccApiManagementCustomDomain_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccApiManagementCustomDomain_certificateManaged(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
+	r := ApiManagementCustomDomainResource{}
+
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" {
+		t.Skipf("Skipping managed custom domain test as ARM_TEST_DNS_ZONE is not set.")
+	}
+
+	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping managed custom domain test as ARM_TEST_DNS_ZONE_RESOURCE_GROUP is not set.")
+	}
+
+	if os.Getenv("ARM_TEST_DNS_ZONE_TXT_RECORD") == "" {
+		t.Skipf("Skipping managed custom domain test as ARM_TEST_DNS_ZONE_TXT_RECORD is not set.")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.certificateManaged(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.certificateManagedUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.certificateManaged(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -361,4 +402,100 @@ resource "azurerm_api_management_custom_domain" "test" {
   }
 }
 `, r.template(data, false))
+}
+
+func (r ApiManagementCustomDomainResource) certificateManaged(data acceptance.TestData) string {
+	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
+	dnsZoneResourceGroup := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP")
+	txtRecordValue := os.Getenv("ARM_TEST_DNS_ZONE_TXT_RECORD")
+	return fmt.Sprintf(`
+
+%[1]s
+
+data "azurerm_dns_zone" "test" {
+  name                = "%[2]s"
+  resource_group_name = "%[3]s"
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  name                = "%[4]s"
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 3600
+  record              = "${azurerm_api_management.test.name}.azure-api.net"
+}
+
+resource "azurerm_dns_txt_record" "test" {
+  name                = "apimuid.%[4]s"
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  zone_name           = data.azurerm_dns_zone.test.name
+  ttl                 = 3600
+  record {
+    value = "%[5]s"
+  }
+}
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_id = azurerm_api_management.test.id
+  
+  gateway {
+    host_name           = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
+    certificate_source  = "Managed"
+  }
+
+  developer_portal {
+    host_name    = "portal.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+}
+`, r.template(data, true), dnsZone, dnsZoneResourceGroup, data.RandomString, txtRecordValue)
+}
+
+func (r ApiManagementCustomDomainResource) certificateManagedUpdate(data acceptance.TestData) string {
+	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
+	dnsZoneResourceGroup := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP")
+	txtRecordValue := os.Getenv("ARM_TEST_DNS_ZONE_TXT_RECORD")
+	return fmt.Sprintf(`
+
+%[1]s
+
+data "azurerm_dns_zone" "test" {
+  name                = "%[2]s"
+  resource_group_name = "%[3]s"
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  name                = "%[4]s"
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 3600
+  record              = "${azurerm_api_management.test.name}.azure-api.net"
+}
+
+resource "azurerm_dns_txt_record" "test" {
+  name                = "apimuid.%[4]s"
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  zone_name           = data.azurerm_dns_zone.test.name
+  ttl                 = 3600
+  record {
+    value = "%[5]s"
+  }
+}
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_id = azurerm_api_management.test.id
+  
+  gateway {
+    host_name            = "api.terraform.io"
+    certificate          = filebase64("testdata/api_management_api_test.pfx")
+    certificate_password = "terraform"
+    negotiate_client_certificate = false
+  }
+
+  developer_portal {
+    host_name    = "portal.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+}
+`, r.template(data, true), dnsZone, dnsZoneResourceGroup, data.RandomString, txtRecordValue)
 }
