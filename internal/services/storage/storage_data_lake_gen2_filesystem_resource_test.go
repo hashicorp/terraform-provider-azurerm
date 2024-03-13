@@ -163,7 +163,7 @@ func (r StorageDataLakeGen2FileSystemResource) Exists(ctx context.Context, clien
 
 	filesystemsClient, err := client.Storage.DataLakeFilesystemsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building Data Lake Filesystems Client: %+v", err)
+		return nil, fmt.Errorf("building Data Lake Gen2 Filesystems Client: %+v", err)
 	}
 
 	resp, err := filesystemsClient.GetProperties(ctx, id.FileSystemName)
@@ -193,7 +193,7 @@ func (r StorageDataLakeGen2FileSystemResource) Destroy(ctx context.Context, clie
 
 	filesystemsClient, err := client.Storage.DataLakeFilesystemsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building Data Lake Filesystems Client: %+v", err)
+		return nil, fmt.Errorf("building Data Lake Gen2 Filesystems Client: %+v", err)
 	}
 
 	if _, err = filesystemsClient.Delete(ctx, id.FileSystemName); err != nil {

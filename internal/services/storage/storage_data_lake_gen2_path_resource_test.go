@@ -147,7 +147,7 @@ func (r StorageDataLakeGen2PathResource) Exists(ctx context.Context, client *cli
 
 	pathsClient, err := client.Storage.DataLakePathsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building Data Lake Paths Client: %+v", err)
+		return nil, fmt.Errorf("building Data Lake Gen2 Paths Client: %+v", err)
 	}
 
 	resp, err := pathsClient.GetProperties(ctx, id.FileSystemName, id.Path, paths.GetPropertiesInput{Action: paths.GetPropertiesActionGetStatus})

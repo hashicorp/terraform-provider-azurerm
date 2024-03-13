@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
@@ -783,7 +783,7 @@ func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel, sto
 		}
 
 		output.ContainerName = &id.ContainerName
-		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.ContainerName))
+		output.Url = pointer.To(id.AccountId.ID())
 	}
 
 	if input.LocalAuthRef != "" {
@@ -974,10 +974,12 @@ func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefini
 		return outputList, nil
 	}
 
-	id, err := containers.ParseContainerID(fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)), storageDomainSuffix)
+	accountId, err := accounts.ParseAccountID(pointer.From(input.Url), storageDomainSuffix)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing account %q: %+v", input, err)
 	}
+
+	id := containers.NewContainerID(*accountId, pointer.From(input.ContainerName))
 
 	output := AzureBlobDefinitionModel{
 		ContainerID:           id.ID(),
