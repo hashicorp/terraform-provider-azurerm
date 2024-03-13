@@ -105,7 +105,7 @@ func TestAccServiceBusQueue_maxMessageSizePremium(t *testing.T) {
 	r := ServiceBusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.PremiumNamespacePartitioned(data),
+			Config: r.PremiumNamespaceNonPartitioned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
