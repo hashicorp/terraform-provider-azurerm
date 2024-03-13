@@ -17,6 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
+// StorageDomainSuffix is used by validation functions
+var StorageDomainSuffix *string
+
 type Client struct {
 	SubscriptionId string
 
@@ -42,6 +45,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if !ok {
 		return nil, fmt.Errorf("determining domain suffix for storage in environment: %s", o.Environment.Name)
 	}
+
+	// Set global variable for post-configure validation
+	StorageDomainSuffix = storageSuffix
 
 	accountsClient := storage.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&accountsClient.Client, o.ResourceManagerAuthorizer)

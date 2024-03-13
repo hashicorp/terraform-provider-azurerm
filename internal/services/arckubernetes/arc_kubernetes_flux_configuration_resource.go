@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -238,7 +239,7 @@ func (r ArcKubernetesFluxConfigurationResource) Arguments() map[string]*pluginsd
 					"container_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.IsURLWithPath, // note: storage domain suffix cannot be determined at validation time, so just make sure it's a well-formed URL
+						ValidateFunc: storageValidate.StorageContainerDataPlaneID,
 					},
 
 					"account_key": {
