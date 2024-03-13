@@ -13,8 +13,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-01-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-01-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -926,50 +926,6 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.workloadRuntime(data, "WasmWasi"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.workloadRuntime(data, "KataMshvVmIsolation"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_customCATrustEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.customCATrustEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.customCATrustEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesClusterNodePool_windowsProfileOutboundNatEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
-	r := KubernetesClusterNodePoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.windowsProfileOutboundNatEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2365,7 +2321,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 3
   fips_enabled          = true
   kubelet_disk_type     = "OS"
-  message_of_the_day    = "daily message"
 }
 `, r.templateConfig(data))
 }
@@ -2588,81 +2543,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   workload_runtime      = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, workloadRuntime)
-}
-
-func (KubernetesClusterNodePoolResource) customCATrustEnabled(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D2s_v3"
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-}
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                    = "internal"
-  kubernetes_cluster_id   = azurerm_kubernetes_cluster.test.id
-  vm_size                 = "Standard_D2s_v3"
-  custom_ca_trust_enabled = "%t"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
-}
-
-func (KubernetesClusterNodePoolResource) windowsProfileOutboundNatEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%[2]d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_D2s_v3"
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  network_profile {
-    network_plugin = "azure"
-    outbound_type  = "managedNATGateway"
-  }
-}
-
-resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "user"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_D2s_v3"
-  os_type               = "Windows"
-  os_sku                = "Windows2019"
-  windows_profile {
-    outbound_nat_enabled = true
-  }
-}
-`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (KubernetesClusterNodePoolResource) nodeIPTags(data acceptance.TestData) string {

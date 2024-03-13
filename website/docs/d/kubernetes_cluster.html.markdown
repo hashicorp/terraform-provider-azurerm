@@ -114,8 +114,6 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to this resource.
 
-* `custom_ca_trust_certificates_base64` - A list of custom base64 encoded CAs used by this Managed Kubernetes Cluster.
-
 ---
 
 An `aci_connector_linux` block exports the following:
@@ -336,8 +334,6 @@ A `storage_profile` block exports the following:
 * `blob_driver_enabled` Is the Blob CSI driver enabled?
 
 * `disk_driver_enabled` Is the Disk CSI driver enabled?
-
-* `disk_driver_version` The configured Disk CSI Driver version.
 
 * `file_driver_enabled` Is the File CSI driver enabled?
 

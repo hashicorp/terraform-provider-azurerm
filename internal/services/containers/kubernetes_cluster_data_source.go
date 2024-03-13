@@ -17,9 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-01-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -340,14 +341,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"custom_ca_trust_certificates_base64": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
 			"oms_agent": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -662,17 +655,12 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"blob_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 						"disk_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-						"disk_driver_version": {
-							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"file_driver_enabled": {
@@ -710,6 +698,23 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.TagsDataSource(),
 		},
+	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["custom_ca_trust_certificates_base64"] = &pluginsdk.Schema{
+			Deprecated: "Preview feature should not be used in prod env.",
+			Type:       pluginsdk.TypeList,
+			Computed:   true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		}
+
+		resource.Schema["storage_profile"].Elem.(*pluginsdk.Resource).Schema["disk_driver_version"] = &pluginsdk.Schema{
+			Deprecated: "Preview feature should not be used in prod env.",
+			Type:       pluginsdk.TypeString,
+			Computed:   true,
+		}
 	}
 
 	return resource
@@ -791,11 +796,6 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
-			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
-				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
-			}
-
 			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
 			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
 				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
@@ -842,7 +842,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `oidc_issuer_url`: %+v", err)
 			}
 
-			storageProfile := flattenKubernetesClusterDataSourceStorageProfile(props.StorageProfile)
+			storageProfile := flattenKubernetesClusterDataSourceStorageProfile(props.StorageProfile, d.Get("storage_profile").([]interface{}))
 			if err := d.Set("storage_profile", storageProfile); err != nil {
 				return fmt.Errorf("setting `storage_profile`: %+v", err)
 			}
@@ -930,7 +930,7 @@ func flattenKubernetesClusterDataSourceKeyVaultKms(input *managedclusters.Manage
 	return azureKeyVaultKms
 }
 
-func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile) []interface{} {
+func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.ManagedClusterStorageProfile, old []interface{}) []interface{} {
 	storageProfile := make([]interface{}, 0)
 
 	if input != nil {
@@ -945,8 +945,10 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 		}
 
 		diskVersion := ""
-		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
-			diskVersion = *input.DiskCSIDriver.Version
+		if len(old) > 0 {
+			if v, ok := old[0].(map[string]interface{})["disk_driver_version"]; ok {
+				diskVersion = v.(string)
+			}
 		}
 
 		fileEnabled := true
@@ -1479,18 +1481,4 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 			"max_surge": maxSurge,
 		},
 	}
-}
-
-func flattenCustomCaTrustCerts(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
-	if input == nil || input.CustomCATrustCertificates == nil {
-		return make([]interface{}, 0)
-	}
-
-	customCaTrustCertInterface := make([]interface{}, len(*input.CustomCATrustCertificates))
-
-	for index, value := range *input.CustomCATrustCertificates {
-		customCaTrustCertInterface[index] = value
-	}
-
-	return customCaTrustCertInterface
 }

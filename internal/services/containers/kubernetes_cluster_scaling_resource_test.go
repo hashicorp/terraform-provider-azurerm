@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-01-01/agentpools"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -138,12 +138,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
-					ignorePodDisruptionBudget := true
-					deleteOpts := agentpools.DeleteOperationOptions{
-						IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
-					}
-
-					if err := client.DeleteThenPoll(ctx, defaultNodePoolId, deleteOpts); err != nil {
+					if err := client.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
 						return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 					}
 

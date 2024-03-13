@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-01-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -703,7 +703,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   storage_profile {
     blob_driver_enabled         = true
     disk_driver_enabled         = true
-    disk_driver_version         = "v1"
     file_driver_enabled         = false
     snapshot_controller_enabled = false
   }
