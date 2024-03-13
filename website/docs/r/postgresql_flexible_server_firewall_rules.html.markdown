@@ -1,9 +1,9 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_postgresql_flexible_server_firewall_rule"
+page_title: "Azure Resource Manager: azurerm_postgresql_flexible_server_firewall_rules"
 description: |-
-  Manages a PostgreSQL Flexible Server Firewall Rule.
+  Manages a group of PostgreSQL Flexible Server Firewall Rules.
 ---
 
 # azurerm_postgresql_flexible_server_firewall_rules
