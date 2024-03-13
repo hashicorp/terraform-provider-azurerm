@@ -128,27 +128,31 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType 
 	}
 
 	for _, item := range *input {
-		inventoryItem := InventoryItem{
-			id: pointer.From(item.Id),
-		}
-
 		if props := item.Properties; props != nil {
+			inventoryItem := InventoryItem{}
+
 			if v, ok := props.(inventoryitems.CloudInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeCloud) {
+				inventoryItem.id = pointer.From(item.Id)
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
+				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualMachineInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualMachine) {
+				inventoryItem.id = pointer.From(item.Id)
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
+				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualMachineTemplateInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualMachineTemplate) {
+				inventoryItem.id = pointer.From(item.Id)
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
+				results = append(results, inventoryItem)
 			} else if v, ok := props.(inventoryitems.VirtualNetworkInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualNetwork) {
+				inventoryItem.id = pointer.From(item.Id)
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
+				results = append(results, inventoryItem)
 			}
 		}
-
-		results = append(results, inventoryItem)
 	}
 
 	return results
