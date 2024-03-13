@@ -21,7 +21,8 @@ import (
 type DatabricksWorkspaceResource struct{}
 
 type DatabricksWorkspaceAlternateSubscription struct {
-	ID string
+	tenant_id       string
+	subscription_id string
 }
 
 func TestAccDatabricksWorkspace_basic(t *testing.T) {
@@ -299,8 +300,8 @@ func TestAccDatabricksWorkspace_managedServicesRootDbfsCMKAndPrivateLink(t *test
 func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
-	if altSubscription.ID == "" {
-		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` environment variable to be specified")
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
@@ -309,7 +310,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.altSubscriptionCmkComplete(data, databricksPrincipalID, altSubscription.ID),
+			Config: r.altSubscriptionCmkComplete(data, databricksPrincipalID, altSubscription),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -321,8 +322,8 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
-	if altSubscription.ID == "" {
-		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` environment variable to be specified")
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
@@ -331,7 +332,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.altSubscriptionCmkServicesOnly(data, databricksPrincipalID, altSubscription.ID),
+			Config: r.altSubscriptionCmkServicesOnly(data, databricksPrincipalID, altSubscription),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -343,8 +344,8 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
-	if altSubscription.ID == "" {
-		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` environment variable to be specified")
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
@@ -353,7 +354,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.altSubscriptionCmkDiskOnly(data, databricksPrincipalID, altSubscription.ID),
+			Config: r.altSubscriptionCmkDiskOnly(data, databricksPrincipalID, altSubscription),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -371,10 +372,18 @@ func getDatabricksPrincipalId(subscriptionId string) string {
 	return databricksPrincipalID
 }
 
-func altSubscriptionCheck() DatabricksWorkspaceAlternateSubscription {
+func altSubscriptionCheck() *DatabricksWorkspaceAlternateSubscription {
 	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altTenantID := os.Getenv("ARM_TENANT_ID")
 
-	return DatabricksWorkspaceAlternateSubscription{ID: altSubscriptonID}
+	if altSubscriptonID == "" || altTenantID == "" {
+		return nil
+	}
+
+	return &DatabricksWorkspaceAlternateSubscription{
+		tenant_id:       altTenantID,
+		subscription_id: altSubscriptonID,
+	}
 }
 
 func (DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1915,45 +1924,50 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID)
 }
 
-func (DatabricksWorkspaceResource) altSubscriptionCmkComplete(data acceptance.TestData, databricksPrincipalID string, altKeyVaultSubscription string) string {
+func (DatabricksWorkspaceResource) altSubscriptionCmkComplete(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
-provider "azurerm" {
+provider "azurerm-alt" {
   features {}
-  alias           = "keyVaultSubscription"
-  subscription_id = "%[5]s"
+
+  tenant_id       = "%[5]s"
+  subscription_id = "%[6]s"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-cross-subscription-complete-%[1]d"
+  name     = "acctestRG-databricks-pri-sub-complete-%[1]d"
   location = "West Europe"
 }
 
 resource "azurerm_resource_group" "keyVault" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  name     = "acctestRG-databricks-cross-subscription-complete-%[1]d"
+  name     = "acctestRG-databricks-alt-sub-complete-%[1]d"
   location = "West Europe"
 }
 
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctest-databricks-pri-sub-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
 
-  managed_services_cmk_key_vault_id     = azurerm_key_vault.test.id
+  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
 
-  managed_disk_cmk_key_vault_id     = azurerm_key_vault.test.id
+  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
 
   tags = {
@@ -1963,12 +1977,12 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 # Create this in a different subscription...
-resource "azurerm_key_vault" "test" {
-  provider = azurerm.keyVaultSubscription
+resource "azurerm_key_vault" "keyVault" {
+  provider = azurerm-alt
 
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.keyVault.location
+  name                = "kv-altsub-%[3]s"
   resource_group_name = azurerm_resource_group.keyVault.name
+  location            = azurerm_resource_group.keyVault.location
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "premium"
 
@@ -1976,12 +1990,11 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "services" {
+  provider   = azurerm-alt
   depends_on = [azurerm_key_vault_access_policy.terraform]
 
-  provider = azurerm.keyVaultSubscription
-
   name         = "acctest-services-certificate"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = azurerm_key_vault.keyVault.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -1996,12 +2009,11 @@ resource "azurerm_key_vault_key" "services" {
 }
 
 resource "azurerm_key_vault_key" "disk" {
+  provider   = azurerm-alt
   depends_on = [azurerm_key_vault_access_policy.terraform]
 
-  provider = azurerm.keyVaultSubscription
-
   name         = "acctest-disk-certificate"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = azurerm_key_vault.keyVault.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -2016,10 +2028,10 @@ resource "azurerm_key_vault_key" "disk" {
 }
 
 resource "azurerm_key_vault_access_policy" "terraform" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
@@ -2043,10 +2055,10 @@ resource "azurerm_key_vault_access_policy" "terraform" {
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
   object_id    = "%[4]s"
 
   key_permissions = [
@@ -2057,45 +2069,50 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "SetRotationPolicy",
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, altKeyVaultSubscription)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
 }
 
-func (DatabricksWorkspaceResource) altSubscriptionCmkServicesOnly(data acceptance.TestData, databricksPrincipalID string, altKeyVaultSubscription string) string {
+func (DatabricksWorkspaceResource) altSubscriptionCmkServicesOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
-provider "azurerm" {
+provider "azurerm-alt" {
   features {}
-  alias           = "keyVaultSubscription"
-  subscription_id = "%[5]s"
+
+  tenant_id       = "%[5]s"
+  subscription_id = "%[6]s"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-cross-subscription-services-%[1]d"
+  name     = "acctestRG-databricks-pri-sub-services-%[1]d"
   location = "West Europe"
 }
 
 resource "azurerm_resource_group" "keyVault" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  name     = "acctestRG-databricks-cross-subscription-services-%[1]d"
+  name     = "acctestRG-databricks-alt-sub-services-%[1]d"
   location = "West Europe"
 }
 
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctest-databricks-pri-sub-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
 
-  managed_services_cmk_key_vault_id     = azurerm_key_vault.test.id
+  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
 
   tags = {
@@ -2105,10 +2122,10 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 # Create this in a different subscription...
-resource "azurerm_key_vault" "test" {
-  provider = azurerm.keyVaultSubscription
+resource "azurerm_key_vault" "keyVault" {
+  provider = azurerm-alt
 
-  name                = "acctest-kv-%[3]s"
+  name                = "kv-altsub-%[3]s"
   location            = azurerm_resource_group.keyVault.location
   resource_group_name = azurerm_resource_group.keyVault.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -2118,12 +2135,11 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "services" {
+  provider   = azurerm-alt
   depends_on = [azurerm_key_vault_access_policy.terraform]
 
-  provider = azurerm.keyVaultSubscription
-
   name         = "acctest-services-certificate"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = azurerm_key_vault.keyVault.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -2138,10 +2154,10 @@ resource "azurerm_key_vault_key" "services" {
 }
 
 resource "azurerm_key_vault_access_policy" "terraform" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
@@ -2165,10 +2181,10 @@ resource "azurerm_key_vault_access_policy" "terraform" {
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
   object_id    = "%[4]s"
 
   key_permissions = [
@@ -2179,45 +2195,50 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "SetRotationPolicy",
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, altKeyVaultSubscription)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
 }
 
-func (DatabricksWorkspaceResource) altSubscriptionCmkDiskOnly(data acceptance.TestData, databricksPrincipalID string, altKeyVaultSubscription string) string {
+func (DatabricksWorkspaceResource) altSubscriptionCmkDiskOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
-provider "azurerm" {
+provider "azurerm-alt" {
   features {}
-  alias           = "keyVaultSubscription"
-  subscription_id = "%[5]s"
+
+  tenant_id       = "%[5]s"
+  subscription_id = "%[6]s"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-cross-subscription-disk-%[1]d"
+  name     = "acctestRG-databricks-pri-sub-disk-%[1]d"
   location = "West Europe"
 }
 
 resource "azurerm_resource_group" "keyVault" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  name     = "acctestRG-databricks-cross-subscription-disk-%[1]d"
+  name     = "acctestRG-databricks-alt-sub-disk-%[1]d"
   location = "West Europe"
 }
 
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [azurerm_key_vault_access_policy.managed]
 
-  name                        = "acctestDBW-%[1]d"
+  name                        = "acctest-databricks-pri-sub-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
 
-  managed_disk_cmk_key_vault_id     = azurerm_key_vault.test.id
+  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
 
   tags = {
@@ -2227,10 +2248,10 @@ resource "azurerm_databricks_workspace" "test" {
 }
 
 # Create this in a different subscription...
-resource "azurerm_key_vault" "test" {
-  provider = azurerm.keyVaultSubscription
+resource "azurerm_key_vault" "keyVault" {
+  provider = azurerm-alt
 
-  name                = "acctest-kv-%[3]s"
+  name                = "kv-altsub-%[3]s"
   location            = azurerm_resource_group.keyVault.location
   resource_group_name = azurerm_resource_group.keyVault.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -2240,12 +2261,11 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "disk" {
+  provider   = azurerm-alt
   depends_on = [azurerm_key_vault_access_policy.terraform]
 
-  provider = azurerm.keyVaultSubscription
-
   name         = "acctest-disk-certificate"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = azurerm_key_vault.keyVault.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -2260,10 +2280,10 @@ resource "azurerm_key_vault_key" "disk" {
 }
 
 resource "azurerm_key_vault_access_policy" "terraform" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
@@ -2287,10 +2307,10 @@ resource "azurerm_key_vault_access_policy" "terraform" {
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
-  provider = azurerm.keyVaultSubscription
+  provider = azurerm-alt
 
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
   object_id    = "%[4]s"
 
   key_permissions = [
@@ -2301,5 +2321,5 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "SetRotationPolicy",
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, altKeyVaultSubscription)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
 }
