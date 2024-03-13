@@ -55,9 +55,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `secret` block supports the following:
 
-* `identity` - The identity to use for accessing Key Vault reference. This can either be the Resource ID of a User Assigned Identity, or 'System' for the System Assigned Identity.
+* `identity` - The identity used for accessing the Key Vault.
 
-* `key_vault_secret_id` - The ID of a Key Vault secret. This can be a versioned or version-less ID.
+* `key_vault_secret_id` - The ID of a Key Vault secret.
 
 * `name` - The secret name.
 

@@ -85,7 +85,7 @@ The following arguments are supported:
 
 A `secret` block supports the following:
 
-* `identity` - (Optional) The identity to use for accessing the Key Vault secret reference. This can either be the Resource ID of a User Assigned Identity, or 'System' for the System Assigned Identity.
+* `identity` - (Optional) The identity to use for accessing the Key Vault secret reference. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
 
 !> **Note:** `identity` must be used together with `key_vault_secret_id`
 
