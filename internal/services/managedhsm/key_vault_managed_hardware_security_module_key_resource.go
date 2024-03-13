@@ -42,11 +42,11 @@ import (
 
 type AutomaticModel struct {
 	DurationAfterCreation string `tfschema:"duration_after_creation"`
-	TimeBeforeExpiry      string `tfschema:"time_before_expiry"`
+	DurationBeforeExpiry  string `tfschema:"duration_before_expiry"`
 }
 type RotationPolicyModel struct {
-	Automatic   []AutomaticModel `tfschema:"automatic"`
-	ExpireAfter string           `tfschema:"expire_after"`
+	Automatic           []AutomaticModel `tfschema:"automatic"`
+	ExpireAfterDuration string           `tfschema:"expire_after_duration"`
 	// NotifyBeforeExpiry string           `tfschema:"notify_before_expiry"`
 }
 type KeyVaultManagedHardwareSecurityModuleKeyModel struct {
@@ -215,16 +215,16 @@ func (KeyVaultManagedHardwareSecurityModuleKeyResouece) Arguments() map[string]*
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"expire_after": {
+					"expire_after_duration": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validate.ISO8601DurationBetween("P28D", "P100Y"),
 						AtLeastOneOf: []string{
-							"rotation_policy.0.expire_after",
+							"rotation_policy.0.expire_after_duration",
 							"rotation_policy.0.automatic",
 						},
 						RequiredWith: []string{
-							"rotation_policy.0.expire_after",
+							"rotation_policy.0.expire_after_duration",
 						},
 					},
 
@@ -240,16 +240,16 @@ func (KeyVaultManagedHardwareSecurityModuleKeyResouece) Arguments() map[string]*
 									ValidateFunc: validate.ISO8601Duration,
 									AtLeastOneOf: []string{
 										"rotation_policy.0.automatic.0.duration_after_creation",
-										"rotation_policy.0.automatic.0.time_before_expiry",
+										"rotation_policy.0.automatic.0.duration_before_expiry",
 									},
 								},
-								"time_before_expiry": {
+								"duration_before_expiry": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validate.ISO8601Duration,
 									AtLeastOneOf: []string{
 										"rotation_policy.0.automatic.0.duration_after_creation",
-										"rotation_policy.0.automatic.0.time_before_expiry",
+										"rotation_policy.0.automatic.0.duration_before_expiry",
 									},
 								},
 							},
@@ -748,8 +748,8 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) expandKeyVaultKeyRotat
 	policy := v[0]
 
 	var expiryTime *string = nil // needs to be set to nil if not set
-	if policy.ExpireAfter != "" {
-		expiryTime = pointer.To(policy.ExpireAfter)
+	if policy.ExpireAfterDuration != "" {
+		expiryTime = pointer.To(policy.ExpireAfterDuration)
 	}
 
 	lifetimeActions := make([]keyvault.LifetimeActions, 0)
@@ -767,8 +767,8 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) expandKeyVaultKeyRotat
 			lifetimeActionRotate.Trigger.TimeAfterCreate = &autoRotationRaw.DurationAfterCreation
 		}
 
-		if autoRotationRaw.TimeBeforeExpiry != "" {
-			lifetimeActionRotate.Trigger.TimeBeforeExpiry = &autoRotationRaw.TimeBeforeExpiry
+		if autoRotationRaw.DurationBeforeExpiry != "" {
+			lifetimeActionRotate.Trigger.TimeBeforeExpiry = &autoRotationRaw.DurationBeforeExpiry
 		}
 
 		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
@@ -789,7 +789,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) flattenKeyVaultKeyRota
 
 	var policy RotationPolicyModel
 	if input.Attributes != nil {
-		policy.ExpireAfter = pointer.From(input.Attributes.ExpiryTime)
+		policy.ExpireAfterDuration = pointer.From(input.Attributes.ExpiryTime)
 	}
 
 	if input.LifetimeActions != nil {
@@ -801,7 +801,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) flattenKeyVaultKeyRota
 				if strings.EqualFold(string(action.Type), string(keyvault.ActionTypeRotate)) {
 					var autoRotation AutomaticModel
 					autoRotation.DurationAfterCreation = pointer.From(trigger.TimeAfterCreate)
-					autoRotation.TimeBeforeExpiry = pointer.From(trigger.TimeBeforeExpiry)
+					autoRotation.DurationBeforeExpiry = pointer.From(trigger.TimeBeforeExpiry)
 					policy.Automatic = append(policy.Automatic, autoRotation)
 				}
 			}

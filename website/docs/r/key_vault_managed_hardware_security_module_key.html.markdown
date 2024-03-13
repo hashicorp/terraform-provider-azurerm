@@ -163,10 +163,10 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "example" {
     "verify",
   ]
   rotation_policy {
-    expire_after = "P66D"
+    expire_after_duration = "P66D"
 
     automatic {
-      time_before_expiry = "P30D"
+      duration_before_expiry = "P30D"
     }
   }
 
@@ -205,7 +205,7 @@ The following arguments are supported:
 
 A `rotation_policy` block supports the following:
 
-* `expire_after` - (Optional) Expire a Managed Hardware Security Module Key after given duration as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+* `expire_after_duration` - (Optional) Expire a Managed Hardware Security Module Key after given duration as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
 * `automatic` - (Optional) An `automatic` block as defined below.
 
@@ -215,7 +215,7 @@ An `automatic` block supports the following:
 
 * `duration_after_creation` - (Optional) Rotate automatically at a duration after create as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
-* `time_before_expiry` - (Optional) Rotate automatically at a duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+* `duration_before_expiry` - (Optional) Rotate automatically at a duration before expiry as an [ISO 8601 duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 
 ## Attributes Reference
 

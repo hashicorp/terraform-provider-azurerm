@@ -227,10 +227,10 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
 
   rotation_policy {
     automatic {
-      time_before_expiry = "P30D"
+      duration_before_expiry = "P30D"
     }
 
-    expire_after = "P60D"
+    expire_after_duration = "P60D"
   }
   tags = {
     Env = "test"
