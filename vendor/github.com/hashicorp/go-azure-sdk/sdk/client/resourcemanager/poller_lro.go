@@ -194,6 +194,9 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			// ContainerRegistry@2019-06-01-preview returns `Creating` rather than `InProgress` during creation
 			"Creating": pollers.PollingStatusInProgress,
 
+			// CosmosDB @ 2023-04-15 returns `Dequeued` rather than `InProgress` during creation/update
+			"Dequeued": pollers.PollingStatusInProgress,
+
 			// StorageSync@2020-03-01 returns `finishNewStorageSyncService` rather than `InProgress` during creation/update (https://github.com/hashicorp/go-azure-sdk/issues/565)
 			"finishNewStorageSyncService": pollers.PollingStatusInProgress,
 
