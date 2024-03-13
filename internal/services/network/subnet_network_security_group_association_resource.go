@@ -6,9 +6,11 @@ package network
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -85,35 +87,31 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 	locks.ByName(parsedSubnetId.SubnetName, SubnetResourceName)
 	defer locks.UnlockByName(parsedSubnetId.SubnetName, SubnetResourceName)
 
-	subnet, err := client.Get(ctx, parsedSubnetId.ResourceGroupName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.SubnetName, "")
+	subnet, err := client.Get(ctx, *parsedSubnetId, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(subnet.Response) {
+		if subnet.HttpResponse.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("%s was not found", *parsedSubnetId)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", *parsedSubnetId, err)
 	}
 
-	if props := subnet.SubnetPropertiesFormat; props != nil {
+	if props := subnet.Model.Properties; props != nil {
 		if nsg := props.NetworkSecurityGroup; nsg != nil {
 			// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
-			if nsg.ID != nil && subnet.ID != nil {
-				return tf.ImportAsExistsError("azurerm_subnet_network_security_group_association", *subnet.ID)
+			if nsg.Id != nil && subnet.Model.Id != nil {
+				return tf.ImportAsExistsError("azurerm_subnet_network_security_group_association", *subnet.Model.Id)
 			}
 		}
 
-		props.NetworkSecurityGroup = &network.SecurityGroup{
-			ID: utils.String(networkSecurityGroupId),
+		props.NetworkSecurityGroup = &subnets.NetworkSecurityGroup{
+			Id: utils.String(networkSecurityGroupId),
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, parsedSubnetId.ResourceGroupName, parsedSubnetId.VirtualNetworkName, parsedSubnetId.SubnetName, subnet)
+	err = client.CreateOrUpdateThenPoll(ctx, *parsedSubnetId, *subnet.Model)
 	if err != nil {
 		return fmt.Errorf("updating Network Security Group Association for %s: %+v", *parsedSubnetId, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Network Security Group Association for %s: %+v", *parsedSubnetId, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -156,9 +154,9 @@ func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	resp, err := client.Get(ctx, *id, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if resp.HttpResponse.StatusCode == http.StatusNotFound {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			d.SetId("")
 			return nil
@@ -166,7 +164,7 @@ func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	props := resp.SubnetPropertiesFormat
+	props := resp.Model.Properties
 	if props == nil {
 		return fmt.Errorf("`properties` was nil for %s", *id)
 	}
@@ -178,8 +176,8 @@ func resourceSubnetNetworkSecurityGroupAssociationRead(d *pluginsdk.ResourceData
 		return nil
 	}
 
-	d.Set("subnet_id", resp.ID)
-	d.Set("network_security_group_id", securityGroup.ID)
+	d.Set("subnet_id", resp.Model.Id)
+	d.Set("network_security_group_id", securityGroup.Id)
 
 	return nil
 }
@@ -195,9 +193,9 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 	}
 
 	// retrieve the subnet
-	read, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	read, err := client.Get(ctx, *id, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if read.HttpResponse.StatusCode == http.StatusNotFound {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			return nil
 		}
@@ -205,18 +203,18 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	props := read.SubnetPropertiesFormat
+	props := read.Model.Properties
 	if props == nil {
 		return fmt.Errorf("`Properties` was nil for %s", *id)
 	}
 
-	if props.NetworkSecurityGroup == nil || props.NetworkSecurityGroup.ID == nil {
+	if props.NetworkSecurityGroup == nil || props.NetworkSecurityGroup.Id == nil {
 		log.Printf("[DEBUG] %s has no Network Security Group - removing from state!", *id)
 		return nil
 	}
 
 	// once we have the network security group id to lock on, lock on that
-	parsedNetworkSecurityGroupId, err := parse.NetworkSecurityGroupID(*props.NetworkSecurityGroup.ID)
+	parsedNetworkSecurityGroupId, err := parse.NetworkSecurityGroupID(*props.NetworkSecurityGroup.Id)
 	if err != nil {
 		return err
 	}
@@ -231,9 +229,9 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
-	read, err = client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	read, err = client.Get(ctx, *id, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if read.HttpResponse.StatusCode == http.StatusNotFound {
 			log.Printf("[DEBUG] %s could not be found - removing from state!", *id)
 			return nil
 		}
@@ -241,15 +239,11 @@ func resourceSubnetNetworkSecurityGroupAssociationDelete(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
+	read.Model.Properties.NetworkSecurityGroup = nil
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, read)
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *read.Model)
 	if err != nil {
 		return fmt.Errorf("removing Network Security Group Association from %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Network Security Group Association from %s: %+v", *id, err)
 	}
 
 	return nil

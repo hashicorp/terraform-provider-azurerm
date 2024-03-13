@@ -5,10 +5,12 @@ package network
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -102,9 +104,9 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	defer cancel()
 
 	id := commonids.NewSubnetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	resp, err := client.Get(ctx, id, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if resp.HttpResponse.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -115,7 +117,7 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("virtual_network_name", id.VirtualNetworkName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.SubnetPropertiesFormat; props != nil {
+	if props := resp.Model.Properties; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 		if props.AddressPrefixes == nil {
 			if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
@@ -128,22 +130,22 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if !features.FourPointOhBeta() {
-			d.Set("enforce_private_link_endpoint_network_policies", flattenEnforceSubnetNetworkPolicy(string(props.PrivateEndpointNetworkPolicies)))
-			d.Set("enforce_private_link_service_network_policies", flattenEnforceSubnetNetworkPolicy(string(props.PrivateLinkServiceNetworkPolicies)))
+			d.Set("enforce_private_link_endpoint_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
+			d.Set("enforce_private_link_service_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 		}
 
-		d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(props.PrivateEndpointNetworkPolicies)))
-		d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(props.PrivateLinkServiceNetworkPolicies)))
+		d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
+		d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 
 		networkSecurityGroupId := ""
-		if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.ID != nil {
-			networkSecurityGroupId = *props.NetworkSecurityGroup.ID
+		if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
+			networkSecurityGroupId = *props.NetworkSecurityGroup.Id
 		}
 		d.Set("network_security_group_id", networkSecurityGroupId)
 
 		routeTableId := ""
-		if props.RouteTable != nil && props.RouteTable.ID != nil {
-			routeTableId = *props.RouteTable.ID
+		if props.RouteTable != nil && props.RouteTable.Id != nil {
+			routeTableId = *props.RouteTable.Id
 		}
 		d.Set("route_table_id", routeTableId)
 

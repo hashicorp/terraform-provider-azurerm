@@ -6,9 +6,11 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,17 +102,17 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	resp, err := clients.Network.SubnetsClient.Get(ctx, *id, subnets.GetOperationOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	props := resp.SubnetPropertiesFormat
+	props := resp.Model.Properties
 	if props == nil || props.NetworkSecurityGroup == nil {
 		return nil, fmt.Errorf("properties was nil for %s", *id)
 	}
 
-	return utils.Bool(props.NetworkSecurityGroup.ID != nil), nil
+	return utils.Bool(props.NetworkSecurityGroup.Id != nil), nil
 }
 
 func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -120,21 +122,18 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 		return err
 	}
 
-	read, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	read, err := client.Network.SubnetsClient.Get(ctx, *id, subnets.GetOperationOptions{})
 	if err != nil {
-		if !utils.ResponseWasNotFound(read.Response) {
+		if read.HttpResponse.StatusCode != http.StatusNotFound {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 	}
 
-	read.SubnetPropertiesFormat.NetworkSecurityGroup = nil
+	read.Model.Properties.NetworkSecurityGroup = nil
 
-	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, read)
+	err = client.Network.SubnetsClient.CreateOrUpdateThenPoll(ctx, *id, *read.Model)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
 	}
 
 	return nil
