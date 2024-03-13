@@ -36,6 +36,7 @@ type CosmosDbPostgreSQLClusterModel struct {
 	SourceLocation                   string              `tfschema:"source_location"`
 	SourceResourceId                 string              `tfschema:"source_resource_id"`
 	MaintenanceWindow                []MaintenanceWindow `tfschema:"maintenance_window"`
+	ServerNames                      []ServerNameItem    `tfschema:"server_names"`
 	NodeCount                        int64               `tfschema:"node_count"`
 	NodePublicIPAccessEnabled        bool                `tfschema:"node_public_ip_access_enabled"`
 	NodeServerEdition                string              `tfschema:"node_server_edition"`
@@ -46,6 +47,11 @@ type CosmosDbPostgreSQLClusterModel struct {
 	SqlVersion                       string              `tfschema:"sql_version"`
 	Tags                             map[string]string   `tfschema:"tags"`
 	EarliestRestoreTime              string              `tfschema:"earliest_restore_time"`
+}
+
+type ServerNameItem struct {
+	Name                     string `tfschema:"name"`
+	FullyQualifiedDomainName string `tfschema:"fqdn"`
 }
 
 type MaintenanceWindow struct {
@@ -304,6 +310,22 @@ func (r CosmosDbPostgreSQLClusterResource) Attributes() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"server_names": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"fqdn": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -558,6 +580,7 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 				state.CoordinatorServerEdition = pointer.From(props.CoordinatorServerEdition)
 				state.CoordinatorStorageQuotaInMb = pointer.From(props.CoordinatorStorageQuotaInMb)
 				state.CoordinatorVCoreCount = pointer.From(props.CoordinatorVCores)
+				state.ServerNames = formatServerNames(props.ServerNames)
 				state.HaEnabled = pointer.From(props.EnableHa)
 				state.NodeCount = pointer.From(props.NodeCount)
 				state.NodePublicIPAccessEnabled = pointer.From(props.NodeEnablePublicIPAccess)
@@ -635,4 +658,20 @@ func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWi
 			StartMinute: pointer.From(input.StartMinute),
 		},
 	}
+}
+
+func formatServerNames(input *[]clusters.ServerNameItem) []ServerNameItem {
+	if input == nil {
+		return nil
+	}
+
+	var output []ServerNameItem
+	for _, v := range *input {
+		output = append(output, ServerNameItem{
+			FullyQualifiedDomainName: *v.FullyQualifiedDomainName,
+			Name:                     *v.Name,
+		})
+	}
+
+	return output
 }
