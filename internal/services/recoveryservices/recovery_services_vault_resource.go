@@ -594,9 +594,14 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		// Hence we firstly make it `Unlocked`, and once created, we will update it to `Locked`.
 		// Note: The `immutability` could be transitioned only in the limited directions.
 		// Locked <- Unlocked <-> Disabled
-		currentImmutability := model.Properties.SecuritySettings.ImmutabilitySettings.State
+
+		// When the service returns `null`, it equals `disabled`
+		currentImmutability := pointer.To(vaults.ImmutabilityStateDisabled)
+		if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings.State != nil {
+			currentImmutability = model.Properties.SecuritySettings.ImmutabilitySettings.State
+		}
 		immutability := d.Get("immutability")
-		if currentImmutability != nil && string(*currentImmutability) == string(vaults.ImmutabilityStateDisabled) && immutability == string(vaults.ImmutabilityStateLocked) {
+		if string(*currentImmutability) == string(vaults.ImmutabilityStateDisabled) && immutability == string(vaults.ImmutabilityStateLocked) {
 			additionalUpdatePatch.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 			requireAdditionalUpdate = true
 			immutability = string(vaults.ImmutabilityStateUnlocked)

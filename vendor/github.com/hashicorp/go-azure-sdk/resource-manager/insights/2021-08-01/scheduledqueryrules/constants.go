@@ -1,6 +1,10 @@
 package scheduledqueryrules
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -45,6 +49,19 @@ func PossibleValuesForConditionOperator() []string {
 	}
 }
 
+func (s *ConditionOperator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConditionOperator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseConditionOperator(input string) (*ConditionOperator, error) {
 	vals := map[string]ConditionOperator{
 		"equals":             ConditionOperatorEquals,
@@ -76,6 +93,19 @@ func PossibleValuesForDimensionOperator() []string {
 	}
 }
 
+func (s *DimensionOperator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDimensionOperator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDimensionOperator(input string) (*DimensionOperator, error) {
 	vals := map[string]DimensionOperator{
 		"exclude": DimensionOperatorExclude,
@@ -102,6 +132,19 @@ func PossibleValuesForKind() []string {
 		string(KindLogAlert),
 		string(KindLogToMetric),
 	}
+}
+
+func (s *Kind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKind(input string) (*Kind, error) {
@@ -136,6 +179,19 @@ func PossibleValuesForTimeAggregation() []string {
 		string(TimeAggregationMinimum),
 		string(TimeAggregationTotal),
 	}
+}
+
+func (s *TimeAggregation) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTimeAggregation(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTimeAggregation(input string) (*TimeAggregation, error) {
