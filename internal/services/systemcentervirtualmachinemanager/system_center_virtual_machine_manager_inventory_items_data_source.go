@@ -91,19 +91,17 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 				return err
 			}
 
-			scvmmServerId, err := inventoryitems.ParseVMmServerIDInsensitively(state.SystemCenterVirtualMachineManagerServerId)
+			scvmmServerId, err := inventoryitems.ParseVMmServerID(state.SystemCenterVirtualMachineManagerServerId)
 			if err != nil {
 				return err
 			}
 
-			id := fmt.Sprintf("%s/inventoryItems", scvmmServerId.ID())
-
 			resp, err := client.ListByVMMServer(ctx, *scvmmServerId)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("%s was not found", id)
+					return fmt.Errorf("%s was not found", scvmmServerId)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("reading %s: %+v", scvmmServerId, err)
 			}
 
 			if model := resp.Model; model != nil {
@@ -114,7 +112,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 				state.InventoryItems = inventoryItems
 			}
 
-			metadata.ResourceData.SetId(id)
+			metadata.ResourceData.SetId(scvmmServerId.ID())
 
 			return metadata.Encode(&state)
 		},
