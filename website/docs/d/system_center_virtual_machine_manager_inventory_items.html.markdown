@@ -14,13 +14,16 @@ Use this data source to access information about existing System Center Virtual 
 
 ```hcl
 data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
+  inventory_type                                  = "Cloud"
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
 }
 ```
 
 ## Argument Reference
 
-* `system_center_virtual_machine_manager_server_id` - The ID of the System Center Virtual Machine Manager Server.
+* `inventory_type` - (Required) The inventory type of the System Center Virtual Machine Manager Inventory Item. Possible values are `Cloud`, `VirtualMachine`, `VirtualMachineTemplate` and `VirtualNetwork`.
+
+* `system_center_virtual_machine_manager_server_id` - (Required) The ID of the System Center Virtual Machine Manager Server.
 
 ## Attributes Reference
 
@@ -35,8 +38,6 @@ A `inventory_items` block exports the following:
 * `id` - The ID of the System Center Virtual Machine Manager Inventory Item.
 
 * `name` - The name of the System Center Virtual Machine Manager Inventory Item.
-
-* `inventory_type` - The inventory type of the System Center Virtual Machine Manager Inventory Item.
 
 * `uuid` - The UUID of the System Center Virtual Machine Manager Inventory Item that is assigned by System Center Virtual Machine Manager.
 

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type SystemCenterVirtualMachineManagerInventoryItemsDataSource struct{}
@@ -25,13 +26,13 @@ var _ sdk.DataSource = SystemCenterVirtualMachineManagerInventoryItemsDataSource
 type SystemCenterVirtualMachineManagerInventoryItemsDataSourceModel struct {
 	SystemCenterVirtualMachineManagerServerId string          `tfschema:"system_center_virtual_machine_manager_server_id"`
 	InventoryItems                            []InventoryItem `tfschema:"inventory_items"`
+	InventoryType                             string          `tfschema:"inventory_type"`
 }
 
 type InventoryItem struct {
-	id            string `tfschema:"id"`
-	name          string `tfschema:"name"`
-	InventoryType string `tfschema:"inventory_type"`
-	Uuid          string `tfschema:"uuid"`
+	id   string `tfschema:"id"`
+	name string `tfschema:"name"`
+	Uuid string `tfschema:"uuid"`
 }
 
 func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) ResourceType() string {
@@ -44,6 +45,12 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) ModelObject()
 
 func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
+		"inventory_type": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(inventoryitems.PossibleValuesForInventoryType(), false),
+		},
+
 		"system_center_virtual_machine_manager_server_id": commonschema.ResourceIDReferenceRequired(&vmmservers.VMmServerId{}),
 	}
 }
@@ -61,11 +68,6 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Attributes() 
 					},
 
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"inventory_type": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -105,7 +107,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 			}
 
 			if model := resp.Model; model != nil {
-				inventoryItems := flattenInventoryItems(model)
+				inventoryItems := flattenInventoryItems(model, state.InventoryType)
 				if len(inventoryItems) == 0 {
 					return fmt.Errorf("no inventory items were found for %s", scvmmServerId)
 				}
@@ -119,7 +121,7 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 	}
 }
 
-func flattenInventoryItems(input *[]inventoryitems.InventoryItem) []InventoryItem {
+func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType string) []InventoryItem {
 	results := make([]InventoryItem, 0)
 	if input == nil {
 		return results
@@ -131,22 +133,18 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem) []InventoryIte
 		}
 
 		if props := item.Properties; props != nil {
-			if v, ok := props.(inventoryitems.CloudInventoryItem); ok {
+			if v, ok := props.(inventoryitems.CloudInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeCloud) {
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
-				inventoryItem.InventoryType = string(inventoryitems.InventoryTypeCloud)
-			} else if v, ok := props.(inventoryitems.VirtualMachineInventoryItem); ok {
+			} else if v, ok := props.(inventoryitems.VirtualMachineInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualMachine) {
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
-				inventoryItem.InventoryType = string(inventoryitems.InventoryTypeVirtualMachine)
-			} else if v, ok := props.(inventoryitems.VirtualMachineTemplateInventoryItem); ok {
+			} else if v, ok := props.(inventoryitems.VirtualMachineTemplateInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualMachineTemplate) {
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
-				inventoryItem.InventoryType = string(inventoryitems.InventoryTypeVirtualMachineTemplate)
-			} else if v, ok := props.(inventoryitems.VirtualNetworkInventoryItem); ok {
+			} else if v, ok := props.(inventoryitems.VirtualNetworkInventoryItem); ok && inventoryType == string(inventoryitems.InventoryTypeVirtualNetwork) {
 				inventoryItem.name = pointer.From(v.InventoryItemName)
 				inventoryItem.Uuid = pointer.From(v.Uuid)
-				inventoryItem.InventoryType = string(inventoryitems.InventoryTypeVirtualNetwork)
 			}
 		}
 

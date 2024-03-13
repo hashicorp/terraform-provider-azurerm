@@ -44,6 +44,7 @@ resource "time_sleep" "wait_1_minute" {
 }
 
 data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
+  inventory_type                                  = "Cloud"
   system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
 
   depends_on = [time_sleep.wait_1_minute]
