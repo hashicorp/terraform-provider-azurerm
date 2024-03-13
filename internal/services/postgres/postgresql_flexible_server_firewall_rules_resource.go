@@ -54,9 +54,9 @@ func resourcePostgresqlFlexibleServerFirewallRules() *pluginsdk.Resource {
 				ValidateFunc: firewallrules.ValidateFlexibleServerID,
 			},
 
-			"address": {
+			"firewall_rule": {
 				Type:       pluginsdk.TypeSet,
-				Optional:   false,
+				Required:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeBlock,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -122,7 +122,7 @@ func resourcePostgresqlFlexibleServerFirewallRulesCreateUpdate(d *pluginsdk.Reso
 	// Build a list of what the firewall rules should look like
 	correctFirewallRules := make([]FirewallRuleWithId, 0)
 
-	for _, address := range d.Get("address").(*pluginsdk.Set).List() {
+	for _, address := range d.Get("firewall_rule").(*pluginsdk.Set).List() {
 		addressMap := address.(map[string]interface{})
 		fwRule := firewallrules.FirewallRule{
 			Properties: firewallrules.FirewallRuleProperties{
@@ -234,7 +234,7 @@ func resourcePostgresqlFlexibleServerFirewallRulesRead(d *pluginsdk.ResourceData
 			"start_ip_address": rule.Properties.StartIPAddress,
 		})
 	}
-	d.Set("address", addresses)
+	d.Set("firewall_rule", addresses)
 	return nil
 }
 
