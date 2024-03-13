@@ -976,7 +976,7 @@ func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefini
 
 	accountId, err := accounts.ParseAccountID(pointer.From(input.Url), storageDomainSuffix)
 	if err != nil {
-		return nil, fmt.Errorf("parsing account %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing account %q: %+v", pointer.From(input.Url), err)
 	}
 
 	id := containers.NewContainerID(*accountId, pointer.From(input.ContainerName))

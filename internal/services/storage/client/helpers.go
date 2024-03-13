@@ -111,7 +111,7 @@ func (ad *accountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string,
 	return &baseUri, nil
 }
 
-func (client Client) AddToCache(accountName string, props storage.Account) error {
+func (c Client) AddToCache(accountName string, props storage.Account) error {
 	accountsLock.Lock()
 	defer accountsLock.Unlock()
 
@@ -125,13 +125,13 @@ func (client Client) AddToCache(accountName string, props storage.Account) error
 	return nil
 }
 
-func (client Client) RemoveAccountFromCache(accountName string) {
+func (c Client) RemoveAccountFromCache(accountName string) {
 	accountsLock.Lock()
 	delete(storageAccountsCache, accountName)
 	accountsLock.Unlock()
 }
 
-func (client Client) FindAccount(ctx context.Context, accountName string) (*accountDetails, error) {
+func (c Client) FindAccount(ctx context.Context, accountName string) (*accountDetails, error) {
 	accountsLock.Lock()
 	defer accountsLock.Unlock()
 
@@ -139,7 +139,7 @@ func (client Client) FindAccount(ctx context.Context, accountName string) (*acco
 		return &existing, nil
 	}
 
-	accountsPage, err := client.AccountsClient.List(ctx)
+	accountsPage, err := c.AccountsClient.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving storage accounts: %+v", err)
 	}
