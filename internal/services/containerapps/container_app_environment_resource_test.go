@@ -370,6 +370,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 func (r ContainerAppEnvironmentResource) templateVNet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_virtual_network" "test" {
@@ -386,13 +387,14 @@ resource "azurerm_subnet" "control" {
   address_prefixes     = ["10.0.0.0/23"]
 
   delegation {
-   name = "acctestdelegation%[2]d"
-   service_delegation {
-    actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-    name    = "Microsoft.App/environments"
-   }
+    name = "acctestdelegation%[2]d"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.App/environments"
+    }
   }
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
