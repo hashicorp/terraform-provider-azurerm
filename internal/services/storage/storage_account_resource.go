@@ -40,8 +40,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues"
 )
 
 var (
@@ -1310,7 +1310,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	existing, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			return fmt.Errorf("checking for existing %s: %s", id, err)
 		}
 	}
 
@@ -1585,16 +1585,15 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !supportLevel.supportQueue {
 			return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
-		storageClient := meta.(*clients.Client).Storage
-		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
+		accountDetails, err := storageClient.FindAccount(ctx, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
-		if account == nil {
+		if accountDetails == nil {
 			return fmt.Errorf("unable to locate %q", id)
 		}
 
-		queueClient, err := storageClient.QueuesClient(ctx, *account)
+		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *accountDetails, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
@@ -1604,7 +1603,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("expanding `queue_properties`: %+v", err)
 		}
 
-		if err = queueClient.UpdateServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, queueProperties); err != nil {
+		if err = queueClient.UpdateServiceProperties(ctx, queueProperties); err != nil {
 			return fmt.Errorf("updating Queue Properties: %+v", err)
 		}
 	}
@@ -1641,7 +1640,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !supportLevel.supportStaticWebsite {
 			return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
-		storageClient := meta.(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
 		if err != nil {
@@ -1651,7 +1649,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("unable to locate %s", id)
 		}
 
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}
@@ -1689,7 +1687,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if accountKind == string(storage.KindBlobStorage) || accountKind == string(storage.KindStorage) {
 		if storageType == string(storage.SkuNameStandardZRS) {
-			return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
+			return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 		}
 	}
 
@@ -1957,7 +1955,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("unable to locate %s", *id)
 		}
 
-		queueClient, err := storageClient.QueuesClient(ctx, *account)
+		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
@@ -1967,7 +1965,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
 		}
 
-		if err = queueClient.UpdateServiceProperties(ctx, account.ResourceGroup, id.StorageAccountName, queueProperties); err != nil {
+		if err = queueClient.UpdateServiceProperties(ctx, queueProperties); err != nil {
 			return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
 		}
 	}
@@ -2012,7 +2010,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("unable to locate %s", *id)
 		}
 
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
 		}
@@ -2298,12 +2296,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportQueue {
-		queueClient, err := storageClient.QueuesClient(ctx, *account)
+		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
 
-		queueProps, err := queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+		queueProps, err := queueClient.GetServiceProperties(ctx)
 		if err != nil {
 			return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
 		}
@@ -2327,13 +2325,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportStaticWebsite {
-		storageClient := meta.(*clients.Client).Storage
-		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", *id, err)
-		}
-
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}
@@ -3628,18 +3620,16 @@ func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
 }
 
 func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) []interface{} {
-	if storageServiceProps := input.StorageServiceProperties; storageServiceProps != nil {
-		if staticWebsite := storageServiceProps.StaticWebsite; staticWebsite != nil {
-			if !staticWebsite.Enabled {
-				return []interface{}{}
-			}
+	if staticWebsite := input.StaticWebsite; staticWebsite != nil {
+		if !staticWebsite.Enabled {
+			return []interface{}{}
+		}
 
-			return []interface{}{
-				map[string]interface{}{
-					"index_document":     staticWebsite.IndexDocument,
-					"error_404_document": staticWebsite.ErrorDocument404Path,
-				},
-			}
+		return []interface{}{
+			map[string]interface{}{
+				"index_document":     staticWebsite.IndexDocument,
+				"error_404_document": staticWebsite.ErrorDocument404Path,
+			},
 		}
 	}
 	return []interface{}{}

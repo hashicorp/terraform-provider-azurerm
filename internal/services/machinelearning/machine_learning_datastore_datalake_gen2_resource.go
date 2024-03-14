@@ -178,6 +178,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 
 			props := &datastore.AzureDataLakeGen2Datastore{
 				AccountName:                   containerId.StorageAccountName,
+				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),

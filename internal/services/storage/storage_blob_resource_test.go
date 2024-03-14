@@ -10,13 +10,15 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type StorageBlobResource struct{}
@@ -469,56 +471,62 @@ func TestAccStorageBlob_archive(t *testing.T) {
 }
 
 func (r StorageBlobResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := blobs.ParseResourceID(state.ID)
+	id, err := blobs.ParseBlobID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
 		return nil, err
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to locate Account %q for Blob %q (Container %q)", id.AccountName, id.BlobName, id.ContainerName)
+		return nil, fmt.Errorf("unable to locate Account %q for Blob %q (Container %q)", id.AccountId.AccountName, id.BlobName, id.ContainerName)
 	}
-	blobsClient, err := client.Storage.BlobsClient(ctx, *account)
+	blobsClient, err := client.Storage.BlobsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Blobs Client: %+v", err)
 	}
 	input := blobs.GetPropertiesInput{}
-	resp, err := blobsClient.GetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input)
+	resp, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Blob %q (Container %q / Account %q): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
+		return nil, fmt.Errorf("retrieving Blob %q (Container %q / Account %q): %+v", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func (r StorageBlobResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := blobs.ParseResourceID(state.ID)
+	id, err := blobs.ParseBlobID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrievign Account %q for Blob %q (Container %q): %+v", id.AccountName, id.BlobName, id.ContainerName, err)
+		return nil, fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %+v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
-	blobsClient, err := client.Storage.BlobsClient(ctx, *account)
+	blobsClient, err := client.Storage.BlobsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Blobs Client: %+v", err)
 	}
 	input := blobs.DeleteInput{
 		DeleteSnapshots: false,
 	}
-	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return nil, fmt.Errorf("deleting Blob %q (Container %q / Account %q): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
+	if _, err = blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		return nil, fmt.Errorf("deleting Blob %q (Container %q / Account %q): %+v", id.BlobName, id.ContainerName, id.AccountId.AccountName, err)
 	}
 	return utils.Bool(true), nil
 }
 
 func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithDeadline(ctx, time.Now().Add(10*time.Minute))
+			defer cancel()
+		}
+
 		name := state.Attributes["name"]
 		containerName := state.Attributes["storage_container_name"]
 		accountName := state.Attributes["storage_account_name"]
@@ -531,14 +539,14 @@ func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath strin
 			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := clients.Storage.BlobsClient(ctx, *account)
+		client, err := clients.Storage.BlobsDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Blobs Client: %s", err)
 		}
 
 		// first check the type
 		getPropsInput := blobs.GetPropertiesInput{}
-		props, err := client.GetProperties(ctx, accountName, containerName, name, getPropsInput)
+		props, err := client.GetProperties(ctx, containerName, name, getPropsInput)
 		if err != nil {
 			return fmt.Errorf("retrieving Properties for Blob %q (Container %q): %s", name, containerName, err)
 		}
@@ -549,12 +557,16 @@ func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath strin
 
 		// then compare the content itself
 		getInput := blobs.GetInput{}
-		actualProps, err := client.Get(ctx, accountName, containerName, name, getInput)
+		actualProps, err := client.Get(ctx, containerName, name, getInput)
 		if err != nil {
 			return fmt.Errorf("retrieving Blob %q (Container %q): %s", name, containerName, err)
 		}
 
 		actualContents := actualProps.Contents
+
+		if actualContents == nil {
+			return fmt.Errorf("Bad: Storage Blob %q (storage container: %q) returned nil contents", name, containerName)
+		}
 
 		// local file for comparison
 		expectedContents, err := os.ReadFile(filePath)
@@ -562,7 +574,7 @@ func (r StorageBlobResource) blobMatchesFile(kind blobs.BlobType, filePath strin
 			return err
 		}
 
-		if string(actualContents) != string(expectedContents) {
+		if string(*actualContents) != string(expectedContents) {
 			return fmt.Errorf("Bad: Storage Blob %q (storage container: %q) does not match contents", name, containerName)
 		}
 

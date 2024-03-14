@@ -10,11 +10,15 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues"
 )
 
 func resourceStorageQueue() *pluginsdk.Resource {
@@ -24,8 +28,8 @@ func resourceStorageQueue() *pluginsdk.Resource {
 		Update: resourceStorageQueueUpdate,
 		Delete: resourceStorageQueueDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.StorageQueueDataPlaneID(id)
+		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
+			_, err := queues.ParseQueueID(id, storageDomainSuffix)
 			return err
 		}),
 
@@ -79,32 +83,45 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Queue %q: %s", accountName, queueName, err)
+		return fmt.Errorf("retrieving Account %q for Queue %q: %v", accountName, queueName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("unable to locate Storage Account %q", accountName)
+		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
 
-	client, err := storageClient.QueuesClient(ctx, *account)
+	queuesDataPlaneClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Queues Client: %s", err)
+		return fmt.Errorf("building Queues Client: %v", err)
 	}
 
-	resourceId := parse.NewStorageQueueDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, queueName).ID()
-
-	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, queueName)
+	// Determine the queue endpoint, so we can build a data plane ID
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
 	if err != nil {
-		return fmt.Errorf("checking for presence of existing Queue %q (Storage Account %q): %s", queueName, accountName, err)
+		return fmt.Errorf("determining Queue endpoint: %v", err)
+	}
+
+	// Parse the queue endpoint as a data plane account ID
+	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	id := queues.NewQueueID(*accountId, queueName).ID()
+
+	exists, err := queuesDataPlaneClient.Exists(ctx, queueName)
+	if err != nil {
+		return fmt.Errorf("checking for existing %s: %v", id, err)
 	}
 	if exists != nil && *exists {
-		return tf.ImportAsExistsError("azurerm_storage_queue", resourceId)
+		return tf.ImportAsExistsError("azurerm_storage_queue", id)
 	}
 
-	if err := client.Create(ctx, account.ResourceGroup, accountName, queueName, metaData); err != nil {
-		return fmt.Errorf("creating Queue %q (Account %q): %+v", queueName, accountName, err)
+	if err = queuesDataPlaneClient.Create(ctx, queueName, metaData); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(id)
+
 	return resourceStorageQueueRead(d, meta)
 }
 
@@ -113,7 +130,7 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageQueueDataPlaneID(d.Id())
+	id, err := queues.ParseQueueID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
@@ -121,21 +138,21 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := ExpandMetaData(metaDataRaw)
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountName, id.Name, err)
+		return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("unable to locate Storage Account %q!", id.AccountName)
+		return fmt.Errorf("locating Storage Account %q", id.AccountId.AccountName)
 	}
 
-	client, err := storageClient.QueuesClient(ctx, *account)
+	client, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Queues Client: %s", err)
+		return fmt.Errorf("building Queues Client: %v", err)
 	}
 
-	if err := client.UpdateMetaData(ctx, account.ResourceGroup, id.AccountName, id.Name, metaData); err != nil {
-		return fmt.Errorf("updating MetaData for Queue %q (Storage Account %q): %s", id.Name, id.AccountName, err)
+	if err = client.UpdateMetaData(ctx, id.QueueName, metaData); err != nil {
+		return fmt.Errorf("updating MetaData for %s: %v", id, err)
 	}
 
 	return resourceStorageQueueRead(d, meta)
@@ -147,44 +164,44 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageQueueDataPlaneID(d.Id())
+	id, err := queues.ParseQueueID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountName, id.Name, err)
+		return fmt.Errorf("retrieving Account %q for Queue %q: %v", id.AccountId.AccountName, id.QueueName, err)
 	}
 	if account == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.Name, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	client, err := storageClient.QueuesClient(ctx, *account)
+	client, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Queues Client: %s", err)
+		return fmt.Errorf("building Queues Client: %v", err)
 	}
 
-	queue, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
+	queue, err := client.Get(ctx, id.QueueName)
 	if err != nil {
-		return fmt.Errorf("retrieving Queue %q (Account %q): %+v", id.AccountName, id.Name, err)
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if queue == nil {
-		log.Printf("[INFO] Storage Queue %q no longer exists, removing from state...", id.Name)
+		log.Printf("[INFO] Storage Queue %q no longer exists, removing from state...", id.QueueName)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", id.Name)
-	d.Set("storage_account_name", id.AccountName)
+	d.Set("name", id.QueueName)
+	d.Set("storage_account_name", id.AccountId.AccountName)
 
 	if err := d.Set("metadata", FlattenMetaData(queue.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %s", err)
 	}
 
-	resourceManagerId := parse.NewStorageQueueResourceManagerID(subscriptionId, account.ResourceGroup, id.AccountName, "default", id.Name)
+	resourceManagerId := parse.NewStorageQueueResourceManagerID(subscriptionId, account.ResourceGroup, id.AccountId.AccountName, "default", id.QueueName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
@@ -195,28 +212,28 @@ func resourceStorageQueueDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StorageQueueDataPlaneID(d.Id())
+	id, err := queues.ParseQueueID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountName, id.Name, err)
+		return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountId.AccountName, id.QueueName, err)
 	}
 	if account == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.Name, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountId.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	client, err := storageClient.QueuesClient(ctx, *account)
+	client, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Queues Client: %s", err)
+		return fmt.Errorf("building Queues Client: %v", err)
 	}
 
-	if err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
-		return fmt.Errorf("deleting Storage Queue %q (Account %q): %s", id.Name, id.AccountName, err)
+	if err = client.Delete(ctx, id.QueueName); err != nil {
+		return fmt.Errorf("deleting %s: %v", id, err)
 	}
 
 	return nil
