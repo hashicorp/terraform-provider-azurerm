@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20240314.1083835` of `github.com/hashicorp/go-azure-sdk` [GH-25255]
 * dependencies: updating to `v0.25.1` of `github.com/tombuildsstuff/giovanni` [GH-#24798]
 * dependencies: updating to `v1.33.0` of `google.golang.org/protobuf` [GH-25243]
 * `storage`: updating the data plane resources to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-#24798]
