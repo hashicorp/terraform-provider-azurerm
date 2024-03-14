@@ -188,6 +188,7 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 	}
 
 	if props := selfHostedIntegrationRuntime.SelfHostedIntegrationRuntimeTypeProperties; props != nil {
+		d.Set("self_contained_interactive_authoring_enabled", pointer.From(props.SelfContainedInteractiveAuthoringEnabled))
 		// LinkedInfo BasicLinkedIntegrationRuntimeType
 		if linkedInfo := props.LinkedInfo; linkedInfo != nil {
 			rbacAuthorization, _ := linkedInfo.AsLinkedIntegrationRuntimeRbacAuthorization()
@@ -196,8 +197,8 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 					return fmt.Errorf("setting `rbac_authorization`: %#v", err)
 				}
 			}
+			return nil
 		}
-		d.Set("self_contained_interactive_authoring_enabled", pointer.From(props.SelfContainedInteractiveAuthoringEnabled))
 	}
 
 	respKey, errKey := client.ListAuthKeys(ctx, id.ResourceGroup, id.FactoryName, id.Name)
