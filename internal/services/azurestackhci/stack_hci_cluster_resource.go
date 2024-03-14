@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/clusters"
@@ -77,6 +78,23 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				ValidateFunc: autoVal.AutomanageConfigurationID,
 			},
 
+			"cloud_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"service_endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"resource_provider_object_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"identity": commonschema.SystemAssignedIdentityOptional(),
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -106,6 +124,10 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 			AadClientId: utils.String(d.Get("client_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("identity"); ok {
+		cluster.Identity = expandSystemAssigned(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
@@ -185,10 +207,14 @@ func resourceArmStackHCIClusterRead(d *pluginsdk.ResourceData, meta interface{})
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
+		d.Set("identity", flattenSystemAssigned(model.Identity))
 
 		if props := model.Properties; props != nil {
 			d.Set("client_id", props.AadClientId)
 			d.Set("tenant_id", props.AadTenantId)
+			d.Set("cloud_id", props.CloudId)
+			d.Set("service_endpoint", props.ServiceEndpoint)
+			d.Set("resource_provider_object_id", props.ResourceProviderObjectId)
 
 			assignmentResp, err := hciAssignmentClient.Get(ctx, id.ResourceGroupName, id.ClusterName, "default")
 			if err != nil && !utils.ResponseWasNotFound(assignmentResp.Response) {
@@ -229,6 +255,10 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 
 	if d.HasChange("tags") {
 		cluster.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("identity") {
+		cluster.Identity = expandSystemAssigned(d.Get("identity").([]interface{}))
 	}
 
 	if _, err := client.Update(ctx, *id, cluster); err != nil {
@@ -274,7 +304,6 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 				}
 			}
 		}
-
 	}
 
 	return resourceArmStackHCIClusterRead(d, meta)
@@ -307,4 +336,35 @@ func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+// API does not accept userAssignedIdentity as in swagger https://github.com/Azure/azure-rest-api-specs/issues/28260
+func expandSystemAssigned(input []interface{}) *identity.SystemAndUserAssignedMap {
+	if len(input) == 0 || input[0] == nil {
+		return &identity.SystemAndUserAssignedMap{
+			Type: identity.TypeNone,
+		}
+	}
+
+	return &identity.SystemAndUserAssignedMap{
+		Type: identity.TypeSystemAssigned,
+	}
+}
+
+func flattenSystemAssigned(input *identity.SystemAndUserAssignedMap) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	if input.Type == identity.TypeNone {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         input.Type,
+			"principal_id": input.PrincipalId,
+			"tenant_id":    input.TenantId,
+		},
+	}
 }

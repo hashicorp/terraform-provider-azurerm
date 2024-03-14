@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v1.33.0` of `google.golang.org/protobuf` [GH-25243]
 * `azurerm_kusto_cluster` - support `None` pattern for the `virtual_network_configuration` block [GH-24733]
 * `azurerm_linux_function_app` - support for the Node `20` runtime [GH-24073]
 * `azurerm_linux_function_app_slot` - support for the Node `20` runtime [GH-24073]
@@ -15,6 +16,7 @@ BUG FIXES:
 * `azurerm_container_app_custom_domain` - fix resource ID parsing bug preventing import [GH-25192]
 * `azurerm_windows_web_app` - fix incorrect warning message when checking name availability [GH-25214]
 * `azurerm_virtual_machine_run_command` - prevent a bug during updates [GH-25186]
+* Data Source: `azurerm_storage_table_entities`  - Fix `items.x.properties` truncating to one entry [GH-25211]
 
 ## 3.95.0 (March 08, 2024)
 

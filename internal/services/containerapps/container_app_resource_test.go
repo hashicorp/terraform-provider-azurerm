@@ -2007,7 +2007,7 @@ func (ContainerAppResource) template(data acceptance.TestData) string {
 }
 
 func (ContainerAppResource) templateWorkloadProfile(data acceptance.TestData) string {
-	return ContainerAppEnvironmentResource{}.completeWithWorkloadProfile(data)
+	return ContainerAppEnvironmentResource{}.complete(data)
 }
 
 func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
