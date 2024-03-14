@@ -124,6 +124,15 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("specified Container App (%s) has no Ingress configuration for Custom Domains", containerAppId)
 			}
 
+			// Delta-updates need the secrets back from the list API, or we'll end up removing them or erroring out.
+			secretsResp, err := client.ListSecrets(ctx, *containerAppId)
+			if err != nil || secretsResp.Model == nil {
+				if !response.WasStatusCode(secretsResp.HttpResponse, http.StatusNoContent) {
+					return fmt.Errorf("retrieving secrets for update for %s: %+v", *containerAppId, err)
+				}
+			}
+			config.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
+
 			ingress := *config.Ingress
 
 			customDomains := make([]containerapps.CustomDomain, 0)
