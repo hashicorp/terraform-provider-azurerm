@@ -368,6 +368,13 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"dns_endpoint_type_azure_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"default_to_oauth_authentication": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1236,6 +1243,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"azure_dns_zone_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": {
 				Type:         pluginsdk.TypeMap,
 				Optional:     true,
@@ -1334,6 +1346,10 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = storage.PublicNetworkAccessEnabled
 	}
+	dnsEndpointType := storage.DNSEndpointTypeStandard
+	if d.Get("dns_endpoint_type_azure_enabled").(bool) {
+		dnsEndpointType = storage.DNSEndpointTypeAzureDNSZone
+	}
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -1358,7 +1374,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowCrossTenantReplication:  &crossTenantReplication,
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 			IsSftpEnabled:                &isSftpEnabled,
+<<<<<<< HEAD
 			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
+=======
+			DNSEndpointType:              dnsEndpointType,
+>>>>>>> 44760707ba (WIP: `azurerm_storage_account`: Add support for `AzureDNSZone`)
 		},
 	}
 
