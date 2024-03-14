@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
@@ -119,6 +120,9 @@ func (SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *
 }
 
 func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+	defer cancel()
+
 	parsedId, err := commonids.ParseSubnetID(state.Attributes["subnet_id"])
 	if err != nil {
 		return err

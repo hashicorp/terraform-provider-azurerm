@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
 
+* `default_outbound_access_enabled` - (Optional) Enable default outbound access to the internet for the subnet. Setting to `false` creates a private subnet.
+
 * `private_endpoint_network_policies_enabled` - (Optional) Enable or Disable network policies for the private endpoint on the subnet. Setting this to `true` will **Enable** the policy and setting this to `false` will **Disable** the policy. Defaults to `true`.
 
 -> **NOTE:** Network policies, like network security groups (NSG), are not supported for Private Link Endpoints or Private Link Services. In order to deploy a Private Link Endpoint on a given subnet, you must set the `private_endpoint_network_policies_enabled` attribute to `false`. This setting is only applicable for the Private Link Endpoint, for all other resources in the subnet access is controlled based via the Network Security Group which can be configured using the `azurerm_subnet_network_security_group_association` resource.

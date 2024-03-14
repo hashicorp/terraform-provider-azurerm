@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
@@ -122,6 +123,24 @@ func TestAccSubnet_disappears(t *testing.T) {
 			Config:       r.basic,
 			TestResource: r,
 		}),
+	})
+}
+
+func TestAccSubnet_defaultOutbound(t *testing.T) {
+	dataInternal := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
+	dataPublic := acceptance.BuildTestData(t, "azurerm_subnet", "public")
+	r := SubnetResource{}
+
+	dataInternal.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultOutbound(dataInternal),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(dataInternal.ResourceName).ExistsInAzure(r),
+				check.That(dataInternal.ResourceName).Key("default_outbound_access_enabled").HasValue("false"),
+				check.That(dataPublic.ResourceName).ExistsInAzure(r),
+				check.That(dataPublic.ResourceName).Key("default_outbound_access_enabled").HasValue("true"),
+			),
+		},
 	})
 }
 
@@ -554,6 +573,9 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 }
 
 func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -568,6 +590,9 @@ func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, sta
 }
 
 func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -582,6 +607,9 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 }
 
 func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
@@ -607,6 +635,9 @@ func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Clien
 }
 
 func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
@@ -634,6 +665,9 @@ func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *cli
 }
 
 func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
@@ -676,6 +710,28 @@ resource "azurerm_subnet" "test2" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.3.0/24"]
+}
+`, r.template(data))
+}
+
+func (r SubnetResource) defaultOutbound(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "internal" {
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+}
+
+resource "azurerm_subnet" "public" {
+  name                            = "public"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.3.0/24"]
+  default_outbound_access_enabled = true
 }
 `, r.template(data))
 }

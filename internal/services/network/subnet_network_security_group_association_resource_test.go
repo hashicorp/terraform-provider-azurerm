@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
@@ -97,6 +98,9 @@ func TestAccSubnetNetworkSecurityGroupAssociation_deleted(t *testing.T) {
 }
 
 func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -116,6 +120,9 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 }
 
 func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Minute))
+	defer cancel()
+
 	subnetId := state.Attributes["subnet_id"]
 	id, err := commonids.ParseSubnetID(subnetId)
 	if err != nil {
