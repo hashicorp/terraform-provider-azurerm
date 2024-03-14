@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v1.33.0` of `google.golang.org/protobuf` [GH-25243]
 * `azurerm_kusto_cluster` - support `None` pattern for the `virtual_network_configuration` block [GH-24733]
 * `azurerm_linux_function_app` - support for the Node `20` runtime [GH-24073]
 * `azurerm_linux_function_app_slot` - support for the Node `20` runtime [GH-24073]
