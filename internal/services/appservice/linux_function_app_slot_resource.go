@@ -59,6 +59,7 @@ type LinuxFunctionAppSlotModel struct {
 	SiteConfig                       []helpers.SiteConfigLinuxFunctionAppSlot   `tfschema:"site_config"`
 	Tags                             map[string]string                          `tfschema:"tags"`
 	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
+	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans
 	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
 	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
 	DefaultHostname                  string                                     `tfschema:"default_hostname"`
@@ -279,6 +280,13 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
+		"vnet_image_pull_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
 		},
 	}
 }
@@ -517,6 +525,7 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
+					VnetImagePullEnabled: pointer.To(functionAppSlot.VnetImagePullEnabled),
 				},
 			}
 
@@ -735,6 +744,7 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -921,6 +931,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
 			storageString := state.StorageAccountName

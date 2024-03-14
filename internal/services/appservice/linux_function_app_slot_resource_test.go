@@ -2461,6 +2461,8 @@ resource "azurerm_linux_function_app_slot" "test" {
     vnet_route_all_enabled = true
   }
 
+  vnet_image_pull_enabled = true
+
   tags = {
     terraform = "true"
     Env       = "AccTest"
@@ -2502,6 +2504,9 @@ resource "azurerm_linux_function_app_slot" "test" {
       virtual_network_subnet_id = azurerm_subnet.test.id
     }
   }
+
+  vnet_image_pull_enabled = true
+
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
@@ -2640,6 +2645,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 
     vnet_route_all_enabled = true
   }
+  vnet_image_pull_enabled = true
 }
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
@@ -3226,6 +3232,8 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
+
+  vnet_image_pull_enabled = true
 }
 
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
@@ -3286,6 +3294,9 @@ resource "azurerm_linux_function_app_slot" "test" {
   virtual_network_subnet_id  = azurerm_subnet.test1.id
 
   site_config {}
+
+  vnet_image_pull_enabled = true
+
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }

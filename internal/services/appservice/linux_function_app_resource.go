@@ -66,6 +66,7 @@ type LinuxFunctionAppModel struct {
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Tags                             map[string]string                          `tfschema:"tags"`
 	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
+	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans
 	ZipDeployFile                    string                                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
@@ -297,6 +298,13 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
+		"vnet_image_pull_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+		},
+
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -523,6 +531,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
+					VnetImagePullEnabled: pointer.To(functionApp.VnetImagePullEnabled),
 				},
 			}
 
@@ -763,6 +772,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 					if err != nil {
@@ -927,6 +937,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
