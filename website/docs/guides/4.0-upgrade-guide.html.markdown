@@ -1,0 +1,218 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 4.0 Upgrade Guide"
+description: |-
+Azure Resource Manager: 4.0 Upgrade Guide
+
+---
+
+# AzureRM Provider
+
+## AzureRM Provider Version v4.0
+
+TODO
+
+### Considerations
+
+TODO
+
+### Pinning your Provider Version
+
+TODO
+
+## What's available in Version 4.0 of the AzureRM Provider?
+
+## Removal of Resources
+
+### Resource: `azurerm_app_service_*` - (DISCUSSION REQUIRED)
+
+The following app service resources have deprecation messages saying it is feature frozen for 2.x and 3.x and will be removed in a future major release of the provider but doesn't specify 4.0.
+
+Can these messages be updated and the following resources be removed in 4.0:
+
+* azurerm_app_service_active_slot
+* azurerm_app_service_hybrid_connection
+* azurerm_app_service_plan
+* azurerm_app_service
+* azurerm_app_service_slot
+* azurerm_app_service_source_control_token
+* azurerm_function_app
+* azurerm_function_app_slot
+* azurerm_static_site_custom_domain
+* azurerm_static_site
+
+### Resource: `azurerm_cosmosdb_notebook_workspace`
+
+This deprecated resource has been removed from the Azure Provider.
+
+### Resource: `azurerm_databox_edge_order`
+
+Creation of DataBox Edge Orders are not supported by the Azure API, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_data_factory_integration_runtime_managed` - (TODO add removal in 4.0 to deprecation message)
+
+This deprecated resource has been superseded by `azurerm_data_factory_integration_runtime_azure_ssis` and has been removed from the Azure provider.
+
+### Resource: `azurerm_integrated_service_environment`
+
+This Azure Service is being retired on 2024-08-31 and the provisioning of new instances has been blocked since 2022-11-01, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_media_asset_filter` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_asset` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_content_key_policy` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_job` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_live_output` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_services_account` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_streaming_endpoint` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_streaming_live_event` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_streaming_ locator` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_streaming_policy` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_media_transform` - (TODO add removal in 4.0 to deprecation message)
+
+[Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
+
+### Resource: `azurerm_monitor_action_rule_action_group`
+
+This deprecated resource has been superseded by `azurerm_monitor_alert_processing_rule_action_group` and has been removed from the Azure provider.
+
+### Resource: `azurerm_monitor_action_rule_suppression`
+
+This deprecated resource has been superseded by `azurerm_monitor_alert_processing_rule_suppression` and has been removed from the Azure provider.
+
+### Resource: `azurerm_monitor_log_profile`
+
+Azure Log Profile will be retired on 30th September 2026, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_network_packet_capture`
+
+This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure provider.
+
+### Resource: `azurerm_dashboard`
+
+This deprecated resource has been superseded by `azurerm_portal_dashboard` and has been removed from the Azure provider.
+
+### Resource: `azurerm_template_deployment` - (TODO add removal in 4.0 to deprecation message)
+
+This deprecated resource has been superseded by `azurerm_resource_group_template_deployment` and has been removed from the Azure provider.
+
+### Resource: `azurerm_security_center_server_vulnerability_assessment`
+
+This deprecated resource has been superseded by `azurerm_security_center_server_vulnerability_assessment_virtual_machine` and has been removed from the Azure provider.
+
+### Resource: `azurerm_servicebus_namespace_network_rule_set`
+
+This deprecated resource has been superseded by the `network_rule_set` block in the `azurerm_servicebus_namespace` resource and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_active_directory_administrator`
+
+This deprecated resource has been superseded by the `azuread_administrator` block in the `azurerm_mssql_server` resource and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_database`
+
+This deprecated resource has been superseded by `azurerm_mssql_database` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_elasticpool_resource`
+
+This deprecated resource has been superseded by `azurerm_mssql_elasticpool` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_failover_group`
+
+This deprecated resource has been superseded by `azurerm_mssql_failover_group` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_firewall_rule`
+
+This deprecated resource has been superseded by `azurerm_mssql_firewall_rule` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_managed_database`
+
+This deprecated resource has been superseded by `azurerm_mssql_managed_database` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_managed_instance_active_directory_administrator`
+
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance_active_directory_administrator` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_managed_instance_failover_group`
+
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance_failover_group` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_managed_instance`
+
+This deprecated resource has been superseded by `azurerm_mssql_managed_instance` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_server`
+
+This deprecated resource has been superseded by `azurerm_mssql_server` and has been removed from the Azure provider.
+
+### Resource: `azurerm_sql_virtual_network_rule`
+
+This deprecated resource has been superseded by `azurerm_mssql_virtual_network_rule` and has been removed from the Azure provider.
+
+### Resource: `azurerm_video_analyzer_edge_module`
+
+The Azure Service Video Analyzer will be reqired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_video_analyzer`
+
+The Azure Service Video Analyzer will be reqired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_virtual_machine_scale_set` - (TODO add removal in 4.0 to deprecation message)
+
+This deprecated resource has been superseded by `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` and has been removed from the Azure provider.
+
+## Removal of Data Sources
+
+### Data Source: `azurerm_app_service_*` - (DISCUSSION REQUIRED)
+
+The following app service resources have deprecation messages saying it is feature frozen for 2.x and 3.x and will be removed in a future major release of the provider but doesn't specify 4.0.
+
+Can these messages be updated and the following data sources be removed in 4.0:
+
+* azurerm_app_service
+* azurerm_app_service_plan
+* azurerm_function_app
+
+### Data Source: `azurerm_monitor_log_profile`
+
+Azure Log Profile will be retired on 30th September 2026, as a result this deprecated data source has been removed from the Azure provider.
+
+### Data Source: `azurerm_sql_database`
+
+The deprecated data source has been superseded by `azurerm_mssql_database` and has been removed from the Azure provider.
+
+### Data Source: `azurerm_sql_managed_instance`
+
+The deprecated data source has been superseded by `azurerm_mssql_managed_instance` and has been removed from the Azure provider.
+
+### Data Source: `azurerm_sql_server`
+
+The deprecated data source has been superseded by `azurerm_mssql_server` and has been removed from the Azure provider.
