@@ -2,10 +2,18 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.25.1` of `github.com/tombuildsstuff/giovanni` [GH-#24798]
 * dependencies: updating to `v1.33.0` of `google.golang.org/protobuf` [GH-25243]
+* `storage`: updating the data plane resources to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-#24798]
+* Data Source: `azurerm_storage_table_entities` - support for AAD authentication [GH-#24798]
+* Data Source: `azurerm_storage_table_entity` - support for AAD authentication [GH-#24798]
 * `azurerm_kusto_cluster` - support `None` pattern for the `virtual_network_configuration` block [GH-24733]
 * `azurerm_linux_function_app` - support for the Node `20` runtime [GH-24073]
 * `azurerm_linux_function_app_slot` - support for the Node `20` runtime [GH-24073]
+* `azurerm_storage_share_file` - support for AAD authentication [GH-#24798]
+* `azurerm_storage_share_directory` - support for AAD authentication, deprecate `share_name` and `storage_account_name` in favor of `storage_share_id` [GH-#24798]
+* `azurerm_storage_table_entity` - support for AAD authentication, deprecate `share_name` and `storage_account_name` in favor of `storage_table_id` [GH-#24798]
+* `azurerm_storage_table_entity` - support for AAD authentication [GH-#24798]
 * `azurerm_windows_function_app` - support for the Node `20` runtime [GH-24073]
 * `azurerm_windows_function_app_slot` - support for the Node `20` runtime [GH-24073]
 * `azurerm_windows_web_app` - support for the Node `20` runtime [GH-24073]
