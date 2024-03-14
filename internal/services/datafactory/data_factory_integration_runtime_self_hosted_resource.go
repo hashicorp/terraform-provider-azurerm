@@ -188,8 +188,11 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRead(d *pluginsdk.ResourceDa
 					return fmt.Errorf("setting `rbac_authorization`: %#v", err)
 				}
 			}
+
+			// The ListAuthenticationKeys on integration runtime type Linked is not supported.
+			// Only skip the call to ListAuthKeys if the linkedInfo is valid.
+			return nil
 		}
-		return nil
 	}
 
 	respKey, errKey := client.ListAuthKeys(ctx, id.ResourceGroup, id.FactoryName, id.Name)
