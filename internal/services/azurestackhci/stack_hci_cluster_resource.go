@@ -338,6 +338,7 @@ func resourceArmStackHCIClusterDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
+// API does not accept userAssignedIdentity as in swagger https://github.com/Azure/azure-rest-api-specs/issues/28260
 func expandSystemAssigned(input []interface{}) *identity.SystemAndUserAssignedMap {
 	if len(input) == 0 || input[0] == nil {
 		return &identity.SystemAndUserAssignedMap{
