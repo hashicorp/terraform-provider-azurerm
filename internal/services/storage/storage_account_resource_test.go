@@ -1789,7 +1789,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_replication_type = "LRS"
 
-  dns_endpoint_type_azure_enabled = true
+  dns_endpoint_type               = "AzureDnsZone"
   allow_nested_items_to_be_public = false
 
   tags = {
