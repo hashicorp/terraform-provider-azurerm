@@ -242,7 +242,7 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
 					Default:     true,
-					Description: "Should the Windows Web App use a 32-bit worker.",
+					Description: "Should the Windows Function App use a 32-bit worker.",
 				},
 
 				"websockets_enabled": {

@@ -70,7 +70,14 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.webActivityHeaders(data),
+			Config: r.webActivityHeaders(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.webActivityHeaders(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -283,7 +290,20 @@ JSON
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PipelineResource) webActivityHeaders(data acceptance.TestData) string {
+func (PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader bool) string {
+	headerBlock := `
+      "headers": {
+        "authorization": {
+          "value": "foo",
+          "type": "Expression"
+        },
+        "content_type": "application/x-www-form-urlencoded"
+      }
+  `
+	if !withHeader {
+		headerBlock = ``
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -314,19 +334,13 @@ resource "azurerm_data_factory_pipeline" "test" {
     "dependsOn": [],
     "userProperties": [],
     "typeProperties": {
-      "headers": {
-        "authorization": {
-          "value": "foo",
-          "type": "Expression"
-        },
-        "content_type": "application/x-www-form-urlencoded"
-      }
+    %s
     }
   }
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, headerBlock)
 }
 
 func (PipelineResource) activitiesUpdated(data acceptance.TestData) string {
