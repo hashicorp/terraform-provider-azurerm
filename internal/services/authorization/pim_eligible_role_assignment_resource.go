@@ -648,10 +648,9 @@ func createEligibilityRoleAssignment(ctx context.Context, client *roleeligibilit
 		// Retry deletes while that error exists.
 		result, err := client.Create(ctx, id, *payload)
 		if err != nil {
-			if *result.OData.Error.Code == "SubjectNotFound" {
+			if result.OData != nil && result.OData.Error != nil && result.OData.Error.Code != nil && *result.OData.Error.Code == "SubjectNotFound" {
 				return nil, "Missing", nil
 			}
-
 			return nil, "Missing", fmt.Errorf("creating %s: %+v", id, err)
 		}
 
@@ -699,14 +698,15 @@ func deleteEligibilityRoleAssignmentSchedule(ctx context.Context, client *roleel
 		// Retry deletes while that error exists.
 		result, err := client.Create(ctx, id, *payload)
 		if err != nil {
-			if *result.OData.Error.Code == "ActiveDurationTooShort" {
-				return nil, "Exist", nil
-			}
+			if result.OData != nil && result.OData.Error != nil && result.OData.Error.Code != nil {
+				if *result.OData.Error.Code == "ActiveDurationTooShort" {
+					return nil, "Exist", nil
+				}
 
-			if *result.OData.Error.Code == "RoleAssignmentDoesNotExist" {
-				return nil, "Deleted", nil
+				if *result.OData.Error.Code == "RoleAssignmentDoesNotExist" {
+					return nil, "Deleted", nil
+				}
 			}
-
 			return nil, "Exist", fmt.Errorf("creating %s: %+v", id, err)
 		}
 
