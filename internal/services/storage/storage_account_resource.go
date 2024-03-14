@@ -1370,15 +1370,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			AllowCrossTenantReplication:  &crossTenantReplication,
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 			IsSftpEnabled:                &isSftpEnabled,
-<<<<<<< HEAD
-<<<<<<< HEAD
 			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
-=======
-			DNSEndpointType:              dnsEndpointType,
->>>>>>> 44760707ba (WIP: `azurerm_storage_account`: Add support for `AzureDNSZone`)
-=======
 			DNSEndpointType:              storage.DNSEndpointType(dnsEndpointType),
->>>>>>> 1b5e523f0c (Rename property, add docs)
 		},
 	}
 
