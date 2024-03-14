@@ -72,7 +72,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cloud_id` - An immutable UUID for the Azure Stack HCI Cluster.
 
-
 * `resource_provider_object_id` - The object ID of the Resource Provider Service Principal.
 
 * `identity` - An `identity` block as defined below.

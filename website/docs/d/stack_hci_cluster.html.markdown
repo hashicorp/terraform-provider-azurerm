@@ -69,7 +69,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 An `identity` block exports the following:
 
-* `type` - (Required) The type of Managed Service Identity that configured on the Azure Stack HCI Cluster.
+* `type` - (Required) The type of Managed Service Identity configured on the Azure Stack HCI Cluster.
 
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
