@@ -22,6 +22,10 @@ import (
 type NewRelicMonitorResource struct{}
 
 func TestAccNewRelicMonitor_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_NEW_RELIC_ENABLED") == "" {
+		t.Skipf("Skipping as ARM_TEST_NEW_RELIC_ENABLED is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -38,6 +42,10 @@ func TestAccNewRelicMonitor_basic(t *testing.T) {
 }
 
 func TestAccNewRelicMonitor_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_TEST_NEW_RELIC_ENABLED") == "" {
+		t.Skipf("Skipping as ARM_TEST_NEW_RELIC_ENABLED is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)

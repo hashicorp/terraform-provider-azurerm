@@ -6,6 +6,7 @@ package newrelic_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -21,6 +22,10 @@ import (
 type NewRelicTagRuleResource struct{}
 
 func TestAccNewRelicTagRule_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_NEW_RELIC_ENABLED") == "" {
+		t.Skipf("Skipping as ARM_TEST_NEW_RELIC_ENABLED is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "27362230-e2d8-4c73-9ee3-fdef83459ca3@example.com"
@@ -36,6 +41,10 @@ func TestAccNewRelicTagRule_basic(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_TEST_NEW_RELIC_ENABLED") == "" {
+		t.Skipf("Skipping as ARM_TEST_NEW_RELIC_ENABLED is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "85b5febd-127d-4633-9c25-bcfea555af46@example.com"
@@ -54,6 +63,10 @@ func TestAccNewRelicTagRule_requiresImport(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_complete(t *testing.T) {
+	if os.Getenv("ARM_TEST_NEW_RELIC_ENABLED") == "" {
+		t.Skipf("Skipping as ARM_TEST_NEW_RELIC_ENABLED is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "672d9312-65a7-484c-870d-94584850a423@example.com"
@@ -69,6 +82,10 @@ func TestAccNewRelicTagRule_complete(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_update(t *testing.T) {
+	if os.Getenv("ARM_TEST_NEW_RELIC_ENABLED") == "" {
+		t.Skipf("Skipping as ARM_TEST_NEW_RELIC_ENABLED is not set")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "f0ff47c3-3aed-45b0-b239-260d9625045a@example.com"
