@@ -1353,12 +1353,6 @@ func (m *LinuxFunctionAppModel) unpackLinuxFunctionAppSettings(input webapps.Str
 		case "AzureWebJobsDashboard__accountName":
 			m.BuiltinLogging = true
 
-		case "WEBSITE_RUN_FROM_PACKAGE":
-			// Keep if user explicitly set, otherwise filter out as will have been added by ADO et al
-			if _, ok := metadata.ResourceData.GetOk("app_settings.WEBSITE_RUN_FROM_PACKAGE"); ok {
-				appSettings[k] = v
-			}
-
 		case "WEBSITE_VNET_ROUTE_ALL":
 			// Filter out - handled by site_config setting `vnet_route_all_enabled`
 		default:
