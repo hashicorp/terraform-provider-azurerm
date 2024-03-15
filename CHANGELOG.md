@@ -4,6 +4,8 @@ BREAKING CHANGES:
 
 * `azurerm_linux_function_app` - `app_settings["WEBSITE_RUN_FROM_PACKAGE"]` must be added to `ignore_changes` for deployments where an external tool modifies the `WEBSITE_RUN_FROM_PACKAGE` property in the `app_settings` block. [GH-24848]
 * `azurerm_linux_function_app_slot` - `app_settings["WEBSITE_RUN_FROM_PACKAGE"]` must be added to `ignore_changes` for deployments where an external tool modifies the `WEBSITE_RUN_FROM_PACKAGE` property in the `app_settings` block. [GH-24848]
+* `azurerm_storage_account` - support for `dns_endpoint_type` [GH-22583]
+
 
 ENHANCEMENTS:
 
