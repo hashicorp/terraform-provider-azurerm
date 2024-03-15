@@ -368,6 +368,17 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"dns_endpoint_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.DNSEndpointTypeStandard),
+					string(storage.DNSEndpointTypeAzureDNSZone),
+				}, false),
+				Default:  string(storage.DNSEndpointTypeStandard),
+				ForceNew: true,
+			},
+
 			"default_to_oauth_authentication": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1334,6 +1345,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccess = storage.PublicNetworkAccessEnabled
 	}
+	dnsEndpointType := d.Get("dns_endpoint_type").(string)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -1359,6 +1371,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 			IsSftpEnabled:                &isSftpEnabled,
 			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
+			DNSEndpointType:              storage.DNSEndpointType(dnsEndpointType),
 		},
 	}
 
@@ -2103,6 +2116,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			publicNetworkAccessEnabled = false
 		}
 		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+		d.Set("dns_endpoint_type", props.DNSEndpointType)
 
 		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
 			d.Set("cross_tenant_replication_enabled", crossTenantReplication)
