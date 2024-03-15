@@ -125,7 +125,7 @@ The following arguments are supported:
 
 * `key_vault_id` - (Optional) Specifies the Resource ID of the Key Vault which contains the `key_vault_key_id`.
 
--> **Note:** The `key_vault_id` field only needs to be specified if the Key Vault which contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `key_vault_id` field is not specified it is assumed that the the `key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
+-> **Note:** The `key_vault_id` field only needs to be specified if the Key Vault which contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `key_vault_id` field is not specified it is assumed that the `key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
 
 -> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
 
