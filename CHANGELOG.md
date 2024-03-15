@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
 
+BUG FIXES:
+
+* `azurerm_storage_queue` - fixing a bug where the Table URI was obtained rather than the Queue URI [GH-25262]
+
 ## 3.96.0 (March 14, 2024)
 
 ENHANCEMENTS:
