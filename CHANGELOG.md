@@ -1,7 +1,13 @@
 ## 3.97.0 (Unreleased)
 
+BREAKING CHANGES:
+
+* `azurerm_linux_function_app` - `app_settings["WEBSITE_RUN_FROM_PACKAGE"]` must be added to `ignore_changes` for deployments where an external tool modifies the `WEBSITE_RUN_FROM_PACKAGE` property in the `app_settings` block. [GH-24848]
+* `azurerm_linux_function_app_slot` - `app_settings["WEBSITE_RUN_FROM_PACKAGE"]` must be added to `ignore_changes` for deployments where an external tool modifies the `WEBSITE_RUN_FROM_PACKAGE` property in the `app_settings` block. [GH-24848]
+
 ENHANCEMENTS:
 
+* `azurerm_data_share` - hyphens are now allowed in the resource's name [GH-25242]
 * `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
 
 BUG FIXES:
