@@ -66,6 +66,8 @@ The following attributes are exported:
 * `smb_non_browsable_enabled` - Limits clients from browsing for an SMB share.
 
 * `smb_access_based_enumeration_enabled` - Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share.
+
+* `is_large_volume` - A boolean specifying if the volume is a large volume.
 ---
 
 A `data_protection_replication` block exports the following:
