@@ -10,6 +10,8 @@ description: |-
 
 Manages a MySQL Database within a MySQL Server
 
+~> **Note:** The `azurerm_mysql_database` resource will be deprecated since Azure Database for MySQL - Single Server and its sub resources are scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024 and they migrate (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL - Flexible Server and its sub resources now. Please use the `azurerm_mysql_flexible_database` resource instead.
+
 !>**IMPORTANT:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
 
 ## Example Usage
