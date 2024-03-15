@@ -20,14 +20,13 @@ import (
 var StorageDomainSuffix *string
 
 type Client struct {
-	AccountsClient              *storage.AccountsClient
-	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
-	BlobServicesClient          *storage.BlobServicesClient
-	EncryptionScopesClient      *storage.EncryptionScopesClient
-	FileServicesClient          *storage.FileServicesClient
-	SyncCloudEndpointsClient    *cloudendpointresource.CloudEndpointResourceClient
-	SyncGroupsClient            *syncgroupresource.SyncGroupResourceClient
-	SyncServiceClient           *storagesyncservicesresource.StorageSyncServicesResourceClient
+	AccountsClient           *storage.AccountsClient
+	BlobServicesClient       *storage.BlobServicesClient
+	EncryptionScopesClient   *storage.EncryptionScopesClient
+	FileServicesClient       *storage.FileServicesClient
+	SyncCloudEndpointsClient *cloudendpointresource.CloudEndpointResourceClient
+	SyncGroupsClient         *syncgroupresource.SyncGroupResourceClient
+	SyncServiceClient        *storagesyncservicesresource.StorageSyncServicesResourceClient
 
 	ResourceManager *storage_v2023_01_01.Client
 
@@ -51,9 +50,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&blobServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	blobInventoryPoliciesClient := storage.NewBlobInventoryPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&blobInventoryPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
 	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&encryptionScopesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -72,6 +68,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building CloudEndpoint client: %+v", err)
 	}
 	o.Configure(syncCloudEndpointsClient.Client, o.Authorizers.ResourceManager)
+
 	syncServiceClient, err := storagesyncservicesresource.NewStorageSyncServicesResourceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building StorageSyncService client: %+v", err)
@@ -87,15 +84,14 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
-		AccountsClient:              &accountsClient,
-		BlobServicesClient:          &blobServicesClient,
-		BlobInventoryPoliciesClient: &blobInventoryPoliciesClient,
-		EncryptionScopesClient:      &encryptionScopesClient,
-		FileServicesClient:          &fileServicesClient,
-		ResourceManager:             resourceManager,
-		SyncCloudEndpointsClient:    syncCloudEndpointsClient,
-		SyncServiceClient:           syncServiceClient,
-		SyncGroupsClient:            syncGroupsClient,
+		AccountsClient:           &accountsClient,
+		BlobServicesClient:       &blobServicesClient,
+		EncryptionScopesClient:   &encryptionScopesClient,
+		FileServicesClient:       &fileServicesClient,
+		ResourceManager:          resourceManager,
+		SyncCloudEndpointsClient: syncCloudEndpointsClient,
+		SyncServiceClient:        syncServiceClient,
+		SyncGroupsClient:         syncGroupsClient,
 
 		StorageDomainSuffix: *storageSuffix,
 	}
