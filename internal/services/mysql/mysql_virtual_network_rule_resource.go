@@ -29,7 +29,7 @@ func resourceMySQLVirtualNetworkRule() *pluginsdk.Resource {
 		Update: resourceMySQLVirtualNetworkRuleCreateUpdate,
 		Delete: resourceMySQLVirtualNetworkRuleDelete,
 
-		DeprecationMessage: "The `azurerm_mysql_virtual_network_rule` resource will be deprecated since Azure Database for MySQL - Single Server and its sub resources are scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024 and they migrate (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL - Flexible Server and its sub resources now.",
+		DeprecationMessage: "Azure Database for MySQL Single Server and its sub resources are scheduled for retirement by 2024-09-16 and will migrate to using Azure Database for MySQL Flexible Server: https://go.microsoft.com/fwlink/?linkid=2216041. The `azurerm_mysql_virtual_network_rule` resource is deprecated and will be removed in v4.0 of the AzureRM Provider.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualnetworkrules.ParseVirtualNetworkRuleID(id)

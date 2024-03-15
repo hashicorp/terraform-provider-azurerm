@@ -25,7 +25,7 @@ func dataSourceMySqlServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Read: dataSourceMySqlServerRead,
 
-		DeprecationMessage: "The `azurerm_mysql_server` data source will be deprecated since Azure Database for MySQL - Single Server and its sub resources are scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024 and they migrate (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL - Flexible Server and its sub resources now. Please use the `azurerm_mysql_flexible_server` data source instead.",
+		DeprecationMessage: "Azure Database for MySQL Single Server and its sub resources are scheduled for retirement by 2024-09-16 and will migrate to using Azure Database for MySQL Flexible Server: https://go.microsoft.com/fwlink/?linkid=2216041. The `azurerm_mysql_server` data source is deprecated and will be removed in v4.0 of the AzureRM Provider. Please use the `azurerm_mysql_flexible_server` data source instead.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
