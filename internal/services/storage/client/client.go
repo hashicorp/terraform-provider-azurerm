@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	"github.com/Azure/go-autorest/autorest/azure"
 	storage_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
@@ -21,8 +20,6 @@ import (
 var StorageDomainSuffix *string
 
 type Client struct {
-	SubscriptionId string
-
 	AccountsClient              *storage.AccountsClient
 	BlobInventoryPoliciesClient *storage.BlobInventoryPoliciesClient
 	BlobServicesClient          *storage.BlobServicesClient
@@ -34,7 +31,6 @@ type Client struct {
 
 	ResourceManager *storage_v2023_01_01.Client
 
-	AzureEnvironment    azure.Environment
 	StorageDomainSuffix string
 
 	authorizerForAad auth.Authorizer
@@ -97,12 +93,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		EncryptionScopesClient:      &encryptionScopesClient,
 		FileServicesClient:          &fileServicesClient,
 		ResourceManager:             resourceManager,
-		SubscriptionId:              o.SubscriptionId,
 		SyncCloudEndpointsClient:    syncCloudEndpointsClient,
 		SyncServiceClient:           syncServiceClient,
 		SyncGroupsClient:            syncGroupsClient,
 
-		AzureEnvironment:    o.AzureEnvironment,
 		StorageDomainSuffix: *storageSuffix,
 	}
 
