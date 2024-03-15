@@ -10,7 +10,7 @@ description: |-
 
 Manages a Firewall Rule for a MySQL Server.
 
-~> **Note:** The `azurerm_mysql_firewall_rule` resource will be deprecated since Azure Database for MySQL - Single Server and its sub resources are scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024 and they migrate (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL - Flexible Server and its sub resources now. Please use the `azurerm_mysql_flexible_server_firewall_rule` resource instead.
+~> **Note:** Azure Database for MySQL Single Server and its sub resources are scheduled for retirement by 2024-09-16 and will migrate to using Azure Database for MySQL Flexible Server: https://go.microsoft.com/fwlink/?linkid=2216041. The `azurerm_mysql_firewall_rule` resource is deprecated and will be removed in v4.0 of the AzureRM Provider. Please use the `azurerm_mysql_flexible_server_firewall_rule` resource instead.
 
 ## Example Usage (Single IP Address)
 
