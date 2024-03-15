@@ -24,6 +24,7 @@ type IpRestriction struct {
 	Priority     int64                  `tfschema:"priority"`
 	Action       string                 `tfschema:"action"`
 	Headers      []IpRestrictionHeaders `tfschema:"headers"`
+	Description  string                 `tfschema:"description"`
 }
 
 type IpRestrictionHeaders struct {
@@ -104,6 +105,13 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 				},
 
 				"headers": IpRestrictionHeadersSchema(),
+
+				"description": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The description of the IP restriction rule.",
+				},
 			},
 		},
 	}
@@ -153,6 +161,12 @@ func IpRestrictionSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"headers": IpRestrictionHeadersSchemaComputed(),
+
+				"description": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The description of the ip restriction rule.",
+				},
 			},
 		},
 	}
@@ -1155,6 +1169,10 @@ func ExpandIpRestrictions(restrictions []IpRestriction) (*[]webapps.IPSecurityRe
 			restriction.VnetSubnetResourceId = utils.String(v.VnetSubnetId)
 		}
 
+		if v.Description != "" {
+			restriction.Description = pointer.To(v.Description)
+		}
+
 		restriction.Priority = pointer.To(v.Priority)
 
 		restriction.Action = pointer.To(v.Action)
@@ -1493,6 +1511,9 @@ func FlattenIpRestrictions(ipRestrictionsList *[]webapps.IPSecurityRestriction) 
 		}
 
 		ipRestriction.Headers = flattenIpRestrictionHeaders(pointer.From(v.Headers))
+		if v.Description != nil {
+			ipRestriction.Description = *v.Description
+		}
 
 		ipRestrictions = append(ipRestrictions, ipRestriction)
 	}

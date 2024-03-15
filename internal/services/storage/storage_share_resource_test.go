@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
 )
 
 type StorageShareResource struct{}
@@ -271,52 +271,54 @@ func TestAccStorageShare_protocolUpdate(t *testing.T) {
 }
 
 func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageShareDataPlaneID(state.ID)
+	id, err := shares.ParseShareID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountName, id.Name, err)
+		return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountId.AccountName, id.ShareName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountName, id.Name)
+		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountId.AccountName, id.ShareName)
 	}
 
-	sharesClient, err := client.Storage.FileSharesClient(ctx, *account)
+	sharesClient, err := client.Storage.FileSharesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %+v", id.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %+v", id.AccountId.AccountName, account.ResourceGroup, err)
 	}
 
-	props, err := sharesClient.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
+	props, err := sharesClient.Get(ctx, id.ShareName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving File Share %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving File Share %q (Account %q / Resource Group %q): %+v", id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
 	}
+
 	return utils.Bool(props != nil), nil
 }
 
 func (r StorageShareResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageShareDataPlaneID(state.ID)
+	id, err := shares.ParseShareID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountName, id.Name, err)
+		return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountId.AccountName, id.ShareName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountName, id.Name)
+		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountId.AccountName, id.ShareName)
 	}
 
-	sharesClient, err := client.Storage.FileSharesClient(ctx, *account)
+	sharesClient, err := client.Storage.FileSharesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %+v", id.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %+v", id.AccountId.AccountName, account.ResourceGroup, err)
 	}
-	if err := sharesClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
-		return nil, fmt.Errorf("deleting File Share %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+	if err := sharesClient.Delete(ctx, id.ShareName); err != nil {
+		return nil, fmt.Errorf("deleting File Share %q (Account %q / Resource Group %q): %+v", id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
@@ -537,6 +539,7 @@ func (r StorageShareResource) accessTierStandard(data acceptance.TestData, tier 
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+  storage_use_azuread = true
 }
 
 resource "azurerm_resource_group" "test" {

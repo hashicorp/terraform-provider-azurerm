@@ -72,7 +72,10 @@ func (c AdminKeysClient) Get(ctx context.Context, id SearchServiceId, options Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AdminKeyResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

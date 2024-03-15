@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package azuresdkhacks
 
 import (
@@ -15,7 +18,7 @@ import (
 type WebActivityTypeProperties struct {
 	Method                datafactory.WebActivityMethod            `json:"method,omitempty"`
 	URL                   interface{}                              `json:"url,omitempty"`
-	Headers               interface{}                              `json:"headers"`
+	Headers               interface{}                              `json:"headers,omitempty"`
 	Body                  interface{}                              `json:"body,omitempty"`
 	Authentication        *datafactory.WebActivityAuthentication   `json:"authentication,omitempty"`
 	DisableCertValidation *bool                                    `json:"disableCertValidation,omitempty"`

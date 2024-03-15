@@ -43,7 +43,10 @@ func (c JobScheduleClient) Get(ctx context.Context, id JobScheduleId) (result Ge
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model JobSchedule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

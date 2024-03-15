@@ -77,7 +77,10 @@ func (c CacheClient) CreateOrUpdate(ctx context.Context, id CacheId, input Cache
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CacheContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -17,12 +17,13 @@ import (
 	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
-	nginx_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01"
+	nginx_2024_01_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview"
 	redis_2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01"
 	servicenetworking_v2023_05_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-05-01-preview"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
+	workloads_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -149,6 +150,7 @@ import (
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
+	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
 
 type Client struct {
@@ -245,7 +247,7 @@ type Client struct {
 	Network                           *network.Client
 	NetworkFunction                   *networkfunction.Client
 	NewRelic                          *newrelic.Client
-	Nginx                             *nginx_2023_09_01.Client
+	Nginx                             *nginx_2024_01_01_preview.Client
 	NotificationHubs                  *notificationhub.Client
 	Orbital                           *orbital.Client
 	PaloAlto                          *paloalto.Client
@@ -284,6 +286,7 @@ type Client struct {
 	Vmware                            *vmware.Client
 	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
+	Workloads                         *workloads_v2023_04_01.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -597,7 +600,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Search, err = search.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Search: %+v", err)
 	}
-	client.SecurityCenter = securityCenter.NewClient(o)
+	if client.SecurityCenter, err = securityCenter.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Security Center: %+v", err)
+	}
 	if client.Sentinel, err = sentinel.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Sentinel: %+v", err)
 	}
@@ -607,9 +612,11 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ServiceConnector, err = serviceConnector.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ServiceConnector: %+v", err)
 	}
-	client.ServiceFabric = serviceFabric.NewClient(o)
+	if client.ServiceFabric, err = serviceFabric.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ServiceConnector: %+v", err)
+	}
 	if client.ServiceFabricManaged, err = serviceFabricManaged.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for ServiceFabricManagedCluster: %+v", err)
+		return fmt.Errorf("building clients for ServiceFabric: %+v", err)
 	}
 	if client.ServiceNetworking, err = serviceNetworking.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ServiceNetworking: %+v", err)
@@ -651,6 +658,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Voice Services: %+v", err)
 	}
 	client.Web = web.NewClient(o)
+
+	if client.Workloads, err = workloads.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Workloads: %+v", err)
+	}
 
 	return nil
 }

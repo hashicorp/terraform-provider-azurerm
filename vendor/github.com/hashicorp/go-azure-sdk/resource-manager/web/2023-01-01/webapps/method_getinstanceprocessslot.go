@@ -43,7 +43,10 @@ func (c WebAppsClient) GetInstanceProcessSlot(ctx context.Context, id SlotInstan
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ProcessInfo
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -1,6 +1,10 @@
 package assessmentsmetadata
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -21,6 +25,19 @@ func PossibleValuesForAssessmentType() []string {
 		string(AssessmentTypeCustomerManaged),
 		string(AssessmentTypeVerifiedPartner),
 	}
+}
+
+func (s *AssessmentType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAssessmentType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAssessmentType(input string) (*AssessmentType, error) {
@@ -59,6 +76,19 @@ func PossibleValuesForCategories() []string {
 	}
 }
 
+func (s *Categories) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCategories(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseCategories(input string) (*Categories, error) {
 	vals := map[string]Categories{
 		"compute":           CategoriesCompute,
@@ -92,6 +122,19 @@ func PossibleValuesForImplementationEffort() []string {
 	}
 }
 
+func (s *ImplementationEffort) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseImplementationEffort(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseImplementationEffort(input string) (*ImplementationEffort, error) {
 	vals := map[string]ImplementationEffort{
 		"high":     ImplementationEffortHigh,
@@ -121,6 +164,19 @@ func PossibleValuesForSeverity() []string {
 		string(SeverityLow),
 		string(SeverityMedium),
 	}
+}
+
+func (s *Severity) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSeverity(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSeverity(input string) (*Severity, error) {
@@ -174,6 +230,19 @@ func PossibleValuesForTactics() []string {
 		string(TacticsReconnaissance),
 		string(TacticsResourceDevelopment),
 	}
+}
+
+func (s *Tactics) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTactics(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTactics(input string) (*Tactics, error) {
@@ -420,6 +489,19 @@ func PossibleValuesForTechniques() []string {
 	}
 }
 
+func (s *Techniques) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTechniques(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTechniques(input string) (*Techniques, error) {
 	vals := map[string]Techniques{
 		"abuse elevation control mechanism":           TechniquesAbuseElevationControlMechanism,
@@ -562,6 +644,19 @@ func PossibleValuesForThreats() []string {
 	}
 }
 
+func (s *Threats) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseThreats(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseThreats(input string) (*Threats, error) {
 	vals := map[string]Threats{
 		"accountbreach":        ThreatsAccountBreach,
@@ -596,6 +691,19 @@ func PossibleValuesForUserImpact() []string {
 		string(UserImpactLow),
 		string(UserImpactModerate),
 	}
+}
+
+func (s *UserImpact) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUserImpact(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseUserImpact(input string) (*UserImpact, error) {

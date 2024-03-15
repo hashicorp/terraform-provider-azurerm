@@ -12,6 +12,8 @@ Manages a Static Site Custom Domain.
 
 !> DNS validation polling is only done for CNAME records, terraform will not validate TXT validation records are complete.
 
+-> **NOTE:** The `azurerm_static_site_custom_domain` resource is deprecated in favour of `azurerm_static_web_app_custom_domain` and will be removed in a future major release.
+
 ## Example Usage
 
 ### CNAME validation

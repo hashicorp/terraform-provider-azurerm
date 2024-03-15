@@ -48,7 +48,10 @@ func (c SnapshotsClient) CreateOrUpdate(ctx context.Context, id SnapshotId, inpu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Snapshot
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -48,7 +48,10 @@ func (c TestJobClient) Create(ctx context.Context, id RunbookId, input TestJobCr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TestJob
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

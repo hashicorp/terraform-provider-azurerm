@@ -48,7 +48,10 @@ func (c ReferenceDataSetsClient) CreateOrUpdate(ctx context.Context, id Referenc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ReferenceDataSetResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

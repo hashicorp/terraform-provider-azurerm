@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,6 +37,12 @@ type NetworkInterface struct {
 	SubnetId string `tfschema:"subnet_id"`
 }
 
+type AutoScaleProfile struct {
+	Name string `tfschema:"name"`
+	Min  int64  `tfschema:"min_capacity"`
+	Max  int64  `tfschema:"max_capacity"`
+}
+
 type DeploymentModel struct {
 	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
 	Name                   string                                     `tfschema:"name"`
@@ -46,6 +52,7 @@ type DeploymentModel struct {
 	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
+	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
 	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
@@ -53,6 +60,7 @@ type DeploymentModel struct {
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
+	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
@@ -98,10 +106,38 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"capacity": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Default:      20,
-			ValidateFunc: validation.IntPositive,
+			Type:          pluginsdk.TypeInt,
+			Optional:      true,
+			ConflictsWith: []string{"auto_scale_profile"},
+			Default:       20,
+			ValidateFunc:  validation.IntPositive,
+		},
+
+		"auto_scale_profile": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			ConflictsWith: []string{"capacity"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"min_capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntPositive,
+					},
+
+					"max_capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntPositive,
+					},
+				},
+			},
 		},
 
 		"diagnose_support_enabled": {
@@ -192,6 +228,17 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"automatic_upgrade_channel": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "stable",
+			ValidateFunc: validation.StringInSlice(
+				[]string{
+					"stable",
+					"preview",
+				}, false),
 		},
 
 		"tags": commonschema.Tags(),
@@ -303,9 +350,33 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if autoScaleProfile := model.AutoScaleProfile; len(autoScaleProfile) > 0 {
+				var autoScaleProfiles []nginxdeployment.ScaleProfile
+				for _, profile := range autoScaleProfile {
+					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+						Name: profile.Name,
+						Capacity: nginxdeployment.ScaleProfileCapacity{
+							Min: profile.Min,
+							Max: profile.Max,
+						},
+					})
+				}
+				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+						Profiles: autoScaleProfiles,
+					},
+				}
+			}
+
 			if model.Email != "" {
 				prop.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
 					PreferredEmail: pointer.FromString(model.Email),
+				}
+			}
+
+			if model.UpgradeChannel != "" {
+				prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+					UpgradeChannel: model.UpgradeChannel,
 				}
 			}
 
@@ -405,11 +476,27 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 					}
 
 					if scaling := props.ScalingProperties; scaling != nil {
-						output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+						if capacity := scaling.Capacity; capacity != nil {
+							output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+						}
+						if autoScaleProfiles := scaling.AutoScaleSettings; autoScaleProfiles != nil {
+							profiles := autoScaleProfiles.Profiles
+							for _, profile := range profiles {
+								output.AutoScaleProfile = append(output.AutoScaleProfile, AutoScaleProfile{
+									Name: profile.Name,
+									Min:  profile.Capacity.Min,
+									Max:  profile.Capacity.Max,
+								})
+							}
+						}
 					}
 
 					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
 						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
+					}
+
+					if props.AutoUpgradeProfile != nil {
+						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
 					}
 
 					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
@@ -475,9 +562,33 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if meta.ResourceData.HasChange("auto_scale_profile") && len(model.AutoScaleProfile) > 0 {
+				var autoScaleProfiles []nginxdeployment.ScaleProfile
+				for _, profile := range model.AutoScaleProfile {
+					autoScaleProfiles = append(autoScaleProfiles, nginxdeployment.ScaleProfile{
+						Name: profile.Name,
+						Capacity: nginxdeployment.ScaleProfileCapacity{
+							Min: profile.Min,
+							Max: profile.Max,
+						},
+					})
+				}
+				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
+					AutoScaleSettings: &nginxdeployment.NginxDeploymentScalingPropertiesAutoScaleSettings{
+						Profiles: autoScaleProfiles,
+					},
+				}
+			}
+
 			if meta.ResourceData.HasChange("email") {
 				req.Properties.UserProfile = &nginxdeployment.NginxDeploymentUserProfile{
 					PreferredEmail: pointer.FromString(model.Email),
+				}
+			}
+
+			if meta.ResourceData.HasChange("automatic_upgrade_channel") {
+				req.Properties.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
+					UpgradeChannel: model.UpgradeChannel,
 				}
 			}
 

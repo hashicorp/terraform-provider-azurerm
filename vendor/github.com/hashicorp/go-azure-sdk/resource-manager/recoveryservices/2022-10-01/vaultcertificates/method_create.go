@@ -47,7 +47,10 @@ func (c VaultCertificatesClient) Create(ctx context.Context, id CertificateId, i
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VaultCertificateResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

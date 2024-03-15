@@ -43,7 +43,10 @@ func (c VMmServersClient) Get(ctx context.Context, id VMmServerId) (result GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VMMServer
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

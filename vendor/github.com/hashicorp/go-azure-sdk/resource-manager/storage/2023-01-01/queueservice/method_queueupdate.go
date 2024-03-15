@@ -47,7 +47,10 @@ func (c QueueServiceClient) QueueUpdate(ctx context.Context, id QueueId, input S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StorageQueue
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

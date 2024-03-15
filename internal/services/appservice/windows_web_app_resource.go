@@ -321,7 +321,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 							metadata.Logger.Warnf("could not parse App Service Environment ID determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
 						} else {
 							existingASE, err := aseClient.Get(ctx, *aseId)
-							if err != nil || existing.Model == nil {
+							if err != nil || existingASE.Model == nil {
 								metadata.Logger.Warnf("could not read App Service Environment to determine FQDN for name availability check, defaulting to `%s.%s.appserviceenvironment.net`", webApp.Name, servicePlanId)
 							} else if props := existingASE.Model.Properties; props != nil && props.DnsSuffix != nil && *props.DnsSuffix != "" {
 								nameSuffix = *props.DnsSuffix

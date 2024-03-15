@@ -49,7 +49,10 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesCreateOrUpdate(ctx contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Identity
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

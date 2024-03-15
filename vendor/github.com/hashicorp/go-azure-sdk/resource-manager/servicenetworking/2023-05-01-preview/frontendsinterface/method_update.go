@@ -47,7 +47,10 @@ func (c FrontendsInterfaceClient) Update(ctx context.Context, id FrontendId, inp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Frontend
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

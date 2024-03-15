@@ -49,6 +49,28 @@ func TestAccContactProfile_multipleChannels(t *testing.T) {
 	})
 }
 
+func TestAccContactProfile_addChannel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
+	r := ContactProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multipleChannels(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContactProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact_profile", "test")
 	r := ContactProfileResource{}
@@ -233,6 +255,16 @@ resource "azurerm_eventhub" "test" {
   message_retention   = 1
 }
 
+data "azuread_service_principal" "test" {
+  display_name = "Azure Orbital Resource Provider"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_eventhub.test.id
+  role_definition_name = "Azure Event Hubs Data Sender"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
 resource "azurerm_orbital_contact_profile" "test" {
   name                              = "testcontactprofile-%d"
   resource_group_name               = azurerm_resource_group.test.name
@@ -246,7 +278,7 @@ resource "azurerm_orbital_contact_profile" "test" {
       name                       = "channelname"
       bandwidth_mhz              = 100
       center_frequency_mhz       = 101
-      demodulation_configuration = "na"
+      demodulation_configuration = "aqua_direct_broadcast"
       modulation_configuration   = "AQUA_UPLINK_BPSK"
       end_point {
         end_point_name = "AQUA_command"
@@ -260,6 +292,8 @@ resource "azurerm_orbital_contact_profile" "test" {
     polarization = "RHCP"
   }
   network_configuration_subnet_id = azurerm_subnet.test.id
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

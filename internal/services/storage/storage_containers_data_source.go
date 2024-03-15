@@ -12,9 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type storageContainersDataSource struct{}
@@ -86,7 +88,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.BlobContainers
+			blobContainersClient := metadata.Client.Storage.ResourceManager.BlobContainers
 
 			var plan storageContainersDataSourceModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -98,12 +100,32 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.ListCompleteMatchingPredicate(ctx, *id, blobcontainers.DefaultListOperationOptions(), blobcontainers.ListContainerItemOperationPredicate{})
+			account, err := metadata.Client.Storage.FindAccount(ctx, id.StorageAccountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Storage Account %q: %v", id.StorageAccountName, err)
+			}
+			if account == nil {
+				return fmt.Errorf("locating Storage Account %q", id.StorageAccountName)
+			}
+
+			// Determine the blob endpoint, so we can build a data plane ID
+			endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+			if err != nil {
+				return fmt.Errorf("determining Blob endpoint: %v", err)
+			}
+
+			// Parse the blob endpoint as a data plane account ID
+			accountId, err := accounts.ParseAccountID(*endpoint, metadata.Client.Storage.StorageDomainSuffix)
+			if err != nil {
+				return fmt.Errorf("parsing Account ID: %v", err)
+			}
+
+			resp, err := blobContainersClient.ListCompleteMatchingPredicate(ctx, *id, blobcontainers.DefaultListOperationOptions(), blobcontainers.ListContainerItemOperationPredicate{})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			plan.Containers = flattenStorageContainersContainers(resp.Items, id.StorageAccountName, metadata.Client.Storage.Environment.StorageEndpointSuffix, plan.NamePrefix)
+			plan.Containers = flattenStorageContainersContainers(resp.Items, *accountId, plan.NamePrefix)
 
 			if err := metadata.Encode(&plan); err != nil {
 				return fmt.Errorf("encoding %s: %+v", id, err)
@@ -116,7 +138,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, accountName, endpointSuffix, prefix string) []containerModel {
+func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
 	var output []containerModel
 	for _, item := range l {
 		var name string
@@ -136,7 +158,7 @@ func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, ac
 		output = append(output, containerModel{
 			Name:              name,
 			ResourceManagerId: mgmtId,
-			DataPlaneId:       parse.NewStorageContainerDataPlaneId(accountName, endpointSuffix, name).ID(),
+			DataPlaneId:       containers.NewContainerID(accountId, name).ID(),
 		})
 	}
 

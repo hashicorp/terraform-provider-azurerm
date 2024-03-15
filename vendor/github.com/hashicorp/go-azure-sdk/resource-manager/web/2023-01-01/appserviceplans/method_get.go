@@ -44,7 +44,10 @@ func (c AppServicePlansClient) Get(ctx context.Context, id commonids.AppServiceP
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AppServicePlan
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

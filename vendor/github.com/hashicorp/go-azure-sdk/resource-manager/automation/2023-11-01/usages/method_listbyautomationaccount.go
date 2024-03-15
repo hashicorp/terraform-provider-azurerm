@@ -44,7 +44,10 @@ func (c UsagesClient) ListByAutomationAccount(ctx context.Context, id Automation
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model UsageListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -6,6 +6,7 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -208,8 +209,11 @@ func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	secondaryLocation := location.Normalize(data.Locations.Secondary)
-	ternaryLocation := location.Normalize(data.Locations.Ternary)
+	locs := []string{location.Normalize(data.Locations.Secondary), location.Normalize(data.Locations.Ternary)}
+	// Sorting the secondary and ternary locations to ensure the order as is expected by this resource (see its Read() function)
+	slices.Sort(locs)
+	secondaryLocation := locs[0]
+	ternaryLocation := locs[1]
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// creates an ACR with locations

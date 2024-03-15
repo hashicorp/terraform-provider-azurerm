@@ -45,7 +45,10 @@ func (c WebAppsClient) IsCloneable(ctx context.Context, id commonids.AppServiceI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteCloneability
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

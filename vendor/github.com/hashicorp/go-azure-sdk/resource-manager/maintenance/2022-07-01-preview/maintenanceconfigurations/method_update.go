@@ -47,7 +47,10 @@ func (c MaintenanceConfigurationsClient) Update(ctx context.Context, id Maintena
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MaintenanceConfiguration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
