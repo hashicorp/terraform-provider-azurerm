@@ -89,17 +89,17 @@ func TestAccApiManagementPolicyFragment_rawxml(t *testing.T) {
 }
 
 func (ApiManagementPolicyFragmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := policyfragment.ParsePolicyFragmentIDInsensitively(state.ID)
+	id, err := policyfragment.ParsePolicyFragmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ApiManagement.PolicyFragmentClient.Get(ctx, *id, policyfragment.GetOperationOptions{})
+	resp, err := clients.ApiManagement.PolicyFragmentClient.Get(ctx, *id, policyfragment.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ApiManagementPolicyFragmentResource) basic(data acceptance.TestData) string {
