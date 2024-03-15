@@ -29,10 +29,10 @@ resource "azurerm_api_management" "example" {
 }
 
 resource "azurerm_api_management_policy_fragment" "example" {
-  api_management_id   = azurerm_api_management.example.id
-  name                = "example-policy-fragment"
-  format              = "xml"
-  value               = file("policy-fragment-1.xml")
+  api_management_id = azurerm_api_management.example.id
+  name              = "example-policy-fragment"
+  format            = "xml"
+  value             = file("policy-fragment-1.xml")
 }
 ```
 
