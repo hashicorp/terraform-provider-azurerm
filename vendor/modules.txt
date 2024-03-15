@@ -127,7 +127,7 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/uuid v1.3.1
+# github.com/google/uuid v1.4.0
 ## explicit
 github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
@@ -1045,12 +1045,26 @@ github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/monitors
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/providerinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapapplicationserverinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapavailabilityzonedetails
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapcentralinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapdatabaseinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapdiskconfigurations
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplandscapemonitor
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
 # github.com/hashicorp/go-azure-sdk/sdk v0.20240315.1103122
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
 github.com/hashicorp/go-azure-sdk/sdk/claims
 github.com/hashicorp/go-azure-sdk/sdk/client
+github.com/hashicorp/go-azure-sdk/sdk/client/dataplane
+github.com/hashicorp/go-azure-sdk/sdk/client/dataplane/storage
 github.com/hashicorp/go-azure-sdk/sdk/client/msgraph
 github.com/hashicorp/go-azure-sdk/sdk/client/pollers
 github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager
@@ -1242,23 +1256,21 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.2.0
 ## explicit; go 1.12
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/tombuildsstuff/giovanni v0.20.0
-## explicit; go 1.13
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/accounts
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/filesystems
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/datalakestore/paths
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/directories
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/queue/queues
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/entities
-github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/tables
+# github.com/tombuildsstuff/giovanni v0.25.1
+## explicit; go 1.21
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities
+github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables
 github.com/tombuildsstuff/giovanni/storage/accesscontrol
-github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
-github.com/tombuildsstuff/giovanni/version
 # github.com/tombuildsstuff/kermit v0.20240122.1123108
 ## explicit; go 1.18
 github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration
