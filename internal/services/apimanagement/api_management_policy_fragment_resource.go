@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policyfragment"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -94,17 +95,16 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyFragmentClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	apiManagementId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
 	if err != nil {
 		return err
 	}
-	id := policyfragment.NewPolicyFragmentID(apiManagementId.SubscriptionID, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, d.Get("name").(string))
+	id := policyfragment.NewPolicyFragmentID(apiManagementId.SubscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, d.Get("name").(string))
 	format := policyfragment.PolicyFragmentContentFormat(d.Get("format").(string))
 	if d.IsNewResource() {
-		opts := policyfragment.DefaultGetOperationOptions
+		opts := policyfragment.DefaultGetOperationOptions()
 		opts.Format = &format
 		existing, err := client.Get(ctx, id, opts)
 		if err != nil {
@@ -143,7 +143,7 @@ func resourceApiManagementPolicyFragmentUpdate(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := policyfragment.ParsePolicyFragmentID(d.ID())
+	id, err := policyfragment.ParsePolicyFragmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func resourceApiManagementPolicyFragmentRead(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.Set("name", id.PolicyFragmentName)
-	apiManagementId := apimanagementservice.NewServiceID(id.SubscriptionID, id.ResourceGroupName, id.ServiceName)
+	apiManagementId := apimanagementservice.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
 	d.Set("api_management_id", apiManagementId.ID())
 
 	if model := resp.Model; model != nil {
@@ -204,7 +204,7 @@ func resourceApiManagementPolicyFragmentRead(d *pluginsdk.ResourceData, meta int
 			d.Set("value", props.Value)
 			// the api only returns a format field when it's requested in the GET request as param '?format=rawxml' and only does so when it's not 'xml'
 			format := policyfragment.PolicyFragmentContentFormatXml
-			if props.Format != nil{
+			if props.Format != nil {
 				format = *props.Format
 			}
 			d.Set("format", string(format))
@@ -224,7 +224,7 @@ func resourceApiManagementPolicyFragmentDelete(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	if err := client.Delete(ctx, *id, policyfragment.DefaultDeleteOperationOptions()); err != nil {
+	if _, err = client.Delete(ctx, *id, policyfragment.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting %s: %s", *id, err)
 	}
 

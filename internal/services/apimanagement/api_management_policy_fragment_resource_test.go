@@ -107,9 +107,8 @@ func (r ApiManagementPolicyFragmentResource) basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_management_policy_fragment" "test" {
+  api_management_id   = azurerm_api_management.test.id
   name                = azurerm_api_management.test.name
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
   description         = "Some descriptive text"
   value               = file("testdata/api_management_policy_fragment_test_xml.xml")
 }
@@ -121,9 +120,8 @@ func (r ApiManagementPolicyFragmentResource) requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_api_management_policy_fragment" "import" {
+  api_management_id   = azurerm_api_management_policy_fragment.test.api_management_id
   name                = azurerm_api_management_policy_fragment.test.name
-  api_management_name = azurerm_api_management_policy_fragment.test.api_management_name
-  resource_group_name = azurerm_api_management_policy_fragment.test.resource_group_name
   description         = azurerm_api_management_policy_fragment.test.description
   value               = azurerm_api_management_policy_fragment.test.value
 }
@@ -135,9 +133,8 @@ func (r ApiManagementPolicyFragmentResource) update(data acceptance.TestData) st
 %s
 
 resource "azurerm_api_management_policy_fragment" "test" {
+  api_management_id   = azurerm_api_management.test.id
   name                = azurerm_api_management.test.name
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
   description         = "Some descriptive text which is updated"
   value               = file("testdata/api_management_policy_fragment_test_xml.xml")
 }
@@ -149,9 +146,8 @@ func (r ApiManagementPolicyFragmentResource) rawxml(data acceptance.TestData) st
 %s
 
 resource "azurerm_api_management_policy_fragment" "test" {
+  api_management_id   = azurerm_api_management.test.id
   name                = azurerm_api_management.test.name
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
   description         = "Some descriptive text"
   format              = "rawxml"
   value               = file("testdata/api_management_policy_fragment_test_rawxml.xml")

@@ -29,9 +29,8 @@ resource "azurerm_api_management" "example" {
 }
 
 resource "azurerm_api_management_policy_fragment" "example" {
+  api_management_id   = azurerm_api_management.example.id
   name                = "example-policy-fragment"
-  api_management_name = azurerm_api_management.example.name
-  resource_group_name = azurerm_api_management.example.name
   format              = "xml"
   value               = file("policy-fragment-1.xml")
 }
@@ -41,9 +40,7 @@ resource "azurerm_api_management_policy_fragment" "example" {
 
 The following arguments are supported:
 
-* `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new Api Management Policy Fragment to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new Api Management Policy Fragment to be created.
+* `api_management_id` - (Required) The id of the API Management Service. Changing this forces a new Api Management Policy Fragment to be created.
 
 * `name` - (Required) The name which should be used for this Api Management Policy Fragment. Changing this forces a new Api Management Policy Fragment to be created.
 
