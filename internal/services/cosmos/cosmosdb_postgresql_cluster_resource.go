@@ -36,7 +36,7 @@ type CosmosDbPostgreSQLClusterModel struct {
 	SourceLocation                   string              `tfschema:"source_location"`
 	SourceResourceId                 string              `tfschema:"source_resource_id"`
 	MaintenanceWindow                []MaintenanceWindow `tfschema:"maintenance_window"`
-	ServerNames                      []ServerNameItem    `tfschema:"server_names"`
+	ServerNames                      []ServerNameItem    `tfschema:"servers"`
 	NodeCount                        int64               `tfschema:"node_count"`
 	NodePublicIPAccessEnabled        bool                `tfschema:"node_public_ip_access_enabled"`
 	NodeServerEdition                string              `tfschema:"node_server_edition"`
@@ -310,7 +310,7 @@ func (r CosmosDbPostgreSQLClusterResource) Attributes() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"server_names": {
+		"servers": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -580,7 +580,7 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 				state.CoordinatorServerEdition = pointer.From(props.CoordinatorServerEdition)
 				state.CoordinatorStorageQuotaInMb = pointer.From(props.CoordinatorStorageQuotaInMb)
 				state.CoordinatorVCoreCount = pointer.From(props.CoordinatorVCores)
-				state.ServerNames = formatServerNames(props.ServerNames)
+				state.ServerNames = flattenServerNames(props.ServerNames)
 				state.HaEnabled = pointer.From(props.EnableHa)
 				state.NodeCount = pointer.From(props.NodeCount)
 				state.NodePublicIPAccessEnabled = pointer.From(props.NodeEnablePublicIPAccess)
@@ -660,12 +660,13 @@ func flattenMaintenanceWindow(input *clusters.MaintenanceWindow) []MaintenanceWi
 	}
 }
 
-func formatServerNames(input *[]clusters.ServerNameItem) []ServerNameItem {
+func flattenServerNames(input *[]clusters.ServerNameItem) []ServerNameItem {
+	var output []ServerNameItem
+
 	if input == nil {
-		return nil
+		return output
 	}
 
-	var output []ServerNameItem
 	for _, v := range *input {
 		output = append(output, ServerNameItem{
 			FullyQualifiedDomainName: *v.FullyQualifiedDomainName,
