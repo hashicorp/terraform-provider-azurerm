@@ -72,7 +72,10 @@ func (c PolicyFragmentClient) Get(ctx context.Context, id PolicyFragmentId, opti
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PolicyFragmentContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

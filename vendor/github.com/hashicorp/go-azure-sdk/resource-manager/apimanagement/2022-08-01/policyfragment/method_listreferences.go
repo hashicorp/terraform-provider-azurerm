@@ -15,7 +15,12 @@ import (
 type ListReferencesOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ResourceCollection
+	Model        *[]Resource
+}
+
+type ListReferencesCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Resource
 }
 
 type ListReferencesOperationOptions struct {
@@ -67,7 +72,7 @@ func (c PolicyFragmentClient) ListReferences(ctx context.Context, id PolicyFragm
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -76,9 +81,43 @@ func (c PolicyFragmentClient) ListReferences(ctx context.Context, id PolicyFragm
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]Resource `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListReferencesComplete retrieves all the results into a single object
+func (c PolicyFragmentClient) ListReferencesComplete(ctx context.Context, id PolicyFragmentId, options ListReferencesOperationOptions) (ListReferencesCompleteResult, error) {
+	return c.ListReferencesCompleteMatchingPredicate(ctx, id, options, ResourceOperationPredicate{})
+}
+
+// ListReferencesCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c PolicyFragmentClient) ListReferencesCompleteMatchingPredicate(ctx context.Context, id PolicyFragmentId, options ListReferencesOperationOptions, predicate ResourceOperationPredicate) (result ListReferencesCompleteResult, err error) {
+	items := make([]Resource, 0)
+
+	resp, err := c.ListReferences(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListReferencesCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }
