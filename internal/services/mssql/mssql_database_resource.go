@@ -325,8 +325,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode)
 		}
 	case databases.CreateModeRestoreLongTermRetentionBackup:
-		if _, dbok := d.GetOk("long_term_retention_backup_id"); !dbok {
-			return fmt.Errorf("'long_term_retention_backup_id' is required for create_mode %s", createMode)
+		if _, dbok := d.GetOk("restore_long_term_retention_backup_id"); !dbok {
+			return fmt.Errorf("'restore_long_term_retention_backup_id' is required for create_mode %s", createMode)
 		}
 	}
 

@@ -1,5 +1,5 @@
 ---
-subcategory: "VMware (AVS)"
+subcategory: "Azure VMware Solution"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_vmware_private_cloud"
 description: |-

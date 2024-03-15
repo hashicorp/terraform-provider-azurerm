@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/clusters"
@@ -35,13 +36,17 @@ func (r StackHCIClusterDataSource) ModelObject() interface{} {
 }
 
 type StackHCIClusterDataSourceModel struct {
-	Name                      string                 `tfschema:"name"`
-	ResourceGroupName         string                 `tfschema:"resource_group_name"`
-	Location                  string                 `tfschema:"location"`
-	ClientId                  string                 `tfschema:"client_id"`
-	TenantId                  string                 `tfschema:"tenant_id"`
-	AutomanageConfigurationId string                 `tfschema:"automanage_configuration_id"`
-	Tags                      map[string]interface{} `tfschema:"tags"`
+	Name                      string                         `tfschema:"name"`
+	ResourceGroupName         string                         `tfschema:"resource_group_name"`
+	Location                  string                         `tfschema:"location"`
+	ClientId                  string                         `tfschema:"client_id"`
+	TenantId                  string                         `tfschema:"tenant_id"`
+	AutomanageConfigurationId string                         `tfschema:"automanage_configuration_id"`
+	CloudId                   string                         `tfschema:"cloud_id"`
+	ServiceEndpoint           string                         `tfschema:"service_endpoint"`
+	ResourceProviderObjectId  string                         `tfschema:"resource_provider_object_id"`
+	Identity                  []identity.ModelSystemAssigned `tfschema:"identity"`
+	Tags                      map[string]interface{}         `tfschema:"tags"`
 }
 
 func (r StackHCIClusterDataSource) Arguments() map[string]*schema.Schema {
@@ -74,6 +79,23 @@ func (r StackHCIClusterDataSource) Attributes() map[string]*schema.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"cloud_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"service_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"resource_provider_object_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"identity": commonschema.SystemAssignedIdentityComputed(),
 
 		"tags": commonschema.TagsDataSource(),
 	}
@@ -108,6 +130,10 @@ func (r StackHCIClusterDataSource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					cluster.ClientId = pointer.From(props.AadClientId)
+					cluster.CloudId = pointer.From(props.CloudId)
+					cluster.Identity = flattenSystemAssignedToModel(model.Identity)
+					cluster.ResourceProviderObjectId = pointer.From(props.ResourceProviderObjectId)
+					cluster.ServiceEndpoint = pointer.From(props.ServiceEndpoint)
 					cluster.TenantId = pointer.From(props.AadTenantId)
 
 					assignmentResp, err := hciAssignmentClient.Get(ctx, id.ResourceGroupName, id.ClusterName, "default")
@@ -129,6 +155,24 @@ func (r StackHCIClusterDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			return metadata.Encode(&cluster)
+		},
+	}
+}
+
+func flattenSystemAssignedToModel(input *identity.SystemAndUserAssignedMap) []identity.ModelSystemAssigned {
+	if input == nil {
+		return []identity.ModelSystemAssigned{}
+	}
+
+	if input.Type == identity.TypeNone {
+		return []identity.ModelSystemAssigned{}
+	}
+
+	return []identity.ModelSystemAssigned{
+		{
+			Type:        input.Type,
+			PrincipalId: input.PrincipalId,
+			TenantId:    input.TenantId,
 		},
 	}
 }

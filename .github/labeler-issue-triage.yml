@@ -356,3 +356,6 @@ service/virtual-desktops:
 
 service/vmware:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_vmware_((.|\n)*)###'
+
+service/workloads:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_workloads_sap_((.|\n)*)###'

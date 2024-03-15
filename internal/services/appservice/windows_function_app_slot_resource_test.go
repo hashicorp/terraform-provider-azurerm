@@ -789,6 +789,22 @@ func TestAccWindowsFunctionAppSlot_appStackNode(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionAppSlot_appStackNode20(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
+	r := WindowsFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackNode(data, SkuStandardPlan, "~20"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app_slot", "test")
 	r := WindowsFunctionAppSlotResource{}
@@ -810,6 +826,14 @@ func TestAccWindowsFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackNode(data, SkuStandardPlan, "~20"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -2286,6 +2310,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
+// nolint: unparam
 func (r WindowsFunctionAppSlotResource) appStackNode(data acceptance.TestData, planSku string, nodeVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

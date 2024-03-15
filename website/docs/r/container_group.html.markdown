@@ -165,7 +165,7 @@ A `container` block supports:
 
 * `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers.
 
-* `memory_limit` - (Optional) The the upper limit of the memory of the containers in GB.
+* `memory_limit` - (Optional) The upper limit of the memory of the containers in GB.
 
 * `gpu_limit` - (Optional) A `gpu_limit` block as defined below.
 

@@ -160,14 +160,9 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 				Type: pointer.To(string(datastore.DatastoreTypeAzureBlob)),
 			}
 
-			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
-			if !ok {
-				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
-			}
-
 			props := &datastore.AzureBlobDatastore{
 				AccountName:                   pointer.To(containerId.StorageAccountName),
-				Endpoint:                      storageDomainSuffix,
+				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
