@@ -7,20 +7,20 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type deleteAndPurgeNestedItem interface {
-	DeleteNestedItem(ctx context.Context) (autorest.Response, error)
-	NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error)
-	PurgeNestedItem(ctx context.Context) (autorest.Response, error)
-	NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error)
+	DeleteNestedItem(ctx context.Context) (*http.Response, error)
+	NestedItemHasBeenDeleted(ctx context.Context) (*http.Response, error)
+	PurgeNestedItem(ctx context.Context) (*http.Response, error)
+	NestedItemHasBeenPurged(ctx context.Context) (*http.Response, error)
 }
 
 func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPurge bool, helper deleteAndPurgeNestedItem) error {
@@ -31,7 +31,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 
 	log.Printf("[DEBUG] Deleting %s..", description)
 	if resp, err := helper.DeleteNestedItem(ctx); err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(resp) {
 			return nil
 		}
 
@@ -44,7 +44,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		Refresh: func() (interface{}, string, error) {
 			item, err := helper.NestedItemHasBeenDeleted(ctx)
 			if err != nil {
-				if utils.ResponseWasNotFound(item) {
+				if response.WasNotFound(item) {
 					return item, "NotFound", nil
 				}
 
@@ -89,7 +89,7 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 		Refresh: func() (interface{}, string, error) {
 			item, err := helper.NestedItemHasBeenPurged(ctx)
 			if err != nil {
-				if utils.ResponseWasNotFound(item) {
+				if response.WasNotFound(item) {
 					return item, "NotFound", nil
 				}
 

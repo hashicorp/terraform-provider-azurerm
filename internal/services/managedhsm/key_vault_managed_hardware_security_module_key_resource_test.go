@@ -18,7 +18,7 @@ type KeyVaultManagedHSMKeyResource struct{}
 
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
 func (k KeyVaultManagedHSMKeyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ParseNestedItemID(state.ID)
+	id, err := parse.ParseManagedHSMKeyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -73,9 +73,9 @@ func (id ManagedHSMKeyID) VersionlessID() string {
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
 }
 
-// ParseNestedItemID parses a managed HSM Nested Item ID (such as a Certificate, Key or Secret)
+// ParseManagedHSMKeyID parses a managed HSM Nested Item ID (such as a Certificate, Key or Secret)
 // containing a version into a NestedItemId object
-func ParseNestedItemID(input string) (*ManagedHSMKeyID, error) {
+func ParseManagedHSMKeyID(input string) (*ManagedHSMKeyID, error) {
 	item, err := parseNestedItemId(input)
 	if err != nil {
 		return nil, err
@@ -88,9 +88,9 @@ func ParseNestedItemID(input string) (*ManagedHSMKeyID, error) {
 	return item, nil
 }
 
-// ParseOptionallyVersionedNestedItemID parses a managed HSM Nested Item ID (such as a Certificate, Key or Secret)
+// ParseOptionallyVersionedMangedHSMKeyID parses a managed HSM Nested Item ID (such as a Certificate, Key or Secret)
 // optionally containing a version into a NestedItemId object
-func ParseOptionallyVersionedNestedItemID(input string) (*ManagedHSMKeyID, error) {
+func ParseOptionallyVersionedMangedHSMKeyID(input string) (*ManagedHSMKeyID, error) {
 	return parseNestedItemId(input)
 }
 

@@ -102,7 +102,7 @@ func TestParseNestedItemID(t *testing.T) {
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing %q", tc.Input)
 
-		secretId, err := ParseNestedItemID(tc.Input)
+		secretId, err := ParseManagedHSMKeyID(tc.Input)
 		if err != nil {
 			if tc.ExpectError {
 				t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)
@@ -185,7 +185,7 @@ func TestParseOptionallyVersionedNestedItemID(t *testing.T) {
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing %q", tc.Input)
 
-		secretId, err := ParseOptionallyVersionedNestedItemID(tc.Input)
+		secretId, err := ParseOptionallyVersionedMangedHSMKeyID(tc.Input)
 		if err != nil {
 			if tc.ExpectError {
 				t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)

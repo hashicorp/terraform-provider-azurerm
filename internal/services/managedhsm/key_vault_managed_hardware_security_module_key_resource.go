@@ -14,10 +14,10 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -105,7 +105,7 @@ func (KeyVaultManagedHardwareSecurityModuleKeyResouece) CustomizeDiff() sdk.Reso
 // CustomImporter implements sdk.ResourceWithCustomImporter.
 func (KeyVaultManagedHardwareSecurityModuleKeyResouece) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, meta sdk.ResourceMetaData) error {
-		id, err := parse.ParseNestedItemID(meta.ResourceData.Id())
+		id, err := parse.ParseManagedHSMKeyID(meta.ResourceData.Id())
 		if err != nil {
 			return err
 		}
@@ -435,7 +435,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) Create() sdk.ResourceF
 			if read.Key == nil || read.Key.Kid == nil {
 				return fmt.Errorf("cannot read KeyVault Key '%s' (in Managed HSM '%s')", name, *managedHSMBaseUri)
 			}
-			keyId, err := parse.ParseNestedItemID(*read.Key.Kid)
+			keyId, err := parse.ParseManagedHSMKeyID(*read.Key.Kid)
 			if err != nil {
 				return err
 			}
@@ -454,7 +454,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) Read() sdk.ResourceFun
 			client := hsmsClient.DataPlaneManagedHSMClient
 			subscriptionId := meta.Client.Account.SubscriptionId
 
-			id, err := parse.ParseNestedItemID(meta.ResourceData.Id())
+			id, err := parse.ParseManagedHSMKeyID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -601,7 +601,7 @@ func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) Update() sdk.ResourceF
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			hsmsClient := meta.Client.ManagedHSMs
 
-			id, err := parse.ParseNestedItemID(meta.ResourceData.Id())
+			id, err := parse.ParseManagedHSMKeyID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -682,7 +682,7 @@ func (KeyVaultManagedHardwareSecurityModuleKeyResouece) Delete() sdk.ResourceFun
 			client := hsmsClient.DataPlaneManagedHSMClient
 			subscriptionId := meta.Client.Account.SubscriptionId
 
-			id, err := parse.ParseNestedItemID(meta.ResourceData.Id())
+			id, err := parse.ParseManagedHSMKeyID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -820,23 +820,24 @@ type deleteAndPurgeKey struct {
 	name    string
 }
 
-func (d deleteAndPurgeKey) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+func (d deleteAndPurgeKey) DeleteNestedItem(ctx context.Context) (*http.Response, error) {
 	resp, err := d.client.DeleteKey(ctx, d.mHSMUri, d.name)
-	return resp.Response, err
+	return resp.Response.Response, err
 }
 
-func (d deleteAndPurgeKey) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+func (d deleteAndPurgeKey) NestedItemHasBeenDeleted(ctx context.Context) (*http.Response, error) {
 	resp, err := d.client.GetKey(ctx, d.mHSMUri, d.name, "")
+	return resp.Response.Response, err
+}
+
+func (d deleteAndPurgeKey) PurgeNestedItem(ctx context.Context) (*http.Response, error) {
+	resp, err := d.client.PurgeDeletedKey(ctx, d.mHSMUri, d.name)
 	return resp.Response, err
 }
 
-func (d deleteAndPurgeKey) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
-	return d.client.PurgeDeletedKey(ctx, d.mHSMUri, d.name)
-}
-
-func (d deleteAndPurgeKey) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+func (d deleteAndPurgeKey) NestedItemHasBeenPurged(ctx context.Context) (*http.Response, error) {
 	resp, err := d.client.GetDeletedKey(ctx, d.mHSMUri, d.name)
-	return resp.Response, err
+	return resp.Response.Response, err
 }
 
 func (k KeyVaultManagedHardwareSecurityModuleKeyResouece) readPublicKey(model *KeyVaultManagedHardwareSecurityModuleKeyModel, pubKey interface{}) error {

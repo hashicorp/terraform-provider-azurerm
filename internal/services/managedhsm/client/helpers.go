@@ -32,6 +32,7 @@ var defaultCache = &localCache{
 func cacheKey(name string) string {
 	return strings.ToLower(name)
 }
+
 func AddToCache(id managedhsms.ManagedHSMId, baseURI string) {
 	defaultCache.add(id, baseURI)
 }
@@ -57,6 +58,7 @@ func (l *localCache) get(name string) (cacheItem, bool) {
 func RemoveFromCache(name string) {
 	defaultCache.remove(name)
 }
+
 func (l *localCache) remove(name string) {
 	l.mux.Lock()
 	defer l.mux.Unlock()
