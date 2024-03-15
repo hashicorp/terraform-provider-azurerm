@@ -31,7 +31,7 @@ func resourceMySQLServerKey() *pluginsdk.Resource {
 		Update: resourceMySQLServerKeyCreateUpdate,
 		Delete: resourceMySQLServerKeyDelete,
 
-		DeprecationMessage: "The `azurerm_mysql_server_key` resource will be deprecated since Azure Database for MySQL - Single Server and its sub resources are scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024 and they migrate (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL - Flexible Server and its sub resources now.",
+		DeprecationMessage: "The `azurerm_mysql_server_key` resource will be deprecated since Azure Database for MySQL - Single Server and its sub resources are scheduled for retirement (https://go.microsoft.com/fwlink/?linkid=2216041) by September 16, 2024 and they migrate (https://go.microsoft.com/fwlink/?linkid=2202255) to Azure Database for MySQL - Flexible Server and its sub resources now. Please use the `customer_managed_key` property of the `azurerm_mysql_flexible_server` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := serverkeys.ParseKeyID(id)
