@@ -5,6 +5,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"log"
 	"time"
 
@@ -285,7 +286,11 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("flattening `metadata`: %+v", err)
 	}
 
-	resourceManagerId := parse.NewStorageShareResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountId.AccountName, "default", id.ShareName)
+	storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(account.ID)
+	if err != nil {
+		return err
+	}
+	resourceManagerId := parse.NewStorageShareResourceManagerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, "default", id.ShareName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
