@@ -1,3 +1,9 @@
+## 3.97.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
+
 ## 3.96.0 (March 14, 2024)
 
 ENHANCEMENTS:
@@ -11,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_kusto_cluster` - support `None` pattern for the `virtual_network_configuration` block ([#24733](https://github.com/hashicorp/terraform-provider-azurerm/issues/24733))
 * `azurerm_linux_function_app` - support for the Node `20` runtime ([#24073](https://github.com/hashicorp/terraform-provider-azurerm/issues/24073))
 * `azurerm_linux_function_app_slot` - support for the Node `20` runtime ([#24073](https://github.com/hashicorp/terraform-provider-azurerm/issues/24073))
+* `azurerm_stack_hci_cluster` - support the `identity`, `cloud_id`, `service_endpoint` and `resource_provider_object_id` properties [GH-25031]
 * `azurerm_storage_share_file` - support for AAD authentication [GH-#24798]
 * `azurerm_storage_share_directory` - support for AAD authentication, deprecate `share_name` and `storage_account_name` in favor of `storage_share_id` [GH-#24798]
 * `azurerm_storage_table_entity` - support for AAD authentication, deprecate `share_name` and `storage_account_name` in favor of `storage_table_id` [GH-#24798]
