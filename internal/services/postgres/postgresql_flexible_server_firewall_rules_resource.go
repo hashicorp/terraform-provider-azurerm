@@ -290,11 +290,16 @@ func resourcePostgresqlFlexibleServerFirewallRulesDelete(d *pluginsdk.ResourceDa
 
 func hashPostgresqlFlexibleServerFirewallRule(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["name"].(string))))
-	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
-	buf.WriteString(m["range_end"].(string))
-
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["name"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+		}
+		if v, ok := m["start_ip_address"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["end_ip_address"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+	}
 	return pluginsdk.HashString(buf.String())
 }
