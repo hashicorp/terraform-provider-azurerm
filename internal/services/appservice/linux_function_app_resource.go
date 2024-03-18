@@ -1233,9 +1233,13 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 			if rd.HasChange("vnet_image_pull_enabled") {
 				_, newValue := rd.GetChange("vnet_image_pull_enabled")
 				servicePlanId, err := commonids.ParseAppServicePlanID(rd.Get("service_plan_id").(string))
+				if err != nil {
+					return fmt.Errorf("reading service plan id %+v", err)
+				}
+
 				asp, err := client.Get(ctx, *servicePlanId)
 				if err != nil {
-					return fmt.Errorf("reading %s: %+v", servicePlanId, err)
+					return fmt.Errorf("could not read Service Plan %s: %+v", servicePlanId, err)
 				}
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
