@@ -2631,16 +2631,6 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 	}
 }
 
-func validateContainerSecret(s Secret) error {
-	if s.KeyVaultSecretId != "" && s.Identity == "" {
-		return fmt.Errorf("must supply identity for key vault secret id")
-	}
-	if s.KeyVaultSecretId == "" && s.Identity != "" {
-		return fmt.Errorf("must supply key vault secret id when specifying identity")
-	}
-	return nil
-}
-
 func ExpandContainerSecrets(input []Secret) (*[]containerapps.Secret, error) {
 	if len(input) == 0 {
 		return nil, nil
@@ -2649,9 +2639,6 @@ func ExpandContainerSecrets(input []Secret) (*[]containerapps.Secret, error) {
 	result := make([]containerapps.Secret, 0)
 
 	for _, v := range input {
-		if err := validateContainerSecret(v); err != nil {
-			return nil, err
-		}
 		result = append(result, containerapps.Secret{
 			Identity:    pointer.To(v.Identity),
 			KeyVaultUrl: pointer.To(v.KeyVaultSecretId),

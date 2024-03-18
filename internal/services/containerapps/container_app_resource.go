@@ -497,6 +497,15 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
+
+			for _, s := range app.Secrets {
+				if s.KeyVaultSecretId != "" && s.Identity == "" {
+					return fmt.Errorf("secret %s must supply identity for key vault secret id", s.Name)
+				}
+				if s.KeyVaultSecretId == "" && s.Identity != "" {
+					return fmt.Errorf("secret %s must supply key vault secret id when specifying identity", s.Name)
+				}
+			}
 			return nil
 		},
 	}
