@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,7 +50,7 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 				Optional:      true, // TODO: make required and forcenew in v4.0
 				Computed:      true, // TODO: remove computed in v4.0
 				ConflictsWith: []string{"table_name", "storage_account_name"},
-				ValidateFunc:  validation.IsURLWithPath, // note: storage domain suffix cannot be determined at validation time, so just make sure it's a well-formed URL
+				ValidateFunc:  storageValidate.StorageTableDataPlaneID,
 			},
 
 			"table_name": {
