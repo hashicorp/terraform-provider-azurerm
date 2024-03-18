@@ -468,13 +468,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"image_cleaner_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"image_cleaner_interval_hours": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      48,
 				ValidateFunc: validation.IntBetween(24, 2160),
 			},
 
@@ -1578,6 +1576,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Sensitive:    true,
 			ValidateFunc: validation.StringLenBetween(8, 123),
 		}
+		resource.Schema["image_cleaner_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		}
+		resource.Schema["image_cleaner_interval_hours"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      48,
+			ValidateFunc: validation.IntBetween(24, 2160),
+		}
 	}
 
 	return resource
@@ -1714,9 +1723,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
-		Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
-		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+	if d.Get("image_cleaner_enabled").(bool) {
+		securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+		}
 	}
 
 	azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
