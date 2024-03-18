@@ -229,7 +229,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Optional) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
-* `microsoft_entra_administrator` - (Optional) An `microsoft_entra_administrator` block as defined below.
+* `azure_active_directory_administrator` - (Optional) An `azure_active_directory_administrator` block as defined below.
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
@@ -255,13 +255,13 @@ The following arguments are supported:
 
 ---
 
-An `microsoft_entra_administrator` block supports the following:
+An `azure_active_directory_administrator` block supports the following:
 
 * `login_username` - (Required) The login username of the Azure AD Administrator of this SQL Managed Instance.
 
 * `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Managed Instance.
 
-* `microsoft_entra_authentication_only_enabled` - (Optional) Specifies whether only Microsoft Entra authentication and administrator (e.g. `microsoft_entra_administrator.0.login_username`), or Managed Instance administrator (e.g. `administrator_login`) can be used to log in to this SQL Managed Instance. When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted. Defaults to `false`.
+* `azuread_authentication_only_enalbed` - (Optional) Specifies whether only Microsoft Entra authentication and administrator (e.g. `azure_active_directory_administrator.0.login_username`), or Managed Instance administrator (e.g. `administrator_login`) can be used to log in to this SQL Managed Instance. When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted. Defaults to `false`.
 
 * `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Managed Instance.
 
