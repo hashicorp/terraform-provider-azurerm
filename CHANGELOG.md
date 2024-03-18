@@ -13,11 +13,12 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_postgresql_cluster` - expose list of server names and FQDN in the `servers` block [GH-25240]
 * `azurerm_data_share` - hyphens are now allowed in the resource's name [GH-25242]
 * `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
-* `azurerm_storage_account` - support for `dns_endpoint_type` [GH-22583]
+* `azurerm_storage_account` - support for the `dns_endpoint_type` property [GH-22583]
 
 BUG FIXES:
 
 * `azurerm_storage_queue` - fixing a bug where the Table URI was obtained rather than the Queue URI [GH-25262]
+* `azurerm_purview_account` - will now allow for PurView accounts with missing or disabled eventhubs without keys [GH-25301]
 
 ## 3.96.0 (March 14, 2024)
 
