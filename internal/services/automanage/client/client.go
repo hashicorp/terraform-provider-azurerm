@@ -9,10 +9,8 @@ import (
 )
 
 type Client struct {
-	ConfigurationClient  *automanage.ConfigurationProfilesClient
-	HCIAssignmentClient  *automanage.ConfigurationProfileHCIAssignmentsClient
-	HCRPAssignmentClient *automanage.ConfigurationProfileHCRPAssignmentsClient
-	VMAssignmentClient   *automanage.ConfigurationProfileAssignmentsClient
+	ConfigurationClient *automanage.ConfigurationProfilesClient
+	HCIAssignmentClient *automanage.ConfigurationProfileHCIAssignmentsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -22,16 +20,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	hciAssignmentClient := automanage.NewConfigurationProfileHCIAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&hciAssignmentClient.Client, o.ResourceManagerAuthorizer)
 
-	hcrpAssignmentClient := automanage.NewConfigurationProfileHCRPAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&hcrpAssignmentClient.Client, o.ResourceManagerAuthorizer)
-
-	vmAssignmentClient := automanage.NewConfigurationProfileAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmAssignmentClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
-		ConfigurationClient:  &configurationProfileClient,
-		HCIAssignmentClient:  &hciAssignmentClient,
-		HCRPAssignmentClient: &hcrpAssignmentClient,
-		VMAssignmentClient:   &vmAssignmentClient,
+		ConfigurationClient: &configurationProfileClient,
+		HCIAssignmentClient: &hciAssignmentClient,
 	}
 }
