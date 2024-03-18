@@ -1136,15 +1136,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc: validation.IntBetween(0, 64000),
 									},
 									"idle_timeout_in_minutes": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
-										Default:  30,
-										ValidateFunc: func() pluginsdk.SchemaValidateFunc {
-											if !features.FourPointOhBeta() {
-												return validation.IntBetween(4, 120)
-											}
-											return validation.IntBetween(4, 100)
-										}(),
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      30,
+										ValidateFunc: validation.IntBetween(4, 100),
 									},
 									"managed_outbound_ip_count": {
 										Type:          pluginsdk.TypeInt,
