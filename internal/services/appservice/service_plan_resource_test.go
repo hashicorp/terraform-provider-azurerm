@@ -179,16 +179,34 @@ func TestAccServicePlan_premiumElasticScaling(t *testing.T) {
 	})
 }
 
+func TestAccServicePlan_premiumElasticScalingErrorUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.premiumElasticScaleError(data, "S1"),
+			ExpectError: regexp.MustCompile("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus"),
+		},
+		{
+			Config: r.premiumElasticScaleError(data, "P1v3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServicePlan_premiumElasticScalingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 	r := ServicePlanResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.premiumElasticScaleError(data, 5, "S1"),
+			Config:      r.premiumElasticScaleError(data, "S1"),
 			ExpectError: regexp.MustCompile("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus"),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -198,10 +216,9 @@ func TestAccServicePlan_premiumElasticScalingErrorElasticPlan(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.premiumElasticScaleErrorElastic(data, 5, "EP1"),
+			Config:      r.premiumElasticScaleErrorElasticPlan(data, "EP1"),
 			ExpectError: regexp.MustCompile("`elastic_scale_enabled` cannot be disabled for elastic plan"),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -484,7 +501,7 @@ resource "azurerm_service_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku, count)
 }
 
-func (r ServicePlanResource) premiumElasticScaleError(data acceptance.TestData, count int, sku string) string {
+func (r ServicePlanResource) premiumElasticScaleError(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -508,22 +525,22 @@ resource "azurerm_service_plan" "test" {
     Foo         = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sku, count)
+`, data.RandomInteger, data.Locations.Primary, sku)
 }
 
-func (r ServicePlanResource) premiumElasticScaleErrorElastic(data acceptance.TestData, count int, sku string) string {
+func (r ServicePlanResource) premiumElasticScaleErrorElasticPlan(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appserviceplan-%[1]d"
+  name     = "xiaxintestRG-appserviceplan-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_service_plan" "test" {
-  name                = "acctest-SP-%[1]d"
+  name                = "xiaxintest-SP-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "%[3]s"
@@ -534,7 +551,7 @@ resource "azurerm_service_plan" "test" {
     Foo         = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, sku, count)
+`, data.RandomInteger, data.Locations.Primary, sku)
 }
 
 func (r ServicePlanResource) memoryOptimized(data acceptance.TestData) string {

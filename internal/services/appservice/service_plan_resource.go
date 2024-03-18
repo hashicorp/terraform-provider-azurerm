@@ -175,10 +175,6 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			if isServicePlanSupportScaleOut(servicePlan.Sku) {
-				servicePlan.ElasticScaling = true
-			}
-
 			appServicePlan := appserviceplans.AppServicePlan{
 				Properties: &appserviceplans.AppServicePlanProperties{
 					PerSiteScaling:      pointer.To(servicePlan.PerSiteScaling),
@@ -213,9 +209,10 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(int64(servicePlan.MaximumElasticWorkerCount))
 			}
 
-			if helpers.PlanIsElastic(&servicePlan.Sku) && !servicePlan.ElasticScaling {
+			if servicePlan.ElasticScaling && !(helpers.PlanIsPremium(servicePlan.Sku) || helpers.PlanIsElastic(&servicePlan.Sku)) {
+				return fmt.Errorf("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus")
+			} else if !servicePlan.ElasticScaling && helpers.PlanIsElastic(&servicePlan.Sku) {
 				return fmt.Errorf("`elastic_scale_enabled` cannot be disabled for elastic plans")
-
 			}
 
 			if servicePlan.WorkerCount != 0 {
@@ -375,7 +372,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("elastic_scale_enabled") {
-				if state.ElasticScaling && (!isServicePlanSupportScaleOut(state.Sku) || !helpers.PlanIsPremium(state.Sku)) {
+				if state.ElasticScaling && !(isServicePlanSupportScaleOut(state.Sku) || helpers.PlanIsPremium(state.Sku)) {
 					return fmt.Errorf("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus")
 				}
 				model.Properties.ElasticScaleEnabled = pointer.To(state.ElasticScaling)
