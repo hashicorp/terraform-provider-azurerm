@@ -3381,6 +3381,8 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
+  vnet_image_pull_enabled = true
+
   site_config {
     vnet_route_all_enabled = true
   }

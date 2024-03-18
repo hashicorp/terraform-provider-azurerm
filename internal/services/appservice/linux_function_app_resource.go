@@ -402,6 +402,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			var planSKU *string
+			var isAseEnvironment bool
 			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
 				Name: functionApp.Name,
 				Type: resourceproviders.CheckNameResourceTypesMicrosoftPointWebSites,
@@ -412,6 +413,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 
 				if ase := servicePlanModel.Properties.HostingEnvironmentProfile; ase != nil {
+					isAseEnvironment = true
 					// Attempt to check the ASE for the appropriate suffix for the name availability request.
 					// This varies between internal and external ASE Types, and potentially has other names in other clouds
 					// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
@@ -533,6 +535,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
 					VnetImagePullEnabled: pointer.To(functionApp.VnetImagePullEnabled),
 				},
+			}
+
+			if isAseEnvironment && !functionApp.VnetImagePullEnabled {
+				return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -1224,6 +1230,20 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.ServicePlanClient
 			rd := metadata.ResourceDiff
+			if rd.HasChange("vnet_image_pull_enabled") {
+				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				servicePlanId, err := commonids.ParseAppServicePlanID(rd.Get("service_plan_id").(string))
+				asp, err := client.Get(ctx, *servicePlanId)
+				if err != nil {
+					return fmt.Errorf("reading %s: %+v", servicePlanId, err)
+				}
+				if aspModel := asp.Model; aspModel != nil {
+					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
+						aspModel.Properties.HostingEnvironmentProfile.Id != nil && !newValue.(bool) {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+					}
+				}
+			}
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
 				if newPlanIdRaw.(string) == "" {
