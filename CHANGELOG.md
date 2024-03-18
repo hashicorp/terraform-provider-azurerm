@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240315.1103122` of `github.com/hashicorp/go-azure-sdk` [GH-25166]
 * `cosmosdb`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25166]
+* `azurerm_app_configuration` - support for Environments other than Azure Public [GH-25271]
 * `azurerm_cosmosdb_postgresql_cluster` - expose list of server names and FQDN in the `servers` block [GH-25240]
 * `azurerm_data_share` - hyphens are now allowed in the resource's name [GH-25242]
 * `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
