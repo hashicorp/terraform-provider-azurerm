@@ -57,13 +57,13 @@ The following arguments are supported:
 
 * `maximum_elastic_worker_count` - (Optional) The maximum number of workers to use in an Elastic SKU Plan. Cannot be set unless using an Elastic SKU.
 
-* `premium_site_elastic_scaling_enabled` - (Optional) Should Elastic Scaling be enabled for the premium site. Defaults to `false`.
+* `elastic_scale_enabled` - (Optional) Should Elastic Scale be enabled for the premium site. Defaults to `false`.
 
-~> **NOTE:** This feature is currently in preview and only available for Premium V2 (P1V2, P2V2, P3V2) and Premium V3 (P1V3, P2V3, P3V3) pricing tiers, and supported for all app types: Windows, Linux, and Windows container. It is not supported for deployment slot traffic.
+~> **NOTE:** This feature is currently in preview and only available for Premium V2 (P1V2, P2V2, P3V2) and Premium V3 (P1V3, P2V3, P3V3) pricing tiers, and supported for all app types: Windows, Linux, and Windows container. It is not supported for deployment slot traffic The feature is enabled by default and cannot be disabled for Elastic plan such as EP1.
 
 * `worker_count` - (Optional) The number of Workers (instances) to be allocated.
 
-* `per_site_scaling_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
+* `elastic_scale_enabled` - (Optional) Should Per Site Scaling be enabled. Defaults to `false`.
 
 * `zone_balancing_enabled` - (Optional) Should the Service Plan balance across Availability Zones in the region. Changing this forces a new resource to be created.
 
