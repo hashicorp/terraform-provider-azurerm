@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -266,13 +266,13 @@ func TestAccAutoManageConfigurationProfile_update(t *testing.T) {
 }
 
 func (r AutoManageConfigurationProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AutomanageConfigurationID(state.ID)
+	id, err := configurationprofiles.ParseConfigurationProfileID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Automanage.ConfigurationClient
-	resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
+	resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroupName)
 	if err != nil {
 		if response.WasNotFound(resp.Response.Response) {
 			return utils.Bool(false), nil

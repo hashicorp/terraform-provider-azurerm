@@ -14,10 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	autoParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -142,9 +142,9 @@ func (r StackHCIClusterDataSource) Read() sdk.ResourceFunc {
 					}
 					configId := ""
 					if !utils.ResponseWasNotFound(assignmentResp.Response) && assignmentResp.Properties != nil && assignmentResp.Properties.ConfigurationProfile != nil {
-						automanageConfigId, err := autoParse.AutomanageConfigurationID(*assignmentResp.Properties.ConfigurationProfile)
+						automanageConfigId, err := configurationprofiles.ParseConfigurationProfileIDInsensitively(*assignmentResp.Properties.ConfigurationProfile)
 						if err != nil {
-							return fmt.Errorf("reading configuration profile assignment: %v", err)
+							return err
 						}
 						configId = automanageConfigId.ID()
 					}

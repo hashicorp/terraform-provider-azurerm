@@ -11,9 +11,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -92,6 +92,7 @@ type SchedulePolicyConfiguration struct {
 type AutoManageConfigurationResource struct{}
 
 var _ sdk.ResourceWithUpdate = AutoManageConfigurationResource{}
+var _ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
 
 func (r AutoManageConfigurationResource) ResourceType() string {
 	return "azurerm_automanage_configuration"
@@ -102,7 +103,7 @@ func (r AutoManageConfigurationResource) ModelObject() interface{} {
 }
 
 func (r AutoManageConfigurationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AutomanageConfigurationID
+	return configurationprofiles.ValidateConfigurationProfileID
 }
 
 func (r AutoManageConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -470,8 +471,8 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Automanage.ConfigurationClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := parse.NewAutomanageConfigurationID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
+			id := configurationprofiles.NewConfigurationProfileID(subscriptionId, model.ResourceGroupName, model.Name)
+			existing, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroupName)
 			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
@@ -488,7 +489,8 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 
 			properties.Properties.Configuration = expandAutomanageConfigurationProfile(model)
 
-			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
+			// NOTE: ordering
+			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroupName, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -504,7 +506,7 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Automanage.ConfigurationClient
 
-			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
+			id, err := configurationprofiles.ParseConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -522,7 +524,7 @@ func (r AutoManageConfigurationResource) Update() sdk.ResourceFunc {
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroup, properties); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id.ConfigurationProfileName, id.ResourceGroupName, properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -537,12 +539,12 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Automanage.ConfigurationClient
 
-			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
+			id, err := configurationprofiles.ParseConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroup)
+			resp, err := client.Get(ctx, id.ConfigurationProfileName, id.ResourceGroupName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return metadata.MarkAsGone(id)
@@ -553,7 +555,7 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 
 			state := ConfigurationModel{
 				Name:              id.ConfigurationProfileName,
-				ResourceGroupName: id.ResourceGroup,
+				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.NormalizeNilable(resp.Location),
 			}
 
@@ -606,12 +608,12 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Automanage.ConfigurationClient
 
-			id, err := parse.AutomanageConfigurationID(metadata.ResourceData.Id())
+			id, err := configurationprofiles.ParseConfigurationProfileID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationProfileName); err != nil {
+			if _, err := client.Delete(ctx, id.ResourceGroupName, id.ConfigurationProfileName); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -620,6 +622,14 @@ func (r AutoManageConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
+func (r AutoManageConfigurationResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.ConfigurationV0ToV1{},
+		},
+	}
+}
 func expandAutomanageConfigurationProfile(model ConfigurationModel) *map[string]interface{} {
 	// building configuration profile in json format
 	jsonConfig := make(map[string]interface{})
