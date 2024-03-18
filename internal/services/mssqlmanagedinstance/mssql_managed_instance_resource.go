@@ -38,38 +38,38 @@ const (
 )
 
 type MsSqlManagedInstanceModel struct {
-	AdministratorLogin           string                              `tfschema:"administrator_login"`
-	AdministratorLoginPassword   string                              `tfschema:"administrator_login_password"`
-	Collation                    string                              `tfschema:"collation"`
-	DnsZonePartnerId             string                              `tfschema:"dns_zone_partner_id"`
-	DnsZone                      string                              `tfschema:"dns_zone"`
-	Fqdn                         string                              `tfschema:"fqdn"`
-	Identity                     []identity.SystemOrUserAssignedList `tfschema:"identity"`
-	LicenseType                  string                              `tfschema:"license_type"`
-	Location                     string                              `tfschema:"location"`
-	MaintenanceConfigurationName string                              `tfschema:"maintenance_configuration_name"`
-	MinimumTlsVersion            string                              `tfschema:"minimum_tls_version"`
-	Name                         string                              `tfschema:"name"`
-	ProxyOverride                string                              `tfschema:"proxy_override"`
-	PublicDataEndpointEnabled    bool                                `tfschema:"public_data_endpoint_enabled"`
-	ResourceGroupName            string                              `tfschema:"resource_group_name"`
-	ServicePrincipalType         string                              `tfschema:"service_principal_type"`
-	SkuName                      string                              `tfschema:"sku_name"`
-	StorageAccountType           string                              `tfschema:"storage_account_type"`
-	StorageSizeInGb              int64                               `tfschema:"storage_size_in_gb"`
-	SubnetId                     string                              `tfschema:"subnet_id"`
-	TimezoneId                   string                              `tfschema:"timezone_id"`
-	VCores                       int64                               `tfschema:"vcores"`
-	MicrosoftEntraAdministrator  []MicrosoftEntraAdministrator       `tfschema:"microsoft_entra_administrator"`
-	ZoneRedundantEnabled         bool                                `tfschema:"zone_redundant_enabled"`
-	Tags                         map[string]string                   `tfschema:"tags"`
+	AdministratorLogin                string                              `tfschema:"administrator_login"`
+	AdministratorLoginPassword        string                              `tfschema:"administrator_login_password"`
+	Collation                         string                              `tfschema:"collation"`
+	DnsZonePartnerId                  string                              `tfschema:"dns_zone_partner_id"`
+	DnsZone                           string                              `tfschema:"dns_zone"`
+	Fqdn                              string                              `tfschema:"fqdn"`
+	Identity                          []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	LicenseType                       string                              `tfschema:"license_type"`
+	Location                          string                              `tfschema:"location"`
+	MaintenanceConfigurationName      string                              `tfschema:"maintenance_configuration_name"`
+	MinimumTlsVersion                 string                              `tfschema:"minimum_tls_version"`
+	Name                              string                              `tfschema:"name"`
+	ProxyOverride                     string                              `tfschema:"proxy_override"`
+	PublicDataEndpointEnabled         bool                                `tfschema:"public_data_endpoint_enabled"`
+	ResourceGroupName                 string                              `tfschema:"resource_group_name"`
+	ServicePrincipalType              string                              `tfschema:"service_principal_type"`
+	SkuName                           string                              `tfschema:"sku_name"`
+	StorageAccountType                string                              `tfschema:"storage_account_type"`
+	StorageSizeInGb                   int64                               `tfschema:"storage_size_in_gb"`
+	SubnetId                          string                              `tfschema:"subnet_id"`
+	TimezoneId                        string                              `tfschema:"timezone_id"`
+	VCores                            int64                               `tfschema:"vcores"`
+	AzureActiveDirectoryAdministrator []AzureActiveDirectoryAdministrator `tfschema:"azure_active_directory_administrator"`
+	ZoneRedundantEnabled              bool                                `tfschema:"zone_redundant_enabled"`
+	Tags                              map[string]string                   `tfschema:"tags"`
 }
 
-type MicrosoftEntraAdministrator struct {
-	LoginUserName                           string `tfschema:"login_username"`
-	ObjectID                                string `tfschema:"object_id"`
-	MicrosoftEntraAuthenticationOnlyEnabled bool   `tfschema:"microsoft_entra_authentication_only_enabled"`
-	TenantID                                string `tfschema:"tenant_id"`
+type AzureActiveDirectoryAdministrator struct {
+	LoginUserName                    string `tfschema:"login_username"`
+	ObjectID                         string `tfschema:"object_id"`
+	AzureADAuthenticationOnlyEnabled bool   `tfschema:"azuread_authentication_only_enalbed"`
+	TenantID                         string `tfschema:"tenant_id"`
 }
 
 var _ sdk.Resource = MsSqlManagedInstanceResource{}
@@ -167,7 +167,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			AtLeastOneOf: []string{"administrator_login", "microsoft_entra_administrator"},
+			AtLeastOneOf: []string{"administrator_login", "azure_active_directory_administrator"},
 			RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -176,12 +176,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			AtLeastOneOf: []string{"administrator_login_password", "microsoft_entra_administrator"},
+			AtLeastOneOf: []string{"administrator_login_password", "azure_active_directory_administrator"},
 			RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"microsoft_entra_administrator": {
+		"azure_active_directory_administrator": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -199,7 +199,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IsUUID,
 					},
 
-					"microsoft_entra_authentication_only_enabled": {
+					"azuread_authentication_only_enalbed": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -380,6 +380,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			parameters := managedinstances.ManagedInstance{
 				Sku:      sku,
 				Identity: r.expandIdentity(model.Identity),
+
 				Location: location.Normalize(model.Location),
 				Properties: &managedinstances.ManagedInstanceProperties{
 					AdministratorLogin:               pointer.To(model.AdministratorLogin),
@@ -397,7 +398,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					TimezoneId:                       pointer.To(model.TimezoneId),
 					VCores:                           pointer.To(model.VCores),
 					ZoneRedundant:                    pointer.To(model.ZoneRedundantEnabled),
-					Administrators:                   expandMsSqlManagedInstanceExternalAdministrators(model.MicrosoftEntraAdministrator),
+					Administrators:                   expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -497,7 +498,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("microsoft_entra_administrator") {
+			if metadata.ResourceData.HasChange("azure_active_directory_administrator") {
 				// Need to check if Microsoft Entra authentication only is enabled or not before calling delete, else you will get the following error:
 				// InvalidManagedServerAADOnlyAuthNoAADAdminPropertyName: AAD Admin is not configured,
 				// Microsfot Entra Admin must be set before enabling/disabling Microsfot Entra Authentication Only.
@@ -532,7 +533,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					}
 				}
 
-				meAdminProps, err := expandMsSqlManagedInstanceAdministrators(state.MicrosoftEntraAdministrator)
+				meAdminProps, err := expandMsSqlManagedInstanceAdministrators(state.AzureActiveDirectoryAdministrator)
 				if err != nil {
 					return err
 				}
@@ -546,7 +547,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					}
 				}
 
-				if meOnlyAuthentictionsEnabled := expandMsSqlManagedInstanceMeAuthentictionOnly(state.MicrosoftEntraAdministrator); meOnlyAuthentictionsEnabled {
+				if meOnlyAuthentictionsEnabled := expandMsSqlManagedInstanceMeAuthentictionOnly(state.AzureActiveDirectoryAdministrator); meOnlyAuthentictionsEnabled {
 					meOnlyAuthentictionsProps := sql.ManagedInstanceAzureADOnlyAuthentication{
 						ManagedInstanceAzureADOnlyAuthProperties: &sql.ManagedInstanceAzureADOnlyAuthProperties{
 							AzureADOnlyAuthentication: pointer.To(true),
@@ -555,14 +556,14 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 
 					future, err := microsoftEntraAuthenticationOnlyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, meOnlyAuthentictionsProps)
 					if err != nil {
-						return fmt.Errorf("setting `microsoft_entra_authentication_only_enabled` for %s: %+v", *id, err)
+						return fmt.Errorf("setting `azuread_authentication_only_enalbed` for %s: %+v", *id, err)
 					}
 					if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting to set `microsoft_entra_authentication_only_enabled` for  %s: %+v", *id, err)
+						return fmt.Errorf("waiting to set `azuread_authentication_only_enalbed` for  %s: %+v", *id, err)
 					}
 				}
 
-				properties.Administrators = expandMsSqlManagedInstanceExternalAdministrators(state.MicrosoftEntraAdministrator)
+				properties.Administrators = expandMsSqlManagedInstanceExternalAdministrators(state.AzureActiveDirectoryAdministrator)
 			}
 
 			metadata.Logger.Infof("Updating %s", *id)
@@ -629,7 +630,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					model.AdministratorLogin = pointer.From(props.AdministratorLogin)
 
 					if props.Administrators != nil {
-						model.MicrosoftEntraAdministrator = flattenMsSqlManagedInstanceAdministrators(*props.Administrators)
+						model.AzureActiveDirectoryAdministrator = flattenMsSqlManagedInstanceAdministrators(*props.Administrators)
 					}
 					model.Collation = pointer.From(props.Collation)
 					model.DnsZone = pointer.From(props.DnsZone)
@@ -796,19 +797,19 @@ func backupStorageRedundancyToStorageAccType(backupStorageRedundancy managedinst
 	return StorageAccountTypeGRS
 }
 
-func expandMsSqlManagedInstanceMeAuthentictionOnly(input []MicrosoftEntraAdministrator) bool {
+func expandMsSqlManagedInstanceMeAuthentictionOnly(input []AzureActiveDirectoryAdministrator) bool {
 	if len(input) == 0 {
 		return false
 	}
 
-	if ok := input[0].MicrosoftEntraAuthenticationOnlyEnabled; ok {
-		return input[0].MicrosoftEntraAuthenticationOnlyEnabled
+	if ok := input[0].AzureADAuthenticationOnlyEnabled; ok {
+		return input[0].AzureADAuthenticationOnlyEnabled
 	}
 
 	return false
 }
 
-func expandMsSqlManagedInstanceExternalAdministrators(input []MicrosoftEntraAdministrator) *managedinstances.ManagedInstanceExternalAdministrator {
+func expandMsSqlManagedInstanceExternalAdministrators(input []AzureActiveDirectoryAdministrator) *managedinstances.ManagedInstanceExternalAdministrator {
 	if len(input) == 0 {
 		return nil
 	}
@@ -824,12 +825,12 @@ func expandMsSqlManagedInstanceExternalAdministrators(input []MicrosoftEntraAdmi
 		adminParams.TenantId = pointer.To(admin.TenantID)
 	}
 
-	adminParams.AzureADOnlyAuthentication = pointer.To(admin.MicrosoftEntraAuthenticationOnlyEnabled)
+	adminParams.AzureADOnlyAuthentication = pointer.To(admin.AzureADAuthenticationOnlyEnabled)
 
 	return &adminParams
 }
 
-func expandMsSqlManagedInstanceAdministrators(input []MicrosoftEntraAdministrator) (*sql.ManagedInstanceAdministrator, error) {
+func expandMsSqlManagedInstanceAdministrators(input []AzureActiveDirectoryAdministrator) (*sql.ManagedInstanceAdministrator, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -859,12 +860,12 @@ func expandMsSqlManagedInstanceAdministrators(input []MicrosoftEntraAdministrato
 	return pointer.To(adminProps), nil
 }
 
-func flattenMsSqlManagedInstanceAdministrators(admin sql.ManagedInstanceExternalAdministrator) []MicrosoftEntraAdministrator {
-	results := make([]MicrosoftEntraAdministrator, 0)
-	return append(results, MicrosoftEntraAdministrator{
-		LoginUserName:                           pointer.From(admin.Login),
-		ObjectID:                                pointer.From(admin.Sid).String(),
-		TenantID:                                pointer.From(admin.TenantID).String(),
-		MicrosoftEntraAuthenticationOnlyEnabled: pointer.From(admin.AzureADOnlyAuthentication),
+func flattenMsSqlManagedInstanceAdministrators(admin sql.ManagedInstanceExternalAdministrator) []AzureActiveDirectoryAdministrator {
+	results := make([]AzureActiveDirectoryAdministrator, 0)
+	return append(results, AzureActiveDirectoryAdministrator{
+		LoginUserName:                    pointer.From(admin.Login),
+		ObjectID:                         pointer.From(admin.Sid).String(),
+		TenantID:                         pointer.From(admin.TenantID).String(),
+		AzureADAuthenticationOnlyEnabled: pointer.From(admin.AzureADOnlyAuthentication),
 	})
 }

@@ -563,9 +563,9 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 
-  # Changing microsoft_entra_administrator is ignored because API returns the values of microsoft_entra_administrator even if it is not specified in the config when microsoft entra authentication only is enabled
+  # Changing azure_active_directory_administrator is ignored because API returns the values of azure_active_directory_administrator even if it is not specified in the config when microsoft entra authentication only is enabled
   lifecycle {
-    ignore_changes = [microsoft_entra_administrator]
+    ignore_changes = [azure_active_directory_administrator]
   }
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
@@ -991,7 +991,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     type = "SystemAssigned"
   }
 
-  microsoft_entra_administrator {
+  azure_active_directory_administrator {
     login_username = "AzureME Admin2"
     object_id      = data.azurerm_client_config.test.object_id
     tenant_id      = data.azurerm_client_config.test.tenant_id
@@ -1060,11 +1060,11 @@ resource "azurerm_mssql_managed_instance" "test" {
     type = "SystemAssigned"
   }
 
-  microsoft_entra_administrator {
-    login_username                              = "AzureME Admin2"
-    object_id                                   = data.azurerm_client_config.test.object_id
-    tenant_id                                   = data.azurerm_client_config.test.tenant_id
-    microsoft_entra_authentication_only_enabled = true
+  azure_active_directory_administrator {
+    login_username                      = "AzureME Admin2"
+    object_id                           = data.azurerm_client_config.test.object_id
+    tenant_id                           = data.azurerm_client_config.test.tenant_id
+    azuread_authentication_only_enalbed = true
   }
 
   tags = {
@@ -1076,7 +1076,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
   ]
-  # Changing administrator_login is ignored because API returns the value of administrator_login even if it is not specified in the config when microsoft_entra_authentication_only_enabled is set to true
+  # Changing administrator_login is ignored because API returns the value of administrator_login even if it is not specified in the config when azuread_authentication_only_enalbed is set to true
   lifecycle {
     ignore_changes = [administrator_login]
   }
@@ -1129,7 +1129,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     type = "SystemAssigned"
   }
 
-  microsoft_entra_administrator {
+  azure_active_directory_administrator {
     login_username = azuread_user.test.user_principal_name
     object_id      = azuread_user.test.object_id
     tenant_id      = data.azurerm_client_config.test.tenant_id
@@ -1193,11 +1193,11 @@ resource "azurerm_mssql_managed_instance" "test" {
     type = "SystemAssigned"
   }
 
-  microsoft_entra_administrator {
-    login_username                              = azuread_user.test.user_principal_name
-    object_id                                   = azuread_user.test.object_id
-    tenant_id                                   = data.azurerm_client_config.test.tenant_id
-    microsoft_entra_authentication_only_enabled = true
+  azure_active_directory_administrator {
+    login_username                      = azuread_user.test.user_principal_name
+    object_id                           = azuread_user.test.object_id
+    tenant_id                           = data.azurerm_client_config.test.tenant_id
+    azuread_authentication_only_enalbed = true
   }
 
   tags = {
