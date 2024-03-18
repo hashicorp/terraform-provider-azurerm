@@ -68,8 +68,8 @@ func ParseBlobID(input, domainSuffix string) (*BlobId, error) {
 
 	path := strings.TrimPrefix(uri.Path, "/")
 	segments := strings.Split(path, "/")
-	if len(segments) != 2 {
-		return nil, fmt.Errorf("expected the path to contain 2 segments but got %d", len(segments))
+	if len(segments) < 2 {
+		return nil, fmt.Errorf("expected the path to contain at least 2 segments but got %d", len(segments))
 	}
 
 	containerName := segments[0]
