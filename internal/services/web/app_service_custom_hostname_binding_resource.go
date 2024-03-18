@@ -104,7 +104,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_app_service_custom_hostname_binding", *existing.ID)
 		}
 	}
