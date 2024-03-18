@@ -228,6 +228,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/role
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions
+github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehciassignments
+github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration
