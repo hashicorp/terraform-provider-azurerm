@@ -9,15 +9,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehciassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage"
 )
 
 type Client struct {
 	ConfigurationProfilesClient              *configurationprofiles.ConfigurationProfilesClient
 	ConfigurationProfileHCIAssignmentsClient *configurationprofilehciassignments.ConfigurationProfileHCIAssignmentsClient
-
-	// NOTE: these clients use `tombuildsstuff/kermit` (a variant of `Azure/azure-sdk-for-go`) and shouldn't be used going forwards.
-	ConfigurationClient *automanage.ConfigurationProfilesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -33,14 +29,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(configurationProfileHCIAssignmentsClient.Client, o.Authorizers.ResourceManager)
 
-	// NOTE: these clients use `tombuildsstuff/kermit` (a variant of `Azure/azure-sdk-for-go`) and shouldn't be used going forwards.
-	legacyConfigurationProfilesClient := automanage.NewConfigurationProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&legacyConfigurationProfilesClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
 		ConfigurationProfilesClient:              configurationProfilesClient,
 		ConfigurationProfileHCIAssignmentsClient: configurationProfileHCIAssignmentsClient,
-
-		ConfigurationClient: &legacyConfigurationProfilesClient,
 	}, nil
 }
