@@ -64,6 +64,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The DNS Zone ID.
 
+* `name` - The DNS Zone name.
+
 * `max_number_of_record_sets` - (Optional) Maximum number of Records in the zone. Defaults to `1000`.
 
 * `number_of_record_sets` - (Optional) The number of records already in the zone.
