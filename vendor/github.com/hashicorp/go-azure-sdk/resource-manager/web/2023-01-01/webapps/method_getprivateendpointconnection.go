@@ -43,7 +43,10 @@ func (c WebAppsClient) GetPrivateEndpointConnection(ctx context.Context, id Priv
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RemotePrivateEndpointConnectionARMResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

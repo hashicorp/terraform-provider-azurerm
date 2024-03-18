@@ -47,7 +47,10 @@ func (c LinkedStorageAccountsClient) CreateOrUpdate(ctx context.Context, id Data
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LinkedStorageAccountsResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

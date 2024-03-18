@@ -79,7 +79,7 @@ A `smtp` block supports the following:
 * `user` - (Required) User of SMTP authentication.
 
 * `password` - (Required) Password of SMTP authentication.
-* 
+
 * `start_tls_policy` - (Required) Whether to use TLS when connecting to SMTP server. Possible values are `OpportunisticStartTLS`, `NoStartTLS`, `MandatoryStartTLS`.
 
 * `from_address` - (Required) Address used when sending emails.

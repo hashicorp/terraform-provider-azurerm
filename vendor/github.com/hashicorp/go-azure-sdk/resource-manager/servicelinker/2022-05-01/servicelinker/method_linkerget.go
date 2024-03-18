@@ -43,7 +43,10 @@ func (c ServiceLinkerClient) LinkerGet(ctx context.Context, id ScopedLinkerId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LinkerResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

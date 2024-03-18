@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -221,7 +221,7 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
 	bgpSettings := expandVPNGatewayBGPSettings(bgpSettingsRaw)
 	payload := virtualwans.VpnGateway{
-		Location: location.Normalize(d.Get("location").(string)),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.VpnGatewayProperties{
 			EnableBgpRouteTranslationForNat: pointer.To(d.Get("bgp_route_translation_for_nat_enabled").(bool)),
 			BgpSettings:                     bgpSettings,
@@ -361,7 +361,7 @@ func resourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("bgp_settings", flattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {

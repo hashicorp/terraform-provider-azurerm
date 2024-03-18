@@ -44,7 +44,10 @@ func (c WebAppsClient) ListHostKeysSlot(ctx context.Context, id SlotId) (result 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model HostKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

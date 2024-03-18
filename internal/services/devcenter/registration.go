@@ -32,6 +32,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		DevCenterGalleryResource{},
+		DevCenterCatalogsResource{},
 	}
 	return append(resources, r.autoRegistration.Resources()...)
 }

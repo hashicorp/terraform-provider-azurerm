@@ -35,7 +35,7 @@ resource "azurerm_key_vault" "example" {
 resource "azurerm_key_vault_access_policy" "storage" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_storage_account.example.identity.0.principal_id
+  object_id    = azurerm_storage_account.example.identity[0].principal_id
 
   secret_permissions = ["Get"]
   key_permissions = [

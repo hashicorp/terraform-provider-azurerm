@@ -43,7 +43,10 @@ func (c PostRulesClient) Get(ctx context.Context, id PostRuleId) (result GetOper
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PostRulesResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

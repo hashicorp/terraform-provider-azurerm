@@ -43,7 +43,10 @@ func (c WebAppsClient) GetWebJob(ctx context.Context, id WebJobId) (result GetWe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WebJob
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

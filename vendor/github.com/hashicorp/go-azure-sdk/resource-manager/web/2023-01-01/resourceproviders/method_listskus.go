@@ -45,7 +45,10 @@ func (c ResourceProvidersClient) ListSkus(ctx context.Context, id commonids.Subs
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SkuInfos
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

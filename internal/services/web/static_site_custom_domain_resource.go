@@ -27,9 +27,10 @@ const (
 
 func resourceStaticSiteCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStaticSiteCustomDomainCreate,
-		Read:   resourceStaticSiteCustomDomainRead,
-		Delete: resourceStaticSiteCustomDomainDelete,
+		DeprecationMessage: "This resource has been deprecated in favour of `azurerm_static_web_app_custom_domain` and will be removed in a future release.",
+		Create:             resourceStaticSiteCustomDomainCreate,
+		Read:               resourceStaticSiteCustomDomainRead,
+		Delete:             resourceStaticSiteCustomDomainDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.StaticSiteCustomDomainID(id)
 			return err

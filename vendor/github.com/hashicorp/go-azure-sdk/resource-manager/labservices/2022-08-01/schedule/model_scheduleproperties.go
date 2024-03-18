@@ -14,8 +14,8 @@ type ScheduleProperties struct {
 	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
 	RecurrencePattern *RecurrencePattern `json:"recurrencePattern,omitempty"`
 	StartAt           *string            `json:"startAt,omitempty"`
-	StopAt            string             `json:"stopAt"`
-	TimeZoneId        string             `json:"timeZoneId"`
+	StopAt            *string            `json:"stopAt,omitempty"`
+	TimeZoneId        *string            `json:"timeZoneId,omitempty"`
 }
 
 func (o *ScheduleProperties) GetStartAtAsTime() (*time.Time, error) {
@@ -31,10 +31,13 @@ func (o *ScheduleProperties) SetStartAtAsTime(input time.Time) {
 }
 
 func (o *ScheduleProperties) GetStopAtAsTime() (*time.Time, error) {
-	return dates.ParseAsFormat(&o.StopAt, "2006-01-02T15:04:05Z07:00")
+	if o.StopAt == nil {
+		return nil, nil
+	}
+	return dates.ParseAsFormat(o.StopAt, "2006-01-02T15:04:05Z07:00")
 }
 
 func (o *ScheduleProperties) SetStopAtAsTime(input time.Time) {
 	formatted := input.Format("2006-01-02T15:04:05Z07:00")
-	o.StopAt = formatted
+	o.StopAt = &formatted
 }

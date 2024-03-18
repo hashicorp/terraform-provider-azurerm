@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -33,7 +34,7 @@ func testAccSecurityCenterSetting_update(t *testing.T) {
 	r := SecurityCenterSettingResource{}
 
 	// lintignore:AT001
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	testcases := []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -78,7 +79,18 @@ func testAccSecurityCenterSetting_update(t *testing.T) {
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
-	})
+	}
+
+	if !features.FourPointOhBeta() {
+		testcases = append(testcases, []acceptance.TestStep{{
+			Config: r.cfg("SENTINEL", true),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		}, {
+			Config: r.cfg("SENTINEL", false),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		}}...)
+	}
+	data.ResourceSequentialTest(t, r, testcases)
 }
 
 func testAccSecurityCenterSetting_requiresImport(t *testing.T) {

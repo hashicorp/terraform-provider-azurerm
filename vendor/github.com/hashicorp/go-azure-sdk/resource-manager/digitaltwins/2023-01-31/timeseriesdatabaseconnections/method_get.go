@@ -43,7 +43,10 @@ func (c TimeSeriesDatabaseConnectionsClient) Get(ctx context.Context, id TimeSer
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TimeSeriesDatabaseConnection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

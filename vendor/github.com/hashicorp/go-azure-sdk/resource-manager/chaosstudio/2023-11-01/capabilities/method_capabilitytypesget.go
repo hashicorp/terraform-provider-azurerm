@@ -43,7 +43,10 @@ func (c CapabilitiesClient) CapabilityTypesGet(ctx context.Context, id Capabilit
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CapabilityType
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

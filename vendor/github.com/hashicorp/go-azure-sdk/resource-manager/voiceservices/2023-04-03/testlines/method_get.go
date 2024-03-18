@@ -43,7 +43,10 @@ func (c TestLinesClient) Get(ctx context.Context, id TestLineId) (result GetOper
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TestLine
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

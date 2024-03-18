@@ -43,7 +43,10 @@ func (c GatewayClient) Get(ctx context.Context, id GatewayId) (result GetOperati
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GatewayContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

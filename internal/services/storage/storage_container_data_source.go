@@ -9,9 +9,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
 func dataSourceStorageContainer() *pluginsdk.Resource {
@@ -69,34 +71,47 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Container %q: %s", accountName, containerName, err)
+		return fmt.Errorf("retrieving Storage Account %q for Container %q: %v", accountName, containerName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Account %q for Storage Container %q", accountName, containerName)
+		return fmt.Errorf("locating Storage Account %q for Container %q", accountName, containerName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
+	containersDataPlaneClient, err := storageClient.ContainersDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Containers Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Containers Client: %v", err)
 	}
 
-	id := parse.NewStorageContainerDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, containerName).ID()
-	d.SetId(id)
-
-	props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
+	// Determine the blob endpoint, so we can build a data plane ID
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
 	if err != nil {
-		return fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
+		return fmt.Errorf("determining Blob endpoint: %v", err)
+	}
+
+	// Parse the blob endpoint as a data plane account ID
+	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	id := containers.NewContainerID(*accountId, containerName)
+
+	props, err := containersDataPlaneClient.Get(ctx, containerName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if props == nil {
-		return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
+		return fmt.Errorf("retrieving %s: result was nil", id)
 	}
+
+	d.SetId(id.ID())
 
 	d.Set("name", containerName)
 	d.Set("storage_account_name", accountName)
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
-	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("setting `metadata`: %+v", err)
+	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("setting `metadata`: %v", err)
 	}
 
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)

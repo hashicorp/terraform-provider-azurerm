@@ -45,7 +45,10 @@ func (c ServerConnectionPoliciesClient) Get(ctx context.Context, id commonids.Sq
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ServerConnectionPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

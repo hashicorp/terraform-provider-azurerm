@@ -72,7 +72,10 @@ func (c StreamingJobsClient) Get(ctx context.Context, id StreamingJobId, options
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StreamingJob
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

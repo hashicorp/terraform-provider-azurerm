@@ -76,7 +76,10 @@ func (c UserClient) Update(ctx context.Context, id UserId, input UserUpdateParam
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model UserContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -76,7 +76,10 @@ func (c TenantAccessClient) Update(ctx context.Context, id AccessId, input Acces
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessInformationContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

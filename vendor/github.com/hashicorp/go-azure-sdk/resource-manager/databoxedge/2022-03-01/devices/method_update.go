@@ -47,7 +47,10 @@ func (c DevicesClient) Update(ctx context.Context, id DataBoxEdgeDeviceId, input
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataBoxEdgeDevice
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

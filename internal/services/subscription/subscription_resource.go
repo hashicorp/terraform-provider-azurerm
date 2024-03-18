@@ -498,19 +498,20 @@ func waitForSubscriptionStateToSettle(ctx context.Context, client *subscriptions
 }
 
 func checkExistingAliases(ctx context.Context, client subscriptionAlias.SubscriptionsClient, subscriptionId string) (*string, int, error) {
-	aliasList, err := client.AliasList(ctx)
+	aliasList, err := client.AliasListComplete(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("could not List existing Subscription Aliases")
 	}
 
-	if aliasList.Model == nil || aliasList.Model.Value == nil {
-		return nil, 0, fmt.Errorf("failed reading Subscription Alias list")
+	if len(aliasList.Items) == 0 {
+		return nil, 0, fmt.Errorf("failed reading Subscription Alias list: no aliases were returned")
 	}
 
-	for _, v := range *aliasList.Model.Value {
+	for _, v := range aliasList.Items {
 		if v.Properties != nil && v.Properties.SubscriptionId != nil && subscriptionId == *v.Properties.SubscriptionId {
-			return v.Name, len(*aliasList.Model.Value), nil
+			return v.Name, len(aliasList.Items), nil
 		}
 	}
-	return nil, len(*aliasList.Model.Value), nil
+
+	return nil, len(aliasList.Items), nil
 }

@@ -62,6 +62,7 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ScaleToZeroOnDelete:       true,
 				},
@@ -70,6 +71,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
+				},
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: true,
 				},
 			},
 		},
@@ -122,6 +126,11 @@ func TestExpandFeatures(t *testing.T) {
 							"expand_without_downtime": true,
 						},
 					},
+					"postgresql_flexible_server": []interface{}{
+						map[string]interface{}{
+							"restart_server_on_configuration_value_change": true,
+						},
+					},
 					"resource_group": []interface{}{
 						map[string]interface{}{
 							"prevent_deletion_if_contains_resources": true,
@@ -146,6 +155,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
+							"reimage_on_manual_upgrade":     true,
 							"roll_instances_when_required":  true,
 							"force_delete":                  true,
 							"scale_to_zero_before_deletion": true,
@@ -200,9 +210,13 @@ func TestExpandFeatures(t *testing.T) {
 					SkipShutdownAndForceDelete: true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ForceDelete:               true,
 					ScaleToZeroOnDelete:       true,
+				},
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: true,
 				},
 			},
 		},
@@ -255,6 +269,11 @@ func TestExpandFeatures(t *testing.T) {
 							"expand_without_downtime": false,
 						},
 					},
+					"postgresql_flexible_server": []interface{}{
+						map[string]interface{}{
+							"restart_server_on_configuration_value_change": false,
+						},
+					},
 					"resource_group": []interface{}{
 						map[string]interface{}{
 							"prevent_deletion_if_contains_resources": false,
@@ -280,6 +299,7 @@ func TestExpandFeatures(t *testing.T) {
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
 							"force_delete":                  false,
+							"reimage_on_manual_upgrade":     false,
 							"roll_instances_when_required":  false,
 							"scale_to_zero_before_deletion": false,
 						},
@@ -334,8 +354,12 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    false,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       false,
+				},
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: false,
 				},
 			},
 		},
@@ -924,6 +948,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ScaleToZeroOnDelete:       true,
 				},
@@ -944,6 +969,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               true,
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       true,
 				},
@@ -964,6 +990,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ScaleToZeroOnDelete:       true,
 				},
@@ -985,6 +1012,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    true,
 					RollInstancesWhenRequired: true,
 					ScaleToZeroOnDelete:       false,
 				},
@@ -997,6 +1025,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 					"virtual_machine_scale_set": []interface{}{
 						map[string]interface{}{
 							"force_delete":                  false,
+							"reimage_on_manual_upgrade":     false,
 							"roll_instances_when_required":  false,
 							"scale_to_zero_before_deletion": false,
 						},
@@ -1006,6 +1035,7 @@ func TestExpandFeaturesVirtualMachineScaleSet(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					ForceDelete:               false,
+					ReimageOnManualUpgrade:    false,
 					RollInstancesWhenRequired: false,
 					ScaleToZeroOnDelete:       false,
 				},
@@ -1237,7 +1267,7 @@ func TestExpandFeaturesSubscription(t *testing.T) {
 			},
 		},
 		{
-			Name: "No Downtime Resize Enabled",
+			Name: "Subscription cancellation on destroy is Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"subscription": []interface{}{
@@ -1250,6 +1280,71 @@ func TestExpandFeaturesSubscription(t *testing.T) {
 			Expected: features.UserFeatures{
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
+			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesPosgresqlFlexibleServer(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: true,
+				},
+			},
+		},
+		{
+			Name: "Postgresql Flexible Server restarts on configuration change is Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server": []interface{}{
+						map[string]interface{}{
+							"restart_server_on_configuration_value_change": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: true,
+				},
+			},
+		},
+		{
+			Name: "Postgresql Flexible Server restarts on configuration change is Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"postgresql_flexible_server": []interface{}{
+						map[string]interface{}{
+							"restart_server_on_configuration_value_change": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
+					RestartServerOnConfigurationValueChange: false,
 				},
 			},
 		},

@@ -48,7 +48,10 @@ func (c WebAppsClient) ListBackupStatusSecrets(ctx context.Context, id BackupId,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BackupItem
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

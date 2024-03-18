@@ -6,8 +6,6 @@ package validate
 import (
 	"fmt"
 	"regexp"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 )
 
 func StorageShareName(v interface{}, k string) (warnings []string, errors []error) {
@@ -31,20 +29,5 @@ func StorageShareName(v interface{}, k string) (warnings []string, errors []erro
 		errors = append(errors, fmt.Errorf(
 			"%q does not allow consecutive hyphens: %q", k, value))
 	}
-	return warnings, errors
-}
-
-func StorageShareID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := parse.StorageShareDataPlaneID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
-	}
-
 	return warnings, errors
 }

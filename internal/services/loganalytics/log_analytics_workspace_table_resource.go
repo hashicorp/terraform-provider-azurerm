@@ -82,7 +82,7 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 		"total_retention_in_days": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
+			ValidateFunc: validation.Any(validation.IntBetween(30, 4383), validation.IntInSlice([]int{7})),
 		},
 	}
 }

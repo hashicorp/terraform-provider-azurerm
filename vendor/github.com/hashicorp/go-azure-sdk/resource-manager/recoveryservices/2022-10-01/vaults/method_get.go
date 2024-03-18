@@ -43,7 +43,10 @@ func (c VaultsClient) Get(ctx context.Context, id VaultId) (result GetOperationR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Vault
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

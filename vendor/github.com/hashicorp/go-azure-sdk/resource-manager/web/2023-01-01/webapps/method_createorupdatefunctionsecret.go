@@ -48,7 +48,10 @@ func (c WebAppsClient) CreateOrUpdateFunctionSecret(ctx context.Context, id KeyI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model KeyInfo
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

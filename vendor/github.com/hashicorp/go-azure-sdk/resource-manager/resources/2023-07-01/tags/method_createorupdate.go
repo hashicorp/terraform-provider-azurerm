@@ -44,7 +44,10 @@ func (c TagsClient) CreateOrUpdate(ctx context.Context, id TagNameId) (result Cr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TagDetails
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

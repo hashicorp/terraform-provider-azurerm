@@ -48,7 +48,10 @@ func (c EndpointsClient) CreateOrUpdate(ctx context.Context, id EndpointTypeId, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Endpoint
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
