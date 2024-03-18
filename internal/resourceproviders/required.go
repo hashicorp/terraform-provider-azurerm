@@ -13,6 +13,9 @@ package resourceproviders
 func Required() map[string]struct{} {
 	// NOTE: Resource Providers in this list are case sensitive
 	return map[string]struct{}{
+		"NewRelic.Observability":            {},
+		"Microsoft.SaaS":                    {},
+		"Microsoft.Insight":                 {},
 		"Microsoft.AppConfiguration":        {},
 		"Microsoft.ApiManagement":           {},
 		"Microsoft.AppPlatform":             {},
