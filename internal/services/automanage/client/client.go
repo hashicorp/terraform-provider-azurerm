@@ -18,7 +18,6 @@ type Client struct {
 
 	// NOTE: these clients use `tombuildsstuff/kermit` (a variant of `Azure/azure-sdk-for-go`) and shouldn't be used going forwards.
 	ConfigurationClient *automanage.ConfigurationProfilesClient
-	HCIAssignmentClient *automanage.ConfigurationProfileHCIAssignmentsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -37,14 +36,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// NOTE: these clients use `tombuildsstuff/kermit` (a variant of `Azure/azure-sdk-for-go`) and shouldn't be used going forwards.
 	legacyConfigurationProfilesClient := automanage.NewConfigurationProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&legacyConfigurationProfilesClient.Client, o.ResourceManagerAuthorizer)
-	legacyHCIAssignmentsClient := automanage.NewConfigurationProfileHCIAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&legacyHCIAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		ConfigurationProfilesClient:              configurationProfilesClient,
 		ConfigurationProfileHCIAssignmentsClient: configurationProfileHCIAssignmentsClient,
 
 		ConfigurationClient: &legacyConfigurationProfilesClient,
-		HCIAssignmentClient: &legacyHCIAssignmentsClient,
 	}, nil
 }
