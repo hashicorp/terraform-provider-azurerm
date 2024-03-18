@@ -341,7 +341,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Authorization, err = authorization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Authorization: %+v", err)
 	}
-	client.Automanage = automanage.NewClient(o)
+	if client.Automanage, err = automanage.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AutoManage: %+v", err)
+	}
 	if client.Automation, err = automation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Automation: %+v", err)
 	}
