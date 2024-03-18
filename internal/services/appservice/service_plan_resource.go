@@ -209,7 +209,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(int64(servicePlan.MaximumElasticWorkerCount))
 			}
 
-			if servicePlan.ElasticScaling && !(helpers.PlanIsPremium(servicePlan.Sku) || helpers.PlanIsElastic(&servicePlan.Sku)) {
+			if servicePlan.ElasticScaling && !(helpers.PlanIsPremium(servicePlan.Sku) || isServicePlanSupportScaleOut(servicePlan.Sku)) {
 				return fmt.Errorf("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus")
 			} else if !servicePlan.ElasticScaling && helpers.PlanIsElastic(&servicePlan.Sku) {
 				return fmt.Errorf("`elastic_scale_enabled` cannot be disabled for elastic plans")
