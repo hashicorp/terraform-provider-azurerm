@@ -141,6 +141,34 @@ This deprecated resource has been superseded by `azurerm_monitor_alert_processin
 
 Azure Log Profile will be retired on 30th September 2026, as a result this deprecated resource has been removed from the Azure provider.
 
+### Resource: `azurerm_mysql_active_directory_administrator`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_active_directory_administrator` and has been removed from the Azure provider.
+
+### Resource: `azurerm_mysql_configuration`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_configuration` and has been removed from the Azure provider.
+
+### Resource: `azurerm_mysql_database`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_database` and has been removed from the Azure provider.
+
+### Resource: `azurerm_mysql_firewall_rule`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server_firewall_rule` and has been removed from the Azure provider.
+
+### Resource: `azurerm_mysql_server_key`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by the `customer_managed_key` block in the `azurerm_mysql_flexible_server` resource and has been removed from the Azure provider.
+
+### Resource: `azurerm_mysql_server`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure provider.
+
+### Resource: `azurerm_mysql_virtual_network_rule`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been removed from the Azure provider.
+
 ### Resource: `azurerm_network_packet_capture`
 
 This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure provider.
@@ -203,11 +231,11 @@ This deprecated resource has been superseded by `azurerm_mssql_virtual_network_r
 
 ### Resource: `azurerm_video_analyzer_edge_module`
 
-The Azure Service Video Analyzer will be reqired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
+The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
 
 ### Resource: `azurerm_video_analyzer`
 
-The Azure Service Video Analyzer will be reqired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
+The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
 
 ### Resource: `azurerm_virtual_machine_scale_set` - (TODO add removal in 4.0 to deprecation message)
 
@@ -232,6 +260,10 @@ The deprecated data source has been superseded by `azurerm_arc_machine` and has 
 ### Data Source: `azurerm_monitor_log_profile`
 
 Azure Log Profile will be retired on 30th September 2026, as a result this deprecated data source has been removed from the Azure provider.
+
+### Data Source: `azurerm_mysql_server`
+
+The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this data source has been superseded by `azurerm_mysql_flexible_server` and has been removed from the Azure provider.
 
 ### Data Source: `azurerm_sql_database`
 
