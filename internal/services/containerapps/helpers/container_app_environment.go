@@ -15,6 +15,7 @@ import (
 
 type WorkloadProfileSku string
 
+// NOTE: the Workload Profile SKUs aren't defined in the Swagger definition so we define them here
 const (
 	WorkloadProfileSkuConsumption WorkloadProfileSku = "Consumption"
 	WorkloadProfileSkuD4          WorkloadProfileSku = "D4"
@@ -94,7 +95,7 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 			Name: v.Name,
 		}
 
-		if !strings.EqualFold(v.Name, string(WorkloadProfileSkuConsumption)) {
+		if v.Name != string(WorkloadProfileSkuConsumption) {
 			r.WorkloadProfileType = v.WorkloadProfileType
 			r.MaximumCount = pointer.To(v.MaximumCount)
 			r.MinimumCount = pointer.To(v.MinimumCount)

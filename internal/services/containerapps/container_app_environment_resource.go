@@ -6,7 +6,6 @@ package containerapps
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -431,7 +430,7 @@ func consumptionIsExplicitlyDefined(metadata sdk.ResourceMetaData) bool {
 		return false
 	}
 	for _, v := range config.WorkloadProfiles {
-		if strings.EqualFold(v.Name, string(helpers.WorkloadProfileSkuConsumption)) {
+		if v.Name == string(helpers.WorkloadProfileSkuConsumption) {
 			return true
 		}
 	}
