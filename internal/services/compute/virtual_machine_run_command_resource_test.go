@@ -1,8 +1,8 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package compute_test
 
-// NOTE: this file is generated - manual changes will be overwritten.
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
 	"fmt"
@@ -128,6 +128,28 @@ func TestAccVirtualMachineRunCommand_complete(t *testing.T) {
 	})
 }
 
+func TestAccVirtualMachineRunCommand_updateParameters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
+	r := VirtualMachineRunCommandTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWithParameters(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("protected_parameter"),
+	})
+}
+
 func TestAccVirtualMachineRunCommand_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
 	r := VirtualMachineRunCommandTestResource{}
@@ -203,6 +225,35 @@ resource "azurerm_virtual_machine_run_command" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r VirtualMachineRunCommandTestResource) basicWithParameters(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_machine_run_command" "test" {
+  name               = "acctestvmrc-${var.random_string}"
+  location           = azurerm_resource_group.test.location
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  source {
+    script = "echo 'hello world'"
+  }
+
+  parameter {
+    name  = "acctestvmrc-${var.random_string}"
+    value = "val-${var.random_string}"
+  }
+
+  protected_parameter {
+    name  = "acctestvmrc2-${var.random_string}"
+    value = "val-${var.random_string}"
+  }
+}
+`, r.template(data))
 }
 
 func (r VirtualMachineRunCommandTestResource) basicWithScriptError(data acceptance.TestData) string {

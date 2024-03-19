@@ -8,9 +8,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
 )
 
 func dataSourceStorageShare() *pluginsdk.Resource {
@@ -90,36 +93,50 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Share %q: %s", accountName, shareName, err)
+		return fmt.Errorf("retrieving Storage Account %q for Share %q: %s", accountName, shareName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("unable to locate Account %q for Share %q", accountName, shareName)
+		return fmt.Errorf("locating Storage Account %q for Share %q", accountName, shareName)
 	}
 
-	client, err := storageClient.FileSharesClient(ctx, *account)
+	// The files API does not support bearer tokens (@manicminer, 2024-02-15)
+	sharesDataPlaneClient, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 	if err != nil {
-		return fmt.Errorf("building FileShares Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
+		return fmt.Errorf("building FileShares Client: %v", err)
 	}
 
-	id := parse.NewStorageShareDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, shareName).ID()
-	props, err := client.Get(ctx, account.ResourceGroup, accountName, shareName)
+	// Determine the file endpoint, so we can build a data plane ID
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeFile)
 	if err != nil {
-		return fmt.Errorf("retrieving Share %q (Account %q / Resource Group %q): %s", shareName, accountName, account.ResourceGroup, err)
+		return fmt.Errorf("determining File endpoint: %v", err)
+	}
+
+	// Parse the file endpoint as a data plane account ID
+	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	id := shares.NewShareID(*accountId, shareName).ID()
+
+	props, err := sharesDataPlaneClient.Get(ctx, shareName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if props == nil {
-		return fmt.Errorf("share %q was not found in Account %q / Resource Group %q", shareName, accountName, account.ResourceGroup)
+		return fmt.Errorf("%s was not found", id)
 	}
 	d.SetId(id)
 
 	d.Set("name", shareName)
 	d.Set("storage_account_name", accountName)
 	d.Set("quota", props.QuotaGB)
-	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
-		return fmt.Errorf("setting `acl`: %+v", err)
+	if err = d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
+		return fmt.Errorf("setting `acl`: %v", err)
 	}
 
-	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("setting `metadata`: %+v", err)
+	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("setting `metadata`: %v", err)
 	}
 
 	resourceManagerId := parse.NewStorageShareResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, accountName, "default", shareName)

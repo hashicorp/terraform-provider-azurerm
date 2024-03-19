@@ -10,12 +10,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/files"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files"
 )
 
 type StorageShareFileResource struct{}
@@ -27,6 +28,21 @@ func TestAccAzureRMStorageShareFile_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_basicAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAzureADAuth(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -137,28 +153,28 @@ func TestAccAzureRMStorageShareFile_withEmptyFile(t *testing.T) {
 }
 
 func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := files.ParseResourceID(state.ID)
+	id, err := files.ParseFileID(state.ID, clients.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
 
-	account, err := clients.Storage.FindAccount(ctx, id.AccountName)
+	account, err := clients.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
+		return nil, fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
 	}
 	if account == nil {
 		return utils.Bool(false), nil
 	}
 
-	client, err := clients.Storage.FileShareFilesClient(ctx, *account)
+	client, err := clients.Storage.FileShareFilesDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building File Share Files Client: %s", err)
 	}
 
-	resp, err := client.GetProperties(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName)
+	resp, err := client.GetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
 		}
 	}
 
@@ -205,6 +221,43 @@ resource "azurerm_storage_share_file" "test" {
   }
 }
 `, r.template(data))
+}
+
+func (r StorageShareFileResource) basicAzureADAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "fileshare"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 50
+}
+
+resource "azurerm_storage_share_file" "test" {
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageShareFileResource) requiresImport(data acceptance.TestData) string {

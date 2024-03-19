@@ -230,6 +230,8 @@ resource "azurerm_servicebus_namespace" "primary_namespace_test" {
 resource "azurerm_servicebus_queue" "example" {
   name         = "queue-test"
   namespace_id = azurerm_servicebus_namespace.primary_namespace_test.id
+
+  enable_partitioning = true
 }
 
 resource "azurerm_servicebus_namespace" "secondary_namespace_test" {

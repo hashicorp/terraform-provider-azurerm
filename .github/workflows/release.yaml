@@ -48,7 +48,7 @@ jobs:
       signore-client-id: '${{ secrets.SIGNORE_CLIENT_ID }}'
       signore-client-secret: '${{ secrets.SIGNORE_CLIENT_SECRET }}'
     with:
-      goreleaser-release-args: --timeout 2h --verbose --parallelism 8
+      goreleaser-release-args: --timeout 2h --verbose --parallelism 4
       hc-releases-aws-role-duration-seconds: 7200
       release-notes: true
       setup-go-version: '${{ needs.go-version.outputs.version }}'

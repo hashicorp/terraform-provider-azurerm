@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedulerequests"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedules"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
@@ -166,7 +166,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clientInstances := metadata.Client.Authorization.RoleEligibilityScheduleInstancesClient
+			clientSchedules := metadata.Client.Authorization.RoleEligibilitySchedulesClient
 			clientRequest := metadata.Client.Authorization.RoleEligibilityScheduleRequestClient
 
 			scope := metadata.ResourceData.Get("scope").(string)
@@ -175,23 +175,24 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewPimRoleAssignmentID(scope, roleDefinitionId, principalId)
 
-			filter := &roleeligibilityscheduleinstances.ListForScopeOperationOptions{
-				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s' and roleDefinitionId eq '%s')", id.PrincipalId, id.RoleDefinitionId)),
+			filter := &roleeligibilityschedules.ListForScopeOperationOptions{
+				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 			}
 
-			items, err := clientInstances.ListForScopeComplete(ctx, id.ScopeID(), *filter)
+			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), *filter)
 			if err != nil {
 				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
 			}
 			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect &&
+				if *item.Properties.MemberType == roleeligibilityschedules.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.RoleDefinitionId, roleDefinitionId) &&
 					strings.EqualFold(*item.Properties.Scope, id.Scope) {
 					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
 			var config PimEligibleRoleAssignmentResourceSchema
-			if err := metadata.Decode(&config); err != nil {
+			if err = metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
@@ -201,12 +202,12 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			payload.Properties.RequestType = roleeligibilityschedulerequests.RequestTypeAdminAssign
 
-			uuid, err := uuid.GenerateUUID()
+			roleEligibilityScheduleRequestId, err := uuid.GenerateUUID()
 			if err != nil {
 				return fmt.Errorf("generating uuid: %+v", err)
 			}
 
-			requestId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(config.Scope, uuid)
+			requestId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(config.Scope, roleEligibilityScheduleRequestId)
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
@@ -228,7 +229,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 			stateConf = &pluginsdk.StateChangeConf{
 				Pending:    []string{"Missing"},
 				Target:     []string{"Found"},
-				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientInstances, config.Scope, config.PrincipalId, config.RoleDefinitionId, "Found"),
+				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientSchedules, config.Scope, config.PrincipalId, config.RoleDefinitionId, "Found"),
 				MinTimeout: 30 * time.Second,
 				Timeout:    time.Until(deadline),
 			}
@@ -247,8 +248,8 @@ func (r PimEligibleRoleAssignmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clientInstances := metadata.Client.Authorization.RoleEligibilityScheduleInstancesClient
 			clientRequest := metadata.Client.Authorization.RoleEligibilityScheduleRequestClient
+			clientSchedules := metadata.Client.Authorization.RoleEligibilitySchedulesClient
 
 			schema := PimEligibleRoleAssignmentResourceSchema{}
 
@@ -257,33 +258,34 @@ func (r PimEligibleRoleAssignmentResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			filter := &roleeligibilityscheduleinstances.ListForScopeOperationOptions{
-				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s' and roleDefinitionId eq '%s')", id.PrincipalId, id.RoleDefinitionId)),
+			filter := &roleeligibilityschedules.ListForScopeOperationOptions{
+				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 			}
 
-			items, err := clientInstances.ListForScopeComplete(ctx, id.ScopeID(), *filter)
+			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), *filter)
 			if err != nil {
 				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
 			}
-			var instance *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstance
+			var schedule *roleeligibilityschedules.RoleEligibilitySchedule
 			for _, item := range items.Items {
-				if *item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect &&
+				if *item.Properties.MemberType == roleeligibilityschedules.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.RoleDefinitionId, id.RoleDefinitionId) &&
 					strings.EqualFold(*item.Properties.Scope, id.Scope) {
-					instance = &item
+					schedule = &item
 					break
 				}
 			}
-			if instance == nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			if schedule == nil {
+				return metadata.MarkAsGone(*id)
 			}
 
 			schema.Scope = id.Scope
 
-			guid, err := parse.RoleEligibilityScheduleIdFromInstance(instance)
+			roleEligibilityScheduleRequestId, err := parse.RoleEligibilityScheduleRequestIdFromSchedule(schedule)
 			if err != nil {
 				return err
 			}
-			scheduleRequestId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(id.Scope, *guid)
+			scheduleRequestId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(id.Scope, *roleEligibilityScheduleRequestId)
 
 			resp, err := clientRequest.Get(ctx, scheduleRequestId)
 			if err != nil {
@@ -296,7 +298,7 @@ func (r PimEligibleRoleAssignmentResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Scope = id.Scope
 
-				if err := r.mapRoleAssignmentScheduleRequestToPimEligibleRoleAssignmentResourceSchema(*model, &schema); err != nil {
+				if err = r.mapRoleAssignmentScheduleRequestToPimEligibleRoleAssignmentResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)
 				}
 			}
@@ -317,7 +319,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			clientInstances := metadata.Client.Authorization.RoleEligibilityScheduleInstancesClient
+			clientSchedules := metadata.Client.Authorization.RoleEligibilitySchedulesClient
 			clientRequest := metadata.Client.Authorization.RoleEligibilityScheduleRequestClient
 
 			id, err := parse.PimRoleAssignmentID(metadata.ResourceData.Id())
@@ -329,51 +331,91 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-			payload := roleeligibilityschedulerequests.RoleEligibilityScheduleRequest{}
-			payload.Properties = &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestProperties{}
-			payload.Properties.PrincipalId = id.PrincipalId
-			payload.Properties.RoleDefinitionId = id.RoleDefinitionId
-			payload.Properties.RequestType = roleeligibilityschedulerequests.RequestTypeAdminRemove
-			payload.Properties.ScheduleInfo = &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesScheduleInfo{}
-
-			if config.Justification != "" {
-				payload.Properties.Justification = &config.Justification
-			}
-			if len(config.TicketInfo) == 1 {
-				payload.Properties.TicketInfo = &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesTicketInfo{}
-				payload.Properties.TicketInfo.TicketNumber = &config.TicketInfo[0].TicketNumber
-				payload.Properties.TicketInfo.TicketSystem = &config.TicketInfo[0].TicketSystem
-			}
-
-			uuid, err := uuid.GenerateUUID()
-			if err != nil {
-				return fmt.Errorf("generating uuid: %+v", err)
-			}
-			deleteId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(id.Scope, uuid)
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
 				return fmt.Errorf("internal error: context has no deadline")
 			}
 
-			// wait for resource to deleted
+			filter := roleeligibilityschedules.ListForScopeOperationOptions{
+				Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
+			}
+
+			items, err := clientSchedules.ListForScopeComplete(ctx, id.ScopeID(), filter)
+			if err != nil {
+				return fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
+			}
+
+			var schedule *roleeligibilityschedules.RoleEligibilitySchedule
+			for _, item := range items.Items {
+				if *item.Properties.MemberType == roleeligibilityschedules.MemberTypeDirect &&
+					strings.EqualFold(*item.Properties.RoleDefinitionId, id.RoleDefinitionId) &&
+					strings.EqualFold(*item.Properties.Scope, id.Scope) {
+					schedule = &item
+					break
+				}
+			}
+			if schedule == nil {
+				log.Printf("[DEBUG] Role Eligibility request has been canceled.")
+				return nil
+			}
+
+			switch *schedule.Properties.Status {
+			case roleeligibilityschedules.StatusPendingApproval, roleeligibilityschedules.StatusPendingApprovalProvisioning,
+				roleeligibilityschedules.StatusPendingEvaluation, roleeligibilityschedules.StatusGranted,
+				roleeligibilityschedules.StatusPendingProvisioning, roleeligibilityschedules.StatusPendingAdminDecision:
+				// Pending role assignments should be removed by Cancel operation
+				roleEligibilityScheduleRequestId, err := parse.RoleEligibilityScheduleRequestIdFromSchedule(schedule)
+				if err != nil {
+					return err
+				}
+				scheduleRequestId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(id.Scope, *roleEligibilityScheduleRequestId)
+				if _, err = clientRequest.Cancel(ctx, scheduleRequestId); err != nil {
+					return err
+				}
+			default:
+				// remove active role assignment
+				payload := roleeligibilityschedulerequests.RoleEligibilityScheduleRequest{}
+				payload.Properties = &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestProperties{}
+				payload.Properties.PrincipalId = id.PrincipalId
+				payload.Properties.RoleDefinitionId = id.RoleDefinitionId
+				payload.Properties.RequestType = roleeligibilityschedulerequests.RequestTypeAdminRemove
+				payload.Properties.ScheduleInfo = &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesScheduleInfo{}
+
+				if config.Justification != "" {
+					payload.Properties.Justification = &config.Justification
+				}
+				if len(config.TicketInfo) == 1 {
+					payload.Properties.TicketInfo = &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesTicketInfo{}
+					payload.Properties.TicketInfo.TicketNumber = &config.TicketInfo[0].TicketNumber
+					payload.Properties.TicketInfo.TicketSystem = &config.TicketInfo[0].TicketSystem
+				}
+
+				roleEligibilityScheduleRequestId, err := uuid.GenerateUUID()
+				if err != nil {
+					return fmt.Errorf("generating uuid: %+v", err)
+				}
+				deleteId := roleeligibilityschedulerequests.NewScopedRoleEligibilityScheduleRequestID(id.Scope, roleEligibilityScheduleRequestId)
+
+				// Wait for resource to deleted
+				stateConf := &pluginsdk.StateChangeConf{
+					Pending:    []string{"Exist"},
+					Target:     []string{"Deleted"},
+					Refresh:    deleteEligibilityRoleAssignmentSchedule(ctx, clientRequest, deleteId, &payload),
+					MinTimeout: 1 * time.Minute,
+					Timeout:    time.Until(deadline),
+				}
+
+				if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+					return fmt.Errorf("waiting for %s to become deleted: %+v", id, err)
+				}
+			}
+
+			// Wait for role assignment to be missing
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Exist"},
-				Target:     []string{"Deleted"},
-				Refresh:    deleteEligibilityRoleAssignmentSchedule(ctx, clientRequest, deleteId, &payload),
-				MinTimeout: 1 * time.Minute,
-				Timeout:    time.Until(deadline),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become deleted: %+v", id, err)
-			}
-
-			// wait for role assignment to be missing
-			stateConf = &pluginsdk.StateChangeConf{
 				Pending:    []string{"Found"},
 				Target:     []string{"Missing"},
-				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientInstances, id.Scope, id.PrincipalId, id.RoleDefinitionId, "Missing"),
+				Refresh:    waitForEligibleRoleAssignmentSchedule(ctx, clientSchedules, id.Scope, id.PrincipalId, id.RoleDefinitionId, "Missing"),
 				MinTimeout: 30 * time.Second,
 				Timeout:    time.Until(deadline),
 			}
@@ -602,7 +644,6 @@ func (r PimEligibleRoleAssignmentResource) mapRoleEligibilityScheduleRequestProp
 
 func createEligibilityRoleAssignment(ctx context.Context, client *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient, id roleeligibilityschedulerequests.ScopedRoleEligibilityScheduleRequestId, payload *roleeligibilityschedulerequests.RoleEligibilityScheduleRequest) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-
 		// Azure can error when the subject doesn't exist yet due to AAD replication
 		// Retry deletes while that error exists.
 		result, err := client.Create(ctx, id, *payload)
@@ -618,25 +659,25 @@ func createEligibilityRoleAssignment(ctx context.Context, client *roleeligibilit
 	}
 }
 
-func waitForEligibleRoleAssignmentSchedule(ctx context.Context, client *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstancesClient, scope string, principalId string, roleDefinitionId string, target string) pluginsdk.StateRefreshFunc {
+func waitForEligibleRoleAssignmentSchedule(ctx context.Context, client *roleeligibilityschedules.RoleEligibilitySchedulesClient, scope string, principalId string, roleDefinitionId string, target string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if Role Assignment is %s on %q with role %q for %q.", target, scope, roleDefinitionId, principalId)
 
-		instanceId := commonids.NewScopeID(scope)
-		filter := &roleeligibilityscheduleinstances.ListForScopeOperationOptions{
+		scopeId := commonids.NewScopeID(scope)
+		filter := &roleeligibilityschedules.ListForScopeOperationOptions{
 			Filter: pointer.To(fmt.Sprintf("assignedTo('%s')", principalId)),
 		}
 
-		items, err := client.ListForScopeComplete(ctx, instanceId, *filter)
+		items, err := client.ListForScopeComplete(ctx, scopeId, *filter)
 		if err != nil {
-			return nil, "", fmt.Errorf("listing role assignments on scope %s: %+v", instanceId, err)
+			return nil, "", fmt.Errorf("listing role assignments on scope %s: %+v", scopeId, err)
 		}
 		state := "Missing"
 		var result interface{}
 
 		for _, item := range items.Items {
 			if *item.Properties.RoleDefinitionId == roleDefinitionId &&
-				*item.Properties.MemberType == roleeligibilityscheduleinstances.MemberTypeDirect &&
+				*item.Properties.MemberType == roleeligibilityschedules.MemberTypeDirect &&
 				strings.EqualFold(*item.Properties.Scope, scope) {
 				state = "Found"
 				result = item
@@ -645,7 +686,7 @@ func waitForEligibleRoleAssignmentSchedule(ctx context.Context, client *roleelig
 		}
 
 		if target == "Missing" && state == "Missing" {
-			result = &roleeligibilityscheduleinstances.RoleEligibilityScheduleInstance{}
+			result = &roleeligibilityschedules.RoleEligibilitySchedule{}
 		}
 
 		return result, state, nil
@@ -654,7 +695,6 @@ func waitForEligibleRoleAssignmentSchedule(ctx context.Context, client *roleelig
 
 func deleteEligibilityRoleAssignmentSchedule(ctx context.Context, client *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestsClient, id roleeligibilityschedulerequests.ScopedRoleEligibilityScheduleRequestId, payload *roleeligibilityschedulerequests.RoleEligibilityScheduleRequest) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-
 		// Azure can error when the role hasn't existed for less than 5 minutes.
 		// Retry deletes while that error exists.
 		result, err := client.Create(ctx, id, *payload)
