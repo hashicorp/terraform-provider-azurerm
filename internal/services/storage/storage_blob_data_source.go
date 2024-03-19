@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
@@ -94,7 +95,12 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	accountId, err := accounts.ParseAccountID(accountName, storageClient.StorageDomainSuffix)
+	blobEndpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+	if err != nil {
+		return fmt.Errorf("retrieving the blob data plane endpoint: %v", err)
+	}
+
+	accountId, err := accounts.ParseAccountID(*blobEndpoint, storageClient.StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
