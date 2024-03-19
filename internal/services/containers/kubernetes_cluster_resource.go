@@ -1574,6 +1574,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				string(managedclusters.UpgradeChannelStable),
 				string(managedclusters.UpgradeChannelNodeNegativeimage),
 			}, false),
+			Deprecated: features.DeprecatedInFourPointOh("The property `automatic_channel_upgrade` will be renamed to `automatic_upgrade_channel` in v4.0"),
 		}
 		resource.Schema["node_os_channel_upgrade"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
@@ -1584,6 +1585,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
 				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
 			}, false),
+			Deprecated: features.DeprecatedInFourPointOh("The property `node_os_channel_upgrade` will be renamed to `node_os_upgrade_channel` in v4.0"),
 		}
 	}
 
