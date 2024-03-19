@@ -7,6 +7,13 @@
 * Please do not leave "+1" or "me too" comments, they generate extra noise for PR followers and do not help prioritize for review
 
 
+## Description
+
+<!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. 
+
+If this is a breaking change for users please detail how it cannot be avoided and why it should be made in a minor version of the provider -->
+
+
 ## PR Checklist
 
 - [ ] I have followed the guidelines in our [Contributing Documentation](../blob/main/contributing/README.md).
@@ -14,7 +21,6 @@
 - [ ] I have checked if my changes close any open issues. If so please include appropriate [closing keywords](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) below.
 - [ ] I have used a meaningful PR title to help maintainers and other users understand this change and help prevent duplicate work. 
 For example: “`resource_name_here` - description of change e.g. adding property `new_property_name_here`”
-
 
 
 <!-- You can erase any parts of this template below this point that are not applicable to your Pull Request. -->
@@ -38,19 +44,11 @@ For example: “`resource_name_here` - description of change e.g. adding propert
 - [ ] Documentation is written in a helpful and kind way to assist users that may be unfamiliar with the resource / data source.
 
 
-## Description
-
-<!-- Please include a description below with the reason for the PR, what it is doing, what it is trying to accomplish, and anything relevant for a reviewer to know. 
-
-If this is a breaking change for users please detail how it cannot be avoided and why it should be made in a minor version of the provider -->
-
 ## Testing Logs/Evidence
 
 <!-- Please include your testing evidence here or an explanation on why no testing evidence can be provided. 
 For state migrations please test the changes locally and provide details here, such as the versions involved in testing the migration path. For further details on testing state migration changes please see our guide on [state migrations](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-state-migrations.md#testing) in the contributor documentation. -->
 
-## Related Issue(s)
-Fixes #0000
 
 ## Change Log
 Below please provide what should go into the changelog (if anything) conforming to the [Changelog Format documented here](../blob/main/contributing/topics/maintainer-changelog.md).
@@ -68,6 +66,9 @@ This is a (please select all that apply):
 - [ ] Enhancement
 - [ ] Breaking Change
 
+
+## Related Issue(s)
+Fixes #0000
 
 
 > [!NOTE] 

@@ -1,21 +1,54 @@
-## 3.96.0 (Unreleased)
+## 3.97.0 (Unreleased)
+
+BREAKING CHANGES:
+
+* `azurerm_linux_function_app` - `app_settings["WEBSITE_RUN_FROM_PACKAGE"]` must be added to `ignore_changes` for deployments where an external tool modifies the `WEBSITE_RUN_FROM_PACKAGE` property in the `app_settings` block. [GH-24848]
+* `azurerm_linux_function_app_slot` - `app_settings["WEBSITE_RUN_FROM_PACKAGE"]` must be added to `ignore_changes` for deployments where an external tool modifies the `WEBSITE_RUN_FROM_PACKAGE` property in the `app_settings` block. [GH-24848]
 
 ENHANCEMENTS:
 
-* `azurerm_kusto_cluster` - support `None` pattern for the `virtual_network_configuration` block [GH-24733]
-* `azurerm_linux_function_app` - support for the Node `20` runtime [GH-24073]
-* `azurerm_linux_function_app_slot` - support for the Node `20` runtime [GH-24073]
-* `azurerm_windows_function_app` - support for the Node `20` runtime [GH-24073]
-* `azurerm_windows_function_app_slot` - support for the Node `20` runtime [GH-24073]
-* `azurerm_windows_web_app` - support for the Node `20` runtime [GH-24073]
-* `azurerm_windows_web_app_slot` - support for the Node `20` runtime [GH-24073]
+* dependencies: updating to `v0.20240315.1103122` of `github.com/hashicorp/go-azure-sdk` [GH-25166]
+* `cosmosdb`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25166]
+* `azurerm_app_configuration` - support for Environments other than Azure Public [GH-25271]
+* `azurerm_cosmosdb_postgresql_cluster` - expose list of server names and FQDN in the `servers` block [GH-25240]
+* `azurerm_data_share` - hyphens are now allowed in the resource's name [GH-25242]
+* `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
+* `azurerm_storage_account` - support for the `dns_endpoint_type` property [GH-22583]
 
 BUG FIXES:
 
-* `azurerm_container_app_custom_domain` - fix resource ID parsing bug preventing import [GH-25192]
-* `azurerm_windows_web_app` - fix incorrect warning message when checking name availability [GH-25214]
-* `azurerm_virtual_machine_run_command` - prevent a bug during updates [GH-25186]
-* Data Source: `azurerm_storage_table_entities`  - Fix `items.x.properties` truncating to one entry [GH-25211]
+* `azurerm_storage_queue` - fixing a bug where the Table URI was obtained rather than the Queue URI [GH-25262]
+* `azurerm_purview_account` - will now allow for PurView accounts with missing or disabled eventhubs without keys [GH-25301]
+
+## 3.96.0 (March 14, 2024)
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20240314.1083835` of `github.com/hashicorp/go-azure-sdk` ([#25255](https://github.com/hashicorp/terraform-provider-azurerm/issues/25255))
+* dependencies: updating to `v0.25.1` of `github.com/tombuildsstuff/giovanni` ([#24798](https://github.com/hashicorp/terraform-provider-azurerm/issues/24798))
+* dependencies: updating to `v1.33.0` of `google.golang.org/protobuf` ([#25243](https://github.com/hashicorp/terraform-provider-azurerm/issues/25243))
+* `storage`: updating the data plane resources to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#24798](https://github.com/hashicorp/terraform-provider-azurerm/issues/24798))
+* Data Source: `azurerm_storage_table_entities` - support for AAD authentication ([#24798](https://github.com/hashicorp/terraform-provider-azurerm/issues/24798))
+* Data Source: `azurerm_storage_table_entity` - support for AAD authentication ([#24798](https://github.com/hashicorp/terraform-provider-azurerm/issues/24798))
+* `azurerm_kusto_cluster` - support `None` pattern for the `virtual_network_configuration` block ([#24733](https://github.com/hashicorp/terraform-provider-azurerm/issues/24733))
+* `azurerm_linux_function_app` - support for the Node `20` runtime ([#24073](https://github.com/hashicorp/terraform-provider-azurerm/issues/24073))
+* `azurerm_linux_function_app_slot` - support for the Node `20` runtime ([#24073](https://github.com/hashicorp/terraform-provider-azurerm/issues/24073))
+* `azurerm_stack_hci_cluster` - support the `identity`, `cloud_id`, `service_endpoint` and `resource_provider_object_id` properties [GH-25031]
+* `azurerm_storage_share_file` - support for AAD authentication ([#24798](https://github.com/hashicorp/terraform-provider-azurerm/issues/24798))
+* `azurerm_storage_share_directory` - support for AAD authentication, deprecate `share_name` and `storage_account_name` in favor of `storage_share_id` ([#24798](https://github.com/hashicorp/terraform-provider-azurerm/issues/24798))
+* `azurerm_storage_table_entity` - support for AAD authentication, deprecate `share_name` and `storage_account_name` in favor of `storage_table_id` ([#24798](https://github.com/hashicorp/terraform-provider-azurerm/issues/24798))
+* `azurerm_storage_table_entity` - support for AAD authentication ([#24798](https://github.com/hashicorp/terraform-provider-azurerm/issues/24798))
+* `azurerm_windows_function_app` - support for the Node `20` runtime ([#24073](https://github.com/hashicorp/terraform-provider-azurerm/issues/24073))
+* `azurerm_windows_function_app_slot` - support for the Node `20` runtime ([#24073](https://github.com/hashicorp/terraform-provider-azurerm/issues/24073))
+* `azurerm_windows_web_app` - support for the Node `20` runtime ([#24073](https://github.com/hashicorp/terraform-provider-azurerm/issues/24073))
+* `azurerm_windows_web_app_slot` - support for the Node `20` runtime ([#24073](https://github.com/hashicorp/terraform-provider-azurerm/issues/24073))
+
+BUG FIXES:
+
+* `azurerm_container_app_custom_domain` - fix resource ID parsing bug preventing import ([#25192](https://github.com/hashicorp/terraform-provider-azurerm/issues/25192))
+* `azurerm_windows_web_app` - fix incorrect warning message when checking name availability ([#25214](https://github.com/hashicorp/terraform-provider-azurerm/issues/25214))
+* `azurerm_virtual_machine_run_command` - prevent a bug during updates ([#25186](https://github.com/hashicorp/terraform-provider-azurerm/issues/25186))
+* Data Source: `azurerm_storage_table_entities`  - Fix `items.x.properties` truncating to one entry ([#25211](https://github.com/hashicorp/terraform-provider-azurerm/issues/25211))
 
 ## 3.95.0 (March 08, 2024)
 
