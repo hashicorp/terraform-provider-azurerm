@@ -32,7 +32,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"antimalware": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"real_time_protection_enabled": {
@@ -58,7 +57,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"exclusions": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"extensions": {
@@ -82,7 +80,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"azure_security_baseline": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"assignment_type": {
@@ -95,7 +92,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		"backup": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"policy_name": {
@@ -113,7 +109,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"schedule_policy": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"schedule_run_frequency": {
@@ -144,7 +139,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 					"retention_policy": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"retention_policy_type": {
@@ -154,7 +148,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								"daily_schedule": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
-									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"retention_times": {
@@ -167,7 +160,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 											"retention_duration": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
-												MaxItems: 1,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"count": {
@@ -187,7 +179,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 								"weekly_schedule": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
-									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"retention_times": {
@@ -200,7 +191,6 @@ func (ConfigurationV0ToV1) Schema() map[string]*pluginsdk.Schema {
 											"retention_duration": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
-												MaxItems: 1,
 												Elem: &pluginsdk.Resource{
 													Schema: map[string]*pluginsdk.Schema{
 														"count": {
