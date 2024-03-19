@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240315.1103122` of `github.com/hashicorp/go-azure-sdk` [GH-25166]
 * dependencies: updating to `v0.25.2` of `github.com/tombuildsstuff/giovanni` [GH-25305]
+* `azurestackhci`: updating to API Version `2024-01-01` [GH-25279]
 * `cosmosdb`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25166]
 * `azurerm_app_configuration` - support for Environments other than Azure Public [GH-25271]
 * `azurerm_container_app_environment` - add support for `Consumption` workload profile [GH-25285]
