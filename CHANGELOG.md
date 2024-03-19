@@ -23,6 +23,8 @@ BUG FIXES:
 * `azurerm_storage_blob` - fixing a regression where blobs within a nested directory wouldn't be parsed correctly [GH-25305]
 * `azurerm_storage_data_lake_gen2_path` - fixing a bug where there was no timeout available during import [GH-25282]
 * `azurerm_storage_queue` - fixing a bug where the Table URI was obtained rather than the Queue URI [GH-25262]
+* `azurerm_subscription` - fixing an issue when creating a subscription alias [GH-25181]
+
 
 ## 3.96.0 (March 14, 2024)
 
