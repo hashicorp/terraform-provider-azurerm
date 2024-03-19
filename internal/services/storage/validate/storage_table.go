@@ -6,7 +6,29 @@ package validate
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
 )
+
+func StorageTableDataPlaneID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if client.StorageDomainSuffix == nil {
+		return validation.IsURLWithPath(input, key)
+	}
+
+	if _, err := tables.ParseTableID(v, *client.StorageDomainSuffix); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
 
 func StorageTableName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)

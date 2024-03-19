@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -78,12 +79,17 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 	}
 
-	client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+	dataPlaneClient, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %v", accountName, account.ResourceGroup, err)
 	}
 
-	accountId, err := accounts.ParseAccountID(accountName, storageClient.StorageDomainSuffix)
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
+	if err != nil {
+		return fmt.Errorf("retrieving the table data plane endpoint: %v", err)
+	}
+
+	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
@@ -96,7 +102,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		MetaDataLevel: entities.NoMetaData,
 	}
 
-	result, err := client.Get(ctx, tableName, input)
+	result, err := dataPlaneClient.Get(ctx, tableName, input)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
