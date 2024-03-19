@@ -86,7 +86,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 
 	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
 	if err != nil {
-		return fmt.Errorf("retrieving the table data plan endpoint: %v", err)
+		return fmt.Errorf("retrieving the table data plane endpoint: %v", err)
 	}
 
 	accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
