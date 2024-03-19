@@ -213,12 +213,13 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"spark_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "2.4",
+				Default:  "3.4",
 				ValidateFunc: validation.StringInSlice([]string{
 					"2.4",
 					"3.1",
 					"3.2",
 					"3.3",
+					"3.4",
 				}, false),
 			},
 
