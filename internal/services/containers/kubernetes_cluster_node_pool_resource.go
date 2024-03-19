@@ -1068,6 +1068,21 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 }
 
 func upgradeSettingsSchema() *pluginsdk.Schema {
+	if !features.FourPointOhBeta() {
+		return &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"max_surge": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		}
+	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1076,7 +1091,8 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
 					Type:     pluginsdk.TypeString,
-					Required: true,
+					Optional: true,
+					Default:  "10%",
 				},
 			},
 		},
