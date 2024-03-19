@@ -1232,6 +1232,10 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 			rd := metadata.ResourceDiff
 			if rd.HasChange("vnet_image_pull_enabled") {
 				planId := rd.Get("service_plan_id")
+				// the plan id is known after apply during the initial creation
+				if planId.(string) == "" {
+					return nil
+				}
 				_, newValue := rd.GetChange("vnet_image_pull_enabled")
 				servicePlanId, err := commonids.ParseAppServicePlanID(planId.(string))
 				if err != nil {
