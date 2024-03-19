@@ -8,6 +8,7 @@ BREAKING CHANGES:
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240315.1103122` of `github.com/hashicorp/go-azure-sdk` [GH-25166]
+* dependencies: updating to `v0.25.2` of `github.com/tombuildsstuff/giovanni` [GH-25305]
 * `cosmosdb`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25166]
 * `azurerm_app_configuration` - support for Environments other than Azure Public [GH-25271]
 * `azurerm_cosmosdb_postgresql_cluster` - expose list of server names and FQDN in the `servers` block [GH-25240]
@@ -17,6 +18,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_storage_blob` - fixing a regression where blobs within a nested directory wouldn't be parsed correctly [GH-25305]
 * `azurerm_storage_queue` - fixing a bug where the Table URI was obtained rather than the Queue URI [GH-25262]
 * `azurerm_purview_account` - will now allow for PurView accounts with missing or disabled eventhubs without keys [GH-25301]
 
