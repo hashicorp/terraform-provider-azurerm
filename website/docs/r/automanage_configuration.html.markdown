@@ -114,7 +114,7 @@ The following arguments are supported:
 
 * `log_analytics_enabled` - (Optional) Whether log analytics are enabled. Defaults to `false`.
 
-* `status_change_alert_enabled` - (Optional) Whether the status change alert is enabled. Defaults to `false`.
+* `status_change_alert_enabled` - (Optional) Whether the status change alert is enabled. Defaults to `false`. To utilize this property, the corresponding feature flag must be activated in your Azure subscription. This can be accomplished by logging into the Azure portal, selecting the appropriate subscription, proceeding to the ‘Preview features’ section, identifying the “Automanage Alerts Enabled” feature flag, and confirming its activation by clicking on ‘Register’.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
