@@ -668,14 +668,14 @@ func TestAccLinuxVirtualMachineScaleSet_otherRollingUpgradePolicyUpdate(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, true, 10, 10, 10, "PT0S", true),
+			Config: r.otherRollingUpgradePolicyUpdate(data, true, 10, 10, 10, "PT0S", true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherRollingUpgradePolicyUpdate(data, false, 20, 20, 20, "PT1S", false),
+			Config: r.otherRollingUpgradePolicyUpdate(data, false, 20, 20, 20, "PT1S", false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2726,7 +2726,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool) string {
+func (r LinuxVirtualMachineScaleSetResource) otherRollingUpgradePolicyUpdate(data acceptance.TestData, cross_zone_upgrades_enabled bool, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent int, pause_time_between_batches string, prioritize_unhealthy_instances_enabled bool, max_surge bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2793,6 +2793,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     max_unhealthy_upgraded_instance_percent = %d
     pause_time_between_batches              = "%s"
     prioritize_unhealthy_instances_enabled  = %t
+    max_surge                               = %t
   }
 
   source_image_reference {
@@ -2821,7 +2822,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = [azurerm_lb_rule.test]
 }
-`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled)
+`, r.template(data), data.RandomInteger, cross_zone_upgrades_enabled, max_batch_instance_percent, max_unhealthy_instance_percent, max_unhealthy_upgraded_instance_percent, pause_time_between_batches, prioritize_unhealthy_instances_enabled, max_surge)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherHealthProbe(data acceptance.TestData) string {
