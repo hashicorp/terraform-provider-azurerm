@@ -120,10 +120,13 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Read() sdk.Resou
 				if existing.Model.Properties.TypeProperties != nil && existing.Model.Properties.TypeProperties.ResourceId != nil {
 					state.IdentityId = *existing.Model.Properties.TypeProperties.ResourceId
 				}
+
+				if existing.Model.Properties.Annotations != nil {
+					state.Annotations = flattenDataFactoryAnnotations(existing.Model.Properties.Annotations)
+				}
 			}
 
 			state.DataFactoryId = factories.NewFactoryID(credentialId.SubscriptionId, credentialId.ResourceGroupName, credentialId.FactoryName).ID()
-			state.Annotations = flattenDataFactoryAnnotations(existing.Model.Properties.Annotations)
 
 			return metadata.Encode(&state)
 		},
