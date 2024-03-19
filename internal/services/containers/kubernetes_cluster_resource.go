@@ -297,6 +297,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_app_id": {
+							Deprecated:   "Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled. This field will be removed in 4.0 release.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
@@ -308,6 +309,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"server_app_id": {
+							Deprecated:   "Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled. This field will be removed in 4.0 release.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
@@ -319,6 +321,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 
 						"server_app_secret": {
+							Deprecated:   "Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled. This field will be removed in 4.0 release.",
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Sensitive:    true,
