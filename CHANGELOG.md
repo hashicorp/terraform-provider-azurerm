@@ -20,6 +20,7 @@ ENHANCEMENTS:
 * `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
 * `azurerm_stack_hci_cluster`: refactoring the association to use `hashicorp/go-azure-sdk` [GH-25293]
 * `azurerm_storage_account` - support for the `dns_endpoint_type` property [GH-22583]
+* `azurerm_synapse_spark_pool` - added support for `3.4` [GH-25319]
 
 BUG FIXES:
 
