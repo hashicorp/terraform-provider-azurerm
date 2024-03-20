@@ -1746,7 +1746,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.Get("image_cleaner_enabled").(bool) {
+	if !features.FourPointOhBeta() || d.Get("image_cleaner_enabled").(bool) {
 		securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
 			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
 			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
