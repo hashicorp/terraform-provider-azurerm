@@ -489,33 +489,6 @@ resource "azurerm_servicebus_queue" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func (ServiceBusQueueResource) partitioningForPremiumError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                         = "acctestservicebusnamespace-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  sku                          = "Premium"
-  premium_messaging_partitions = 2
-  capacity                     = 2
-}
-
-resource "azurerm_servicebus_queue" "test" {
-  name         = "acctestservicebusqueue-%d"
-  namespace_id = azurerm_servicebus_namespace.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
 func (ServiceBusQueueResource) nonPartitionedPremiumNamespaceError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
