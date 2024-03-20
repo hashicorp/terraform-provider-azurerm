@@ -85,6 +85,16 @@ The `active_directory` block supports the following:
 
 * `organizational_unit` - (Optional) The Organizational Unit (OU) within the Active Directory Domain.
 
+* `site_name` - (Optional) The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to `Default-First-Site-Name`
+
+* `ad_name` - (Optional) Name of the active directory machine. This optional parameter is used only while creating a kerberos volume.
+
+* `kdc_ip` - (Optional) kdc server IP addresses for the active directory machine. This optional parameter is used only while creating a kerberos volume.
+
+* `enable_aes_encryption` - (Optional) If enabled, AES encryption will be enabled for SMB communication.
+
+* `allow_local_nfs_users_with_ldap` - (Optional) If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.
+
 ---
 
 ---
@@ -92,9 +102,10 @@ The `identity` block supports the following:
 
 * `type` - (Required) The identity type, which can be `SystemAssigned` or `UserAssigned`. Only one type at a time is supported by Azure NetApp Files.
 * `identity_ids` - (Optional) The identity id of the user assigned identity to use when type is `UserAssigned`
+
 ---
 
-~> **IMPORTANT:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module. 
+~> **IMPORTANT:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module.
 
 ## Attributes Reference
 

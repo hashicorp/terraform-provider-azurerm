@@ -109,7 +109,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Type:        pluginsdk.TypeString,
 							Optional:    true,
 							Default:     "Default-First-Site-Name",
-							Description: "The AD Site Name under which lookups should occur. If blank, defaults to 'Default-First-Site-Name'",
+							Description: "The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to 'Default-First-Site-Name'",
 						},
 						"ad_name": {
 							Type:        pluginsdk.TypeString,
