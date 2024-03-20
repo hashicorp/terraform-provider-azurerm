@@ -27,12 +27,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
+func resourceMaintenanceConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmMaintenanceConfigurationCreateUpdate,
-		Read:   resourceArmMaintenanceConfigurationRead,
-		Update: resourceArmMaintenanceConfigurationCreateUpdate,
-		Delete: resourceArmMaintenanceConfigurationDelete,
+		Create: resourceMaintenanceConfigurationCreate,
+		Read:   resourceMaintenanceConfigurationRead,
+		Update: resourceMaintenanceConfigurationUpdate,
+		Delete: resourceMaintenanceConfigurationDelete,
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -237,7 +237,7 @@ func resourceArmMaintenanceConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -293,14 +293,73 @@ func resourceArmMaintenanceConfigurationCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, configuration); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	return resourceArmMaintenanceConfigurationRead(d, meta)
+	return resourceMaintenanceConfigurationRead(d, meta)
 }
 
-func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := maintenanceconfigurations.MaintenanceConfiguration{}
+
+	properties := maintenanceconfigurations.MaintenanceConfigurationProperties{
+		Namespace: pointer.To("Microsoft.Maintenance"),
+	}
+
+	if d.HasChanges("scope", "window", "install_patches", "properties") {
+		scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
+		window := expandMaintenanceConfigurationWindow(d.Get("window").([]interface{}))
+		installPatches := expandMaintenanceConfigurationInstallPatches(d.Get("install_patches").([]interface{}))
+		extensionProperties := expandExtensionProperties(d.Get("properties").(map[string]interface{}))
+		if scope == maintenanceconfigurations.MaintenanceScopeInGuestPatch {
+			if window == nil {
+				return fmt.Errorf("`window` must be specified when `scope` is `InGuestPatch`")
+			}
+			if installPatches == nil {
+				return fmt.Errorf("`install_patches` must be specified when `scope` is `InGuestPatch`")
+			}
+			if _, ok := (*extensionProperties)["InGuestPatchMode"]; !ok {
+				if _, ok := d.GetOk("in_guest_user_patch_mode"); !ok {
+					return fmt.Errorf("`in_guest_user_patch_mode` must be specified when `scope` is `InGuestPatch`")
+				}
+				(*extensionProperties)["InGuestPatchMode"] = d.Get("in_guest_user_patch_mode").(string)
+			}
+		}
+
+		properties.MaintenanceScope = &scope
+		properties.MaintenanceWindow = window
+		properties.ExtensionProperties = extensionProperties
+		properties.InstallPatches = installPatches
+	}
+
+	if d.HasChange("visibility") {
+		properties.Visibility = pointer.To(maintenanceconfigurations.Visibility(d.Get("visibility").(string)))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	payload.Properties = &properties
+
+	if _, err := client.Update(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceMaintenanceConfigurationRead(d, meta)
+}
+
+func resourceMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -353,7 +412,7 @@ func resourceArmMaintenanceConfigurationRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceArmMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMaintenanceConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
