@@ -135,6 +135,97 @@ func parseCrossRegionRestore(input string) (*CrossRegionRestore, error) {
 	return &out, nil
 }
 
+type CrossSubscriptionRestoreState string
+
+const (
+	CrossSubscriptionRestoreStateDisabled            CrossSubscriptionRestoreState = "Disabled"
+	CrossSubscriptionRestoreStateEnabled             CrossSubscriptionRestoreState = "Enabled"
+	CrossSubscriptionRestoreStatePermanentlyDisabled CrossSubscriptionRestoreState = "PermanentlyDisabled"
+)
+
+func PossibleValuesForCrossSubscriptionRestoreState() []string {
+	return []string{
+		string(CrossSubscriptionRestoreStateDisabled),
+		string(CrossSubscriptionRestoreStateEnabled),
+		string(CrossSubscriptionRestoreStatePermanentlyDisabled),
+	}
+}
+
+func (s *CrossSubscriptionRestoreState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCrossSubscriptionRestoreState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseCrossSubscriptionRestoreState(input string) (*CrossSubscriptionRestoreState, error) {
+	vals := map[string]CrossSubscriptionRestoreState{
+		"disabled":            CrossSubscriptionRestoreStateDisabled,
+		"enabled":             CrossSubscriptionRestoreStateEnabled,
+		"permanentlydisabled": CrossSubscriptionRestoreStatePermanentlyDisabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CrossSubscriptionRestoreState(input)
+	return &out, nil
+}
+
+type EnhancedSecurityState string
+
+const (
+	EnhancedSecurityStateAlwaysON EnhancedSecurityState = "AlwaysON"
+	EnhancedSecurityStateDisabled EnhancedSecurityState = "Disabled"
+	EnhancedSecurityStateEnabled  EnhancedSecurityState = "Enabled"
+	EnhancedSecurityStateInvalid  EnhancedSecurityState = "Invalid"
+)
+
+func PossibleValuesForEnhancedSecurityState() []string {
+	return []string{
+		string(EnhancedSecurityStateAlwaysON),
+		string(EnhancedSecurityStateDisabled),
+		string(EnhancedSecurityStateEnabled),
+		string(EnhancedSecurityStateInvalid),
+	}
+}
+
+func (s *EnhancedSecurityState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnhancedSecurityState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseEnhancedSecurityState(input string) (*EnhancedSecurityState, error) {
+	vals := map[string]EnhancedSecurityState{
+		"alwayson": EnhancedSecurityStateAlwaysON,
+		"disabled": EnhancedSecurityStateDisabled,
+		"enabled":  EnhancedSecurityStateEnabled,
+		"invalid":  EnhancedSecurityStateInvalid,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EnhancedSecurityState(input)
+	return &out, nil
+}
+
 type ImmutabilityState string
 
 const (
@@ -217,6 +308,50 @@ func parseInfrastructureEncryptionState(input string) (*InfrastructureEncryption
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := InfrastructureEncryptionState(input)
+	return &out, nil
+}
+
+type MultiUserAuthorization string
+
+const (
+	MultiUserAuthorizationDisabled MultiUserAuthorization = "Disabled"
+	MultiUserAuthorizationEnabled  MultiUserAuthorization = "Enabled"
+	MultiUserAuthorizationInvalid  MultiUserAuthorization = "Invalid"
+)
+
+func PossibleValuesForMultiUserAuthorization() []string {
+	return []string{
+		string(MultiUserAuthorizationDisabled),
+		string(MultiUserAuthorizationEnabled),
+		string(MultiUserAuthorizationInvalid),
+	}
+}
+
+func (s *MultiUserAuthorization) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMultiUserAuthorization(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseMultiUserAuthorization(input string) (*MultiUserAuthorization, error) {
+	vals := map[string]MultiUserAuthorization{
+		"disabled": MultiUserAuthorizationDisabled,
+		"enabled":  MultiUserAuthorizationEnabled,
+		"invalid":  MultiUserAuthorizationInvalid,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := MultiUserAuthorization(input)
 	return &out, nil
 }
 
@@ -420,6 +555,53 @@ func parseResourceMoveState(input string) (*ResourceMoveState, error) {
 	return &out, nil
 }
 
+type SecureScoreLevel string
+
+const (
+	SecureScoreLevelAdequate SecureScoreLevel = "Adequate"
+	SecureScoreLevelMaximum  SecureScoreLevel = "Maximum"
+	SecureScoreLevelMinimum  SecureScoreLevel = "Minimum"
+	SecureScoreLevelNone     SecureScoreLevel = "None"
+)
+
+func PossibleValuesForSecureScoreLevel() []string {
+	return []string{
+		string(SecureScoreLevelAdequate),
+		string(SecureScoreLevelMaximum),
+		string(SecureScoreLevelMinimum),
+		string(SecureScoreLevelNone),
+	}
+}
+
+func (s *SecureScoreLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSecureScoreLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSecureScoreLevel(input string) (*SecureScoreLevel, error) {
+	vals := map[string]SecureScoreLevel{
+		"adequate": SecureScoreLevelAdequate,
+		"maximum":  SecureScoreLevelMaximum,
+		"minimum":  SecureScoreLevelMinimum,
+		"none":     SecureScoreLevelNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SecureScoreLevel(input)
+	return &out, nil
+}
+
 type SkuName string
 
 const (
@@ -461,10 +643,58 @@ func parseSkuName(input string) (*SkuName, error) {
 	return &out, nil
 }
 
+type SoftDeleteState string
+
+const (
+	SoftDeleteStateAlwaysON SoftDeleteState = "AlwaysON"
+	SoftDeleteStateDisabled SoftDeleteState = "Disabled"
+	SoftDeleteStateEnabled  SoftDeleteState = "Enabled"
+	SoftDeleteStateInvalid  SoftDeleteState = "Invalid"
+)
+
+func PossibleValuesForSoftDeleteState() []string {
+	return []string{
+		string(SoftDeleteStateAlwaysON),
+		string(SoftDeleteStateDisabled),
+		string(SoftDeleteStateEnabled),
+		string(SoftDeleteStateInvalid),
+	}
+}
+
+func (s *SoftDeleteState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSoftDeleteState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSoftDeleteState(input string) (*SoftDeleteState, error) {
+	vals := map[string]SoftDeleteState{
+		"alwayson": SoftDeleteStateAlwaysON,
+		"disabled": SoftDeleteStateDisabled,
+		"enabled":  SoftDeleteStateEnabled,
+		"invalid":  SoftDeleteStateInvalid,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SoftDeleteState(input)
+	return &out, nil
+}
+
 type StandardTierStorageRedundancy string
 
 const (
 	StandardTierStorageRedundancyGeoRedundant     StandardTierStorageRedundancy = "GeoRedundant"
+	StandardTierStorageRedundancyInvalid          StandardTierStorageRedundancy = "Invalid"
 	StandardTierStorageRedundancyLocallyRedundant StandardTierStorageRedundancy = "LocallyRedundant"
 	StandardTierStorageRedundancyZoneRedundant    StandardTierStorageRedundancy = "ZoneRedundant"
 )
@@ -472,6 +702,7 @@ const (
 func PossibleValuesForStandardTierStorageRedundancy() []string {
 	return []string{
 		string(StandardTierStorageRedundancyGeoRedundant),
+		string(StandardTierStorageRedundancyInvalid),
 		string(StandardTierStorageRedundancyLocallyRedundant),
 		string(StandardTierStorageRedundancyZoneRedundant),
 	}
@@ -493,6 +724,7 @@ func (s *StandardTierStorageRedundancy) UnmarshalJSON(bytes []byte) error {
 func parseStandardTierStorageRedundancy(input string) (*StandardTierStorageRedundancy, error) {
 	vals := map[string]StandardTierStorageRedundancy{
 		"georedundant":     StandardTierStorageRedundancyGeoRedundant,
+		"invalid":          StandardTierStorageRedundancyInvalid,
 		"locallyredundant": StandardTierStorageRedundancyLocallyRedundant,
 		"zoneredundant":    StandardTierStorageRedundancyZoneRedundant,
 	}
