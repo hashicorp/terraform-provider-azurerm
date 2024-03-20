@@ -105,6 +105,23 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
 						},
+						"site_name": {
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
+							Default:     "Default-First-Site-Name",
+							Description: "The AD Site Name under which lookups should occur. If blank, defaults to 'Default-First-Site-Name'",
+						},
+						"ad_name": {
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
+							Description: "DNS name of the Active Directory controller",
+						},
+						"kdc_ip": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPv4Address,
+							Description:  "IP address of the KDC server (usually same the DC)",
+						},
 					},
 				},
 			},
@@ -306,6 +323,9 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 			Password:           utils.String(v["password"].(string)),
 			SmbServerName:      utils.String(v["smb_server_name"].(string)),
 			Username:           utils.String(v["username"].(string)),
+			Site:               utils.String(v["site_name"].(string)),
+			AdName:             utils.String(v["ad_name"].(string)),
+			KdcIP:              utils.String(v["kdc_ip"].(string)),
 		}
 
 		results = append(results, result)
