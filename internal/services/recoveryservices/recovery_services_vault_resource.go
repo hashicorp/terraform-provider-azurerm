@@ -254,6 +254,14 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		vault.Sku.Tier = utils.String("Standard")
 	}
 
+	if _, ok := d.GetOk("encryption"); ok {
+		encryption, err := expandEncryption(d)
+		if err != nil {
+			return err
+		}
+		vault.Properties.Encryption = encryption
+	}
+
 	requireAdditionalUpdate := false
 	updatePatch := vaults.PatchVault{
 		Properties: &vaults.VaultProperties{},
@@ -288,17 +296,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("creating %s: %+v", id.String(), err)
 	}
 
-	// `encryption` needs to be set before `cross_region_restore_enabled` is set. Or the service will return an error. "If CRR is enabled for the Vault, the storage state will be locked and it will interfere with further operations"
-	// recovery vault's encryption config cannot be set while creation, so a standalone update is required.
-	if _, ok := d.GetOk("encryption"); ok {
-		encryption, err := expandEncryption(d)
-		if err != nil {
-			return err
-		}
-		requireAdditionalUpdate = true
-		updatePatch.Properties.Encryption = encryption
-	}
-
 	if requireAdditionalUpdate {
 		err := client.UpdateThenPoll(ctx, id, updatePatch)
 		if err != nil {
@@ -306,7 +303,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 	}
-
 	// an update on the vault will reset the vault config to default, so we handle it at last.
 	enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
 	cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
