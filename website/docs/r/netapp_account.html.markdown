@@ -95,6 +95,8 @@ The `active_directory` block supports the following:
 
 * `allow_local_nfs_users_with_ldap` - (Optional) If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes. Defaults to `false`.
 
+* `encrypt_dc_connections` - (Optional) If enabled, Traffic between the SMB server to Domain Controller (DC) will be encrypted. Defaults to `false`.
+
 ---
 
 ---

@@ -95,6 +95,7 @@ func testAccNetAppAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("active_directory.0.ad_name").HasValue("My-AD-Server"),
 				check.That(data.ResourceName).Key("active_directory.0.enable_aes_encryption").HasValue("true"),
 				check.That(data.ResourceName).Key("active_directory.0.allow_local_nfs_users_with_ldap").HasValue("true"),
+				check.That(data.ResourceName).Key("active_directory.0.encrypt_dc_connections").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 			),
@@ -238,17 +239,18 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   active_directory {
-    username            			= "aduser"
-    password            			= "aduserpwd"
-    smb_server_name     			= "SMBSERVER"
-    dns_servers         			= ["1.2.3.4","1.2.3.5"]
-    domain              			= "westcentralus.com"
-    organizational_unit 			= "OU=FirstLevel"
-	site_name						= "My-Site-Name"
-	ad_name							= "My-AD-Server"
-	kdc_ip				 			= "192.168.1.1"
-	enable_aes_encryption      		= true
-	allow_local_nfs_users_with_ldap = true
+    username                        = "aduser"
+    password                        = "aduserpwd"
+    smb_server_name                 = "SMBSERVER"
+    dns_servers                     = ["1.2.3.4", "1.2.3.5"]
+    domain                          = "westcentralus.com"
+    organizational_unit             = "OU=FirstLevel"
+    site_name                       = "My-Site-Name"
+    ad_name                         = "My-AD-Server"
+    kdc_ip                          = "192.168.1.1"
+    enable_aes_encryption           = true
+    allow_local_nfs_users_with_ldap = true
+    encrypt_dc_connections          = true
   }
 
   tags = {

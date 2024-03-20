@@ -136,6 +136,12 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Default:     false,
 							Description: "If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.",
 						},
+						"encrypt_dc_connections": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "If enabled, Traffic between the SMB server to Domain Controller (DC) will be encrypted.",
+						},
 					},
 				},
 			},
@@ -342,6 +348,7 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 			KdcIP:                      utils.String(v["kdc_ip"].(string)),
 			AesEncryption:              utils.Bool(v["enable_aes_encryption"].(bool)),
 			AllowLocalNfsUsersWithLdap: utils.Bool(v["allow_local_nfs_users_with_ldap"].(bool)),
+			EncryptDCConnections:       utils.Bool(v["encrypt_dc_connections"].(bool)),
 		}
 
 		results = append(results, result)
