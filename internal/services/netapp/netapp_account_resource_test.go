@@ -234,6 +234,9 @@ resource "azurerm_netapp_account" "test" {
     dns_servers         = ["1.2.3.4"]
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
+	site_name			= "My-Site-Name"
+	ad_name				= "My-AD-Server"
+	kdc_ip				= "192.168.1.1"
   }
 
   tags = {
