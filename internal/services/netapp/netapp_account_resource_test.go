@@ -96,6 +96,8 @@ func testAccNetAppAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("active_directory.0.enable_aes_encryption").HasValue("true"),
 				check.That(data.ResourceName).Key("active_directory.0.allow_local_nfs_users_with_ldap").HasValue("true"),
 				check.That(data.ResourceName).Key("active_directory.0.encrypt_dc_connections").HasValue("true"),
+				check.That(data.ResourceName).Key("active_directory.0.enable_ldap_over_tls").HasValue("true"),
+				check.That(data.ResourceName).Key("active_directory.0.enable_ldap_signing").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 			),
@@ -251,6 +253,8 @@ resource "azurerm_netapp_account" "test" {
     enable_aes_encryption           = true
     allow_local_nfs_users_with_ldap = true
     encrypt_dc_connections          = true
+    enable_ldap_over_tls            = true
+    enable_ldap_signing             = true
   }
 
   tags = {

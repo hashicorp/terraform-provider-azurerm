@@ -142,6 +142,18 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Default:     false,
 							Description: "If enabled, Traffic between the SMB server to Domain Controller (DC) will be encrypted.",
 						},
+						"enable_ldap_over_tls": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Specifies whether or not the LDAP traffic needs to be secured via TLS.",
+						},
+						"enable_ldap_signing": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Specifies whether or not the LDAP traffic needs to be signed.",
+						},
 					},
 				},
 			},
@@ -349,6 +361,8 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 			AesEncryption:              utils.Bool(v["enable_aes_encryption"].(bool)),
 			AllowLocalNfsUsersWithLdap: utils.Bool(v["allow_local_nfs_users_with_ldap"].(bool)),
 			EncryptDCConnections:       utils.Bool(v["encrypt_dc_connections"].(bool)),
+			LdapOverTLS:                utils.Bool(v["enable_ldap_over_tls"].(bool)),
+			LdapSigning:                utils.Bool(v["enable_ldap_signing"].(bool)),
 		}
 
 		results = append(results, result)

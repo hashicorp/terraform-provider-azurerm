@@ -97,6 +97,10 @@ The `active_directory` block supports the following:
 
 * `encrypt_dc_connections` - (Optional) If enabled, Traffic between the SMB server to Domain Controller (DC) will be encrypted. Defaults to `false`.
 
+* `enable_ldap_over_tls` - (Optional) Specifies whether or not the LDAP traffic needs to be secured via TLS. Defaults to `false`.
+
+* `enable_ldap_signing` - (Optional) Specifies whether or not the LDAP traffic needs to be signed. Defaults to `false`.
+
 ---
 
 ---
