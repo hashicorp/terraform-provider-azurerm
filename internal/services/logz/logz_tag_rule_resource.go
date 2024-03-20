@@ -22,9 +22,9 @@ import (
 
 func resourceLogzTagRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogzTagRuleCreateUpdate,
+		Create: resourceLogzTagRuleCreate,
 		Read:   resourceLogzTagRuleRead,
-		Update: resourceLogzTagRuleCreateUpdate,
+		Update: resourceLogzTagRuleUpdate,
 		Delete: resourceLogzTagRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -97,7 +97,7 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogzTagRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.TagRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,16 +108,15 @@ func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	id := tagrules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, "default")
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_logz_tag_rule", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_logz_tag_rule", id.ID())
 	}
 
 	payload := tagrules.MonitoringTagRules{
@@ -127,10 +126,33 @@ func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceLogzTagRuleRead(d, meta)
+}
+
+func resourceLogzTagRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Logz.TagRuleClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := tagrules.ParseTagRuleID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := tagrules.MonitoringTagRules{
+		Properties: &tagrules.MonitoringTagRulesProperties{
+			LogRules: expandTagRuleLogRules(d),
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
 	return resourceLogzTagRuleRead(d, meta)
 }
 
