@@ -85,6 +85,16 @@ func testAccNetAppAccount_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("1"),
+				check.That(data.ResourceName).Key("active_directory.0.username").HasValue("aduser"),
+				check.That(data.ResourceName).Key("active_directory.0.password").HasValue("aduserpwd"),
+				check.That(data.ResourceName).Key("active_directory.0.smb_server_name").HasValue("SMBSERVER"),
+				check.That(data.ResourceName).Key("active_directory.0.dns_servers.#").HasValue("2"),
+				check.That(data.ResourceName).Key("active_directory.0.domain").HasValue("westcentralus.com"),
+				check.That(data.ResourceName).Key("active_directory.0.organizational_unit").HasValue("OU=FirstLevel"),
+				check.That(data.ResourceName).Key("active_directory.0.site_name").HasValue("My-Site-Name"),
+				check.That(data.ResourceName).Key("active_directory.0.ad_name").HasValue("My-AD-Server"),
+				check.That(data.ResourceName).Key("active_directory.0.enable_aes_encryption").HasValue("true"),
+				check.That(data.ResourceName).Key("active_directory.0.allow_local_nfs_users_with_ldap").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 			),
@@ -228,15 +238,17 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   active_directory {
-    username            = "aduser"
-    password            = "aduserpwd"
-    smb_server_name     = "SMBSERVER"
-    dns_servers         = ["1.2.3.4"]
-    domain              = "westcentralus.com"
-    organizational_unit = "OU=FirstLevel"
-	site_name			= "My-Site-Name"
-	ad_name				= "My-AD-Server"
-	kdc_ip				= "192.168.1.1"
+    username            			= "aduser"
+    password            			= "aduserpwd"
+    smb_server_name     			= "SMBSERVER"
+    dns_servers         			= ["1.2.3.4"]
+    domain              			= "westcentralus.com"
+    organizational_unit 			= "OU=FirstLevel"
+	site_name						= "My-Site-Name"
+	ad_name							= "My-AD-Server"
+	kdc_ip				 			= "192.168.1.1"
+	enable_aes_encryption      		= true
+	allow_local_nfs_users_with_ldap = true
   }
 
   tags = {

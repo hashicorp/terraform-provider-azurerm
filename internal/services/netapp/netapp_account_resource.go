@@ -114,13 +114,25 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 						"ad_name": {
 							Type:        pluginsdk.TypeString,
 							Optional:    true,
-							Description: "DNS name of the Active Directory controller",
+							Description: "Name of the active directory machine. This optional parameter is used only while creating kerberos volume.",
 						},
 						"kdc_ip": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsIPv4Address,
-							Description:  "IP address of the KDC server (usually same the DC)",
+							Description:  "IP address of the KDC server (usually same the DC). This optional parameter is used only while creating kerberos volume.",
+						},
+						"enable_aes_encryption": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "If enabled, AES encryption will be enabled for SMB communication.",
+						},
+						"allow_local_nfs_users_with_ldap": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.",
 						},
 					},
 				},
@@ -317,15 +329,17 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 		dns := strings.Join(*utils.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
 
 		result := netappaccounts.ActiveDirectory{
-			Dns:                utils.String(dns),
-			Domain:             utils.String(v["domain"].(string)),
-			OrganizationalUnit: utils.String(v["organizational_unit"].(string)),
-			Password:           utils.String(v["password"].(string)),
-			SmbServerName:      utils.String(v["smb_server_name"].(string)),
-			Username:           utils.String(v["username"].(string)),
-			Site:               utils.String(v["site_name"].(string)),
-			AdName:             utils.String(v["ad_name"].(string)),
-			KdcIP:              utils.String(v["kdc_ip"].(string)),
+			Dns:                        utils.String(dns),
+			Domain:                     utils.String(v["domain"].(string)),
+			OrganizationalUnit:         utils.String(v["organizational_unit"].(string)),
+			Password:                   utils.String(v["password"].(string)),
+			SmbServerName:              utils.String(v["smb_server_name"].(string)),
+			Username:                   utils.String(v["username"].(string)),
+			Site:                       utils.String(v["site_name"].(string)),
+			AdName:                     utils.String(v["ad_name"].(string)),
+			KdcIP:                      utils.String(v["kdc_ip"].(string)),
+			AesEncryption:              utils.Bool(v["enable_aes_encryption"].(bool)),
+			AllowLocalNfsUsersWithLdap: utils.Bool(v["allow_local_nfs_users_with_ldap"].(bool)),
 		}
 
 		results = append(results, result)
