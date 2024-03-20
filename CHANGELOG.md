@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * Data Source `azurerm_stack_hci_cluster`: refactoring the association to use `hashicorp/go-azure-sdk` [GH-25293]
 * `azurerm_app_configuration` - support for Environments other than Azure Public [GH-25271]
 * `azurerm_automanage_configuration`: refactoring to use `hashicorp/go-azure-sdk` [GH-25293]
+* `azurerm_blob_inventory_policy`: refactoring to use `hashicorp/go-azure-sdk` [GH-25268]
 * `azurerm_container_app_environment` - add support for `Consumption` workload profile [GH-25285]
 * `azurerm_cosmosdb_postgresql_cluster` - expose list of server names and FQDN in the `servers` block [GH-25240]
 * `azurerm_data_share` - hyphens are now allowed in the resource's name [GH-25242]
