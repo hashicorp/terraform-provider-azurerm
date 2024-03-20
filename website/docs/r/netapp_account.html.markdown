@@ -83,17 +83,17 @@ The `active_directory` block supports the following:
 
 * `password` - (Required) The password associated with the `username`.
 
-* `organizational_unit` - (Optional) The Organizational Unit (OU) within the Active Directory Domain.
+* `organizational_unit` - (Optional) The Organizational Unit (OU) within the Windows Active Directory where machines will be created. If blank, defaults to `CN=Computers`.
 
-* `site_name` - (Optional) The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to `Default-First-Site-Name`
+* `site_name` - (Optional) The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to `Default-First-Site-Name`.
 
 * `ad_name` - (Optional) Name of the active directory machine. This optional parameter is used only while creating a kerberos volume.
 
 * `kdc_ip` - (Optional) kdc server IP addresses for the active directory machine. This optional parameter is used only while creating a kerberos volume.
 
-* `enable_aes_encryption` - (Optional) If enabled, AES encryption will be enabled for SMB communication.
+* `enable_aes_encryption` - (Optional) If enabled, AES encryption will be enabled for SMB communication. Defaults to `false`.
 
-* `allow_local_nfs_users_with_ldap` - (Optional) If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.
+* `allow_local_nfs_users_with_ldap` - (Optional) If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes. Defaults to `false`.
 
 ---
 

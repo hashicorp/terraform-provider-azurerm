@@ -102,8 +102,10 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"organizational_unit": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
+							Default:     "CN=Computers",
+							Description: "The Organizational Unit (OU) within the Windows Active Directory where machines will be created. If blank, defaults to 'CN=Computers'",
 						},
 						"site_name": {
 							Type:        pluginsdk.TypeString,
