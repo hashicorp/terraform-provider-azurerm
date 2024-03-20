@@ -8,34 +8,35 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ Credential = ManagedIdentityCredential{}
+var _ Credential = ServicePrincipalCredential{}
 
-type ManagedIdentityCredential struct {
+type ServicePrincipalCredential struct {
+	TypeProperties ServicePrincipalCredentialTypeProperties `json:"typeProperties"`
 
 	// Fields inherited from Credential
 	Annotations *[]interface{} `json:"annotations,omitempty"`
 	Description *string        `json:"description,omitempty"`
 }
 
-var _ json.Marshaler = ManagedIdentityCredential{}
+var _ json.Marshaler = ServicePrincipalCredential{}
 
-func (s ManagedIdentityCredential) MarshalJSON() ([]byte, error) {
-	type wrapper ManagedIdentityCredential
+func (s ServicePrincipalCredential) MarshalJSON() ([]byte, error) {
+	type wrapper ServicePrincipalCredential
 	wrapped := wrapper(s)
 	encoded, err := json.Marshal(wrapped)
 	if err != nil {
-		return nil, fmt.Errorf("marshaling ManagedIdentityCredential: %+v", err)
+		return nil, fmt.Errorf("marshaling ServicePrincipalCredential: %+v", err)
 	}
 
 	var decoded map[string]interface{}
 	if err := json.Unmarshal(encoded, &decoded); err != nil {
-		return nil, fmt.Errorf("unmarshaling ManagedIdentityCredential: %+v", err)
+		return nil, fmt.Errorf("unmarshaling ServicePrincipalCredential: %+v", err)
 	}
-	decoded["type"] = "ManagedIdentity"
+	decoded["type"] = "ServicePrincipal"
 
 	encoded, err = json.Marshal(decoded)
 	if err != nil {
-		return nil, fmt.Errorf("re-marshaling ManagedIdentityCredential: %+v", err)
+		return nil, fmt.Errorf("re-marshaling ServicePrincipalCredential: %+v", err)
 	}
 
 	return encoded, nil
