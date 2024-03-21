@@ -643,7 +643,10 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	d.Set("encryption", []interface{}{flattenVaultEncryption(model)})
+	encryption := flattenVaultEncryption(*model)
+	if encryption != nil {
+		d.Set("encryption", []interface{}{encryption})
+	}
 
 	vaultSettingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
 	vaultSetting, err := vaultSettingsClient.Get(ctx, vaultSettingsId)
@@ -751,33 +754,24 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 	return encryption, nil
 }
 
-func flattenVaultEncryption(model *vaults.Vault) interface{} {
-	// `enecryption` is an optional parameter and won't be returned if it has not been specified.
-	if model == nil {
+func flattenVaultEncryption(model vaults.Vault) interface{} {
+	if model.Properties == nil || model.Properties.Encryption == nil {
+		return nil
+	}
+	encryption := model.Properties.Encryption
+	if encryption.KeyVaultProperties == nil || encryption.KeyVaultProperties.KeyUri == nil {
+		return nil
+	}
+	if encryption.KekIdentity == nil || encryption.KekIdentity.UseSystemAssignedIdentity == nil {
 		return nil
 	}
 	encryptionMap := make(map[string]interface{})
-	keyId := ""
-	useSystemAssignedIdentity := false
-	infraEncryptionEnabled := false
-	userAssignedIdentityId := ""
-
-	if model != nil && model.Properties.Encryption != nil {
-		encryption := *model.Properties.Encryption
-		infraEncryptionEnabled = *encryption.InfrastructureEncryption == vaults.InfrastructureEncryptionStateEnabled
-		if kekIdentity := encryption.KekIdentity; kekIdentity != nil {
-			useSystemAssignedIdentity = pointer.From(kekIdentity.UseSystemAssignedIdentity)
-			userAssignedIdentityId = pointer.From(kekIdentity.UserAssignedIdentity)
-		}
-		if keyvaultProp := encryption.KeyVaultProperties; keyvaultProp != nil {
-			keyId = pointer.From(keyvaultProp.KeyUri)
-		}
+	encryptionMap["key_id"] = encryption.KeyVaultProperties.KeyUri
+	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
+	encryptionMap["infrastructure_encryption_enabled"] = *encryption.InfrastructureEncryption == vaults.InfrastructureEncryptionStateEnabled
+	if encryption.KekIdentity.UserAssignedIdentity != nil {
+		encryptionMap["user_assigned_identity_id"] = *encryption.KekIdentity.UserAssignedIdentity
 	}
-
-	encryptionMap["key_id"] = keyId
-	encryptionMap["use_system_assigned_identity"] = useSystemAssignedIdentity
-	encryptionMap["infrastructure_encryption_enabled"] = infraEncryptionEnabled
-	encryptionMap["user_assigned_identity_id"] = userAssignedIdentityId
 	return encryptionMap
 }
 
