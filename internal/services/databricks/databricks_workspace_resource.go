@@ -114,12 +114,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"managed_disk_cmk_rotation_to_latest_version_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				RequiredWith: []string{"managed_disk_cmk_key_vault_key_id"},
-			},
-
 			"infrastructure_encryption_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
@@ -374,6 +368,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			Deprecated:   "`managed_disk_cmk_key_vault_key_id` will be removed in favour of the property `managed_disk_cmk_key_vault_key_resource_id` in version 4.0 of the AzureRM Provider.",
 		}
+
+		// Old Reference...
+		resource.Schema["managed_disk_cmk_rotation_to_latest_version_enabled"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			RequiredWith: []string{"managed_disk_cmk_key_vault_key_id"},
+		}
 	} else {
 		// NOTE: These fields maybe versioned or versionless...
 		resource.Schema["managed_services_cmk_key_vault_key_resource_id"] = &pluginsdk.Schema{
@@ -386,6 +387,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.Any(commonids.ValidateKeyVaultKeyID, commonids.ValidateKeyVaultKeyVersionID),
+		}
+
+		// TODO: Make sure I updated this reference in the code below, see // Old Reference above...
+		resource.Schema["managed_disk_cmk_rotation_to_latest_version_enabled"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			RequiredWith: []string{"managed_disk_cmk_key_vault_key_resource_id"},
 		}
 	}
 
