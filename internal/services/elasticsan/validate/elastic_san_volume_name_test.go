@@ -1,11 +1,8 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package validate
 
 import "testing"
 
-func TestElasticSanName(t *testing.T) {
+func TestElasticSanVolumeGroupName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -21,18 +18,23 @@ func TestElasticSanName(t *testing.T) {
 			expected: true,
 		},
 		{
-			// 23 chars
-			input:    "abcdefghijklmnopqrstuvw",
+			// 2 chars
+			input:    "ab",
+			expected: false,
+		},
+		{
+			// 3 chars
+			input:    "abc",
 			expected: true,
 		},
 		{
-			// 24 chars
-			input:    "abcdefghijklmnopqrstuvwx",
+			// 63 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk",
 			expected: true,
 		},
 		{
-			// 25 chars
-			input:    "abcdefghijklmnopqrstuvwxy",
+			// 64 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl",
 			expected: false,
 		},
 		{
@@ -90,7 +92,7 @@ func TestElasticSanName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ElasticSanName(v.input, "name")
+		_, errors := ElasticSanVolumeGroupName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			if len(errors) > 0 {
