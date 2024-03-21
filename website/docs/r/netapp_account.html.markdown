@@ -91,17 +91,17 @@ The `active_directory` block supports the following:
 
 * `kdc_ip` - (Optional) kdc server IP addresses for the active directory machine. *This optional parameter is used only while creating a Kerberos volume.*
 
+~> **IMPORTANT:** If you plan on using **Kerberos** volumes, both `ad_name` and `kdc_ip` are required in order to create the volume.
+
 * `enable_aes_encryption` - (Optional) If enabled, AES encryption will be enabled for SMB communication. Defaults to `false`.
 
 * `allow_local_nfs_users_with_ldap` - (Optional) If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes. Defaults to `false`.
 
-* `encrypt_dc_connections` - (Optional) If enabled, Traffic between the SMB server to Domain Controller (DC) will be encrypted. Defaults to `false`.
-
 * `enable_ldap_over_tls` - (Optional) Specifies whether or not the LDAP traffic needs to be secured via TLS. Defaults to `false`.
 
-* `enable_ldap_signing` - (Optional) Specifies whether or not the LDAP traffic needs to be signed. Defaults to `false`.
+* `server_root_ca_certificate` - (Optional) When LDAP over SSL/TLS is enabled, the LDAP client is required to have a *base64 encoded Active Directory Certificate Service's self-signed root CA certificate*, this optional parameter is used only for dual protocol with LDAP user-mapping volumes. Required if `enable_ldap_over_tls` is set to `true`.
 
----
+* `enable_ldap_signing` - (Optional) Specifies whether or not the LDAP traffic needs to be signed. Defaults to `false`.
 
 ---
 The `identity` block supports the following:

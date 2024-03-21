@@ -18,7 +18,7 @@ import (
 
 type NetAppAccountResource struct{}
 
-func TestAccNetAppAccount(t *testing.T) {
+func TestAccNetAppAccountResource(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests since
 	// Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
 	// The CI system runs all tests in parallel, so the tests need to be changed to run one at a time.
@@ -95,8 +95,8 @@ func testAccNetAppAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("active_directory.0.ad_name").HasValue("My-AD-Server"),
 				check.That(data.ResourceName).Key("active_directory.0.enable_aes_encryption").HasValue("true"),
 				check.That(data.ResourceName).Key("active_directory.0.allow_local_nfs_users_with_ldap").HasValue("true"),
-				check.That(data.ResourceName).Key("active_directory.0.encrypt_dc_connections").HasValue("true"),
 				check.That(data.ResourceName).Key("active_directory.0.enable_ldap_over_tls").HasValue("true"),
+				check.That(data.ResourceName).Key("active_directory.0.server_root_ca_certificate").HasValue("LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNZekNDQWN5Z0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRVUZBREF1TVFzd0NRWURWUVFHRXdKVlV6RU0gCk1Bb0dBMVVFQ2hNRFNVSk5NUkV3RHdZRFZRUUxFd2hNYjJOaGJDQkRRVEFlRncwNU9URXlNakl3TlRBd01EQmEgCkZ3MHdNREV5TWpNd05EVTVOVGxhTUM0eEN6QUpCZ05WQkFZVEFsVlRNUXd3Q2dZRFZRUUtFd05KUWsweEVUQVAgCkJnTlZCQXNUQ0V4dlkyRnNJRU5CTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FEMmJaRW8gCjd4R2FYMi8wR0hrck5GWnZseEJvdTl2MUptdC9QRGlUTVB2ZThyOUZlSkFRMFFkdkZTVC8wSlBRWUQyMHJIMGIgCmltZERMZ05kTnlubXlSb1MyUy9JSW5mcG1mNjlpeWMyRzBUUHlSdm1ISWlPWmJkQ2QrWUJIUWkxYWRrajE3TkQgCmNXajZTMTR0VnVyRlg3M3p4MHNOb01TNzlxM3R1WEtyRHN4ZXV3SURBUUFCbzRHUU1JR05NRXNHQ1ZVZER3R0cgCitFSUJEUVErRXp4SFpXNWxjbUYwWldRZ1lua2dkR2hsSUZObFkzVnlaVmRoZVNCVFpXTjFjbWwwZVNCVFpYSjIgClpYSWdabTl5SUU5VEx6TTVNQ0FvVWtGRFJpa3dEZ1lEVlIwUEFRSC9CQVFEQWdBR01BOEdBMVVkRXdFQi93UUYgCk1BTUJBZjh3SFFZRFZSME9CQllFRkozK29jUnlDVEp3MDY3ZExTd3IvbmFseDZZTU1BMEdDU3FHU0liM0RRRUIgCkJRVUFBNEdCQU1hUXp0K3phajFHVTc3eXpscjhpaU1CWGdkUXJ3c1paV0pvNWV4bkF1Y0pBRVlRWm1PZnlMaU0gCkQ2b1lxK1puZnZNMG44Ry9ZNzlxOG5od3Z1eHBZT25SU0FYRnA2eFNrcklPZVp0Sk1ZMWgwMExLcC9KWDNOZzEgCnN2WjJhZ0UxMjZKSHNRMGJoek41VEtzWWZid2ZUd2ZqZFdBR3k2VmYxbllpL3JPK3J5TU8KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLSA="),
 				check.That(data.ResourceName).Key("active_directory.0.enable_ldap_signing").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
@@ -252,8 +252,8 @@ resource "azurerm_netapp_account" "test" {
     kdc_ip                          = "192.168.1.1"
     enable_aes_encryption           = true
     allow_local_nfs_users_with_ldap = true
-    encrypt_dc_connections          = true
     enable_ldap_over_tls            = true
+    server_root_ca_certificate      = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNZekNDQWN5Z0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRVUZBREF1TVFzd0NRWURWUVFHRXdKVlV6RU0gCk1Bb0dBMVVFQ2hNRFNVSk5NUkV3RHdZRFZRUUxFd2hNYjJOaGJDQkRRVEFlRncwNU9URXlNakl3TlRBd01EQmEgCkZ3MHdNREV5TWpNd05EVTVOVGxhTUM0eEN6QUpCZ05WQkFZVEFsVlRNUXd3Q2dZRFZRUUtFd05KUWsweEVUQVAgCkJnTlZCQXNUQ0V4dlkyRnNJRU5CTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FEMmJaRW8gCjd4R2FYMi8wR0hrck5GWnZseEJvdTl2MUptdC9QRGlUTVB2ZThyOUZlSkFRMFFkdkZTVC8wSlBRWUQyMHJIMGIgCmltZERMZ05kTnlubXlSb1MyUy9JSW5mcG1mNjlpeWMyRzBUUHlSdm1ISWlPWmJkQ2QrWUJIUWkxYWRrajE3TkQgCmNXajZTMTR0VnVyRlg3M3p4MHNOb01TNzlxM3R1WEtyRHN4ZXV3SURBUUFCbzRHUU1JR05NRXNHQ1ZVZER3R0cgCitFSUJEUVErRXp4SFpXNWxjbUYwWldRZ1lua2dkR2hsSUZObFkzVnlaVmRoZVNCVFpXTjFjbWwwZVNCVFpYSjIgClpYSWdabTl5SUU5VEx6TTVNQ0FvVWtGRFJpa3dEZ1lEVlIwUEFRSC9CQVFEQWdBR01BOEdBMVVkRXdFQi93UUYgCk1BTUJBZjh3SFFZRFZSME9CQllFRkozK29jUnlDVEp3MDY3ZExTd3IvbmFseDZZTU1BMEdDU3FHU0liM0RRRUIgCkJRVUFBNEdCQU1hUXp0K3phajFHVTc3eXpscjhpaU1CWGdkUXJ3c1paV0pvNWV4bkF1Y0pBRVlRWm1PZnlMaU0gCkQ2b1lxK1puZnZNMG44Ry9ZNzlxOG5od3Z1eHBZT25SU0FYRnA2eFNrcklPZVp0Sk1ZMWgwMExLcC9KWDNOZzEgCnN2WjJhZ0UxMjZKSHNRMGJoek41VEtzWWZid2ZUd2ZqZFdBR3k2VmYxbllpL3JPK3J5TU8KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLSA="
     enable_ldap_signing             = true
   }
 

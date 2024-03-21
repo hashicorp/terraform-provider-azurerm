@@ -136,17 +136,17 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Default:     false,
 							Description: "If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.",
 						},
-						"encrypt_dc_connections": {
-							Type:        pluginsdk.TypeBool,
-							Optional:    true,
-							Default:     false,
-							Description: "If enabled, Traffic between the SMB server to Domain Controller (DC) will be encrypted.",
-						},
 						"enable_ldap_over_tls": {
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,
 							Description: "Specifies whether or not the LDAP traffic needs to be secured via TLS.",
+						},
+						"server_root_ca_certificate": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							RequiredWith: []string{"active_directory.0.enable_ldap_over_tls"},
+							Description:  "When LDAP over SSL/TLS is enabled, the LDAP client is required to have base64 encoded Active Directory Certificate Service's self-signed root CA certificate, this optional parameter is used only for dual protocol with LDAP user-mapping volumes.",
 						},
 						"enable_ldap_signing": {
 							Type:        pluginsdk.TypeBool,
@@ -360,8 +360,8 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 			KdcIP:                      utils.String(v["kdc_ip"].(string)),
 			AesEncryption:              utils.Bool(v["enable_aes_encryption"].(bool)),
 			AllowLocalNfsUsersWithLdap: utils.Bool(v["allow_local_nfs_users_with_ldap"].(bool)),
-			EncryptDCConnections:       utils.Bool(v["encrypt_dc_connections"].(bool)),
 			LdapOverTLS:                utils.Bool(v["enable_ldap_over_tls"].(bool)),
+			ServerRootCACertificate:    utils.String(v["server_root_ca_certificate"].(string)),
 			LdapSigning:                utils.Bool(v["enable_ldap_signing"].(bool)),
 		}
 
