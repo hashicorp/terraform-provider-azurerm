@@ -18,6 +18,8 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_postgresql_cluster` - expose list of server names and FQDN in the `servers` block [GH-25240]
 * `azurerm_data_share` - hyphens are now allowed in the resource's name [GH-25242]
 * `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
+* `netapp_account_resource` - support for the `kerberos_ad_name`, `kerberos_kdc_ip property`, `enable_aes_encryption`, `local_nfs_users_with_ldap_allowed`, `server_root_ca_certificate`, `ldap_over_tls_enabled`, and `ldap_signing_enabled` properties [GH-25340]
+* `netapp_account_resource` - support for [Support for Azure Netapp Files - AD Site Name #12462] via the `site_name` property [GH-25340]
 * `azurerm_stack_hci_cluster`: refactoring the association to use `hashicorp/go-azure-sdk` [GH-25293]
 * `azurerm_storage_account` - support for the `dns_endpoint_type` property [GH-22583]
 * `azurerm_storage_blob_inventory_policy`: refactoring to use `hashicorp/go-azure-sdk` [GH-25268]
@@ -27,6 +29,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_storage_blob` - fix a bug that incorrectly parsed the endpoint in the resource ID [GH-25283]
 * Data Source: `azurerm_storage_table_entity` - fixing a regression when parsing the table endpoint [GH-25307]
+* `netapp_account_resource` - correct the `smb_server_name` property validation [GH-25340]
 * `azurerm_purview_account` - will now allow for PurView accounts with missing or disabled eventhubs without keys [GH-25301]
 * `azurerm_storage_account` - fix a crash when the storage account becomes unavailable whilst reading [GH-25332]
 * `azurerm_storage_blob` - fixing a regression where blobs within a nested directory wouldn't be parsed correctly [GH-25305]
