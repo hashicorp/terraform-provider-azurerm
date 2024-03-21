@@ -77,13 +77,13 @@ The `active_directory` block supports the following:
 
 * `domain` - (Required) The name of the Active Directory domain.
 
-* `smb_server_name` - (Required) The NetBIOS name which should be used for the NetApp SMB Server, which will be registered as a computer account in the AD and used to mount volumes.
+* `smb_server_name` - (Required) The NetBIOS name which should be used for the NetApp SMB Server, which will be registered as a computer account in the AD and used to mount volumes. This value is the prefix that will be applied to the final generated machine name in Active Directory.
 
 * `username` - (Required) The Username of Active Directory Domain Administrator.
 
 * `password` - (Required) The password associated with the `username`.
 
-* `organizational_unit` - (Optional) The Organizational Unit (OU) within the Windows Active Directory where machines will be created. If blank, defaults to `CN=Computers`.
+* `organizational_unit` - (Optional) The Organizational Unit (OU) within Active Directory where machines will be created. If blank, defaults to `CN=Computers`.
 
 * `site_name` - (Optional) The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to `Default-First-Site-Name`.
 

@@ -87,7 +87,7 @@ func testAccNetAppAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("active_directory.#").HasValue("1"),
 				check.That(data.ResourceName).Key("active_directory.0.username").HasValue("aduser"),
 				check.That(data.ResourceName).Key("active_directory.0.password").HasValue("aduserpwd"),
-				check.That(data.ResourceName).Key("active_directory.0.smb_server_name").HasValue("SMBSERVER"),
+				check.That(data.ResourceName).Key("active_directory.0.smb_server_name").HasValue("SMB-SERVER"),
 				check.That(data.ResourceName).Key("active_directory.0.dns_servers.#").HasValue("2"),
 				check.That(data.ResourceName).Key("active_directory.0.domain").HasValue("westcentralus.com"),
 				check.That(data.ResourceName).Key("active_directory.0.organizational_unit").HasValue("OU=FirstLevel"),
@@ -243,7 +243,7 @@ resource "azurerm_netapp_account" "test" {
   active_directory {
     username                        = "aduser"
     password                        = "aduserpwd"
-    smb_server_name                 = "SMBSERVER"
+    smb_server_name                 = "SMB-SERVER"
     dns_servers                     = ["1.2.3.4", "1.2.3.5"]
     domain                          = "westcentralus.com"
     organizational_unit             = "OU=FirstLevel"

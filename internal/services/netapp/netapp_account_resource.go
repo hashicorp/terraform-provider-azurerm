@@ -86,8 +86,8 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile(`^[\da-zA-Z]{1,10}$`),
-								`The smb server name can not be longer than 10 characters in length.`,
+								regexp.MustCompile(`^[\da-zA-Z\-]{1,10}$`),
+								`smb_server_name can contain a mix of numbers, upper/lowercase letters, dashes, and be no longer than 10 characters.`,
 							),
 						},
 						"username": {
@@ -144,6 +144,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 						},
 						"server_root_ca_certificate": {
 							Type:         pluginsdk.TypeString,
+							Sensitive:    true,
 							Optional:     true,
 							RequiredWith: []string{"active_directory.0.enable_ldap_over_tls"},
 							Description:  "When LDAP over SSL/TLS is enabled, the LDAP client is required to have base64 encoded Active Directory Certificate Service's self-signed root CA certificate, this optional parameter is used only for dual protocol with LDAP user-mapping volumes.",
