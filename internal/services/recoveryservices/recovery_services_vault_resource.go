@@ -194,11 +194,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := vaults.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	cfgId := backupresourcevaultconfigs.VaultId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		VaultName:         id.VaultName,
-	}
+	cfgId := backupresourcevaultconfigs.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 
 	storageMode := d.Get("storage_mode_type").(string)
 	crossRegionRestore := d.Get("cross_region_restore_enabled").(bool)
@@ -228,6 +224,11 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	sku := d.Get("sku").(string)
+	crossRegionRestoreEnabled := vaults.CrossRegionRestoreDisabled
+	if d.Get("cross_region_restore_enabled").(bool) {
+		crossRegionRestoreEnabled = vaults.CrossRegionRestoreEnabled
+	}
+
 	vault := vaults.Vault{
 		Location: location,
 		Tags:     tags.Expand(t),
@@ -239,12 +240,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			PublicNetworkAccess: expandRecoveryServicesVaultPublicNetworkAccess(d.Get("public_network_access_enabled").(bool)),
 			MonitoringSettings:  expandRecoveryServicesVaultMonitorSettings(d.Get("monitoring").([]interface{})),
 			RedundancySettings: &vaults.VaultPropertiesRedundancySettings{
-				CrossRegionRestore: pointer.To(func() vaults.CrossRegionRestore {
-					if d.Get("cross_region_restore_enabled").(bool) {
-						return vaults.CrossRegionRestoreEnabled
-					}
-					return vaults.CrossRegionRestoreDisabled
-				}()),
+				CrossRegionRestore:            &crossRegionRestoreEnabled,
 				StandardTierStorageRedundancy: pointer.To(vaults.StandardTierStorageRedundancy(d.Get("storage_mode_type").(string))),
 			},
 		},
@@ -502,14 +498,14 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		vault.Properties.SecuritySettings = expandRecoveryServicesVaultSecuritySettings(immutability)
 	}
 
+	crossRegionRestoreEnabled := vaults.CrossRegionRestoreDisabled
+	if crossRegionRestore {
+		crossRegionRestoreEnabled = vaults.CrossRegionRestoreEnabled
+	}
+
 	if d.HasChanges("storage_mode_type", "cross_region_restore_enabled") {
 		vault.Properties.RedundancySettings = &vaults.VaultPropertiesRedundancySettings{
-			CrossRegionRestore: pointer.To(func() vaults.CrossRegionRestore {
-				if crossRegionRestore {
-					return vaults.CrossRegionRestoreEnabled
-				}
-				return vaults.CrossRegionRestoreDisabled
-			}()),
+			CrossRegionRestore:            &crossRegionRestoreEnabled,
 			StandardTierStorageRedundancy: pointer.To(vaults.StandardTierStorageRedundancy(storageMode)),
 		}
 	}
@@ -577,11 +573,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	cfgId := backupresourcevaultconfigs.VaultId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		VaultName:         id.VaultName,
-	}
+	cfgId := backupresourcevaultconfigs.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 
 	log.Printf("[DEBUG] Reading Recovery Service %s", id.String())
 
@@ -609,26 +601,27 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if prop := model.Properties; prop != nil {
+
+		immutability := vaults.ImmutabilityStateDisabled
 		if prop.SecuritySettings != nil && prop.SecuritySettings.ImmutabilitySettings != nil {
-			d.Set("immutability", string(pointer.From(prop.SecuritySettings.ImmutabilitySettings.State)))
+			immutability = pointer.From(prop.SecuritySettings.ImmutabilitySettings.State)
 		}
+		d.Set("immutability", string(immutability))
 
-		if prop.PublicNetworkAccess != nil {
-			d.Set("public_network_access_enabled", flattenRecoveryServicesVaultPublicNetworkAccess(model.Properties.PublicNetworkAccess))
-		}
+		d.Set("public_network_access_enabled", flattenRecoveryServicesVaultPublicNetworkAccess(model.Properties.PublicNetworkAccess))
 
-		if prop.MonitoringSettings != nil {
-			d.Set("monitoring", flattenRecoveryServicesVaultMonitorSettings(*model.Properties.MonitoringSettings))
-		}
+		d.Set("monitoring", flattenRecoveryServicesVaultMonitorSettings(prop.MonitoringSettings))
 
+		storageModeType := vaults.StandardTierStorageRedundancyInvalid
+		crossRegionRestoreEnabled := false
 		if prop.RedundancySettings != nil {
-			d.Set("storage_mode_type", string(pointer.From(prop.RedundancySettings.StandardTierStorageRedundancy)))
-			crossRegionRestoreEnabled := false
+			storageModeType = pointer.From(prop.RedundancySettings.StandardTierStorageRedundancy)
 			if prop.RedundancySettings.CrossRegionRestore != nil {
 				crossRegionRestoreEnabled = *prop.RedundancySettings.CrossRegionRestore == vaults.CrossRegionRestoreEnabled
 			}
-			d.Set("cross_region_restore_enabled", crossRegionRestoreEnabled)
 		}
+		d.Set("cross_region_restore_enabled", crossRegionRestoreEnabled)
+		d.Set("storage_mode_type", string(storageModeType))
 	}
 
 	cfg, err := cfgsClient.Get(ctx, cfgId)
@@ -636,9 +629,11 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", cfgId, err)
 	}
 
+	softDeleteEnabled := false
 	if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-		d.Set("soft_delete_enabled", *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)
+		softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
 	}
+	d.Set("soft_delete_enabled", softDeleteEnabled)
 
 	flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 	if err != nil {
@@ -648,10 +643,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	encryption := flattenVaultEncryption(*model)
-	if encryption != nil {
-		d.Set("encryption", []interface{}{encryption})
-	}
+	d.Set("encryption", []interface{}{flattenVaultEncryption(model)})
 
 	vaultSettingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
 	vaultSetting, err := vaultSettingsClient.Get(ctx, vaultSettingsId)
@@ -659,11 +651,13 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("reading Recovery Service Vault Setting %s: %+v", id.String(), err)
 	}
 
+	classicVmwareReplicationEnabled := false
 	if vaultSetting.Model != nil && vaultSetting.Model.Properties != nil {
 		if v := vaultSetting.Model.Properties.VMwareToAzureProviderType; v != nil {
-			d.Set("classic_vmware_replication_enabled", strings.EqualFold(*v, "vmware"))
+			classicVmwareReplicationEnabled = strings.EqualFold(*v, "vmware")
 		}
 	}
+	d.Set("classic_vmware_replication_enabled", classicVmwareReplicationEnabled)
 
 	return tags.FlattenAndSet(d, model.Tags)
 }
@@ -757,25 +751,29 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 	return encryption, nil
 }
 
-func flattenVaultEncryption(model vaults.Vault) interface{} {
-	if model.Properties == nil || model.Properties.Encryption == nil {
-		return nil
-	}
-	encryption := model.Properties.Encryption
-	if encryption.KeyVaultProperties == nil || encryption.KeyVaultProperties.KeyUri == nil {
-		return nil
-	}
-	if encryption.KekIdentity == nil || encryption.KekIdentity.UseSystemAssignedIdentity == nil {
-		return nil
-	}
+func flattenVaultEncryption(model *vaults.Vault) interface{} {
 	encryptionMap := make(map[string]interface{})
+	keyId := ""
+	useSystemAssignedIdentity := false
+	infraEncryptionEnabled := false
+	userAssignedIdentityId := ""
 
-	encryptionMap["key_id"] = encryption.KeyVaultProperties.KeyUri
-	encryptionMap["use_system_assigned_identity"] = *encryption.KekIdentity.UseSystemAssignedIdentity
-	encryptionMap["infrastructure_encryption_enabled"] = *encryption.InfrastructureEncryption == vaults.InfrastructureEncryptionStateEnabled
-	if encryption.KekIdentity.UserAssignedIdentity != nil {
-		encryptionMap["user_assigned_identity_id"] = *encryption.KekIdentity.UserAssignedIdentity
+	if model != nil && model.Properties.Encryption != nil {
+		encryption := *model.Properties.Encryption
+		infraEncryptionEnabled = *encryption.InfrastructureEncryption == vaults.InfrastructureEncryptionStateEnabled
+		if kekIdentity := encryption.KekIdentity; kekIdentity != nil {
+			useSystemAssignedIdentity = pointer.From(kekIdentity.UseSystemAssignedIdentity)
+			userAssignedIdentityId = pointer.From(kekIdentity.UserAssignedIdentity)
+		}
+		if keyvaultProp := encryption.KeyVaultProperties; keyvaultProp != nil {
+			keyId = pointer.From(keyvaultProp.KeyUri)
+		}
 	}
+
+	encryptionMap["key_id"] = keyId
+	encryptionMap["use_system_assigned_identity"] = useSystemAssignedIdentity
+	encryptionMap["infrastructure_encryption_enabled"] = infraEncryptionEnabled
+	encryptionMap["user_assigned_identity_id"] = userAssignedIdentityId
 	return encryptionMap
 }
 
@@ -833,15 +831,17 @@ func expandRecoveryServicesVaultMonitorSettings(input []interface{}) *vaults.Mon
 	})
 }
 
-func flattenRecoveryServicesVaultMonitorSettings(input vaults.MonitoringSettings) []interface{} {
+func flattenRecoveryServicesVaultMonitorSettings(input *vaults.MonitoringSettings) []interface{} {
 	allJobAlert := false
-	if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllJobFailures != nil {
-		allJobAlert = *input.AzureMonitorAlertSettings.AlertsForAllJobFailures == vaults.AlertsStateEnabled
-	}
-
 	criticalAlert := false
-	if input.ClassicAlertSettings != nil && input.ClassicAlertSettings.AlertsForCriticalOperations != nil {
-		criticalAlert = *input.ClassicAlertSettings.AlertsForCriticalOperations == vaults.AlertsStateEnabled
+
+	if input != nil {
+		if input.AzureMonitorAlertSettings != nil && input.AzureMonitorAlertSettings.AlertsForAllJobFailures != nil {
+			allJobAlert = *input.AzureMonitorAlertSettings.AlertsForAllJobFailures == vaults.AlertsStateEnabled
+		}
+		if input.ClassicAlertSettings != nil && input.ClassicAlertSettings.AlertsForCriticalOperations != nil {
+			criticalAlert = *input.ClassicAlertSettings.AlertsForCriticalOperations == vaults.AlertsStateEnabled
+		}
 	}
 
 	return []interface{}{
