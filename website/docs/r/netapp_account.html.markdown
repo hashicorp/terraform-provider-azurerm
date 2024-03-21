@@ -77,7 +77,7 @@ The `active_directory` block supports the following:
 
 * `domain` - (Required) The name of the Active Directory domain.
 
-* `smb_server_name` - (Required) The NetBIOS name which should be used for the NetApp SMB Server, which will be registered as a computer account in the AD and used to mount volumes. This value is the prefix that will be applied to the final generated machine name in Active Directory.
+* `smb_server_name` - (Required) The NetBIOS name which should be used for the NetApp SMB Server, which will be registered as a computer account in the AD and used to mount volumes.
 
 * `username` - (Required) The Username of Active Directory Domain Administrator.
 
