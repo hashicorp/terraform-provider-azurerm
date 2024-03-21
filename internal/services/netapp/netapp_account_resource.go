@@ -124,7 +124,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							ValidateFunc: validation.IsIPv4Address,
 							Description:  "IP address of the KDC server (usually same the DC). This optional parameter is used only while creating kerberos volume.",
 						},
-						"enable_aes_encryption": {
+						"aes_encryption_enabled": {
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,
@@ -359,7 +359,7 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 			Site:                       utils.String(v["site_name"].(string)),
 			AdName:                     utils.String(v["kerberos_ad_name"].(string)),
 			KdcIP:                      utils.String(v["kerberos_kdc_ip"].(string)),
-			AesEncryption:              utils.Bool(v["enable_aes_encryption"].(bool)),
+			AesEncryption:              utils.Bool(v["aes_encryption_enabled"].(bool)),
 			AllowLocalNfsUsersWithLdap: utils.Bool(v["local_nfs_users_with_ldap_allowed"].(bool)),
 			LdapOverTLS:                utils.Bool(v["ldap_over_tls_enabled"].(bool)),
 			ServerRootCACertificate:    utils.String(v["server_root_ca_certificate"].(string)),
