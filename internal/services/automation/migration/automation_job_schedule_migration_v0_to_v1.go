@@ -4,8 +4,10 @@ import (
 	"context"
 	"log"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/schedule"
 	pluginsdk "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -66,11 +68,16 @@ func (s AutomationJobScheduleV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		scheduleName := rawState["schedule_name"].(string)
 		runbookName := rawState["runbook_name"].(string)
-		newID := parse.NewAutomationJobScheduleID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName,
-			runbookName, scheduleName)
+		scheduleID := schedule.NewScheduleID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, scheduleName)
+		runbookID := runbook.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, runbookName)
 
-		log.Printf("[DEBUG] Upgrade automation job schedule resource id from %s to %s", oldId, newID.ID())
-		rawState["id"] = newID.ID()
+		tfID := &commonids.CompositeResourceID[*schedule.ScheduleId, *runbook.RunbookId]{
+			First:  &scheduleID,
+			Second: &runbookID,
+		}
+
+		log.Printf("[DEBUG] Upgrade automation job schedule resource id from %s to %s", oldId, tfID.ID())
+		rawState["id"] = tfID.ID()
 		rawState["resource_manager_id"] = oldId
 		return rawState, nil
 	}

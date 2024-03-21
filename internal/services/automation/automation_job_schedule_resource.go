@@ -13,12 +13,14 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/runbook"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/schedule"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -32,7 +34,7 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 		Delete: resourceAutomationJobScheduleDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AutomationJobScheduleID(id)
+			_, err := commonids.ParseCompositeResourceID(id, &schedule.ScheduleId{}, &runbook.RunbookId{})
 			return err
 		}),
 
@@ -110,6 +112,7 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Job Schedule creation.")
 
+	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("automation_account_name").(string)
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
@@ -122,12 +125,19 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
 	}
 
-	id := jobschedule.NewJobScheduleID(subscriptionId, d.Get("resource_group_name").(string), accountName, jobScheduleUUID.String())
+	// accountID := automationaccount.NewAutomationAccountID(subscriptionId, resourceGroup, accountName)
+	scheduleID := schedule.NewScheduleID(subscriptionId, resourceGroup, accountName, scheduleName)
+	runbookID := runbook.NewRunbookID(subscriptionId, resourceGroup, accountName, runbookName)
+	id := jobschedule.NewJobScheduleID(subscriptionId, resourceGroup, accountName, jobScheduleUUID.String())
 
-	tfID := parse.NewAutomationJobScheduleID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, runbookName, scheduleName)
+	// tfID := parse.NewAutomationJobScheduleID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, runbookName, scheduleName)
+	tfID := &commonids.CompositeResourceID[*schedule.ScheduleId, *runbook.RunbookId]{
+		First:  &scheduleID,
+		Second: &runbookID,
+	}
 
 	if d.IsNewResource() {
-		existing, err := GetJobScheduleFromTFID(ctx, client, &tfID)
+		existing, err := GetJobScheduleFromTFID(ctx, client, tfID)
 		if err != nil {
 			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
@@ -179,7 +189,7 @@ func resourceAutomationJobScheduleRead(d *pluginsdk.ResourceData, meta interface
 	defer cancel()
 
 	// the jobSchedule ID may be updated by Runbook, so need to get the real id by list API
-	tfID, err := parse.AutomationJobScheduleID(d.Id())
+	tfID, err := commonids.ParseCompositeResourceID(d.Id(), &schedule.ScheduleId{}, &runbook.RunbookId{})
 	if err != nil {
 		return err
 	}
@@ -237,7 +247,7 @@ func resourceAutomationJobScheduleDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	tfID, err := parse.AutomationJobScheduleID(d.Id())
+	tfID, err := commonids.ParseCompositeResourceID(d.Id(), &schedule.ScheduleId{}, &runbook.RunbookId{})
 	if err != nil {
 		return err
 	}
@@ -265,12 +275,12 @@ func resourceAutomationJobScheduleDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func GetJobScheduleFromTFID(ctx context.Context, client *jobschedule.JobScheduleClient, id *parse.AutomationJobScheduleId) (js *jobschedule.JobSchedule, err error) {
-	accountID := jobschedule.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName)
-	filter := fmt.Sprintf("properties/schedule/name eq '%s' and properties/runbook/name eq '%s'", id.ScheduleName, id.RunBookName)
+func GetJobScheduleFromTFID(ctx context.Context, client *jobschedule.JobScheduleClient, id *commonids.CompositeResourceID[*schedule.ScheduleId, *runbook.RunbookId]) (js *jobschedule.JobSchedule, err error) {
+	accountID := jobschedule.NewAutomationAccountID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.AutomationAccountName)
+	filter := fmt.Sprintf("properties/schedule/name eq '%s' and properties/runbook/name eq '%s'", id.First.ScheduleName, id.Second.RunbookName)
 	jsList, err := client.ListByAutomationAccountComplete(ctx, accountID, jobschedule.ListByAutomationAccountOperationOptions{Filter: &filter})
 	if err != nil {
-		return nil, fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", id.AutomationAccountName, err)
+		return nil, fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountID.AutomationAccountName, err)
 	}
 
 	if len(jsList.Items) > 0 {
