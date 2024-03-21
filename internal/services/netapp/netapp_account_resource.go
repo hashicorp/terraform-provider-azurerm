@@ -130,13 +130,13 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Default:     false,
 							Description: "If enabled, AES encryption will be enabled for SMB communication.",
 						},
-						"allow_local_nfs_users_with_ldap": {
+						"local_nfs_users_with_ldap_allowed": {
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,
 							Description: "If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.",
 						},
-						"enable_ldap_over_tls": {
+						"ldap_over_tls_enabled": {
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,
@@ -146,10 +146,10 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Sensitive:    true,
 							Optional:     true,
-							RequiredWith: []string{"active_directory.0.enable_ldap_over_tls"},
+							RequiredWith: []string{"active_directory.0.ldap_over_tls_enabled"},
 							Description:  "When LDAP over SSL/TLS is enabled, the LDAP client is required to have base64 encoded Active Directory Certificate Service's self-signed root CA certificate, this optional parameter is used only for dual protocol with LDAP user-mapping volumes.",
 						},
-						"enable_ldap_signing": {
+						"ldap_signing_enabled": {
 							Type:        pluginsdk.TypeBool,
 							Optional:    true,
 							Default:     false,
@@ -360,10 +360,10 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 			AdName:                     utils.String(v["ad_name"].(string)),
 			KdcIP:                      utils.String(v["kdc_ip"].(string)),
 			AesEncryption:              utils.Bool(v["enable_aes_encryption"].(bool)),
-			AllowLocalNfsUsersWithLdap: utils.Bool(v["allow_local_nfs_users_with_ldap"].(bool)),
-			LdapOverTLS:                utils.Bool(v["enable_ldap_over_tls"].(bool)),
+			AllowLocalNfsUsersWithLdap: utils.Bool(v["local_nfs_users_with_ldap_allowed"].(bool)),
+			LdapOverTLS:                utils.Bool(v["ldap_over_tls_enabled"].(bool)),
 			ServerRootCACertificate:    utils.String(v["server_root_ca_certificate"].(string)),
-			LdapSigning:                utils.Bool(v["enable_ldap_signing"].(bool)),
+			LdapSigning:                utils.Bool(v["ldap_signing_enabled"].(bool)),
 		}
 
 		results = append(results, result)

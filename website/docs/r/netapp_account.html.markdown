@@ -95,13 +95,13 @@ The `active_directory` block supports the following:
 
 * `enable_aes_encryption` - (Optional) If enabled, AES encryption will be enabled for SMB communication. Defaults to `false`.
 
-* `allow_local_nfs_users_with_ldap` - (Optional) If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes. Defaults to `false`.
+* `local_nfs_users_with_ldap_allowed` - (Optional) If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes. Defaults to `false`.
 
-* `enable_ldap_over_tls` - (Optional) Specifies whether or not the LDAP traffic needs to be secured via TLS. Defaults to `false`.
+* `ldap_over_tls_enabled` - (Optional) Specifies whether or not the LDAP traffic needs to be secured via TLS. Defaults to `false`.
 
-* `server_root_ca_certificate` - (Optional) When LDAP over SSL/TLS is enabled, the LDAP client is required to have a *base64 encoded Active Directory Certificate Service's self-signed root CA certificate*, this optional parameter is used only for dual protocol with LDAP user-mapping volumes. Required if `enable_ldap_over_tls` is set to `true`.
+* `server_root_ca_certificate` - (Optional) When LDAP over SSL/TLS is enabled, the LDAP client is required to have a *base64 encoded Active Directory Certificate Service's self-signed root CA certificate*, this optional parameter is used only for dual protocol with LDAP user-mapping volumes. Required if `ldap_over_tls_enabled` is set to `true`.
 
-* `enable_ldap_signing` - (Optional) Specifies whether or not the LDAP traffic needs to be signed. Defaults to `false`.
+* `ldap_signing_enabled` - (Optional) Specifies whether or not the LDAP traffic needs to be signed. Defaults to `false`.
 
 ---
 The `identity` block supports the following:
