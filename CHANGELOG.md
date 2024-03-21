@@ -7,7 +7,7 @@ BREAKING CHANGES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240315.1103122` of `github.com/hashicorp/go-azure-sdk` [GH-25166]
+* dependencies: updating to `v0.20240321.1145953` of `github.com/hashicorp/go-azure-sdk` [GH-25332]
 * dependencies: updating to `v0.25.2` of `github.com/tombuildsstuff/giovanni` [GH-25305]
 * `azurestackhci`: updating to API Version `2024-01-01` [GH-25279]
 * `cosmosdb`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25166]
