@@ -301,7 +301,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 
 func (r ContainerAppResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.ContainerAppClient
 
