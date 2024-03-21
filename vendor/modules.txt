@@ -153,7 +153,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240315.1103122
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240321.1145953
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -228,6 +228,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/role
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions
+github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehciassignments
+github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2015-10-31/webhook
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration
@@ -269,17 +271,29 @@ github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/typefie
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/usages
 github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/variable
 github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/arcsettings
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/cluster
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/clusters
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/extensions
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/offers
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/publishers
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/skuses
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/updateruns
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/updates
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/updatesummaries
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/arcsettings
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/cluster
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/deploymentsettings
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/edgedevices
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/extensions
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/galleryimages
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/guestagents
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/hybrididentitymetadata
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/logicalnetworks
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/marketplacegalleryimages
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/networkinterfaces
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/offers
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/publishers
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/securitysettings
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/skuses
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/storagecontainers
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/updateruns
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/updates
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/updatesummaries
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/virtualharddisks
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/virtualmachineinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/application
 github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount
 github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/certificate
@@ -534,12 +548,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/p
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories
-github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionruleassociations
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis
+github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-04-03/azuremonitorworkspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults
@@ -1057,7 +1071,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplands
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240315.1103122
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240321.1145953
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1276,7 +1290,6 @@ github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration
 github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation
-github.com/tombuildsstuff/kermit/sdk/automanage/2022-05-04/automanage
 github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
 github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice
 github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute

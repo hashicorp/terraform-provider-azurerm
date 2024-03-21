@@ -1746,7 +1746,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if d.Get("image_cleaner_enabled").(bool) {
+	if !features.FourPointOhBeta() || d.Get("image_cleaner_enabled").(bool) {
 		securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
 			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
 			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
@@ -1761,11 +1761,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
 
-	autoChannelUpgrade := d.Get("automatic_upgrade_channel").(string)
-	nodeOsChannelUpgrade := d.Get("node_os_upgrade_channel").(string)
-	if !features.FourPointOhBeta() {
-		autoChannelUpgrade = d.Get("automatic_channel_upgrade").(string)
-		nodeOsChannelUpgrade = d.Get("node_os_channel_upgrade").(string)
+	autoChannelUpgrade := d.Get("automatic_channel_upgrade").(string)
+	nodeOsChannelUpgrade := d.Get("node_os_channel_upgrade").(string)
+	if features.FourPointOhBeta() {
+		autoChannelUpgrade = d.Get("automatic_upgrade_channel").(string)
+		nodeOsChannelUpgrade = d.Get("node_os_upgrade_channel").(string)
+
 	}
 
 	// this check needs to be separate and gated since node_os_channel_upgrade is a preview feature
