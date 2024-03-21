@@ -97,7 +97,7 @@ A `catalog_info` block supports the following:
 
 A `copy_compute_scale` block supports the following:
 
-* `data_integration_unit` - (Optional) Specifies the data integration unit number setting reserved for copy activity execution. Supported values are multiples of 4 in range 4-256.
+* `data_integration_unit` - (Optional) Specifies the data integration unit number setting reserved for copy activity execution. Supported values are multiples of `4` in range 4-256.
 
 * `time_to_live` - (Optional) Specifies the time to live (in minutes) setting of integration runtime which will execute copy activity. Possible values are at least `5`.
 
@@ -185,9 +185,9 @@ A `proxy` block supports the following:
 
 A `pipeline_external_compute_scale` block supports the following:
 
-* `number_of_external_nodes` - (Optional) Specifies the number of the external nodes, which should be greater than 0 and less than 11.
+* `number_of_external_nodes` - (Optional) Specifies the number of the external nodes, which should be greater than `0` and less than `11`.
 
-* `number_of_pipeline_nodes` - (Optional) Specifies the number of the pipeline nodes, which should be greater than 0 and less than 11.
+* `number_of_pipeline_nodes` - (Optional) Specifies the number of the pipeline nodes, which should be greater than `0` and less than `11`.
 
 * `time_to_live` - (Optional) Specifies the time to live (in minutes) setting of integration runtime which will execute copy activity. Possible values are at least `5`.
 
