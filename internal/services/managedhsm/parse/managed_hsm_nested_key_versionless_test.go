@@ -3,129 +3,158 @@
 
 package parse
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
+	"strings"
 	"testing"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = ManagedHSMNestedKeyVersionlessId{}
-
-func TestManagedHSMNestedKeyVersionlessIDFormatter(t *testing.T) {
-	actual := NewManagedHSMNestedKeyVersionlessID("12345678-1234-9876-4563-123456789012", "resGroup1", "mhsm1", "key1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/mhsm1/keys/key1"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
-
-func TestManagedHSMNestedKeyVersionlessID(t *testing.T) {
-	testData := []struct {
-		Input    string
-		Error    bool
-		Expected *ManagedHSMNestedKeyVersionlessId
+func TestParseManagedHSMNestedKeyVersionlessId(t *testing.T) {
+	cases := []struct {
+		Input        string
+		Insenstively bool
+		Expected     ManagedHSMNestedKeyWithVersionId
+		ExpectError  bool
 	}{
-
 		{
-			// empty
-			Input: "",
-			Error: true,
+			Input:       "",
+			ExpectError: true,
 		},
-
 		{
-			// missing SubscriptionId
-			Input: "/",
-			Error: true,
+			Input:       "https://my-hsm.managedhsm.azure.net/keys",
+			ExpectError: true,
 		},
-
 		{
-			// missing value for SubscriptionId
-			Input: "/subscriptions/",
-			Error: true,
+			Input:       "https://my-hsm.managedhsm.azure.net/invalidNestedItemObjectType/hello/world",
+			ExpectError: true,
 		},
-
 		{
-			// missing ResourceGroup
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
-			Error: true,
+			Input:       "https://my-hsm.managedhsm.azure.net/Keys/hello/world",
+			ExpectError: true,
 		},
-
 		{
-			// missing value for ResourceGroup
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
-			Error: true,
-		},
-
-		{
-			// missing ManagedHSMName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/",
-			Error: true,
-		},
-
-		{
-			// missing value for ManagedHSMName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/",
-			Error: true,
-		},
-
-		{
-			// missing KeyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/mhsm1/",
-			Error: true,
-		},
-
-		{
-			// missing value for KeyName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/mhsm1/keys/",
-			Error: true,
-		},
-
-		{
-			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.KeyVault/managedHSMs/mhsm1/keys/key1",
-			Expected: &ManagedHSMNestedKeyVersionlessId{
-				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resGroup1",
-				ManagedHSMName: "mhsm1",
-				KeyName:        "key1",
+			Input:        "https://my-hsm.managedhsm.azure.net/Keys/hello",
+			Insenstively: true,
+			Expected: ManagedHSMNestedKeyWithVersionId{
+				KeyName: "hello",
+				BaseURI: "https://my-hsm.managedhsm.azure.net",
 			},
 		},
-
 		{
-			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.KEYVAULT/MANAGEDHSMS/MHSM1/KEYS/KEY1",
-			Error: true,
+			Input:       "https://my-hsm.managedhsm.azure.net/keys/bird/version",
+			ExpectError: true,
+		},
+		{
+			Input: "https://my-hsm.managedhsm.azure.net/keys/bird",
+			Expected: ManagedHSMNestedKeyWithVersionId{
+				KeyName: "bird",
+				BaseURI: "https://my-hsm.managedhsm.azure.net",
+			},
+		},
+		{
+			Input:        "https://my-hsm.managedhsm.azure.net/Keys/castle",
+			Insenstively: true,
+			Expected: ManagedHSMNestedKeyWithVersionId{
+				KeyName: "castle",
+				BaseURI: "https://my-hsm.managedhsm.azure.net",
+			},
 		},
 	}
 
-	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Input)
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing %q", tc.Input)
 
-		actual, err := ManagedHSMNestedKeyVersionlessID(v.Input)
+		var keyId *ManagedHSMNestedkeyVersionless
+		var err error
+		if tc.Insenstively {
+			keyId, err = ParseManagedHSMNestedkeyVersionlessInsensitively(tc.Input)
+		} else {
+			keyId, err = ParseManagedHSMNestedkeyVersionless(tc.Input)
+		}
 		if err != nil {
-			if v.Error {
+			if tc.ExpectError {
+				t.Logf("[DEBUG]   --> [Received Expected Error]: %+v", err)
 				continue
 			}
 
-			t.Fatalf("Expect a value but got an error: %s", err)
-		}
-		if v.Error {
-			t.Fatal("Expect an error but didn't get one")
+			t.Fatalf("Got error for ID '%s': %+v", tc.Input, err)
 		}
 
-		if actual.SubscriptionId != v.Expected.SubscriptionId {
-			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		if keyId == nil {
+			t.Fatalf("Expected a SecretID to be parsed for ID '%s', got nil.", tc.Input)
 		}
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+
+		if tc.Expected.BaseURI != keyId.BaseURI {
+			t.Fatalf("Expected 'BaseURI' to be '%s', got '%s' for ID '%s'", tc.Expected.BaseURI, keyId.BaseURI, tc.Input)
 		}
-		if actual.ManagedHSMName != v.Expected.ManagedHSMName {
-			t.Fatalf("Expected %q but got %q for ManagedHSMName", v.Expected.ManagedHSMName, actual.ManagedHSMName)
+
+		if tc.Expected.KeyName != keyId.KeyName {
+			t.Fatalf("Expected 'Version' to be '%s', got '%s' for ID '%s'", tc.Expected.KeyName, keyId.KeyName, tc.Input)
 		}
-		if actual.KeyName != v.Expected.KeyName {
-			t.Fatalf("Expected %q but got %q for KeyName", v.Expected.KeyName, actual.KeyName)
+
+		if !(tc.Input == keyId.ID() || (tc.Insenstively && strings.EqualFold(tc.Input, keyId.ID()))) {
+			t.Fatalf("Expected 'ID()' to be '%s', got '%s'", tc.Input, keyId.ID())
+		}
+		t.Logf("[DEBUG]   --> [Valid Value]: %+v", tc.Input)
+	}
+}
+
+func TestValidateManagedHSMNestedVersionlessId(t *testing.T) {
+	cases := []struct {
+		Input       string
+		ExpectError bool
+	}{
+		{
+			Input:       "",
+			ExpectError: true,
+		},
+		{
+			Input:       "https",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net/",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net/keys",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net/Keys/bird",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net/invalidNestedItemObjectType/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net/keys/bird/fdf067c93bbb4b22bff4d8b7a9a56217",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net/keys/bird/fdf067c93bbb4b22bff4d8b7a9a56217/XXX",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net/keys/bird",
+			ExpectError: false,
+		},
+	}
+
+	for idx, tc := range cases {
+		t.Logf("[DEBUG] Testing %q", tc.Input)
+
+		_, errors := ValidateManagedHSMNestedKeyVersionlessID(tc.Input, "test")
+		if (len(errors) > 0) != tc.ExpectError {
+			t.Fatalf("case %d: expect error %t, but got %t", idx, tc.ExpectError, len(errors) > 0)
 		}
 	}
 }

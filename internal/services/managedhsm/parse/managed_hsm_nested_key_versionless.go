@@ -3,76 +3,100 @@
 
 package parse
 
-// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
-
 import (
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-type ManagedHSMNestedKeyVersionlessId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	ManagedHSMName string
-	KeyName        string
+// example: https://hsm-name.managedhsm.azure.net/keys/key-name
+var _ resourceids.ResourceId = &ManagedHSMNestedkeyVersionless{}
+
+type ManagedHSMNestedkeyVersionless struct {
+	BaseURI string
+	KeyName string
 }
 
-func NewManagedHSMNestedKeyVersionlessID(subscriptionId, resourceGroup, managedHSMName, keyName string) ManagedHSMNestedKeyVersionlessId {
-	return ManagedHSMNestedKeyVersionlessId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		ManagedHSMName: managedHSMName,
-		KeyName:        keyName,
+func NewManagedHSMNestedkeyVersionless(baseURI, keyName string) ManagedHSMNestedkeyVersionless {
+	return ManagedHSMNestedkeyVersionless{
+		BaseURI: baseURI,
+		KeyName: keyName,
 	}
 }
 
-func (id ManagedHSMNestedKeyVersionlessId) String() string {
-	segments := []string{
-		fmt.Sprintf("Key Name %q", id.KeyName),
-		fmt.Sprintf("Managed H S M Name %q", id.ManagedHSMName),
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+// FromParseResult implements resourceids.ResourceId.
+func (id *ManagedHSMNestedkeyVersionless) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.BaseURI, ok = input.Parsed["baseURI"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "baseURI", input)
 	}
-	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Managed H S M Nested Key Versionless", segmentsStr)
+
+	if id.KeyName, ok = input.Parsed["keyName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "keyName", input)
+	}
+
+	return nil
 }
 
-func (id ManagedHSMNestedKeyVersionlessId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/managedHSMs/%s/keys/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ManagedHSMName, id.KeyName)
+// Segments implements resourceids.ResourceId.
+func (id *ManagedHSMNestedkeyVersionless) Segments() []resourceids.Segment {
+	return []resourceids.Segment{
+		resourceids.DataPlaneHostSegment("baseURI", "https://hsm-name.managedhsm.azure.net"),
+		resourceids.StaticSegment("staticKeys", "keys", "keys"),
+		resourceids.UserSpecifiedSegment("keyName", "keyValue"),
+	}
 }
 
-// ManagedHSMNestedKeyVersionlessID parses a ManagedHSMNestedKeyVersionless ID into an ManagedHSMNestedKeyVersionlessId struct
-func ManagedHSMNestedKeyVersionlessID(input string) (*ManagedHSMNestedKeyVersionlessId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
+func (id ManagedHSMNestedkeyVersionless) String() string {
+	return fmt.Sprintf("%s: (%s)", "Managed H S M Nested Key Versionless", id.ID())
+}
+
+func (id ManagedHSMNestedkeyVersionless) ID() string {
+	return fmt.Sprintf("%s/keys/%s", id.BaseURI, id.KeyName)
+}
+
+// ManagedHSMNestedkeyVersionless parses a ManagedHSMNestedKeyWithVersion ID into an ManagedHSMNestedkeyVersionless struct
+func ParseManagedHSMNestedkeyVersionless(input string) (*ManagedHSMNestedkeyVersionless, error) {
+	parser := resourceids.NewParserFromResourceIdType(&ManagedHSMNestedkeyVersionless{})
+	parsed, err := parser.Parse(input, false)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as an ManagedHSMNestedKeyVersionless ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	resourceId := ManagedHSMNestedKeyVersionlessId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
-	}
-
-	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
-	}
-
-	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
-	}
-
-	if resourceId.ManagedHSMName, err = id.PopSegment("managedHSMs"); err != nil {
-		return nil, err
-	}
-	if resourceId.KeyName, err = id.PopSegment("keys"); err != nil {
+	id := ManagedHSMNestedkeyVersionless{}
+	if err := id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
-	if err := id.ValidateNoEmptySegments(input); err != nil {
+	return &id, nil
+}
+
+func ParseManagedHSMNestedkeyVersionlessInsensitively(input string) (*ManagedHSMNestedkeyVersionless, error) {
+	parser := resourceids.NewParserFromResourceIdType(&ManagedHSMNestedkeyVersionless{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	id := ManagedHSMNestedkeyVersionless{}
+	if err := id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
-	return &resourceId, nil
+	return &id, nil
+}
+
+func ValidateManagedHSMNestedKeyVersionlessID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
+	}
+
+	if _, err := ParseManagedHSMNestedkeyVersionless(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
 }
