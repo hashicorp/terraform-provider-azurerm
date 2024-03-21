@@ -15,7 +15,7 @@ Use this data source to access information about an existing DNS NS Record withi
 ## Example Usage
 
 ```hcl
-resource "azurerm_dns_ns_record" "example" {
+data "azurerm_dns_ns_record" "example" {
   name                = "test"
   zone_name           = "test-zone"
   resource_group_name = "test-rg"

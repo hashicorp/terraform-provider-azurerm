@@ -70,7 +70,7 @@ func ParseShareID(input, domainSuffix string) (*ShareId, error) {
 	path := strings.TrimPrefix(uri.Path, "/")
 	segments := strings.Split(path, "/")
 	if len(segments) == 0 {
-		return nil, fmt.Errorf("Expected the path to contain segments but got none")
+		return nil, fmt.Errorf("expected the path to contain segments but got none")
 	}
 
 	shareName := strings.TrimPrefix(uri.Path, "/")
