@@ -298,6 +298,7 @@ func TestAccDatabricksWorkspace_managedServicesRootDbfsCMKAndPrivateLink(t *test
 	})
 }
 
+// TODO: Add FourPointOh versions of the below ThreePointOh tests...
 func TestAccDatabricksWorkspace_altSubscriptionCmkComplete_ThreePointOh(t *testing.T) {
 	if features.FourPointOhBeta() {
 		t.Skip("Skipping: Test is only valid for v3.x providers")
