@@ -8,10 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -69,7 +69,7 @@ func resourceSentinelDataConnectorThreatIntelligence() *pluginsdk.Resource {
 }
 
 func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
+	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,11 +101,11 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.Re
 
 	lookbackDate, _ := time.Parse(time.RFC3339, d.Get("lookback_date").(string))
 
-	param := azuresdkhacks.TIDataConnector{
+	param := securityinsight.TIDataConnector{
 		Name: &name,
-		TIDataConnectorProperties: &azuresdkhacks.TIDataConnectorProperties{
+		TIDataConnectorProperties: &securityinsight.TIDataConnectorProperties{
 			TenantID: &tenantId,
-			TipLookbackPeriod: &azuresdkhacks.Time{
+			TipLookbackPeriod: &date.Time{
 				Time: lookbackDate,
 			},
 			DataTypes: &securityinsight.TIDataConnectorDataTypes{
@@ -127,7 +127,7 @@ func resourceSentinelDataConnectorThreatIntelligenceCreateUpdate(d *pluginsdk.Re
 }
 
 func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := azuresdkhacks.DataConnectorsClient{BaseClient: meta.(*clients.Client).Sentinel.DataConnectorsClient.BaseClient}
+	client := meta.(*clients.Client).Sentinel.DataConnectorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -148,7 +148,7 @@ func resourceSentinelDataConnectorThreatIntelligenceRead(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	dc, ok := resp.Value.(azuresdkhacks.TIDataConnector)
+	dc, ok := resp.Value.(securityinsight.TIDataConnector)
 	if !ok {
 		return fmt.Errorf("%s was not a Threat Intelligence Data Connector", id)
 	}
