@@ -234,14 +234,18 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 		return err
 	}
 
-	payload := applications.ApplicationPatchable{}
-	properties := applications.ApplicationProperties{}
-
-	if d.HasChange("application_definition_id") {
-		properties.ApplicationDefinitionId = pointer.To(d.Get("application_definition_id").(string))
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if d.HasChange("parameters_values") {
+	payload := existing.Model
+
+	if d.HasChange("application_definition_id") {
+		payload.Properties.ApplicationDefinitionId = pointer.To(d.Get("application_definition_id").(string))
+	}
+
+	if d.HasChanges("parameters", "parameter_values") {
 		params, err := expandManagedApplicationParameters(d)
 		if err != nil {
 			if !features.FourPointOhBeta() {
@@ -249,16 +253,14 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 			}
 			return fmt.Errorf("expanding `parameter_values`: %+v", err)
 		}
-		properties.Parameters = pointer.To(interface{}(params))
+		payload.Properties.Parameters = pointer.To(interface{}(params))
 	}
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	payload.Properties = &properties
-
-	err = client.UpdateThenPoll(ctx, *id, payload)
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
