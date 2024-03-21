@@ -87,9 +87,9 @@ The `active_directory` block supports the following:
 
 * `site_name` - (Optional) The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to `Default-First-Site-Name`.
 
-* `ad_name` - (Optional) Name of the active directory machine. *This optional parameter is used only while creating a Kerberos volume.*
+* `kerberos_ad_name` - (Optional) Name of the active directory machine.
 
-* `kdc_ip` - (Optional) kdc server IP addresses for the active directory machine. *This optional parameter is used only while creating a Kerberos volume.*
+* `kerberos_kdc_ip` - (Optional) kdc server IP addresses for the active directory machine.
 
 ~> **IMPORTANT:** If you plan on using **Kerberos** volumes, both `ad_name` and `kdc_ip` are required in order to create the volume.
 

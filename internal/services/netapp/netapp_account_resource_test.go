@@ -92,7 +92,8 @@ func testAccNetAppAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("active_directory.0.domain").HasValue("westcentralus.com"),
 				check.That(data.ResourceName).Key("active_directory.0.organizational_unit").HasValue("OU=FirstLevel"),
 				check.That(data.ResourceName).Key("active_directory.0.site_name").HasValue("My-Site-Name"),
-				check.That(data.ResourceName).Key("active_directory.0.ad_name").HasValue("My-AD-Server"),
+				check.That(data.ResourceName).Key("active_directory.0.kerberos_ad_name").HasValue("My-AD-Server"),
+				check.That(data.ResourceName).Key("active_directory.0.kerberos_kdc_ip").HasValue("192.168.1.1"),
 				check.That(data.ResourceName).Key("active_directory.0.enable_aes_encryption").HasValue("true"),
 				check.That(data.ResourceName).Key("active_directory.0.local_nfs_users_with_ldap_allowed").HasValue("true"),
 				check.That(data.ResourceName).Key("active_directory.0.ldap_over_tls_enabled").HasValue("true"),
@@ -248,8 +249,8 @@ resource "azurerm_netapp_account" "test" {
     domain                            = "westcentralus.com"
     organizational_unit               = "OU=FirstLevel"
     site_name                         = "My-Site-Name"
-    ad_name                           = "My-AD-Server"
-    kdc_ip                            = "192.168.1.1"
+    kerberos_ad_name                  = "My-AD-Server"
+    kerberos_kdc_ip                   = "192.168.1.1"
     enable_aes_encryption             = true
     local_nfs_users_with_ldap_allowed = true
     ldap_over_tls_enabled             = true

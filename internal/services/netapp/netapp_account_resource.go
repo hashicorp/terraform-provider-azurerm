@@ -113,12 +113,12 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Default:     "Default-First-Site-Name",
 							Description: "The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to 'Default-First-Site-Name'",
 						},
-						"ad_name": {
+						"kerberos_ad_name": {
 							Type:        pluginsdk.TypeString,
 							Optional:    true,
 							Description: "Name of the active directory machine. This optional parameter is used only while creating kerberos volume.",
 						},
-						"kdc_ip": {
+						"kerberos_kdc_ip": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsIPv4Address,
@@ -357,8 +357,8 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 			SmbServerName:              utils.String(v["smb_server_name"].(string)),
 			Username:                   utils.String(v["username"].(string)),
 			Site:                       utils.String(v["site_name"].(string)),
-			AdName:                     utils.String(v["ad_name"].(string)),
-			KdcIP:                      utils.String(v["kdc_ip"].(string)),
+			AdName:                     utils.String(v["kerberos_ad_name"].(string)),
+			KdcIP:                      utils.String(v["kerberos_kdc_ip"].(string)),
 			AesEncryption:              utils.Bool(v["enable_aes_encryption"].(bool)),
 			AllowLocalNfsUsersWithLdap: utils.Bool(v["local_nfs_users_with_ldap_allowed"].(bool)),
 			LdapOverTLS:                utils.Bool(v["ldap_over_tls_enabled"].(bool)),
