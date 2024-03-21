@@ -752,6 +752,10 @@ func expandEncryption(d *pluginsdk.ResourceData) (*vaults.VaultPropertiesEncrypt
 }
 
 func flattenVaultEncryption(model *vaults.Vault) interface{} {
+	// `enecryption` is an optional parameter and won't be returned if it has not been specified.
+	if model == nil {
+		return nil
+	}
 	encryptionMap := make(map[string]interface{})
 	keyId := ""
 	useSystemAssignedIdentity := false
@@ -832,6 +836,10 @@ func expandRecoveryServicesVaultMonitorSettings(input []interface{}) *vaults.Mon
 }
 
 func flattenRecoveryServicesVaultMonitorSettings(input *vaults.MonitoringSettings) []interface{} {
+	// `Monitor` is an optional parameters, and won't be returned from API if it has not been specified.
+	if input == nil {
+		return []interface{}{}
+	}
 	allJobAlert := false
 	criticalAlert := false
 
