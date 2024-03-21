@@ -28,6 +28,7 @@ BUG FIXES:
 * Data Source: `azurerm_storage_blob` - fix a bug that incorrectly parsed the endpoint in the resource ID [GH-25283]
 * Data Source: `azurerm_storage_table_entity` - fixing a regression when parsing the table endpoint [GH-25307]
 * `azurerm_purview_account` - will now allow for PurView accounts with missing or disabled eventhubs without keys [GH-25301]
+* `azurerm_storage_account` - fix a crash when the storage account becomes unavailable whilst reading [GH-25332]
 * `azurerm_storage_blob` - fixing a regression where blobs within a nested directory wouldn't be parsed correctly [GH-25305]
 * `azurerm_storage_data_lake_gen2_path` - fixing a bug where there was no timeout available during import [GH-25282]
 * `azurerm_storage_queue` - fixing a bug where the Table URI was obtained rather than the Queue URI [GH-25262]
