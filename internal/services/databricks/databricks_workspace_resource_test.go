@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -297,7 +298,11 @@ func TestAccDatabricksWorkspace_managedServicesRootDbfsCMKAndPrivateLink(t *test
 	})
 }
 
-func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
+func TestAccDatabricksWorkspace_altSubscriptionCmkComplete_ThreePointOh(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping: Test is only valid for v3.x providers")
+	}
+
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -319,7 +324,37 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
+func TestAccDatabricksWorkspace_altSubscriptionCmkKeysInDifferentKeyVaultsAcrossDifferentSubscriptions_ThreePointOh(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping: Test is only valid for v3.x providers")
+	}
+
+	altSubscription := altSubscriptionCheck()
+
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.altSubscriptionCmkKeysInDifferentKeyVaultsAcrossDifferentSubscriptions(data, databricksPrincipalID, altSubscription),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("managed_services_cmk_key_vault_id", "managed_disk_cmk_key_vault_id"),
+	})
+}
+
+func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly_ThreePointOh(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping: Test is only valid for v3.x providers")
+	}
+
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -341,7 +376,11 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
+func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly_ThreePointOh(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping: Test is only valid for v3.x providers")
+	}
+
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -2059,6 +2098,208 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_vault_id = azurerm_key_vault.keyVault.id
   tenant_id    = azurerm_key_vault.keyVault.tenant_id
+  object_id    = "%[4]s"
+
+  key_permissions = [
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+}
+
+// TODO: Finish this test...
+func (DatabricksWorkspaceResource) altSubscriptionCmkKeysInDifferentKeyVaultsAcrossDifferentSubscriptions(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+provider "azurerm-alt" {
+  features {}
+
+  tenant_id       = "%[5]s"
+  subscription_id = "%[6]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-pri-sub-diff-%[1]d"
+  location = "West Europe"
+}
+
+resource "azurerm_resource_group" "keyVault" {
+  name     = "acctestRG-databricks-kv-pri-sub-diff-%[1]d"
+  location = "West Europe"
+}
+
+resource "azurerm_resource_group" "keyVaultAlt" {
+  provider = azurerm-alt
+
+  name     = "acctestRG-databricks-kv-alt-sub-diff-%[1]d"
+  location = "West Europe"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_access_policy.managed]
+
+  name                        = "acctest-databricks-pri-sub-%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
+
+  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVaultAlt.id
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.servicesAlt.id
+
+  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
+  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+
+resource "azurerm_key_vault" "keyVault" {
+  name                = "kv-prisub-%[3]s"
+  resource_group_name = azurerm_resource_group.keyVault.name
+  location            = azurerm_resource_group.keyVault.location
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+
+  soft_delete_retention_days = 7
+}
+
+# Create this in a different subscription...
+resource "azurerm_key_vault" "keyVaultAlt" {
+  provider = azurerm-alt
+
+  name                = "kv-altsub-%[3]s"
+  resource_group_name = azurerm_resource_group.keyVaultAlt.name
+  location            = azurerm_resource_group.keyVaultAlt.location
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_key_vault_key" "servicesAlt" {
+  provider   = azurerm-alt
+  depends_on = [azurerm_key_vault_access_policy.terraformAlt]
+
+  name         = "acctest-services-certificate"
+  key_vault_id = azurerm_key_vault.keyVaultAlt.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_key_vault_key" "disk" {
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+
+  name         = "acctest-disk-certificate"
+  key_vault_id = azurerm_key_vault.keyVault.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "terraform" {
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "terraformAlt" {
+  provider = azurerm-alt
+
+  key_vault_id = azurerm_key_vault.keyVaultAlt.id
+  tenant_id    = azurerm_key_vault.keyVaultAlt.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "managed" {
+  key_vault_id = azurerm_key_vault.keyVault.id
+  tenant_id    = azurerm_key_vault.keyVault.tenant_id
+  object_id    = "%[4]s"
+
+  key_permissions = [
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "managedAlt" {
+  provider = azurerm-alt
+
+  key_vault_id = azurerm_key_vault.keyVaultAlt.id
+  tenant_id    = azurerm_key_vault.keyVaultAlt.tenant_id
   object_id    = "%[4]s"
 
   key_permissions = [

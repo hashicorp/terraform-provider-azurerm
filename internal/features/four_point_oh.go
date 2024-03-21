@@ -3,6 +3,8 @@
 
 package features
 
+import "os"
+
 // nolint gocritic
 // DeprecatedInFourPointOh returns the deprecation message if the provider
 // is running in 4.0 mode - otherwise is returns an empty string (such that
@@ -24,7 +26,11 @@ func DeprecatedInFourPointOh(deprecationMessage string) string {
 // This exists to allow breaking changes to be piped through the provider
 // during the development of 3.x until 4.0 is ready.
 func FourPointOh() bool {
-	return false
+	// WodansSon: Added for testing 4.0 functionality,
+	// will comment out in final check-in...
+	return !(os.Getenv("TF_FOUR_POINT_OH_BETA") == "")
+
+	// return false
 }
 
 // FourPointOhBeta returns whether this provider is running in 4.0 mode
