@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules` Documentation
 
-The `scheduledqueryrules` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2021-08-01`).
+The `scheduledqueryrules` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2023-03-15-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 ```
 
 
