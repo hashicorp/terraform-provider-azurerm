@@ -5,6 +5,10 @@ BREAKING CHANGES:
 * `azurerm_linux_function_app` - `app_settings["WEBSITE_RUN_FROM_PACKAGE"]` must be added to `ignore_changes` for deployments where an external tool modifies the `WEBSITE_RUN_FROM_PACKAGE` property in the `app_settings` block. [GH-24848]
 * `azurerm_linux_function_app_slot` - `app_settings["WEBSITE_RUN_FROM_PACKAGE"]` must be added to `ignore_changes` for deployments where an external tool modifies the `WEBSITE_RUN_FROM_PACKAGE` property in the `app_settings` block. [GH-24848]
 
+FEATURES:
+
+* New Resource: `azurerm_elastic_san_volume` [GH-24802]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240321.1145953` of `github.com/hashicorp/go-azure-sdk` [GH-25332]
