@@ -313,6 +313,16 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
+		if model.Properties.ActiveDirectories != nil {
+			adProps := *model.Properties.ActiveDirectories
+			//response returns an array, but only 1 entry is allowed per Azure platform
+			if len(adProps) > 0 {
+				if err = d.Set("active_directory", flattenNetAppActiveDirectories(&adProps[0])); err != nil {
+					return fmt.Errorf("setting `active_directory`: %+v", err)
+				}
+			}
+		}
+
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 
@@ -369,4 +379,28 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 		results = append(results, result)
 	}
 	return &results
+}
+
+func flattenNetAppActiveDirectories(input *netappaccounts.ActiveDirectory) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"domain":                            input.Domain,
+			"organizational_unit":               input.OrganizationalUnit,
+			"password":                          input.Password,
+			"smb_server_name":                   input.SmbServerName,
+			"username":                          input.Username,
+			"site_name":                         input.Site,
+			"kerberos_ad_name":                  input.AdName,
+			"kerberos_kdc_ip":                   input.KdcIP,
+			"aes_encryption_enabled":            input.AesEncryption,
+			"local_nfs_users_with_ldap_allowed": input.AllowLocalNfsUsersWithLdap,
+			"ldap_over_tls_enabled":             input.LdapOverTLS,
+			"server_root_ca_certificate":        input.ServerRootCACertificate,
+			"ldap_signing_enabled":              input.LdapSigning,
+		},
+	}
 }
