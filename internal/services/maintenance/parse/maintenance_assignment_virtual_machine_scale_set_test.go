@@ -4,6 +4,7 @@
 package parse
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"reflect"
 	"testing"
 
@@ -58,12 +59,8 @@ func TestMaintenanceAssignmentVirtualMachineScaleSetID(t *testing.T) {
 			Error: false,
 			Expect: &MaintenanceAssignmentVirtualMachineScaleSetId{
 				VirtualMachineScaleSetIdRaw: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachineScaleSets/vmss1",
-				VirtualMachineScaleSetId: &commonids.VirtualMachineScaleSetId{
-					SubscriptionId:             "00000000-0000-0000-0000-000000000000",
-					ResourceGroupName:          "resGroup1",
-					VirtualMachineScaleSetName: "vmss1",
-				},
-				Name: "assign1",
+				VirtualMachineScaleSetId:    pointer.To(commonids.NewVirtualMachineScaleSetID("00000000-0000-0000-0000-000000000000", "resGroup1", "vmss1")),
+				Name:                        "assign1",
 			},
 		},
 		{
