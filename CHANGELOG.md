@@ -31,6 +31,7 @@ BUG FIXES:
 * Data Source: `azurerm_storage_blob` - fix a bug that incorrectly parsed the endpoint in the resource ID [GH-25283]
 * Data Source: `azurerm_storage_table_entity` - fixing a regression when parsing the table endpoint [GH-25307]
 * `netapp_account_resource` - correct the `smb_server_name` property validation [GH-25340]
+* `azurerm_data_protection_backup_instance_kubernetes_cluster` - prevent the protection errosr `ScenarioPluginInvalidWorkflowDataRequest` and `UserErrorKubernetesBackupExtensionUnhealthy` [azurerm_data_protection_backup_instance_kubernetes_cluster is created with message "Fix protection error for the backup instance" and code ScenarioPluginInvalidWorkflowDataRequest #25294] [GH-25345]
 * `azurerm_purview_account` - will now allow for PurView accounts with missing or disabled eventhubs without keys [GH-25301]
 * `azurerm_storage_account` - fix a crash when the storage account becomes unavailable whilst reading [GH-25332]
 * `azurerm_storage_blob` - fixing a regression where blobs within a nested directory wouldn't be parsed correctly [GH-25305]
