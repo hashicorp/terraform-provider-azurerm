@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_container_app_environment` - add support for `Consumption` workload profile [GH-25285]
 * `azurerm_cosmosdb_postgresql_cluster` - expose list of server names and FQDN in the `servers` block [GH-25240]
 * `azurerm_data_share` - hyphens are now allowed in the resource's name [GH-25242]
+* `azurerm_data_factory_integration_runtime_azure_ssis` - support for the `copy_compute_scale` and `pipeline_external_compute_scale` blocks [GH-25281]
 * `azurerm_nginx_deployment` - support the `auto_scale_profile` block [GH-24950]
 * `netapp_account_resource` - support for the `kerberos_ad_name`, `kerberos_kdc_ip property`, `enable_aes_encryption`, `local_nfs_users_with_ldap_allowed`, `server_root_ca_certificate`, `ldap_over_tls_enabled`, and `ldap_signing_enabled` properties [GH-25340]
 * `netapp_account_resource` - support for [Support for Azure Netapp Files - AD Site Name #12462] via the `site_name` property [GH-25340]
