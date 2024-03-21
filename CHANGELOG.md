@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20240321.1145953` of `github.com/hashicorp/go-azure-sdk` [GH-25332]
 * dependencies: updating to `v0.25.2` of `github.com/tombuildsstuff/giovanni` [GH-25305]
 * `azurestackhci`: updating to API Version `2024-01-01` [GH-25279]
+* `monitor/scheduledqueryrules`: updatingt to API version `2023-03-15-preview` [GH-25350]
 * `cosmosdb`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25166]
 * Data Source `azurerm_stack_hci_cluster`: refactoring the association to use `hashicorp/go-azure-sdk` [GH-25293]
 * `azurerm_app_configuration` - support for Environments other than Azure Public [GH-25271]
