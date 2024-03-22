@@ -1,3 +1,9 @@
+## 3.98.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
+
 ## 3.97.1 (March 22, 2024)
 
 ENHANCEMENTS:
