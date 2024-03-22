@@ -97,7 +97,7 @@ type ConfigurationResource struct{}
 // Default Nginx Configuration cannot be created anymore for service API breaking change created it automatically
 // nginx configuration block is now embedded into nginx deployment resource
 func (m *ConfigurationResource) DeprecatedInFavourOfResource() string {
-	panic("azurerm_nginx_deployment")
+	return "azurerm_nginx_deployment"
 }
 
 var _ sdk.Resource = (*ConfigurationResource)(nil)
