@@ -245,20 +245,18 @@ func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.ApplicationDefinitionId = pointer.To(d.Get("application_definition_id").(string))
 	}
 
-	if d.HasChanges("parameters", "parameter_values") {
-		params, err := expandManagedApplicationParameters(d)
-		if err != nil {
-			if !features.FourPointOhBeta() {
-				return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
-			}
-			return fmt.Errorf("expanding `parameter_values`: %+v", err)
-		}
-		payload.Properties.Parameters = pointer.To(interface{}(params))
-	}
-
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
+
+	params, err := expandManagedApplicationParameters(d)
+	if err != nil {
+		if !features.FourPointOhBeta() {
+			return fmt.Errorf("expanding `parameters` or `parameter_values`: %+v", err)
+		}
+		return fmt.Errorf("expanding `parameter_values`: %+v", err)
+	}
+	payload.Properties.Parameters = pointer.To(interface{}(params))
 
 	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
 	if err != nil {

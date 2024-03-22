@@ -244,16 +244,15 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 	defer cancel()
 
 	id := maintenanceconfigurations.NewMaintenanceConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_maintenance_configuration", id.ID())
 	}
 
 	scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
@@ -310,11 +309,12 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	payload := maintenanceconfigurations.MaintenanceConfiguration{}
-
-	properties := maintenanceconfigurations.MaintenanceConfigurationProperties{
-		Namespace: pointer.To("Microsoft.Maintenance"),
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
+	payload := existing.Model
 
 	if d.HasChanges("scope", "window", "install_patches", "properties") {
 		scope := maintenanceconfigurations.MaintenanceScope(d.Get("scope").(string))
@@ -336,23 +336,21 @@ func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 		}
 
-		properties.MaintenanceScope = &scope
-		properties.MaintenanceWindow = window
-		properties.ExtensionProperties = extensionProperties
-		properties.InstallPatches = installPatches
+		payload.Properties.MaintenanceScope = &scope
+		payload.Properties.MaintenanceWindow = window
+		payload.Properties.ExtensionProperties = extensionProperties
+		payload.Properties.InstallPatches = installPatches
 	}
 
 	if d.HasChange("visibility") {
-		properties.Visibility = pointer.To(maintenanceconfigurations.Visibility(d.Get("visibility").(string)))
+		payload.Properties.Visibility = pointer.To(maintenanceconfigurations.Visibility(d.Get("visibility").(string)))
 	}
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	payload.Properties = &properties
-
-	if _, err := client.Update(ctx, *id, payload); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
