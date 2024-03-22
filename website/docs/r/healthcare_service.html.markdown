@@ -23,7 +23,13 @@ resource "azurerm_healthcare_service" "example" {
   kind                = "fhir-R4"
   cosmosdb_throughput = "2000"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   access_policy_object_ids = data.azurerm_client_config.current.object_id
+
+  configuration_export_storage_account_name = "teststorage"
 
   tags = {
     "environment" = "testenv"
@@ -56,6 +62,8 @@ The following arguments are supported:
 
 ~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
+* `configuration_export_storage_account_name` - (Optional) Specifies the name of the storage account which the operation configuration information is exported to.
+* `identity` - (Optional) An `identity` block as defined below.
 * `access_policy_object_ids` - (Optional) A set of Azure object IDs that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
 * `authentication_configuration` - (Optional) An `authentication_configuration` block as defined below.
 * `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`100000`. Defaults to `1000`.
@@ -67,6 +75,11 @@ The following arguments are supported:
 * `public_network_access_enabled` - (Optional) Whether public network access is enabled or disabled for this service instance. Defaults to `true`.
 * `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+An `identity` block supports the following:
+
+* `type` - (Optional) The type of managed identity to assign. The only possible value is `SystemAssigned`.
 
 ---
 An `authentication_configuration` block supports the following:

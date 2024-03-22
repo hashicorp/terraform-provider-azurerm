@@ -184,6 +184,24 @@ resource "azurerm_role_assignment" "test_cluster_msi_contributor_on_snap_rg" {
   principal_id         = azurerm_kubernetes_cluster.test.identity[0].principal_id
 }
 
+resource "azurerm_role_assignment" "test_vault_data_contributor_on_storage" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "test_vault_msi_snapshot_contributor_on_snap_rg" {
+  scope                = azurerm_resource_group.snap.id
+  role_definition_name = "Disk Snapshot Contributor"
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "test_vault_data_operator_on_snap_rg" {
+  scope                = azurerm_resource_group.snap.id
+  role_definition_name = "Data Operator for Managed Disks"
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
+}
+
 resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
   name                = "acctest-paks-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -214,8 +232,17 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
       data_store_type = "OperationalStore"
     }
   }
-}
 
+  depends_on = [
+    azurerm_role_assignment.test_extension_and_storage_account_permission,
+    azurerm_role_assignment.test_vault_msi_read_on_cluster,
+    azurerm_role_assignment.test_vault_msi_read_on_snap_rg,
+    azurerm_role_assignment.test_cluster_msi_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_contributor_on_storage,
+  ]
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
@@ -276,6 +303,12 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
 
   depends_on = [
     azurerm_role_assignment.test_extension_and_storage_account_permission,
+    azurerm_role_assignment.test_vault_msi_read_on_cluster,
+    azurerm_role_assignment.test_vault_msi_read_on_snap_rg,
+    azurerm_role_assignment.test_cluster_msi_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_msi_snapshot_contributor_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_operator_on_snap_rg,
+    azurerm_role_assignment.test_vault_data_contributor_on_storage,
   ]
 }
 `, template, data.RandomInteger)

@@ -326,7 +326,7 @@ func expandBackupProtectionPolicyFileShareRetentionMonthly(d *pluginsdk.Resource
 		scheduleFormat := protectionpolicies.RetentionScheduleFormatWeekly
 		var weekly *protectionpolicies.WeeklyRetentionFormat = nil
 		var daily *protectionpolicies.DailyRetentionFormat = nil
-		if v, ok := block["days"]; ok && v.(*pluginsdk.Set).Len() > 0 {
+		if v, ok := block["days"]; ok && v.(*pluginsdk.Set).Len() > 0 || block["include_last_days"].(bool) {
 			scheduleFormat = protectionpolicies.RetentionScheduleFormatDaily
 			daily = expandBackupProtectionPolicyFileShareRetentionDailyFormat(block)
 		} else {
@@ -357,7 +357,7 @@ func expandBackupProtectionPolicyFileShareRetentionYearly(d *pluginsdk.ResourceD
 		scheduleFormat := protectionpolicies.RetentionScheduleFormatWeekly
 		var weekly *protectionpolicies.WeeklyRetentionFormat = nil
 		var daily *protectionpolicies.DailyRetentionFormat = nil
-		if v, ok := block["days"]; ok && v.(*pluginsdk.Set).Len() > 0 {
+		if v, ok := block["days"]; ok && v.(*pluginsdk.Set).Len() > 0 || block["include_last_days"].(bool) {
 			scheduleFormat = protectionpolicies.RetentionScheduleFormatDaily
 			daily = expandBackupProtectionPolicyFileShareRetentionDailyFormat(block)
 		} else {

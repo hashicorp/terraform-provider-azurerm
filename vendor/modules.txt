@@ -329,6 +329,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/restorepoints
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
@@ -1270,7 +1271,7 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.2.0
 ## explicit; go 1.12
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/tombuildsstuff/giovanni v0.25.2
+# github.com/tombuildsstuff/giovanni v0.25.3
 ## explicit; go 1.21
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs
