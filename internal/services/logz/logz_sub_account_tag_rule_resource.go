@@ -5,6 +5,7 @@ package logz
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"time"
 
@@ -119,7 +120,12 @@ func resourceLogzSubAccountTagRuleCreate(d *pluginsdk.ResourceData, meta interfa
 
 	payload := tagrules.MonitoringTagRules{
 		Properties: &tagrules.MonitoringTagRulesProperties{
-			LogRules: expandTagRuleLogRules(d),
+			LogRules: &tagrules.LogRules{
+				FilteringTags:        expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{})),
+				SendAadLogs:          pointer.To(d.Get("send_aad_logs").(bool)),
+				SendSubscriptionLogs: pointer.To(d.Get("send_subscription_logs").(bool)),
+				SendActivityLogs:     pointer.To(d.Get("send_activity_logs").(bool)),
+			},
 		},
 	}
 
@@ -141,13 +147,27 @@ func resourceLogzSubAccountTagRuleUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	payload := tagrules.MonitoringTagRules{
-		Properties: &tagrules.MonitoringTagRulesProperties{
-			LogRules: expandTagRuleLogRules(d),
-		},
+	existing, err := client.SubAccountTagRulesGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if _, err := client.SubAccountTagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
+	payload := existing.Model
+
+	if d.HasChange("send_aad_logs") {
+		payload.Properties.LogRules.SendAadLogs = pointer.To(d.Get("send_aad_logs").(bool))
+	}
+	if d.HasChange("send_subscription_logs") {
+		payload.Properties.LogRules.SendSubscriptionLogs = pointer.To(d.Get("send_subscription_logs").(bool))
+	}
+	if d.HasChange("send_activity_logs") {
+		payload.Properties.LogRules.SendActivityLogs = pointer.To(d.Get("send_activity_logs").(bool))
+	}
+	if d.HasChange("tag_filter") {
+		payload.Properties.LogRules.FilteringTags = expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{}))
+	}
+
+	if _, err := client.SubAccountTagRulesCreateOrUpdate(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

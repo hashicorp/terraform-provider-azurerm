@@ -121,7 +121,12 @@ func resourceLogzTagRuleCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	payload := tagrules.MonitoringTagRules{
 		Properties: &tagrules.MonitoringTagRulesProperties{
-			LogRules: expandTagRuleLogRules(d),
+			LogRules: &tagrules.LogRules{
+				FilteringTags:        expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{})),
+				SendAadLogs:          pointer.To(d.Get("send_aad_logs").(bool)),
+				SendSubscriptionLogs: pointer.To(d.Get("send_subscription_logs").(bool)),
+				SendActivityLogs:     pointer.To(d.Get("send_activity_logs").(bool)),
+			},
 		},
 	}
 
@@ -143,13 +148,27 @@ func resourceLogzTagRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	payload := tagrules.MonitoringTagRules{
-		Properties: &tagrules.MonitoringTagRulesProperties{
-			LogRules: expandTagRuleLogRules(d),
-		},
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
+	payload := existing.Model
+
+	if d.HasChange("send_aad_logs") {
+		payload.Properties.LogRules.SendAadLogs = pointer.To(d.Get("send_aad_logs").(bool))
+	}
+	if d.HasChange("send_subscription_logs") {
+		payload.Properties.LogRules.SendSubscriptionLogs = pointer.To(d.Get("send_subscription_logs").(bool))
+	}
+	if d.HasChange("send_activity_logs") {
+		payload.Properties.LogRules.SendActivityLogs = pointer.To(d.Get("send_activity_logs").(bool))
+	}
+	if d.HasChange("tag_filter") {
+		payload.Properties.LogRules.FilteringTags = expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -209,15 +228,6 @@ func resourceLogzTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return nil
-}
-
-func expandTagRuleLogRules(d *pluginsdk.ResourceData) *tagrules.LogRules {
-	return &tagrules.LogRules{
-		SendAadLogs:          pointer.To(d.Get("send_aad_logs").(bool)),
-		SendSubscriptionLogs: pointer.To(d.Get("send_subscription_logs").(bool)),
-		SendActivityLogs:     pointer.To(d.Get("send_activity_logs").(bool)),
-		FilteringTags:        expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{})),
-	}
 }
 
 func expandTagRuleFilteringTagArray(input []interface{}) *[]tagrules.FilteringTag {

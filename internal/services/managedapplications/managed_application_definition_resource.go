@@ -197,42 +197,42 @@ func resourceManagedApplicationDefinitionUpdate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	model := existing.Model
+	payload := existing.Model
 
 	if d.HasChange("description") {
-		model.Properties.Description = pointer.To(d.Get("description").(string))
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if d.HasChange("display_name") {
-		model.Properties.DisplayName = pointer.To(d.Get("display_name").(string))
+		payload.Properties.DisplayName = pointer.To(d.Get("display_name").(string))
 	}
 
 	if d.HasChange("package_enabled") {
-		model.Properties.IsEnabled = pointer.To(d.Get("package_enabled").(bool))
+		payload.Properties.IsEnabled = pointer.To(d.Get("package_enabled").(bool))
 	}
 
 	if d.HasChange("authorization") {
-		model.Properties.Authorizations = expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List())
+		payload.Properties.Authorizations = expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List())
 	}
 
 	if d.HasChange("create_ui_definition") {
-		model.Properties.CreateUiDefinition = pointer.To(d.Get("create_ui_definition"))
+		payload.Properties.CreateUiDefinition = pointer.To(d.Get("create_ui_definition"))
 	}
 
 	if d.HasChange("main_template") {
-		model.Properties.MainTemplate = pointer.To(d.Get("main_template"))
+		payload.Properties.MainTemplate = pointer.To(d.Get("main_template"))
 	}
 
 	if d.HasChange("package_file_uri") {
-		model.Properties.PackageFileUri = pointer.To(d.Get("package_file_uri").(string))
+		payload.Properties.PackageFileUri = pointer.To(d.Get("package_file_uri").(string))
 	}
 
 	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	// update payload only supports tags, so we'll continue using CreateOrUpdate method here
-	if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
