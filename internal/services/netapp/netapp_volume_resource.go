@@ -996,6 +996,36 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
 		}
+		if v := item.Kerberos5ReadOnly; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "kerberos5ro")
+			}
+		}
+		if v := item.Kerberos5ReadWrite; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "kerberos5rw")
+			}
+		}
+		if v := item.Kerberos5iReadOnly; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "kerberos5iro")
+			}
+		}
+		if v := item.Kerberos5iReadWrite; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "kerberos5irw")
+			}
+		}
+		if v := item.Kerberos5pReadOnly; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "kerberos5pro")
+			}
+		}
+		if v := item.Kerberos5pReadWrite; v != nil {
+			if *v {
+				protocolsEnabled = append(protocolsEnabled, "kerberos5prw")
+			}
+		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
 			unixReadOnly = *v
