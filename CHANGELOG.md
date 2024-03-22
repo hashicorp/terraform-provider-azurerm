@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `azurerm_nginx_deployment` - support for the `configuration` block [GH-24276]
 
+BUG FIXES:
+
+* `azurerm_data_factory_integration_runtime_self_hosted` - ensure that autorizationh keys are exported [GH-25246]
+
 ## 3.97.0 (March 21, 2024)
 
 BREAKING CHANGES:
