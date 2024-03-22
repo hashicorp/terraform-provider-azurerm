@@ -1004,56 +1004,19 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			}
 		}
 
-		unixReadOnly := false
-		if v := item.UnixReadOnly; v != nil {
-			unixReadOnly = *v
-		}
-		unixReadWrite := false
-		if v := item.UnixReadWrite; v != nil {
-			unixReadWrite = *v
-		}
-		rootAccessEnabled := false
-		if v := item.HasRootAccess; v != nil {
-			rootAccessEnabled = *v
-		}
-		kerberos5ro := false
-		if v := item.Kerberos5ReadOnly; v != nil {
-			kerberos5ro = *v
-		}
-		kerberos5rw := false
-		if v := item.Kerberos5ReadWrite; v != nil {
-			kerberos5rw = *v
-		}
-		kerberos5iro := false
-		if v := item.Kerberos5iReadOnly; v != nil {
-			kerberos5iro = *v
-		}
-		kerberos5irw := false
-		if v := item.Kerberos5iReadWrite; v != nil {
-			kerberos5irw = *v
-		}
-		kerberos5pro := false
-		if v := item.Kerberos5pReadOnly; v != nil {
-			kerberos5pro = *v
-		}
-		kerberos5prw := false
-		if v := item.Kerberos5pReadWrite; v != nil {
-			kerberos5prw = *v
-		}
-
 		result := map[string]interface{}{
-			"rule_index":             ruleIndex,
 			"allowed_clients":        utils.FlattenStringSlice(&allowedClients),
-			"unix_read_only":         unixReadOnly,
-			"unix_read_write":        unixReadWrite,
-			"root_access_enabled":    rootAccessEnabled,
+			"kerberos_5_read_only":   utils.NormaliseNilableBool(item.Kerberos5ReadOnly),
+			"kerberos_5_read_write":  utils.NormaliseNilableBool(item.Kerberos5ReadWrite),
+			"kerberos_5i_read_only":  utils.NormaliseNilableBool(item.Kerberos5iReadOnly),
+			"kerberos_5i_read_write": utils.NormaliseNilableBool(item.Kerberos5iReadWrite),
+			"kerberos_5p_read_only":  utils.NormaliseNilableBool(item.Kerberos5pReadOnly),
+			"kerberos_5p_read_write": utils.NormaliseNilableBool(item.Kerberos5pReadWrite),
 			"protocols_enabled":      utils.FlattenStringSlice(&protocolsEnabled),
-			"kerberos_5_read_only":   kerberos5ro,
-			"kerberos_5_read_write":  kerberos5rw,
-			"kerberos_5i_read_only":  kerberos5iro,
-			"kerberos_5i_read_write": kerberos5irw,
-			"kerberos_5p_read_only":  kerberos5pro,
-			"kerberos_5p_read_write": kerberos5prw,
+			"root_access_enabled":    utils.NormaliseNilableBool(item.HasRootAccess),
+			"rule_index":             ruleIndex,
+			"unix_read_only":         utils.NormaliseNilableBool(item.UnixReadOnly),
+			"unix_read_write":        utils.NormaliseNilableBool(item.UnixReadWrite),
 		}
 		results = append(results, result)
 	}
