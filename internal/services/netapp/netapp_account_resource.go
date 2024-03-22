@@ -316,9 +316,9 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		if model.Properties.ActiveDirectories != nil {
 			adProps := *model.Properties.ActiveDirectories
-			//response returns an array, but only 1 NetApp AD connection is allowed per the Azure platform currently
+			// response returns an array, but only 1 NetApp AD connection is allowed per the Azure platform currently
 			if len(adProps) > 0 {
-				//the API returns opaque('***') values for password and server_root_ca_certificate, so we pass through current state values so change detection works
+				// the API returns opaque('***') values for password and server_root_ca_certificate, so we pass through current state values so change detection works
 				prevPassword := d.Get("active_directory.0.password").(string)
 				prevCaCert := d.Get("active_directory.0.server_root_ca_certificate").(string)
 
