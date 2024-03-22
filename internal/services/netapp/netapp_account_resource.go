@@ -137,10 +137,11 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Description: "If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.",
 						},
 						"ldap_over_tls_enabled": {
-							Type:        pluginsdk.TypeBool,
-							Optional:    true,
-							Default:     false,
-							Description: "Specifies whether or not the LDAP traffic needs to be secured via TLS.",
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							Default:      false,
+							RequiredWith: []string{"active_directory.0.server_root_ca_certificate"},
+							Description:  "Specifies whether or not the LDAP traffic needs to be secured via TLS.",
 						},
 						"server_root_ca_certificate": {
 							Type:         pluginsdk.TypeString,
