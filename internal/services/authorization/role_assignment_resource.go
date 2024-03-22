@@ -236,11 +236,15 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	condition := d.Get("condition").(string)
 	conditionVersion := d.Get("condition_version").(string)
 
-	if condition != "" && conditionVersion != "" {
+	switch {
+	case condition != "" && conditionVersion != "":
 		properties.RoleAssignmentProperties.Condition = utils.String(condition)
 		properties.RoleAssignmentProperties.ConditionVersion = utils.String(conditionVersion)
-	} else if condition != "" || conditionVersion != "" {
-		return fmt.Errorf("`condition` and `conditionVersion` should be both set or unset")
+	case condition != "" && conditionVersion == "":
+		properties.RoleAssignmentProperties.Condition = utils.String(condition)
+		properties.RoleAssignmentProperties.ConditionVersion = utils.String("2.0")
+	case condition == "" && conditionVersion != "":
+		return fmt.Errorf("`conditionVersion` should not be set without `condition`")
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
