@@ -96,6 +96,8 @@ The following arguments are supported:
 
 -> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
+* `auto_scale_profile` - (Optional) An `auto_scale_profile` block as defined below.
+
 * `diagnose_support_enabled` - (Optional) Should the diagnosis support be enabled?
 
 * `email` - (Optional) Specify the preferred support contact email address of the user used for sending alerts and notification.
@@ -154,6 +156,17 @@ A `network_interface` block supports the following:
 
 * `subnet_id` - (Required) Specify The SubNet Resource ID to this Nginx Deployment.
 
+---
+
+An `auto_scale_profile` block supports the following:
+
+* `name` - (Required) Specify the name of the autoscaling profile.
+
+* `min_capacity` - (Required) Specify the minimum number of NGINX capacity units for this NGINX Deployment.
+
+* `max_capacity` - (Required) Specify the maximum number of NGINX capacity units for this NGINX Deployment.
+
+-> **NOTE:** If you're using autoscaling, you should use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
 ## Attributes Reference
 

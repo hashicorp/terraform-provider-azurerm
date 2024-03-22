@@ -288,16 +288,11 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if common.HasThroughputChange(d) {
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		throughputFuture, err := client.SqlResourcesUpdateSqlContainerThroughput(ctx, *id, *throughputParameters)
+		err := client.SqlResourcesUpdateSqlContainerThroughputThenPoll(ctx, *id, *throughputParameters)
 		if err != nil {
-			if response.WasNotFound(throughputFuture.HttpResponse) {
-				return fmt.Errorf("setting Throughput for Cosmos SQL Container %q (Account: %q, Database: %q): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
-			}
-		}
+			return fmt.Errorf("setting Throughput for Cosmos SQL Container %q (Account: %q, Database: %q): %+v - "+
+				"If the collection has not been created with an initial throughput, you cannot configure it later", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 
-		if err := throughputFuture.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting on ThroughputUpdate future for Cosmos Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 		}
 	}
 
@@ -409,15 +404,9 @@ func resourceCosmosDbSQLContainerDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	future, err := client.SqlResourcesDeleteSqlContainer(ctx, *id)
+	err = client.SqlResourcesDeleteSqlContainerThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.ContainerName, err)
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		if !response.WasNotFound(future.HttpResponse) {
-			return fmt.Errorf("deleting Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.ContainerName, err)
-		}
 	}
 
 	return nil

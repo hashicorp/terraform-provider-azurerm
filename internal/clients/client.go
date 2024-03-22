@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
-	azurestackhci_v2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01"
+	azurestackhci_v2024_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
@@ -176,7 +176,7 @@ type Client struct {
 	Authorization                     *authorization.Client
 	Automanage                        *automanage.Client
 	Automation                        *automation.Client
-	AzureStackHCI                     *azurestackhci_v2023_08_01.Client
+	AzureStackHCI                     *azurestackhci_v2024_01_01.Client
 	Batch                             *batch.Client
 	Blueprints                        *blueprints.Client
 	Bot                               *bot.Client
@@ -341,7 +341,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Authorization, err = authorization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Authorization: %+v", err)
 	}
-	client.Automanage = automanage.NewClient(o)
+	if client.Automanage, err = automanage.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AutoManage: %+v", err)
+	}
 	if client.Automation, err = automation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Automation: %+v", err)
 	}
