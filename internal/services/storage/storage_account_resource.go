@@ -2116,7 +2116,14 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			publicNetworkAccessEnabled = false
 		}
 		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-		d.Set("dns_endpoint_type", props.DNSEndpointType)
+
+		// DNSEndpointType is null when unconfigured - therefore default this to Standard
+		dnsEndpointType := storage.DNSEndpointTypeStandard
+		if props.DNSEndpointType != "" {
+			// TODO: when this is ported over to `hashicorp/go-azure-sdk` this should be able to become != nil
+			dnsEndpointType = props.DNSEndpointType
+		}
+		d.Set("dns_endpoint_type", dnsEndpointType)
 
 		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
 			d.Set("cross_tenant_replication_enabled", crossTenantReplication)
