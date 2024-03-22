@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
@@ -17,7 +18,7 @@ import (
 type Client struct {
 	AnalyticsItemsClient     *insights.AnalyticsItemsClient
 	APIKeysClient            *insights.APIKeysClient
-	ComponentsClient         *insights.ComponentsClient
+	ComponentsClient         *components.ComponentsAPIsClient
 	WebTestsClient           *azuresdkhacks.WebTestsClient
 	StandardWebTestsClient   *webtests.WebTestsAPIsClient
 	BillingClient            *insights.ComponentCurrentBillingFeaturesClient
@@ -33,8 +34,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	apiKeysClient := insights.NewAPIKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiKeysClient.Client, o.ResourceManagerAuthorizer)
 
-	componentsClient := insights.NewComponentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&componentsClient.Client, o.ResourceManagerAuthorizer)
+	componentsClient, err := components.NewComponentsAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Components client: %+v", err)
+	}
+	o.Configure(componentsClient.Client, o.Authorizers.ResourceManager)
 
 	webTestsClient := insights.NewWebTestsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&webTestsClient.Client, o.ResourceManagerAuthorizer)
@@ -67,7 +71,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AnalyticsItemsClient:     &analyticsItemsClient,
 		APIKeysClient:            &apiKeysClient,
-		ComponentsClient:         &componentsClient,
+		ComponentsClient:         componentsClient,
 		WebTestsClient:           &webTestsWorkaroundClient,
 		BillingClient:            &billingClient,
 		SmartDetectionRuleClient: &smartDetectionRuleClient,
