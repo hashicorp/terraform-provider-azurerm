@@ -98,7 +98,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 						"password": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							Sensitive:    false,
+							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"organizational_unit": {
@@ -317,9 +317,11 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if model.Properties.ActiveDirectories != nil {
 			adProps := *model.Properties.ActiveDirectories
 			//response returns an array, but only 1 NetApp AD connection is allowed per the Azure platform currently
-			if len(*model.Properties.ActiveDirectories) > 0 {
+			if len(adProps) > 0 {
+				//the API returns opaque('***') values for password and server_root_ca_certificate, so we pass through current state values so change detection works
 				prevPassword := d.Get("active_directory.0.password").(string)
 				prevCaCert := d.Get("active_directory.0.server_root_ca_certificate").(string)
+
 				if err = d.Set("active_directory", flattenNetAppActiveDirectories(&adProps[0], &prevPassword, &prevCaCert)); err != nil {
 					return fmt.Errorf("setting `active_directory`: %+v", err)
 				}
