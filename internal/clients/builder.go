@@ -147,7 +147,6 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		KeyVaultAuthorizer:        authWrapper.AutorestAuthorizer(keyVaultAuth).BearerAuthorizerCallback(),
 		ManagedHSMAuthorizer:      authWrapper.AutorestAuthorizer(managedHSMAuth).BearerAuthorizerCallback(),
 		ResourceManagerAuthorizer: authWrapper.AutorestAuthorizer(resourceManagerAuth),
-		StorageAuthorizer:         authWrapper.AutorestAuthorizer(storageAuth),
 		SynapseAuthorizer:         authWrapper.AutorestAuthorizer(synapseAuth),
 
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,

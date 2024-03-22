@@ -165,7 +165,7 @@ redis_configuration {
 ```hcl
 resource "azurerm_redis_cache" "example" {
   # ...
-  ignore_changes = [redis_configuration.0.rdb_storage_connection_string]
+  ignore_changes = [redis_configuration[0].rdb_storage_connection_string]
 }
 ```
 

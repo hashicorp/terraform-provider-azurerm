@@ -72,7 +72,10 @@ func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id Automa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StatisticsListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

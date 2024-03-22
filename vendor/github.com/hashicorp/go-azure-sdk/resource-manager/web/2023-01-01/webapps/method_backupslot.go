@@ -48,7 +48,10 @@ func (c WebAppsClient) BackupSlot(ctx context.Context, id SlotId, input BackupRe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BackupItem
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

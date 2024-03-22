@@ -320,7 +320,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) IDValidationFunc() pluginsdk.SchemaV
 func expandKeyVaultMHSMRolePermissions(perms []Permission) *[]keyvault.Permission {
 	var res []keyvault.Permission
 	for _, perm := range perms {
-		var dataActions, notDataActions []keyvault.DataAction
+		var dataActions, notDataActions = make([]keyvault.DataAction, 0), make([]keyvault.DataAction, 0)
 		for _, data := range perm.DataActions {
 			dataActions = append(dataActions, keyvault.DataAction(data))
 		}

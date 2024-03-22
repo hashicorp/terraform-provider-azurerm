@@ -47,7 +47,10 @@ func (c WebhookClient) Update(ctx context.Context, id WebHookId, input WebhookUp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Webhook
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

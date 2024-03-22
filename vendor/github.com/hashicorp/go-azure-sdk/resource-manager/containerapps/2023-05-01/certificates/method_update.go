@@ -47,7 +47,10 @@ func (c CertificatesClient) Update(ctx context.Context, id CertificateId, input 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Certificate
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -49,7 +49,10 @@ func (c BlobContainersClient) Lease(ctx context.Context, id commonids.StorageCon
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LeaseContainerResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

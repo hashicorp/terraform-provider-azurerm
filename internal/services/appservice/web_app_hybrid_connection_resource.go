@@ -162,13 +162,18 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
+			key, err := helpers.GetSendKeyValue(ctx, metadata, id, appHybridConn.SendKeyName)
+			if err != nil {
+				return err
+			}
+
 			envelope := webapps.HybridConnection{
 				Properties: &webapps.HybridConnectionProperties{
 					RelayArmUri:  pointer.To(relayId.ID()),
 					Hostname:     pointer.To(appHybridConn.HostName),
 					Port:         pointer.To(appHybridConn.HostPort),
 					SendKeyName:  pointer.To(appHybridConn.SendKeyName),
-					SendKeyValue: pointer.To(""),
+					SendKeyValue: key,
 				},
 			}
 

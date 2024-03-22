@@ -47,7 +47,10 @@ func (c AssociationsInterfaceClient) Update(ctx context.Context, id AssociationI
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Association
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

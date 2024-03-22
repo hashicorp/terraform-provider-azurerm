@@ -72,7 +72,10 @@ func (c PreRulesClient) ResetCounters(ctx context.Context, id PreRuleId, options
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RuleCounterReset
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

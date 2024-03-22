@@ -1,6 +1,10 @@
 package autoscalesettings
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -25,6 +29,19 @@ func PossibleValuesForComparisonOperationType() []string {
 		string(ComparisonOperationTypeLessThanOrEqual),
 		string(ComparisonOperationTypeNotEquals),
 	}
+}
+
+func (s *ComparisonOperationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseComparisonOperationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseComparisonOperationType(input string) (*ComparisonOperationType, error) {
@@ -65,6 +82,19 @@ func PossibleValuesForMetricStatisticType() []string {
 	}
 }
 
+func (s *MetricStatisticType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMetricStatisticType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseMetricStatisticType(input string) (*MetricStatisticType, error) {
 	vals := map[string]MetricStatisticType{
 		"average": MetricStatisticTypeAverage,
@@ -94,6 +124,19 @@ func PossibleValuesForOperationType() []string {
 	}
 }
 
+func (s *OperationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseOperationType(input string) (*OperationType, error) {
 	vals := map[string]OperationType{
 		"scale": OperationTypeScale,
@@ -121,6 +164,19 @@ func PossibleValuesForPredictiveAutoscalePolicyScaleMode() []string {
 		string(PredictiveAutoscalePolicyScaleModeEnabled),
 		string(PredictiveAutoscalePolicyScaleModeForecastOnly),
 	}
+}
+
+func (s *PredictiveAutoscalePolicyScaleMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePredictiveAutoscalePolicyScaleMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePredictiveAutoscalePolicyScaleMode(input string) (*PredictiveAutoscalePolicyScaleMode, error) {
@@ -164,6 +220,19 @@ func PossibleValuesForRecurrenceFrequency() []string {
 	}
 }
 
+func (s *RecurrenceFrequency) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRecurrenceFrequency(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseRecurrenceFrequency(input string) (*RecurrenceFrequency, error) {
 	vals := map[string]RecurrenceFrequency{
 		"day":    RecurrenceFrequencyDay,
@@ -200,6 +269,19 @@ func PossibleValuesForScaleDirection() []string {
 	}
 }
 
+func (s *ScaleDirection) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScaleDirection(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseScaleDirection(input string) (*ScaleDirection, error) {
 	vals := map[string]ScaleDirection{
 		"decrease": ScaleDirectionDecrease,
@@ -227,6 +309,19 @@ func PossibleValuesForScaleRuleMetricDimensionOperationType() []string {
 		string(ScaleRuleMetricDimensionOperationTypeEquals),
 		string(ScaleRuleMetricDimensionOperationTypeNotEquals),
 	}
+}
+
+func (s *ScaleRuleMetricDimensionOperationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScaleRuleMetricDimensionOperationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScaleRuleMetricDimensionOperationType(input string) (*ScaleRuleMetricDimensionOperationType, error) {
@@ -259,6 +354,19 @@ func PossibleValuesForScaleType() []string {
 		string(ScaleTypePercentChangeCount),
 		string(ScaleTypeServiceAllowedNextValue),
 	}
+}
+
+func (s *ScaleType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScaleType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScaleType(input string) (*ScaleType, error) {
@@ -297,6 +405,19 @@ func PossibleValuesForTimeAggregationType() []string {
 		string(TimeAggregationTypeMinimum),
 		string(TimeAggregationTypeTotal),
 	}
+}
+
+func (s *TimeAggregationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTimeAggregationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTimeAggregationType(input string) (*TimeAggregationType, error) {

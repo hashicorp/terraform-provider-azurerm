@@ -242,6 +242,15 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
+			// TODO: 4.0 - set the default to Tls12
+			// per Microsoft's documentation, as of April 1 2023 the default minimal TLS version for all new accounts is 1.2
+			"minimal_tls_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
+			},
+
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -527,6 +536,14 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(cosmosdb.BackupPolicyTypeContinuous),
 								string(cosmosdb.BackupPolicyTypePeriodic),
 							}, false),
+						},
+
+						// Though `tier` has the default value `Continuous30Days` but `tier` is only for the backup type `Continuous`. So the default value isn't added in the property schema.
+						"tier": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForContinuousTier(), false),
 						},
 
 						"interval_in_minutes": {
@@ -844,6 +861,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                          geoLocations,
 			Capabilities:                       capabilities,
+			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
 			EnablePartitionMerge:               pointer.To(partitionMergeEnabled),
@@ -919,6 +937,15 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account, d)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// NOTE: this is to work around the issue here: https://github.com/Azure/azure-rest-api-specs/issues/27596
+	// Once the above issue is resolved we shouldn't need this check and update anymore
+	if d.Get("create_mode").(string) == string(cosmosdb.CreateModeRestore) {
+		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account, d)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -1043,7 +1070,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			"capacity", "create_mode", "restore", "key_vault_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 			"kind", "tags", "enable_free_tier", "enable_automatic_failover", "analytical_storage_enabled",
-			"local_authentication_disabled", "partition_merge_enabled") {
+			"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version") {
 			updateRequired = true
 		}
 
@@ -1077,6 +1104,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				IsVirtualNetworkFilterEnabled:      isVirtualNetworkFilterEnabled,
 				EnableFreeTier:                     enableFreeTier,
 				EnableAutomaticFailover:            enableAutomaticFailover,
+				MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 				Capabilities:                       capabilities,
 				ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 				Locations:                          cosmosLocations,
@@ -1373,6 +1401,7 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("analytical_storage_enabled", props.EnableAnalyticalStorage)
 		d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cosmosdb.PublicNetworkAccessEnabled)
 		d.Set("default_identity_type", props.DefaultIdentity)
+		d.Set("minimal_tls_version", pointer.From(props.MinimalTlsVersion))
 		d.Set("create_mode", pointer.From(props.CreateMode))
 		d.Set("partition_merge_enabled", pointer.From(props.EnablePartitionMerge))
 
@@ -1920,11 +1949,23 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 			return nil, fmt.Errorf("`storage_redundancy` cannot be defined when the `backup.type` is set to %q", cosmosdb.BackupPolicyTypeContinuous)
 		}
 
-		return cosmosdb.ContinuousModeBackupPolicy{}, nil
+		result := cosmosdb.ContinuousModeBackupPolicy{}
+
+		if v := attr["tier"].(string); v != "" {
+			result.ContinuousModeProperties = &cosmosdb.ContinuousModeProperties{
+				Tier: pointer.To(cosmosdb.ContinuousTier(v)),
+			}
+		}
+
+		return result, nil
 
 	case string(cosmosdb.BackupPolicyTypePeriodic):
 		if createMode != "" {
 			return nil, fmt.Errorf("`create_mode` can only be defined when the `backup.type` is set to %q, got %q", cosmosdb.BackupPolicyTypeContinuous, cosmosdb.BackupPolicyTypePeriodic)
+		}
+
+		if v := attr["tier"].(string); v != "" && !backupHasChange {
+			return nil, fmt.Errorf("`tier` can not be set when `type` in `backup` is `Periodic`")
 		}
 
 		// Mirror the behavior of the old SDK...
@@ -1953,9 +1994,14 @@ func flattenCosmosdbAccountBackup(input cosmosdb.BackupPolicy) ([]interface{}, e
 
 	switch backupPolicy := input.(type) {
 	case cosmosdb.ContinuousModeBackupPolicy:
+		var tier cosmosdb.ContinuousTier
+		if v := backupPolicy.ContinuousModeProperties; v != nil {
+			tier = pointer.From(v.Tier)
+		}
 		return []interface{}{
 			map[string]interface{}{
 				"type": string(cosmosdb.BackupPolicyTypeContinuous),
+				"tier": string(tier),
 			},
 		}, nil
 

@@ -72,7 +72,10 @@ func (c AvailabilityGroupListenersClient) Get(ctx context.Context, id Availabili
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AvailabilityGroupListener
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

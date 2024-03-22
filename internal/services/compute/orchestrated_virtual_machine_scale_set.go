@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -524,13 +524,15 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 
 				"disk_size_gb": {
 					Type:         pluginsdk.TypeInt,
-					Required:     true,
+					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 32767),
 				},
 
 				"lun": {
 					Type:         pluginsdk.TypeInt,
-					Required:     true,
+					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
 				},
 
@@ -1271,14 +1273,20 @@ func ExpandOrchestratedVirtualMachineScaleSetDataDisk(input []interface{}, ultra
 
 		storageAccountType := compute.StorageAccountTypes(raw["storage_account_type"].(string))
 		disk := compute.VirtualMachineScaleSetDataDisk{
-			Caching:    compute.CachingTypes(raw["caching"].(string)),
-			DiskSizeGB: utils.Int32(int32(raw["disk_size_gb"].(int))),
-			Lun:        utils.Int32(int32(raw["lun"].(int))),
+			Caching: compute.CachingTypes(raw["caching"].(string)),
 			ManagedDisk: &compute.VirtualMachineScaleSetManagedDiskParameters{
 				StorageAccountType: storageAccountType,
 			},
 			WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
 			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
+		}
+
+		if dataDiskSize := raw["disk_size_gb"].(int); dataDiskSize > 0 {
+			disk.DiskSizeGB = utils.Int32(int32(dataDiskSize))
+		}
+
+		if lun := raw["lun"].(int); lun >= 0 {
+			disk.Lun = utils.Int32(int32(lun))
 		}
 
 		if id := raw["disk_encryption_set_id"].(string); id != "" {

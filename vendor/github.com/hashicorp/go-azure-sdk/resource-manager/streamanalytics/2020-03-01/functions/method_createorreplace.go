@@ -81,7 +81,10 @@ func (c FunctionsClient) CreateOrReplace(ctx context.Context, id FunctionId, inp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Function
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

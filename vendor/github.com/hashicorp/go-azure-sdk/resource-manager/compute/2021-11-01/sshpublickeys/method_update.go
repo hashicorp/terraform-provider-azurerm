@@ -47,7 +47,10 @@ func (c SshPublicKeysClient) Update(ctx context.Context, id SshPublicKeyId, inpu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SshPublicKeyResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

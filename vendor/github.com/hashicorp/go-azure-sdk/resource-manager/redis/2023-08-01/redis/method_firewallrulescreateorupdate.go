@@ -48,7 +48,10 @@ func (c RedisClient) FirewallRulesCreateOrUpdate(ctx context.Context, id Firewal
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RedisFirewallRule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -72,7 +72,10 @@ func (c PreRulesClient) GetCounters(ctx context.Context, id PreRuleId, options G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RuleCounter
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

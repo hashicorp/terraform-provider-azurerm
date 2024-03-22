@@ -126,7 +126,7 @@ The following arguments are supported:
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the Node Pool should exist. Changing this forces a new resource to be created.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `CBLMariner`, `Mariner`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `Ubuntu`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
@@ -222,7 +222,7 @@ A `linux_os_config` block supports the following:
 
 A `node_network_profile` block supports the following:
 
-* `allowed_host_ports` - (Optional)  One or more `allowed_host_ports` blocks as defined below.
+* `allowed_host_ports` - (Optional) One or more `allowed_host_ports` blocks as defined below.
 
 * `application_security_group_ids` - (Optional) A list of Application Security Group IDs which should be associated with this Node Pool.
 

@@ -145,6 +145,25 @@ func TestAccStorageAccount_premium(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_DNSEndpointTypeAzure(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dnsEndpointTypeAzure(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_tier").HasValue("Premium"),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -972,6 +991,14 @@ func TestAccAzureRMStorageAccount_routing(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.routing(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("primary_blob_microsoft_endpoint").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -1266,6 +1293,21 @@ func TestAccStorageAccount_customerManagedKey(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_customerManagedKeyForSUAI(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customerManagedKeyForSUAI(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_customerManagedKeyAutoRotation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -1514,6 +1556,7 @@ func TestAccStorageAccount_isLocalUserEnabled(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.isLocalUserEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1725,6 +1768,35 @@ resource "azurerm_management_lock" "test" {
   lock_level = "ReadOnly"
 }
 `, template, data.RandomInteger)
+}
+
+func (r StorageAccountResource) dnsEndpointTypeAzure(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+
+  dns_endpoint_type               = "AzureDnsZone"
+  allow_nested_items_to_be_public = false
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (r StorageAccountResource) premium(data acceptance.TestData) string {
@@ -4055,6 +4127,41 @@ resource "azurerm_storage_account" "test" {
   }
 }
 `, r.cmkTemplate(data), data.RandomString, data.RandomString)
+}
+
+// The only difference between this and "customerManagedKey" is the "identity.type"
+func (r StorageAccountResource) customerManagedKeyForSUAI(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_key.test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  infrastructure_encryption_enabled = true
+  table_encryption_key_type         = "Account"
+  queue_encryption_key_type         = "Account"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, r.cmkTemplate(data), data.RandomString)
 }
 
 func (r StorageAccountResource) customerManagedKeyAutoRotation(data acceptance.TestData) string {

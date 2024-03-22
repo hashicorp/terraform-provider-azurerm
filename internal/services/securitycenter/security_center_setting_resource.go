@@ -8,11 +8,14 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -46,11 +49,23 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(10 * time.Minute),
 		},
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.SecurityCenterSettingsV0ToV1{},
+		}),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"setting_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				DiffSuppressFunc: func() func(string, string, string, *schema.ResourceData) bool {
+					// This is a workaround for `SENTINEL` value.
+					if !features.FourPointOhBeta() {
+						return suppress.CaseDifference
+					}
+					return nil
+				}(),
 				ValidateFunc: validation.StringInSlice(validSettingName, false),
 			},
 			"enabled": {
@@ -67,7 +82,13 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := settings.NewSettingID(subscriptionId, settings.SettingName(d.Get("setting_name").(string)))
+	settingName := d.Get("setting_name").(string)
+
+	if !features.FourPointOhBeta() && settingName == "SENTINEL" {
+		settingName = "Sentinel"
+	}
+
+	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)

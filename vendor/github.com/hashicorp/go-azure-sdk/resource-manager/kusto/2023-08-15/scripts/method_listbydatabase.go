@@ -45,7 +45,10 @@ func (c ScriptsClient) ListByDatabase(ctx context.Context, id commonids.KustoDat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScriptListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

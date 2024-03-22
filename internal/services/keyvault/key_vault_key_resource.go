@@ -259,7 +259,27 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("expiration_date", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old.(string) != "" && new.(string) == ""
+				oldDateStr, ok1 := old.(string)
+				newDateStr, ok2 := new.(string)
+				if !ok1 || !ok2 {
+					return false // If old or new values are not strings, don't force new
+				}
+
+				// Parse old and new expiration dates
+				oldDate, err1 := time.Parse(time.RFC3339, oldDateStr)
+				newDate, err2 := time.Parse(time.RFC3339, newDateStr)
+				if err1 != nil || err2 != nil {
+					return false // If there are parsing errors, don't force new
+				}
+
+				// Compare old and new expiration dates
+				if newDate.After(oldDate) {
+					// If the new expiration date is further in the future, allow update
+					return false
+				}
+
+				// If the new expiration date is not further, force recreation
+				return true
 			}),
 		),
 	}

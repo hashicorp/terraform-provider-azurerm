@@ -45,7 +45,10 @@ func (c ResourceManagementPrivateLinkClient) ListByResourceGroup(ctx context.Con
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ResourceManagementPrivateLinkListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

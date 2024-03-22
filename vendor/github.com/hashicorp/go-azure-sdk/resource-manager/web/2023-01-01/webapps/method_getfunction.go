@@ -43,7 +43,10 @@ func (c WebAppsClient) GetFunction(ctx context.Context, id FunctionId) (result G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FunctionEnvelope
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -47,7 +47,10 @@ func (c WebAppsClient) UpdateDomainOwnershipIdentifier(ctx context.Context, id D
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Identifier
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

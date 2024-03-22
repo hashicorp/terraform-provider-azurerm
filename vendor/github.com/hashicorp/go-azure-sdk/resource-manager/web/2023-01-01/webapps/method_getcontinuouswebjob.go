@@ -43,7 +43,10 @@ func (c WebAppsClient) GetContinuousWebJob(ctx context.Context, id ContinuousWeb
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ContinuousWebJob
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

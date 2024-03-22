@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
@@ -291,7 +292,7 @@ func flattenDataFactorySnowflakeSchemaColumns(input interface{}) []interface{} {
 
 func deserializeDataFactoryPipelineActivities(jsonData string) (*[]datafactory.BasicActivity, error) {
 	jsonData = fmt.Sprintf(`{ "activities": %s }`, jsonData)
-	pipeline := &datafactory.Pipeline{}
+	pipeline := &azuresdkhacks.Pipeline{}
 	err := pipeline.UnmarshalJSON([]byte(jsonData))
 	if err != nil {
 		return nil, err

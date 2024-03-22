@@ -91,39 +91,48 @@ type Request struct {
 func (r *Request) Marshal(payload interface{}) error {
 	contentType := strings.ToLower(r.Header.Get("Content-Type"))
 
-	if strings.Contains(contentType, "application/json") {
+	switch {
+	case strings.Contains(contentType, "application/json"):
 		body, err := json.Marshal(payload)
 		if err == nil {
 			r.ContentLength = int64(len(body))
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
+		return nil
+
+	case strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml"):
 		body, err := xml.Marshal(payload)
 		if err == nil {
+			// Prepend the xml doctype declaration if not detected
+			if !strings.HasPrefix(strings.TrimSpace(strings.ToLower(string(body[0:5]))), "<?xml") {
+				body = append([]byte(xml.Header), body...)
+			}
+
 			r.ContentLength = int64(len(body))
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
+
 		return nil
 	}
 
-	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		switch v := payload.(type) {
-		case *[]byte:
+	switch v := payload.(type) {
+	case *[]byte:
+		if v == nil {
+			r.ContentLength = int64(len([]byte{}))
+			r.Body = io.NopCloser(bytes.NewReader([]byte{}))
+		} else {
 			r.ContentLength = int64(len(*v))
 			r.Body = io.NopCloser(bytes.NewReader(*v))
-		case []byte:
-			r.ContentLength = int64(len(v))
-			r.Body = io.NopCloser(bytes.NewReader(v))
-		default:
-			return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 		}
-		return nil
+	case []byte:
+		r.ContentLength = int64(len(v))
+		r.Body = io.NopCloser(bytes.NewReader(v))
+	default:
+		return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 	}
 
-	return fmt.Errorf("internal-error: unimplemented marshal function for content type %q", contentType)
+	return nil
 }
 
 // Execute invokes the Execute method for the Request's Client
@@ -158,27 +167,40 @@ func (r *Response) Unmarshal(model interface{}) error {
 	if model == nil {
 		return fmt.Errorf("model was nil")
 	}
+	if r.Response == nil {
+		return fmt.Errorf("could not unmarshal as the HTTP response was nil")
+	}
 
-	contentType := strings.ToLower(r.Header.Get("Content-Type"))
-	if contentType == "" {
-		// some APIs (e.g. Storage Data Plane) don't return a content type... so we'll assume from the Accept header
-		acc, err := accept.FromString(r.Request.Header.Get("Accept"))
-		if err != nil {
-			if preferred := acc.FirstChoice(); preferred != nil {
-				contentType = preferred.ContentType
+	var contentType string
+	if r.Response.Header != nil {
+		contentType = strings.ToLower(r.Response.Header.Get("Content-Type"))
+
+		if contentType == "" {
+			// some APIs (e.g. Storage Data Plane) don't return a content type... so we'll assume from the Accept header
+			acc, err := accept.FromString(r.Request.Header.Get("Accept"))
+			if err != nil {
+				if preferred := acc.FirstChoice(); preferred != nil {
+					contentType = preferred.ContentType
+				}
+			}
+			if contentType == "" {
+				// fall back on request media type
+				contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
 			}
 		}
-		if contentType == "" {
-			// fall back on request media type
-			contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
-		}
 	}
-	// the maintenance API returns a 200 for a delete with no content-type and no content length so we should skip
-	// trying to unmarshal this
+
+	if contentType == "" {
+		return fmt.Errorf("could not determine Content-Type for response")
+	}
+
+	// Some APIs (e.g. Maintenance) return 200 without a body, don't unmarshal these
 	if r.ContentLength == 0 && (r.Body == nil || r.Body == http.NoBody) {
 		return nil
 	}
-	if strings.Contains(contentType, "application/json") {
+
+	switch {
+	case strings.Contains(contentType, "application/json"):
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -201,10 +223,10 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
+		return nil
+
+	case strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml"):
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -227,13 +249,13 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		ptr, ok := model.(**[]byte)
+		return nil
+
+	case strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell"):
+		ptr, ok := model.(*[]byte)
 		if !ok || ptr == nil {
-			return fmt.Errorf("internal-error: `model` must be a non-nil `**[]byte` but got %+v", model)
+			return fmt.Errorf("internal-error: `model` must be a non-nil `*[]byte` but got %[1]T: %+[1]v", model)
 		}
 
 		// Read the response body and close it
@@ -243,14 +265,17 @@ func (r *Response) Unmarshal(model interface{}) error {
 		}
 		r.Body.Close()
 
-		// Trim away a BOM if present
-		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+		if strings.HasPrefix(contentType, "text/") {
+			// Trim away a BOM if present
+			respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+		}
 
 		// copy the byte stream across
-		*ptr = &respBody
+		*ptr = respBody
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+
 		return nil
 	}
 
@@ -374,6 +399,7 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 		Client:           c,
 		Request:          req,
 		Pager:            input.Pager,
+		RetryFunc:        input.RetryFunc,
 		ValidStatusCodes: input.ExpectedStatusCodes,
 	}
 
@@ -487,10 +513,21 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 	// Determine whether response status is valid
 	if !containsStatusCode(req.ValidStatusCodes, resp.StatusCode) {
-		// The status code didn't match, but we also need to check the ValidStatusFUnc, if provided
+		// The status code didn't match, but we also need to check the ValidStatusFunc, if provided
 		// Note that the odata argument here is a best-effort and may be nil
 		if f := req.ValidStatusFunc; f != nil && f(resp.Response, resp.OData) {
 			return resp, nil
+		}
+
+		status := fmt.Sprintf("%d", resp.StatusCode)
+
+		// Prefer the status text returned in the response, but fall back to predefined status if absent
+		statusText := resp.Status
+		if statusText == "" {
+			statusText = http.StatusText(resp.StatusCode)
+		}
+		if statusText != "" {
+			status = fmt.Sprintf("%s (%s)", status, statusText)
 		}
 
 		// Determine suitable error text
@@ -504,16 +541,16 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 			respBody, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return resp, fmt.Errorf("unexpected status %d, could not read response body", resp.StatusCode)
+				return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
 			}
 			if len(respBody) == 0 {
-				return resp, fmt.Errorf("unexpected status %d received with no body", resp.StatusCode)
+				return resp, fmt.Errorf("unexpected status %s received with no body", status)
 			}
 
 			errText = fmt.Sprintf("response: %s", respBody)
 		}
 
-		return resp, fmt.Errorf("unexpected status %d with %s", resp.StatusCode, errText)
+		return resp, fmt.Errorf("unexpected status %s with %s", status, errText)
 	}
 
 	return resp, nil

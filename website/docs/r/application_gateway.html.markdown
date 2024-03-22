@@ -434,7 +434,7 @@ A `request_routing_rule` block supports the following:
 
 * `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
 
--> **NOTE:** `priority` is required when `sku.0.tier` is set to `*_v2`.
+-> **NOTE:** `priority` is required when `sku[0].tier` is set to `*_v2`.
 
 ---
 

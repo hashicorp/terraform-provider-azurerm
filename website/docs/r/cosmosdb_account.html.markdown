@@ -114,6 +114,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `minimal_tls_version` - (Optional) Specifies the minimal TLS version for the CosmosDB account. Possible values are: `Tls`, `Tls11`, and `Tls12`. Defaults to `Tls12`.
+
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account; currently, this can only be set to `Standard`.
 
 * `analytical_storage` - (Optional) An `analytical_storage` block as defined below.
@@ -244,6 +246,8 @@ A `backup` block supports the following:
 * `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. 
 
 ~> **Note:** Migration of `Periodic` to `Continuous` is one-way, changing `Continuous` to `Periodic` forces a new resource to be created.
+
+* `tier` - (Optional) The continuous backup tier. Possible values are `Continuous7Days` and `Continuous30Days`.
 
 * `interval_in_minutes` - (Optional) The interval in minutes between two backups. Possible values are between 60 and 1440. Defaults to `240`.
 

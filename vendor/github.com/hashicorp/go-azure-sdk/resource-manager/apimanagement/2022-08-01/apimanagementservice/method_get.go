@@ -43,7 +43,10 @@ func (c ApiManagementServiceClient) Get(ctx context.Context, id ServiceId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiManagementServiceResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

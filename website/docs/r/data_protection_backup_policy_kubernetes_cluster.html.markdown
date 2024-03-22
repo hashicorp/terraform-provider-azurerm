@@ -69,7 +69,7 @@ The following arguments are supported:
 * `vault_name` - (Required) The name of the Backup Vault where the Backup Policy Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
 * `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new resource to be created.
-  
+
 * `default_retention_rule` - (Required) A `default_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new resource to be created.
@@ -112,7 +112,7 @@ A `criteria` block supports the following:
 
 A `life_cycle` block supports the following:
 
-* `data_store_type` - (Required) The type of data store. The only possible value is `OperationalStore`.
+* `data_store_type` - (Required) The type of data store. The only possible value is `OperationalStore`. Changing this forces a new resource to be created.
 
 * `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 

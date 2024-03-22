@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentscheduleinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityscheduleinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedules"
 )
 
 type PimRoleAssignmentId struct {
@@ -70,20 +70,20 @@ func RoleAssignmentScheduleID(input string) (*string, error) {
 	return &matches[1], nil
 }
 
-func RoleAssignmentScheduleIdFromInstance(r *roleassignmentscheduleinstances.RoleAssignmentScheduleInstance) (*string, error) {
-	re := regexp.MustCompile(`^.+/providers/Microsoft.Authorization/roleAssignmentSchedules/(.+)`)
-	matches := re.FindStringSubmatch(*r.Properties.RoleAssignmentScheduleId)
+func RoleAssignmentScheduleRequestIdFromSchedule(r *roleassignmentschedules.RoleAssignmentSchedule) (*string, error) {
+	re := regexp.MustCompile(`^.+/providers/Microsoft.Authorization/roleAssignmentScheduleRequests/(.+)`)
+	matches := re.FindStringSubmatch(*r.Properties.RoleAssignmentScheduleRequestId)
 	if len(matches) != 2 {
-		return nil, fmt.Errorf("parsing %s", *r.Properties.RoleAssignmentScheduleId)
+		return nil, fmt.Errorf("parsing %s", *r.Properties.RoleAssignmentScheduleRequestId)
 	}
 	return &matches[1], nil
 }
 
-func RoleEligibilityScheduleIdFromInstance(r *roleeligibilityscheduleinstances.RoleEligibilityScheduleInstance) (*string, error) {
-	re := regexp.MustCompile(`^.+/providers/Microsoft.Authorization/roleEligibilitySchedules/(.+)`)
-	matches := re.FindStringSubmatch(*r.Properties.RoleEligibilityScheduleId)
+func RoleEligibilityScheduleRequestIdFromSchedule(r *roleeligibilityschedules.RoleEligibilitySchedule) (*string, error) {
+	re := regexp.MustCompile(`^.+/providers/Microsoft.Authorization/roleEligibilityScheduleRequests/(.+)`)
+	matches := re.FindStringSubmatch(*r.Properties.RoleEligibilityScheduleRequestId)
 	if len(matches) != 2 {
-		return nil, fmt.Errorf("parsing %s", *r.Properties.RoleEligibilityScheduleId)
+		return nil, fmt.Errorf("parsing %s", *r.Properties.RoleEligibilityScheduleRequestId)
 	}
 	return &matches[1], nil
 }

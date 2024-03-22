@@ -65,6 +65,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_application_security_group":                dataSourceApplicationSecurityGroup(),
 		"azurerm_bastion_host":                              dataSourceBastionHost(),
 		"azurerm_express_route_circuit":                     dataSourceExpressRouteCircuit(),
+		"azurerm_express_route_circuit_peering":             dataSourceExpressRouteCircuitPeering(),
 		"azurerm_ip_group":                                  dataSourceIpGroup(),
 		"azurerm_ip_groups":                                 dataSourceIpGroups(),
 		"azurerm_nat_gateway":                               dataSourceNatGateway(),

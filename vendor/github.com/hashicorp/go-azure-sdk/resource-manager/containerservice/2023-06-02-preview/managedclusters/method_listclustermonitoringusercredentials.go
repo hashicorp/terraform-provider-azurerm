@@ -73,7 +73,10 @@ func (c ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx context.
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CredentialResults
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

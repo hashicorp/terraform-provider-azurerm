@@ -275,7 +275,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_container_registry.example.identity[0].principal_id` and the Tenant ID via `azurerm_container_registry.example.identity[0].tenant_id`
 
 ---
 

@@ -50,7 +50,10 @@ func (c MonitorsClient) SwitchBilling(ctx context.Context, id MonitorId, input S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NewRelicMonitorResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

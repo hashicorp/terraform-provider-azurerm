@@ -52,8 +52,8 @@ resource "azurerm_key_vault" "example" {
 
 resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
-  tenant_id    = azurerm_eventhub_namespace.example.identity.0.tenant_id
-  object_id    = azurerm_eventhub_namespace.example.identity.0.principal_id
+  tenant_id    = azurerm_eventhub_namespace.example.identity[0].tenant_id
+  object_id    = azurerm_eventhub_namespace.example.identity[0].principal_id
 
   key_permissions = ["Get", "UnwrapKey", "WrapKey"]
 }

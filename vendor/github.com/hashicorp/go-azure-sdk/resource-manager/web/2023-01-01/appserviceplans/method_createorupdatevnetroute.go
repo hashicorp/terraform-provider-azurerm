@@ -47,7 +47,10 @@ func (c AppServicePlansClient) CreateOrUpdateVnetRoute(ctx context.Context, id R
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VnetRoute
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
