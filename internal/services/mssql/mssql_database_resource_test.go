@@ -257,6 +257,22 @@ func TestAccMsSqlDatabase_hsWithRetentionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_hsWithLongRetentionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hsWithLongRetentionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("read_replica_count").HasValue("2"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("HS_Gen5_2"),
+			),
+		},
+	})
+}
+
 func TestAccMsSqlDatabase_s0(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
@@ -1207,6 +1223,26 @@ resource "azurerm_mssql_database" "test" {
 
   short_term_retention_policy {
     retention_days = 10
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) hsWithLongRetentionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  read_replica_count = 2
+  sku_name           = "HS_Gen5_2"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 2
   }
 }
 `, r.template(data), data.RandomInteger)
