@@ -22,9 +22,9 @@ import (
 
 func resourceLogzTagRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogzTagRuleCreate,
+		Create: resourceLogzTagRuleCreateUpdate,
 		Read:   resourceLogzTagRuleRead,
-		Update: resourceLogzTagRuleUpdate,
+		Update: resourceLogzTagRuleCreateUpdate,
 		Delete: resourceLogzTagRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -97,7 +97,7 @@ func resourceLogzTagRule() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogzTagRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogzTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.TagRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,70 +108,29 @@ func resourceLogzTagRuleCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	id := tagrules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, "default")
-
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_logz_tag_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_logz_tag_rule", id.ID())
+		}
 	}
 
 	payload := tagrules.MonitoringTagRules{
 		Properties: &tagrules.MonitoringTagRulesProperties{
-			LogRules: &tagrules.LogRules{
-				FilteringTags:        expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{})),
-				SendAadLogs:          pointer.To(d.Get("send_aad_logs").(bool)),
-				SendSubscriptionLogs: pointer.To(d.Get("send_subscription_logs").(bool)),
-				SendActivityLogs:     pointer.To(d.Get("send_activity_logs").(bool)),
-			},
+			LogRules: expandTagRuleLogRules(d),
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	return resourceLogzTagRuleRead(d, meta)
-}
-
-func resourceLogzTagRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logz.TagRuleClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := tagrules.ParseTagRuleID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	existing, err := client.Get(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	payload := existing.Model
-
-	if d.HasChange("send_aad_logs") {
-		payload.Properties.LogRules.SendAadLogs = pointer.To(d.Get("send_aad_logs").(bool))
-	}
-	if d.HasChange("send_subscription_logs") {
-		payload.Properties.LogRules.SendSubscriptionLogs = pointer.To(d.Get("send_subscription_logs").(bool))
-	}
-	if d.HasChange("send_activity_logs") {
-		payload.Properties.LogRules.SendActivityLogs = pointer.To(d.Get("send_activity_logs").(bool))
-	}
-	if d.HasChange("tag_filter") {
-		payload.Properties.LogRules.FilteringTags = expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{}))
-	}
-
-	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
 	return resourceLogzTagRuleRead(d, meta)
 }
 
@@ -228,6 +187,15 @@ func resourceLogzTagRuleDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func expandTagRuleLogRules(d *pluginsdk.ResourceData) *tagrules.LogRules {
+	return &tagrules.LogRules{
+		SendAadLogs:          pointer.To(d.Get("send_aad_logs").(bool)),
+		SendSubscriptionLogs: pointer.To(d.Get("send_subscription_logs").(bool)),
+		SendActivityLogs:     pointer.To(d.Get("send_activity_logs").(bool)),
+		FilteringTags:        expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{})),
+	}
 }
 
 func expandTagRuleFilteringTagArray(input []interface{}) *[]tagrules.FilteringTag {

@@ -8,7 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/subaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/tagrules"
@@ -21,9 +20,9 @@ import (
 
 func resourceLogzSubAccountTagRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLogzSubAccountTagRuleCreate,
+		Create: resourceLogzSubAccountTagRuleCreateUpdate,
 		Read:   resourceLogzSubAccountTagRuleRead,
-		Update: resourceLogzSubAccountTagRuleUpdate,
+		Update: resourceLogzSubAccountTagRuleCreateUpdate,
 		Delete: resourceLogzSubAccountTagRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -95,8 +94,7 @@ func resourceLogzSubAccountTagRule() *pluginsdk.Resource {
 		},
 	}
 }
-
-func resourceLogzSubAccountTagRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceLogzSubAccountTagRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.TagRuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -107,70 +105,29 @@ func resourceLogzSubAccountTagRuleCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	id := tagrules.NewAccountTagRuleID(subAccountId.SubscriptionId, subAccountId.ResourceGroupName, subAccountId.MonitorName, subAccountId.AccountName, "default")
-
-	existing, err := client.SubAccountTagRulesGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
+	if d.IsNewResource() {
+		existing, err := client.SubAccountTagRulesGet(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_logz_sub_account_tag_rule", id.ID())
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_logz_sub_account_tag_rule", id.ID())
+		}
 	}
 
 	payload := tagrules.MonitoringTagRules{
 		Properties: &tagrules.MonitoringTagRulesProperties{
-			LogRules: &tagrules.LogRules{
-				FilteringTags:        expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{})),
-				SendAadLogs:          pointer.To(d.Get("send_aad_logs").(bool)),
-				SendSubscriptionLogs: pointer.To(d.Get("send_subscription_logs").(bool)),
-				SendActivityLogs:     pointer.To(d.Get("send_activity_logs").(bool)),
-			},
+			LogRules: expandTagRuleLogRules(d),
 		},
 	}
 
 	if _, err := client.SubAccountTagRulesCreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
-	return resourceLogzSubAccountTagRuleRead(d, meta)
-}
-
-func resourceLogzSubAccountTagRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logz.TagRuleClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := tagrules.ParseAccountTagRuleID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	existing, err := client.SubAccountTagRulesGet(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-
-	payload := existing.Model
-
-	if d.HasChange("send_aad_logs") {
-		payload.Properties.LogRules.SendAadLogs = pointer.To(d.Get("send_aad_logs").(bool))
-	}
-	if d.HasChange("send_subscription_logs") {
-		payload.Properties.LogRules.SendSubscriptionLogs = pointer.To(d.Get("send_subscription_logs").(bool))
-	}
-	if d.HasChange("send_activity_logs") {
-		payload.Properties.LogRules.SendActivityLogs = pointer.To(d.Get("send_activity_logs").(bool))
-	}
-	if d.HasChange("tag_filter") {
-		payload.Properties.LogRules.FilteringTags = expandTagRuleFilteringTagArray(d.Get("tag_filter").([]interface{}))
-	}
-
-	if _, err := client.SubAccountTagRulesCreateOrUpdate(ctx, *id, *payload); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
 	return resourceLogzSubAccountTagRuleRead(d, meta)
 }
 
