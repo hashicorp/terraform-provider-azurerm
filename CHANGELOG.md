@@ -1,4 +1,4 @@
-## 3.98.0 (Unreleased)
+## 3.97.1 (Unreleased)
 
 ENHANCEMENTS:
 
@@ -7,7 +7,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_data_factory_integration_runtime_self_hosted` - ensure that autorizationh keys are exported [GH-25246]
-* `azurerm_storage_account`: defaulting the value for `dns_endpoint_type` to `Standard` when it's not returned from the Azure API [GH-25367]
+* `azurerm_storage_account` - defaulting the value for `dns_endpoint_type` to `Standard` when it's not returned from the Azure API [GH-25367]
 
 
 ## 3.97.0 (March 21, 2024)
