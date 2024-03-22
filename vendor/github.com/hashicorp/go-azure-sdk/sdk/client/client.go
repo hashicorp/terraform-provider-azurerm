@@ -167,20 +167,31 @@ func (r *Response) Unmarshal(model interface{}) error {
 	if model == nil {
 		return fmt.Errorf("model was nil")
 	}
+	if r.Response == nil {
+		return fmt.Errorf("could not unmarshal as the HTTP response was nil")
+	}
 
-	contentType := strings.ToLower(r.Header.Get("Content-Type"))
-	if contentType == "" {
-		// some APIs (e.g. Storage Data Plane) don't return a content type... so we'll assume from the Accept header
-		acc, err := accept.FromString(r.Request.Header.Get("Accept"))
-		if err != nil {
-			if preferred := acc.FirstChoice(); preferred != nil {
-				contentType = preferred.ContentType
+	var contentType string
+	if r.Response.Header != nil {
+		contentType = strings.ToLower(r.Response.Header.Get("Content-Type"))
+
+		if contentType == "" {
+			// some APIs (e.g. Storage Data Plane) don't return a content type... so we'll assume from the Accept header
+			acc, err := accept.FromString(r.Request.Header.Get("Accept"))
+			if err != nil {
+				if preferred := acc.FirstChoice(); preferred != nil {
+					contentType = preferred.ContentType
+				}
+			}
+			if contentType == "" {
+				// fall back on request media type
+				contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
 			}
 		}
-		if contentType == "" {
-			// fall back on request media type
-			contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
-		}
+	}
+
+	if contentType == "" {
+		return fmt.Errorf("could not determine Content-Type for response")
 	}
 
 	// Some APIs (e.g. Maintenance) return 200 without a body, don't unmarshal these
@@ -502,10 +513,21 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 	// Determine whether response status is valid
 	if !containsStatusCode(req.ValidStatusCodes, resp.StatusCode) {
-		// The status code didn't match, but we also need to check the ValidStatusFUnc, if provided
+		// The status code didn't match, but we also need to check the ValidStatusFunc, if provided
 		// Note that the odata argument here is a best-effort and may be nil
 		if f := req.ValidStatusFunc; f != nil && f(resp.Response, resp.OData) {
 			return resp, nil
+		}
+
+		status := fmt.Sprintf("%d", resp.StatusCode)
+
+		// Prefer the status text returned in the response, but fall back to predefined status if absent
+		statusText := resp.Status
+		if statusText == "" {
+			statusText = http.StatusText(resp.StatusCode)
+		}
+		if statusText != "" {
+			status = fmt.Sprintf("%s (%s)", status, statusText)
 		}
 
 		// Determine suitable error text
@@ -519,16 +541,16 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 			respBody, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return resp, fmt.Errorf("unexpected status %d, could not read response body", resp.StatusCode)
+				return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
 			}
 			if len(respBody) == 0 {
-				return resp, fmt.Errorf("unexpected status %d received with no body", resp.StatusCode)
+				return resp, fmt.Errorf("unexpected status %s received with no body", status)
 			}
 
 			errText = fmt.Sprintf("response: %s", respBody)
 		}
 
-		return resp, fmt.Errorf("unexpected status %d with %s", resp.StatusCode, errText)
+		return resp, fmt.Errorf("unexpected status %s with %s", status, errText)
 	}
 
 	return resp, nil

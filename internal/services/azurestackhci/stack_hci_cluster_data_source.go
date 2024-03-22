@@ -14,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofilehciassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	autoParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ sdk.DataSource = StackHCIClusterDataSource{}
@@ -107,7 +107,7 @@ func (r StackHCIClusterDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AzureStackHCI.Clusters
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			hciAssignmentClient := metadata.Client.Automanage.HCIAssignmentClient
+			hciAssignmentClient := metadata.Client.Automanage.ConfigurationProfileHCIAssignmentsClient
 
 			var cluster StackHCIClusterDataSourceModel
 			if err := metadata.Decode(&cluster); err != nil {
@@ -124,6 +124,8 @@ func (r StackHCIClusterDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if model := existing.Model; model != nil {
 				cluster.Location = location.Normalize(model.Location)
 				cluster.Tags = tags.Flatten(model.Tags)
@@ -135,24 +137,24 @@ func (r StackHCIClusterDataSource) Read() sdk.ResourceFunc {
 					cluster.ResourceProviderObjectId = pointer.From(props.ResourceProviderObjectId)
 					cluster.ServiceEndpoint = pointer.From(props.ServiceEndpoint)
 					cluster.TenantId = pointer.From(props.AadTenantId)
-
-					assignmentResp, err := hciAssignmentClient.Get(ctx, id.ResourceGroupName, id.ClusterName, "default")
-					if err != nil && !utils.ResponseWasNotFound(assignmentResp.Response) {
-						return err
-					}
-					configId := ""
-					if !utils.ResponseWasNotFound(assignmentResp.Response) && assignmentResp.Properties != nil && assignmentResp.Properties.ConfigurationProfile != nil {
-						automanageConfigId, err := autoParse.AutomanageConfigurationID(*assignmentResp.Properties.ConfigurationProfile)
-						if err != nil {
-							return fmt.Errorf("reading configuration profile assignment: %v", err)
-						}
-						configId = automanageConfigId.ID()
-					}
-					cluster.AutomanageConfigurationId = configId
 				}
 			}
 
-			metadata.SetID(id)
+			hciAssignmentId := configurationprofilehciassignments.NewConfigurationProfileAssignmentID(id.SubscriptionId, id.ResourceGroupName, id.ClusterName, "default")
+			assignmentResp, err := hciAssignmentClient.Get(ctx, hciAssignmentId)
+			if err != nil && !response.WasNotFound(assignmentResp.HttpResponse) {
+				return err
+			}
+
+			configId := ""
+			if model := assignmentResp.Model; model != nil && model.Properties != nil && model.Properties.ConfigurationProfile != nil {
+				parsed, err := configurationprofiles.ParseConfigurationProfileIDInsensitively(*model.Properties.ConfigurationProfile)
+				if err != nil {
+					return err
+				}
+				configId = parsed.ID()
+			}
+			cluster.AutomanageConfigurationId = configId
 
 			return metadata.Encode(&cluster)
 		},

@@ -53,7 +53,7 @@ func resourceStorageShareFile() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IsURLWithPath, // note: storage domain suffix cannot be determined at validation time, so just make sure it's a well-formed URL
+				ValidateFunc: storageValidate.StorageShareDataPlaneID,
 			},
 
 			"path": {

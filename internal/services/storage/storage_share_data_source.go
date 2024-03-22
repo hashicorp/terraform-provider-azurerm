@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -139,7 +140,11 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `metadata`: %v", err)
 	}
 
-	resourceManagerId := parse.NewStorageShareResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, accountName, "default", shareName)
+	storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(account.ID)
+	if err != nil {
+		return err
+	}
+	resourceManagerId := parse.NewStorageShareResourceManagerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, "default", shareName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

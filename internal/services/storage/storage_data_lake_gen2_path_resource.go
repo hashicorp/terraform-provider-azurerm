@@ -35,6 +35,9 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 			_, err := paths.ParsePathID(id, storageDomainSuffix)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			ctx, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
+			defer cancel()
+
 			storageClient := meta.(*clients.Client).Storage
 
 			id, err := paths.ParsePathID(d.Id(), storageClient.StorageDomainSuffix)
