@@ -1,3 +1,9 @@
+## 3.98.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_nginx_deployment` - support for the `configuration` block [GH-24276]
+
 ## 3.97.0 (March 21, 2024)
 
 BREAKING CHANGES:
