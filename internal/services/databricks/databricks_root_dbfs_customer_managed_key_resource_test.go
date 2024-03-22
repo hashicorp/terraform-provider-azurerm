@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -106,12 +105,7 @@ func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_noIp(t *testing.T) {
 	})
 }
 
-// TODO: Add v4.0 version of the ThreePointOh test...
-func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_altRootDbfsSubscriptionComplete_ThreePointOh(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping: Test is only valid for v3.x providers")
-	}
-
+func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_altRootDbfsSubscriptionComplete(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {

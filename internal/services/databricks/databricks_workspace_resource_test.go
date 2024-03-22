@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -298,12 +297,7 @@ func TestAccDatabricksWorkspace_managedServicesRootDbfsCMKAndPrivateLink(t *test
 	})
 }
 
-// TODO: Add FourPointOh versions of the below ThreePointOh tests...
-func TestAccDatabricksWorkspace_altSubscriptionCmkComplete_ThreePointOh(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping: Test is only valid for v3.x providers")
-	}
-
+func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -325,11 +319,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkComplete_ThreePointOh(t *testi
 	})
 }
 
-func TestAccDatabricksWorkspace_altSubscriptionCmkKeysInDifferentKeyVaultsAcrossDifferentSubscriptions_ThreePointOh(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping: Test is only valid for v3.x providers")
-	}
-
+func TestAccDatabricksWorkspace_altSubscriptionCmkKeysInDifferentKeyVaultsAcrossDifferentSubscriptions(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -351,11 +341,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkKeysInDifferentKeyVaultsAcross
 	})
 }
 
-func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly_ThreePointOh(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping: Test is only valid for v3.x providers")
-	}
-
+func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -377,11 +363,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly_ThreePointOh(t *t
 	})
 }
 
-func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly_ThreePointOh(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("Skipping: Test is only valid for v3.x providers")
-	}
-
+func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -2112,7 +2094,6 @@ resource "azurerm_key_vault_access_policy" "managed" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
 }
 
-// TODO: Finish this test...
 func (DatabricksWorkspaceResource) altSubscriptionCmkKeysInDifferentKeyVaultsAcrossDifferentSubscriptions(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
