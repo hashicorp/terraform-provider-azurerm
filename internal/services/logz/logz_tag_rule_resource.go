@@ -140,7 +140,7 @@ func resourceLogzTagRuleCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceLogzTagRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.TagRuleClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := tagrules.ParseTagRuleID(d.Id())

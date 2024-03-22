@@ -5,10 +5,10 @@ package logz
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/subaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logz/2020-10-01/tagrules"
@@ -139,7 +139,7 @@ func resourceLogzSubAccountTagRuleCreate(d *pluginsdk.ResourceData, meta interfa
 
 func resourceLogzSubAccountTagRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logz.TagRuleClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := tagrules.ParseAccountTagRuleID(d.Id())

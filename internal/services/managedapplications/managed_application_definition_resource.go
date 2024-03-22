@@ -184,7 +184,7 @@ func resourceManagedApplicationDefinitionCreate(d *pluginsdk.ResourceData, meta 
 
 func resourceManagedApplicationDefinitionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := applicationdefinitions.ParseApplicationDefinitionID(d.Id())

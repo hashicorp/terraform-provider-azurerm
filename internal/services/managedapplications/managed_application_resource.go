@@ -226,7 +226,7 @@ func resourceManagedApplicationCreate(d *pluginsdk.ResourceData, meta interface{
 
 func resourceManagedApplicationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := applications.ParseApplicationID(d.Id())

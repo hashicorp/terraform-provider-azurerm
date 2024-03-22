@@ -302,7 +302,7 @@ func resourceMaintenanceConfigurationCreate(d *pluginsdk.ResourceData, meta inte
 
 func resourceMaintenanceConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(d.Id())
