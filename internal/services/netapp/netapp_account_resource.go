@@ -98,7 +98,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 						"password": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							Sensitive:    true,
+							Sensitive:    false,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"organizational_unit": {
@@ -315,9 +315,11 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 		if model.Properties.ActiveDirectories != nil {
 			adProps := *model.Properties.ActiveDirectories
-			//response returns an array, but only 1 entry is allowed per Azure platform
-			if len(adProps) > 0 {
-				if err = d.Set("active_directory", flattenNetAppActiveDirectories(&adProps[0])); err != nil {
+			//response returns an array, but only 1 NetApp AD connection is allowed per the Azure platform currently
+			if len(*model.Properties.ActiveDirectories) > 0 {
+				prevPassword := d.Get("active_directory.0.password").(string)
+				prevCaCert := d.Get("active_directory.0.server_root_ca_certificate").(string)
+				if err = d.Set("active_directory", flattenNetAppActiveDirectories(&adProps[0], &prevPassword, &prevCaCert)); err != nil {
 					return fmt.Errorf("setting `active_directory`: %+v", err)
 				}
 			}
@@ -381,16 +383,17 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 	return &results
 }
 
-func flattenNetAppActiveDirectories(input *netappaccounts.ActiveDirectory) []interface{} {
+func flattenNetAppActiveDirectories(input *netappaccounts.ActiveDirectory, prevPassword *string, prevCaCert *string) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
+			"dns_servers":                       utils.FlattenStringSliceWithDelimiter(input.Dns, ","),
 			"domain":                            input.Domain,
 			"organizational_unit":               input.OrganizationalUnit,
-			"password":                          input.Password,
+			"password":                          prevPassword,
 			"smb_server_name":                   input.SmbServerName,
 			"username":                          input.Username,
 			"site_name":                         input.Site,
@@ -399,7 +402,7 @@ func flattenNetAppActiveDirectories(input *netappaccounts.ActiveDirectory) []int
 			"aes_encryption_enabled":            input.AesEncryption,
 			"local_nfs_users_with_ldap_allowed": input.AllowLocalNfsUsersWithLdap,
 			"ldap_over_tls_enabled":             input.LdapOverTLS,
-			"server_root_ca_certificate":        input.ServerRootCACertificate,
+			"server_root_ca_certificate":        prevCaCert,
 			"ldap_signing_enabled":              input.LdapSigning,
 		},
 	}
