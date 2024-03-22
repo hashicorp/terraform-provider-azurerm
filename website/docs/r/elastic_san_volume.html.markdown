@@ -45,6 +45,7 @@ output "target_iqn" {
 ```
 
 ## Example of creating an Elastic SAN Volume from a Disk Snapshot
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
@@ -147,4 +148,3 @@ An existing Elastic SAN Volume can be imported into Terraform using the `resourc
 ```shell
 terraform import azurerm_elastic_san_volume.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ElasticSan/elasticSans/esan1/volumeGroups/vg1/volumes/vol1
 ```
-
