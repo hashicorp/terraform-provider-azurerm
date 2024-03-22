@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
+	analyticsitems "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
+	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
@@ -16,8 +18,8 @@ import (
 )
 
 type Client struct {
-	AnalyticsItemsClient     *insights.AnalyticsItemsClient
-	APIKeysClient            *insights.APIKeysClient
+	AnalyticsItemsClient     *analyticsitems.AnalyticsItemsAPIsClient
+	APIKeysClient            *apikeys.ComponentApiKeysAPIsClient
 	ComponentsClient         *components.ComponentsAPIsClient
 	WebTestsClient           *azuresdkhacks.WebTestsClient
 	StandardWebTestsClient   *webtests.WebTestsAPIsClient
@@ -28,11 +30,17 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	analyticsItemsClient := insights.NewAnalyticsItemsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&analyticsItemsClient.Client, o.ResourceManagerAuthorizer)
+	analyticsItemsClient, err := analyticsitems.NewAnalyticsItemsAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building AnalyticsItems client: %+v", err)
+	}
+	o.Configure(analyticsItemsClient.Client, o.Authorizers.ResourceManager)
 
-	apiKeysClient := insights.NewAPIKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiKeysClient.Client, o.ResourceManagerAuthorizer)
+	apiKeysClient, err := apikeys.NewComponentApiKeysAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ApiKeys client: %+v", err)
+	}
+	o.Configure(apiKeysClient.Client, o.Authorizers.ResourceManager)
 
 	componentsClient, err := components.NewComponentsAPIsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -69,8 +77,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(workbookTemplateClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AnalyticsItemsClient:     &analyticsItemsClient,
-		APIKeysClient:            &apiKeysClient,
+		AnalyticsItemsClient:     analyticsItemsClient,
+		APIKeysClient:            apiKeysClient,
 		ComponentsClient:         componentsClient,
 		WebTestsClient:           &webTestsWorkaroundClient,
 		BillingClient:            &billingClient,
