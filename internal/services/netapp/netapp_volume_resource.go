@@ -198,12 +198,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 									"NFSv3",
 									"NFSv4.1",
 									"CIFS",
-									"Kerberos5RO",
-									"Kerberos5RW",
-									"Kerberos5iRO",
-									"Kerberos5iRW",
-									"Kerberos5pRO",
-									"Kerberos5pRW",
 								}, false),
 							},
 						},
@@ -219,6 +213,31 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						},
 
 						"root_access_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"kerberos_5_read_only": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5_read_write": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5i_read_only": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5i_read_write": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5p_read_only": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5p_read_write": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -843,12 +862,6 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			cifsEnabled := false
 			nfsv3Enabled := false
 			nfsv41Enabled := false
-			kerberos5ro := false
-			kerberos5rw := false
-			kerberos5iro := false
-			kerberos5irw := false
-			kerberos5pro := false
-			kerberos5prw := false
 
 			if vpe := v["protocols_enabled"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
@@ -862,18 +875,6 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
-							case "kerberos5ro":
-								kerberos5ro = true
-							case "kerberos5rw":
-								kerberos5rw = true
-							case "kerberos5iro":
-								kerberos5iro = true
-							case "kerberos5irw":
-								kerberos5irw = true
-							case "kerberos5pro":
-								kerberos5pro = true
-							case "kerberos5prw":
-								kerberos5prw = true
 							}
 						}
 					}
@@ -883,6 +884,12 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 			rootAccessEnabled := v["root_access_enabled"].(bool)
+			kerberos5ro := v["kerberos_5_read_only"].(bool)
+			kerberos5rw := v["kerberos_5_read_write"].(bool)
+			kerberos5iro := v["kerberos_5i_read_only"].(bool)
+			kerberos5irw := v["kerberos_5i_read_write"].(bool)
+			kerberos5pro := v["kerberos_5p_read_only"].(bool)
+			kerberos5prw := v["kerberos_5p_read_write"].(bool)
 
 			result := volumes.ExportPolicyRule{
 				AllowedClients:      utils.String(allowedClients),
@@ -996,36 +1003,7 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
 		}
-		if v := item.Kerberos5ReadOnly; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "kerberos5ro")
-			}
-		}
-		if v := item.Kerberos5ReadWrite; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "kerberos5rw")
-			}
-		}
-		if v := item.Kerberos5iReadOnly; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "kerberos5iro")
-			}
-		}
-		if v := item.Kerberos5iReadWrite; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "kerberos5irw")
-			}
-		}
-		if v := item.Kerberos5pReadOnly; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "kerberos5pro")
-			}
-		}
-		if v := item.Kerberos5pReadWrite; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "kerberos5prw")
-			}
-		}
+
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
 			unixReadOnly = *v
@@ -1038,14 +1016,44 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 		if v := item.HasRootAccess; v != nil {
 			rootAccessEnabled = *v
 		}
+		kerberos5ro := false
+		if v := item.Kerberos5ReadOnly; v != nil {
+			kerberos5ro = *v
+		}
+		kerberos5rw := false
+		if v := item.Kerberos5ReadWrite; v != nil {
+			kerberos5rw = *v
+		}
+		kerberos5iro := false
+		if v := item.Kerberos5iReadOnly; v != nil {
+			kerberos5iro = *v
+		}
+		kerberos5irw := false
+		if v := item.Kerberos5iReadWrite; v != nil {
+			kerberos5irw = *v
+		}
+		kerberos5pro := false
+		if v := item.Kerberos5pReadOnly; v != nil {
+			kerberos5pro = *v
+		}
+		kerberos5prw := false
+		if v := item.Kerberos5pReadWrite; v != nil {
+			kerberos5prw = *v
+		}
 
 		result := map[string]interface{}{
-			"rule_index":          ruleIndex,
-			"allowed_clients":     utils.FlattenStringSlice(&allowedClients),
-			"unix_read_only":      unixReadOnly,
-			"unix_read_write":     unixReadWrite,
-			"root_access_enabled": rootAccessEnabled,
-			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
+			"rule_index":             ruleIndex,
+			"allowed_clients":        utils.FlattenStringSlice(&allowedClients),
+			"unix_read_only":         unixReadOnly,
+			"unix_read_write":        unixReadWrite,
+			"root_access_enabled":    rootAccessEnabled,
+			"protocols_enabled":      utils.FlattenStringSlice(&protocolsEnabled),
+			"kerberos_5_read_only":   kerberos5ro,
+			"kerberos_5_read_write":  kerberos5rw,
+			"kerberos_5i_read_only":  kerberos5iro,
+			"kerberos_5i_read_write": kerberos5irw,
+			"kerberos_5p_read_only":  kerberos5pro,
+			"kerberos_5p_read_write": kerberos5prw,
 		}
 		results = append(results, result)
 	}
