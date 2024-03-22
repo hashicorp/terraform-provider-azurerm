@@ -68,13 +68,15 @@ func (c Client) Get(ctx context.Context, containerName, blobName string, input G
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		respBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return result, fmt.Errorf("could not parse response body")
-		}
-		resp.Body.Close()
+		if resp.Body != nil {
+			defer resp.Body.Close()
+			respBody, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return result, fmt.Errorf("could not parse response body")
+			}
 
-		result.Contents = &respBody
+			result.Contents = &respBody
+		}
 	}
 	if err != nil {
 		err = fmt.Errorf("executing request: %+v", err)
