@@ -139,6 +139,11 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"smb_continuously_available_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"security_style": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -360,6 +365,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
+	smbContiuouslyAvailable := d.Get("smb_continuously_available_enabled").(bool)
 
 	var networkFeatures volumes.NetworkFeatures
 	networkFeaturesString := d.Get("network_features").(string)
@@ -493,6 +499,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			ServiceLevel:              &serviceLevel,
 			SubnetId:                  subnetID,
 			KerberosEnabled:           &kerberosEnabled,
+			SmbContinuouslyAvailable:  &smbContiuouslyAvailable,
 			NetworkFeatures:           &networkFeatures,
 			SmbNonBrowsable:           &smbNonBrowsable,
 			SmbAccessBasedEnumeration: &smbAccessBasedEnumeration,
@@ -700,6 +707,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("kerberos_enabled", bool(pointer.From(props.KerberosEnabled)))
+		d.Set("smb_continuously_available_enabled", bool(pointer.From(props.SmbContinuouslyAvailable)))
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
