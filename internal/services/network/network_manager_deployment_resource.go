@@ -218,6 +218,9 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
+
 			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Network.NetworkManagers
 
@@ -297,6 +300,9 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			metadata.Logger.Infof("deleting %s..", *id)
 			input := networkmanagers.NetworkManagerCommit{
