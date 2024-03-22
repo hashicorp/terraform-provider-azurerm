@@ -254,6 +254,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"preview",
 				}, false),
 		},
+
 		"configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
