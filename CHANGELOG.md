@@ -1,13 +1,13 @@
-## 3.97.1 (Unreleased)
+## 3.97.1 (March 22, 2024)
 
 ENHANCEMENTS:
 
-* `azurerm_nginx_deployment` - support for the `configuration` block [GH-24276]
+* `azurerm_nginx_deployment` - support for the `configuration` block ([#24276](https://github.com/hashicorp/terraform-provider-azurerm/issues/24276))
 
 BUG FIXES:
 
-* `azurerm_data_factory_integration_runtime_self_hosted` - ensure that autorizationh keys are exported [GH-25246]
-* `azurerm_storage_account` - defaulting the value for `dns_endpoint_type` to `Standard` when it's not returned from the Azure API [GH-25367]
+* `azurerm_data_factory_integration_runtime_self_hosted` - ensure that autorizationh keys are exported ([#25246](https://github.com/hashicorp/terraform-provider-azurerm/issues/25246))
+* `azurerm_storage_account` - defaulting the value for `dns_endpoint_type` to `Standard` when it's not returned from the Azure API ([#25367](https://github.com/hashicorp/terraform-provider-azurerm/issues/25367))
 
 
 ## 3.97.0 (March 21, 2024)
