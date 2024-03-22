@@ -599,7 +599,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 
 			// read configuration
 			configResp, err := meta.Client.Nginx.NginxConfiguration.ConfigurationsGet(ctx, nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName))
-			if err != nil {
+			if err != nil && !response.WasNotFound(configResp.HttpResponse) {
 				return fmt.Errorf("retrieving default configuration of %q: %v", id, err)
 			}
 			if model := configResp.Model; model != nil {
