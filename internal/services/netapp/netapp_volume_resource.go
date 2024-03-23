@@ -139,7 +139,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"smb_continuous_availablity_enabled": {
+			"smb_continuous_availability_enabled": {
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Description: "Continuous availability option should be used only for SQL and FSLogix workloads. Using it for any other SMB workloads is not supported.",
@@ -387,7 +387,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
-	smbContiuouslyAvailable := d.Get("smb_continuous_availablity_enabled").(bool)
+	smbContiuouslyAvailable := d.Get("smb_continuous_availability_enabled").(bool)
 
 	var networkFeatures volumes.NetworkFeatures
 	networkFeaturesString := d.Get("network_features").(string)
@@ -729,7 +729,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("kerberos_enabled", props.KerberosEnabled)
-		d.Set("smb_continuous_availablity_enabled", props.SmbContinuouslyAvailable)
+		d.Set("smb_continuous_availability_enabled", props.SmbContinuouslyAvailable)
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
