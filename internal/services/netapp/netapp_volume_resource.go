@@ -139,9 +139,10 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"smb_continuously_available_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+			"smb_continuous_availablity_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Description: "Continuous availability option should be used only for SQL and FSLogix workloads. Using it for any other SMB workloads is not supported.",
 			},
 
 			"security_style": {
@@ -338,15 +339,17 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"smb_non_browsable_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable non browsable share setting for SMB/Dual Protocol volume. When enabled, it restricts windows clients to browse the share",
 			},
 
 			"smb_access_based_enumeration_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
 			},
 		},
 	}
@@ -384,7 +387,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
-	smbContiuouslyAvailable := d.Get("smb_continuously_available_enabled").(bool)
+	smbContiuouslyAvailable := d.Get("smb_continuous_availablity_enabled").(bool)
 
 	var networkFeatures volumes.NetworkFeatures
 	networkFeaturesString := d.Get("network_features").(string)
@@ -726,7 +729,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
 		d.Set("kerberos_enabled", props.KerberosEnabled)
-		d.Set("smb_continuously_available_enabled", props.SmbContinuouslyAvailable)
+		d.Set("smb_continuous_availablity_enabled", props.SmbContinuouslyAvailable)
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
@@ -988,20 +991,14 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 		}
 
 		protocolsEnabled := []string{}
-		if v := item.Cifs; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "CIFS")
-			}
+		if utils.NormaliseNilableBool(item.Cifs) {
+			protocolsEnabled = append(protocolsEnabled, "CIFS")
 		}
-		if v := item.Nfsv3; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "NFSv3")
-			}
+		if utils.NormaliseNilableBool(item.Nfsv3) {
+			protocolsEnabled = append(protocolsEnabled, "NFSv3")
 		}
-		if v := item.Nfsv41; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
-			}
+		if utils.NormaliseNilableBool(item.Nfsv41) {
+			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 		}
 
 		result := map[string]interface{}{
