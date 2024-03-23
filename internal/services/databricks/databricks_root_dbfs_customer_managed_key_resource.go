@@ -229,7 +229,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 					return nil
 				}
 
-				key, err := keyVaultParse.NewNestedItemID(string(*props.Value.Keyvaulturi), keyVaultParse.NestedItemTypeKey, string(*props.Value.KeyName), string(*props.Value.Keyversion))
+				key, err := keyVaultParse.NewNestedItemID(*props.Value.Keyvaulturi, keyVaultParse.NestedItemTypeKey, *props.Value.KeyName, *props.Value.Keyversion)
 				if err == nil {
 					d.Set("key_vault_key_id", key.ID())
 				}
@@ -237,11 +237,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 		}
 	}
 
-	d.SetId(id.ID())
 	d.Set("workspace_id", id.ID())
-
-	// Always set this even if it's empty to keep the state file
-	// consistent with the configuration file...
 	d.Set("key_vault_id", keyVaultId)
 
 	return nil
