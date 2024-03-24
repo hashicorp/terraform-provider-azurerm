@@ -11,29 +11,26 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOrUpdateParentOperationResponse struct {
+type ForSubscriptionsDeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *ConfigurationAssignment
 }
 
-// CreateOrUpdateParent ...
-func (c ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Context, id ScopedConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateParentOperationResponse, err error) {
+// ForSubscriptionsDelete ...
+func (c ConfigurationAssignmentsClient) ForSubscriptionsDelete(ctx context.Context, id ConfigurationAssignmentId) (result ForSubscriptionsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
+		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 

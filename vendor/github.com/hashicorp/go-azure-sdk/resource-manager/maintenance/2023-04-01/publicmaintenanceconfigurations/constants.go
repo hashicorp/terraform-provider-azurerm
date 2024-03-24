@@ -1,4 +1,4 @@
-package maintenanceconfigurations
+package publicmaintenanceconfigurations
 
 import (
 	"encoding/json"
@@ -106,47 +106,6 @@ func parseRebootOptions(input string) (*RebootOptions, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := RebootOptions(input)
-	return &out, nil
-}
-
-type TaskScope string
-
-const (
-	TaskScopeGlobal   TaskScope = "Global"
-	TaskScopeResource TaskScope = "Resource"
-)
-
-func PossibleValuesForTaskScope() []string {
-	return []string{
-		string(TaskScopeGlobal),
-		string(TaskScopeResource),
-	}
-}
-
-func (s *TaskScope) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseTaskScope(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseTaskScope(input string) (*TaskScope, error) {
-	vals := map[string]TaskScope{
-		"global":   TaskScopeGlobal,
-		"resource": TaskScopeResource,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := TaskScope(input)
 	return &out, nil
 }
 

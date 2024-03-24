@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments` Documentation
 
-The `configurationassignments` SDK allows for interaction with the Azure Resource Manager Service `maintenance` (API Version `2022-07-01-preview`).
+The `configurationassignments` SDK allows for interaction with the Azure Resource Manager Service `maintenance` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/configurationassignments"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 ```
 
 
@@ -86,6 +86,154 @@ ctx := context.TODO()
 id := configurationassignments.NewScopedConfigurationAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "configurationAssignmentValue")
 
 read, err := client.DeleteParent(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.ForResourceGroupCreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentValue")
+
+payload := configurationassignments.ConfigurationAssignment{
+	// ...
+}
+
+
+read, err := client.ForResourceGroupCreateOrUpdate(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.ForResourceGroupDelete`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentValue")
+
+read, err := client.ForResourceGroupDelete(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.ForResourceGroupGet`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentValue")
+
+read, err := client.ForResourceGroupGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.ForResourceGroupUpdate`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewProviderConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "example-resource-group", "configurationAssignmentValue")
+
+payload := configurationassignments.ConfigurationAssignment{
+	// ...
+}
+
+
+read, err := client.ForResourceGroupUpdate(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.ForSubscriptionsCreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentValue")
+
+payload := configurationassignments.ConfigurationAssignment{
+	// ...
+}
+
+
+read, err := client.ForSubscriptionsCreateOrUpdate(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.ForSubscriptionsDelete`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentValue")
+
+read, err := client.ForSubscriptionsDelete(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.ForSubscriptionsGet`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentValue")
+
+read, err := client.ForSubscriptionsGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ConfigurationAssignmentsClient.ForSubscriptionsUpdate`
+
+```go
+ctx := context.TODO()
+id := configurationassignments.NewConfigurationAssignmentID("12345678-1234-9876-4563-123456789012", "configurationAssignmentValue")
+
+payload := configurationassignments.ConfigurationAssignment{
+	// ...
+}
+
+
+read, err := client.ForSubscriptionsUpdate(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

@@ -1,9 +1,12 @@
 package maintenanceconfigurations
 
+import "fmt"
+
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type SoftwareUpdateConfigurationTasks struct {
-	PostTasks *[]TaskProperties `json:"postTasks,omitempty"`
-	PreTasks  *[]TaskProperties `json:"preTasks,omitempty"`
+const defaultApiVersion = "2023-04-01"
+
+func userAgent() string {
+	return fmt.Sprintf("hashicorp/go-azure-sdk/maintenanceconfigurations/%s", defaultApiVersion)
 }
