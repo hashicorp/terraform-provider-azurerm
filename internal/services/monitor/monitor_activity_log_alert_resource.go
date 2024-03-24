@@ -65,10 +65,9 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 				ForceNew: true,
 				Default:  "global",
 				ValidateFunc: validation.Any(
+					location.EnhancedValidate,
 					validation.StringInSlice([]string{
 						"global",
-						"westeurope",
-						"northeurope",
 					}, false),
 				),
 				StateFunc:        location.StateFunc,
