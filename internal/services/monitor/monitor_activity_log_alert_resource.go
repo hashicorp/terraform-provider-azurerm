@@ -11,7 +11,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -56,6 +58,22 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "global",
+				ValidateFunc: validation.Any(
+					validation.StringInSlice([]string{
+						"global",
+						"westeurope",
+						"northeurope",
+					}, false),
+				),
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+			},
 
 			"scopes": {
 				Type:     pluginsdk.TypeSet,
@@ -396,6 +414,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	location := location.Normalize(d.Get("location").(string))
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -422,7 +441,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	t := d.Get("tags").(map[string]interface{})
 	parameters := activitylogalertsapis.ActivityLogAlertResource{
-		Location: utils.String(azure.NormalizeLocation("Global")),
+		Location: &location,
 		Properties: &activitylogalertsapis.AlertRuleProperties{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
@@ -466,6 +485,9 @@ func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
+
+		d.Set("location", location.Normalize(*model.Location))
+
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("description", props.Description)
