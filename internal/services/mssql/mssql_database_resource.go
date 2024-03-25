@@ -87,6 +87,18 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 					}
 				}
 
+				if strings.HasPrefix(skuName, "DW") {
+					// NOTE: Got `PerDatabaseCMKDWNotSupported` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_vault_key_id` is specified
+					keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
+					if keyVaultKeyId != "" {
+						return fmt.Errorf("database-level CMK is not supported for Data Warehouse SKUs")
+					}
+					// NOTE: Got `InternalServerError` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_automatic_rotation_enabled` is specified
+					if _, ok := d.GetOk("transparent_data_encryption_key_automatic_rotation_enabled"); ok {
+						return fmt.Errorf("transparent_data_encryption_key_automatic_rotation_enabled could not be specifyed as database-level CMK is not supported for Data Warehouse SKUs")
+					}
+				}
+
 				return nil
 			}),
 	}
@@ -283,7 +295,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
-			EncryptionProtectorAutoRotation:  pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool)),
 			SecondaryType:                    pointer.To(databases.SecondaryType(d.Get("secondary_type").(string))),
 		},
 
@@ -293,6 +304,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
 	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") {
 		input.Properties.PreferredEnclaveType = pointer.To(enclaveType)
+	}
+
+	if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
+		input.Properties.EncryptionProtectorAutoRotation = pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool))
 	}
 
 	createMode := d.Get("create_mode").(string)
@@ -863,7 +878,9 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("transparent_data_encryption_key_automatic_rotation_enabled") {
-		props.EncryptionProtectorAutoRotation = pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool))
+		if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
+			props.EncryptionProtectorAutoRotation = pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool))
+		}
 	}
 
 	payload.Properties = pointer.To(props)
