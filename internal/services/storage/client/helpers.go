@@ -115,23 +115,23 @@ func (ad *accountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string,
 	return baseUri, nil
 }
 
-func (c Client) AddToCache(accountName string, props storage.Account) error {
+func (c Client) AddToCache(accountId commonids.StorageAccountId, props storage.Account) error {
 	accountsLock.Lock()
 	defer accountsLock.Unlock()
 
-	account, err := populateAccountDetails(accountName, props)
+	account, err := populateAccountDetails(accountId, props)
 	if err != nil {
 		return err
 	}
 
-	storageAccountsCache[accountName] = *account
+	storageAccountsCache[accountId.StorageAccountName] = *account
 
 	return nil
 }
 
-func (c Client) RemoveAccountFromCache(accountName string) {
+func (c Client) RemoveAccountFromCache(accountId commonids.StorageAccountId) {
 	accountsLock.Lock()
-	delete(storageAccountsCache, accountName)
+	delete(storageAccountsCache, accountId.StorageAccountName)
 	accountsLock.Unlock()
 }
 
@@ -158,16 +158,21 @@ func (c Client) FindAccount(ctx context.Context, accountName string) (*accountDe
 	}
 
 	for _, v := range accounts {
-		if v.Name == nil {
+		if v.ID == nil || v.Name == nil {
 			continue
 		}
 
-		account, err := populateAccountDetails(*v.Name, v)
+		storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(*v.ID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
 		}
 
-		storageAccountsCache[*v.Name] = *account
+		account, err := populateAccountDetails(*storageAccountId, v)
+		if err != nil {
+			return nil, fmt.Errorf("populating details for %s: %+v", *storageAccountId, err)
+		}
+
+		storageAccountsCache[storageAccountId.StorageAccountName] = *account
 	}
 
 	if existing, ok := storageAccountsCache[accountName]; ok {
@@ -177,48 +182,38 @@ func (c Client) FindAccount(ctx context.Context, accountName string) (*accountDe
 	return nil, nil
 }
 
-func populateAccountDetails(accountName string, props storage.Account) (*accountDetails, error) {
-	if props.ID == nil {
-		return nil, fmt.Errorf("`id` was nil for Account %q", accountName)
+func populateAccountDetails(accountId commonids.StorageAccountId, account storage.Account) (*accountDetails, error) {
+	out := accountDetails{
+		Kind:             account.Kind,
+		StorageAccountId: accountId,
 	}
 
-	accountId := *props.ID
-	id, err := commonids.ParseStorageAccountID(accountId)
-	if err != nil {
-		return nil, fmt.Errorf("parsing %q as a Resource ID: %+v", accountId, err)
-	}
+	if props := account.AccountProperties; props != nil {
+		out.IsHnsEnabled = pointer.From(props.IsHnsEnabled)
 
-	account := accountDetails{
-		StorageAccountId: *id,
-		Kind:             props.Kind,
-	}
-
-	if props.AccountProperties != nil {
-		account.IsHnsEnabled = pointer.From(props.AccountProperties.IsHnsEnabled)
-
-		if props.AccountProperties.PrimaryEndpoints != nil {
-			if props.AccountProperties.PrimaryEndpoints.Blob != nil {
-				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Blob, "/")
-				account.primaryBlobEndpoint = pointer.To(endpoint)
+		if endpoints := props.PrimaryEndpoints; endpoints != nil {
+			if endpoints.Blob != nil {
+				endpoint := strings.TrimSuffix(*endpoints.Blob, "/")
+				out.primaryBlobEndpoint = pointer.To(endpoint)
 			}
-			if props.AccountProperties.PrimaryEndpoints.Dfs != nil {
-				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Dfs, "/")
-				account.primaryDfsEndpoint = pointer.To(endpoint)
+			if endpoints.Dfs != nil {
+				endpoint := strings.TrimSuffix(*endpoints.Dfs, "/")
+				out.primaryDfsEndpoint = pointer.To(endpoint)
 			}
-			if props.AccountProperties.PrimaryEndpoints.File != nil {
-				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.File, "/")
-				account.primaryFileEndpoint = pointer.To(endpoint)
+			if endpoints.File != nil {
+				endpoint := strings.TrimSuffix(*endpoints.File, "/")
+				out.primaryFileEndpoint = pointer.To(endpoint)
 			}
-			if props.AccountProperties.PrimaryEndpoints.Queue != nil {
-				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Queue, "/")
-				account.primaryQueueEndpoint = pointer.To(endpoint)
+			if endpoints.Queue != nil {
+				endpoint := strings.TrimSuffix(*endpoints.Queue, "/")
+				out.primaryQueueEndpoint = pointer.To(endpoint)
 			}
-			if props.AccountProperties.PrimaryEndpoints.Table != nil {
-				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Table, "/")
-				account.primaryTableEndpoint = pointer.To(endpoint)
+			if endpoints.Table != nil {
+				endpoint := strings.TrimSuffix(*endpoints.Table, "/")
+				out.primaryTableEndpoint = pointer.To(endpoint)
 			}
 		}
 	}
 
-	return &account, nil
+	return &out, nil
 }

@@ -1551,7 +1551,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if err := storageClient.AddToCache(id.StorageAccountName, account); err != nil {
+	if err := storageClient.AddToCache(id, account); err != nil {
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
@@ -2425,7 +2425,7 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// remove this from the cache
-	storageClient.RemoveAccountFromCache(id.StorageAccountName)
+	storageClient.RemoveAccountFromCache(*id)
 
 	return nil
 }
