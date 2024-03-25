@@ -188,7 +188,7 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 				return fmt.Errorf("flattening `read_permissions `: %s", err)
 			}
 		}
-		if props := model.LinkedWriteProperties; model != nil {
+		if props := model.LinkedWriteProperties; props != nil {
 			writeProps := flattenApplicationInsightsAPIKeyLinkedProperties(props)
 			if err := d.Set("write_permissions", writeProps); err != nil {
 				return fmt.Errorf("flattening `write_permissions `: %s", err)

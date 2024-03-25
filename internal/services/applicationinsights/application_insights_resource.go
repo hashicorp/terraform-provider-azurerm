@@ -9,13 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights"                              // nolint: staticcheck
 	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	billing "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentfeaturesandpricingapis"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -255,14 +255,21 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("cannot read %s", id)
 	}
 
-	billingRead, err := billingClient.Get(ctx, id.ResourceGroupName, id.ComponentName)
+	billingId, err := billing.ParseComponentID(id.ID())
 	if err != nil {
-		return fmt.Errorf("read Application Insights Billing Features for %s: %+v", id, err)
+		return err
+	}
+	billingRead, err := billingClient.ComponentCurrentBillingFeaturesGet(ctx, *billingId)
+	if err != nil {
+		return fmt.Errorf("retrieving Billing Features for %s: %+v", id, err)
 	}
 
-	applicationInsightsComponentBillingFeatures := insights.ApplicationInsightsComponentBillingFeatures{
-		CurrentBillingFeatures: billingRead.CurrentBillingFeatures,
-		DataVolumeCap:          billingRead.DataVolumeCap,
+	if billingRead.Model == nil {
+		return fmt.Errorf("model is nil for billing features")
+	}
+	applicationInsightsComponentBillingFeatures := billing.ApplicationInsightsComponentBillingFeatures{
+		CurrentBillingFeatures: billingRead.Model.CurrentBillingFeatures,
+		DataVolumeCap:          billingRead.Model.DataVolumeCap,
 	}
 
 	if v, ok := d.GetOk("daily_data_cap_in_gb"); ok {
@@ -273,8 +280,8 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = utils.Bool(v.(bool))
 	}
 
-	if _, err = billingClient.Update(ctx, id.ResourceGroupName, id.ComponentName, applicationInsightsComponentBillingFeatures); err != nil {
-		return fmt.Errorf("update Application Insights Billing Feature for %s: %+v", id, err)
+	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, applicationInsightsComponentBillingFeatures); err != nil {
+		return fmt.Errorf("update Billing Feature for %s: %+v", id, err)
 	}
 
 	// https://github.com/hashicorp/terraform-provider-azurerm/issues/10563
@@ -336,9 +343,13 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	billingResp, err := billingClient.Get(ctx, id.ResourceGroupName, id.ComponentName)
+	billingId, err := billing.ParseComponentID(id.ID())
 	if err != nil {
-		return fmt.Errorf("making Read request on AzureRM Application Insights Billing Feature for %s: %+v", id, err)
+		return err
+	}
+	billingResp, err := billingClient.ComponentCurrentBillingFeaturesGet(ctx, *billingId)
+	if err != nil {
+		return fmt.Errorf("retrieving Billing Features for %s: %+v", id, err)
 	}
 
 	d.Set("name", id.ComponentName)
@@ -383,9 +394,11 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if billingProps := billingResp.DataVolumeCap; billingProps != nil {
-		d.Set("daily_data_cap_in_gb", billingProps.Cap)
-		d.Set("daily_data_cap_notifications_disabled", billingProps.StopSendNotificationWhenHitCap)
+	if model := billingResp.Model; model != nil {
+		if props := model.DataVolumeCap; props != nil {
+			d.Set("daily_data_cap_in_gb", props.Cap)
+			d.Set("daily_data_cap_notifications_disabled", props.StopSendNotificationWhenHitCap)
+		}
 	}
 
 	return nil

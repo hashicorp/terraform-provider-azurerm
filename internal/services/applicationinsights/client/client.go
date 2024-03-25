@@ -9,6 +9,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
 	analyticsitems "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
 	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
+	billing "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentfeaturesandpricingapis"
+	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
@@ -23,8 +25,8 @@ type Client struct {
 	ComponentsClient         *components.ComponentsAPIsClient
 	WebTestsClient           *azuresdkhacks.WebTestsClient
 	StandardWebTestsClient   *webtests.WebTestsAPIsClient
-	BillingClient            *insights.ComponentCurrentBillingFeaturesClient
-	SmartDetectionRuleClient *insights.ProactiveDetectionConfigurationsClient
+	BillingClient            *billing.ComponentFeaturesAndPricingAPIsClient
+	SmartDetectionRuleClient *smartdetection.ComponentProactiveDetectionAPIsClient
 	WorkbookClient           *workbooks.WorkbooksAPIsClient
 	WorkbookTemplateClient   *workbooktemplates.WorkbookTemplatesAPIsClient
 }
@@ -58,11 +60,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(standardWebTestsClient.Client, o.Authorizers.ResourceManager)
 
-	billingClient := insights.NewComponentCurrentBillingFeaturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&billingClient.Client, o.ResourceManagerAuthorizer)
+	billingClient, err := billing.NewComponentFeaturesAndPricingAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Billing client: %+v", err)
+	}
+	o.Configure(billingClient.Client, o.Authorizers.ResourceManager)
 
-	smartDetectionRuleClient := insights.NewProactiveDetectionConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&smartDetectionRuleClient.Client, o.ResourceManagerAuthorizer)
+	smartDetectionRuleClient, err := smartdetection.NewComponentProactiveDetectionAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SmartDetection client: %+v", err)
+	}
+	o.Configure(smartDetectionRuleClient.Client, o.Authorizers.ResourceManager)
 
 	workbookClient, err := workbooks.NewWorkbooksAPIsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -81,8 +89,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		APIKeysClient:            apiKeysClient,
 		ComponentsClient:         componentsClient,
 		WebTestsClient:           &webTestsWorkaroundClient,
-		BillingClient:            &billingClient,
-		SmartDetectionRuleClient: &smartDetectionRuleClient,
+		BillingClient:            billingClient,
+		SmartDetectionRuleClient: smartDetectionRuleClient,
 		WorkbookClient:           workbookClient,
 		WorkbookTemplateClient:   workbookTemplateClient,
 		StandardWebTestsClient:   standardWebTestsClient,
