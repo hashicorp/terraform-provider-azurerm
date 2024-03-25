@@ -53,7 +53,7 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("unable to locate Storage Account: %q", id.AccountId.AccountName)
 			}
 
-			d.Set("storage_account_id", account.ID)
+			d.Set("storage_account_id", account.ID.ID())
 
 			return []*pluginsdk.ResourceData{d}, nil
 		}),

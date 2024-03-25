@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -286,11 +285,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("flattening `metadata`: %+v", err)
 	}
 
-	storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(account.ID)
-	if err != nil {
-		return err
-	}
-	resourceManagerId := parse.NewStorageShareResourceManagerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, "default", id.ShareName)
+	resourceManagerId := parse.NewStorageShareResourceManagerID(account.ID.SubscriptionId, account.ID.ResourceGroupName, account.ID.StorageAccountName, "default", id.ShareName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

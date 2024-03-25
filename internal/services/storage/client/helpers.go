@@ -32,7 +32,8 @@ const (
 )
 
 type accountDetails struct {
-	ID            string
+	ID commonids.StorageAccountId
+
 	Kind          storage.Kind
 	Sku           *storage.Sku
 	ResourceGroup string
@@ -186,7 +187,7 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 
 	return &accountDetails{
 		name:          accountName,
-		ID:            accountId,
+		ID:            *id,
 		Kind:          props.Kind,
 		Sku:           props.Sku,
 		ResourceGroup: id.ResourceGroupName,

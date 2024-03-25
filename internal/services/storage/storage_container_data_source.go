@@ -117,11 +117,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(account.ID)
-	if err != nil {
-		return err
-	}
-	resourceManagerId := commonids.NewStorageContainerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, containerName)
+	resourceManagerId := commonids.NewStorageContainerID(account.ID.SubscriptionId, account.ID.ResourceGroupName, account.ID.StorageAccountName, containerName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

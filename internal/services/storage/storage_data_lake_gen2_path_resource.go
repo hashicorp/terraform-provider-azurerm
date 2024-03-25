@@ -64,7 +64,7 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving File System %q for Data Lake Gen2 Path %q in Account %q: %s", id.FileSystemName, id.Path, id.AccountId.AccountName, err)
 			}
 
-			d.Set("storage_account_id", account.ID)
+			d.Set("storage_account_id", account.ID.ID())
 			d.Set("filesystem_name", id.FileSystemName)
 
 			return []*pluginsdk.ResourceData{d}, nil
