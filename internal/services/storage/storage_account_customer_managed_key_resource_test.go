@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -159,6 +160,9 @@ func TestAccStorageAccountCustomerManagedKey_userAssignedIdentityWithFederatedId
 }
 
 func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
 	accountId, err := commonids.ParseStorageAccountID(state.Attributes["id"])
 	if err != nil {
 		return err
