@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-10-01-preview/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-10-01-preview/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -21,12 +21,13 @@ import (
 )
 
 type cognitiveDeploymentModel struct {
-	Name                 string                         `tfschema:"name"`
-	CognitiveAccountId   string                         `tfschema:"cognitive_account_id"`
-	Model                []DeploymentModelModel         `tfschema:"model"`
-	RaiPolicyName        string                         `tfschema:"rai_policy_name"`
-	ScaleSettings        []DeploymentScaleSettingsModel `tfschema:"scale"`
-	VersionUpgradeOption string                         `tfschema:"version_upgrade_option"`
+	Name                     string                         `tfschema:"name"`
+	CognitiveAccountId       string                         `tfschema:"cognitive_account_id"`
+	Model                    []DeploymentModelModel         `tfschema:"model"`
+	RaiPolicyName            string                         `tfschema:"rai_policy_name"`
+	ScaleSettings            []DeploymentScaleSettingsModel `tfschema:"scale"`
+	VersionUpgradeOption     string                         `tfschema:"version_upgrade_option"`
+	DynamicThrottlingEnabled bool                           `tfschema:"dynamic_throttling_enabled"`
 }
 
 type DeploymentModelModel struct {
@@ -121,6 +122,12 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
 				string(deployments.DeploymentModelVersionUpgradeOptionNoAutoUpgrade),
 			}, false),
+		},
+
+		"dynamic_throttling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 	if !features.FourPointOh() {
@@ -261,6 +268,8 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 				properties.Properties.VersionUpgradeOption = &option
 			}
 
+			properties.Properties.DynamicThrottlingEnabled = pointer.To(model.DynamicThrottlingEnabled)
+
 			properties.Sku = expandDeploymentSkuModel(model.ScaleSettings)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
@@ -314,6 +323,8 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 				properties.Properties.Model.Version = pointer.To(model.Model[0].Version)
 			}
 
+			properties.Properties.DynamicThrottlingEnabled = pointer.FromBool(model.DynamicThrottlingEnabled)
+
 			properties.Properties.VersionUpgradeOption = pointer.To(deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption))
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
@@ -366,6 +377,9 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 				if v := properties.VersionUpgradeOption; v != nil {
 					state.VersionUpgradeOption = string(*v)
 				}
+
+				state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
+
 				state.ScaleSettings = flattenDeploymentScaleSettingsModel(properties.ScaleSettings)
 			}
 			if scale := flattenDeploymentSkuModel(model.Sku); scale != nil {

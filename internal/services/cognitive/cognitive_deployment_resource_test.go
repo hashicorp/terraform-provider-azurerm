@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-10-01-preview/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -128,6 +128,14 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceNewDefaultVersionAvailable"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dynamicThrottling(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dynamic_throttling_enabled").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -301,4 +309,27 @@ resource "azurerm_cognitive_deployment" "test" {
   }
 }
 `, template, data.RandomInteger, versionUpgradeOption)
+}
+
+func (r CognitiveDeploymentTestResource) dynamicThrottling(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                 = "acctest-cd-%d"
+  cognitive_account_id = azurerm_cognitive_account.test.id
+  model {
+    format = "OpenAI"
+    name   = "text-embedding-ada-002"
+  }
+  dynamic_throttling_enabled = true
+  scale {
+    type = "Standard"
+  }
+  lifecycle {
+    ignore_changes = [model.0.version]
+  }
+}
+`, template, data.RandomInteger)
 }
