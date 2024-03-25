@@ -30,10 +30,9 @@ type Client struct {
 
 	// NOTE: these SDK clients use the legacy `Azure/azure-sdk-for-go` and should no longer be used
 	// for new functionality - please instead use the `hashicorp/go-azure-sdk` clients above.
-	AccountsClient         *storage.AccountsClient
-	BlobServicesClient     *storage.BlobServicesClient
-	EncryptionScopesClient *storage.EncryptionScopesClient
-	FileServicesClient     *storage.FileServicesClient
+	AccountsClient     *storage.AccountsClient
+	BlobServicesClient *storage.BlobServicesClient
+	FileServicesClient *storage.FileServicesClient
 
 	authorizerForAad auth.Authorizer
 }
@@ -52,9 +51,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&blobServicesClient.Client, o.ResourceManagerAuthorizer)
-
-	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&encryptionScopesClient.Client, o.ResourceManagerAuthorizer)
 
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&fileServicesClient.Client, o.ResourceManagerAuthorizer)
@@ -89,7 +85,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	client := Client{
 		AccountsClient:           &accountsClient,
 		BlobServicesClient:       &blobServicesClient,
-		EncryptionScopesClient:   &encryptionScopesClient,
 		FileServicesClient:       &fileServicesClient,
 		ResourceManager:          resourceManager,
 		SyncCloudEndpointsClient: syncCloudEndpointsClient,
