@@ -183,10 +183,8 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("parsing ace list: %v", err)
 	}
 
-	if acl != nil && (account.Properties == nil ||
-		account.Properties.IsHnsEnabled == nil ||
-		!*account.Properties.IsHnsEnabled) {
-		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
+	if acl != nil && !account.IsHnsEnabled {
+		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
 	propertiesRaw := d.Get("properties").(map[string]interface{})
@@ -279,10 +277,8 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("parsing ace list: %v", err)
 	}
 
-	if acl != nil && (account.Properties == nil ||
-		account.Properties.IsHnsEnabled == nil ||
-		!*account.Properties.IsHnsEnabled) {
-		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
+	if acl != nil && !account.IsHnsEnabled {
+		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
 	propertiesRaw := d.Get("properties").(map[string]interface{})
@@ -376,11 +372,13 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 	var ace []interface{}
 	var owner, group string
 	// acl is only enabled when `IsHnsEnabled` is true otherwise the rest api will report error
-	if account.Properties != nil && account.Properties.IsHnsEnabled != nil &&
-		*account.Properties.IsHnsEnabled {
+	if account.IsHnsEnabled {
 		// The above `getStatus` API request doesn't return the ACLs
 		// Have to make a `getAccessControl` request, but that doesn't return all fields either!
-		pathResponse, err := dataPlanePathsClient.GetProperties(ctx, id.FileSystemName, "/", paths.GetPropertiesInput{Action: paths.GetPropertiesActionGetAccessControl})
+		payload := paths.GetPropertiesInput{
+			Action: paths.GetPropertiesActionGetAccessControl,
+		}
+		pathResponse, err := dataPlanePathsClient.GetProperties(ctx, id.FileSystemName, "/", payload)
 		if err == nil {
 			acl, err := accesscontrol.ParseACL(pathResponse.ACL)
 			if err != nil {

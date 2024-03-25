@@ -160,7 +160,6 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

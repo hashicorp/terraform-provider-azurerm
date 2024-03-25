@@ -33,20 +33,30 @@ const (
 )
 
 type accountDetails struct {
-	Kind storage.Kind
-
-	// TODO: migrate to using IsHnsEnabled
-	Properties *storage.AccountProperties
-	// IsHnsEnabled     bool
-
+	Kind             storage.Kind
+	IsHnsEnabled     bool
 	StorageAccountId commonids.StorageAccountId
 
 	accountKey *string
 
-	primaryBlobEndpoint  *string
-	primaryDfsEndpoint   *string
-	primaryFileEndpoint  *string
+	// primaryBlobEndpoint is the Primary Blob Endpoint for the Data Plane API for this Storage Account
+	// e.g. `https://{account}.blob.core.windows.net`
+	primaryBlobEndpoint *string
+
+	// primaryDfsEndpoint is the Primary Dfs Endpoint for the Data Plane API for this Storage Account
+	// e.g. `https://sale.dfs.core.windows.net`
+	primaryDfsEndpoint *string
+
+	// primaryFileEndpoint is the Primary File Endpoint for the Data Plane API for this Storage Account
+	// e.g. `https://{account}.file.core.windows.net`
+	primaryFileEndpoint *string
+
+	// primaryQueueEndpoint is the Primary Queue Endpoint for the Data Plane API for this Storage Account
+	// e.g. `https://{account}.queue.core.windows.net`
 	primaryQueueEndpoint *string
+
+	// primaryTableEndpoint is the Primary Table Endpoint for the Data Plane API for this Storage Account
+	// e.g. `https://{account}.table.core.windows.net`
 	primaryTableEndpoint *string
 }
 
@@ -183,30 +193,30 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 		Kind:             props.Kind,
 	}
 
-	if props.AccountProperties != nil && props.AccountProperties.PrimaryEndpoints != nil {
-		if props.AccountProperties.PrimaryEndpoints.Blob != nil {
-			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Blob, "/")
-			account.primaryBlobEndpoint = pointer.To(endpoint)
-		}
+	if props.AccountProperties != nil {
+		account.IsHnsEnabled = pointer.From(props.AccountProperties.IsHnsEnabled)
 
-		if props.AccountProperties.PrimaryEndpoints.Dfs != nil {
-			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Dfs, "/")
-			account.primaryDfsEndpoint = pointer.To(endpoint)
-		}
-
-		if props.AccountProperties.PrimaryEndpoints.File != nil {
-			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.File, "/")
-			account.primaryFileEndpoint = pointer.To(endpoint)
-		}
-
-		if props.AccountProperties.PrimaryEndpoints.Queue != nil {
-			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Queue, "/")
-			account.primaryQueueEndpoint = pointer.To(endpoint)
-		}
-
-		if props.AccountProperties.PrimaryEndpoints.Table != nil {
-			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Table, "/")
-			account.primaryTableEndpoint = pointer.To(endpoint)
+		if props.AccountProperties.PrimaryEndpoints != nil {
+			if props.AccountProperties.PrimaryEndpoints.Blob != nil {
+				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Blob, "/")
+				account.primaryBlobEndpoint = pointer.To(endpoint)
+			}
+			if props.AccountProperties.PrimaryEndpoints.Dfs != nil {
+				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Dfs, "/")
+				account.primaryDfsEndpoint = pointer.To(endpoint)
+			}
+			if props.AccountProperties.PrimaryEndpoints.File != nil {
+				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.File, "/")
+				account.primaryFileEndpoint = pointer.To(endpoint)
+			}
+			if props.AccountProperties.PrimaryEndpoints.Queue != nil {
+				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Queue, "/")
+				account.primaryQueueEndpoint = pointer.To(endpoint)
+			}
+			if props.AccountProperties.PrimaryEndpoints.Table != nil {
+				endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Table, "/")
+				account.primaryTableEndpoint = pointer.To(endpoint)
+			}
 		}
 	}
 
