@@ -310,7 +310,7 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			if storageAccount == nil {
 				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
 			}
-			fileShareId := storageparse.NewStorageShareResourceManagerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, "default", data.FileShareName)
+			fileShareId := storageparse.NewStorageShareResourceManagerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, "default", data.FileShareName)
 			model.StorageFileShareID = fileShareId.ID()
 
 			model.IsDefault = *data.IsDefault

@@ -262,7 +262,7 @@ func resourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{})
 
 	client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Table Entity Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	input := entities.GetEntityInput{
@@ -309,7 +309,7 @@ func resourceStorageTableEntityDelete(d *pluginsdk.ResourceData, meta interface{
 
 	client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Entity Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	input := entities.DeleteEntityInput{

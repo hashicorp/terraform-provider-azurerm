@@ -319,7 +319,7 @@ func resourceStorageShareFileDelete(d *pluginsdk.ResourceData, meta interface{})
 
 	client, err := storageClient.FileShareFilesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building File Share File Client for Storage Account %q (Resource Group %q): %v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share File Client for %s: %v", account.StorageAccountId, err)
 	}
 
 	if _, err = client.Delete(ctx, id.ShareName, id.DirectoryPath, id.FileName); err != nil {

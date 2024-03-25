@@ -201,7 +201,7 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("setting `metadata`: %s", err)
 	}
 
-	resourceManagerId := parse.NewStorageQueueResourceManagerID(subscriptionId, account.ResourceGroup, id.AccountId.AccountName, "default", id.QueueName)
+	resourceManagerId := parse.NewStorageQueueResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.QueueName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

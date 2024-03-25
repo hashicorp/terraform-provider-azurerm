@@ -286,12 +286,12 @@ func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client
 
 	sharesClient, err := client.Storage.FileSharesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %+v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	props, err := sharesClient.Get(ctx, id.ShareName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving File Share %q (Account %q / Resource Group %q): %+v", id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving File Share %q in %s: %+v", id.ShareName, account.StorageAccountId, err)
 	}
 
 	return utils.Bool(props != nil), nil
@@ -313,10 +313,10 @@ func (r StorageShareResource) Destroy(ctx context.Context, client *clients.Clien
 
 	sharesClient, err := client.Storage.FileSharesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %+v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
 	}
 	if err := sharesClient.Delete(ctx, id.ShareName); err != nil {
-		return nil, fmt.Errorf("deleting File Share %q (Account %q / Resource Group %q): %+v", id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("deleting File Share %q in %s: %+v", id.ShareName, account.StorageAccountId, err)
 	}
 
 	return utils.Bool(true), nil

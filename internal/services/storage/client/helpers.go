@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 )
 
@@ -32,15 +33,21 @@ const (
 )
 
 type accountDetails struct {
+	Kind storage.Kind
+
+	// TODO: migrate to using IsHnsEnabled
+	Properties *storage.AccountProperties
+	// IsHnsEnabled     bool
+
 	StorageAccountId commonids.StorageAccountId
 
-	Kind          storage.Kind
-	Sku           *storage.Sku
-	ResourceGroup string
-	Properties    *storage.AccountProperties
-
 	accountKey *string
-	name       string
+
+	primaryBlobEndpoint  *string
+	primaryDfsEndpoint   *string
+	primaryFileEndpoint  *string
+	primaryQueueEndpoint *string
+	primaryTableEndpoint *string
 }
 
 func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*string, error) {
@@ -51,65 +58,51 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 		return ad.accountKey, nil
 	}
 
-	log.Printf("[DEBUG] Cache Miss - looking up the account key for storage account %q..", ad.name)
-	props, err := client.AccountsClient.ListKeys(ctx, ad.ResourceGroup, ad.name, storage.ListKeyExpandKerb)
+	log.Printf("[DEBUG] Cache Miss - looking up the account key for %s..", ad.StorageAccountId)
+	props, err := client.AccountsClient.ListKeys(ctx, ad.StorageAccountId.ResourceGroupName, ad.StorageAccountId.StorageAccountName, storage.ListKeyExpandKerb)
 	if err != nil {
-		return nil, fmt.Errorf("listing Keys for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
+		return nil, fmt.Errorf("listing Keys for %s: %+v", ad.StorageAccountId, err)
 	}
 
 	if props.Keys == nil || len(*props.Keys) == 0 || (*props.Keys)[0].Value == nil {
-		return nil, fmt.Errorf("keys were nil for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
+		return nil, fmt.Errorf("keys were nil for %s: %+v", ad.StorageAccountId, err)
 	}
 
 	keys := *props.Keys
 	ad.accountKey = keys[0].Value
 
 	// force-cache this
-	storageAccountsCache[ad.name] = *ad
+	storageAccountsCache[ad.StorageAccountId.StorageAccountName] = *ad
 
 	return ad.accountKey, nil
 }
 
 func (ad *accountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string, error) {
-	if ad.Properties == nil {
-		return nil, fmt.Errorf("storage account %q has no properties", ad.name)
-	}
-	if ad.Properties.PrimaryEndpoints == nil {
-		return nil, fmt.Errorf("storage account %q has missing endpoints", ad.name)
-	}
-
-	var baseUri string
-
+	var baseUri *string
 	switch endpointType {
 	case EndpointTypeBlob:
-		if ad.Properties.PrimaryEndpoints.Blob != nil {
-			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.Blob, "/")
-		}
+		baseUri = ad.primaryBlobEndpoint
+
 	case EndpointTypeDfs:
-		if ad.Properties.PrimaryEndpoints.Dfs != nil {
-			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.Dfs, "/")
-		}
+		baseUri = ad.primaryDfsEndpoint
+
 	case EndpointTypeFile:
-		if ad.Properties.PrimaryEndpoints.File != nil {
-			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.File, "/")
-		}
+		baseUri = ad.primaryFileEndpoint
+
 	case EndpointTypeQueue:
-		if ad.Properties.PrimaryEndpoints.Queue != nil {
-			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.Queue, "/")
-		}
+		baseUri = ad.primaryQueueEndpoint
+
 	case EndpointTypeTable:
-		if ad.Properties.PrimaryEndpoints.Table != nil {
-			baseUri = strings.TrimSuffix(*ad.Properties.PrimaryEndpoints.Table, "/")
-		}
+		baseUri = ad.primaryTableEndpoint
+
 	default:
 		return nil, fmt.Errorf("internal-error: unrecognised endpoint type %q when building storage client", endpointType)
 	}
 
-	if baseUri == "" {
-		return nil, fmt.Errorf("determining storage account %s endpoint for : %q", endpointType, ad.name)
+	if baseUri == nil {
+		return nil, fmt.Errorf("determining %s endpoint for %s: missing primary endpoint", endpointType, ad.StorageAccountId)
 	}
-
-	return &baseUri, nil
+	return baseUri, nil
 }
 
 func (c Client) AddToCache(accountName string, props storage.Account) error {
@@ -185,12 +178,37 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 		return nil, fmt.Errorf("parsing %q as a Resource ID: %+v", accountId, err)
 	}
 
-	return &accountDetails{
-		name:             accountName,
+	account := accountDetails{
 		StorageAccountId: *id,
 		Kind:             props.Kind,
-		Sku:              props.Sku,
-		ResourceGroup:    id.ResourceGroupName,
-		Properties:       props.AccountProperties,
-	}, nil
+	}
+
+	if props.AccountProperties != nil && props.AccountProperties.PrimaryEndpoints != nil {
+		if props.AccountProperties.PrimaryEndpoints.Blob != nil {
+			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Blob, "/")
+			account.primaryBlobEndpoint = pointer.To(endpoint)
+		}
+
+		if props.AccountProperties.PrimaryEndpoints.Dfs != nil {
+			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Dfs, "/")
+			account.primaryDfsEndpoint = pointer.To(endpoint)
+		}
+
+		if props.AccountProperties.PrimaryEndpoints.File != nil {
+			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.File, "/")
+			account.primaryFileEndpoint = pointer.To(endpoint)
+		}
+
+		if props.AccountProperties.PrimaryEndpoints.Queue != nil {
+			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Queue, "/")
+			account.primaryQueueEndpoint = pointer.To(endpoint)
+		}
+
+		if props.AccountProperties.PrimaryEndpoints.Table != nil {
+			endpoint := strings.TrimSuffix(*props.AccountProperties.PrimaryEndpoints.Table, "/")
+			account.primaryTableEndpoint = pointer.To(endpoint)
+		}
+	}
+
+	return &account, nil
 }

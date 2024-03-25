@@ -320,7 +320,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			if storageAccount == nil {
 				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
 			}
-			containerId := commonids.NewStorageContainerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, data.Filesystem)
+			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
 
 			model.IsDefault = *data.IsDefault

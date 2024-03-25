@@ -245,7 +245,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if props == nil {
-		log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup)
+		log.Printf("[DEBUG] Container %q was not found in %s - assuming removed & removing from state", id.ContainerName, id.AccountId)
 		d.SetId("")
 		return nil
 	}
@@ -262,7 +262,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := commonids.NewStorageContainerID(subscriptionId, account.ResourceGroup, id.AccountId.AccountName, id.ContainerName)
+	resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, id.ContainerName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

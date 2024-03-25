@@ -252,7 +252,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	// The files API does not support bearer tokens (@manicminer, 2024-02-15)
 	client, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 	if err != nil {
-		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	props, err := client.Get(ctx, id.ShareName)
@@ -260,7 +260,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 	if props == nil {
-		log.Printf("[DEBUG] File Share %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ShareName, id.AccountId.AccountName, account.ResourceGroup)
+		log.Printf("[DEBUG] File Share %q was not found in %s - assuming removed & removing from state", id.ShareName, account.StorageAccountId)
 		d.SetId("")
 		return nil
 	}
@@ -312,7 +312,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	// The files API does not support bearer tokens (@manicminer, 2024-02-15)
 	client, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 	if err != nil {
-		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	if d.HasChange("quota") {
@@ -387,7 +387,7 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	// The files API does not support bearer tokens (@manicminer, 2024-02-15)
 	client, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 	if err != nil {
-		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	if err = client.Delete(ctx, id.ShareName); err != nil {

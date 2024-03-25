@@ -81,7 +81,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 
 	dataPlaneClient, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %v", accountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Table Entity Client for %s: %v", accountName, account.StorageAccountId, err)
 	}
 
 	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)

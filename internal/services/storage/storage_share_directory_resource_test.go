@@ -194,14 +194,14 @@ func (r StorageShareDirectoryResource) Exists(ctx context.Context, client *clien
 	}
 	dirClient, err := client.Storage.FileShareDirectoriesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
-		return nil, fmt.Errorf("building File Share client for Storage Account %q (Resource Group %q): %+v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("building File Share client for %s: %+v", account.StorageAccountId, err)
 	}
 	resp, err := dirClient.Get(ctx, id.ShareName, id.DirectoryPath)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Storage Share %q (File Share %q / Account %q / Resource Group %q): %s", id.DirectoryPath, id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Storage Share %q (File Share %q in %s): %+v", id.DirectoryPath, id.ShareName, account.StorageAccountId, err)
 	}
 	return utils.Bool(true), nil
 }

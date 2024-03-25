@@ -1059,7 +1059,7 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 		DeleteSnapshots: false,
 	}
 	if _, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
-		return fmt.Errorf("deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("deleting Blob %q (Container %q in %s): %+v", id.BlobName, id.ContainerName, id.AccountId, err)
 	}
 
 	return nil

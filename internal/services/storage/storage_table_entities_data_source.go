@@ -125,7 +125,7 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 
 			client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
-				return fmt.Errorf("building Table Entity Client for Storage Account %q (Resource Group %q): %s", model.StorageAccountName, account.ResourceGroup, err)
+				return fmt.Errorf("building Table Entity Client for %s: %+v", account.StorageAccountId, err)
 			}
 
 			input := entities.QueryEntitiesInput{
@@ -142,7 +142,7 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 
 			result, err := client.Query(ctx, model.TableName, input)
 			if err != nil {
-				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q / Storage Account %q / Resource Group %q): %s", model.Filter, model.TableName, model.StorageAccountName, account.ResourceGroup, err)
+				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q in %s): %+v", model.Filter, model.TableName, account.StorageAccountId, err)
 			}
 
 			var flattenedEntities []TableEntityDataSourceModel

@@ -174,7 +174,7 @@ func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Cli
 	resp, err := client.GetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
+			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q in %s): %+v", id.FileName, id.ShareName, account.StorageAccountId, err)
 		}
 	}
 

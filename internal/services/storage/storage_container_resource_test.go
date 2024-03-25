@@ -207,7 +207,7 @@ func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Cl
 
 	prop, err := containersClient.Get(ctx, id.ContainerName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %+v", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Container %q in %s: %+v", id.ContainerName, id.AccountId, err)
 	}
 
 	return utils.Bool(prop != nil), nil
@@ -233,7 +233,7 @@ func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.C
 	}
 
 	if err = containersClient.Delete(ctx, id.ContainerName); err != nil {
-		return nil, fmt.Errorf("deleting Container %q (Account %q / Resource Group %q): %+v", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("deleting Container %q in %s: %+v", id.ContainerName, id.AccountId, err)
 	}
 
 	return utils.Bool(true), nil
