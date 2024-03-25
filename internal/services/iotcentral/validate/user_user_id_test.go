@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestOrganizationOrganizationID(t *testing.T) {
+func TestUserUserID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -17,35 +17,19 @@ func TestOrganizationOrganizationID(t *testing.T) {
 			Valid: false,
 		},
 		{
-			Input: "12345678901234567890123456789012345678901234567891",
-			Valid: false,
-		},
-		{
-			Input: "1234567890123456789012345678901234567890123456789",
-			Valid: true,
-		},
-		{
 			Input: "@",
 			Valid: false,
 		},
 		{
-			Input: "#!",
+			Input: "#",
 			Valid: false,
 		},
 		{
-			Input: "$$",
+			Input: "$",
 			Valid: false,
 		},
 		{
 			Input: "...",
-			Valid: false,
-		},
-		{
-			Input: "v",
-			Valid: false,
-		},
-		{
-			Input: "1",
 			Valid: false,
 		},
 		{
@@ -56,11 +40,19 @@ func TestOrganizationOrganizationID(t *testing.T) {
 			Input: "validstring2",
 			Valid: true,
 		},
+		{
+			Input: "v",
+			Valid: true,
+		},
+		{
+			Input: "1",
+			Valid: true,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := OrganizationOrganizationID(tc.Input, "test")
+		_, errors := UserUserID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

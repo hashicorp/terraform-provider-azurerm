@@ -53,3 +53,19 @@ func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*da
 
 	return &client, nil
 }
+
+func (c *Client) UsersClient(ctx context.Context, subdomain string) (*dataplane.UsersClient, error) {
+	if !c.Endpoint.Available() {
+		return nil, fmt.Errorf("unable to build SDK Client since IoTCentral is not available in this Azure Environment")
+	}
+
+	iotCentralAuth, err := c.authorizerFunc(c.Endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining auth token for %q: %+v", c.Endpoint.Name(), err)
+	}
+
+	client := dataplane.NewUsersClient(subdomain)
+	c.configureClientFunc(&client.Client, authWrapper.AutorestAuthorizer(iotCentralAuth))
+
+	return &client, nil
+}
