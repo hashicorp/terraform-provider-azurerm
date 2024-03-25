@@ -115,7 +115,7 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 
 			storageClient := metadata.Client.Storage
 
-			account, err := storageClient.FindAccount(ctx, model.StorageAccountName)
+			account, err := storageClient.FindAccount(ctx, metadata.Client.Account.SubscriptionId, model.StorageAccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Table %q: %s", model.StorageAccountName, model.TableName, err)
 			}

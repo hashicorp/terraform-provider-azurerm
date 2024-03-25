@@ -984,7 +984,7 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 
 			if osDisk.Vhd != nil {
-				if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, osDisk.Vhd); err != nil {
+				if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, id.SubscriptionId, osDisk.Vhd); err != nil {
 					return fmt.Errorf("deleting OS Disk VHD: %+v", err)
 				}
 			} else if osDisk.ManagedDisk != nil {
@@ -1009,7 +1009,7 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 
 				if disk.Vhd != nil {
-					if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, disk.Vhd); err != nil {
+					if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, id.SubscriptionId, disk.Vhd); err != nil {
 						return fmt.Errorf("deleting Data Disk VHD: %+v", err)
 					}
 				} else if disk.ManagedDisk != nil {
@@ -1024,7 +1024,7 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, vhd *compute.VirtualHardDisk) error {
+func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, subscriptionId string, vhd *compute.VirtualHardDisk) error {
 	if vhd == nil {
 		return fmt.Errorf("`vhd` was nil`")
 	}
@@ -1038,7 +1038,7 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 		return fmt.Errorf("parsing %q: %s", uri, err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}

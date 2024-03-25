@@ -158,7 +158,7 @@ func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	account, err := clients.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
 	}

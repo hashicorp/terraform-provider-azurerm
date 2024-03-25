@@ -1547,11 +1547,14 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	d.SetId(id.ID())
 
 	// populate the cache
-	account, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	account, err := storageClient.ResourceManager.StorageAccounts.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if err := storageClient.AddToCache(id, account); err != nil {
+	if account.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if err := storageClient.AddToCache(id, *account.Model); err != nil {
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
@@ -1578,11 +1581,11 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
 				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
 			}
-			if account.AccountProperties != nil &&
-				account.AccountProperties.ImmutableStorageWithVersioning != nil &&
-				account.AccountProperties.ImmutableStorageWithVersioning.ImmutabilityPolicy != nil &&
-				account.AccountProperties.ImmutableStorageWithVersioning.Enabled != nil &&
-				*account.AccountProperties.ImmutableStorageWithVersioning.Enabled {
+			if account.Model.Properties != nil &&
+				account.Model.Properties.ImmutableStorageWithVersioning != nil &&
+				account.Model.Properties.ImmutableStorageWithVersioning.ImmutabilityPolicy != nil &&
+				account.Model.Properties.ImmutableStorageWithVersioning.Enabled != nil &&
+				*account.Model.Properties.ImmutableStorageWithVersioning.Enabled {
 				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
 				// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
 				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
@@ -1598,7 +1601,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !supportLevel.supportQueue {
 			return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
-		accountDetails, err := storageClient.FindAccount(ctx, id.StorageAccountName)
+		accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -1654,7 +1657,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
-		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
+		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -1960,7 +1963,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 
 		storageClient := meta.(*clients.Client).Storage
-		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
+		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
@@ -2015,7 +2018,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		storageClient := meta.(*clients.Client).Storage
 
-		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
+		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
@@ -2291,7 +2294,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	storageClient := meta.(*clients.Client).Storage
-	account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
+	account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

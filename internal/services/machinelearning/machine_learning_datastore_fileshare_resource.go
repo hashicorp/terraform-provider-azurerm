@@ -303,7 +303,7 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Share %q: %s", data.AccountName, data.FileShareName, err)
 			}

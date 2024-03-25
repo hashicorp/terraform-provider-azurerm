@@ -192,7 +192,7 @@ func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Cl
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
 	}
@@ -219,7 +219,7 @@ func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.C
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
 	}

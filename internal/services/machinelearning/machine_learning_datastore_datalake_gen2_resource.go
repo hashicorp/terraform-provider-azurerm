@@ -313,7 +313,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
 			}

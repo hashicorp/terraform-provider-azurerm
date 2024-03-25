@@ -306,7 +306,7 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataAuthIdentity = serviceDataAuth
 
-			storageAccount, err := storageClient.FindAccount(ctx, *data.AccountName)
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, *data.AccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
 			}

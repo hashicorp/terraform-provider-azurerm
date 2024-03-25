@@ -185,7 +185,7 @@ func (r StorageShareDirectoryResource) Exists(ctx context.Context, client *clien
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Directory %q (Share %q): %s", id.AccountId.AccountName, id.DirectoryPath, id.ShareName, err)
 	}

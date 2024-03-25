@@ -85,13 +85,14 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 
 func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	shareName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Account %q for Share %q: %s", accountName, shareName, err)
 	}

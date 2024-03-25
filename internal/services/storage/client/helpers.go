@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 )
 
 var (
@@ -33,7 +33,7 @@ const (
 )
 
 type accountDetails struct {
-	Kind             storage.Kind
+	Kind             storageaccounts.Kind
 	IsHnsEnabled     bool
 	StorageAccountId commonids.StorageAccountId
 
@@ -69,17 +69,28 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	}
 
 	log.Printf("[DEBUG] Cache Miss - looking up the account key for %s..", ad.StorageAccountId)
-	props, err := client.AccountsClient.ListKeys(ctx, ad.StorageAccountId.ResourceGroupName, ad.StorageAccountId.StorageAccountName, storage.ListKeyExpandKerb)
+	opts := storageaccounts.DefaultListKeysOperationOptions()
+	opts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
+	listKeysResp, err := client.ResourceManager.StorageAccounts.ListKeys(ctx, ad.StorageAccountId, opts)
 	if err != nil {
 		return nil, fmt.Errorf("listing Keys for %s: %+v", ad.StorageAccountId, err)
 	}
 
-	if props.Keys == nil || len(*props.Keys) == 0 || (*props.Keys)[0].Value == nil {
-		return nil, fmt.Errorf("keys were nil for %s: %+v", ad.StorageAccountId, err)
+	if model := listKeysResp.Model; model != nil && model.Keys != nil {
+		for _, key := range *model.Keys {
+			if key.Permissions == nil || key.Value == nil {
+				continue
+			}
+
+			if *key.Permissions == storageaccounts.KeyPermissionFull {
+				ad.accountKey = key.Value
+			}
+		}
 	}
 
-	keys := *props.Keys
-	ad.accountKey = keys[0].Value
+	if ad.accountKey == nil {
+		return nil, fmt.Errorf("unable to determine the Write Key for %s", ad.StorageAccountId)
+	}
 
 	// force-cache this
 	storageAccountsCache[ad.StorageAccountId.StorageAccountName] = *ad
@@ -115,16 +126,15 @@ func (ad *accountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string,
 	return baseUri, nil
 }
 
-func (c Client) AddToCache(accountId commonids.StorageAccountId, props storage.Account) error {
+func (c Client) AddToCache(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) error {
 	accountsLock.Lock()
 	defer accountsLock.Unlock()
 
-	account, err := populateAccountDetails(accountId, props)
+	accountDetails, err := populateAccountDetails(accountId, account)
 	if err != nil {
 		return err
 	}
-
-	storageAccountsCache[accountId.StorageAccountName] = *account
+	storageAccountsCache[accountId.StorageAccountName] = *accountDetails
 
 	return nil
 }
@@ -135,7 +145,7 @@ func (c Client) RemoveAccountFromCache(accountId commonids.StorageAccountId) {
 	accountsLock.Unlock()
 }
 
-func (c Client) FindAccount(ctx context.Context, accountName string) (*accountDetails, error) {
+func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName string) (*accountDetails, error) {
 	accountsLock.Lock()
 	defer accountsLock.Unlock()
 
@@ -143,31 +153,22 @@ func (c Client) FindAccount(ctx context.Context, accountName string) (*accountDe
 		return &existing, nil
 	}
 
-	accountsPage, err := c.AccountsClient.List(ctx)
+	subscriptionId := commonids.NewSubscriptionID(subscriptionIdRaw)
+	listResult, err := c.ResourceManager.StorageAccounts.ListComplete(ctx, subscriptionId)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving storage accounts: %+v", err)
+		return nil, fmt.Errorf("listing Storage Accounts within %s: %+v", subscriptionId, err)
 	}
-
-	var accounts []storage.Account
-	for accountsPage.NotDone() {
-		accounts = append(accounts, accountsPage.Values()...)
-		err = accountsPage.NextWithContext(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving next page of storage accounts: %+v", err)
-		}
-	}
-
-	for _, v := range accounts {
-		if v.ID == nil || v.Name == nil {
+	for _, item := range listResult.Items {
+		if item.Id == nil || item.Name == nil {
 			continue
 		}
 
-		storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(*v.ID)
+		storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(*item.Id)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", *v.ID, err)
+			return nil, fmt.Errorf("parsing %q: %+v", *item.Id, err)
 		}
 
-		account, err := populateAccountDetails(*storageAccountId, v)
+		account, err := populateAccountDetails(*storageAccountId, item)
 		if err != nil {
 			return nil, fmt.Errorf("populating details for %s: %+v", *storageAccountId, err)
 		}
@@ -182,13 +183,13 @@ func (c Client) FindAccount(ctx context.Context, accountName string) (*accountDe
 	return nil, nil
 }
 
-func populateAccountDetails(accountId commonids.StorageAccountId, account storage.Account) (*accountDetails, error) {
+func populateAccountDetails(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) (*accountDetails, error) {
 	out := accountDetails{
-		Kind:             account.Kind,
+		Kind:             pointer.From(account.Kind),
 		StorageAccountId: accountId,
 	}
 
-	if props := account.AccountProperties; props != nil {
+	if props := account.Properties; props != nil {
 		out.IsHnsEnabled = pointer.From(props.IsHnsEnabled)
 
 		if endpoints := props.PrimaryEndpoints; endpoints != nil {
