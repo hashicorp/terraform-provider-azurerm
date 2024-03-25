@@ -135,14 +135,17 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"kerberos_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Enable to allow Kerberos secured volumes. Requires appropriate export rules.",
 			},
 
 			"smb_continuous_availability_enabled": {
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Description: "Continuous availability option should be used only for SQL and FSLogix workloads. Using it for any other SMB workloads is not supported.",
+				ForceNew:    true,
 			},
 
 			"security_style": {
