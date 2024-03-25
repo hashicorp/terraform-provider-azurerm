@@ -1381,6 +1381,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   subnet_id                    = azurerm_subnet.test.id
   timezone_id                  = "Pacific Standard Time"
   vcores                       = 8
+  zone_redundant_enabled       = true
 
   administrator_login          = "missadministrator"
   administrator_login_password = "NCC-1701-D"

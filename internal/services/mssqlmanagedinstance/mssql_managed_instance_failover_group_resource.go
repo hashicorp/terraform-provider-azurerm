@@ -145,7 +145,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
-			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
 			var model MsSqlManagedInstanceFailoverGroupModel
 			if err := metadata.Decode(&model); err != nil {
@@ -165,6 +164,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClientForSubscription(partnerId.SubscriptionId)
 			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroup, partnerId.Name, "")
 			if err != nil || partner.Location == nil || *partner.Location == "" {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)
@@ -235,7 +235,6 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient
-			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 
 			id, err := parse.InstanceFailoverGroupID(metadata.ResourceData.Id())
 			if err != nil {
@@ -258,6 +257,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			instancesClient := metadata.Client.MSSQLManagedInstance.ManagedInstancesClientForSubscription(partnerId.SubscriptionId)
 			partner, err := instancesClient.Get(ctx, partnerId.ResourceGroup, partnerId.Name, "")
 			if err != nil || partner.Location == nil || *partner.Location == "" {
 				return fmt.Errorf("checking for existence and region of Partner of %q: %+v", id, err)

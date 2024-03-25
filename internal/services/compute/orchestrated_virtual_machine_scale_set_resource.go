@@ -52,7 +52,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		// The plan was to remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0.
+		// The plan was to remove support the legacy Orchestrated Virtual Machine Scale Set in 3.0.
 		// Turns out it's still in use
 		// TODO: Revisit in 4.0
 		// TODO: exposing requireGuestProvisionSignal once it's available
@@ -473,7 +473,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				}
 
 				if hotpatchingEnabled {
-					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition' or '2022-datacenter-azure-edition-core-smalldisk'")
+					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch' or '2022-datacenter-azure-edition-hotpatch-smalldisk'")
 				}
 			}
 		}
@@ -1111,9 +1111,8 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	// AutomaticOSUpgradeIsEnabled currently is not supported in orchestrated VMSS flex
 	metaData := virtualMachineScaleSetUpdateMetaData{
-		AutomaticOSUpgradeIsEnabled: false,
-		// CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
-		// UpdateInstances:              updateInstances,
+		AutomaticOSUpgradeIsEnabled:  false,
+		CanReimageOnManualUpgrade:    false,
 		CanRollInstancesWhenRequired: false,
 		UpdateInstances:              false,
 		Client:                       meta.(*clients.Client).Compute,

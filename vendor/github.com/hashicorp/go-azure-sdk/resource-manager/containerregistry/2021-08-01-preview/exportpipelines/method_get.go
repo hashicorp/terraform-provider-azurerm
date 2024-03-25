@@ -43,7 +43,10 @@ func (c ExportPipelinesClient) Get(ctx context.Context, id ExportPipelineId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ExportPipeline
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

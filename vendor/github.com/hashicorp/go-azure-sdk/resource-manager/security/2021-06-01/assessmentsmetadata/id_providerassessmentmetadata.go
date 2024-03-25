@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProviderAssessmentMetadataId{}
+var _ resourceids.ResourceId = &ProviderAssessmentMetadataId{}
 
 // ProviderAssessmentMetadataId is a struct representing the Resource ID for a Provider Assessment Metadata
 type ProviderAssessmentMetadataId struct {
@@ -28,7 +28,7 @@ func NewProviderAssessmentMetadataID(subscriptionId string, assessmentMetadataNa
 
 // ParseProviderAssessmentMetadataID parses 'input' into a ProviderAssessmentMetadataId
 func ParseProviderAssessmentMetadataID(input string) (*ProviderAssessmentMetadataId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderAssessmentMetadataId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderAssessmentMetadataId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseProviderAssessmentMetadataID(input string) (*ProviderAssessmentMetadat
 // ParseProviderAssessmentMetadataIDInsensitively parses 'input' case-insensitively into a ProviderAssessmentMetadataId
 // note: this method should only be used for API response data and not user input
 func ParseProviderAssessmentMetadataIDInsensitively(input string) (*ProviderAssessmentMetadataId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderAssessmentMetadataId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderAssessmentMetadataId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

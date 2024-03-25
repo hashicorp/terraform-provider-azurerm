@@ -12,9 +12,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2021-01-01/subscriptions"                     // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -155,28 +156,34 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 
 func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
-	subscriptionClient := meta.(*clients.Client).Subscription.Client
+	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
+	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
+	scopeId, err := commonids.ParseScopeID(scope)
+	if err != nil {
+		return fmt.Errorf("parsing %s: %+v", scopeId, err)
+	}
 
 	var roleDefinitionId string
 	if v, ok := d.GetOk("role_definition_id"); ok {
 		roleDefinitionId = v.(string)
 	} else if v, ok := d.GetOk("role_definition_name"); ok {
 		roleName := v.(string)
-		roleDefinitions, err := roleDefinitionsClient.List(ctx, scope, fmt.Sprintf("roleName eq '%s'", roleName))
+		roleDefinitions, err := roleDefinitionsClient.List(ctx, *scopeId, roledefinitions.ListOperationOptions{
+			Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", roleName)),
+		})
 		if err != nil {
 			return fmt.Errorf("loading Role Definition List: %+v", err)
 		}
-		if len(roleDefinitions.Values()) != 1 {
+		if roleDefinitions.Model == nil || len(*roleDefinitions.Model) != 1 {
 			return fmt.Errorf("loading Role Definition List: could not find role '%s'", roleName)
 		}
-		roleDefinitionId = *roleDefinitions.Values()[0].ID
+		roleDefinitionId = *(*roleDefinitions.Model)[0].Id
 	} else {
 		return fmt.Errorf("Error: either role_definition_id or role_definition_name needs to be set")
 	}
@@ -264,7 +271,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 
 func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
+	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -296,15 +303,25 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("condition_version", props.ConditionVersion)
 
 		// allows for import when role name is used (also if the role name changes a plan will show a diff)
-		if roleId := props.RoleDefinitionID; roleId != nil {
-			roleResp, err := roleDefinitionsClient.GetByID(ctx, *roleId)
+		if roleDefResourceId := props.RoleDefinitionID; roleDefResourceId != nil {
+			// Workaround for https://github.com/hashicorp/pandora/issues/3257
+			// The role definition id returned does not contain scope when the role definition was on tenant level (management group or tenant).
+			// And adding tenant id as scope will cause 404 response, so just adding a slash to parse that.
+			if strings.HasPrefix(*roleDefResourceId, "/providers") {
+				roleDefResourceId = pointer.To(fmt.Sprintf("/%s", *roleDefResourceId))
+			}
+			parsedRoleDefId, err := roledefinitions.ParseScopedRoleDefinitionID(*roleDefResourceId)
 			if err != nil {
-				return fmt.Errorf("loading Role Definition %q: %+v", *roleId, err)
+				return fmt.Errorf("parsing %q: %+v", *roleDefResourceId, err)
+			}
+			roleResp, err := roleDefinitionsClient.Get(ctx, *parsedRoleDefId)
+			if err != nil {
+				return fmt.Errorf("loading Role Definition %q: %+v", *roleDefResourceId, err)
+			}
+			if roleResp.Model != nil && roleResp.Model.Properties != nil {
+				d.Set("role_definition_name", pointer.From(roleResp.Model.Properties.RoleName))
 			}
 
-			if roleProps := roleResp.RoleDefinitionProperties; roleProps != nil {
-				d.Set("role_definition_name", roleProps.RoleName)
-			}
 		}
 	}
 
@@ -415,15 +432,21 @@ func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *authoriza
 	}
 }
 
-func getTenantIdBySubscriptionId(ctx context.Context, client *subscriptions.Client, subscriptionId string) (string, error) {
-	resp, err := client.Get(ctx, subscriptionId)
+func getTenantIdBySubscriptionId(ctx context.Context, client *subscriptions.SubscriptionsClient, subscriptionId string) (string, error) {
+	id := commonids.NewSubscriptionID(subscriptionId)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		return "", fmt.Errorf("get tenant Id by Subscription %s: %+v", subscriptionId, err)
+		return "", fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if resp.TenantID == nil {
-		return "", fmt.Errorf("tenant Id is nil by Subscription %s: %+v", subscriptionId, resp)
+	tenantId := ""
+	if model := resp.Model; model != nil && model.TenantId != nil {
+		tenantId = *model.TenantId
 	}
-	return *resp.TenantID, nil
+
+	if tenantId == "" {
+		return "", fmt.Errorf("retrieving %s: `tenantId` was nil", id)
+	}
+	return tenantId, nil
 }
 
 func normalizeScopeValue(scope string) (result string) {

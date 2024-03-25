@@ -19,7 +19,7 @@ data "azurerm_private_link_service_endpoint_connections" "example" {
 }
 
 output "private_endpoint_status" {
-  value = data.azurerm_private_link_service_endpoint_connections.example.private_endpoint_connections.0.status
+  value = data.azurerm_private_link_service_endpoint_connections.example.private_endpoint_connections[0].status
 }
 ```
 

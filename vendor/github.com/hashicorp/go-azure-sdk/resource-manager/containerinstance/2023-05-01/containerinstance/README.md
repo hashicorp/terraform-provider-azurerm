@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 ```
 
@@ -85,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ContainerGroupsList(ctx, id)` can be used to do batched pagination
 items, err := client.ContainerGroupsListComplete(ctx, id)
@@ -102,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ContainerGroupsListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ContainerGroupsListByResourceGroupComplete(ctx, id)
@@ -283,7 +284,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := containerinstance.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
+id := commonids.NewSubnetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue", "subnetValue")
 
 if err := client.SubnetServiceAssociationLinkDeleteThenPoll(ctx, id); err != nil {
 	// handle the error

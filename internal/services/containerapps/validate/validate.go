@@ -82,21 +82,6 @@ func ContainerAppName(i interface{}, k string) (warnings []string, errors []erro
 	return
 }
 
-func ContainerCpu(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(float64)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be float", k))
-		return
-	}
-	switch v {
-	case 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0:
-	default:
-		errors = append(errors, fmt.Errorf("%s must be one of `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, or `2.0`", k))
-	}
-
-	return
-}
-
 func ManagedEnvironmentStorageName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

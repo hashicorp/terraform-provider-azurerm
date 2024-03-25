@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = HostnameConfigurationId{}
+var _ resourceids.ResourceId = &HostnameConfigurationId{}
 
 // HostnameConfigurationId is a struct representing the Resource ID for a Hostname Configuration
 type HostnameConfigurationId struct {
@@ -34,7 +34,7 @@ func NewHostnameConfigurationID(subscriptionId string, resourceGroupName string,
 
 // ParseHostnameConfigurationID parses 'input' into a HostnameConfigurationId
 func ParseHostnameConfigurationID(input string) (*HostnameConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HostnameConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&HostnameConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseHostnameConfigurationID(input string) (*HostnameConfigurationId, error
 // ParseHostnameConfigurationIDInsensitively parses 'input' case-insensitively into a HostnameConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseHostnameConfigurationIDInsensitively(input string) (*HostnameConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HostnameConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&HostnameConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

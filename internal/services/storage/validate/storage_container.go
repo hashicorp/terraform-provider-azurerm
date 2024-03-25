@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
 func StorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
@@ -36,7 +38,11 @@ func StorageContainerDataPlaneID(input interface{}, key string) (warnings []stri
 		return
 	}
 
-	if _, err := parse.StorageContainerDataPlaneID(v); err != nil {
+	if client.StorageDomainSuffix == nil {
+		return validation.IsURLWithPath(input, key)
+	}
+
+	if _, err := containers.ParseContainerID(v, *client.StorageDomainSuffix); err != nil {
 		errors = append(errors, err)
 	}
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DatabaseAccountNameId{}
+var _ resourceids.ResourceId = &DatabaseAccountNameId{}
 
 // DatabaseAccountNameId is a struct representing the Resource ID for a Database Account Name
 type DatabaseAccountNameId struct {
@@ -26,7 +26,7 @@ func NewDatabaseAccountNameID(databaseAccountName string) DatabaseAccountNameId 
 
 // ParseDatabaseAccountNameID parses 'input' into a DatabaseAccountNameId
 func ParseDatabaseAccountNameID(input string) (*DatabaseAccountNameId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DatabaseAccountNameId{})
+	parser := resourceids.NewParserFromResourceIdType(&DatabaseAccountNameId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -43,7 +43,7 @@ func ParseDatabaseAccountNameID(input string) (*DatabaseAccountNameId, error) {
 // ParseDatabaseAccountNameIDInsensitively parses 'input' case-insensitively into a DatabaseAccountNameId
 // note: this method should only be used for API response data and not user input
 func ParseDatabaseAccountNameIDInsensitively(input string) (*DatabaseAccountNameId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DatabaseAccountNameId{})
+	parser := resourceids.NewParserFromResourceIdType(&DatabaseAccountNameId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

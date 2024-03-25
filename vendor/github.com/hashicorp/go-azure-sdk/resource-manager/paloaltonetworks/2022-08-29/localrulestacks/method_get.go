@@ -43,7 +43,10 @@ func (c LocalRulestacksClient) Get(ctx context.Context, id LocalRulestackId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LocalRulestackResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

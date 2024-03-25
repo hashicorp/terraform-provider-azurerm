@@ -77,7 +77,10 @@ func (c ApiVersionSetClient) CreateOrUpdate(ctx context.Context, id ApiVersionSe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiVersionSetContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

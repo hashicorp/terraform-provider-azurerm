@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ClientEncryptionKeyId{}
+var _ resourceids.ResourceId = &ClientEncryptionKeyId{}
 
 // ClientEncryptionKeyId is a struct representing the Resource ID for a Client Encryption Key
 type ClientEncryptionKeyId struct {
@@ -34,7 +34,7 @@ func NewClientEncryptionKeyID(subscriptionId string, resourceGroupName string, d
 
 // ParseClientEncryptionKeyID parses 'input' into a ClientEncryptionKeyId
 func ParseClientEncryptionKeyID(input string) (*ClientEncryptionKeyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ClientEncryptionKeyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ClientEncryptionKeyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseClientEncryptionKeyID(input string) (*ClientEncryptionKeyId, error) {
 // ParseClientEncryptionKeyIDInsensitively parses 'input' case-insensitively into a ClientEncryptionKeyId
 // note: this method should only be used for API response data and not user input
 func ParseClientEncryptionKeyIDInsensitively(input string) (*ClientEncryptionKeyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ClientEncryptionKeyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ClientEncryptionKeyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -17,9 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -165,7 +166,12 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: networkValidate.PublicIpPrefixID,
-						RequiredWith: []string{"default_node_pool.0.enable_node_public_ip"},
+						RequiredWith: func() []string {
+							if !features.FourPointOhBeta() {
+								return []string{"default_node_pool.0.enable_node_public_ip"}
+							}
+							return []string{"default_node_pool.0.node_public_ip_enabled"}
+						}(),
 					},
 
 					"node_taints": {
@@ -568,7 +574,7 @@ func schemaNodePoolLinuxOSConfigForceNew() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"sysctl_config": schemaNodePoolSysctlConfig(),
+				"sysctl_config": schemaNodePoolSysctlConfigForceNew(),
 
 				"transparent_huge_page_enabled": {
 					Type:     pluginsdk.TypeString,
@@ -605,6 +611,190 @@ func schemaNodePoolLinuxOSConfigForceNew() *pluginsdk.Schema {
 }
 
 func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"fs_aio_max_nr": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(65536, 6553500),
+				},
+
+				"fs_file_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(8192, 12000500),
+				},
+
+				"fs_inotify_max_user_watches": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(781250, 2097152),
+				},
+
+				"fs_nr_open": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(8192, 20000500),
+				},
+
+				"kernel_threads_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(20, 513785),
+				},
+
+				"net_core_netdev_max_backlog": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1000, 3240000),
+				},
+
+				"net_core_optmem_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(20480, 4194304),
+				},
+
+				"net_core_rmem_default": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(212992, 134217728),
+				},
+
+				"net_core_rmem_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(212992, 134217728),
+				},
+
+				"net_core_somaxconn": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(4096, 3240000),
+				},
+
+				"net_core_wmem_default": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(212992, 134217728),
+				},
+
+				"net_core_wmem_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(212992, 134217728),
+				},
+
+				"net_ipv4_ip_local_port_range_min": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1024, 60999),
+				},
+
+				"net_ipv4_ip_local_port_range_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(32768, 65535),
+				},
+
+				"net_ipv4_neigh_default_gc_thresh1": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(128, 80000),
+				},
+
+				"net_ipv4_neigh_default_gc_thresh2": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(512, 90000),
+				},
+
+				"net_ipv4_neigh_default_gc_thresh3": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1024, 100000),
+				},
+
+				"net_ipv4_tcp_fin_timeout": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(5, 120),
+				},
+
+				"net_ipv4_tcp_keepalive_intvl": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(10, 90),
+				},
+
+				"net_ipv4_tcp_keepalive_probes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 15),
+				},
+
+				"net_ipv4_tcp_keepalive_time": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(30, 432000),
+				},
+
+				"net_ipv4_tcp_max_syn_backlog": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(128, 3240000),
+				},
+
+				"net_ipv4_tcp_max_tw_buckets": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(8000, 1440000),
+				},
+
+				"net_ipv4_tcp_tw_reuse": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"net_netfilter_nf_conntrack_buckets": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(65536, 524288),
+				},
+
+				"net_netfilter_nf_conntrack_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(131072, 2097152),
+				},
+
+				"vm_max_map_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(65530, 262144),
+				},
+
+				"vm_swappiness": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"vm_vfs_cache_pressure": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+			},
+		},
+	}
+}
+
+func schemaNodePoolSysctlConfigForceNew() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -825,6 +1015,44 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"allowed_host_ports": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"port_start": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
+
+							"port_end": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
+
+							"protocol": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(agentpools.ProtocolTCP),
+									string(agentpools.ProtocolUDP),
+								}, false),
+							},
+						},
+					},
+				},
+
+				"application_security_group_ids": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
+					},
+				},
+
 				"node_public_ip_tags": {
 					Type:     pluginsdk.TypeMap,
 					Optional: true,
@@ -902,6 +1130,18 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	}
 	if networkProfileRaw := defaultCluster.NetworkProfile; networkProfileRaw != nil {
 		networkProfile := agentpools.AgentPoolNetworkProfile{}
+		if allowedHostPortsRaw := networkProfileRaw.AllowedHostPorts; allowedHostPortsRaw != nil {
+			allowedHostPorts := make([]agentpools.PortRange, 0)
+			for _, allowedHostPortRaw := range *allowedHostPortsRaw {
+				allowedHostPorts = append(allowedHostPorts, agentpools.PortRange{
+					PortStart: allowedHostPortRaw.PortStart,
+					PortEnd:   allowedHostPortRaw.PortEnd,
+					Protocol:  pointer.To(agentpools.Protocol(pointer.From(allowedHostPortRaw.Protocol))),
+				})
+			}
+			networkProfile.AllowedHostPorts = &allowedHostPorts
+		}
+		networkProfile.ApplicationSecurityGroups = networkProfileRaw.ApplicationSecurityGroups
 		if nodePublicIPTagsRaw := networkProfileRaw.NodePublicIPTags; nodePublicIPTagsRaw != nil {
 			ipTags := make([]agentpools.IPTag, 0)
 			for _, ipTagRaw := range *nodePublicIPTagsRaw {
@@ -1975,8 +2215,37 @@ func expandClusterPoolNetworkProfile(input []interface{}) *managedclusters.Agent
 	}
 	v := input[0].(map[string]interface{})
 	return &managedclusters.AgentPoolNetworkProfile{
-		NodePublicIPTags: expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
+		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPorts(v["allowed_host_ports"].([]interface{})),
+		ApplicationSecurityGroups: utils.ExpandStringSlice(v["application_security_group_ids"].([]interface{})),
+		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTags(v["node_public_ip_tags"].(map[string]interface{})),
 	}
+}
+
+func expandClusterPoolNetworkProfileAllowedHostPorts(input []interface{}) *[]managedclusters.PortRange {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make([]managedclusters.PortRange, 0)
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+		var portEnd, portStart int64
+		var protocol managedclusters.Protocol
+		if raw["port_end"] != nil {
+			portEnd = int64(raw["port_end"].(int))
+		}
+		if raw["port_start"] != nil {
+			portStart = int64(raw["port_start"].(int))
+		}
+		if raw["protocol"] != nil {
+			protocol = managedclusters.Protocol(raw["protocol"].(string))
+		}
+		out = append(out, managedclusters.PortRange{
+			PortEnd:   pointer.To(portEnd),
+			PortStart: pointer.To(portStart),
+			Protocol:  pointer.To(protocol),
+		})
+	}
+	return &out
 }
 
 func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{}) *[]managedclusters.IPTag {
@@ -1996,15 +2265,31 @@ func expandClusterPoolNetworkProfileNodePublicIPTags(input map[string]interface{
 }
 
 func flattenClusterPoolNetworkProfile(input *managedclusters.AgentPoolNetworkProfile) []interface{} {
-	if input == nil || input.NodePublicIPTags == nil {
+	if input == nil || input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil {
 		return []interface{}{}
 	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"node_public_ip_tags": flattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
+			"allowed_host_ports":             flattenClusterPoolNetworkProfileAllowedHostPorts(input.AllowedHostPorts),
+			"application_security_group_ids": utils.FlattenStringSlice(input.ApplicationSecurityGroups),
+			"node_public_ip_tags":            flattenClusterPoolNetworkProfileNodePublicIPTags(input.NodePublicIPTags),
 		},
 	}
+}
+
+func flattenClusterPoolNetworkProfileAllowedHostPorts(input *[]managedclusters.PortRange) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	out := make([]interface{}, 0)
+	for _, portRange := range *input {
+		out = append(out, map[string]interface{}{
+			"port_end":   pointer.From(portRange.PortEnd),
+			"port_start": pointer.From(portRange.PortStart),
+			"protocol":   pointer.From(portRange.Protocol),
+		})
+	}
+	return out
 }
 
 func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.IPTag) map[string]interface{} {

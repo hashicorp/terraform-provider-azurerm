@@ -23,7 +23,7 @@ func TestAccLinuxFunctionApp_authV2AzureActiveDirectory(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -39,7 +39,7 @@ func TestAccLinuxFunctionApp_authV2AzureActiveDirectoryNoSecretName(t *testing.T
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -55,7 +55,7 @@ func TestAccLinuxFunctionApp_authV2AzureActiveDirectoryRemove(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.basic(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,7 +63,7 @@ func TestAccLinuxFunctionApp_authV2AzureActiveDirectoryRemove(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -79,7 +79,7 @@ func TestAccLinuxFunctionApp_authV2Apple(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -95,7 +95,7 @@ func TestAccLinuxFunctionApp_authV2AppleCustomSettingName(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -111,7 +111,7 @@ func TestAccLinuxFunctionApp_authV2CustomOIDC(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -127,7 +127,7 @@ func TestAccLinuxFunctionApp_authV2Facebook(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -143,7 +143,7 @@ func TestAccLinuxFunctionApp_authV2Github(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -159,7 +159,7 @@ func TestAccLinuxFunctionApp_authV2Google(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -175,7 +175,7 @@ func TestAccLinuxFunctionApp_authV2Microsoft(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -191,7 +191,7 @@ func TestAccLinuxFunctionApp_authV2Twitter(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -207,7 +207,7 @@ func TestAccLinuxFunctionApp_authV2MultipleAuths(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -223,7 +223,7 @@ func TestAccLinuxFunctionApp_authV2Update(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.authV2Google(data, SkuBasicPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -231,7 +231,7 @@ func TestAccLinuxFunctionApp_authV2Update(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -247,7 +247,7 @@ func TestAccLinuxFunctionApp_authV2UpgradeFromV1(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.completeAuthV2(data, SkuBasicPlan),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -255,7 +255,7 @@ func TestAccLinuxFunctionApp_authV2UpgradeFromV1(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 

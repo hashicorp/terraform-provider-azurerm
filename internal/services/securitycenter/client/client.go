@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2021-06-01/assessmentsmetadata"
@@ -31,14 +33,17 @@ type Client struct {
 	DefenderForStorageClient                   *defenderforstorage.DefenderForStorageClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) (*Client, error) {
 	ascLocation := "Global"
 
 	AssessmentsClient := security.NewAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	AssessmentsMetadataClient := assessmentsmetadata.NewAssessmentsMetadataClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AssessmentsMetadataClient.Client, o.ResourceManagerAuthorizer)
+	AssessmentsMetadataClient, err := assessmentsmetadata.NewAssessmentsMetadataClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Assessments Metadata client : %+v", err)
+	}
+	o.Configure(AssessmentsMetadataClient.Client, o.Authorizers.ResourceManager)
 
 	ContactsClient := security.NewContactsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&ContactsClient.Client, o.ResourceManagerAuthorizer)
@@ -49,8 +54,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	IotSecuritySolutionClient := security.NewIotSecuritySolutionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&IotSecuritySolutionClient.Client, o.ResourceManagerAuthorizer)
 
-	PricingClient := pricings_v2023_01_01.NewPricingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&PricingClient.Client, o.ResourceManagerAuthorizer)
+	PricingClient, err := pricings_v2023_01_01.NewPricingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Pricing client : %+v", err)
+	}
+	o.Configure(PricingClient.Client, o.Authorizers.ResourceManager)
 
 	WorkspaceClient := security.NewWorkspaceSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&WorkspaceClient.Client, o.ResourceManagerAuthorizer)
@@ -61,35 +69,47 @@ func NewClient(o *common.ClientOptions) *Client {
 	AutoProvisioningClient := security.NewAutoProvisioningSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AutoProvisioningClient.Client, o.ResourceManagerAuthorizer)
 
-	SettingClient := settings.NewSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&SettingClient.Client, o.ResourceManagerAuthorizer)
+	SettingClient, err := settings.NewSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Setting client : %+v", err)
+	}
+	o.Configure(SettingClient.Client, o.Authorizers.ResourceManager)
 
-	AutomationsClient := automations.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
+	AutomationsClient, err := automations.NewAutomationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Automations client : %+v", err)
+	}
+	o.Configure(AutomationsClient.Client, o.Authorizers.ResourceManager)
 
 	ServerVulnerabilityAssessmentClient := security.NewServerVulnerabilityAssessmentClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&ServerVulnerabilityAssessmentClient.Client, o.ResourceManagerAuthorizer)
 
-	ServerVulnerabilityAssessmentSettingClient := servervulnerabilityassessmentssettings.NewServerVulnerabilityAssessmentsSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ServerVulnerabilityAssessmentSettingClient.Client, o.ResourceManagerAuthorizer)
+	ServerVulnerabilityAssessmentSettingClient, err := servervulnerabilityassessmentssettings.NewServerVulnerabilityAssessmentsSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Server Vulnerability Assessment Setting client : %+v", err)
+	}
+	o.Configure(ServerVulnerabilityAssessmentSettingClient.Client, o.Authorizers.ResourceManager)
 
-	DefenderForStorageClient := defenderforstorage.NewDefenderForStorageClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DefenderForStorageClient.Client, o.ResourceManagerAuthorizer)
+	DefenderForStorageClient, err := defenderforstorage.NewDefenderForStorageClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Defender For Storage client : %+v", err)
+	}
+	o.Configure(DefenderForStorageClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		AssessmentsClient:                          &AssessmentsClient,
-		AssessmentsMetadataClient:                  &AssessmentsMetadataClient,
+		AssessmentsMetadataClient:                  AssessmentsMetadataClient,
 		ContactsClient:                             &ContactsClient,
 		DeviceSecurityGroupsClient:                 &DeviceSecurityGroupsClient,
 		IotSecuritySolutionClient:                  &IotSecuritySolutionClient,
-		PricingClient:                              &PricingClient,
+		PricingClient:                              PricingClient,
 		WorkspaceClient:                            &WorkspaceClient,
 		AdvancedThreatProtectionClient:             &AdvancedThreatProtectionClient,
 		AutoProvisioningClient:                     &AutoProvisioningClient,
-		SettingClient:                              &SettingClient,
-		AutomationsClient:                          &AutomationsClient,
+		SettingClient:                              SettingClient,
+		AutomationsClient:                          AutomationsClient,
 		ServerVulnerabilityAssessmentClient:        &ServerVulnerabilityAssessmentClient,
-		ServerVulnerabilityAssessmentSettingClient: &ServerVulnerabilityAssessmentSettingClient,
-		DefenderForStorageClient:                   &DefenderForStorageClient,
-	}
+		ServerVulnerabilityAssessmentSettingClient: ServerVulnerabilityAssessmentSettingClient,
+		DefenderForStorageClient:                   DefenderForStorageClient,
+	}, nil
 }

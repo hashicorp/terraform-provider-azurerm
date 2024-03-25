@@ -44,7 +44,10 @@ func (c AppliancesClient) ListClusterUserCredential(ctx context.Context, id Appl
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApplianceListCredentialResults
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

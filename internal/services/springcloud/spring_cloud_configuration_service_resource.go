@@ -4,314 +4,402 @@
 package springcloud
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
-func resourceSpringCloudConfigurationService() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceSpringCloudConfigurationServiceCreateUpdate,
-		Read:   resourceSpringCloudConfigurationServiceRead,
-		Update: resourceSpringCloudConfigurationServiceCreateUpdate,
-		Delete: resourceSpringCloudConfigurationServiceDelete,
+type SpringCloudConfigurationServiceModel struct {
+	Name                 string                       `tfschema:"name"`
+	SpringCloudServiceId string                       `tfschema:"spring_cloud_service_id"`
+	Generation           string                       `tfschema:"generation"`
+	RefreshInterval      int64                        `tfschema:"refresh_interval_in_seconds"`
+	Repository           []SpringCloudRepositoryModel `tfschema:"repository"`
+}
 
-		SchemaVersion: 1,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.SpringCloudConfigurationServiceV0ToV1{},
-		}),
+type SpringCloudRepositoryModel struct {
+	Name                  string   `tfschema:"name"`
+	Label                 string   `tfschema:"label"`
+	Patterns              []string `tfschema:"patterns"`
+	Uri                   string   `tfschema:"uri"`
+	CaCertificateId       string   `tfschema:"ca_certificate_id"`
+	HostKey               string   `tfschema:"host_key"`
+	HostKeyAlgorithm      string   `tfschema:"host_key_algorithm"`
+	Password              string   `tfschema:"password"`
+	PrivateKey            string   `tfschema:"private_key"`
+	SearchPaths           []string `tfschema:"search_paths"`
+	StrictHostKeyChecking bool     `tfschema:"strict_host_key_checking"`
+	Username              string   `tfschema:"username"`
+}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+type SpringCloudConfigurationServiceResource struct{}
+
+var _ sdk.ResourceWithUpdate = SpringCloudConfigurationServiceResource{}
+var _ sdk.ResourceWithStateMigration = SpringCloudConfigurationServiceResource{}
+
+func (s SpringCloudConfigurationServiceResource) ResourceType() string {
+	return "azurerm_spring_cloud_configuration_service"
+}
+
+func (s SpringCloudConfigurationServiceResource) Arguments() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"default",
+			}, false),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SpringCloudConfigurationServiceID(id)
-			return err
-		}),
+		"spring_cloud_service_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.SpringCloudServiceID,
+		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"default",
-				}, false),
-			},
+		"generation": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(appplatform.ConfigurationServiceGenerationGenOne),
+				string(appplatform.ConfigurationServiceGenerationGenTwo),
+			}, false),
+		},
 
-			"spring_cloud_service_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.SpringCloudServiceID,
-			},
+		"refresh_interval_in_seconds": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(0),
+		},
 
-			"generation": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(appplatform.ConfigurationServiceGenerationGen1),
-					string(appplatform.ConfigurationServiceGenerationGen2),
-				}, false),
-			},
+		"repository": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-			"repository": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
+					"label": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"patterns": {
+						Type:     pluginsdk.TypeSet,
+						Required: true,
+						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"label": {
+					"uri": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"ca_certificate_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.SpringCloudCertificateID,
+					},
+
+					"host_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"host_key_algorithm": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"password": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"private_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"search_paths": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"patterns": {
-							Type:     pluginsdk.TypeSet,
-							Required: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
+					"strict_host_key_checking": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
 
-						"uri": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"ca_certificate_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.SpringCloudCertificateID,
-						},
-
-						"host_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"host_key_algorithm": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"password": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"private_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"search_paths": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"strict_host_key_checking": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"username": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"username": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
 		},
 	}
 }
-func resourceSpringCloudConfigurationServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).AppPlatform.ConfigurationServiceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
-	springId, err := parse.SpringCloudServiceID(d.Get("spring_cloud_service_id").(string))
-	if err != nil {
-		return err
-	}
-	id := parse.NewSpringCloudConfigurationServiceID(subscriptionId, springId.ResourceGroup, springId.SpringName, d.Get("name").(string))
+func (s SpringCloudConfigurationServiceResource) Attributes() map[string]*schema.Schema {
+	return map[string]*schema.Schema{}
+}
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_configuration_service", id.ID())
-		}
-	}
+func (s SpringCloudConfigurationServiceResource) ModelObject() interface{} {
+	return &SpringCloudConfigurationServiceModel{}
+}
 
-	configurationServiceResource := appplatform.ConfigurationServiceResource{
-		Properties: &appplatform.ConfigurationServiceProperties{
-			Generation: appplatform.ConfigurationServiceGeneration(d.Get("generation").(string)),
-			Settings: &appplatform.ConfigurationServiceSettings{
-				GitProperty: &appplatform.ConfigurationServiceGitProperty{
-					Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(d.Get("repository").([]interface{})),
-				},
-			},
+func (s SpringCloudConfigurationServiceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.SpringCloudConfigurationServiceID
+}
+
+func (s SpringCloudConfigurationServiceResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.SpringCloudConfigurationServiceV0ToV1{},
 		},
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName, configurationServiceResource)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	return resourceSpringCloudConfigurationServiceRead(d, meta)
 }
 
-func resourceSpringCloudConfigurationServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AppPlatform.ConfigurationServiceClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (s SpringCloudConfigurationServiceResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model SpringCloudConfigurationServiceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	id, err := parse.SpringCloudConfigurationServiceID(d.Id())
-	if err != nil {
-		return err
-	}
+			client := metadata.Client.AppPlatform.AppPlatformClient
+			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
+			if err != nil {
+				return err
+			}
+			id := appplatform.NewConfigurationServiceID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] appplatform %q does not exist - removing from state", d.Id())
-			d.SetId("")
+			existing, err := client.ConfigurationServicesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+			}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(s.ResourceType(), id)
+			}
+
+			configurationServiceResource := appplatform.ConfigurationServiceResource{
+				Properties: &appplatform.ConfigurationServiceProperties{
+					Generation: pointer.To(appplatform.ConfigurationServiceGeneration(model.Generation)),
+					Settings: &appplatform.ConfigurationServiceSettings{
+						GitProperty: &appplatform.ConfigurationServiceGitProperty{
+							Repositories: expandConfigurationServiceConfigurationServiceGitRepositoryArray(model.Repository),
+						},
+						RefreshIntervalInSeconds: pointer.To(model.RefreshInterval),
+					},
+				},
+			}
+			err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource)
+			if err != nil {
+				return fmt.Errorf("creating/updating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
 			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		},
 	}
-	d.Set("name", id.ConfigurationServiceName)
-	d.Set("spring_cloud_service_id", parse.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroup, id.SpringName).ID())
-	if props := resp.Properties; props != nil {
-		d.Set("generation", props.Generation)
-		if props.Settings != nil && props.Settings.GitProperty != nil {
-			d.Set("repository", flattenConfigurationServiceConfigurationServiceGitRepositoryArray(props.Settings.GitProperty.Repositories, d.Get("repository").([]interface{})))
-		}
-	}
-	return nil
 }
 
-func resourceSpringCloudConfigurationServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).AppPlatform.ConfigurationServiceClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (s SpringCloudConfigurationServiceResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model SpringCloudConfigurationServiceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	id, err := parse.SpringCloudConfigurationServiceID(d.Id())
-	if err != nil {
-		return err
-	}
+			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
+			if err != nil {
+				return err
+			}
+			id := appplatform.NewConfigurationServiceID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.ConfigurationServiceName)
-	if err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
+			client := metadata.Client.AppPlatform.AppPlatformClient
+			existing, err := client.ConfigurationServicesGet(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for existing %s: %+v", id, err)
+				}
+			}
+			if existing.Model == nil || existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model was nil", id)
+			}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+			properties := existing.Model.Properties
+			if metadata.ResourceData.HasChange("generation") {
+				properties.Generation = pointer.To(appplatform.ConfigurationServiceGeneration(model.Generation))
+			}
+
+			if metadata.ResourceData.HasChange("repository") {
+				properties.Settings.GitProperty.Repositories = expandConfigurationServiceConfigurationServiceGitRepositoryArray(model.Repository)
+			}
+
+			if metadata.ResourceData.HasChange("refresh_interval_in_seconds") {
+				properties.Settings.RefreshIntervalInSeconds = pointer.To(model.RefreshInterval)
+			}
+
+			configurationServiceResource := appplatform.ConfigurationServiceResource{
+				Properties: properties,
+			}
+			err = client.ConfigurationServicesCreateOrUpdateThenPoll(ctx, id, configurationServiceResource)
+			if err != nil {
+				return fmt.Errorf("creating/updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
 	}
-	return nil
 }
 
-func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []interface{}) *[]appplatform.ConfigurationServiceGitRepository {
+func (s SpringCloudConfigurationServiceResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppPlatform.AppPlatformClient
+
+			id, err := appplatform.ParseConfigurationServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.ConfigurationServicesGet(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
+
+			var model SpringCloudConfigurationServiceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			state := SpringCloudConfigurationServiceModel{
+				Name:                 id.ConfigurationServiceName,
+				SpringCloudServiceId: springId.ID(),
+			}
+
+			if resp.Model != nil {
+				if props := resp.Model.Properties; props != nil {
+					state.Generation = string(pointer.From(props.Generation))
+					if props.Settings != nil && props.Settings.GitProperty != nil {
+						state.Repository = flattenConfigurationServiceConfigurationServiceGitRepositoryArray(props.Settings.GitProperty.Repositories, model.Repository)
+						state.RefreshInterval = pointer.From(props.Settings.RefreshIntervalInSeconds)
+					}
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (s SpringCloudConfigurationServiceResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppPlatform.AppPlatformClient
+
+			id, err := appplatform.ParseConfigurationServiceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			err = client.ConfigurationServicesDeleteThenPoll(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+func expandConfigurationServiceConfigurationServiceGitRepositoryArray(input []SpringCloudRepositoryModel) *[]appplatform.ConfigurationServiceGitRepository {
 	if len(input) == 0 {
 		return nil
 	}
 	results := make([]appplatform.ConfigurationServiceGitRepository, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
+	for _, v := range input {
 		repo := appplatform.ConfigurationServiceGitRepository{
-			Name:                  utils.String(v["name"].(string)),
-			Patterns:              utils.ExpandStringSlice(v["patterns"].(*pluginsdk.Set).List()),
-			URI:                   utils.String(v["uri"].(string)),
-			Label:                 utils.String(v["label"].(string)),
-			SearchPaths:           utils.ExpandStringSlice(v["search_paths"].(*pluginsdk.Set).List()),
-			Username:              utils.String(v["username"].(string)),
-			Password:              utils.String(v["password"].(string)),
-			HostKey:               utils.String(v["host_key"].(string)),
-			HostKeyAlgorithm:      utils.String(v["host_key_algorithm"].(string)),
-			PrivateKey:            utils.String(v["private_key"].(string)),
-			StrictHostKeyChecking: utils.Bool(v["strict_host_key_checking"].(bool)),
+			Name:                  v.Name,
+			Patterns:              v.Patterns,
+			Uri:                   v.Uri,
+			Label:                 v.Label,
+			SearchPaths:           pointer.To(v.SearchPaths),
+			Username:              pointer.To(v.Username),
+			Password:              pointer.To(v.Password),
+			HostKey:               pointer.To(v.HostKey),
+			HostKeyAlgorithm:      pointer.To(v.HostKeyAlgorithm),
+			PrivateKey:            pointer.To(v.PrivateKey),
+			StrictHostKeyChecking: pointer.To(v.StrictHostKeyChecking),
 		}
-		if caCertificatedId := v["ca_certificate_id"].(string); caCertificatedId != "" {
-			repo.CaCertResourceID = utils.String(caCertificatedId)
+		if v.CaCertificateId != "" {
+			repo.CaCertResourceId = pointer.To(v.CaCertificateId)
 		}
 		results = append(results, repo)
 	}
 	return &results
 }
 
-func flattenConfigurationServiceConfigurationServiceGitRepositoryArray(input *[]appplatform.ConfigurationServiceGitRepository, old []interface{}) []interface{} {
-	results := make([]interface{}, 0)
+func flattenConfigurationServiceConfigurationServiceGitRepositoryArray(input *[]appplatform.ConfigurationServiceGitRepository, old []SpringCloudRepositoryModel) []SpringCloudRepositoryModel {
+	results := make([]SpringCloudRepositoryModel, 0)
 	if input == nil {
 		return results
 	}
 
-	oldItems := make(map[string]map[string]interface{})
-	for _, item := range old {
-		v := item.(map[string]interface{})
-		if name, ok := v["name"]; ok {
-			oldItems[name.(string)] = v
-		}
+	oldItems := make(map[string]SpringCloudRepositoryModel)
+	for _, v := range old {
+		oldItems[v.Name] = v
 	}
 
 	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-		var label string
-		if item.Label != nil {
-			label = *item.Label
-		}
-		var uri string
-		if item.URI != nil {
-			uri = *item.URI
-		}
 
 		var strictHostKeyChecking bool
 		if item.StrictHostKeyChecking != nil {
@@ -323,44 +411,34 @@ func flattenConfigurationServiceConfigurationServiceGitRepositoryArray(input *[]
 		var privateKey string
 		var username string
 		var password string
-		if oldItem, ok := oldItems[name]; ok {
-			if value, ok := oldItem["host_key"]; ok {
-				hostKey = value.(string)
-			}
-			if value, ok := oldItem["host_key_algorithm"]; ok {
-				hostKeyAlgorithm = value.(string)
-			}
-			if value, ok := oldItem["password"]; ok {
-				password = value.(string)
-			}
-			if value, ok := oldItem["private_key"]; ok {
-				privateKey = value.(string)
-			}
-			if value, ok := oldItem["username"]; ok {
-				username = value.(string)
-			}
+		if oldItem, ok := oldItems[item.Name]; ok {
+			hostKey = oldItem.HostKey
+			hostKeyAlgorithm = oldItem.HostKeyAlgorithm
+			privateKey = oldItem.PrivateKey
+			username = oldItem.Username
+			password = oldItem.Password
 		}
 
 		var caCertificateId string
-		if item.CaCertResourceID != nil {
-			certificatedId, err := parse.SpringCloudCertificateIDInsensitively(*item.CaCertResourceID)
+		if item.CaCertResourceId != nil {
+			certificatedId, err := appplatform.ParseCertificateIDInsensitively(*item.CaCertResourceId)
 			if err == nil {
 				caCertificateId = certificatedId.ID()
 			}
 		}
-		results = append(results, map[string]interface{}{
-			"ca_certificate_id":        caCertificateId,
-			"name":                     name,
-			"label":                    label,
-			"patterns":                 utils.FlattenStringSlice(item.Patterns),
-			"uri":                      uri,
-			"host_key":                 hostKey,
-			"host_key_algorithm":       hostKeyAlgorithm,
-			"password":                 password,
-			"private_key":              privateKey,
-			"search_paths":             utils.FlattenStringSlice(item.SearchPaths),
-			"strict_host_key_checking": strictHostKeyChecking,
-			"username":                 username,
+		results = append(results, SpringCloudRepositoryModel{
+			Name:                  item.Name,
+			Label:                 item.Label,
+			Patterns:              item.Patterns,
+			Uri:                   item.Uri,
+			CaCertificateId:       caCertificateId,
+			HostKey:               hostKey,
+			HostKeyAlgorithm:      hostKeyAlgorithm,
+			Password:              password,
+			PrivateKey:            privateKey,
+			SearchPaths:           pointer.From(item.SearchPaths),
+			StrictHostKeyChecking: strictHostKeyChecking,
+			Username:              username,
 		})
 	}
 	return results

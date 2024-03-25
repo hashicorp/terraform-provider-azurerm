@@ -143,7 +143,9 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
-* `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group`, or `ServicePrincpal`.
+* `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
+
+~> **NOTE:** If one of `condition` or `condition_version` is set both fields must be present.
 
 * `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
 
@@ -185,8 +187,9 @@ terraform import azurerm_role_assignment.example /subscriptions/00000000-0000-00
 
 * for scope `Subscription`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000`
 * for scope `Resource Group`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000`
+* for scope referencing a Key Vault, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.KeyVault/vaults/vaultname/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000`
 
-~> **NOTE:** for cross tenant scenario, the format of `resource id` is composed of Azure resource ID and tenantId. for example:
+~> **NOTE:** for cross tenant scenarios, the format of `resource id` is composed of Azure resource ID and tenantId. for example:
 
 ```text
 /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,6 +25,7 @@ type SpringCloudAPIPortalModel struct {
 	HttpsOnlyEnabled           bool                `tfschema:"https_only_enabled"`
 	InstanceCount              int                 `tfschema:"instance_count"`
 	PublicNetworkAccessEnabled bool                `tfschema:"public_network_access_enabled"`
+	ApiTryOutEnabled           bool                `tfschema:"api_try_out_enabled"`
 	Sso                        []ApiPortalSsoModel `tfschema:"sso"`
 	Url                        string              `tfschema:"url"`
 }
@@ -69,6 +70,11 @@ func (s SpringCloudAPIPortalResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSpringCloudServiceID,
+		},
+
+		"api_try_out_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 
 		"gateway_ids": {
@@ -184,12 +190,18 @@ func (s SpringCloudAPIPortalResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("invalid `sku` for %s", springId)
 			}
 
+			apiTryOutEnabledState := appplatform.ApiPortalApiTryOutEnabledStateDisabled
+			if model.ApiTryOutEnabled {
+				apiTryOutEnabledState = appplatform.ApiPortalApiTryOutEnabledStateEnabled
+			}
+
 			apiPortalResource := appplatform.ApiPortalResource{
 				Properties: &appplatform.ApiPortalProperties{
-					GatewayIds:    pointer.To(model.GatewayIds),
-					HTTPSOnly:     pointer.To(model.HttpsOnlyEnabled),
-					Public:        pointer.To(model.PublicNetworkAccessEnabled),
-					SsoProperties: expandAPIPortalSsoProperties(model.Sso),
+					GatewayIds:            pointer.To(model.GatewayIds),
+					HTTPSOnly:             pointer.To(model.HttpsOnlyEnabled),
+					Public:                pointer.To(model.PublicNetworkAccessEnabled),
+					SsoProperties:         expandAPIPortalSsoProperties(model.Sso),
+					ApiTryOutEnabledState: pointer.To(apiTryOutEnabledState),
 				},
 				Sku: &appplatform.Sku{
 					Name:     service.Model.Sku.Name,
@@ -262,6 +274,14 @@ func (s SpringCloudAPIPortalResource) Update() sdk.ResourceFunc {
 				sku.Capacity = pointer.To(int64(model.InstanceCount))
 			}
 
+			if metadata.ResourceData.HasChange("api_try_out_enabled") {
+				apiTryOutEnabledState := appplatform.ApiPortalApiTryOutEnabledStateDisabled
+				if model.ApiTryOutEnabled {
+					apiTryOutEnabledState = appplatform.ApiPortalApiTryOutEnabledStateEnabled
+				}
+				properties.ApiTryOutEnabledState = pointer.To(apiTryOutEnabledState)
+			}
+
 			apiPortalResource := appplatform.ApiPortalResource{
 				Properties: properties,
 				Sku:        sku,
@@ -312,6 +332,7 @@ func (s SpringCloudAPIPortalResource) Read() sdk.ResourceFunc {
 					state.HttpsOnlyEnabled = pointer.From(props.HTTPSOnly)
 					state.PublicNetworkAccessEnabled = pointer.From(props.Public)
 					state.Sso = flattenAPIPortalSsoProperties(props.SsoProperties, model.Sso)
+					state.ApiTryOutEnabled = props.ApiTryOutEnabledState != nil && *props.ApiTryOutEnabledState == appplatform.ApiPortalApiTryOutEnabledStateEnabled
 				}
 
 				if sku := resp.Model.Sku; sku != nil {

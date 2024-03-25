@@ -1,6 +1,10 @@
 package managedenvironments
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForCertificateProvisioningState() []string {
 		string(CertificateProvisioningStatePending),
 		string(CertificateProvisioningStateSucceeded),
 	}
+}
+
+func (s *CertificateProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCertificateProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCertificateProvisioningState(input string) (*CertificateProvisioningState, error) {
@@ -54,6 +71,19 @@ func PossibleValuesForCheckNameAvailabilityReason() []string {
 		string(CheckNameAvailabilityReasonAlreadyExists),
 		string(CheckNameAvailabilityReasonInvalid),
 	}
+}
+
+func (s *CheckNameAvailabilityReason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCheckNameAvailabilityReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCheckNameAvailabilityReason(input string) (*CheckNameAvailabilityReason, error) {
@@ -100,6 +130,19 @@ func PossibleValuesForEnvironmentProvisioningState() []string {
 	}
 }
 
+func (s *EnvironmentProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnvironmentProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEnvironmentProvisioningState(input string) (*EnvironmentProvisioningState, error) {
 	vals := map[string]EnvironmentProvisioningState{
 		"canceled":                      EnvironmentProvisioningStateCanceled,
@@ -136,6 +179,19 @@ func PossibleValuesForManagedCertificateDomainControlValidation() []string {
 		string(ManagedCertificateDomainControlValidationHTTP),
 		string(ManagedCertificateDomainControlValidationTXT),
 	}
+}
+
+func (s *ManagedCertificateDomainControlValidation) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseManagedCertificateDomainControlValidation(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseManagedCertificateDomainControlValidation(input string) (*ManagedCertificateDomainControlValidation, error) {

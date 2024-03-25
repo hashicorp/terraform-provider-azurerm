@@ -19,6 +19,7 @@ type GrantAccessOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *AccessUri
 }
 
 // GrantAccess ...

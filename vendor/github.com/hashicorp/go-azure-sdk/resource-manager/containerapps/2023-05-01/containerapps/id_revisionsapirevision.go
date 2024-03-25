@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RevisionsApiRevisionId{}
+var _ resourceids.ResourceId = &RevisionsApiRevisionId{}
 
 // RevisionsApiRevisionId is a struct representing the Resource ID for a Revisions Api Revision
 type RevisionsApiRevisionId struct {
@@ -32,7 +32,7 @@ func NewRevisionsApiRevisionID(subscriptionId string, resourceGroupName string, 
 
 // ParseRevisionsApiRevisionID parses 'input' into a RevisionsApiRevisionId
 func ParseRevisionsApiRevisionID(input string) (*RevisionsApiRevisionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RevisionsApiRevisionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RevisionsApiRevisionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseRevisionsApiRevisionID(input string) (*RevisionsApiRevisionId, error) 
 // ParseRevisionsApiRevisionIDInsensitively parses 'input' case-insensitively into a RevisionsApiRevisionId
 // note: this method should only be used for API response data and not user input
 func ParseRevisionsApiRevisionIDInsensitively(input string) (*RevisionsApiRevisionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RevisionsApiRevisionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RevisionsApiRevisionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

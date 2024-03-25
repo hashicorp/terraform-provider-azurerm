@@ -42,12 +42,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := workflowrunactions.NewActionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "runValue", "actionValue")
 
-read, err := client.CopeRepetitionsList(ctx, id)
+// alternatively `client.CopeRepetitionsList(ctx, id)` can be used to do batched pagination
+items, err := client.CopeRepetitionsListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -123,12 +124,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := workflowrunactions.NewActionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workflowValue", "runValue", "actionValue")
 
-read, err := client.WorkflowRunActionRepetitionsList(ctx, id)
+// alternatively `client.WorkflowRunActionRepetitionsList(ctx, id)` can be used to do batched pagination
+items, err := client.WorkflowRunActionRepetitionsListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

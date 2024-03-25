@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = UserDefinedFunctionId{}
+var _ resourceids.ResourceId = &UserDefinedFunctionId{}
 
 // UserDefinedFunctionId is a struct representing the Resource ID for a User Defined Function
 type UserDefinedFunctionId struct {
@@ -36,7 +36,7 @@ func NewUserDefinedFunctionID(subscriptionId string, resourceGroupName string, d
 
 // ParseUserDefinedFunctionID parses 'input' into a UserDefinedFunctionId
 func ParseUserDefinedFunctionID(input string) (*UserDefinedFunctionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UserDefinedFunctionId{})
+	parser := resourceids.NewParserFromResourceIdType(&UserDefinedFunctionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseUserDefinedFunctionID(input string) (*UserDefinedFunctionId, error) {
 // ParseUserDefinedFunctionIDInsensitively parses 'input' case-insensitively into a UserDefinedFunctionId
 // note: this method should only be used for API response data and not user input
 func ParseUserDefinedFunctionIDInsensitively(input string) (*UserDefinedFunctionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UserDefinedFunctionId{})
+	parser := resourceids.NewParserFromResourceIdType(&UserDefinedFunctionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

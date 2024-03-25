@@ -148,6 +148,8 @@ The following arguments are supported:
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
+* `local_user_enabled` - (Optional) Is Local User Enabled? Defaults to `true`.
+
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
 * `routing` - (Optional) A `routing` block as defined below.
@@ -170,6 +172,10 @@ The following arguments are supported:
 * `sftp_enabled` - (Optional) Boolean, enable SFTP for the storage account
 
 -> **NOTE:** SFTP support requires `is_hns_enabled` set to `true`. [More information on SFTP support can be found here](https://learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-support). Defaults to `false`
+
+* `dns_endpoint_type` - (Optional) Specifies which DNS endpoint type to use. Possible values are `Standard` and `AzureDnsZone`. Defaults to `Standard`. Changing this forces a new resource to be created.
+
+-> **NOTE:** Azure DNS zone support requires `PartitionedDns` feature to be enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace "Microsoft.Storage" --name "PartitionedDns"`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -342,7 +348,7 @@ A `network_rules` block supports the following:
 
 A `private_link_access` block supports the following:
 
-* `endpoint_resource_id` - (Required) The resource id of the resource access rule to be granted access.
+* `endpoint_resource_id` - (Required) The ID of the Azure resource that should be allowed access to the target storage account.
 
 * `endpoint_tenant_id` - (Optional) The tenant id of the resource of the resource access rule to be granted access. Defaults to the current tenant id.
 
@@ -602,7 +608,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
 
--> You can access the Principal ID via `${azurerm_storage_account.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity.0.tenant_id}`
+-> You can access the Principal ID via `${azurerm_storage_account.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity[0].tenant_id}`
 
 ## Timeouts
 

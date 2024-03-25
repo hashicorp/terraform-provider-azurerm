@@ -51,7 +51,7 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Credential with. Changing this forces a new resource.
 
-* `identity_id` - (Required) The Resouce ID of an existing User Assigned Managed Identity. This can be changed without recreating the resource.
+* `identity_id` - (Required) The Resouce ID of an existing User Assigned Managed Identity. This can be changed without recreating the resource. Changing this forces a new resource to be created.
 
 ~> **Note:** Attempting to create a Credential resource without first assigning the identity to the parent Data Factory will result in an Azure API error.
 
