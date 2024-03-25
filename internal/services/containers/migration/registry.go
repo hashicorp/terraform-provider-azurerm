@@ -6,7 +6,6 @@ package migration
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -44,30 +43,20 @@ func (RegistryV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		storageAccountId := ""
 		if v, ok := rawState["storage_account"]; ok {
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, time.Minute*5)
+			defer cancel()
+
 			raw := v.(*pluginsdk.Set).List()
 			rawVals := raw[0].(map[string]interface{})
 			storageAccountName := rawVals["name"].(string)
 
-			client := meta.(*clients.Client).Storage.AccountsClient
-			ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, time.Minute*5)
-			defer cancel()
-
-			accounts, err := client.ListComplete(ctx)
+			account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, storageAccountName)
 			if err != nil {
-				return rawState, fmt.Errorf("listing storage accounts")
+				return nil, fmt.Errorf("finding Storage Account %q: %+v", storageAccountName, err)
 			}
 
-			for accounts.NotDone() {
-				account := accounts.Value()
-				if strings.EqualFold(*account.Name, storageAccountName) {
-					storageAccountId = *account.ID
-					break
-				}
-
-				if err := accounts.NextWithContext(ctx); err != nil {
-					return rawState, fmt.Errorf("retrieving accounts: %+v", err)
-				}
-			}
+			storageAccountId = account.StorageAccountId.ID()
 		}
 
 		if storageAccountId == "" {

@@ -20,17 +20,20 @@ import (
 var StorageDomainSuffix *string
 
 type Client struct {
-	AccountsClient           *storage.AccountsClient
-	BlobServicesClient       *storage.BlobServicesClient
-	EncryptionScopesClient   *storage.EncryptionScopesClient
-	FileServicesClient       *storage.FileServicesClient
+	StorageDomainSuffix string
+
+	// NOTE: These SDK clients use `hashicorp/go-azure-sdk` and should be used going forwards
+	ResourceManager          *storage_v2023_01_01.Client
 	SyncCloudEndpointsClient *cloudendpointresource.CloudEndpointResourceClient
 	SyncGroupsClient         *syncgroupresource.SyncGroupResourceClient
 	SyncServiceClient        *storagesyncservicesresource.StorageSyncServicesResourceClient
 
-	ResourceManager *storage_v2023_01_01.Client
-
-	StorageDomainSuffix string
+	// NOTE: these SDK clients use the legacy `Azure/azure-sdk-for-go` and should no longer be used
+	// for new functionality - please instead use the `hashicorp/go-azure-sdk` clients above.
+	AccountsClient         *storage.AccountsClient
+	BlobServicesClient     *storage.BlobServicesClient
+	EncryptionScopesClient *storage.EncryptionScopesClient
+	FileServicesClient     *storage.FileServicesClient
 
 	authorizerForAad auth.Authorizer
 }
