@@ -139,7 +139,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `metadata`: %v", err)
 	}
 
-	resourceManagerId := parse.NewStorageShareResourceManagerID(account.ID.SubscriptionId, account.ID.ResourceGroupName, account.ID.StorageAccountName, "default", shareName)
+	resourceManagerId := parse.NewStorageShareResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", shareName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

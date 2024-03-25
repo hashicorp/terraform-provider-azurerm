@@ -32,7 +32,7 @@ const (
 )
 
 type accountDetails struct {
-	ID commonids.StorageAccountId
+	StorageAccountId commonids.StorageAccountId
 
 	Kind          storage.Kind
 	Sku           *storage.Sku
@@ -186,11 +186,11 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 	}
 
 	return &accountDetails{
-		name:          accountName,
-		ID:            *id,
-		Kind:          props.Kind,
-		Sku:           props.Sku,
-		ResourceGroup: id.ResourceGroupName,
-		Properties:    props.AccountProperties,
+		name:             accountName,
+		StorageAccountId: *id,
+		Kind:             props.Kind,
+		Sku:              props.Sku,
+		ResourceGroup:    id.ResourceGroupName,
+		Properties:       props.AccountProperties,
 	}, nil
 }
