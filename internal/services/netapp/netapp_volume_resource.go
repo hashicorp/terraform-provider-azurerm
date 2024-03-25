@@ -135,6 +135,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"kerberos_enabled": {
+				// Due to large infrastructure requirements, there is not a reliable way to test Kerberos volumes in a shared environment at this time
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				ForceNew:    true,
