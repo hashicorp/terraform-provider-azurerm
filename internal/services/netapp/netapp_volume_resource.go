@@ -139,7 +139,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				ForceNew:    true,
-				Description: "Enable to allow Kerberos secured volumes. Requires appropriate export rules.",
+				Description: "Enable to allow Kerberos secured volumes. Requires appropriate export rules as well as the parent `azurerm_netapp_account` having a defined AD connection.",
 			},
 
 			"smb_continuous_availability_enabled": {
