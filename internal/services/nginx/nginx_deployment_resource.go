@@ -94,19 +94,15 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"sku": {
-			// move to enum once this issue fixed: <https://github.com/Azure/azure-rest-api-specs/issues/20848>
-			// docs: <https://docs.nginx.com/nginx-for-azure/billing/overview/>
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice(
-				[]string{
-					"publicpreview_Monthly_gmz7xq9ge3py",
-					"standard_Monthly",
-				}, false),
+			// docs: <https://docs.nginx.com/nginxaas/azure/billing/overview/>
+			// we will not be forcing validation of SKU as there are internal SKUs
+			// used for testing and for F5 NGINX private offers
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		// only one type of identity is supported.
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"managed_resource_group": {
