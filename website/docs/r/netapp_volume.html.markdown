@@ -147,7 +147,7 @@ The following arguments are supported:
 
 * `kerberos_enabled` - (Optional) Enable to allow Kerberos secured volumes. Requires appropriate export rules.
 
-~> **NOTE:** `kerberos_enabled` requires that the parent `azurerm_netapp_account` has a *valid* AD connection defined. If the configuration is invalid, the volume will still be created but in an failed state. This requires manually deleting the volume and recreating it again via Terraform once the AD configuration has been corrected.
+~> **NOTE:** `kerberos_enabled` requires that the parent `azurerm_netapp_account` has a *valid* AD connection defined. If the configuration is invalid, the volume will still be created but in a failed state. This requires manually deleting the volume and recreating it again via Terraform once the AD configuration has been corrected.
 
 * `key_vault_private_endpoint_id` - (Optional) The Private Endpoint ID for Key Vault, which is required when using customer-managed keys. This is required with `encryption_key_source`. Changing this forces a new resource to be created.
 
@@ -176,6 +176,18 @@ An `export_policy_rule` block supports the following:
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
 
 * `root_access_enabled` - (Optional) Is root access permitted to this volume?
+
+* `kerberos_5_read_only` - (Optional) Is Kerberos 5 read-only access permitted to this volume?
+
+* `kerberos_5_read_write` - (Optional) Is Kerberos 5 read/write permitted to this volume?
+
+* `kerberos_5i_read_only` - (Optional) Is Kerberos 5i read-only permitted to this volume?
+
+* `kerberos_5i_read_write` - (Optional) Is Kerberos 5i read/write permitted to this volume?
+
+* `kerberos_5p_read_only` - (Optional) Is Kerberos 5p read-only permitted to this volume?
+
+* `kerberos_5p_read_write` - (Optional) Is Kerberos 5p read/write permitted to this volume?
 
 ---
 
