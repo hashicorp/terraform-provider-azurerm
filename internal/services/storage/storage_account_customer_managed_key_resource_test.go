@@ -186,7 +186,7 @@ func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx 
 				}
 
 				if encryption.KeySource != nil && *encryption.KeySource != storageaccounts.KeySourceMicrosoftPointStorage {
-					return fmt.Errorf("%q should be %q", encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointStorage))
+					return fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointStorage))
 				}
 			} else {
 				return fmt.Errorf("storage account encryption properties not found")
@@ -219,7 +219,7 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 					return utils.Bool(true), nil
 				}
 
-				return nil, fmt.Errorf("%q should be %q", encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointKeyvault))
+				return nil, fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointKeyvault))
 			}
 		}
 	}
