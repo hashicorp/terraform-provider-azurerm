@@ -110,11 +110,20 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 		},
 
 		// this is needed to fix https://github.com/hashicorp/terraform-provider-azurerm/issues/12828
-		// On a change to `template_content`, we'll set `output_content` to empty
+		// On a change to `template_content` or `parameters_content`, we'll set `output_content` to empty
 		// The adverse effect of this is that any change to `template_content` will also cause any resource referencing `output_content` to update
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 			if d.HasChange("template_content") {
 				o, n := d.GetChange("template_content")
+
+				// the json has to be normalized and then compared against to see if a change has occurred
+				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+					return d.SetNewComputed("output_content")
+				}
+			}
+
+			if d.HasChange("parameters_content") {
+				o, n := d.GetChange("parameters_content")
 
 				// the json has to be normalized and then compared against to see if a change has occurred
 				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
