@@ -113,6 +113,30 @@ func testAccBotServiceAzureBot_streamingEndpointEnabled(t *testing.T) {
 	})
 }
 
+func testAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
+	r := BotServiceAzureBotResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmekEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cmk_key_vault_url").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cmekEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cmk_key_vault_url").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BotServiceAzureBotResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotServiceID(state.ID)
 	if err != nil {
@@ -274,4 +298,89 @@ resource "azurerm_bot_service_azure_bot" "test" {
   streaming_endpoint_enabled = %[3]t
 }
 `, data.RandomInteger, data.Locations.Primary, streamingEndpointEnabled)
+}
+
+func (BotServiceAzureBotResource) cmekEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+data "azurerm_subscription" "current" {
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_role_assignment" "test_deployer" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestKV-%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+  enable_rbac_authorization   = true
+
+  sku_name   = "standard"
+  depends_on = [azurerm_role_assignment.test_deployer]
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestKey-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_bot_service_azure_bot" "test" {
+  name                = "acctestdf%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "global"
+  sku                 = "F0"
+  microsoft_app_id    = data.azurerm_client_config.current.client_id
+
+  microsoft_app_type      = "UserAssignedMSI"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  microsoft_app_msi_id    = azurerm_user_assigned_identity.test.id
+  cmk_key_vault_url       = azurerm_key_vault_key.test.id
+}
+`, data.RandomIntOfLength(8), data.Locations.Primary)
 }
