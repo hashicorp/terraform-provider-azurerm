@@ -136,10 +136,6 @@ resource "azurerm_static_web_app_function_app_registration" "test2" {
 
 func (r StaticWebAppFunctionAppRegistrationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_static_web_app_function_app_registration" "import" {
