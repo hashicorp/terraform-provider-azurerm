@@ -445,6 +445,8 @@ The authentication details must also be supplied, `identity` and `username`/`pas
 
 * `identity` - (Optional) Resource ID for the User Assigned Managed identity to use when pulling from the Container Registry.
 
+~> **Note:** The Resource ID must be of a User Assigned Managed identity defined in an `identity` block.
+
 * `password_secret_name` - (Optional) The name of the Secret Reference containing the password value for this user on the Container Registry, `username` must also be supplied.
 
 * `username` - (Optional) The username to use for this Container Registry, `password_secret_name` must also be supplied..

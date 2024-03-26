@@ -54,6 +54,40 @@ resource "azurerm_subnet" "example" {
   }
 }
 
+locals {
+  config_content = base64encode(<<-EOT
+http {
+    server {
+        listen 80;
+        location / {
+            auth_basic "Protected Area";
+            auth_basic_user_file /opt/.htpasswd;
+            default_type text/html;
+        }
+        include site/*.conf;
+    }
+}
+EOT
+  )
+
+  protected_content = base64encode(<<-EOT
+user:$apr1$VeUA5kt.$IjjRk//8miRxDsZvD4daF1
+EOT
+  )
+
+  sub_config_content = base64encode(<<-EOT
+location /bbb {
+	default_type text/html;
+	return 200 '<!doctype html><html lang="en"><head></head><body>
+		<div>this one will be updated</div>
+		<div>at 10:38 am</div>
+	</body></html>';
+}
+EOT
+  )
+}
+
+
 resource "azurerm_nginx_deployment" "example" {
   name                      = "example-nginx"
   resource_group_name       = azurerm_resource_group.example.name
@@ -73,6 +107,29 @@ resource "azurerm_nginx_deployment" "example" {
   capacity = 20
 
   email = "user@test.com"
+  configuration {
+    root_file = "/etc/nginx/nginx.conf"
+
+    config_file {
+      content      = local.config_content
+      virtual_path = "/etc/nginx/nginx.conf"
+    }
+
+    config_file {
+      content      = local.sub_config_content
+      virtual_path = "/etc/nginx/site/b.conf"
+    }
+
+    protected_file {
+      content      = local.protected_content
+      virtual_path = "/opt/.htpasswd"
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [configuration.0.protected_file]
+  }
+
 }
 ```
 
@@ -96,6 +153,8 @@ The following arguments are supported:
 
 -> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
+* `auto_scale_profile` - (Optional) An `auto_scale_profile` block as defined below.
+
 * `diagnose_support_enabled` - (Optional) Should the diagnosis support be enabled?
 
 * `email` - (Optional) Specify the preferred support contact email address of the user used for sending alerts and notification.
@@ -111,6 +170,8 @@ The following arguments are supported:
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new Nginx Deployment to be created.
 
 * `automatic_upgrade_channel` - (Optional) Specify the automatic upgrade channel for the NGINX deployment. Defaults to `stable`. The possible values are `stable` and `preview`.
+
+* `configuration` - (Optional) Specify a custom `configuration` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Nginx Deployment.
 
@@ -154,6 +215,48 @@ A `network_interface` block supports the following:
 
 * `subnet_id` - (Required) Specify The SubNet Resource ID to this Nginx Deployment.
 
+---
+
+A `configuration` block supports the following:
+
+* `root_file` - (Required) Specify the root file path of this Nginx Configuration.
+
+---
+
+-> **NOTE:** Either `package_data` or `config_file` must be specified - but not both.
+
+* `package_data` - (Optional) Specify the package data for this configuration.
+
+* `config_file` - (Optional) One or more `config_file` blocks as defined below.
+
+* `protected_file` - (Optional) One or more `protected_file` blocks with sensitive information as defined below. If specified `config_file` must also be specified.
+
+---
+
+A `config_file` block supports the following:
+
+* `content` - (Required) Specifies the base-64 encoded contents of this config file.
+
+* `virtual_path` - (Required) Specify the path of this config file.
+
+---
+
+A `protected_file` (Protected File) block supports the following:
+
+* `content` - (Required) Specifies the base-64 encoded contents of this config file (Sensitive).
+
+* `virtual_path` - (Required) Specify the path of this config file.
+---
+
+An `auto_scale_profile` block supports the following:
+
+* `name` - (Required) Specify the name of the autoscaling profile.
+
+* `min_capacity` - (Required) Specify the minimum number of NGINX capacity units for this NGINX Deployment.
+
+* `max_capacity` - (Required) Specify the maximum number of NGINX capacity units for this NGINX Deployment.
+
+-> **NOTE:** If you're using autoscaling, you should use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
 ## Attributes Reference
 

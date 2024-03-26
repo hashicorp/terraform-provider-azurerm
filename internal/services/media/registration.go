@@ -16,7 +16,7 @@ var (
 )
 
 const (
-	azureMediaRetirementMessage = "Azure Media Services will be retired June 30th, 2024. Please see https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement"
+	azureMediaRetirementMessage = "Azure Media Services will be retired June 30th, 2024. Please see https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement. This resource is deprecated and will be removed in v4.0 of the AzureRM Provider."
 )
 
 func (r Registration) AssociatedGitHubLabel() string {

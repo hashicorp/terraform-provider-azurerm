@@ -70,7 +70,7 @@ func (t CredentialUserAssignedManagedIdentityResource) Exists(ctx context.Contex
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Id != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func templateBase(data acceptance.TestData) string {

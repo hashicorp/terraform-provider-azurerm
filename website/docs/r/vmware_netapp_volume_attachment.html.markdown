@@ -3,12 +3,12 @@ subcategory: "Azure VMware Solution"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vmware_netapp_volume_attachment"
 description: |-
-  Manages a Azure VMware Solution Private Cloud Netapp File Attachment.
+  Manages an Azure VMware Solution Private Cloud Netapp File Attachment.
 ---
 
 # azurerm_vmware_netapp_volume_attachment
 
-Manages a Azure VMware Solution Private Cloud Netapp File Attachment.
+Manages an Azure VMware Solution Private Cloud Netapp File Attachment.
 
 ## Example Usage
 
@@ -183,7 +183,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Azure VMware Solution Private Clouds Netapp File Volume Attachment can be imported using the `resource id`, e.g.
+Azure VMware Solution Private Cloud Netapp File Volume Attachments can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_vmware_netapp_volume_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/privateClouds/privateCloud1/clusters/Cluster1/dataStores/datastore1

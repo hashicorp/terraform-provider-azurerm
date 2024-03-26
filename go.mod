@@ -15,10 +15,10 @@ require (
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/go-cmp v0.5.9
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/hashicorp/go-azure-helpers v0.66.2
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240229.1102109
-	github.com/hashicorp/go-azure-sdk/sdk v0.20240229.1102109
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240321.1145953
+	github.com/hashicorp/go-azure-sdk/sdk v0.20240321.1145953
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -29,7 +29,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
-	github.com/tombuildsstuff/giovanni v0.20.0
+	github.com/tombuildsstuff/giovanni v0.25.3
 	github.com/tombuildsstuff/kermit v0.20240122.1123108
 	golang.org/x/crypto v0.18.0
 	golang.org/x/tools v0.13.0
@@ -86,7 +86,7 @@ require (
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	google.golang.org/grpc v1.58.3 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	software.sslmate.com/src/go-pkcs12 v0.4.0 // indirect
 )

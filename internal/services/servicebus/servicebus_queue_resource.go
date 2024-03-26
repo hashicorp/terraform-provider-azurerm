@@ -186,6 +186,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 
 func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
+	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -206,6 +207,19 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+		}
+	}
+
+	isPremiumNamespacePartitioned := true
+	sbNamespace, err := namespaceClient.Get(ctx, *namespaceId)
+	if err != nil {
+		return fmt.Errorf("checking the parent namespace %s: %+v", id, err)
+	}
+
+	if sbNamespaceModel := sbNamespace.Model; sbNamespaceModel != nil {
+		if sbNamespaceModel.Properties != nil &&
+			sbNamespaceModel.Properties.PremiumMessagingPartitions != nil && *sbNamespaceModel.Properties.PremiumMessagingPartitions == 1 {
+			isPremiumNamespacePartitioned = false
 		}
 	}
 
@@ -295,8 +309,12 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("%s does not support Express Entities in Premium SKU and must be disabled", id)
 	}
 
-	if sku == namespaces.SkuNamePremium && !enablePartitioning {
-		return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
+	if sku == namespaces.SkuNamePremium {
+		if isPremiumNamespacePartitioned && !enablePartitioning {
+			return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
+		} else if !isPremiumNamespacePartitioned && enablePartitioning {
+			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
+		}
 	}
 
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256

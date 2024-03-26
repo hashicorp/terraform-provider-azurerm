@@ -15,7 +15,7 @@ import (
 type CredentialOperationsGetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ManagedIdentityCredentialResource
+	Model        *CredentialResource
 }
 
 type CredentialOperationsGetOperationOptions struct {
@@ -72,7 +72,7 @@ func (c CredentialsClient) CredentialOperationsGet(ctx context.Context, id Crede
 		return
 	}
 
-	var model ManagedIdentityCredentialResource
+	var model CredentialResource
 	result.Model = &model
 
 	if err = resp.Unmarshal(result.Model); err != nil {

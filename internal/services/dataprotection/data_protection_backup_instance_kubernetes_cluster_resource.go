@@ -209,6 +209,15 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 						ResourceType:     pointer.To("Microsoft.ContainerService/managedClusters"),
 						ResourceUri:      pointer.To(aksId.ID()),
 					},
+					DataSourceSetInfo: &backupinstances.DatasourceSet{
+						DatasourceType:   pointer.To("Microsoft.ContainerService/managedClusters"),
+						ObjectType:       pointer.To("DatasourceSet"),
+						ResourceID:       aksId.ID(),
+						ResourceLocation: pointer.To(location.Normalize(model.Location)),
+						ResourceName:     pointer.To(aksId.ManagedClusterName),
+						ResourceType:     pointer.To("Microsoft.ContainerService/managedClusters"),
+						ResourceUri:      pointer.To(aksId.ID()),
+					},
 					FriendlyName: pointer.To(id.BackupInstanceName),
 					ObjectType:   "BackupInstance",
 					PolicyInfo: backupinstances.PolicyInfo{

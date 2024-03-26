@@ -3,12 +3,12 @@ subcategory: "Azure VMware Solution"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vmware_private_cloud"
 description: |-
-  Manages a Azure VMware Solution Private Cloud.
+  Manages an Azure VMware Solution Private Cloud.
 ---
 
 # azurerm_vmware_private_cloud
 
-Manages a Azure VMware Solution Private Cloud.
+Manages an Azure VMware Solution Private Cloud.
 
 ## Example Usage
 
@@ -57,14 +57,14 @@ The following arguments are supported:
 
 * `network_subnet_cidr` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new Azure VMware Solution Private Cloud to be created.
 
-* `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Possible values are `av20`, `av36`, `av36t`, `av36p`, `av36pt`, `av52`, `av52t`, and `av64`. Changing this forces a new Azure VMware Solution Private Cloud to be created.
+* `sku_name` - (Required) The Name of the SKU used for this Azure VMware Solution Private Cloud. Possible values are `av20`, `av36`, `av36t`, `av36p`, `av36pt`, `av52`, `av52t`, and `av64`. Changing this forces a new Azure VMware Solution Private Cloud to be created.
 
 * `internet_connection_enabled` - (Optional) Is the Azure VMware Solution Private Cloud connected to the internet? This field can not be updated with `management_cluster[0].size` together.
 ~> **NOTE :** `internet_connection_enabled` and `management_cluster[0].size` cannot be updated at the same time.
 
-* `nsxt_password` - (Optional) The password of the NSX-T Manager. Changing this forces a new Azure VMware Solution Private Cloud to be created.
+* `nsxt_password` - (Optional) The password of the VMware NSX Manager cloudadmin. Changing this forces a new Azure VMware Solution Private Cloud to be created.
 
-* `vcenter_password` - (Optional) The password of the vCenter Server admin. Changing this forces a new Azure VMware Solution Private Cloud to be created.
+* `vcenter_password` - (Optional) The password of the VMware vCenter Server cloudadmin. Changing this forces a new Azure VMware Solution Private Cloud to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure VMware Solution Private Cloud.
 
@@ -82,17 +82,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `circuit` - A `circuit` block as defined below.
 
-* `hcx_cloud_manager_endpoint` - The endpoint for the HCX Cloud Manager.
+* `hcx_cloud_manager_endpoint` - The endpoint for the VMware HCX Cloud Manager.
 
-* `nsxt_manager_endpoint` - The endpoint for the NSX-T Data Center manager.
+* `nsxt_manager_endpoint` - The endpoint for the VMware NSX Manager.
 
-* `vcsa_endpoint` - The endpoint for Virtual Center Server Appliance.
+* `vcsa_endpoint` - The endpoint for VMware vCenter Server Appliance.
 
-* `nsxt_certificate_thumbprint` - The thumbprint of the NSX-T Manager SSL certificate.
+* `nsxt_certificate_thumbprint` - The thumbprint of the VMware NSX Manager SSL certificate.
 
-* `vcenter_certificate_thumbprint` - The thumbprint of the vCenter Server SSL certificate.
+* `vcenter_certificate_thumbprint` - The thumbprint of the VMware vCenter Server SSL certificate.
 
-* `management_subnet_cidr` - The network used to access vCenter Server and NSX-T Manager.
+* `management_subnet_cidr` - The network used to access VMware vCenter Server and NSX Manager.
 
 * `provisioning_subnet_cidr` - The network which is used for virtual machine cold migration, cloning, and snapshot migration.
 

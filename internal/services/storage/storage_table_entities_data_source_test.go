@@ -21,6 +21,7 @@ func TestAccDataSourceStorageTableEntities_basic(t *testing.T) {
 			Config: StorageTableEntitiesDataSource{}.basicWithDataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("items.#").HasValue("2"),
+				check.That(data.ResourceName).Key("items.0.properties.%").HasValue("2"),
 			),
 		},
 	})
@@ -74,7 +75,8 @@ resource "azurerm_storage_table_entity" "test" {
   row_key       = "testrow"
 
   entity = {
-    testkey = "testval"
+    testkey1 = "testval11"
+    testkey2 = "testval12"
   }
 }
 
@@ -86,7 +88,8 @@ resource "azurerm_storage_table_entity" "test2" {
   row_key       = "testrow2"
 
   entity = {
-    testkey = "testval2"
+    testkey1 = "testval21"
+    testkey2 = "testval22"
   }
 }
 
@@ -98,7 +101,8 @@ resource "azurerm_storage_table_entity" "testselector" {
   row_key       = "testrow"
 
   entity = {
-    testkey      = "testval"
+    testkey1     = "testval31"
+    testkey2     = "testval32"
     testselector = "testselectorval"
   }
 }

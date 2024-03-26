@@ -39,6 +39,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `capacity` - The number of NGINX capacity units for this Nginx Deployment.
 
+* `auto_scale_profile` - An `auto_scale_profile` block as defined below.
+
 * `diagnose_support_enabled` - Whether diagnostic settings are enabled.
 
 * `email` - Preferred email associated with the Nginx Deployment.
@@ -104,6 +106,16 @@ A `logging_storage_account` block exports the following:
 A `network_interface` block exports the following:
 
 * `subnet_id` - The subnet resource ID of the Nginx Deployment.
+
+---
+
+An `auto_scale_profile` block exports the following:
+
+* `name` - Name of the autoscaling profile.
+
+* `min_capacity` - The minimum number of NGINX capacity units for this NGINX Deployment.
+
+* `max_capacity` - The maximum number of NGINX capacity units for this NGINX Deployment.
 
 ## Timeouts
 
