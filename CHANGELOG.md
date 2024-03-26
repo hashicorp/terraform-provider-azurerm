@@ -3,6 +3,7 @@
 FEATURES:
 
 * New Resource: `azurerm_static_web_app_function_app_registration` [GH-25331]
+* New Resource: `azurerm_system_center_virtual_machine_manager_inventory_items` [GH-25110]
 
 ENHANCEMENTS:
 
