@@ -245,7 +245,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 				}
 			}
 		}
-		d.Set("kind", model.Kind)
+		d.Set("kind", pointer.From(model.Kind))
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
