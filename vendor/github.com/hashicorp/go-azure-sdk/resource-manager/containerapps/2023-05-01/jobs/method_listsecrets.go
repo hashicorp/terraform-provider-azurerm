@@ -44,7 +44,10 @@ func (c JobsClient) ListSecrets(ctx context.Context, id JobId) (result ListSecre
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model JobSecretsCollection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
