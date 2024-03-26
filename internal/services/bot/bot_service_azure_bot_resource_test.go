@@ -317,10 +317,8 @@ data "azurerm_subscription" "current" {
 data "azurerm_client_config" "current" {
 }
 
-resource "azurerm_role_assignment" "test_deployer" {
-  scope                = data.azurerm_subscription.current.id
-  role_definition_name = "Key Vault Administrator"
-  principal_id         = data.azurerm_client_config.current.object_id
+data "azuread_service_principal" "test" {
+  display_name = "Bot Service CMEK Prod"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -344,14 +342,19 @@ resource "azurerm_key_vault" "test" {
   purge_protection_enabled    = false
   enable_rbac_authorization   = true
 
-  sku_name   = "standard"
-  depends_on = [azurerm_role_assignment.test_deployer]
+  sku_name = "standard"
+}
+
+resource "azurerm_role_assignment" "test_deployer" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -368,6 +371,8 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
+
+  depends_on = [azurerm_role_assignment.test_deployer]
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
