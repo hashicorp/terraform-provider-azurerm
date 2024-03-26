@@ -1,3 +1,19 @@
+## 3.98.0 (Unreleased)
+
+FEATURES:
+
+* New Resource: `azurerm_static_web_app_function_app_registration` [GH-25331]
+
+ENHANCEMENTS:
+
+* `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
+* `azurerm_netapp_account` - can now be imported [GH-25384]
+
+BUG FIXES:
+
+* `azurerm_network_manager_deployment` - add locking [GH-25368]
+
 ## 3.97.1 (March 22, 2024)
 
 ENHANCEMENTS:

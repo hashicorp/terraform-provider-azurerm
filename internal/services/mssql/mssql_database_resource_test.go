@@ -920,6 +920,46 @@ func TestAccMsSqlDatabase_transparentDataEncryptionKey(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_namedReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.namedReplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_namedReplicationZoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.namedReplicationZoneRedundant(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlDatabaseID(state.ID)
 	if err != nil {
@@ -2078,4 +2118,45 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MsSqlDatabaseResource) namedReplication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "secondary" {
+  name                        = "acctest-dbs2-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Secondary"
+  secondary_type              = "Named"
+  creation_source_database_id = azurerm_mssql_database.test.id
+}
+`, r.hs(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) namedReplicationZoneRedundant(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  read_replica_count = 2
+  sku_name           = "HS_Gen5_2"
+
+  storage_account_type = "Zone"
+  zone_redundant       = true
+}
+
+resource "azurerm_mssql_database" "secondary" {
+  name                        = "acctest-dbs2-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Secondary"
+  secondary_type              = "Named"
+  creation_source_database_id = azurerm_mssql_database.test.id
+
+  zone_redundant     = true
+  read_replica_count = 1
+}
+`, r.template(data), data.RandomInteger)
 }
