@@ -177,17 +177,17 @@ An `export_policy_rule` block supports the following:
 
 * `root_access_enabled` - (Optional) Is root access permitted to this volume?
 
-* `kerberos_5_read_only` - (Optional) Is Kerberos 5 read-only access permitted to this volume?
+* `kerberos_5_read_only_enabled` - (Optional) Is Kerberos 5 read-only access permitted to this volume?
 
-* `kerberos_5_read_write` - (Optional) Is Kerberos 5 read/write permitted to this volume?
+* `kerberos_5_read_write_enabled` - (Optional) Is Kerberos 5 read/write permitted to this volume?
 
-* `kerberos_5i_read_only` - (Optional) Is Kerberos 5i read-only permitted to this volume?
+* `kerberos_5i_read_only_enabled` - (Optional) Is Kerberos 5i read-only permitted to this volume?
 
-* `kerberos_5i_read_write` - (Optional) Is Kerberos 5i read/write permitted to this volume?
+* `kerberos_5i_read_write_enabled` - (Optional) Is Kerberos 5i read/write permitted to this volume?
 
-* `kerberos_5p_read_only` - (Optional) Is Kerberos 5p read-only permitted to this volume?
+* `kerberos_5p_read_only_enabled` - (Optional) Is Kerberos 5p read-only permitted to this volume?
 
-* `kerberos_5p_read_write` - (Optional) Is Kerberos 5p read/write permitted to this volume?
+* `kerberos_5p_read_write_enabled` - (Optional) Is Kerberos 5p read/write permitted to this volume?
 
 ---
 
