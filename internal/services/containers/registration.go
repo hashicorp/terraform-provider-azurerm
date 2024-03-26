@@ -68,6 +68,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
+		ContainerRegistryCacheRule{},
 		ContainerRegistryTaskResource{},
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
