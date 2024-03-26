@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
+* `azurerm_netapp_account` - can now be imported [GH-25384]
 
 ## 3.97.1 (March 22, 2024)
 
