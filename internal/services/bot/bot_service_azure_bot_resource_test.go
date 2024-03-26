@@ -381,6 +381,8 @@ resource "azurerm_bot_service_azure_bot" "test" {
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
   microsoft_app_msi_id    = azurerm_user_assigned_identity.test.id
   cmk_key_vault_url       = azurerm_key_vault_key.test.id
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomIntOfLength(8), data.Locations.Primary)
 }
