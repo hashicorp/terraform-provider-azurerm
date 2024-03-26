@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
 * `azurerm_netapp_account` - can now be imported [GH-25384]
 
 BUG FIXES:
