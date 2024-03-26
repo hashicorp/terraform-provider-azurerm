@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2020-02-02/insights" // nolint: staticcheck
 	analyticsitems "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/analyticsitemsapis"
 	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	billing "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentfeaturesandpricingapis"
@@ -16,14 +15,13 @@ import (
 	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/azuresdkhacks"
 )
 
 type Client struct {
 	AnalyticsItemsClient     *analyticsitems.AnalyticsItemsAPIsClient
 	APIKeysClient            *apikeys.ComponentApiKeysAPIsClient
 	ComponentsClient         *components.ComponentsAPIsClient
-	WebTestsClient           *azuresdkhacks.WebTestsClient
+	WebTestsClient           *webtests.WebTestsAPIsClient
 	StandardWebTestsClient   *webtests.WebTestsAPIsClient
 	BillingClient            *billing.ComponentFeaturesAndPricingAPIsClient
 	SmartDetectionRuleClient *smartdetection.ComponentProactiveDetectionAPIsClient
@@ -50,9 +48,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(componentsClient.Client, o.Authorizers.ResourceManager)
 
-	webTestsClient := insights.NewWebTestsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&webTestsClient.Client, o.ResourceManagerAuthorizer)
-	webTestsWorkaroundClient := azuresdkhacks.NewWebTestsClient(webTestsClient)
+	webTestsClient, err := webtests.NewWebTestsAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building WebTests client: %+v", err)
+	}
+	o.Configure(webTestsClient.Client, o.Authorizers.ResourceManager)
 
 	standardWebTestsClient, err := webtests.NewWebTestsAPIsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -88,7 +88,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		AnalyticsItemsClient:     analyticsItemsClient,
 		APIKeysClient:            apiKeysClient,
 		ComponentsClient:         componentsClient,
-		WebTestsClient:           &webTestsWorkaroundClient,
+		WebTestsClient:           webTestsClient,
 		BillingClient:            billingClient,
 		SmartDetectionRuleClient: smartDetectionRuleClient,
 		WorkbookClient:           workbookClient,
