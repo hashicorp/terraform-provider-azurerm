@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	smartdetection "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentproactivedetectionapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +26,7 @@ func (SmartDetectionRuleUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/component1/smartDetectionRule/rule1
 		oldIdRaw := rawState["id"].(string)
-		id, err := parse.SmartDetectionRuleIDInsensitively(oldIdRaw)
+		id, err := smartdetection.ParseProactiveDetectionConfigIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}

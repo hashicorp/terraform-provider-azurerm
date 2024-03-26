@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,7 +62,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ComponentID,
+				ValidateFunc: components.ValidateComponentID,
 			},
 
 			"location": commonschema.Location(),
