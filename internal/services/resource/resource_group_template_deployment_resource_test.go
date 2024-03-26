@@ -1060,7 +1060,11 @@ TEMPLATE
 func (ResourceGroupTemplateDeploymentResource) outputReference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1113,6 +1117,8 @@ resource "azurerm_resource_group" "test2" {
   name     = jsondecode(azurerm_resource_group_template_deployment.test.output_content).resourceName.value
   location = %[2]q
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
