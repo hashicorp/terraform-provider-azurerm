@@ -670,12 +670,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			workspaceId := workspaces.WorkspaceId{
-				SubscriptionId:    id.SubscriptionId,
-				ResourceGroupName: id.ResourceGroup,
-				WorkspaceName:     id.WorkspaceName,
-			}
-
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {

@@ -354,11 +354,8 @@ func (k ClusterResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while reading data for cluster %q: %+v", id.ManagedClusterName, err)
 			}
 
-			nts, err := nodeTypeClient.ListByManagedClustersComplete(ctx, nodetype.ManagedClusterId{
-				SubscriptionId:     id.SubscriptionId,
-				ResourceGroupName:  id.ResourceGroupName,
-				ManagedClusterName: id.ManagedClusterName,
-			})
+			clusterId := nodetype.NewManagedClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
+			nts, err := nodeTypeClient.ListByManagedClustersComplete(ctx, clusterId)
 			if err != nil {
 				return fmt.Errorf("while listing NodeTypes for cluster %q: +%v", id.ManagedClusterName, err)
 			}

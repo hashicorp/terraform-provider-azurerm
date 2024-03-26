@@ -196,16 +196,8 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := vaults.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	storageId := backupresourcestorageconfigsnoncrr.VaultId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		VaultName:         id.VaultName,
-	}
-	cfgId := backupresourcevaultconfigs.VaultId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		VaultName:         id.VaultName,
-	}
+	storageId := backupresourcestorageconfigsnoncrr.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	cfgId := backupresourcevaultconfigs.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 
 	storageMode := d.Get("storage_mode_type").(string)
 	crossRegionRestore := d.Get("cross_region_restore_enabled").(bool)
@@ -419,16 +411,8 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := vaults.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	storageId := backupresourcestorageconfigsnoncrr.VaultId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		VaultName:         id.VaultName,
-	}
-	cfgId := backupresourcevaultconfigs.VaultId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		VaultName:         id.VaultName,
-	}
+	storageId := backupresourcestorageconfigsnoncrr.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	cfgId := backupresourcevaultconfigs.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 
 	encryption, err := expandEncryption(d)
 	if err != nil {
@@ -673,18 +657,8 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	storageId := backupresourcestorageconfigsnoncrr.VaultId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		VaultName:         id.VaultName,
-	}
-	cfgId := backupresourcevaultconfigs.VaultId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		VaultName:         id.VaultName,
-	}
-
-	log.Printf("[DEBUG] Reading Recovery Service %s", id.String())
+	storageId := backupresourcestorageconfigsnoncrr.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+	cfgId := backupresourcevaultconfigs.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -693,80 +667,82 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Recovery Service %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-
-	if resp.Model == nil {
-		return fmt.Errorf("recovery Service Vault response %q : model is nil", id.ID())
-	}
-	model := resp.Model
 
 	d.Set("name", id.VaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("location", location.Normalize(model.Location))
 
-	if sku := model.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil {
-		d.Set("immutability", string(pointer.From(model.Properties.SecuritySettings.ImmutabilitySettings.State)))
-	}
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", string(sku.Name))
+		}
 
-	if model.Properties != nil && model.Properties.PublicNetworkAccess != nil {
-		d.Set("public_network_access_enabled", flattenRecoveryServicesVaultPublicNetworkAccess(model.Properties.PublicNetworkAccess))
-	}
+		if model.Properties != nil && model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.ImmutabilitySettings != nil {
+			d.Set("immutability", string(pointer.From(model.Properties.SecuritySettings.ImmutabilitySettings.State)))
+		}
 
-	if model.Properties != nil && model.Properties.MonitoringSettings != nil {
-		d.Set("monitoring", flattenRecoveryServicesVaultMonitorSettings(*model.Properties.MonitoringSettings))
-	}
+		if model.Properties != nil && model.Properties.PublicNetworkAccess != nil {
+			d.Set("public_network_access_enabled", flattenRecoveryServicesVaultPublicNetworkAccess(model.Properties.PublicNetworkAccess))
+		}
 
-	cfg, err := cfgsClient.Get(ctx, cfgId)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", cfgId, err)
-	}
+		if model.Properties != nil && model.Properties.MonitoringSettings != nil {
+			d.Set("monitoring", flattenRecoveryServicesVaultMonitorSettings(*model.Properties.MonitoringSettings))
+		}
 
-	if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-		d.Set("soft_delete_enabled", *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)
-	}
+		cfg, err := cfgsClient.Get(ctx, cfgId)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", cfgId, err)
+		}
 
-	storageCfg, err := storageCfgsClient.Get(ctx, storageId)
-	if err != nil {
-		return fmt.Errorf("reading Recovery Service storage Cfg %s: %+v", id.String(), err)
-	}
+		if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
+			d.Set("soft_delete_enabled", *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)
+		}
 
-	if storageCfg.Model != nil && storageCfg.Model.Properties != nil {
-		props := storageCfg.Model.Properties
-		d.Set("storage_mode_type", string(pointer.From(props.StorageModelType)))
-		d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
-	}
+		storageCfg, err := storageCfgsClient.Get(ctx, storageId)
+		if err != nil {
+			return fmt.Errorf("reading Recovery Service storage Cfg %s: %+v", id.String(), err)
+		}
 
-	flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", flattenIdentity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
+		if storageCfg.Model != nil && storageCfg.Model.Properties != nil {
+			props := storageCfg.Model.Properties
+			d.Set("storage_mode_type", string(pointer.From(props.StorageModelType)))
+			d.Set("cross_region_restore_enabled", props.CrossRegionRestoreFlag)
+		}
 
-	encryption := flattenVaultEncryption(*model)
-	if encryption != nil {
-		d.Set("encryption", []interface{}{encryption})
+		flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		encryption := flattenVaultEncryption(*model)
+		if encryption != nil {
+			d.Set("encryption", []interface{}{encryption})
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	vaultSettingsId := replicationvaultsetting.NewReplicationVaultSettingID(id.SubscriptionId, id.ResourceGroupName, id.VaultName, "default")
 	vaultSetting, err := vaultSettingsClient.Get(ctx, vaultSettingsId)
 	if err != nil {
-		return fmt.Errorf("reading Recovery Service Vault Setting %s: %+v", id.String(), err)
+		return fmt.Errorf("retrieving Replication Vault Setting for %s: %+v", id, err)
 	}
 
-	if vaultSetting.Model != nil && vaultSetting.Model.Properties != nil {
-		if v := vaultSetting.Model.Properties.VMwareToAzureProviderType; v != nil {
-			d.Set("classic_vmware_replication_enabled", strings.EqualFold(*v, "vmware"))
-		}
+	classicVMwareReplicationEnabled := false
+	if model := vaultSetting.Model; model != nil && model.Properties != nil && model.Properties.VMwareToAzureProviderType != nil {
+		classicVMwareReplicationEnabled = strings.EqualFold(*model.Properties.VMwareToAzureProviderType, "vmware")
 	}
+	d.Set("classic_vmware_replication_enabled", classicVMwareReplicationEnabled)
 
-	return tags.FlattenAndSet(d, model.Tags)
+	return nil
 }
 
 func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -779,10 +755,7 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting Recovery Service  %s", id.String())
-
-	_, err = client.Delete(ctx, *id)
-	if err != nil {
+	if _, err = client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id.String(), err)
 	}
 
