@@ -32,7 +32,7 @@ func (c Client) Delete(ctx context.Context, shareName, path, fileName string) (r
 	}
 
 	if path != "" {
-		path = fmt.Sprintf("/%s/", path)
+		path = fmt.Sprintf("%s/", path)
 	}
 
 	opts := client.RequestOptions{

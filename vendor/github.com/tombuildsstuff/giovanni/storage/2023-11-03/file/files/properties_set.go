@@ -89,7 +89,7 @@ func (c Client) SetProperties(ctx context.Context, shareName, path, fileName str
 	}
 
 	if path != "" {
-		path = fmt.Sprintf("/%s/", path)
+		path = fmt.Sprintf("%s/", path)
 	}
 
 	opts := client.RequestOptions{
