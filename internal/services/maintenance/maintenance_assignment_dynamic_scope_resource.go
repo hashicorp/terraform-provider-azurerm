@@ -173,16 +173,20 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
-					return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
+			if !response.WasNotFound(resp.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
 			configurationAssignment := configurationassignments.ConfigurationAssignment{
+				Name:     pointer.To(maintenanceConfigurationId.MaintenanceConfigurationName),
 				Location: pointer.To(location.Normalize(model.Location)),
 				Properties: &configurationassignments.ConfigurationAssignmentProperties{
 					MaintenanceConfigurationId: pointer.To(maintenanceConfigurationId.ID()),
-					// test to see if required but I think it's for specific resources i.e vmss or vms
-					//ResourceId: pointer.To(subscriptionId.ID()),
+					ResourceId:                 pointer.To(subscriptionId.ID()),
 				},
 			}
 
