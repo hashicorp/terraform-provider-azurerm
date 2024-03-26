@@ -10,6 +10,8 @@ description: |-
 
 Manages a logz Monitor.
 
+!> **Note:** Logz REST API is being deprecated by Azure and new resources won't be allowed to create.
+
 ## Example Usage
 
 ```hcl
