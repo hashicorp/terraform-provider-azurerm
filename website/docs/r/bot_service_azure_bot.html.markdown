@@ -80,6 +80,8 @@ The following arguments are supported:
 
 * `cmk_key_vault_url` - (Optional) The CMK Key Vault Key URL that will be used to encrypt the Bot with the Customer Managed Encryption Key.
 
+~> **Note:** It has to add the Key Vault Access Policy for the `Bot Service CMEK Prod` Service Principal and the `soft_delete_enabled` and the `purge_protection_enabled` is enabled on the `azurerm_key_vault` resource while using `cmk_key_vault_url`.
+
 * `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
 
 * `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
