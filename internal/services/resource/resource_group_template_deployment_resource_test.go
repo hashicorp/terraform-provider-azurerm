@@ -1110,9 +1110,10 @@ TEMPLATE
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     =  jsondecode(azurerm_resource_group_template_deployment.test.output_content).resourceName.value
+  name     = jsondecode(azurerm_resource_group_template_deployment.test.output_content).resourceName.value
   location = %[2]q
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
