@@ -143,9 +143,8 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"storage_quota_in_gb": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(100, 102400),
+				Type:     pluginsdk.TypeInt,
+				Required: true,
 			},
 
 			"throughput_in_mibps": {
@@ -313,6 +312,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 			},
+
+			"is_large_volume": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -474,6 +479,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		avsDataStoreEnabled = volumes.AvsDataStoreEnabled
 	}
 
+	isLargeVolume := d.Get("is_large_volume").(bool)
+
 	parameters := volumes.Volume{
 		Location: location,
 		Properties: volumes.VolumeProperties{
@@ -495,6 +502,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			},
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
+			IsLargeVolume:            &isLargeVolume,
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
@@ -706,6 +714,8 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 			smbAccessBasedEnumeration = strings.EqualFold(string(*props.SmbAccessBasedEnumeration), string(volumes.SmbAccessBasedEnumerationEnabled))
 		}
 		d.Set("smb_access_based_enumeration_enabled", smbAccessBasedEnumeration)
+
+		d.Set("is_large_volume", props.IsLargeVolume)
 
 		avsDataStore := false
 		if props.AvsDataStore != nil {

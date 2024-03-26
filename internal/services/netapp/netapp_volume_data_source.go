@@ -140,6 +140,11 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
+
+			"is_large_volume": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -212,6 +217,8 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := d.Set("data_protection_replication", flattenNetAppVolumeDataProtectionReplication(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_replication`: %+v", err)
 		}
+
+		d.Set("is_large_volume", props.IsLargeVolume)
 	}
 
 	return nil

@@ -192,6 +192,7 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
+				check.That(data.ResourceName).Key("is_large_volume").HasValue("false"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
@@ -320,6 +321,23 @@ func TestAccNetAppVolume_volEncryptionCmkSystemAssigned(t *testing.T) {
 			Config: r.volEncryptionCmkSystemAssigned(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_largeVolume(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.largeVolume(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("103000"),
+				check.That(data.ResourceName).Key("is_large_volume").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1238,6 +1256,84 @@ resource "azurerm_netapp_pool" "test" {
 `, data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (NetAppVolumeResource) templateLargePool(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  alias = "all1"
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true",
+    "SkipNRMSNSG"      = "true"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.6.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-Subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = "%d"
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, 110)
+}
+
 func (NetAppVolumeResource) templatePoolQosManual(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1365,4 +1461,30 @@ resource "azurerm_subnet" "test-non-delegated" {
   address_prefixes     = ["10.6.0.0/24"]
 }
 `, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) largeVolume(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.templateLargePool(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 103000
+  is_large_volume     = true
+  throughput_in_mibps = 1.0
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }
