@@ -1,5 +1,9 @@
 ## 3.98.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_static_web_app_function_app_registration` [GH-25331]
+
 ENHANCEMENTS:
 
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
