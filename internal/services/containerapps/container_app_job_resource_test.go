@@ -877,5 +877,5 @@ resource "azurerm_container_app_environment" "test" {
 }
 
 func (ContainerAppJobResource) templateWorkloadProfile(data acceptance.TestData) string {
-	return ContainerAppEnvironmentResource{}.completeWithWorkloadProfile(data)
+	return ContainerAppEnvironmentResource{}.complete(data)
 }

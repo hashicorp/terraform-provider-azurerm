@@ -184,8 +184,13 @@ if err := client.StopExecutionThenPoll(ctx, id); err != nil {
 ctx := context.TODO()
 id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobValue")
 
-if err := client.StopMultipleExecutionsThenPoll(ctx, id); err != nil {
+// alternatively `client.StopMultipleExecutions(ctx, id)` can be used to do batched pagination
+items, err := client.StopMultipleExecutionsComplete(ctx, id)
+if err != nil {
 	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```
 

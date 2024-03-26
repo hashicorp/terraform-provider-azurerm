@@ -18,7 +18,12 @@ type StopMultipleExecutionsOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ContainerAppJobExecutions
+	Model        *[]JobExecution
+}
+
+type StopMultipleExecutionsCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []JobExecution
 }
 
 // StopMultipleExecutions ...
