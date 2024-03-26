@@ -178,7 +178,6 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 			}
 
 			configurationAssignment := configurationassignments.ConfigurationAssignment{
-				Name:     pointer.To(id.ConfigurationAssignmentName),
 				Location: pointer.To(location.Normalize(model.Location)),
 				Properties: &configurationassignments.ConfigurationAssignmentProperties{
 					MaintenanceConfigurationId: pointer.To(maintenanceConfigurationId.ID()),
