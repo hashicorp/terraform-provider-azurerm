@@ -222,27 +222,27 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						"kerberos_5_read_only": {
+						"kerberos_5_read_only_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"kerberos_5_read_write": {
+						"kerberos_5_read_write_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"kerberos_5i_read_only": {
+						"kerberos_5i_read_only_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"kerberos_5i_read_write": {
+						"kerberos_5i_read_write_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"kerberos_5p_read_only": {
+						"kerberos_5p_read_only_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"kerberos_5p_read_write": {
+						"kerberos_5p_read_write_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
