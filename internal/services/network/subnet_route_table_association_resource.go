@@ -6,10 +6,12 @@ package network
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -85,35 +87,31 @@ func resourceSubnetRouteTableAssociationCreate(d *pluginsdk.ResourceData, meta i
 	locks.ByName(virtualNetworkName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
 
-	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	subnet, err := client.Get(ctx, *parsedSubnetId, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(subnet.Response) {
+		if subnet.HttpResponse.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Subnet %q (Virtual Network %q / Resource Group %q) was not found!", subnetName, virtualNetworkName, resourceGroup)
 		}
 
 		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
-	if props := subnet.SubnetPropertiesFormat; props != nil {
+	if props := subnet.Model.Properties; props != nil {
 		if rt := props.RouteTable; rt != nil {
 			// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
-			if rt.ID != nil && subnet.ID != nil {
-				return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *subnet.ID)
+			if rt.Id != nil && subnet.Model.Id != nil {
+				return tf.ImportAsExistsError("azurerm_subnet_route_table_association", *subnet.Model.Id)
 			}
 		}
 
-		props.RouteTable = &network.RouteTable{
-			ID: utils.String(routeTableId),
+		props.RouteTable = &subnets.RouteTable{
+			Id: utils.String(routeTableId),
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, subnet)
+	err = client.CreateOrUpdateThenPoll(ctx, *parsedSubnetId, *subnet.Model)
 	if err != nil {
 		return fmt.Errorf("updating Route Table Association for Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Route Table Association for Subnet %q (VN %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	timeout, _ := ctx.Deadline()
@@ -159,9 +157,9 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta int
 	virtualNetworkName := id.VirtualNetworkName
 	subnetName := id.SubnetName
 
-	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	resp, err := client.Get(ctx, *id, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if resp.HttpResponse.StatusCode == http.StatusNotFound {
 			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 			d.SetId("")
 			return nil
@@ -169,7 +167,7 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
-	props := resp.SubnetPropertiesFormat
+	props := resp.Model.Properties
 	if props == nil {
 		return fmt.Errorf("Error: `properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", subnetName, virtualNetworkName, resourceGroup)
 	}
@@ -181,8 +179,8 @@ func resourceSubnetRouteTableAssociationRead(d *pluginsdk.ResourceData, meta int
 		return nil
 	}
 
-	d.Set("subnet_id", resp.ID)
-	d.Set("route_table_id", routeTable.ID)
+	d.Set("subnet_id", resp.Model.Id)
+	d.Set("route_table_id", routeTable.Id)
 
 	return nil
 }
@@ -201,9 +199,9 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 	subnetName := id.SubnetName
 
 	// retrieve the subnet
-	read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	read, err := client.Get(ctx, *id, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if read.HttpResponse.StatusCode == http.StatusNotFound {
 			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 			return nil
 		}
@@ -211,18 +209,18 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
-	props := read.SubnetPropertiesFormat
+	props := read.Model.Properties
 	if props == nil {
 		return fmt.Errorf("`Properties` was nil for Subnet %q (Virtual Network %q / Resource Group %q)", subnetName, virtualNetworkName, resourceGroup)
 	}
 
-	if props.RouteTable == nil || props.RouteTable.ID == nil {
+	if props.RouteTable == nil || props.RouteTable.Id == nil {
 		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no Route Table - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 		return nil
 	}
 
 	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := routetables.ParseRouteTableID(*props.RouteTable.ID)
+	parsedRouteTableId, err := routetables.ParseRouteTableID(*props.RouteTable.Id)
 	if err != nil {
 		return err
 	}
@@ -234,9 +232,9 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 	defer locks.UnlockByName(virtualNetworkName, VirtualNetworkResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
-	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	read, err = client.Get(ctx, *id, subnets.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if read.HttpResponse.StatusCode == http.StatusNotFound {
 			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 			return nil
 		}
@@ -244,15 +242,11 @@ func resourceSubnetRouteTableAssociationDelete(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
-	read.SubnetPropertiesFormat.RouteTable = nil
+	read.Model.Properties.RouteTable = nil
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *read.Model)
 	if err != nil {
 		return fmt.Errorf("removing Route Table Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Route Table Association from Subnet %q (Virtual Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
 	}
 
 	return nil

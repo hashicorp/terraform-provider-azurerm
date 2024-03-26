@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	network_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
@@ -14,6 +15,7 @@ import (
 
 type Client struct {
 	*network_2023_09_01.Client
+	SubnetsClient *subnets.SubnetsClient
 
 	// Usages of the clients below use `Azure/azure-sdk-for-go` and should be updated
 	// to use `hashicorp/go-azure-sdk` (available above).
@@ -45,7 +47,7 @@ type Client struct {
 	ServiceAssociationLinkClient           *network.ServiceAssociationLinksClient
 	ServiceEndpointPoliciesClient          *network.ServiceEndpointPoliciesClient
 	ServiceEndpointPolicyDefinitionsClient *network.ServiceEndpointPolicyDefinitionsClient
-	SubnetsClient                          *network.SubnetsClient
+	SubnetsKermitClient                    *network.SubnetsClient
 	NatGatewayClient                       *network.NatGatewaysClient
 	VirtualHubBgpConnectionClient          *network.VirtualHubBgpConnectionClient
 	VirtualHubIPClient                     *network.VirtualHubIPConfigurationClient
@@ -143,8 +145,14 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ServiceEndpointPolicyDefinitionsClient := network.NewServiceEndpointPolicyDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceEndpointPolicyDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
+	subnetsClient, err := subnets.NewSubnetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building clients for Network: %+v", err)
+	}
+	o.Configure(subnetsClient.Client, o.Authorizers.ResourceManager)
+
+	SubnetsKermitClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SubnetsKermitClient.Client, o.ResourceManagerAuthorizer)
 
 	VirtualHubBgpConnectionClient := network.NewVirtualHubBgpConnectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualHubBgpConnectionClient.Client, o.ResourceManagerAuthorizer)
@@ -210,7 +218,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SecurityPartnerProviderClient:          &SecurityPartnerProviderClient,
 		ServiceEndpointPoliciesClient:          &ServiceEndpointPoliciesClient,
 		ServiceEndpointPolicyDefinitionsClient: &ServiceEndpointPolicyDefinitionsClient,
-		SubnetsClient:                          &SubnetsClient,
+		SubnetsClient:                          subnetsClient,
+		SubnetsKermitClient:                    &SubnetsKermitClient,
 		NatGatewayClient:                       &NatGatewayClient,
 		VirtualHubBgpConnectionClient:          &VirtualHubBgpConnectionClient,
 		VirtualHubIPClient:                     &VirtualHubIPClient,
