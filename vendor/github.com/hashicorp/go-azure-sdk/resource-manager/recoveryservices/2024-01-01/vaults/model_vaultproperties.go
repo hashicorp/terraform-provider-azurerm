@@ -15,6 +15,8 @@ type VaultProperties struct {
 	ProvisioningState                   *string                                     `json:"provisioningState,omitempty"`
 	PublicNetworkAccess                 *PublicNetworkAccess                        `json:"publicNetworkAccess,omitempty"`
 	RedundancySettings                  *VaultPropertiesRedundancySettings          `json:"redundancySettings,omitempty"`
+	RestoreSettings                     *RestoreSettings                            `json:"restoreSettings,omitempty"`
+	SecureScore                         *SecureScoreLevel                           `json:"secureScore,omitempty"`
 	SecuritySettings                    *SecuritySettings                           `json:"securitySettings,omitempty"`
 	UpgradeDetails                      *UpgradeDetails                             `json:"upgradeDetails,omitempty"`
 }
