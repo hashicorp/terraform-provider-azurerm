@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_account` - can now be imported [GH-25384]
 * `azurerm_netapp_volume` - support for the `kerberos_enabled`, `smb_continuous_availability_enabled`, `kerberos_5_read_only_enabled`, `kerberos_5_read_write_enabled`, `kerberos_5i_read_only_enabled`, `kerberos_5i_read_write_enabled`, `kerberos_5p_read_only_enabled`, and `kerberos_5p_read_write_enabled` properties [GH-25385]
 * `azurerm_recovery_services_vault` - upgrading to version `2024-01-01` [GH-25325]
+* `azurerm_stack_hci_cluster` - the `client_id` property is now optional [GH-25407]
 
 BUG FIXES:
 
