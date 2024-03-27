@@ -28,14 +28,25 @@ resource "azurerm_system_center_virtual_machine_manager_server" "example" {
   password            = "H@Sh1CoR3!"
 }
 
+resource "time_sleep" "wait_1_minute" {
+  depends_on = [azurerm_system_center_virtual_machine_manager_server.example]
+
+  create_duration = "1m"
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
+
+  depends_on = [time_sleep.wait_1_minute]
+}
+
 resource "azurerm_system_center_virtual_machine_manager_cloud" "example" {
   name                                                           = "example-scvmmcloud"
   resource_group_name                                            = azurerm_resource_group.example.name
   location                                                       = azurerm_resource_group.example.location
   custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.example.id
-  system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.example.id
-  uuid                                                           = "37437563-5205-4fd3-aa74-6bc16702748a"
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.example.inventory_items[0].id
 }
 ```
 
@@ -51,11 +62,7 @@ The following arguments are supported:
 
 * `custom_location_id` - (Required) The ID of the Custom Location for the System Center Virtual Machine Manager Cloud. Changing this forces a new resource to be created.
 
-* `system_center_virtual_machine_manager_server_id` - (Required) The ID of the System Center Virtual Machine Manager Server. Changing this forces a new resource to be created.
-
-* `system_center_virtual_machine_manager_server_inventory_item_id` - (Optional) The ID of the System Center Virtual Machine Manager Server Inventory Item. Changing this forces a new resource to be created.
-
-* `uuid` - (Optional) The unique ID of the System Center Virtual Machine Manager Cloud. Changing this forces a new resource to be created.
+* `system_center_virtual_machine_manager_server_inventory_item_id` - (Required) The ID of the System Center Virtual Machine Manager Server Inventory Item. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the System Center Virtual Machine Manager Cloud.
 

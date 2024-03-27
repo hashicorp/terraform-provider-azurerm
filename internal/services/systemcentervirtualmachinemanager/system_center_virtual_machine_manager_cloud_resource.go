@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/clouds"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
@@ -24,9 +25,7 @@ type SystemCenterVirtualMachineManagerCloudModel struct {
 	Location                                               string            `tfschema:"location"`
 	ResourceGroupName                                      string            `tfschema:"resource_group_name"`
 	CustomLocationId                                       string            `tfschema:"custom_location_id"`
-	SystemCenterVirtualMachineManagerServerId              string            `tfschema:"system_center_virtual_machine_manager_server_id"`
 	SystemCenterVirtualMachineManagerServerInventoryItemId string            `tfschema:"system_center_virtual_machine_manager_server_inventory_item_id"`
-	Uuid                                                   string            `tfschema:"uuid"`
 	Tags                                                   map[string]string `tfschema:"tags"`
 }
 
@@ -62,20 +61,11 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Arguments() map[string]*
 
 		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
 
-		"system_center_virtual_machine_manager_server_id": commonschema.ResourceIDReferenceRequiredForceNew(&vmmservers.VMmServerId{}),
-
 		"system_center_virtual_machine_manager_server_inventory_item_id": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"uuid": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsUUID,
 		},
 
 		"tags": commonschema.Tags(),
@@ -98,7 +88,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Create() sdk.ResourceFun
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			scvmmServerId, err := vmmservers.ParseVMmServerID(model.SystemCenterVirtualMachineManagerServerId)
+			scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(model.SystemCenterVirtualMachineManagerServerInventoryItemId)
 			if err != nil {
 				return err
 			}
@@ -122,9 +112,9 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Create() sdk.ResourceFun
 					Name: utils.String(model.CustomLocationId),
 				},
 				Properties: clouds.CloudProperties{
-					InventoryItemId: utils.String(model.SystemCenterVirtualMachineManagerServerInventoryItemId),
-					Uuid:            utils.String(model.Uuid),
-					VMmServerId:     utils.String(scvmmServerId.ID()),
+					InventoryItemId: utils.String(scvmmServerInventoryItemId.ID()),
+					Uuid:            utils.String(scvmmServerInventoryItemId.InventoryItemName),
+					VMmServerId:     utils.String(vmmservers.NewVMmServerID(scvmmServerInventoryItemId.SubscriptionId, scvmmServerInventoryItemId.ResourceGroupName, scvmmServerInventoryItemId.VmmServerName).ID()),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -164,15 +154,8 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Read() sdk.ResourceFunc 
 				state.Location = location.Normalize(model.Location)
 				state.ResourceGroupName = id.ResourceGroupName
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
-				state.Tags = pointer.From(model.Tags)
-				state.Uuid = pointer.From(model.Properties.Uuid)
 				state.SystemCenterVirtualMachineManagerServerInventoryItemId = pointer.From(model.Properties.InventoryItemId)
-
-				scvmmServerId, err := vmmservers.ParseVMmServerIDInsensitively(pointer.From(model.Properties.VMmServerId))
-				if err != nil {
-					return err
-				}
-				state.SystemCenterVirtualMachineManagerServerId = scvmmServerId.ID()
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			return metadata.Encode(&state)

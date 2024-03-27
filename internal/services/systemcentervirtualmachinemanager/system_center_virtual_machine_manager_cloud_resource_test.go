@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/clouds"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,11 +36,10 @@ func TestAccSystemCenterVirtualMachineManagerCloudSequential(t *testing.T) {
 func testAccSystemCenterVirtualMachineManagerCloud_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_cloud", "test")
 	r := SystemCenterVirtualMachineManagerCloudResource{}
-	randomUuid, _ := uuid.GenerateUUID()
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, randomUuid),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -53,30 +51,25 @@ func testAccSystemCenterVirtualMachineManagerCloud_basic(t *testing.T) {
 func testAccSystemCenterVirtualMachineManagerCloud_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_cloud", "test")
 	r := SystemCenterVirtualMachineManagerCloudResource{}
-	randomUuid, _ := uuid.GenerateUUID()
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, randomUuid),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data, randomUuid),
-			ExpectError: acceptance.RequiresImportError("azurerm_system_center_virtual_machine_manager_cloud"),
-		},
+		data.ImportStep(),
 	})
 }
 
 func testAccSystemCenterVirtualMachineManagerCloud_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_cloud", "test")
 	r := SystemCenterVirtualMachineManagerCloudResource{}
-	randomUuid, _ := uuid.GenerateUUID()
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, randomUuid),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -88,32 +81,31 @@ func testAccSystemCenterVirtualMachineManagerCloud_complete(t *testing.T) {
 func testAccSystemCenterVirtualMachineManagerCloud_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_cloud", "test")
 	r := SystemCenterVirtualMachineManagerCloudResource{}
-	randomUuid, _ := uuid.GenerateUUID()
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, randomUuid),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, randomUuid),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, randomUuid),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, randomUuid),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,7 +128,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Exists(ctx context.Conte
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r SystemCenterVirtualMachineManagerCloudResource) basic(data acceptance.TestData, uuid string) string {
+func (r SystemCenterVirtualMachineManagerCloudResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -149,14 +141,12 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
   custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
-  system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
-  uuid                                                           = "%s"
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
 }
-`, r.template(data), data.RandomInteger, uuid)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r SystemCenterVirtualMachineManagerCloudResource) requiresImport(data acceptance.TestData, uuid string) string {
+func (r SystemCenterVirtualMachineManagerCloudResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -165,14 +155,12 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "import" {
   location                                                       = azurerm_system_center_virtual_machine_manager_cloud.test.location
   resource_group_name                                            = azurerm_system_center_virtual_machine_manager_cloud.test.resource_group_name
   custom_location_id                                             = azurerm_system_center_virtual_machine_manager_cloud.test.custom_location_id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_cloud.test.system_center_virtual_machine_manager_server_id
   system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_cloud.test.system_center_virtual_machine_manager_server_inventory_item_id
-  uuid                                                           = azurerm_system_center_virtual_machine_manager_cloud.test.uuid
 }
-`, r.basic(data, uuid))
+`, r.basic(data))
 }
 
-func (r SystemCenterVirtualMachineManagerCloudResource) complete(data acceptance.TestData, uuid string) string {
+func (r SystemCenterVirtualMachineManagerCloudResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,18 +173,16 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
   custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
-  system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
-  uuid                                                           = "%s"
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
 
   tags = {
     env = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, uuid)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r SystemCenterVirtualMachineManagerCloudResource) update(data acceptance.TestData, uuid string) string {
+func (r SystemCenterVirtualMachineManagerCloudResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -209,15 +195,13 @@ resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
   custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
-  system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
-  uuid                                                           = "%s"
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
 
   tags = {
     env = "Test2"
   }
 }
-`, r.template(data), data.RandomInteger, uuid)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SystemCenterVirtualMachineManagerCloudResource) template(data acceptance.TestData) string {
@@ -235,6 +219,19 @@ resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   fqdn                = "%s"
   username            = "%s"
   password            = "%s"
+}
+
+resource "time_sleep" "wait_1_minute" {
+  depends_on = [azurerm_system_center_virtual_machine_manager_server.test]
+
+  create_duration = "1m"
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+
+  depends_on = [time_sleep.wait_1_minute]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
