@@ -94,6 +94,8 @@ The following arguments are supported:
 
 * `justification` - (Optional) The justification of the role assignment. Changing this forces a new Pim Eligible Role Assignment to be created.
 
+* `request_type` - (Optional) The request type of this role assignment. Possible values are `AdminAssign`, `AdminExtend`, `AdminRemove`, `AdminRenew`, `AdminUpdate`, `SelfActivate`, `SelfDeactivate`, `SelfExtend`, and `SelfRenew`. Changing this forces a new Pim Eligible Role Assignment to be created.
+
 * `schedule` - (Optional) A `schedule` block as defined below. Changing this forces a new Pim Eligible Role Assignment to be created.
 
 * `ticket` - (Optional) A `ticket` block as defined below. Changing this forces a new Pim Eligible Role Assignment to be created.

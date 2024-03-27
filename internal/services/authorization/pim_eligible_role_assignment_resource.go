@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = PimEligibleRoleAssignmentResource{}
@@ -141,6 +142,15 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew:    true,
 			Description: "The justification of the eligible role assignment.",
 		},
+
+		"request_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      roleeligibilityschedulerequests.RequestTypeAdminAssign,
+			Description:  "The type of request.",
+			ValidateFunc: validation.StringInSlice(roleeligibilityschedulerequests.PossibleValuesForRequestType(), false),
+		},
 	}
 }
 
@@ -200,7 +210,7 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			r.mapPimEligibleRoleAssignmentResourceSchemaToRoleEligibilityScheduleRequest(config, &payload)
 
-			payload.Properties.RequestType = roleeligibilityschedulerequests.RequestTypeAdminAssign
+			payload.Properties.RequestType = roleeligibilityschedulerequests.RequestType(metadata.ResourceData.Get("request_type").(string))
 
 			roleEligibilityScheduleRequestId, err := uuid.GenerateUUID()
 			if err != nil {
@@ -297,6 +307,9 @@ func (r PimEligibleRoleAssignmentResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				schema.Scope = id.Scope
+				if props := model.Properties; props != nil {
+					schema.RequestType = string(model.Properties.RequestType)
+				}
 
 				if err = r.mapRoleAssignmentScheduleRequestToPimEligibleRoleAssignmentResourceSchema(*model, &schema); err != nil {
 					return fmt.Errorf("flattening model: %+v", err)
@@ -439,6 +452,7 @@ type PimEligibleRoleAssignmentResourceSchema struct {
 	PrincipalId      string                                                `tfschema:"principal_id"`
 	PrincipalType    string                                                `tfschema:"principal_type"`
 	Justification    string                                                `tfschema:"justification"`
+	RequestType      string                                                `tfschema:"request_type"`
 	TicketInfo       []PimEligibleRoleAssignmentResourceSchemaTicketInfo   `tfschema:"ticket"`
 	ScheduleInfo     []PimEligibleRoleAssignmentResourceSchemaScheduleInfo `tfschema:"schedule"`
 }
