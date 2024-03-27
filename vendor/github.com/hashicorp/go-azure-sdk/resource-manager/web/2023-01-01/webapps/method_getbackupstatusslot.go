@@ -43,7 +43,10 @@ func (c WebAppsClient) GetBackupStatusSlot(ctx context.Context, id SlotBackupId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BackupItem
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

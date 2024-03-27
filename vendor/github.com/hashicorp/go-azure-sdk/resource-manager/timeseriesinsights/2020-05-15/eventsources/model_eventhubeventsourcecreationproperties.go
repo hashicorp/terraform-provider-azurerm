@@ -13,7 +13,7 @@ type EventHubEventSourceCreationProperties struct {
 	ConsumerGroupName     string                    `json:"consumerGroupName"`
 	CreationTime          *string                   `json:"creationTime,omitempty"`
 	EventHubName          string                    `json:"eventHubName"`
-	EventSourceResourceId *string                   `json:"eventSourceResourceId,omitempty"`
+	EventSourceResourceId string                    `json:"eventSourceResourceId"`
 	IngressStartAt        *IngressStartAtProperties `json:"ingressStartAt,omitempty"`
 	KeyName               string                    `json:"keyName"`
 	LocalTimestamp        *LocalTimestamp           `json:"localTimestamp,omitempty"`

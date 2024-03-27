@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -166,7 +166,12 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: networkValidate.PublicIpPrefixID,
-						RequiredWith: []string{"default_node_pool.0.enable_node_public_ip"},
+						RequiredWith: func() []string {
+							if !features.FourPointOhBeta() {
+								return []string{"default_node_pool.0.enable_node_public_ip"}
+							}
+							return []string{"default_node_pool.0.node_public_ip_enabled"}
+						}(),
 					},
 
 					"node_taints": {

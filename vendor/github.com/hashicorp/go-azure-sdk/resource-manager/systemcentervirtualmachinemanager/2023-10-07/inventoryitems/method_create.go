@@ -48,7 +48,10 @@ func (c InventoryItemsClient) Create(ctx context.Context, id InventoryItemId, in
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model InventoryItem
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

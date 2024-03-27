@@ -113,9 +113,9 @@ A `destination_nat` block supports the following:
 
 A `dns_settings` block supports the following:
 
-* `dns_servers` - (Optional) Specifies a list of DNS servers to proxy. Conflicts with `dns_settings.0.use_azure_dns`.
+* `dns_servers` - (Optional) Specifies a list of DNS servers to proxy. Conflicts with `dns_settings[0].use_azure_dns`.
 
-* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
+* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings[0].dns_servers`. Defaults to `false`.
 
 ---
 

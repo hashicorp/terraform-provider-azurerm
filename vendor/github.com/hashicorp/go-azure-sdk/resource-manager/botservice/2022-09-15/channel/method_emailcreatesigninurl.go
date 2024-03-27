@@ -45,7 +45,10 @@ func (c ChannelClient) EmailCreateSignInUrl(ctx context.Context, id commonids.Bo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CreateEmailSignInUrlResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

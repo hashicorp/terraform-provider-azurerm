@@ -43,7 +43,10 @@ func (c AccessPoliciesClient) Get(ctx context.Context, id AccessPolicyId) (resul
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessPolicyResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -15,7 +15,12 @@ import (
 type ManagedEnvironmentDiagnosticsListDetectorsOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DiagnosticsCollection
+	Model        *[]Diagnostics
+}
+
+type ManagedEnvironmentDiagnosticsListDetectorsCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Diagnostics
 }
 
 // ManagedEnvironmentDiagnosticsListDetectors ...
@@ -35,7 +40,7 @@ func (c ManagedEnvironmentsClient) ManagedEnvironmentDiagnosticsListDetectors(ct
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c ManagedEnvironmentsClient) ManagedEnvironmentDiagnosticsListDetectors(ct
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]Diagnostics `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ManagedEnvironmentDiagnosticsListDetectorsComplete retrieves all the results into a single object
+func (c ManagedEnvironmentsClient) ManagedEnvironmentDiagnosticsListDetectorsComplete(ctx context.Context, id ManagedEnvironmentId) (ManagedEnvironmentDiagnosticsListDetectorsCompleteResult, error) {
+	return c.ManagedEnvironmentDiagnosticsListDetectorsCompleteMatchingPredicate(ctx, id, DiagnosticsOperationPredicate{})
+}
+
+// ManagedEnvironmentDiagnosticsListDetectorsCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ManagedEnvironmentsClient) ManagedEnvironmentDiagnosticsListDetectorsCompleteMatchingPredicate(ctx context.Context, id ManagedEnvironmentId, predicate DiagnosticsOperationPredicate) (result ManagedEnvironmentDiagnosticsListDetectorsCompleteResult, err error) {
+	items := make([]Diagnostics, 0)
+
+	resp, err := c.ManagedEnvironmentDiagnosticsListDetectors(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ManagedEnvironmentDiagnosticsListDetectorsCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

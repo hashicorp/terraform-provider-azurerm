@@ -116,12 +116,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
-read, err := client.ListAdvancedSecurityObjects(ctx, id, localrulestacks.DefaultListAdvancedSecurityObjectsOperationOptions())
+// alternatively `client.ListAdvancedSecurityObjects(ctx, id, localrulestacks.DefaultListAdvancedSecurityObjectsOperationOptions())` can be used to do batched pagination
+items, err := client.ListAdvancedSecurityObjectsComplete(ctx, id, localrulestacks.DefaultListAdvancedSecurityObjectsOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -132,12 +133,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
-read, err := client.ListAppIds(ctx, id, localrulestacks.DefaultListAppIdsOperationOptions())
+// alternatively `client.ListAppIds(ctx, id, localrulestacks.DefaultListAppIdsOperationOptions())` can be used to do batched pagination
+items, err := client.ListAppIdsComplete(ctx, id, localrulestacks.DefaultListAppIdsOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -182,12 +184,13 @@ for _, item := range items {
 ctx := context.TODO()
 id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
-read, err := client.ListCountries(ctx, id, localrulestacks.DefaultListCountriesOperationOptions())
+// alternatively `client.ListCountries(ctx, id, localrulestacks.DefaultListCountriesOperationOptions())` can be used to do batched pagination
+items, err := client.ListCountriesComplete(ctx, id, localrulestacks.DefaultListCountriesOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -198,12 +201,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
-read, err := client.ListFirewalls(ctx, id)
+// alternatively `client.ListFirewalls(ctx, id)` can be used to do batched pagination
+items, err := client.ListFirewallsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -214,12 +218,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
-read, err := client.ListPredefinedUrlCategories(ctx, id, localrulestacks.DefaultListPredefinedUrlCategoriesOperationOptions())
+// alternatively `client.ListPredefinedUrlCategories(ctx, id, localrulestacks.DefaultListPredefinedUrlCategoriesOperationOptions())` can be used to do batched pagination
+items, err := client.ListPredefinedUrlCategoriesComplete(ctx, id, localrulestacks.DefaultListPredefinedUrlCategoriesOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -230,12 +235,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := localrulestacks.NewLocalRulestackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "localRulestackValue")
 
-read, err := client.ListSecurityServices(ctx, id, localrulestacks.DefaultListSecurityServicesOperationOptions())
+// alternatively `client.ListSecurityServices(ctx, id, localrulestacks.DefaultListSecurityServicesOperationOptions())` can be used to do batched pagination
+items, err := client.ListSecurityServicesComplete(ctx, id, localrulestacks.DefaultListSecurityServicesOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

@@ -78,7 +78,7 @@ The following arguments are supported:
 * `streaming_units` - (Optional) Specifies the number of streaming units that the streaming job uses. Supported values are `1`, `3`, `6` and multiples of `6` up to `120`.
 
 -> **NOTE:** `streaming_units` must be set when `type` is `Cloud`.
-* 
+
 * `sku_name` - (Optional) The SKU Name to use for the Stream Analytics Job. Possible values are `Standard`, `StandardV2`. Defaults to `Standard`.
 
 * `content_storage_policy` - (Optional) The policy for storing stream analytics content. Possible values are `JobStorageAccount`, `SystemAccount`. Defaults to `SystemAccount`.

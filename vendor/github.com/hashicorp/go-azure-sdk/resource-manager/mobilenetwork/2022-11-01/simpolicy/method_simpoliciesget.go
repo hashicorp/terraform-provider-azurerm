@@ -43,7 +43,10 @@ func (c SIMPolicyClient) SimPoliciesGet(ctx context.Context, id SimPolicyId) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SimPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

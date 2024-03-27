@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -338,6 +339,7 @@ func TestAccKubernetesCluster_upgrade(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
 		{
@@ -345,6 +347,7 @@ func TestAccKubernetesCluster_upgrade(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(currentKubernetesVersion),
+				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
 	})
@@ -488,53 +491,60 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
+	autoUpgradeChannel := "automatic_upgrade_channel"
+	nodeOsUpgradeChannel := "node_os_upgrade_channel"
+	if !features.FourPointOhBeta() {
+		autoUpgradeChannel = "automatic_channel_upgrade"
+		nodeOsUpgradeChannel = "node_os_channel_upgrade"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "rapid"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("rapid"),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("rapid"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "patch"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("patch"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "node-image"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("node-image"),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("node-image"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			// unset = none
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue(""),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue(""),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("stable"),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("stable"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 	})
 }
 
@@ -906,6 +916,22 @@ func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_webAppRoutingPrivateDNS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.webAppRoutingPrivateDNS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_azureMonitorKubernetesMetrics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -939,12 +965,16 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
+	nodeOsUpgradeChannel := "node_os_upgrade_channel"
+	if !features.FourPointOhBeta() {
+		nodeOsUpgradeChannel = "node_os_channel_upgrade"
+	}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nodeOsUpgradeChannel(data, "Unmanaged"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("Unmanaged"),
+				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("Unmanaged"),
 			),
 		},
 		// TODO add this back in when upgrading to 2023-06-02-preview
@@ -954,7 +984,7 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 			Config: r.nodeOsUpgradeChannel(data, "SecurityPatch"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("SecurityPatch"),
+				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("SecurityPatch"),
 			),
 		},
 		// data.ImportStep(),
@@ -962,7 +992,7 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 			Config: r.nodeOsUpgradeChannel(data, "NodeImage"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("NodeImage"),
+				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("NodeImage"),
 			),
 		},
 		// data.ImportStep(),
@@ -970,7 +1000,7 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 			Config: r.nodeOsUpgradeChannel(data, "None"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("None"),
+				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("None"),
 			),
 		},
 		// data.ImportStep(),
@@ -2202,7 +2232,8 @@ func (KubernetesClusterResource) upgradeChannelConfig(data acceptance.TestData, 
 		upgradeChannel = "null"
 	}
 
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -2220,6 +2251,37 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version        = %q
   automatic_channel_upgrade = %s
   node_os_channel_upgrade   = "NodeImage"
+
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, upgradeChannel)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                      = "acctestaks%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  dns_prefix                = "acctestaks%d"
+  kubernetes_version        = %q
+  automatic_upgrade_channel = %s
+  node_os_upgrade_channel   = "NodeImage"
 
   default_node_pool {
     name       = "default"
@@ -2921,6 +2983,45 @@ resource "azurerm_kubernetes_cluster" "test" {
  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) webAppRoutingPrivateDNS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.%s.azmk8s.io"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  web_app_routing {
+    dns_zone_id = azurerm_private_dns_zone.test.id
+  }
+}
+ `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) customCATrustEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3047,7 +3148,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) nodeOsUpgradeChannel(data acceptance.TestData, nodeOsUpgradeChannel string) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -3061,6 +3163,31 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   dns_prefix              = "acctestaks%d"
   node_os_channel_upgrade = "%s"
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeOsUpgradeChannel)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  node_os_upgrade_channel = "%s"
   default_node_pool {
     name       = "default"
     vm_size    = "Standard_DS2_v2"

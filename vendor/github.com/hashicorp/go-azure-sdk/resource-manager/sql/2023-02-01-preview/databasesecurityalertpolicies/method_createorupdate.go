@@ -50,7 +50,10 @@ func (c DatabaseSecurityAlertPoliciesClient) CreateOrUpdate(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatabaseSecurityAlertPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

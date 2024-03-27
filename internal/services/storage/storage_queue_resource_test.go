@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues"
 )
 
 type StorageQueueResource struct{}
@@ -86,24 +86,24 @@ func TestAccStorageQueue_metaData(t *testing.T) {
 }
 
 func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageQueueDataPlaneID(state.ID)
+	id, err := queues.ParseQueueID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountName, id.Name, err)
+		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountId.AccountName, id.QueueName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to determine Resource Group for Storage Queue %q (Account %q)", id.Name, id.AccountName)
+		return nil, fmt.Errorf("unable to determine Resource Group for Storage Queue %q (Account %q)", id.QueueName, id.AccountId.AccountName)
 	}
-	queuesClient, err := client.Storage.QueuesClient(ctx, *account)
+	queuesClient, err := client.Storage.QueuesDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Queues Client: %+v", err)
 	}
-	queue, err := queuesClient.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
+	queue, err := queuesClient.Get(ctx, id.QueueName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Queue %q (Account %q): %+v", id.Name, id.AccountName, err)
+		return nil, fmt.Errorf("retrieving Queue %q (Account %q): %+v", id.QueueName, id.AccountId.AccountName, err)
 	}
 	return utils.Bool(queue != nil), nil
 }

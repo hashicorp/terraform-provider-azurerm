@@ -43,7 +43,10 @@ func (c WebPubSubClient) CustomDomainsGet(ctx context.Context, id CustomDomainId
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CustomDomain
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

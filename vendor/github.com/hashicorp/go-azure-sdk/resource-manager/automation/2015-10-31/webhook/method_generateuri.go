@@ -44,7 +44,10 @@ func (c WebhookClient) GenerateUri(ctx context.Context, id AutomationAccountId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model string
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

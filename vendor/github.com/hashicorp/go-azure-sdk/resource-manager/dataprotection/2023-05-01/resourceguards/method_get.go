@@ -43,7 +43,10 @@ func (c ResourceGuardsClient) Get(ctx context.Context, id ResourceGuardId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ResourceGuardResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

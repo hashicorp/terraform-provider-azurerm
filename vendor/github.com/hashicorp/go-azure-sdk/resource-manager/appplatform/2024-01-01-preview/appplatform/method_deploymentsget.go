@@ -43,7 +43,10 @@ func (c AppPlatformClient) DeploymentsGet(ctx context.Context, id DeploymentId) 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DeploymentResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

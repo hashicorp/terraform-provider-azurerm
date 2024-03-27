@@ -43,7 +43,10 @@ func (c LiveEventsClient) Get(ctx context.Context, id LiveEventId) (result GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LiveEvent
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

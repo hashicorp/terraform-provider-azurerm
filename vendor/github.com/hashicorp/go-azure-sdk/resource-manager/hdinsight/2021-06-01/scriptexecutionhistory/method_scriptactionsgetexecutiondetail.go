@@ -43,7 +43,10 @@ func (c ScriptExecutionHistoryClient) ScriptActionsGetExecutionDetail(ctx contex
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RuntimeScriptActionDetail
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

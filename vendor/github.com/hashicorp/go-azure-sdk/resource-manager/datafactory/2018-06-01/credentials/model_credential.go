@@ -44,6 +44,14 @@ func unmarshalCredentialImplementation(input []byte) (Credential, error) {
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "ServicePrincipal") {
+		var out ServicePrincipalCredential
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into ServicePrincipalCredential: %+v", err)
+		}
+		return out, nil
+	}
+
 	out := RawCredentialImpl{
 		Type:   value,
 		Values: temp,

@@ -15,7 +15,12 @@ import (
 type CopeRepetitionsListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *WorkflowRunActionRepetitionDefinitionCollection
+	Model        *[]WorkflowRunActionRepetitionDefinition
+}
+
+type CopeRepetitionsListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []WorkflowRunActionRepetitionDefinition
 }
 
 // CopeRepetitionsList ...
@@ -35,7 +40,7 @@ func (c WorkflowRunActionsClient) CopeRepetitionsList(ctx context.Context, id Ac
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c WorkflowRunActionsClient) CopeRepetitionsList(ctx context.Context, id Ac
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]WorkflowRunActionRepetitionDefinition `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// CopeRepetitionsListComplete retrieves all the results into a single object
+func (c WorkflowRunActionsClient) CopeRepetitionsListComplete(ctx context.Context, id ActionId) (CopeRepetitionsListCompleteResult, error) {
+	return c.CopeRepetitionsListCompleteMatchingPredicate(ctx, id, WorkflowRunActionRepetitionDefinitionOperationPredicate{})
+}
+
+// CopeRepetitionsListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c WorkflowRunActionsClient) CopeRepetitionsListCompleteMatchingPredicate(ctx context.Context, id ActionId, predicate WorkflowRunActionRepetitionDefinitionOperationPredicate) (result CopeRepetitionsListCompleteResult, err error) {
+	items := make([]WorkflowRunActionRepetitionDefinition, 0)
+
+	resp, err := c.CopeRepetitionsList(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = CopeRepetitionsListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

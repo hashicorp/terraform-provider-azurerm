@@ -44,7 +44,10 @@ func (c AssetsAndAssetFiltersClient) AssetsGetEncryptionKey(ctx context.Context,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StorageEncryptedAssetDecryptionData
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

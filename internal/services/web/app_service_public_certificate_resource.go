@@ -4,7 +4,6 @@
 package web
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"strings"
@@ -102,11 +101,7 @@ func resourceAppServicePublicCertificateCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if blob != "" {
-		decodedBlob, err := base64.StdEncoding.DecodeString(blob)
-		if err != nil {
-			return fmt.Errorf("could not decode blob: %+v", err)
-		}
-		certificate.Properties.Blob = pointer.To(string(decodedBlob))
+		certificate.Properties.Blob = pointer.To(blob)
 	}
 
 	if _, err := client.CreateOrUpdatePublicCertificate(ctx, id, certificate); err != nil {
@@ -201,11 +196,13 @@ func resourceAppServicePublicCertificateRead(d *pluginsdk.ResourceData, meta int
 	d.Set("app_service_name", id.SiteName)
 	d.Set("certificate_name", id.PublicCertificateName)
 
-	if model, ok := resp.(webapps.PublicCertificate); ok {
-		if properties := model.Properties; properties != nil {
-			d.Set("certificate_location", string(pointer.From(properties.PublicCertificateLocation)))
-			d.Set("blob", properties.Blob)
-			d.Set("thumbprint", properties.Thumbprint)
+	if cert, ok := resp.(webapps.GetPublicCertificateOperationResponse); ok {
+		if model := cert.Model; model != nil {
+			if properties := model.Properties; properties != nil {
+				d.Set("certificate_location", string(pointer.From(properties.PublicCertificateLocation)))
+				d.Set("blob", pointer.From(properties.Blob))
+				d.Set("thumbprint", pointer.From(properties.Thumbprint))
+			}
 		}
 	}
 

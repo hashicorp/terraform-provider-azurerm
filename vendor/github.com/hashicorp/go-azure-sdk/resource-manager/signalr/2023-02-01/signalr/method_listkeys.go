@@ -44,7 +44,10 @@ func (c SignalRClient) ListKeys(ctx context.Context, id SignalRId) (result ListK
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SignalRKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

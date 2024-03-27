@@ -6,18 +6,18 @@ package shim
 import (
 	"context"
 
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
 )
 
 type StorageShareWrapper interface {
-	Create(ctx context.Context, resourceGroup, accountName, shareName string, input shares.CreateInput) error
-	Delete(ctx context.Context, resourceGroup, accountName, shareName string) error
-	Exists(ctx context.Context, resourceGroup, accountName, shareName string) (*bool, error)
-	Get(ctx context.Context, resourceGroup, accountName, shareName string) (*StorageShareProperties, error)
-	UpdateACLs(ctx context.Context, resourceGroup, accountName, shareName string, acls []shares.SignedIdentifier) error
-	UpdateMetaData(ctx context.Context, resourceGroup, accountName, shareName string, metaData map[string]string) error
-	UpdateQuota(ctx context.Context, resourceGroup, accountName, shareName string, quotaGB int) error
-	UpdateTier(ctx context.Context, resourceGroup, accountName, shareName string, tier shares.AccessTier) error
+	Create(ctx context.Context, shareName string, input shares.CreateInput) error
+	Delete(ctx context.Context, shareName string) error
+	Exists(ctx context.Context, shareName string) (*bool, error)
+	Get(ctx context.Context, shareName string) (*StorageShareProperties, error)
+	UpdateACLs(ctx context.Context, shareName string, input shares.SetAclInput) error
+	UpdateMetaData(ctx context.Context, shareName string, metaData map[string]string) error
+	UpdateQuota(ctx context.Context, shareName string, quotaGB int) error
+	UpdateTier(ctx context.Context, shareName string, tier shares.AccessTier) error
 }
 
 type StorageShareProperties struct {

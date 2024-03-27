@@ -43,7 +43,10 @@ func (c ScheduledActionsClient) Get(ctx context.Context, id ScheduledActionId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScheduledAction
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
