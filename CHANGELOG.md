@@ -1,3 +1,24 @@
+## 3.98.0 (Unreleased)
+
+FEATURES:
+
+* New Resource: `azurerm_static_web_app_function_app_registration` [GH-25331]
+* New Resource: `azurerm_system_center_virtual_machine_manager_inventory_items` [GH-25110]
+
+ENHANCEMENTS:
+
+* `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
+* `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
+* `azurerm_netapp_account` - can now be imported [GH-25384]
+* `azurerm_netapp_volume` - support for the `kerberos_enabled`, `smb_continuous_availability_enabled`, `kerberos_5_read_only_enabled`, `kerberos_5_read_write_enabled`, `kerberos_5i_read_only_enabled`, `kerberos_5i_read_write_enabled`, `kerberos_5p_read_only_enabled`, and `kerberos_5p_read_write_enabled` properties [GH-25385]
+* `azurerm_recovery_services_vault` - upgrading to version `2024-01-01` [GH-25325]
+
+BUG FIXES:
+
+* `azurerm_linux_web_app_slot` - fix a crash when upgrading the provider to v3.88.0 or later [GH-25406]
+* `azurerm_network_manager_deployment` - add locking [GH-25368]
+
 ## 3.97.1 (March 22, 2024)
 
 ENHANCEMENTS:
@@ -27,7 +48,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20240321.1145953` of `github.com/hashicorp/go-azure-sdk` ([#25332](https://github.com/hashicorp/terraform-provider-azurerm/issues/25332))
 * dependencies: updating to `v0.25.2` of `github.com/tombuildsstuff/giovanni` ([#25305](https://github.com/hashicorp/terraform-provider-azurerm/issues/25305))
 * `azurestackhci`: updating to API Version `2024-01-01` ([#25279](https://github.com/hashicorp/terraform-provider-azurerm/issues/25279))
-* `monitor/scheduledqueryrules`: updatingt to API version `2023-03-15-preview` ([#25350](https://github.com/hashicorp/terraform-provider-azurerm/issues/25350))
+* `monitor/scheduledqueryrules`: updating to API version `2023-03-15-preview` ([#25350](https://github.com/hashicorp/terraform-provider-azurerm/issues/25350))
 * `cosmosdb`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#25166](https://github.com/hashicorp/terraform-provider-azurerm/issues/25166))
 * Data Source `azurerm_stack_hci_cluster`: refactoring the association to use `hashicorp/go-azure-sdk` ([#25293](https://github.com/hashicorp/terraform-provider-azurerm/issues/25293))
 * `azurerm_app_configuration` - support for Environments other than Azure Public ([#25271](https://github.com/hashicorp/terraform-provider-azurerm/issues/25271))
