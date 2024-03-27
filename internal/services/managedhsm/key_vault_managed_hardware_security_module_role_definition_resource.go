@@ -170,7 +170,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 			locks.ByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 
-			id, err := parse.NewNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
+			id, err := parse.NewRoleNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
 			if err != nil {
 				return err
 			}
@@ -207,7 +207,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			// import has no model data but only id
-			id, err := parse.NestedItemID(meta.ResourceData.Id())
+			id, err := parse.RoleNestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -258,7 +258,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			id, err := parse.NewNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
+			id, err := parse.NewRoleNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
 			if err != nil {
 				return err
 			}
@@ -297,7 +297,7 @@ func (k KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := parse.NestedItemID(meta.ResourceData.Id())
+			id, err := parse.RoleNestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}

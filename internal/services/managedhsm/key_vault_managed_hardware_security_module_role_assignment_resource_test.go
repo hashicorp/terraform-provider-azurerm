@@ -18,7 +18,7 @@ type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
 // real test nested in TestAccKeyVaultManagedHardwareSecurityModule, only provide Exists logic here
 func (k KeyVaultManagedHSMRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NestedItemID(state.ID)
+	id, err := parse.RoleNestedItemID(state.ID)
 	if err != nil {
 		return nil, err
 	}

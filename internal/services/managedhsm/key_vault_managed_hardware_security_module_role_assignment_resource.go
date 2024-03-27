@@ -105,7 +105,7 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 			locks.ByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
 
-			id, err := parse.NewNestedItemID(model.VaultBaseUrl, model.Scope, parse.RoleAssignmentType, model.Name)
+			id, err := parse.NewRoleNestedItemID(model.VaultBaseUrl, model.Scope, parse.RoleAssignmentType, model.Name)
 			if err != nil {
 				return err
 			}
@@ -140,7 +140,7 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			client := meta.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
 
-			id, err := parse.NestedItemID(meta.ResourceData.Id())
+			id, err := parse.RoleNestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -179,7 +179,7 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := parse.NestedItemID(meta.ResourceData.Id())
+			id, err := parse.RoleNestedItemID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}

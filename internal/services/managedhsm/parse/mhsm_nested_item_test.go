@@ -42,7 +42,7 @@ func TestNewMHSMNestedItemID(t *testing.T) {
 		},
 	}
 	for idx, tc := range cases {
-		id, err := NewNestedItemID(tc.keyVaultBaseUrl, tc.Scope, mhsmType, tc.Name)
+		id, err := NewRoleNestedItemID(tc.keyVaultBaseUrl, tc.Scope, mhsmType, tc.Name)
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for New Resource ID '%s': %+v", tc.keyVaultBaseUrl, err)
@@ -60,7 +60,7 @@ func TestParseMHSMNestedItemID(t *testing.T) {
 	typ := RoleDefinitionType
 	cases := []struct {
 		Input       string
-		Expected    NestedItemId
+		Expected    RoleNestedItemId
 		ExpectError bool
 	}{
 		{
@@ -70,7 +70,7 @@ func TestParseMHSMNestedItemID(t *testing.T) {
 		{
 			Input:       fmt.Sprintf("https://my-keyvault.managedhsm.azure.net///%s/test", typ),
 			ExpectError: true,
-			Expected: NestedItemId{
+			Expected: RoleNestedItemId{
 				Name:         "test",
 				VaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Scope:        "/",
@@ -79,7 +79,7 @@ func TestParseMHSMNestedItemID(t *testing.T) {
 		{
 			Input:       fmt.Sprintf("https://my-keyvault.managedhsm.azure.net///%s/bird", typ),
 			ExpectError: true,
-			Expected: NestedItemId{
+			Expected: RoleNestedItemId{
 				Name:         "bird",
 				VaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Scope:        "/",
@@ -88,7 +88,7 @@ func TestParseMHSMNestedItemID(t *testing.T) {
 		{
 			Input:       fmt.Sprintf("https://my-keyvault.managedhsm.azure.net///%s/bird", typ),
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: RoleNestedItemId{
 				Name:         "bird",
 				VaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Scope:        "/",
@@ -97,7 +97,7 @@ func TestParseMHSMNestedItemID(t *testing.T) {
 		{
 			Input:       fmt.Sprintf("https://my-keyvault.managedhsm.azure.net//keys/%s/world", typ),
 			ExpectError: false,
-			Expected: NestedItemId{
+			Expected: RoleNestedItemId{
 				Name:         "world",
 				VaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Scope:        "/keys",
@@ -106,7 +106,7 @@ func TestParseMHSMNestedItemID(t *testing.T) {
 		{
 			Input:       fmt.Sprintf("https://my-keyvault.managedhsm.azure.net//keys/%s/fdf067c93bbb4b22bff4d8b7a9a56217", typ),
 			ExpectError: true,
-			Expected: NestedItemId{
+			Expected: RoleNestedItemId{
 				Name:         "fdf067c93bbb4b22bff4d8b7a9a56217",
 				VaultBaseUrl: "https://my-keyvault.managedhsm.azure.net/",
 				Scope:        "/keys",
@@ -115,7 +115,7 @@ func TestParseMHSMNestedItemID(t *testing.T) {
 		{
 			Input:       "https://kvhsm23030816100222.managedhsm.azure.net///RoleDefinition/862d4d5e-bf01-11ed-a49d-00155d61ee9e",
 			ExpectError: true,
-			Expected: NestedItemId{
+			Expected: RoleNestedItemId{
 				Name:         "862d4d5e-bf01-11ed-a49d-00155d61ee9e",
 				VaultBaseUrl: "https://kvhsm23030816100222.managedhsm.azure.net/",
 				Scope:        "/",
@@ -124,7 +124,7 @@ func TestParseMHSMNestedItemID(t *testing.T) {
 	}
 
 	for idx, tc := range cases {
-		secretId, err := NestedItemID(tc.Input)
+		secretId, err := RoleNestedItemID(tc.Input)
 		if err != nil {
 			if tc.ExpectError {
 				continue
