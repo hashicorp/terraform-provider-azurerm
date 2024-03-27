@@ -311,11 +311,7 @@ provider "azurerm" {
   }
 }
 
-data "azurerm_subscription" "current" {
-}
-
-data "azurerm_client_config" "current" {
-}
+data "azurerm_client_config" "current" {}
 
 data "azuread_service_principal" "test" {
   display_name = "Bot Service CMEK Prod"
@@ -324,12 +320,6 @@ data "azuread_service_principal" "test" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_key_vault" "test" {
@@ -341,8 +331,7 @@ resource "azurerm_key_vault" "test" {
   soft_delete_retention_days  = 7
   purge_protection_enabled    = true
   enable_rbac_authorization   = true
-
-  sku_name = "standard"
+  sku_name                    = "standard"
 }
 
 resource "azurerm_role_assignment" "test_deployer" {
@@ -362,7 +351,6 @@ resource "azurerm_key_vault_key" "test" {
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
-
   key_opts = [
     "decrypt",
     "encrypt",
@@ -381,11 +369,8 @@ resource "azurerm_bot_service_azure_bot" "test" {
   location            = "global"
   sku                 = "F0"
   microsoft_app_id    = data.azurerm_client_config.current.client_id
-
-  microsoft_app_type      = "UserAssignedMSI"
-  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
-  microsoft_app_msi_id    = azurerm_user_assigned_identity.test.id
-  cmk_key_vault_url       = azurerm_key_vault_key.test.id
+  cmk_key_vault_url   = azurerm_key_vault_key.test.id
+  endpoint            = "https://example2.com"
 
   depends_on = [azurerm_role_assignment.test]
 }
