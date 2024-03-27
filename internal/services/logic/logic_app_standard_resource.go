@@ -115,6 +115,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
 			"connection_string": {
@@ -294,6 +300,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
+	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	VirtualNetworkSubnetID := d.Get("virtual_network_subnet_id").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -301,6 +308,11 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
 		return err
+	}
+
+	pna := helpers.PublicNetworkAccessEnabled
+	if !publicNetworkAccess {
+		pna = helpers.PublicNetworkAccessDisabled
 	}
 
 	siteConfig, err := expandLogicAppStandardSiteConfig(d)
@@ -329,6 +341,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
 			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
+			PublicNetworkAccess:   utils.String(pna),
 			SiteConfig:            &siteConfig,
 		},
 	}
@@ -386,11 +399,17 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 	httpsOnly := d.Get("https_only").(bool)
+	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
 		return err
+	}
+
+	pna := helpers.PublicNetworkAccessEnabled
+	if !publicNetworkAccess {
+		pna = helpers.PublicNetworkAccessDisabled
 	}
 
 	siteConfig, err := expandLogicAppStandardSiteConfig(d)
@@ -427,6 +446,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
 			ClientCertEnabled:     utils.Bool(clientCertEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
+			PublicNetworkAccess:   utils.String(pna),
 			SiteConfig:            &siteConfig,
 		},
 	}
@@ -561,6 +581,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 		d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetID)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == helpers.PublicNetworkAccessEnabled )
 
 		clientCertMode := ""
 		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
