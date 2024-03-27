@@ -43,7 +43,10 @@ func (c DiagnosticSettingsClient) List(ctx context.Context) (result ListOperatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DiagnosticSettingsResourceCollection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

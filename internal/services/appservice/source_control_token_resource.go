@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type AppServiceSourceControlTokenResource struct{}
@@ -81,29 +81,29 @@ func (r AppServiceSourceControlTokenResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewAppServiceSourceControlTokenID(sourceControlToken.Type)
+			id := resourceproviders.NewSourceControlID(sourceControlToken.Type)
 
-			client := metadata.Client.AppService.BaseClient
+			client := metadata.Client.AppService.ResourceProvidersClient
 
-			existing, err := client.GetSourceControl(ctx, id.Type)
+			existing, err := client.GetSourceControl(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("%s not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			if existing.SourceControlProperties != nil && existing.SourceControlProperties.Token != nil && *existing.SourceControlProperties.Token != "" {
+			if existing.Model.Properties != nil && pointer.From(existing.Model.Properties.Token) != "" {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			sourceControlOAuth := web.SourceControl{
-				SourceControlProperties: &web.SourceControlProperties{
-					Token:       utils.String(sourceControlToken.Token),
-					TokenSecret: utils.String(sourceControlToken.TokenSecret),
+			sourceControlOAuth := resourceproviders.SourceControl{
+				Properties: &resourceproviders.SourceControlProperties{
+					Token:       pointer.To(sourceControlToken.Token),
+					TokenSecret: pointer.To(sourceControlToken.TokenSecret),
 				},
 			}
 
-			if _, err := client.UpdateSourceControl(ctx, id.Type, sourceControlOAuth); err != nil {
+			if _, err := client.UpdateSourceControl(ctx, id, sourceControlOAuth); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -118,28 +118,30 @@ func (r AppServiceSourceControlTokenResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.BaseClient
+			client := metadata.Client.AppService.ResourceProvidersClient
 
-			id, err := parse.AppServiceSourceControlTokenID(metadata.ResourceData.Id())
+			id, err := resourceproviders.ParseSourceControlID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.GetSourceControl(ctx, id.Type)
-			if err != nil || resp.SourceControlProperties == nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+			resp, err := client.GetSourceControl(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
 			state := AppServiceSourceControlTokenModel{}
 
-			state.Type = id.Type
+			state.Type = id.SourceControlName
 
-			if resp.SourceControlProperties != nil {
-				state.Token = utils.NormalizeNilableString(resp.Token)
-				state.TokenSecret = utils.NormalizeNilableString(resp.TokenSecret)
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Token = pointer.From(props.Token)
+					state.TokenSecret = pointer.From(props.TokenSecret)
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -151,22 +153,22 @@ func (r AppServiceSourceControlTokenResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.BaseClient
+			client := metadata.Client.AppService.ResourceProvidersClient
 
-			id, err := parse.AppServiceSourceControlTokenID(metadata.ResourceData.Id())
+			id, err := resourceproviders.ParseSourceControlID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			sourceControlOAuth := web.SourceControl{
-				SourceControlProperties: &web.SourceControlProperties{
-					Token:       utils.String(""),
-					TokenSecret: utils.String(""),
+			sourceControlOAuth := resourceproviders.SourceControl{
+				Properties: &resourceproviders.SourceControlProperties{
+					Token:       pointer.To(""),
+					TokenSecret: pointer.To(""),
 				},
 			}
 
-			if _, err := client.UpdateSourceControl(ctx, id.Type, sourceControlOAuth); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if _, err := client.UpdateSourceControl(ctx, *id, sourceControlOAuth); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -184,7 +186,7 @@ func (r AppServiceSourceControlTokenResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var sourceControlToken AppServiceSourceControlTokenModel
 
-			id, err := parse.AppServiceSourceControlTokenID(metadata.ResourceData.Id())
+			id, err := resourceproviders.ParseSourceControlID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -193,16 +195,16 @@ func (r AppServiceSourceControlTokenResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.AppService.BaseClient
+			client := metadata.Client.AppService.ResourceProvidersClient
 
-			sourceControlOAuth := web.SourceControl{
-				SourceControlProperties: &web.SourceControlProperties{
-					Token:       utils.String(sourceControlToken.Token),
-					TokenSecret: utils.String(sourceControlToken.TokenSecret),
+			sourceControlOAuth := resourceproviders.SourceControl{
+				Properties: &resourceproviders.SourceControlProperties{
+					Token:       pointer.To(sourceControlToken.Token),
+					TokenSecret: pointer.To(sourceControlToken.TokenSecret),
 				},
 			}
 
-			if _, err := client.UpdateSourceControl(ctx, id.Type, sourceControlOAuth); err != nil {
+			if _, err := client.UpdateSourceControl(ctx, *id, sourceControlOAuth); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

@@ -43,7 +43,10 @@ func (c EnvironmentTypesClient) ProjectAllowedEnvironmentTypesGet(ctx context.Co
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AllowedEnvironmentType
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = GremlinDatabaseId{}
+var _ resourceids.ResourceId = &GremlinDatabaseId{}
 
 // GremlinDatabaseId is a struct representing the Resource ID for a Gremlin Database
 type GremlinDatabaseId struct {
@@ -32,7 +32,7 @@ func NewGremlinDatabaseID(subscriptionId string, resourceGroupName string, datab
 
 // ParseGremlinDatabaseID parses 'input' into a GremlinDatabaseId
 func ParseGremlinDatabaseID(input string) (*GremlinDatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GremlinDatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&GremlinDatabaseId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseGremlinDatabaseID(input string) (*GremlinDatabaseId, error) {
 // ParseGremlinDatabaseIDInsensitively parses 'input' case-insensitively into a GremlinDatabaseId
 // note: this method should only be used for API response data and not user input
 func ParseGremlinDatabaseIDInsensitively(input string) (*GremlinDatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GremlinDatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&GremlinDatabaseId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

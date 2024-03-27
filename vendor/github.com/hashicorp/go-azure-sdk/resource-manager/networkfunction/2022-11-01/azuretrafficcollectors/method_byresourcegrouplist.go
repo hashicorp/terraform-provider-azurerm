@@ -20,7 +20,8 @@ type ByResourceGroupListOperationResponse struct {
 }
 
 type ByResourceGroupListCompleteResult struct {
-	Items []AzureTrafficCollector
+	LatestHttpResponse *http.Response
+	Items              []AzureTrafficCollector
 }
 
 // ByResourceGroupList ...
@@ -84,7 +85,8 @@ func (c AzureTrafficCollectorsClient) ByResourceGroupListCompleteMatchingPredica
 	}
 
 	result = ByResourceGroupListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

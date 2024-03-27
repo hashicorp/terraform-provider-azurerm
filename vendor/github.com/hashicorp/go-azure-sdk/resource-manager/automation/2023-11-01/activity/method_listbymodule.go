@@ -19,7 +19,8 @@ type ListByModuleOperationResponse struct {
 }
 
 type ListByModuleCompleteResult struct {
-	Items []Activity
+	LatestHttpResponse *http.Response
+	Items              []Activity
 }
 
 // ListByModule ...
@@ -83,7 +84,8 @@ func (c ActivityClient) ListByModuleCompleteMatchingPredicate(ctx context.Contex
 	}
 
 	result = ListByModuleCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

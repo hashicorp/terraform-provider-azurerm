@@ -20,7 +20,8 @@ type GrafanaListByResourceGroupOperationResponse struct {
 }
 
 type GrafanaListByResourceGroupCompleteResult struct {
-	Items []ManagedGrafana
+	LatestHttpResponse *http.Response
+	Items              []ManagedGrafana
 }
 
 // GrafanaListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c GrafanaResourceClient) GrafanaListByResourceGroupCompleteMatchingPredica
 	}
 
 	result = GrafanaListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

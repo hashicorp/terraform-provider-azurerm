@@ -14,12 +14,14 @@ Automanage
 Automation
 Azure Managed Lustre File System
 Azure Stack HCI
+Azure VMware Solution
 Base
 Batch
 Billing
 Blueprints
 Bot
 CDN
+Chaos Studio
 Cognitive Services
 Communication
 Compute
@@ -48,6 +50,7 @@ Dev Test
 Digital Twins
 Disks
 Elastic
+Elastic SAN
 Fluid Relay
 Graph Services
 HDInsight
@@ -88,6 +91,7 @@ Private DNS
 Private DNS Resolver
 Purview
 Recovery Services
+Red Hat OpenShift
 Redis
 Redis Enterprise
 Search
@@ -104,7 +108,7 @@ Synapse
 System Center Virtual Machine Manager
 Template
 Time Series Insights
-VMware (AVS)
 Video Analyzer
 Voice Services
 Web PubSub
+Workloads

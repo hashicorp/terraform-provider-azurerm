@@ -521,6 +521,8 @@ A `site_config` block exports the following:
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
+* `ip_restriction_default_action` - The Default action for traffic that does not match any `ip_restriction` rule.
+
 * `load_balancing_mode` - The Site load balancing mode.
 
 * `managed_pipeline_mode` - The Managed pipeline mode.
@@ -536,6 +538,8 @@ A `site_config` block exports the following:
 * `runtime_scale_monitoring_enabled` - Is Scale Monitoring of the Functions Runtime enabled?
 
 * `scm_ip_restriction` - One or more `scm_ip_restriction` blocks as defined above.
+
+* `scm_ip_restriction_default_action` - The Default action for traffic that does not match any `scm_ip_restriction` rule.
 
 * `scm_minimum_tls_version` - The minimum version of TLS required for SSL requests to the SCM site.
 

@@ -48,7 +48,6 @@ The following arguments are supported:
 * `name` - (Required) The name of the storage blob. Must be unique within the storage container the blob is located. Changing this forces a new resource to be created.
 
 * `storage_account_name` - (Required) Specifies the storage account in which to create the storage container. Changing this forces a new resource to be created.
- Changing this forces a new resource to be created.
 
 * `storage_container_name` - (Required) The name of the storage container in which this blob should be created. Changing this forces a new resource to be created.
 

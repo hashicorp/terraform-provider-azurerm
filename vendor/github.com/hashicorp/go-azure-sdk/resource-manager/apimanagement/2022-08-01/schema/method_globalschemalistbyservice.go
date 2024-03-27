@@ -19,7 +19,8 @@ type GlobalSchemaListByServiceOperationResponse struct {
 }
 
 type GlobalSchemaListByServiceCompleteResult struct {
-	Items []GlobalSchemaContract
+	LatestHttpResponse *http.Response
+	Items              []GlobalSchemaContract
 }
 
 type GlobalSchemaListByServiceOperationOptions struct {
@@ -119,7 +120,8 @@ func (c SchemaClient) GlobalSchemaListByServiceCompleteMatchingPredicate(ctx con
 	}
 
 	result = GlobalSchemaListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

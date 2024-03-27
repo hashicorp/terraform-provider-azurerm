@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -186,6 +186,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 
 func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
+	namespaceClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -195,24 +196,6 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	id := queues.NewQueueID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
-
-	isPartitioningEnabled := false
-	if d.HasChange("enable_partitioning") {
-		existingQueue, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existingQueue.HttpResponse) {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-		}
-
-		if model := existingQueue.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if model.Id != nil && props.EnablePartitioning != nil && *props.EnablePartitioning {
-					isPartitioningEnabled = true
-				}
-			}
-		}
-	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -224,6 +207,19 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_servicebus_queue", id.ID())
+		}
+	}
+
+	isPremiumNamespacePartitioned := true
+	sbNamespace, err := namespaceClient.Get(ctx, *namespaceId)
+	if err != nil {
+		return fmt.Errorf("checking the parent namespace %s: %+v", id, err)
+	}
+
+	if sbNamespaceModel := sbNamespace.Model; sbNamespaceModel != nil {
+		if sbNamespaceModel.Properties != nil &&
+			sbNamespaceModel.Properties.PremiumMessagingPartitions != nil && *sbNamespaceModel.Properties.PremiumMessagingPartitions == 1 {
+			isPremiumNamespacePartitioned = false
 		}
 	}
 
@@ -313,8 +309,12 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("%s does not support Express Entities in Premium SKU and must be disabled", id)
 	}
 
-	if sku == namespaces.SkuNamePremium && enablePartitioning && !isPartitioningEnabled {
-		return fmt.Errorf("partitioning Entities is not supported in Premium SKU and must be disabled")
+	if sku == namespaces.SkuNamePremium {
+		if isPremiumNamespacePartitioned && !enablePartitioning {
+			return fmt.Errorf("non-partitioned entities are not allowed in partitioned namespace")
+		} else if !isPremiumNamespacePartitioned && enablePartitioning {
+			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
+		}
 	}
 
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256

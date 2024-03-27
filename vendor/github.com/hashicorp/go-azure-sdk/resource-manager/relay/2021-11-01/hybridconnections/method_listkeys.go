@@ -44,7 +44,10 @@ func (c HybridConnectionsClient) ListKeys(ctx context.Context, id HybridConnecti
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -19,7 +19,8 @@ type SharedPrivateLinkResourcesListOperationResponse struct {
 }
 
 type SharedPrivateLinkResourcesListCompleteResult struct {
-	Items []SharedPrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []SharedPrivateLinkResource
 }
 
 // SharedPrivateLinkResourcesList ...
@@ -83,7 +84,8 @@ func (c WebPubSubClient) SharedPrivateLinkResourcesListCompleteMatchingPredicate
 	}
 
 	result = SharedPrivateLinkResourcesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

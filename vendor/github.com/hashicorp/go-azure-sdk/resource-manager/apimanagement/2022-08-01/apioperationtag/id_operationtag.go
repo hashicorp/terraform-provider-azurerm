@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = OperationTagId{}
+var _ resourceids.ResourceId = &OperationTagId{}
 
 // OperationTagId is a struct representing the Resource ID for a Operation Tag
 type OperationTagId struct {
@@ -36,7 +36,7 @@ func NewOperationTagID(subscriptionId string, resourceGroupName string, serviceN
 
 // ParseOperationTagID parses 'input' into a OperationTagId
 func ParseOperationTagID(input string) (*OperationTagId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OperationTagId{})
+	parser := resourceids.NewParserFromResourceIdType(&OperationTagId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +53,7 @@ func ParseOperationTagID(input string) (*OperationTagId, error) {
 // ParseOperationTagIDInsensitively parses 'input' case-insensitively into a OperationTagId
 // note: this method should only be used for API response data and not user input
 func ParseOperationTagIDInsensitively(input string) (*OperationTagId, error) {
-	parser := resourceids.NewParserFromResourceIdType(OperationTagId{})
+	parser := resourceids.NewParserFromResourceIdType(&OperationTagId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

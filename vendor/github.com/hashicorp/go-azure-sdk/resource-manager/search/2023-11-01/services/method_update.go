@@ -76,7 +76,10 @@ func (c ServicesClient) Update(ctx context.Context, id SearchServiceId, input Se
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SearchService
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -19,7 +19,8 @@ type ListOutboundNetworkDependenciesEndpointsOperationResponse struct {
 }
 
 type ListOutboundNetworkDependenciesEndpointsCompleteResult struct {
-	Items []OutboundEnvironmentEndpoint
+	LatestHttpResponse *http.Response
+	Items              []OutboundEnvironmentEndpoint
 }
 
 // ListOutboundNetworkDependenciesEndpoints ...
@@ -83,7 +84,8 @@ func (c DiskPoolsClient) ListOutboundNetworkDependenciesEndpointsCompleteMatchin
 	}
 
 	result = ListOutboundNetworkDependenciesEndpointsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

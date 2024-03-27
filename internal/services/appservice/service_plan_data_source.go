@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -123,50 +125,52 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewServicePlanID(subscriptionId, servicePlan.ResourceGroup, servicePlan.Name)
+			id := commonids.NewAppServicePlanID(subscriptionId, servicePlan.ResourceGroup, servicePlan.Name)
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("%s not found", id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			servicePlan.Location = location.NormalizeNilable(existing.Location)
-			servicePlan.Kind = utils.NormalizeNilableString(existing.Kind)
+			if model := existing.Model; model != nil {
+				servicePlan.Location = location.Normalize(model.Location)
+				servicePlan.Kind = pointer.From(model.Kind)
 
-			if sku := existing.Sku; sku != nil {
-				if sku.Name != nil {
-					servicePlan.Sku = *sku.Name
-					if sku.Capacity != nil {
-						servicePlan.WorkerCount = int(*sku.Capacity)
+				if sku := model.Sku; sku != nil {
+					if sku.Name != nil {
+						servicePlan.Sku = *sku.Name
+						if sku.Capacity != nil {
+							servicePlan.WorkerCount = int(*sku.Capacity)
+						}
 					}
 				}
+
+				if props := model.Properties; props != nil {
+					servicePlan.OSType = OSTypeWindows
+					if props.HyperV != nil && *props.HyperV {
+						servicePlan.OSType = OSTypeWindowsContainer
+					}
+					if props.Reserved != nil && *props.Reserved {
+						servicePlan.OSType = OSTypeLinux
+					}
+
+					if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.Id != nil {
+						servicePlan.AppServiceEnvironmentId = utils.NormalizeNilableString(props.HostingEnvironmentProfile.Id)
+					}
+
+					servicePlan.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
+
+					servicePlan.Reserved = utils.NormaliseNilableBool(props.Reserved)
+
+					servicePlan.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
+
+					servicePlan.MaximumElasticWorkerCount = int(pointer.From(props.MaximumElasticWorkerCount))
+				}
+				servicePlan.Tags = pointer.From(model.Tags)
 			}
-
-			if props := existing.AppServicePlanProperties; props != nil {
-				servicePlan.OSType = OSTypeWindows
-				if props.HyperV != nil && *props.HyperV {
-					servicePlan.OSType = OSTypeWindowsContainer
-				}
-				if props.Reserved != nil && *props.Reserved {
-					servicePlan.OSType = OSTypeLinux
-				}
-
-				if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
-					servicePlan.AppServiceEnvironmentId = utils.NormalizeNilableString(props.HostingEnvironmentProfile.ID)
-				}
-
-				servicePlan.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
-
-				servicePlan.Reserved = utils.NormaliseNilableBool(props.Reserved)
-
-				servicePlan.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
-
-				servicePlan.MaximumElasticWorkerCount = int(utils.NormaliseNilableInt32(props.MaximumElasticWorkerCount))
-			}
-			servicePlan.Tags = tags.ToTypedObject(existing.Tags)
 
 			metadata.SetID(id)
 

@@ -99,6 +99,16 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `earliest_restore_time` - The earliest restore point time (ISO8601 format) for the Azure Cosmos DB for PostgreSQL Cluster.
 
+* `servers` - A `servers` block as defined below.
+
+---
+
+A `servers` block exports the following:
+
+* `fqdn` - The Fully Qualified Domain Name of the server.
+
+* `name` - The name of the server.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

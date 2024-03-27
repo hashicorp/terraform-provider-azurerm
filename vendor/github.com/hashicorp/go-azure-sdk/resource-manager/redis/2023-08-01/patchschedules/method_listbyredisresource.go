@@ -19,7 +19,8 @@ type ListByRedisResourceOperationResponse struct {
 }
 
 type ListByRedisResourceCompleteResult struct {
-	Items []RedisPatchSchedule
+	LatestHttpResponse *http.Response
+	Items              []RedisPatchSchedule
 }
 
 // ListByRedisResource ...
@@ -83,7 +84,8 @@ func (c PatchSchedulesClient) ListByRedisResourceCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListByRedisResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

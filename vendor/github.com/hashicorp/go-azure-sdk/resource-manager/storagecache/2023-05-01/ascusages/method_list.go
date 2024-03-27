@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []ResourceUsage
+	LatestHttpResponse *http.Response
+	Items              []ResourceUsage
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c AscUsagesClient) ListCompleteMatchingPredicate(ctx context.Context, id L
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

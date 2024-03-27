@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/azurefirewalls"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -63,7 +63,7 @@ func resourceFirewall() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			//lintignore:S013
+			// lintignore:S013
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -74,7 +74,7 @@ func resourceFirewall() *pluginsdk.Resource {
 				}, false),
 			},
 
-			//lintignore:S013
+			// lintignore:S013
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -170,6 +170,12 @@ func resourceFirewall() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsIPAddress,
 				},
+			},
+
+			"dns_proxy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"private_ip_ranges": {
@@ -327,7 +333,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		parameters.Properties.Sku.Tier = pointer.To(azurefirewalls.AzureFirewallSkuTier(skuTier))
 	}
 
-	if dnsServerSetting := expandFirewallDNSServers(d.Get("dns_servers").([]interface{})); dnsServerSetting != nil {
+	if dnsServerSetting := expandFirewallAdditionalProperty(d); dnsServerSetting != nil {
 		for k, v := range dnsServerSetting {
 			attrs := *parameters.Properties.AdditionalProperties
 			attrs[k] = v
@@ -429,7 +435,11 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			d.Set("threat_intel_mode", string(pointer.From(props.ThreatIntelMode)))
 
-			if err := d.Set("dns_servers", flattenFirewallDNSServers(props.AdditionalProperties)); err != nil {
+			dnsProxyEnabled, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
+			if err := d.Set("dns_proxy_enabled", dnsProxyEnabled); err != nil {
+				return fmt.Errorf("setting `dns_proxy_enabled`: %+v", err)
+			}
+			if err := d.Set("dns_servers", dnsServers); err != nil {
 				return fmt.Errorf("setting `dns_servers`: %+v", err)
 			}
 
@@ -527,7 +537,10 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		if read.Model.Properties != nil && read.Model.Properties.FirewallPolicy != nil && read.Model.Properties.FirewallPolicy.Id != nil {
-			id, _ := firewallpolicies.ParseFirewallPolicyID(*read.Model.Properties.FirewallPolicy.Id)
+			id, err := firewallpolicies.ParseFirewallPolicyIDInsensitively(*read.Model.Properties.FirewallPolicy.Id)
+			if err != nil {
+				return err
+			}
 			locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 			defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 		}
@@ -643,37 +656,38 @@ func flattenFirewallIPConfigurations(input *[]azurefirewalls.AzureFirewallIPConf
 	return result
 }
 
-func expandFirewallDNSServers(input []interface{}) map[string]string {
-	if len(input) == 0 {
-		return nil
-	}
-
-	var servers []string
-	for _, server := range input {
-		servers = append(servers, server.(string))
-	}
-
+func expandFirewallAdditionalProperty(d *pluginsdk.ResourceData) map[string]string {
 	// Swagger issue asking finalize these properties: https://github.com/Azure/azure-rest-api-specs/issues/11278
-	return map[string]string{
-		"Network.DNS.EnableProxy": "true",
-		"Network.DNS.Servers":     strings.Join(servers, ","),
+	res := map[string]string{}
+	if servers := d.Get("dns_servers").([]interface{}); len(servers) > 0 {
+		var servs []string
+		for _, server := range servers {
+			servs = append(servs, server.(string))
+		}
+		res["Network.DNS.EnableProxy"] = "true"
+		res["Network.DNS.Servers"] = strings.Join(servs, ",")
 	}
+	if enabled := d.Get("dns_proxy_enabled").(bool); enabled {
+		res["Network.DNS.EnableProxy"] = "true"
+	}
+	return res
 }
 
-func flattenFirewallDNSServers(input *map[string]string) []interface{} {
+func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interface{}, servers []interface{}) {
 	if input == nil || len(*input) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	attrs := *input
-	enabled := attrs["Network.DNS.EnableProxy"] == "true"
-
-	if !enabled {
-		return nil
+	if enabledPtr, ok := (*input)["Network.DNS.EnableProxy"]; ok {
+		enabled = enabledPtr == "true"
 	}
 
-	servers := strings.Split(attrs["Network.DNS.Servers"], ",")
-	return utils.FlattenStringSlice(&servers)
+	if serversPtr, ok := (*input)["Network.DNS.Servers"]; ok {
+		for _, val := range strings.Split(serversPtr, ",") {
+			servers = append(servers, val)
+		}
+	}
+	return
 }
 
 func expandFirewallPrivateIpRange(input []interface{}) map[string]string {

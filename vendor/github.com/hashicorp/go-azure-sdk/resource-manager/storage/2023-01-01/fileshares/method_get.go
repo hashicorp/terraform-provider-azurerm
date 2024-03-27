@@ -75,7 +75,10 @@ func (c FileSharesClient) Get(ctx context.Context, id ShareId, options GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FileShare
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

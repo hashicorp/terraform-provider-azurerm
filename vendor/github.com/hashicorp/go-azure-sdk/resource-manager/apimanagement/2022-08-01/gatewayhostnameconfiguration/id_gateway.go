@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = GatewayId{}
+var _ resourceids.ResourceId = &GatewayId{}
 
 // GatewayId is a struct representing the Resource ID for a Gateway
 type GatewayId struct {
@@ -32,7 +32,7 @@ func NewGatewayID(subscriptionId string, resourceGroupName string, serviceName s
 
 // ParseGatewayID parses 'input' into a GatewayId
 func ParseGatewayID(input string) (*GatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&GatewayId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseGatewayID(input string) (*GatewayId, error) {
 // ParseGatewayIDInsensitively parses 'input' case-insensitively into a GatewayId
 // note: this method should only be used for API response data and not user input
 func ParseGatewayIDInsensitively(input string) (*GatewayId, error) {
-	parser := resourceids.NewParserFromResourceIdType(GatewayId{})
+	parser := resourceids.NewParserFromResourceIdType(&GatewayId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

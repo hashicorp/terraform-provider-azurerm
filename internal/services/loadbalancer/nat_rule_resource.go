@@ -8,18 +8,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
@@ -29,13 +28,13 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 		Update: resourceArmLoadBalancerNatRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerNatRuleDelete,
 
-		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
-			id, err := parse.LoadBalancerInboundNatRuleID(input)
+		Importer: loadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
+			id, err := loadbalancers.ParseInboundNatRuleID(input)
 			if err != nil {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+			lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -60,16 +59,16 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: loadBalancerValidate.LoadBalancerID,
+				ValidateFunc: loadbalancers.ValidateLoadBalancerID,
 			},
 
 			"protocol": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.TransportProtocolAll),
-					string(network.TransportProtocolTCP),
-					string(network.TransportProtocolUDP),
+					string(loadbalancers.TransportProtocolAll),
+					string(loadbalancers.TransportProtocolTcp),
+					string(loadbalancers.TransportProtocolUdp),
 				}, false),
 			},
 
@@ -108,7 +107,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"backend_address_pool_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ValidateFunc:  loadBalancerValidate.LoadBalancerBackendAddressPoolID,
+				ValidateFunc:  loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
 				ConflictsWith: []string{"frontend_port"},
 				RequiredWith:  []string{"frontend_port_start", "frontend_port_end"},
 			},
@@ -155,56 +154,57 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
+	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return fmt.Errorf("retrieving Load Balancer Name and Group: %+v", err)
 	}
-	id := parse.NewLoadBalancerInboundNatRuleID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
+	id := loadbalancers.NewInboundNatRuleID(subscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, d.Get("name").(string))
 
 	loadBalancerIdRaw := loadBalancerId.ID()
 	locks.ByID(loadBalancerIdRaw)
 	defer locks.UnlockByID(loadBalancerIdRaw)
 
-	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	loadBalancer, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(loadBalancer.Response) {
+		if response.WasNotFound(loadBalancer.HttpResponse) {
 			d.SetId("")
 			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
+		return fmt.Errorf("retrieving %s: %+v", *loadBalancerId, err)
 	}
 
-	newNatRule, err := expandAzureRmLoadBalancerNatRule(d, &loadBalancer, *loadBalancerId)
-	if err != nil {
-		return fmt.Errorf("expanding NAT Rule: %+v", err)
-	}
+	if model := loadBalancer.Model; model != nil {
+		newNatRule, err := expandAzureRmLoadBalancerNatRule(d, model, *loadBalancerId)
+		if err != nil {
+			return fmt.Errorf("expanding NAT Rule: %+v", err)
+		}
 
-	natRules := append(*loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules, *newNatRule)
+		natRules := make([]loadbalancers.InboundNatRule, 0)
+		if props := model.Properties; props != nil {
+			natRules = append(*props.InboundNatRules, *newNatRule)
 
-	existingNatRule, existingNatRuleIndex, exists := FindLoadBalancerNatRuleByName(&loadBalancer, id.InboundNatRuleName)
-	if exists {
-		if id.InboundNatRuleName == *existingNatRule.Name {
-			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.ID)
+			existingNatRule, existingNatRuleIndex, exists := FindLoadBalancerNatRuleByName(model, id.InboundNatRuleName)
+			if exists {
+				if id.InboundNatRuleName == *existingNatRule.Name {
+					if d.IsNewResource() {
+						return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.Id)
+					}
+
+					// this nat rule is being updated/reapplied remove old copy from the slice
+					natRules = append(natRules[:existingNatRuleIndex], natRules[existingNatRuleIndex+1:]...)
+				}
 			}
 
-			// this nat rule is being updated/reapplied remove old copy from the slice
-			natRules = append(natRules[:existingNatRuleIndex], natRules[existingNatRuleIndex+1:]...)
+			props.InboundNatRules = &natRules
+
+			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
+			if err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
 		}
 	}
-
-	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &natRules
-
-	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
-	if err != nil {
-		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
-	}
-
 	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerNatRuleRead(d, meta)
@@ -215,85 +215,67 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerInboundNatRuleID(d.Id())
+	id, err := loadbalancers.ParseInboundNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancer, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	loadBalancer, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(loadBalancer.Response) {
+		if response.WasNotFound(loadBalancer.HttpResponse) {
 			d.SetId("")
 			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
+		return fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
 
-	config, _, exists := FindLoadBalancerNatRuleByName(&loadBalancer, id.InboundNatRuleName)
-	if !exists {
-		d.SetId("")
-		log.Printf("[INFO] Load Balancer Nat Rule %q not found. Removing from state", id.InboundNatRuleName)
-		return nil
-	}
-
-	d.Set("name", config.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-
-	if props := config.InboundNatRulePropertiesFormat; props != nil {
-		backendIPConfigId := ""
-		if props.BackendIPConfiguration != nil && props.BackendIPConfiguration.ID != nil {
-			backendIPConfigId = *props.BackendIPConfiguration.ID
+	if model := loadBalancer.Model; model != nil {
+		config, _, exists := FindLoadBalancerNatRuleByName(model, id.InboundNatRuleName)
+		if !exists {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer Nat Rule %q not found. Removing from state", id.InboundNatRuleName)
+			return nil
 		}
-		d.Set("backend_ip_configuration_id", backendIPConfigId)
 
-		backendPort := 0
-		if props.BackendPort != nil {
-			backendPort = int(*props.BackendPort)
-		}
-		d.Set("backend_port", backendPort)
-		d.Set("enable_floating_ip", props.EnableFloatingIP)
-		d.Set("enable_tcp_reset", props.EnableTCPReset)
+		d.Set("name", config.Name)
+		d.Set("resource_group_name", id.ResourceGroupName)
 
-		frontendIPConfigName := ""
-		frontendIPConfigID := ""
-		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIpConfigurationIDInsensitively(*props.FrontendIPConfiguration.ID)
-			if err != nil {
-				return err
+		if props := config.Properties; props != nil {
+			backendIPConfigId := ""
+			if props.BackendIPConfiguration != nil && props.BackendIPConfiguration.Id != nil {
+				backendIPConfigId = *props.BackendIPConfiguration.Id
 			}
+			d.Set("backend_ip_configuration_id", backendIPConfigId)
+			d.Set("backend_port", pointer.From(props.BackendPort))
+			d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
+			d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
 
-			frontendIPConfigName = feid.FrontendIPConfigurationName
-			frontendIPConfigID = feid.ID()
-		}
-		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
-		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
+			frontendIPConfigName := ""
+			frontendIPConfigID := ""
+			if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.Id != nil {
+				feid, err := loadbalancers.ParseFrontendIPConfigurationIDInsensitively(*props.FrontendIPConfiguration.Id)
+				if err != nil {
+					return err
+				}
 
-		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
-			d.Set("backend_address_pool_id", props.BackendAddressPool.ID)
-		}
+				frontendIPConfigName = feid.FrontendIPConfigurationName
+				frontendIPConfigID = feid.ID()
+			}
+			d.Set("frontend_ip_configuration_name", frontendIPConfigName)
+			d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 
-		frontendPort := 0
-		if props.FrontendPort != nil {
-			frontendPort = int(*props.FrontendPort)
-			d.Set("frontend_port", frontendPort)
+			if props.BackendAddressPool != nil {
+				d.Set("backend_address_pool_id", pointer.From(props.BackendAddressPool.Id))
+			}
+			d.Set("frontend_port", pointer.From(props.FrontendPort))
+			d.Set("frontend_port_start", int(pointer.From(props.FrontendPortRangeStart)))
+			d.Set("frontend_port_end", int(pointer.From(props.FrontendPortRangeEnd)))
+			d.Set("idle_timeout_in_minutes", int(pointer.From(props.IdleTimeoutInMinutes)))
+			d.Set("protocol", string(pointer.From(props.Protocol)))
 		}
-
-		if props.FrontendPortRangeStart != nil {
-			d.Set("frontend_port_start", int(*props.FrontendPortRangeStart))
-		}
-		if props.FrontendPortRangeEnd != nil {
-			d.Set("frontend_port_end", int(*props.FrontendPortRangeEnd))
-		}
-
-		idleTimeoutInMinutes := 0
-		if props.IdleTimeoutInMinutes != nil {
-			idleTimeoutInMinutes = int(*props.IdleTimeoutInMinutes)
-		}
-		d.Set("idle_timeout_in_minutes", idleTimeoutInMinutes)
-		d.Set("protocol", string(props.Protocol))
 	}
-
 	return nil
 }
 
@@ -302,50 +284,50 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerInboundNatRuleID(d.Id())
+	id, err := loadbalancers.ParseInboundNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
 	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	loadBalancer, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(loadBalancer.Response) {
+		if response.WasNotFound(loadBalancer.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, id.InboundNatRuleName, err)
+		return fmt.Errorf("retrieving %s: %+v", loadBalancerId, err)
 	}
-	_, index, exists := FindLoadBalancerNatRuleByName(&loadBalancer, id.InboundNatRuleName)
-	if !exists {
-		return nil
+	if model := loadBalancer.Model; model != nil {
+		_, index, exists := FindLoadBalancerNatRuleByName(model, id.InboundNatRuleName)
+		if !exists {
+			return nil
+		}
+
+		if props := model.Properties; props != nil {
+			natRules := *props.InboundNatRules
+			natRules = append(natRules[:index], natRules[index+1:]...)
+			props.InboundNatRules = &natRules
+
+			err := client.CreateOrUpdateThenPoll(ctx, plbId, *model)
+			if err != nil {
+				return fmt.Errorf("Creating/Updating %s: %+v", *id, err)
+			}
+		}
 	}
-
-	natRules := *loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules
-	natRules = append(natRules[:index], natRules[index+1:]...)
-	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &natRules
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
-	if err != nil {
-		return fmt.Errorf("Creating/Updating Load Balancer %q (Resource Group %q) %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the completion of Load Balancer updates for %q (Resource Group %q) %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
 	return nil
 }
 
-func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.LoadBalancer, loadBalancerId parse.LoadBalancerId) (*network.InboundNatRule, error) {
-	properties := network.InboundNatRulePropertiesFormat{
-		Protocol:       network.TransportProtocol(d.Get("protocol").(string)),
-		BackendPort:    utils.Int32(int32(d.Get("backend_port").(int))),
-		EnableTCPReset: utils.Bool(d.Get("enable_tcp_reset").(bool)),
+func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalancers.LoadBalancer, loadBalancerId loadbalancers.LoadBalancerId) (*loadbalancers.InboundNatRule, error) {
+	properties := loadbalancers.InboundNatRulePropertiesFormat{
+		Protocol:       pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
+		BackendPort:    pointer.To(int64(d.Get("backend_port").(int))),
+		EnableTcpReset: pointer.To(d.Get("enable_tcp_reset").(bool)),
 	}
 
 	backendAddressPoolSet, frontendPort := false, false
@@ -357,26 +339,26 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.Loa
 	}
 
 	if backendAddressPoolSet {
-		properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
-		properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
-		properties.BackendAddressPool = &network.SubResource{
-			ID: utils.String(d.Get("backend_address_pool_id").(string)),
+		properties.FrontendPortRangeStart = pointer.To(int64(d.Get("frontend_port_start").(int)))
+		properties.FrontendPortRangeEnd = pointer.To(int64(d.Get("frontend_port_end").(int)))
+		properties.BackendAddressPool = &loadbalancers.SubResource{
+			Id: pointer.To(d.Get("backend_address_pool_id").(string)),
 		}
 	} else {
 		if frontendPort {
-			properties.FrontendPort = utils.Int32(int32(d.Get("frontend_port").(int)))
+			properties.FrontendPort = pointer.To(int64(d.Get("frontend_port").(int)))
 		} else {
-			properties.FrontendPortRangeStart = utils.Int32(int32(d.Get("frontend_port_start").(int)))
-			properties.FrontendPortRangeEnd = utils.Int32(int32(d.Get("frontend_port_end").(int)))
+			properties.FrontendPortRangeStart = pointer.To(int64(d.Get("frontend_port_start").(int)))
+			properties.FrontendPortRangeEnd = pointer.To(int64(d.Get("frontend_port_end").(int)))
 		}
 	}
 
 	if v, ok := d.GetOk("enable_floating_ip"); ok {
-		properties.EnableFloatingIP = utils.Bool(v.(bool))
+		properties.EnableFloatingIP = pointer.To(v.(bool))
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
+		properties.IdleTimeoutInMinutes = pointer.To(int64(v.(int)))
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
@@ -384,15 +366,15 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *network.Loa
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
 
-		id := parse.NewLoadBalancerFrontendIpConfigurationID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, v).ID()
-		properties.FrontendIPConfiguration = &network.SubResource{
-			ID: utils.String(id),
+		id := loadbalancers.NewFrontendIPConfigurationID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, v).ID()
+		properties.FrontendIPConfiguration = &loadbalancers.SubResource{
+			Id: pointer.To(id),
 		}
 	}
 
-	natRule := network.InboundNatRule{
-		Name:                           utils.String(d.Get("name").(string)),
-		InboundNatRulePropertiesFormat: &properties,
+	natRule := loadbalancers.InboundNatRule{
+		Name:       pointer.To(d.Get("name").(string)),
+		Properties: &properties,
 	}
 
 	return &natRule, nil

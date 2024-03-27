@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AssetFilterId{}
+var _ resourceids.ResourceId = &AssetFilterId{}
 
 // AssetFilterId is a struct representing the Resource ID for a Asset Filter
 type AssetFilterId struct {
@@ -34,7 +34,7 @@ func NewAssetFilterID(subscriptionId string, resourceGroupName string, mediaServ
 
 // ParseAssetFilterID parses 'input' into a AssetFilterId
 func ParseAssetFilterID(input string) (*AssetFilterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AssetFilterId{})
+	parser := resourceids.NewParserFromResourceIdType(&AssetFilterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseAssetFilterID(input string) (*AssetFilterId, error) {
 // ParseAssetFilterIDInsensitively parses 'input' case-insensitively into a AssetFilterId
 // note: this method should only be used for API response data and not user input
 func ParseAssetFilterIDInsensitively(input string) (*AssetFilterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AssetFilterId{})
+	parser := resourceids.NewParserFromResourceIdType(&AssetFilterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

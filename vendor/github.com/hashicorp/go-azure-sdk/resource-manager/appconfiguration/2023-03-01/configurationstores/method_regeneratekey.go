@@ -48,7 +48,10 @@ func (c ConfigurationStoresClient) RegenerateKey(ctx context.Context, id Configu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ApiKey
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

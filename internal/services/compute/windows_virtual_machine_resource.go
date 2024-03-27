@@ -15,9 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
@@ -120,7 +117,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: availabilitysets.ValidateAvailabilitySetID,
+				ValidateFunc: commonids.ValidateAvailabilitySetID,
 				// the Compute/VM API is broken and returns the Availability Set name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -168,7 +165,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: dedicatedhosts.ValidateHostID,
+				ValidateFunc: commonids.ValidateDedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -180,13 +177,23 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"dedicated_host_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: dedicatedhostgroups.ValidateHostGroupID,
+				ValidateFunc: commonids.ValidateDedicatedHostGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
 				ConflictsWith: []string{
 					"dedicated_host_id",
 				},
+			},
+
+			"disk_controller_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskControllerTypesNVMe),
+					string(compute.DiskControllerTypesSCSI),
+				}, false),
 			},
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
@@ -350,6 +357,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 
+			"os_image_notification": virtualMachineOsImageNotificationSchema(),
+
 			"termination_notification": virtualMachineTerminationNotificationSchema(),
 
 			"timezone": {
@@ -362,11 +371,16 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"virtual_machine_scale_set_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ConflictsWith: []string{
 					"availability_set_id",
 				},
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
+			},
+
+			"vm_agent_platform_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"platform_fault_domain": {
@@ -506,6 +520,8 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	sourceImageId := d.Get("source_image_id").(string)
 	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
+	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
+
 	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
@@ -528,9 +544,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				ComputerName:             utils.String(computerName),
 				AllowExtensionOperations: utils.Bool(allowExtensionOperations),
 				WindowsConfiguration: &compute.WindowsConfiguration{
-					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
-					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
-					WinRM:                  winRmListeners,
+					ProvisionVMAgent:             utils.Bool(provisionVMAgent),
+					EnableAutomaticUpdates:       utils.Bool(enableAutomaticUpdates),
+					EnableVMAgentPlatformUpdates: utils.Bool(vmAgentPlatformUpdatesEnabled),
+					WinRM:                        winRmListeners,
 				},
 				Secrets: secrets,
 			},
@@ -553,6 +570,10 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		params.StorageProfile.DiskControllerType = compute.DiskControllerTypes(diskControllerType.(string))
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
@@ -595,7 +616,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				return fmt.Errorf("the %q field is not supported if referencing the image via the %q field", "hotpatching_enabled", "source_image_id")
 			}
 
-			return fmt.Errorf("%q is currently only supported on %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk")
+			return fmt.Errorf("%q is currently only supported on %q, %q, %q or %q image reference skus", "hotpatching_enabled", "2022-datacenter-azure-edition-core", "2022-datacenter-azure-edition-core-smalldisk", "2022-datacenter-azure-edition-hotpatch", "2022-datacenter-azure-edition-hotpatch-smalldisk")
 		}
 	}
 
@@ -757,8 +778,22 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		params.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain))
 	}
 
+	var osImageNotificationProfile *compute.OSImageNotificationProfile
+	var terminateNotificationProfile *compute.TerminateNotificationProfile
+
+	if v, ok := d.GetOk("os_image_notification"); ok {
+		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("termination_notification"); ok {
-		params.VirtualMachineProperties.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(v.([]interface{}))
+		terminateNotificationProfile = expandTerminateNotificationProfile(v.([]interface{}))
+	}
+
+	if terminateNotificationProfile != nil || osImageNotificationProfile != nil {
+		params.VirtualMachineProperties.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if v, ok := d.GetOk("timezone"); ok {
@@ -917,8 +952,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
-
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+			d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
 			assessmentMode := string(compute.WindowsPatchAssessmentModeImageDefault)
 			bypassPlatformSafetyChecksOnUserScheduleEnabled := false
@@ -965,6 +1000,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
 	if profile := props.StorageProfile; profile != nil {
+		d.Set("disk_controller_type", string(props.StorageProfile.DiskControllerType))
+
 		// the storage_account_type isn't returned so we need to look it up
 		flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
 		if err != nil {
@@ -992,7 +1029,11 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {
-		if err := d.Set("termination_notification", flattenVirtualMachineScheduledEventsProfile(scheduleProfile)); err != nil {
+		if err := d.Set("os_image_notification", flattenOsImageNotificationProfile(scheduleProfile.OsImageNotificationProfile)); err != nil {
+			return fmt.Errorf("setting `termination_notification`: %+v", err)
+		}
+
+		if err := d.Set("termination_notification", flattenTerminateNotificationProfile(scheduleProfile.TerminateNotificationProfile)); err != nil {
 			return fmt.Errorf("setting `termination_notification`: %+v", err)
 		}
 	}
@@ -1117,6 +1158,19 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
+	if d.HasChange("vm_agent_platform_updates_enabled") {
+		shouldUpdate = true
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		update.OsProfile.WindowsConfiguration.EnableVMAgentPlatformUpdates = utils.Bool(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {
@@ -1340,6 +1394,17 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if d.HasChange("disk_controller_type") {
+		shouldUpdate = true
+		shouldDeallocate = true
+
+		if update.VirtualMachineProperties.StorageProfile == nil {
+			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
+		}
+
+		update.VirtualMachineProperties.StorageProfile.DiskControllerType = compute.DiskControllerTypes(d.Get("disk_controller_type").(string))
+	}
+
 	if d.HasChange("os_disk") {
 		shouldUpdate = true
 
@@ -1353,8 +1418,22 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
 		}
 
-		update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
-			OsDisk: osDisk,
+		if update.VirtualMachineProperties.StorageProfile == nil {
+			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
+		}
+
+		update.VirtualMachineProperties.StorageProfile.OsDisk = osDisk
+	}
+
+	if d.HasChange("virtual_machine_scale_set_id") {
+		shouldUpdate = true
+
+		if vmssIDRaw, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
+			update.VirtualMachineProperties.VirtualMachineScaleSet = &compute.SubResource{
+				ID: utils.String(vmssIDRaw.(string)),
+			}
+		} else {
+			update.VirtualMachineProperties.VirtualMachineScaleSet = &compute.SubResource{}
 		}
 	}
 
@@ -1424,17 +1503,31 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
+	var osImageNotificationProfile *compute.OSImageNotificationProfile
+	var terminateNotificationProfile *compute.TerminateNotificationProfile
+
+	if d.HasChange("os_image_notification") {
+		shouldUpdate = true
+		osImageNotificationProfile = expandOsImageNotificationProfile(d.Get("os_image_notification").([]interface{}))
+	}
+
 	if d.HasChange("termination_notification") {
 		shouldUpdate = true
+		terminateNotificationProfile = expandTerminateNotificationProfile(d.Get("termination_notification").([]interface{}))
+	}
 
-		notificationRaw := d.Get("termination_notification").([]interface{})
-		update.ScheduledEventsProfile = expandVirtualMachineScheduledEventsProfile(notificationRaw)
+	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
+		update.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+			OsImageNotificationProfile:   osImageNotificationProfile,
+			TerminateNotificationProfile: terminateNotificationProfile,
+		}
 	}
 
 	if d.HasChange("additional_capabilities") {
 		shouldUpdate = true
 
-		if d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+		n, _ := d.GetChange("additional_capabilities")
+		if len(n.([]interface{})) == 0 || d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
 			shouldShutDown = true
 			shouldDeallocate = true
 		}
@@ -1553,7 +1646,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		disksClient := meta.(*clients.Client).Compute.DisksClient
 		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-		id := disks.NewDiskID(subscriptionId, id.ResourceGroupName, diskName)
+		id := commonids.NewManagedDiskID(subscriptionId, id.ResourceGroupName, diskName)
 
 		update := disks.DiskUpdate{
 			Properties: &disks.DiskUpdateProperties{
@@ -1581,7 +1674,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 			disksClient := meta.(*clients.Client).Compute.DisksClient
 			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-			id := disks.NewDiskID(subscriptionId, id.ResourceGroupName, diskName)
+			id := commonids.NewManagedDiskID(subscriptionId, id.ResourceGroupName, diskName)
 
 			update := disks.DiskUpdate{
 				Properties: &disks.DiskUpdateProperties{
@@ -1710,7 +1803,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if managedDiskId != "" {
-			diskId, err := disks.ParseDiskID(managedDiskId)
+			diskId, err := commonids.ParseManagedDiskID(managedDiskId)
 			if err != nil {
 				return err
 			}

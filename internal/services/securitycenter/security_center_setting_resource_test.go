@@ -8,12 +8,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -35,7 +34,7 @@ func testAccSecurityCenterSetting_update(t *testing.T) {
 	r := SecurityCenterSettingResource{}
 
 	// lintignore:AT001
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	testcases := []acceptance.TestStep{
 		{
 			Config: r.cfg("MCAS", true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -71,16 +70,27 @@ func testAccSecurityCenterSetting_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.cfg("SENTINEL", true),
+			Config: r.cfg("Sentinel", true),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
 		{
-			Config: r.cfg("SENTINEL", false),
+			Config: r.cfg("Sentinel", false),
 			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 		data.ImportStep(),
-	})
+	}
+
+	if !features.FourPointOhBeta() {
+		testcases = append(testcases, []acceptance.TestStep{{
+			Config: r.cfg("SENTINEL", true),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		}, {
+			Config: r.cfg("SENTINEL", false),
+			Check:  acceptance.ComposeTestCheckFunc(),
+		}}...)
+	}
+	data.ResourceSequentialTest(t, r, testcases)
 }
 
 func testAccSecurityCenterSetting_requiresImport(t *testing.T) {
@@ -104,48 +114,71 @@ func testAccSecurityCenterSetting_requiresImport(t *testing.T) {
 }
 
 func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SettingID(state.ID)
+	id, err := settings.ParseSettingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: switch back when Swagger/API bug has been fixed:
-	// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
-	resp, err := azuresdkhacks.GetSecurityCenterSetting(ctx, clients.SecurityCenter.SettingClient, id.Name)
+	resp, err := clients.SecurityCenter.SettingClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("checking for presence of existing %s: %v", id, err)
 	}
 
-	return utils.Bool(resp.DataExportSettingProperties != nil && resp.DataExportSettingProperties.Enabled != nil && *resp.DataExportSettingProperties.Enabled), nil
+	if resp.Model == nil {
+		return utils.Bool(false), nil
+	}
+
+	if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok {
+		if alertSyncSettings.Properties == nil {
+			return utils.Bool(false), nil
+		}
+		return utils.Bool(alertSyncSettings.Properties.Enabled), nil
+	}
+	if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok {
+		if dataExportSettings.Properties == nil {
+			return utils.Bool(false), nil
+		}
+		return utils.Bool(dataExportSettings.Properties.Enabled), nil
+	}
+
+	return utils.Bool(false), nil
 }
 
 func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.SecurityCenter.SettingClient
-	id, err := parse.SettingID(state.ID)
+	id, err := settings.ParseSettingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	setting := security.DataExportSettings{
-		DataExportSettingProperties: &security.DataExportSettingProperties{
-			Enabled: utils.Bool(false),
+	setting := settings.DataExportSettings{
+		Properties: &settings.DataExportSettingProperties{
+			Enabled: false,
 		},
-		Kind: security.KindDataExportSettings,
 	}
 
-	if _, err := client.Update(ctx, id.Name, setting); err != nil {
+	if _, err := client.Update(ctx, *id, setting); err != nil {
 		return nil, fmt.Errorf("disabling %s: %+v", id, err)
 	}
 
-	// TODO: switch back when Swagger/API bug has been fixed:
-	// https://github.com/Azure/azure-sdk-for-go/issues/12724 (`Enabled` field missing)
-	resp, err := azuresdkhacks.GetSecurityCenterSetting(ctx, client, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("checking for presence of existing %s: %v", id, err)
 	}
 
-	if resp.DataExportSettingProperties == nil || resp.DataExportSettingProperties.Enabled == nil || *resp.DataExportSettingProperties.Enabled {
+	if resp.Model == nil {
 		return utils.Bool(false), nil
+	}
+
+	if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok {
+		if alertSyncSettings.Properties == nil || !alertSyncSettings.Properties.Enabled {
+			return utils.Bool(false), nil
+		}
+	}
+	if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok {
+		if dataExportSettings.Properties == nil || !dataExportSettings.Properties.Enabled {
+			return utils.Bool(false), nil
+		}
 	}
 
 	return utils.Bool(true), nil

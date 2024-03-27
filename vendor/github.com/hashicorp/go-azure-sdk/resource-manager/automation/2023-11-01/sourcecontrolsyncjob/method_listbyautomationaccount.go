@@ -19,7 +19,8 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []SourceControlSyncJob
+	LatestHttpResponse *http.Response
+	Items              []SourceControlSyncJob
 }
 
 type ListByAutomationAccountOperationOptions struct {
@@ -111,7 +112,8 @@ func (c SourceControlSyncJobClient) ListByAutomationAccountCompleteMatchingPredi
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

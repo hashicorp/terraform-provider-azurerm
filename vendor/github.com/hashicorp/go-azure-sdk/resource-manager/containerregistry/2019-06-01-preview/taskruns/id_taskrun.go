@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TaskRunId{}
+var _ resourceids.ResourceId = &TaskRunId{}
 
 // TaskRunId is a struct representing the Resource ID for a Task Run
 type TaskRunId struct {
@@ -32,7 +32,7 @@ func NewTaskRunID(subscriptionId string, resourceGroupName string, registryName 
 
 // ParseTaskRunID parses 'input' into a TaskRunId
 func ParseTaskRunID(input string) (*TaskRunId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TaskRunId{})
+	parser := resourceids.NewParserFromResourceIdType(&TaskRunId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseTaskRunID(input string) (*TaskRunId, error) {
 // ParseTaskRunIDInsensitively parses 'input' case-insensitively into a TaskRunId
 // note: this method should only be used for API response data and not user input
 func ParseTaskRunIDInsensitively(input string) (*TaskRunId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TaskRunId{})
+	parser := resourceids.NewParserFromResourceIdType(&TaskRunId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

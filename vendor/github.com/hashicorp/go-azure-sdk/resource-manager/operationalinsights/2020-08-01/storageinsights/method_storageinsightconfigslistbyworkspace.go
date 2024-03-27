@@ -19,7 +19,8 @@ type StorageInsightConfigsListByWorkspaceOperationResponse struct {
 }
 
 type StorageInsightConfigsListByWorkspaceCompleteResult struct {
-	Items []StorageInsight
+	LatestHttpResponse *http.Response
+	Items              []StorageInsight
 }
 
 // StorageInsightConfigsListByWorkspace ...
@@ -83,7 +84,8 @@ func (c StorageInsightsClient) StorageInsightConfigsListByWorkspaceCompleteMatch
 	}
 
 	result = StorageInsightConfigsListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

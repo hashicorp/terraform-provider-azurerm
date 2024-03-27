@@ -43,7 +43,10 @@ func (c WebPubSubClient) HubsGet(ctx context.Context, id HubId) (result HubsGetO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WebPubSubHub
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

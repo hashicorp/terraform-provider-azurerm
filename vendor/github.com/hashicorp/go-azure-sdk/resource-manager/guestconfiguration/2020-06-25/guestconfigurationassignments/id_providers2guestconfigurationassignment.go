@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = Providers2GuestConfigurationAssignmentId{}
+var _ resourceids.ResourceId = &Providers2GuestConfigurationAssignmentId{}
 
 // Providers2GuestConfigurationAssignmentId is a struct representing the Resource ID for a Providers 2 Guest Configuration Assignment
 type Providers2GuestConfigurationAssignmentId struct {
@@ -32,7 +32,7 @@ func NewProviders2GuestConfigurationAssignmentID(subscriptionId string, resource
 
 // ParseProviders2GuestConfigurationAssignmentID parses 'input' into a Providers2GuestConfigurationAssignmentId
 func ParseProviders2GuestConfigurationAssignmentID(input string) (*Providers2GuestConfigurationAssignmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(Providers2GuestConfigurationAssignmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&Providers2GuestConfigurationAssignmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseProviders2GuestConfigurationAssignmentID(input string) (*Providers2Gue
 // ParseProviders2GuestConfigurationAssignmentIDInsensitively parses 'input' case-insensitively into a Providers2GuestConfigurationAssignmentId
 // note: this method should only be used for API response data and not user input
 func ParseProviders2GuestConfigurationAssignmentIDInsensitively(input string) (*Providers2GuestConfigurationAssignmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(Providers2GuestConfigurationAssignmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&Providers2GuestConfigurationAssignmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

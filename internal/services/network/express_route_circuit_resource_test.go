@@ -40,6 +40,7 @@ func TestAccExpressRouteCircuit(t *testing.T) {
 		},
 		"PrivatePeering": {
 			"azurePrivatePeering":           testAccExpressRouteCircuitPeering_azurePrivatePeering,
+			"azurePrivatePeeringDataSource": testAccDataSourceExpressRouteCircuitPeering_privatePeering,
 			"azurePrivatePeeringWithUpdate": testAccExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
 			"requiresImport":                testAccExpressRouteCircuitPeering_requiresImport,
 		},

@@ -108,9 +108,9 @@ A `destination_nat` block supports the following:
 
 A `dns_settings` block supports the following:
 
-* `dns_servers` - (Optional) Specifies a list of DNS servers to proxy. Conflicts with `dns_settings.0.use_azure_dns`.
+* `dns_servers` - (Optional) Specifies a list of DNS servers to proxy. Conflicts with `dns_settings[0].use_azure_dns`.
 
-* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings.0.dns_servers`. Defaults to `false`.
+* `use_azure_dns` - (Optional) Should Azure DNS servers be used? Conflicts with `dns_settings[0].dns_servers`. Defaults to `false`.
 
 ---
 
@@ -131,6 +131,8 @@ A `network_profile` block supports the following:
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub this Next generation Fireall will be deployed in. Changing this forces a new Palo Alto Next Generation Firewall VHub Local Rulestack to be created.
 
 * `egress_nat_ip_address_ids` - (Optional) Specifies a list of Public IP IDs to use for Egress NAT.
+
+* `trusted_address_ranges` - (Optional) Specifies a list of trusted ranges to use for the Network.
 
 ## Attributes Reference
 

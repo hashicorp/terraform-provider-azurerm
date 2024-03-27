@@ -19,7 +19,8 @@ type ListByServiceOperationResponse struct {
 }
 
 type ListByServiceCompleteResult struct {
-	Items []AccessInformationContract
+	LatestHttpResponse *http.Response
+	Items              []AccessInformationContract
 }
 
 type ListByServiceOperationOptions struct {
@@ -111,7 +112,8 @@ func (c TenantAccessClient) ListByServiceCompleteMatchingPredicate(ctx context.C
 	}
 
 	result = ListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

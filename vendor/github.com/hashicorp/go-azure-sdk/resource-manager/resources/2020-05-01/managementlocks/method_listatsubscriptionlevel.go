@@ -20,7 +20,8 @@ type ListAtSubscriptionLevelOperationResponse struct {
 }
 
 type ListAtSubscriptionLevelCompleteResult struct {
-	Items []ManagementLockObject
+	LatestHttpResponse *http.Response
+	Items              []ManagementLockObject
 }
 
 type ListAtSubscriptionLevelOperationOptions struct {
@@ -112,7 +113,8 @@ func (c ManagementLocksClient) ListAtSubscriptionLevelCompleteMatchingPredicate(
 	}
 
 	result = ListAtSubscriptionLevelCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

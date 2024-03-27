@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type LoadBalancerRule struct{}
@@ -213,59 +213,58 @@ func TestAccAzureRMLoadBalancerRule_gatewayLBRuleMultiple(t *testing.T) {
 }
 
 func (r LoadBalancerRule) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LoadBalancingRuleID(state.ID)
+	id, err := loadbalancers.ParseLoadBalancingRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	rule, err := client.LoadBalancers.LoadBalancingRulesClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.Name)
+	rule, err := client.LoadBalancers.LoadBalancersClient.LoadBalancerLoadBalancingRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(rule.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(rule.HttpResponse) {
+			return pointer.To(false), nil
 		}
 
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(rule.ID != nil), nil
+	return pointer.To(rule.Model != nil && rule.Model.Id != nil), nil
 }
 
 func (r LoadBalancerRule) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LoadBalancingRuleID(state.ID)
+	id, err := loadbalancers.ParseLoadBalancingRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-
-	loadBalancer, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	loadBalancer, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", plbId, err)
 	}
-	if loadBalancer.LoadBalancerPropertiesFormat == nil {
+	if loadBalancer.Model == nil {
+		return nil, fmt.Errorf(`model was nil`)
+	}
+	if loadBalancer.Model.Properties == nil {
 		return nil, fmt.Errorf(`properties was nil`)
 	}
-	if loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules == nil {
+	if loadBalancer.Model.Properties.LoadBalancingRules == nil {
 		return nil, fmt.Errorf(`properties.LoadBalancingRules was nil`)
 	}
-	rules := make([]network.LoadBalancingRule, 0)
-	for _, v := range *loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules {
-		if v.Name == nil || *v.Name == id.Name {
+	rules := make([]loadbalancers.LoadBalancingRule, 0)
+	for _, v := range *loadBalancer.Model.Properties.LoadBalancingRules {
+		if v.Name == nil || *v.Name == id.LoadBalancingRuleName {
 			continue
 		}
 
 		rules = append(rules, v)
 	}
-	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &rules
+	loadBalancer.Model.Properties.LoadBalancingRules = &rules
 
-	future, err := client.LoadBalancers.LoadBalancersClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
+	err = client.LoadBalancers.LoadBalancersClient.CreateOrUpdateThenPoll(ctx, plbId, *loadBalancer.Model)
 	if err != nil {
-		return nil, fmt.Errorf("updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.LoadBalancers.LoadBalancersClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r LoadBalancerRule) template(data acceptance.TestData, sku string) string {
@@ -333,7 +332,7 @@ resource "azurerm_lb_rule" "test" {
   disable_outbound_snat   = true
   enable_floating_ip      = true
   enable_tcp_reset        = true
-  idle_timeout_in_minutes = 10
+  idle_timeout_in_minutes = 100
   load_distribution       = "SourceIP"
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name

@@ -19,7 +19,8 @@ type InstancesListByAccountOperationResponse struct {
 }
 
 type InstancesListByAccountCompleteResult struct {
-	Items []Instance
+	LatestHttpResponse *http.Response
+	Items              []Instance
 }
 
 // InstancesListByAccount ...
@@ -83,7 +84,8 @@ func (c DeviceupdatesClient) InstancesListByAccountCompleteMatchingPredicate(ctx
 	}
 
 	result = InstancesListByAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

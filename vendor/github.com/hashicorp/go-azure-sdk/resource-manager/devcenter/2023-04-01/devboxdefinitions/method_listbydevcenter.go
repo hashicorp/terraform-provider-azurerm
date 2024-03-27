@@ -19,7 +19,8 @@ type ListByDevCenterOperationResponse struct {
 }
 
 type ListByDevCenterCompleteResult struct {
-	Items []DevBoxDefinition
+	LatestHttpResponse *http.Response
+	Items              []DevBoxDefinition
 }
 
 // ListByDevCenter ...
@@ -83,7 +84,8 @@ func (c DevBoxDefinitionsClient) ListByDevCenterCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByDevCenterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

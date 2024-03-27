@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
 ```
 
@@ -56,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := providers.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.List(ctx, id, providers.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, providers.DefaultListOperationOptions())
@@ -92,12 +93,13 @@ for _, item := range items {
 ctx := context.TODO()
 id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
 
-read, err := client.ProviderPermissions(ctx, id)
+// alternatively `client.ProviderPermissions(ctx, id)` can be used to do batched pagination
+items, err := client.ProviderPermissionsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -108,12 +110,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := providers.NewSubscriptionProviderID("12345678-1234-9876-4563-123456789012", "providerValue")
 
-read, err := client.ProviderResourceTypesList(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())
+// alternatively `client.ProviderResourceTypesList(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())` can be used to do batched pagination
+items, err := client.ProviderResourceTypesListComplete(ctx, id, providers.DefaultProviderResourceTypesListOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

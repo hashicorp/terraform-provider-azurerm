@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -54,7 +55,7 @@ func dataSourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := dedicatedhosts.NewHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("dedicated_host_group_name").(string), d.Get("name").(string))
+	id := commonids.NewDedicatedHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("dedicated_host_group_name").(string), d.Get("name").(string))
 
 	resp, err := client.Get(ctx, id, dedicatedhosts.DefaultGetOperationOptions())
 	if err != nil {

@@ -22,6 +22,7 @@ var services = mapOf(
         "blueprints" to "Blueprints",
         "bot" to "Bot",
         "cdn" to "CDN",
+        "chaosstudio" to "ChaosStudio",
         "cognitive" to "Cognitive Services",
         "communication" to "Communication",
         "compute" to "Compute",
@@ -49,6 +50,7 @@ var services = mapOf(
         "disks" to "Disks",
         "domainservices" to "DomainServices",
         "elastic" to "Elastic",
+        "elasticsan" to "ElasticSan",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
         "firewall" to "Firewall",
@@ -74,6 +76,7 @@ var services = mapOf(
         "machinelearning" to "Machine Learning",
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
+        "managedhsm" to "Managed HSM",
         "managedidentity" to "ManagedIdentity",
         "managementgroup" to "Management Group",
         "maps" to "Maps",
@@ -101,6 +104,7 @@ var services = mapOf(
         "privatednsresolver" to "Private DNS Resolver",
         "purview" to "Purview",
         "recoveryservices" to "Recovery Services",
+        "redhatopenshift" to "Red Hat OpenShift",
         "redis" to "Redis",
         "redisenterprise" to "Redis Enterprise",
         "relay" to "Relay",
@@ -128,5 +132,6 @@ var services = mapOf(
         "vmware" to "VMware",
         "videoanalyzer" to "Video Analyzer",
         "voiceservices" to "Voice Services",
-        "web" to "Web"
+        "web" to "Web",
+        "workloads" to "Workloads"
 )

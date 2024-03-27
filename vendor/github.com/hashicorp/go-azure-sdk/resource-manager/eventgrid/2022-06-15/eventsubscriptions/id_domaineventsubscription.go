@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DomainEventSubscriptionId{}
+var _ resourceids.ResourceId = &DomainEventSubscriptionId{}
 
 // DomainEventSubscriptionId is a struct representing the Resource ID for a Domain Event Subscription
 type DomainEventSubscriptionId struct {
@@ -32,7 +32,7 @@ func NewDomainEventSubscriptionID(subscriptionId string, resourceGroupName strin
 
 // ParseDomainEventSubscriptionID parses 'input' into a DomainEventSubscriptionId
 func ParseDomainEventSubscriptionID(input string) (*DomainEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainEventSubscriptionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseDomainEventSubscriptionID(input string) (*DomainEventSubscriptionId, e
 // ParseDomainEventSubscriptionIDInsensitively parses 'input' case-insensitively into a DomainEventSubscriptionId
 // note: this method should only be used for API response data and not user input
 func ParseDomainEventSubscriptionIDInsensitively(input string) (*DomainEventSubscriptionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DomainEventSubscriptionId{})
+	parser := resourceids.NewParserFromResourceIdType(&DomainEventSubscriptionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

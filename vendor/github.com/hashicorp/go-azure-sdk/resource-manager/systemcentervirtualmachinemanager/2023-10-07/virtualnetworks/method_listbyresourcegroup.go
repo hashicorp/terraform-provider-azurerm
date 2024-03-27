@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []VirtualNetwork
+	LatestHttpResponse *http.Response
+	Items              []VirtualNetwork
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c VirtualNetworksClient) ListByResourceGroupCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

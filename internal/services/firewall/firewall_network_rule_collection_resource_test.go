@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -879,7 +879,7 @@ resource "azurerm_firewall_network_rule_collection" "test" {
     ]
   }
 }
-`, FirewallResource{}.enableDNS(data, "1.1.1.1", "8.8.8.8"))
+`, FirewallResource{}.enableDNS(data, true, "1.1.1.1", "8.8.8.8"))
 }
 
 func (r FirewallNetworkRuleCollectionResource) noSource(data acceptance.TestData) string {
