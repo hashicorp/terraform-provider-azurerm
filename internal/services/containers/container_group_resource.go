@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -1583,6 +1584,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				scheme := x["scheme"].(string)
 
 				httpGetScheme := containerinstance.Scheme(scheme)
+
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.FromString(path),
 					Port:        int64(port),
@@ -1942,6 +1944,9 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 		}
 		httpGet["port"] = get.Port
 		httpGet["scheme"] = get.Scheme
+		if !features.FourPointOh() {
+			httpGet["scheme"] = strings.Title(string(pointer.From(get.Scheme)))
+		}
 		httpGet["http_headers"] = flattenContainerProbeHttpHeaders(get.HTTPHeaders)
 		httpGets = append(httpGets, httpGet)
 	}

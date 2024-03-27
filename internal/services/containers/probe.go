@@ -5,13 +5,13 @@ package containers
 
 import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 func SchemaContainerGroupProbe() *pluginsdk.Schema {
-	//lintignore:XS003
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
@@ -100,4 +100,13 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 			},
 		},
 	}
+	if features.FourPointOh() {
+		httpGetSchema := schema.Elem.(*pluginsdk.Resource).Schema["http_get"]
+		httpGetSchema.Elem.(*pluginsdk.Resource).Schema["scheme"].ValidateFunc = validation.StringInSlice([]string{
+			"http",
+			"https",
+		}, false)
+		schema.Elem.(*pluginsdk.Resource).Schema["http_get"] = httpGetSchema
+	}
+	return schema
 }
