@@ -169,15 +169,13 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 
 			envelope := webapps.HybridConnection{
 				Properties: &webapps.HybridConnectionProperties{
-					RelayArmUri: pointer.To(relayId.ID()),
-					Hostname:    pointer.To(appHybridConn.HostName),
-					Port:        pointer.To(appHybridConn.HostPort),
-					SendKeyName: pointer.To(appHybridConn.SendKeyName),
+					RelayArmUri:  pointer.To(relayId.ID()),
+					Hostname:     pointer.To(appHybridConn.HostName),
+					Port:         pointer.To(appHybridConn.HostPort),
+					SendKeyName:  pointer.To(appHybridConn.SendKeyName),
 					SendKeyValue: sendKeyValue,
 				},
 			}
-
-
 
 			_, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope)
 			if err != nil {
