@@ -1234,7 +1234,7 @@ resource "azurerm_mysql_flexible_server" "test" {
     geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   }
 }
-`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (r MySqlFlexibleServerResource) identity(data acceptance.TestData) string {
