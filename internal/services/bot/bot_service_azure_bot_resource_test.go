@@ -363,7 +363,7 @@ resource "azurerm_key_vault_key" "test" {
   depends_on = [azurerm_role_assignment.test_deployer]
 }
 
-resource "azuread_application_registration" "test" {
+resource "azuread_application" "test" {
 	display_name     = "acctestAppReg-%[1]d"
 }
 
