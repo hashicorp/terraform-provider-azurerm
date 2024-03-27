@@ -19,7 +19,7 @@ type GenerateKeyPairOperationResponse struct {
 }
 
 // GenerateKeyPair ...
-func (c SshPublicKeysClient) GenerateKeyPair(ctx context.Context, id SshPublicKeyId) (result GenerateKeyPairOperationResponse, err error) {
+func (c SshPublicKeysClient) GenerateKeyPair(ctx context.Context, id SshPublicKeyId, input SshGenerateKeyPairInputParameters) (result GenerateKeyPairOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -31,6 +31,10 @@ func (c SshPublicKeysClient) GenerateKeyPair(ctx context.Context, id SshPublicKe
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 

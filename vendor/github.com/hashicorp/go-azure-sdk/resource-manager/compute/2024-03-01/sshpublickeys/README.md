@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys` Documentation
 
-The `sshpublickeys` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2021-11-01`).
+The `sshpublickeys` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2024-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys"
 ```
 
 
@@ -64,7 +64,12 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := sshpublickeys.NewSshPublicKeyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sshPublicKeyValue")
 
-read, err := client.GenerateKeyPair(ctx, id)
+payload := sshpublickeys.SshGenerateKeyPairInputParameters{
+	// ...
+}
+
+
+read, err := client.GenerateKeyPair(ctx, id, payload)
 if err != nil {
 	// handle the error
 }

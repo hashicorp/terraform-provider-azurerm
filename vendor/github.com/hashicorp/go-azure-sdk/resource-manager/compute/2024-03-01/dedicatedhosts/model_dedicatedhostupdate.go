@@ -5,5 +5,6 @@ package dedicatedhosts
 
 type DedicatedHostUpdate struct {
 	Properties *DedicatedHostProperties `json:"properties,omitempty"`
+	Sku        *Sku                     `json:"sku,omitempty"`
 	Tags       *map[string]string       `json:"tags,omitempty"`
 }
