@@ -1114,7 +1114,7 @@ resource "azurerm_key_vault_key" "test" {
     azurerm_key_vault_access_policy.server,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString)
 }
 
 func (r MySqlFlexibleServerResource) withoutCustomerManagedKey(data acceptance.TestData) string {
