@@ -59,7 +59,7 @@ func testAccSystemCenterVirtualMachineManagerCloud_requiresImport(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
