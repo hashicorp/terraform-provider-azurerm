@@ -35,8 +35,7 @@ func resourceApplicationInsightsAnalyticsItem() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			if strings.Contains(id, userScopePath) || strings.Contains(id, sharedScopePath) {
-				_, err := analyticsitems.ParseProviderComponentID(id)
-				if err != nil {
+				if _, err := analyticsitems.ParseProviderComponentID(id); err != nil {
 					return err
 				}
 			}
@@ -156,11 +155,10 @@ func resourceApplicationInsightsAnalyticsItemCreate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	if existing.Model != nil {
-		values := *existing.Model
-		for _, v := range values {
-			if *v.Name == name {
-				return tf.ImportAsExistsError("azurerm_application_insights_analytics_item", *v.Id)
+	if model := existing.Model; model != nil {
+		for _, value := range *model {
+			if v := value.Name; v != nil && *v == name {
+				return tf.ImportAsExistsError("azurerm_application_insights_analytics_item", *value.Id)
 			}
 		}
 	}

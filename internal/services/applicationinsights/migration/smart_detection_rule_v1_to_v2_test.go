@@ -17,13 +17,6 @@ func TestSmartDetectionRuleV1ToV2(t *testing.T) {
 		expected *string
 	}{
 		{
-			name: "old id",
-			input: map[string]interface{}{
-				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/components/component1/SmartDetectionRule/rule1",
-			},
-			expected: pointer.To("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Insights/components/component1/proactiveDetectionConfigs/rule1"),
-		},
-		{
 			name: "old id - mixed case",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.insights/components/component1/SmartDetectionRule/rule1",
