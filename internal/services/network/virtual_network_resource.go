@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -68,9 +69,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Type:             pluginsdk.TypeList,
+			Required:         true,
+			MinItems:         1,
+			DiffSuppressFunc: suppress.ListOrder,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
