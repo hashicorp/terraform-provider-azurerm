@@ -18,8 +18,10 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_function_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 * `azurerm_linux_web_app_slot` - fix a crash when upgrading the provider to v3.88.0 or later [GH-25406]
 * `azurerm_network_manager_deployment` - add locking [GH-25368]
+* `azurerm_web_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 
 ## 3.97.1 (March 22, 2024)
 
