@@ -364,7 +364,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azuread_application" "test" {
-	display_name     = "acctestAppReg-%[1]d"
+  display_name = "acctestAppReg-%[1]d"
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
@@ -372,7 +372,7 @@ resource "azurerm_bot_service_azure_bot" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = "global"
   sku                 = "F0"
-  microsoft_app_id    = azuread_application_registration.test.client_id
+  microsoft_app_id    = azuread_application.test.client_id
   cmk_key_vault_url   = azurerm_key_vault_key.test.id
   endpoint            = "https://example2.com"
 
