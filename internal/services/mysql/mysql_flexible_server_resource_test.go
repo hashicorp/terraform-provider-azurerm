@@ -535,7 +535,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mysql-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Ternary)
 }
 
 func (r MySqlFlexibleServerResource) basic(data acceptance.TestData) string {
@@ -1114,7 +1114,7 @@ resource "azurerm_key_vault_key" "test" {
     azurerm_key_vault_access_policy.server,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString)
 }
 
 func (r MySqlFlexibleServerResource) withoutCustomerManagedKey(data acceptance.TestData) string {
@@ -1234,7 +1234,7 @@ resource "azurerm_mysql_flexible_server" "test" {
     geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   }
 }
-`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger)
+`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (r MySqlFlexibleServerResource) identity(data acceptance.TestData) string {
