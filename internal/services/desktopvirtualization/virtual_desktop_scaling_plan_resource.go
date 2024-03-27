@@ -25,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var scalingPlanResourceType = "azurerm_virtual_desktop_scaling_plan"
+
 func resourceVirtualDesktopScalingPlan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceVirtualDesktopScalingPlanCreate,
