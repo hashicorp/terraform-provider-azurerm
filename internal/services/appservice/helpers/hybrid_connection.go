@@ -15,24 +15,24 @@ import (
 )
 
 func GetSendKeyValue(ctx context.Context, metadata sdk.ResourceMetaData, id webapps.RelayId, sendKeyName string) (*string, error) {
-	hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
-	connectionId := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.HybridConnectionNamespaceName, id.RelayName, sendKeyName)
-	keys, err := hybridConnectionsClient.ListKeys(ctx, connectionId)
-	if err != nil && !response.WasNotFound(keys.HttpResponse) {
-		return nil, fmt.Errorf("listing Send Keys for name %s for %s in %s: %+v", sendKeyName, connectionId, id, err)
-	}
-	if keys.Model != nil && keys.Model.PrimaryKey != nil {
-		return keys.Model.PrimaryKey, nil
-	}
-
 	relayNamespaceClient := metadata.Client.Relay.NamespacesClient
 	relayConnectionId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.HybridConnectionNamespaceName, sendKeyName)
 	relayKeys, err := relayNamespaceClient.ListKeys(ctx, relayConnectionId)
-	if err != nil {
+	if err != nil && !response.WasNotFound(relayKeys.HttpResponse) {
 		return nil, fmt.Errorf("listing Send Keys for name %s for %s in %s: %+v", sendKeyName, relayConnectionId, id, err)
 	}
-	if relayKeys.Model == nil || relayKeys.Model.PrimaryKey == nil {
-		return nil, fmt.Errorf("reading Send Key Value for %s in %s", relayConnectionId.AuthorizationRuleName, id)
+	if relayKeys.Model != nil && relayKeys.Model.PrimaryKey != nil {
+		return relayKeys.Model.PrimaryKey, nil
 	}
-	return relayKeys.Model.PrimaryKey, nil
+
+	hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
+	connectionId := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.HybridConnectionNamespaceName, id.RelayName, sendKeyName)
+	keys, err := hybridConnectionsClient.ListKeys(ctx, connectionId)
+	if err != nil {
+		return nil, fmt.Errorf("listing Send Keys for name %s for %s in %s: %+v", sendKeyName, connectionId, id, err)
+	}
+	if keys.Model == nil || keys.Model.PrimaryKey == nil {
+		return nil, fmt.Errorf("reading Send Key Value for %s in %s", connectionId.AuthorizationRuleName, id)
+	}
+	return keys.Model.PrimaryKey, nil
 }
