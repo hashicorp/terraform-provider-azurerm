@@ -364,7 +364,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-	display_name     = "Example Application"
+	display_name     = "acctestAppReg-%[1]d"
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
