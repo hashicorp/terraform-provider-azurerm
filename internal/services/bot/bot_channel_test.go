@@ -15,7 +15,7 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"basic": {
 			// "basic":                    testAccBotChannelsRegistration_basic,
-			"update": testAccBotChannelsRegistration_update,
+			// "update":                   testAccBotChannelsRegistration_update,
 			// "complete":                 testAccBotChannelsRegistration_complete,
 			// "streamingEndpointEnabled": testAccBotChannelsRegistration_streamingEndpointEnabled,
 		},
@@ -25,7 +25,7 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 			// "msaAppType":               testAccBotServiceAzureBot_msaAppType,
 			// "requiresImport":           testAccBotServiceAzureBot_requiresImport,
 			// "streamingEndpointEnabled": testAccBotServiceAzureBot_streamingEndpointEnabled,
-			// "cmekEnabled": testAccBotServiceAzureBot_cmekEnabled,
+			"cmekEnabled": testAccBotServiceAzureBot_cmekEnabled,
 		},
 		// "connection": {
 		// 	"basic":    testAccBotConnection_basic,
