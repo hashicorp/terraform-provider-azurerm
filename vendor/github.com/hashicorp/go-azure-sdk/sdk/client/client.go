@@ -436,7 +436,7 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 	}
 
 	// Instantiate a RetryableHttp client and configure its CheckRetry func
-	r := c.retryableClient(func(ctx context.Context, r *http.Response, err error) (bool, error) {
+	r := c.retryableClient(ctx, func(ctx context.Context, r *http.Response, err error) (bool, error) {
 		// First check for badly malformed responses
 		if r == nil {
 			if req.IsIdempotent() {
@@ -647,7 +647,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 }
 
 // retryableClient instantiates a new *retryablehttp.Client having the provided checkRetry func
-func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retryablehttp.Client) {
+func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.CheckRetry) (r *retryablehttp.Client) {
 	r = retryablehttp.NewClient()
 
 	r.Backoff = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
@@ -672,6 +672,18 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 	r.CheckRetry = checkRetry
 	r.ErrorHandler = RetryableErrorHandler
 	r.Logger = log.Default()
+	r.RetryWaitMin = 1 * time.Second
+	r.RetryWaitMax = 61 * time.Second
+
+	// Default RetryMax of 16 takes approx 10 minutes to iterate
+	r.RetryMax = 16
+
+	// Extend the RetryMax if the context timeout exceeds 10 minutes
+	if deadline, ok := ctx.Deadline(); ok {
+		if timeout := deadline.Sub(time.Now()); timeout > 10*time.Minute {
+			r.RetryMax = int(math.Round(timeout.Minutes())) + 6
+		}
+	}
 
 	tlsConfig := tls.Config{
 		MinVersion: tls.VersionTLS12,
