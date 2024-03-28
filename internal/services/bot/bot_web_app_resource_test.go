@@ -99,7 +99,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-	display_name = "acctestReg-%d"
+  display_name = "acctestReg-%d"
 }
 
 resource "azurerm_bot_web_app" "test" {
@@ -131,7 +131,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-	display_name = "acctestReg-%d"
+  display_name = "acctestReg-%d"
 }
 
 resource "azurerm_bot_web_app" "test" {
@@ -176,7 +176,7 @@ resource "azurerm_application_insights_api_key" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-	display_name = "acctestReg-%d"
+  display_name = "acctestReg-%d"
 }
 
 resource "azurerm_bot_web_app" "test" {
