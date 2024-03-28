@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.67.0` of `github.com/hashicorp/go-azure-helpers` [GH-25446]
 * dependencies: updating to `v0.25.4` of `github.com/tombuildsstuff/giovanni` [GH-25404]
 * `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
+* `maintenance`: updating to API Version `2023-04-01` [GH-25388]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
 * `azurerm_netapp_account` - can now be imported [GH-25384]
