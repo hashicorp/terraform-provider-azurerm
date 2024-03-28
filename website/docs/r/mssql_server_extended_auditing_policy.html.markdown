@@ -270,6 +270,10 @@ The following arguments are supported:
 
 * `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
 
+* `predicate_expression` - (Optional) Specifies condition of where clause when creating an audit.
+
+* `audit_actions_and_groups` - (Optional) A list of Actions-Groups and Actions to audit.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
