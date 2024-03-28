@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -1557,6 +1558,149 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	supportLevel := resolveStorageAccountServiceSupportLevel(storage.Kind(accountKind), storage.SkuTier(accountTier))
 
+	// Wait for the account services to become available
+
+	if supportLevel.supportBlob {
+		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
+
+		// wait for blob service endpoint to become available
+		log.Printf("[DEBUG] waiting for %s blob service to become available", id.ID())
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Completed"},
+			Refresh: func() (interface{}, string, error) {
+				_, err = blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					return handleStorageServiceError("blob", err)
+				}
+				return true, "Completed", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("fetching %s blob service properties: %+v", id.ID(), err)
+		}
+	}
+
+	if supportLevel.supportQueue {
+		storageClient := meta.(*clients.Client).Storage
+		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		if account == nil {
+			return fmt.Errorf("unable to locate %q", id)
+		}
+
+		queueClient, err := storageClient.QueuesClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("building Queues Client: %s", err)
+		}
+
+		// wait for queue service endpoint to become available
+		log.Printf("[DEBUG] waiting for %s queue service to become available", id.ID())
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Completed"},
+			Refresh: func() (interface{}, string, error) {
+				properties, err := queueClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					return handleStorageServiceError("queue", err)
+				}
+				// workaround for queueClient.GetServiceProperties() not returning 404 error
+				if properties == nil {
+					return false, "Pending", nil
+				}
+				return true, "Completed", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("fetching %s queue service properties: %+v", id.ID(), err)
+		}
+	}
+
+	if supportLevel.supportShare {
+		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+
+		// wait for file service endpoint to become available
+		log.Printf("[DEBUG] waiting for %s file service to become available", id.ID())
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Completed"},
+			Refresh: func() (interface{}, string, error) {
+				_, err = fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+				if err != nil {
+					return handleStorageServiceError("file", err)
+				}
+				return true, "Completed", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("fetching %s file service properties: %+v", id.ID(), err)
+		}
+	}
+
+	if supportLevel.supportStaticWebsite {
+		storageClient := meta.(*clients.Client).Storage
+
+		account, err := storageClient.FindAccount(ctx, id.StorageAccountName)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+		if account == nil {
+			return fmt.Errorf("unable to locate %s", id)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+		}
+
+		// wait for static website endpoint to become available
+		log.Printf("[DEBUG] waiting for %s static website service to become available", id.ID())
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending: []string{"Pending"},
+			Target:  []string{"Completed"},
+			Refresh: func() (interface{}, string, error) {
+				_, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+				if err != nil {
+					return handleStorageServiceError("static website", err)
+				}
+				return true, "Completed", nil
+			},
+			MinTimeout: 10 * time.Second,
+			Timeout:    time.Until(deadline),
+		}
+
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("fetching %s static website properties: %+v", id.ID(), err)
+		}
+	}
+
 	if val, ok := d.GetOk("blob_properties"); ok {
 		if !supportLevel.supportBlob {
 			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
@@ -2428,6 +2572,23 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	storageClient.RemoveAccountFromCache(id.StorageAccountName)
 
 	return nil
+}
+
+func handleStorageServiceError(service string, err error) (interface{}, string, error) {
+	// if the error is a DetailedError type, check the status code and return the appropriate state
+	var respErr azautorest.DetailedError
+	if errors.As(err, &respErr) {
+		log.Printf("[DEBUG] error fetching %s service properties: statusCode=%d, message=%s, error=%s\n", service, respErr.StatusCode.(int), respErr.Message, err)
+		// if the status code is 404 (not found), retry the request
+		if respErr.StatusCode.(int) == http.StatusNotFound {
+			// if the status code is 404 (not found), retry the request
+			log.Printf("[DEBUG] %s service is not available, retrying...\n", service)
+			return false, "Pending", nil
+		}
+	}
+	// if the error is unhandled type or status, log the error and return the error state
+	log.Printf("[DEBUG] unexpected error while fetching %s service properties: %v\n", service, err)
+	return nil, "Completed", err
 }
 
 func expandStorageAccountCustomDomain(d *pluginsdk.ResourceData) *storage.CustomDomain {

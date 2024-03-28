@@ -67,6 +67,68 @@ func TestAccStorageAccount_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccStorageAccount_recreateBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	// fix location to test recreation
+	data.Locations.Primary = "westeurope"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// destroy the account and recreate it
+			Config: r.recreate(data),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_recreateWithProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	// fix location to test recreation
+	data.Locations.Primary = "westeurope"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.recreate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// destroy the account and recreate it
+			Config: r.recreate(data),
+		},
+		{
+			Config: r.recreate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("share_properties.0.retention_policy.0.days").HasValue("14"),
+				check.That(data.ResourceName).Key("queue_properties.0.cors_rule.0.max_age_in_seconds").HasValue("3600"),
+				check.That(data.ResourceName).Key("static_website.0.index_document").HasValue("test.html"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageAccount_noCrossTenantReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
@@ -1653,6 +1715,56 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) recreate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    versioning_enabled = true
+  }
+
+  share_properties {
+    retention_policy {
+      days = 14
+    }
+  }
+
+  queue_properties {
+    cors_rule {
+      allowed_headers    = ["*"]
+      allowed_methods    = ["GET", "POST", "OPTIONS"]
+      allowed_origins    = ["*"]
+      exposed_headers    = ["*"]
+      max_age_in_seconds = 3600
+    }
+  }
+
+  static_website {
+    index_document = "test.html"
+  }
 
   tags = {
     environment = "production"
