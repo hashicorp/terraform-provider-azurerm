@@ -137,7 +137,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			id, err := parse.NewNestedItemID(model.VaultBaseUrl, roleDefinitionScope, parse.RoleDefinitionType, model.Name)
+			id, err := parse.NewManagedHSMRoleDefinitionID(model.VaultBaseUrl, roleDefinitionScope, model.Name)
 			if err != nil {
 				return err
 			}

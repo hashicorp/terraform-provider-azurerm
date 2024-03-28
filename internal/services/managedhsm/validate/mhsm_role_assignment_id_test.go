@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestMHSMNestedItemId(t *testing.T) {
+func TestManagedHSMRoleAssignmentId(t *testing.T) {
 	cases := []struct {
 		Input       string
 		ExpectError bool
@@ -17,36 +17,35 @@ func TestMHSMNestedItemId(t *testing.T) {
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.managedhsm.azure.net///test",
-			ExpectError: false,
-		},
-		{
-			Input:       "https://my-keyvault.managedhsm.azure.net//keys/test",
-			ExpectError: false,
-		},
-
-		{
-			Input:       "https://my-keyvault.managedhsm.azure.net/certificates/hello/world",
+			Input:       "https://my-hsm.managedhsm.azure.net///test",
 			ExpectError: true,
 		},
 		{
-			Input:       "https://my-keyvault.managedhsm.azure.net/keys/castle/1492",
+			Input:       "https://my-hsm.managedhsm.azure.net///RoleAssignment/test",
 			ExpectError: false,
 		},
 		{
-			Input:       "https://my-keyvault.managedhsm.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217/XXX",
+			Input:       "https://my-hsm.managedhsm.azure.net//keys/RoleAssignment/1492",
+			ExpectError: false,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net//keys/RoleAssignment/1492/suffix",
+			ExpectError: true,
+		},
+		{
+			Input:       "https://my-hsm.managedhsm.azure.net///RoleDefinition/000-000",
 			ExpectError: true,
 		},
 	}
 
 	for _, tc := range cases {
-		warnings, err := NestedItemId(tc.Input, "example")
+		warnings, err := ManagedHSMRoleAssignmentId(tc.Input, "example")
 		if err != nil {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for input %q: %+v", tc.Input, err)
 			}
 
-			return
+			continue
 		}
 
 		if tc.ExpectError && len(warnings) == 0 {

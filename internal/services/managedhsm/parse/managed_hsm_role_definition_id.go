@@ -11,61 +11,53 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = NestedItemId{}
-
-type MHSMResourceType string
+var _ resourceids.Id = ManagedHSMRoleDefinitionId{}
 
 const (
-	// TODO: this should be extended to support the other types of Nested Items available for a Managed HSM
+// TODO: this should be extended to support the other types of Nested Items available for a Managed HSM
 
-	RoleDefinitionType MHSMResourceType = "RoleDefinition"
-	RoleAssignmentType MHSMResourceType = "RoleAssignment"
+// RoleDefinitionType MHSMResourceType = "RoleDefinition"
+// RoleAssignmentType MHSMResourceType = "RoleAssignment"
 )
 
-type NestedItemId struct {
+type ManagedHSMRoleDefinitionId struct {
 	VaultBaseUrl string
 	Scope        string
-	Type         MHSMResourceType
 	Name         string
 }
 
-func NewNestedItemID(hsmBaseUrl, scope string, typ MHSMResourceType, name string) (*NestedItemId, error) {
+func NewManagedHSMRoleDefinitionID(hsmBaseUrl, scope string, name string) (*ManagedHSMRoleDefinitionId, error) {
 	keyVaultUrl, err := url.Parse(hsmBaseUrl)
 	if err != nil || hsmBaseUrl == "" {
 		return nil, fmt.Errorf("parsing managedHSM nested itemID %q: %+v", hsmBaseUrl, err)
 	}
-	// (@jackofallops) - Log Analytics service adds the port number to the API returns, so we strip it here
-	if hostParts := strings.Split(keyVaultUrl.Host, ":"); len(hostParts) > 1 {
-		keyVaultUrl.Host = hostParts[0]
-	}
 
-	return &NestedItemId{
+	return &ManagedHSMRoleDefinitionId{
 		VaultBaseUrl: keyVaultUrl.String(),
 		Scope:        scope,
-		Type:         typ,
 		Name:         name,
 	}, nil
 }
 
-func (n NestedItemId) ID() string {
+func (n ManagedHSMRoleDefinitionId) ID() string {
 	// example: https://tharvey-keyvault.managedhsm.azure.net///uuid-idshifds-fks
 	segments := []string{
 		strings.TrimSuffix(n.VaultBaseUrl, "/"),
 		n.Scope,
-		string(n.Type),
+		"RoleDefinition",
 		n.Name,
 	}
 	return strings.TrimSuffix(strings.Join(segments, "/"), "/")
 }
 
-func (n NestedItemId) String() string {
+func (n ManagedHSMRoleDefinitionId) String() string {
 	return n.ID()
 }
 
-func NestedItemID(input string) (*NestedItemId, error) {
+func ManagedHSMRoleDefinitionID(input string) (*ManagedHSMRoleDefinitionId, error) {
 	idURL, err := url.ParseRequestURI(input)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure KeyVault Child Id: %s", err)
+		return nil, fmt.Errorf("cannot parse Azure KeyVault Child Id: %s", err)
 	}
 
 	path := idURL.Path
@@ -84,11 +76,13 @@ func NestedItemID(input string) (*NestedItemId, error) {
 		return nil, fmt.Errorf("no type speparate exist in %s", input)
 	}
 	scope, typ := scope[:typeSep], scope[typeSep+1:]
+	if typ != "RoleDefinition" {
+		return nil, fmt.Errorf("invalid type %s, must be 'RoleDefinition'", typ)
+	}
 
-	childId := NestedItemId{
+	childId := ManagedHSMRoleDefinitionId{
 		VaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
 		Scope:        scope,
-		Type:         MHSMResourceType(typ),
 		Name:         name,
 	}
 
