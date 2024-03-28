@@ -20,7 +20,7 @@ import (
 
 type BotChannelLineResource struct{}
 
-func testAccBotChannelLine_basic(t *testing.T) {
+func TestAccBotChannelLine_basic(t *testing.T) {
 	skipLineChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
@@ -37,7 +37,7 @@ func testAccBotChannelLine_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelLine_requiresImport(t *testing.T) {
+func TestAccBotChannelLine_requiresImport(t *testing.T) {
 	skipLineChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
@@ -54,7 +54,7 @@ func testAccBotChannelLine_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotChannelLine_complete(t *testing.T) {
+func TestAccBotChannelLine_complete(t *testing.T) {
 	skipLineChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
@@ -71,7 +71,7 @@ func testAccBotChannelLine_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelLine_update(t *testing.T) {
+func TestAccBotChannelLine_update(t *testing.T) {
 	skipLineChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
