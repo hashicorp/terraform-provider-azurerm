@@ -42,7 +42,7 @@ func (c Client) SetMetaData(ctx context.Context, shareName, path, fileName strin
 	}
 
 	if path != "" {
-		path = fmt.Sprintf("/%s/", path)
+		path = fmt.Sprintf("%s/", path)
 	}
 
 	opts := client.RequestOptions{

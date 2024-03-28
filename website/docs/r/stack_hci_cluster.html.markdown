@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Azure Stack HCI Cluster should exist. Changing this forces a new resource to be created.
 
-* `client_id` - (Required) The Client ID of the Azure Active Directory which is used by the Azure Stack HCI Cluster. Changing this forces a new resource to be created.
+* `client_id` - (Optional) The Client ID of the Azure Active Directory Application which is used by the Azure Stack HCI Cluster. Changing this forces a new resource to be created.
 
 * `identity` - (Optional) An `identity` block as defined below.
 

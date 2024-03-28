@@ -152,6 +152,51 @@ func TestAccAzureRMStorageShareFile_withEmptyFile(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShareFile_withPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withPathUsingBackslashes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPathUsingBackslashes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withPathInNameUsingBackslashes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+	r := StorageShareFileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPathInNameUsingBackslashes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := files.ParseFileID(state.ID, clients.Storage.StorageDomainSuffix)
 	if err != nil {
@@ -213,7 +258,7 @@ func (r StorageShareFileResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "dir"
+  name             = "file"
   storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
@@ -250,7 +295,7 @@ resource "azurerm_storage_share" "test" {
 }
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "dir"
+  name             = "file"
   storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
@@ -280,7 +325,7 @@ func (r StorageShareFileResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "dir"
+  name             = "test"
   storage_share_id = azurerm_storage_share.test.id
 
 
@@ -301,7 +346,7 @@ func (r StorageShareFileResource) withFile(data acceptance.TestData, fileName st
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "dir"
+  name             = "test"
   storage_share_id = azurerm_storage_share.test.id
 
   source = "%s"
@@ -311,4 +356,46 @@ resource "azurerm_storage_share_file" "test" {
   }
 }
 `, r.template(data), fileName)
+}
+
+func (r StorageShareFileResource) withPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_directory" "parent" {
+  name             = "parent"
+  storage_share_id = azurerm_storage_share.test.id
+}
+
+resource "azurerm_storage_share_file" "test" {
+  name             = "test"
+  path             = azurerm_storage_share_directory.parent.name
+  storage_share_id = azurerm_storage_share.test.id
+}
+`, r.template(data))
+}
+
+func (r StorageShareFileResource) withPathUsingBackslashes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name             = "command.com"
+  path             = "c\\dos"
+  storage_share_id = azurerm_storage_share.test.id
+  depends_on       = [azurerm_storage_share_directory.dos]
+}
+`, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
+}
+
+func (r StorageShareFileResource) withPathInNameUsingBackslashes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name             = "c\\dos\\command.com"
+  storage_share_id = azurerm_storage_share.test.id
+  depends_on       = [azurerm_storage_share_directory.dos]
+}
+`, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
 }

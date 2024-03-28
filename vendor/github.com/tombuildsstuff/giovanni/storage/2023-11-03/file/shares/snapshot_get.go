@@ -61,7 +61,7 @@ func (c Client) GetSnapshot(ctx context.Context, shareName string, input GetSnap
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.MetaData = metadata.ParseFromHeaders(resp.Header)
 		}
 	}

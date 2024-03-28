@@ -58,7 +58,7 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 
 			"client_id": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},

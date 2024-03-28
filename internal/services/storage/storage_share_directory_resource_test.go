@@ -180,6 +180,23 @@ func TestAccStorageShareDirectory_nested(t *testing.T) {
 	})
 }
 
+func TestAccStorageShareDirectory_nestedWithBackslashes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "dos")
+	r := StorageShareDirectoryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nestedWithBackslashes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_storage_share_directory.c").ExistsInAzure(r),
+				check.That("azurerm_storage_share_directory.dos").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageShareDirectoryResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := directories.ParseDirectoryID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
@@ -344,6 +361,24 @@ resource "azurerm_storage_share_directory" "child_two" {
 resource "azurerm_storage_share_directory" "multiple_child_one" {
   name             = "${azurerm_storage_share_directory.parent.name}/c"
   storage_share_id = azurerm_storage_share.test.id
+}
+`, template)
+}
+
+func (r StorageShareDirectoryResource) nestedWithBackslashes(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_directory" "c" {
+  name             = "c"
+  storage_share_id = azurerm_storage_share.test.id
+}
+
+resource "azurerm_storage_share_directory" "dos" {
+  name             = "c\\dos"
+  storage_share_id = azurerm_storage_share.test.id
+  depends_on       = [azurerm_storage_share_directory.c]
 }
 `, template)
 }
