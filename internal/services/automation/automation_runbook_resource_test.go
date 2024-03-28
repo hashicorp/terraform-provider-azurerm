@@ -468,7 +468,7 @@ resource "azurerm_automation_runbook" "test" {
 
   log_verbose  = "true"
   log_progress = "true"
-  description  = "This is a test runbook for terraform acceptance test"
+  description  = "This is a test runbook for terraform acceptance test with update"
   runbook_type = "PowerShell"
 
   content = <<CONTENT
