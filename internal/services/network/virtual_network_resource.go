@@ -149,7 +149,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
 			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			ConfigMode: pluginsdk.SchemaConfigModeAuto,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -162,6 +162,42 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"delegation": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"service_delegation": {
+									Type:     pluginsdk.TypeList,
+									Required: true,
+									MaxItems: 1,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"name": {
+												Type:         pluginsdk.TypeString,
+												Required:     true,
+												ValidateFunc: validation.StringInSlice(subnetDelegationServiceNames, false),
+											},
+
+											"actions": {
+												Type:     pluginsdk.TypeList,
+												Optional: true,
+												Elem: &pluginsdk.Schema{
+													Type:         pluginsdk.TypeString,
+													ValidateFunc: validation.StringInSlice(subnetDelegationActions, false),
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 
 					"security_group": {
@@ -395,6 +431,13 @@ func expandVirtualNetworkProperties(ctx context.Context, d *pluginsdk.ResourceDa
 				subnetObj.SubnetPropertiesFormat.NetworkSecurityGroup = nil
 			}
 
+			if v, ok := subnet["delegation"]; ok {
+				delegationsRaw := v.([]interface{})
+				subnetObj.SubnetPropertiesFormat.Delegations = expandSubnetDelegation(delegationsRaw)
+			} else {
+				subnetObj.SubnetPropertiesFormat.Delegations = nil
+			}
+
 			subnets = append(subnets, *subnetObj)
 		}
 	}
@@ -503,6 +546,13 @@ func flattenVirtualNetworkSubnets(input *[]network.Subnet) *pluginsdk.Set {
 						output["security_group"] = *nsg.ID
 					}
 				}
+				if delegations := props.Delegations; delegations != nil {
+					flattenedDelegations := flattenSubnetDelegation(delegations)
+					if len(flattenedDelegations) > 0 {
+						output["delegation"] = flattenedDelegations
+					}
+				}
+
 			}
 
 			results.Add(output)

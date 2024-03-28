@@ -160,6 +160,27 @@ func TestAccVirtualNetwork_ddosProtectionPlan(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_subnetDelegation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subnetDelegation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// Validate the delegation properties
+				check.That(data.ResourceName).Key("subnet.0.delegation.#").HasValue("1"),
+				check.That(data.ResourceName).Key("subnet.0.delegation.0.name").HasValue("acctestDelegation"),
+				check.That(data.ResourceName).Key("subnet.0.delegation.0.service_delegation.0.name").HasValue("Microsoft.ContainerInstance/containerGroups"),
+				check.That(data.ResourceName).Key("subnet.0.delegation.0.service_delegation.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("subnet.0.delegation.0.service_delegation.0.actions.0").HasValue("Microsoft.Network/virtualNetworks/subnets/action"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccVirtualNetwork_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
@@ -622,4 +643,37 @@ resource "azurerm_virtual_network" "test" {
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (VirtualNetworkResource) subnetDelegation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name           = "acctestSubnet-%d"
+    address_prefix = "10.0.1.0/24"
+
+    delegation {
+      name = "acctestDelegation"
+      service_delegation {
+        name    = "Microsoft.ContainerInstance/containerGroups"
+        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
