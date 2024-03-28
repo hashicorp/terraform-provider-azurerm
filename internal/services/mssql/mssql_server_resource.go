@@ -317,7 +317,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	aadOnlyAuthenticationsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{}))
+	aadOnlyAuthenticationsEnabled := expandMsSqlServerAADOnlyAuthentications(d.Get("azuread_administrator").([]interface{}))
 	if _, ok := d.GetOk("administrator_login_password"); ok && aadOnlyAuthenticationsEnabled && d.HasChange("administrator_login_password") {
 		return fmt.Errorf("`administrator_login_password` cannot be changed when `azuread_administrator.0.azuread_authentication_only = true`")
 	}
@@ -390,13 +390,13 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if aadOnlyAuthenticationsEnabled {
-			aadOnlyAuthentictionsProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
+			aadOnlyAuthenticationsProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
 				Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
 					AzureADOnlyAuthentication: aadOnlyAuthenticationsEnabled,
 				},
 			}
 
-			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthentictionsProps)
+			err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationsProps)
 			if err != nil {
 				return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
 			}
@@ -592,7 +592,7 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandMsSqlServerAADOnlyAuthentictions(input []interface{}) bool {
+func expandMsSqlServerAADOnlyAuthentications(input []interface{}) bool {
 	if len(input) == 0 || input[0] == nil {
 		return false
 	}
