@@ -578,6 +578,8 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("updating properties of Windows %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
 
 			if stickySettings != nil {
@@ -642,7 +644,6 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}
