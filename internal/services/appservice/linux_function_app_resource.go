@@ -66,6 +66,7 @@ type LinuxFunctionAppModel struct {
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Tags                             map[string]string                          `tfschema:"tags"`
 	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
+	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans
 	ZipDeployFile                    string                                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
@@ -297,6 +298,13 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
+		"vnet_image_pull_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+		},
+
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -394,6 +402,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			var planSKU *string
+			var isAseEnvironment bool
 			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
 				Name: functionApp.Name,
 				Type: resourceproviders.CheckNameResourceTypesMicrosoftPointWebSites,
@@ -404,6 +413,7 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 
 				if ase := servicePlanModel.Properties.HostingEnvironmentProfile; ase != nil {
+					isAseEnvironment = true
 					// Attempt to check the ASE for the appropriate suffix for the name availability request.
 					// This varies between internal and external ASE Types, and potentially has other names in other clouds
 					// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
@@ -523,7 +533,12 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
+					VnetImagePullEnabled: pointer.To(functionApp.VnetImagePullEnabled),
 				},
+			}
+
+			if isAseEnvironment && !functionApp.VnetImagePullEnabled {
+				return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -763,6 +778,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 					if err != nil {
@@ -927,6 +943,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
@@ -1210,6 +1230,29 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.ServicePlanClient
 			rd := metadata.ResourceDiff
+			if rd.HasChange("vnet_image_pull_enabled") {
+				planId := rd.Get("service_plan_id")
+				// the plan id is known after apply during the initial creation
+				if planId.(string) == "" {
+					return nil
+				}
+				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				servicePlanId, err := commonids.ParseAppServicePlanID(planId.(string))
+				if err != nil {
+					return fmt.Errorf("reading service plan id %+v", err)
+				}
+
+				asp, err := client.Get(ctx, *servicePlanId)
+				if err != nil {
+					return fmt.Errorf("could not read Service Plan %s: %+v", servicePlanId, err)
+				}
+				if aspModel := asp.Model; aspModel != nil {
+					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
+						aspModel.Properties.HostingEnvironmentProfile.Id != nil && !newValue.(bool) {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+					}
+				}
+			}
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")
 				if newPlanIdRaw.(string) == "" {
