@@ -13,10 +13,6 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being able provision against one app id at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		// "connection": {
-		// 	"basic":    testAccBotConnection_basic,
-		// 	"complete": testAccBotConnection_complete,
-		// },
 		// "channel": {
 		// 	"alexaBasic":                     testAccBotChannelAlexa_basic,
 		// 	"alexaUpdate":                    testAccBotChannelAlexa_update,
