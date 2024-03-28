@@ -6,6 +6,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -146,6 +147,78 @@ func TestAccServicePlan_maxElasticWorkerCount(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccServicePlan_premiumElasticScaling(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premiumElasticScale(data, 5, "P1v3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServicePlan_premiumElasticScalingErrorUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.premiumElasticScaleError(data, "S1"),
+			ExpectError: regexp.MustCompile("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus"),
+		},
+		{
+			Config: r.premiumElasticScaleError(data, "P1v3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServicePlan_premiumElasticScalingError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.premiumElasticScaleError(data, "S1"),
+			ExpectError: regexp.MustCompile("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus"),
+		},
+	})
+}
+
+func TestAccServicePlan_premiumElasticScalingErrorElasticPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.premiumElasticScaleErrorElasticPlan(data, "EP1"),
+			ExpectError: regexp.MustCompile("`elastic_scale_enabled` cannot be disabled for elastic plan"),
+		},
 	})
 }
 
@@ -362,6 +435,7 @@ resource "azurerm_service_plan" "test" {
   sku_name                     = "EP1"
   os_type                      = "Linux"
   maximum_elastic_worker_count = %[3]d
+  elastic_scale_enabled        = true
 
   tags = {
     environment = "AccTest"
@@ -389,6 +463,7 @@ resource "azurerm_service_plan" "test" {
   sku_name                     = "%[3]s"
   os_type                      = "Linux"
   maximum_elastic_worker_count = %[4]d
+  elastic_scale_enabled        = true
 
   tags = {
     environment = "AccTest"
@@ -396,6 +471,87 @@ resource "azurerm_service_plan" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, sku, count)
+}
+
+func (r ServicePlanResource) premiumElasticScale(data acceptance.TestData, count int, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                         = "acctest-SP-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku_name                     = "%[3]s"
+  os_type                      = "Linux"
+  elastic_scale_enabled        = true
+  maximum_elastic_worker_count = %[4]d
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, sku, count)
+}
+
+func (r ServicePlanResource) premiumElasticScaleError(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                  = "acctest-SP-%[1]d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  sku_name              = "%[3]s"
+  os_type               = "Linux"
+  elastic_scale_enabled = true
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func (r ServicePlanResource) premiumElasticScaleErrorElasticPlan(data acceptance.TestData, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "xiaxintestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "xiaxintest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "%[3]s"
+  os_type             = "Linux"
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, sku)
 }
 
 func (r ServicePlanResource) memoryOptimized(data acceptance.TestData) string {

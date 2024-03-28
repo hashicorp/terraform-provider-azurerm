@@ -29,6 +29,10 @@ var appServicePlanSkus = []string{
 	"P1mv3", "P2mv3", "P3mv3", "P4mv3", "P5mv3", // Premium V3 memory optimized
 }
 
+var premiumSkus = []string{
+	"P1v2", "P2v2", "P3v2", "P0v3", "P1v3", "P2v3", "P3v3",
+}
+
 var freeSkus = []string{
 	"F1",
 }
@@ -105,6 +109,15 @@ func PlanIsIsolated(input *string) bool {
 		}
 	}
 
+	return false
+}
+
+func PlanIsPremium(input string) bool {
+	for _, v := range premiumSkus {
+		if strings.EqualFold(input, v) {
+			return true
+		}
+	}
 	return false
 }
 
