@@ -1978,6 +1978,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2256,6 +2259,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     vm_size    = "Standard_DS2_v2"
     node_count = 1
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

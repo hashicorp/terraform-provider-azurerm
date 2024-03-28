@@ -89,6 +89,7 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernete
 }
 
 func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
+	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")

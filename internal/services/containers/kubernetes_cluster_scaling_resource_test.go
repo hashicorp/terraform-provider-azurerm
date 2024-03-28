@@ -1061,6 +1061,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     enable_auto_scaling = true
     vm_size             = "Standard_DS2_v2"
     zones               = ["1", "2"]
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1098,6 +1101,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count           = 2
     max_count           = 4
     vm_size             = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   auto_scaler_profile {
@@ -1135,6 +1141,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count           = 2
     max_count           = 4
     vm_size             = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   auto_scaler_profile {
