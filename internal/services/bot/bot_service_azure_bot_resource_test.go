@@ -363,12 +363,16 @@ resource "azurerm_key_vault_key" "test" {
   depends_on = [azurerm_role_assignment.test_deployer]
 }
 
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%[1]d"
+}
+
 resource "azurerm_bot_service_azure_bot" "test" {
   name                = "acctestdf%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "global"
   sku                 = "F0"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
   cmk_key_vault_url   = azurerm_key_vault_key.test.id
   endpoint            = "https://example2.com"
 
