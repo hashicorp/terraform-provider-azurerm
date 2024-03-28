@@ -610,11 +610,12 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	return expanded, nil
 }
 
-func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *webapps.SiteConfig, appSettings map[string]string) (*webapps.SiteConfig, error) {
+func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *webapps.SiteConfig, appSettings map[string]string) (*webapps.SiteConfig, bool, error) {
 	expanded := webapps.SiteConfig{}
 	if existing != nil {
 		expanded = *existing
 	}
+	shouldSaveAppSettings := false
 
 	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
@@ -646,12 +647,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 
 	if len(s.ApplicationStack) == 1 {
 		winAppStack := s.ApplicationStack[0]
-		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
-			if appSettings == nil {
-				appSettings = make(map[string]string)
-			}
-			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
-		}
+
 		if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.dotnet_version", "site_config.0.application_stack.0.dotnet_core_version") {
 			switch {
 			case winAppStack.NetFrameworkVersion != "":
@@ -709,7 +705,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
-
+			shouldSaveAppSettings = true
 		}
 
 	} else {
@@ -735,7 +731,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipRestrictions, err := ExpandIpRestrictions(s.IpRestriction)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		expanded.IPSecurityRestrictions = ipRestrictions
@@ -748,7 +744,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		scmIpRestrictions, err := ExpandIpRestrictions(s.ScmIpRestriction)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		expanded.ScmIPSecurityRestrictions = scmIpRestrictions
 	}
@@ -806,7 +802,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	}
 
-	return &expanded, nil
+	return &expanded, shouldSaveAppSettings, nil
 }
 
 func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentStack string) error {
