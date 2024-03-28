@@ -3,10 +3,10 @@ package systemcentervirtualmachinemanager_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualnetworks"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -16,14 +16,30 @@ import (
 
 type SystemCenterVirtualMachineManagerVirtualNetworkResource struct{}
 
-func TestAccSystemCenterVirtualMachineManagerVirtualNetwork_basic(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerVirtualNetworkSequential(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
+
+	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
+	}
+
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"scvmmVirtualNetwork": {
+			"basic":          testAccSystemCenterVirtualMachineManagerVirtualNetwork_basic,
+			"requiresImport": testAccSystemCenterVirtualMachineManagerVirtualNetwork_requiresImport,
+			"complete":       testAccSystemCenterVirtualMachineManagerVirtualNetwork_complete,
+			"update":         testAccSystemCenterVirtualMachineManagerVirtualNetwork_update,
+		},
+	})
+}
+
+func testAccSystemCenterVirtualMachineManagerVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_network", "test")
 	r := SystemCenterVirtualMachineManagerVirtualNetworkResource{}
-	randomUuid, _ := uuid.GenerateUUID()
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, randomUuid),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -32,33 +48,28 @@ func TestAccSystemCenterVirtualMachineManagerVirtualNetwork_basic(t *testing.T) 
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerVirtualNetwork_requiresImport(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerVirtualNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_network", "test")
 	r := SystemCenterVirtualMachineManagerVirtualNetworkResource{}
-	randomUuid, _ := uuid.GenerateUUID()
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, randomUuid),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data, randomUuid),
-			ExpectError: acceptance.RequiresImportError("azurerm_system_center_virtual_machine_manager_virtual_network"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerVirtualNetwork_complete(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerVirtualNetwork_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_network", "test")
 	r := SystemCenterVirtualMachineManagerVirtualNetworkResource{}
-	randomUuid, _ := uuid.GenerateUUID()
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, randomUuid),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -67,21 +78,27 @@ func TestAccSystemCenterVirtualMachineManagerVirtualNetwork_complete(t *testing.
 	})
 }
 
-func TestAccSystemCenterVirtualMachineManagerVirtualNetwork_update(t *testing.T) {
+func testAccSystemCenterVirtualMachineManagerVirtualNetwork_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_network", "test")
 	r := SystemCenterVirtualMachineManagerVirtualNetworkResource{}
-	randomUuid, _ := uuid.GenerateUUID()
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, randomUuid),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data, randomUuid),
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -104,23 +121,25 @@ func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Exists(ctx cont
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) basic(data acceptance.TestData, uuid string) string {
+func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_network" "test" {
   name                                                           = "acctest-scvmmc-%d"
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_custom_location.test.id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
-  system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
-  uuid                                                           = "%s"
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
 }
-`, r.template(data), data.RandomInteger, uuid)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) requiresImport(data acceptance.TestData, uuid string) string {
+func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -129,80 +148,82 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_network" "import
   location                                                       = azurerm_system_center_virtual_machine_manager_virtual_network.test.location
   resource_group_name                                            = azurerm_system_center_virtual_machine_manager_virtual_network.test.resource_group_name
   custom_location_id                                             = azurerm_system_center_virtual_machine_manager_virtual_network.test.custom_location_id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_virtual_network.test.system_center_virtual_machine_manager_server_id
   system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_virtual_network.test.system_center_virtual_machine_manager_server_inventory_item_id
-  uuid                                                           = azurerm_system_center_virtual_machine_manager_virtual_network.test.uuid
 }
-`, r.basic(data, uuid))
+`, r.basic(data))
 }
 
-func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) complete(data acceptance.TestData, uuid string) string {
+func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_network" "test" {
   name                                                           = "acctest-scvmmc-%d"
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_custom_location.test.id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
-  system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
-  uuid                                                           = "%s"
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
 
   tags = {
     env = "Test"
   }
 }
-`, r.template(data), data.RandomInteger, uuid)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) update(data acceptance.TestData, uuid string) string {
+func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_network" "test" {
   name                                                           = "acctest-scvmmc-%d"
   location                                                       = azurerm_resource_group.test.location
   resource_group_name                                            = azurerm_resource_group.test.name
-  custom_location_id                                             = azurerm_custom_location.test.id
-  system_center_virtual_machine_manager_server_id                = azurerm_system_center_virtual_machine_manager_server.test.id
-  system_center_virtual_machine_manager_server_inventory_item_id = azurerm_system_center_virtual_machine_manager_server_inventory_item.test.id
-  uuid                                                           = "%s"
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
 
   tags = {
     env = "Test2"
   }
 }
-`, r.template(data), data.RandomInteger, uuid)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-scvmmas-%d"
+  name     = "acctestrg-scvmmvnet-%d"
   location = "%s"
-}
-
-resource "azurerm_custom_location" "test" {
-  name = "acctest-cl-%d"
 }
 
 resource "azurerm_system_center_virtual_machine_manager_server" "test" {
   name                = "acctest-scvmmms-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  custom_location_id  = azurerm_custom_location.test.id
-  fqdn                = "testdomain.com"
+  custom_location_id  = "%s"
+  fqdn                = "%s"
+  username            = "%s"
+  password            = "%s"
 }
 
-resource "azurerm_system_center_virtual_machine_manager_server_inventory_item" "test" {
-  name                = "acctest-scvmmsii-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+resource "time_sleep" "wait_1_minute" {
+  depends_on      = [azurerm_system_center_virtual_machine_manager_server.test]
+  create_duration = "1m"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
+  inventory_type                                  = "VirtualNetwork"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+
+  depends_on = [time_sleep.wait_1_minute]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
