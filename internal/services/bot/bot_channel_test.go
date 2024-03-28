@@ -56,10 +56,5 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 		// 	"webchatUpdate":                  testAccBotChannelWebChat_update,
 		// 	"webchatRequiresImport":          testAccBotChannelWebChat_requiresImport,
 		// },
-		// "web_app": {
-		// 	"basic":    testAccBotWebApp_basic,
-		// 	"update":   testAccBotWebApp_update,
-		// 	"complete": testAccBotWebApp_complete,
-		// },
 	})
 }
