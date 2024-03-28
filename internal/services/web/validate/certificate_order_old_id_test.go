@@ -7,7 +7,7 @@ package validate
 
 import "testing"
 
-func TestCertificateOrderID(t *testing.T) {
+func TestCertificateOrderOldID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -44,32 +44,32 @@ func TestCertificateOrderID(t *testing.T) {
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CertificateRegistration/",
+			// missing CertificateOrderName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/",
 			Valid: false,
 		},
 
 		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CertificateRegistration/certificateOrders/",
+			// missing value for CertificateOrderName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificateOrders/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CertificateRegistration/certificateOrders/order1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificateOrders/order1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CERTIFICATEREGISTRATION/CERTIFICATEORDERS/ORDER1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/CERTIFICATEORDERS/ORDER1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := CertificateOrderID(tc.Input, "test")
+		_, errors := CertificateOrderOldID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
