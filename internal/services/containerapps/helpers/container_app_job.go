@@ -149,11 +149,11 @@ func ExpandContainerAppJobConfigurationManualTriggerConfig(input []ManualTrigger
 	var manualTriggerConfig jobs.JobConfigurationManualTriggerConfig
 
 	if v.Parallelism != 0 {
-		manualTriggerConfig.Parallelism = pointer.To(int64(v.Parallelism))
+		manualTriggerConfig.Parallelism = pointer.To(v.Parallelism)
 	}
 
 	if v.ReplicaCompletionCount != 0 {
-		manualTriggerConfig.ReplicaCompletionCount = pointer.To(int64(v.ReplicaCompletionCount))
+		manualTriggerConfig.ReplicaCompletionCount = pointer.To(v.ReplicaCompletionCount)
 	}
 
 	return pointer.To(manualTriggerConfig)
@@ -169,11 +169,11 @@ func ExpandContainerAppJobConfigurationScheduleTriggerConfig(input []ScheduleTri
 	scheduleTriggerConfig.CronExpression = v.CronExpression
 
 	if v.Parallelism != 0 {
-		scheduleTriggerConfig.Parallelism = pointer.To(int64(v.Parallelism))
+		scheduleTriggerConfig.Parallelism = pointer.To(v.Parallelism)
 	}
 
 	if v.ReplicaCompletionCount != 0 {
-		scheduleTriggerConfig.ReplicaCompletionCount = pointer.To(int64(v.ReplicaCompletionCount))
+		scheduleTriggerConfig.ReplicaCompletionCount = pointer.To(v.ReplicaCompletionCount)
 	}
 
 	return pointer.To(scheduleTriggerConfig)
@@ -187,11 +187,11 @@ func ExpandContainerAppJobConfigurationEventTriggerConfig(input []EventTriggerCo
 	var eventTriggerConfig jobs.JobConfigurationEventTriggerConfig
 
 	if v.Parallelism != 0 {
-		eventTriggerConfig.Parallelism = pointer.To(int64(v.Parallelism))
+		eventTriggerConfig.Parallelism = pointer.To(v.Parallelism)
 	}
 
 	if v.ReplicaCompletionCount != 0 {
-		eventTriggerConfig.ReplicaCompletionCount = pointer.To(int64(v.ReplicaCompletionCount))
+		eventTriggerConfig.ReplicaCompletionCount = pointer.To(v.ReplicaCompletionCount)
 	}
 
 	eventTriggerConfig.Scale = ExpandContainerAppJobScale(v.Scale)
@@ -207,15 +207,15 @@ func ExpandContainerAppJobScale(input []ScaleModel) *jobs.JobScale {
 	var scale jobs.JobScale
 
 	if v.MaxExecutions != 0 {
-		scale.MaxExecutions = pointer.To(int64(v.MaxExecutions))
+		scale.MaxExecutions = pointer.To(v.MaxExecutions)
 	}
 
 	if v.MinExecutions != 0 {
-		scale.MinExecutions = pointer.To(int64(v.MinExecutions))
+		scale.MinExecutions = pointer.To(v.MinExecutions)
 	}
 
 	if v.PollingInterval != 0 {
-		scale.PollingInterval = pointer.To(int64(v.PollingInterval))
+		scale.PollingInterval = pointer.To(v.PollingInterval)
 	}
 
 	scale.Rules = ExpandContainerAppJobScaleRules(v.Rules)
