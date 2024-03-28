@@ -310,7 +310,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
-			MaxItems: 1,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"visibility": {
@@ -319,11 +319,13 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(openshiftclusters.PossibleValuesForVisibility(), false),
 					},
-					"ip_address": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
 					"name": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"ip_address": {
 						Type:     schema.TypeString,
 						Computed: true,
 					},
@@ -757,14 +759,25 @@ func expandOpenshiftIngressProfiles(input []IngressProfile) *[]openshiftclusters
 		return nil
 	}
 
-	profiles := make([]openshiftclusters.IngressProfile, 0)
+	profiles := make([]openshiftclusters.IngressProfile, 0, len(input))
+	index := -1
 
-	profile := openshiftclusters.IngressProfile{
-		Name:       pointer.To("default"),
-		Visibility: pointer.To(openshiftclusters.Visibility(input[0].Visibility)),
+	for _, profile := range input {
+		openshiftProfile := openshiftclusters.IngressProfile{
+			Name: func() *string {
+				if profile.Name != "" {
+					return pointer.To(profile.Name)
+				}
+				index++
+				if index > 0 {
+					return pointer.To(fmt.Sprintf("default%d", index))
+				}
+				return pointer.To("default")
+			}(),
+			Visibility: pointer.To(openshiftclusters.Visibility(profile.Visibility)),
+		}
+		profiles = append(profiles, openshiftProfile)
 	}
-
-	profiles = append(profiles, profile)
 
 	return &profiles
 }
