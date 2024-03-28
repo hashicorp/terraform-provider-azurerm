@@ -7,7 +7,10 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.67.0` of `github.com/hashicorp/go-azure-helpers` [GH-25446]
+* dependencies: updating to `v0.25.4` of `github.com/tombuildsstuff/giovanni` [GH-25404]
 * `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
+* `maintenance`: updating to API Version `2023-04-01` [GH-25388]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
 * `azurerm_netapp_account` - can now be imported [GH-25384]
@@ -17,8 +20,20 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_function_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 * `azurerm_linux_web_app_slot` - fix a crash when upgrading the provider to v3.88.0 or later [GH-25406]
 * `azurerm_network_manager_deployment` - add locking [GH-25368]
+* `azurerm_storage_blob` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_container` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_data_lake_gen2_filesystem` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_data_lake_gen2_filesystem_path` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_queue` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_share` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_share_directory` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_share_directory` - resolve an issue where directories might fail to destroy [GH-25404]
+* `azurerm_storage_share_file` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_share_file` - fix several bugs with path handling when creating files in subdirectories [GH-25404]
+* `azurerm_web_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 
 ## 3.97.1 (March 22, 2024)
 

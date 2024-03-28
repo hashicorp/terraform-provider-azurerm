@@ -11,29 +11,25 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOrUpdateParentOperationResponse struct {
+type ForSubscriptionsGetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *ConfigurationAssignment
 }
 
-// CreateOrUpdateParent ...
-func (c ConfigurationAssignmentsClient) CreateOrUpdateParent(ctx context.Context, id ScopedConfigurationAssignmentId, input ConfigurationAssignment) (result CreateOrUpdateParentOperationResponse, err error) {
+// ForSubscriptionsGet ...
+func (c ConfigurationAssignmentsClient) ForSubscriptionsGet(ctx context.Context, id ConfigurationAssignmentId) (result ForSubscriptionsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
+		HttpMethod: http.MethodGet,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 

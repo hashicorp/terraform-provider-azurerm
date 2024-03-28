@@ -65,7 +65,7 @@ func (c Client) GetProperties(ctx context.Context, fileSystemName string, path s
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.ResourceType = PathResource(resp.Header.Get("x-ms-resource-type"))
 			result.ETag = resp.Header.Get("ETag")
 

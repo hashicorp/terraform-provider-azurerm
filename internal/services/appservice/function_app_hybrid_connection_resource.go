@@ -162,7 +162,7 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
-			key, err := helpers.GetSendKeyValue(ctx, metadata, id, appHybridConn.SendKeyName)
+			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, id, appHybridConn.SendKeyName)
 			if err != nil {
 				return err
 			}
@@ -173,7 +173,7 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 					Hostname:     pointer.To(appHybridConn.HostName),
 					Port:         pointer.To(appHybridConn.HostPort),
 					SendKeyName:  pointer.To(appHybridConn.SendKeyName),
-					SendKeyValue: key,
+					SendKeyValue: sendKeyValue,
 				},
 			}
 

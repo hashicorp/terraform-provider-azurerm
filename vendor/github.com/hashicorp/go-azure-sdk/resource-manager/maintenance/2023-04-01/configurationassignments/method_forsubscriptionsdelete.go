@@ -1,4 +1,4 @@
-package maintenanceconfigurations
+package configurationassignments
 
 import (
 	"context"
@@ -11,29 +11,26 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOrUpdateOperationResponse struct {
+type ForSubscriptionsDeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *MaintenanceConfiguration
+	Model        *ConfigurationAssignment
 }
 
-// CreateOrUpdate ...
-func (c MaintenanceConfigurationsClient) CreateOrUpdate(ctx context.Context, id MaintenanceConfigurationId, input MaintenanceConfiguration) (result CreateOrUpdateOperationResponse, err error) {
+// ForSubscriptionsDelete ...
+func (c ConfigurationAssignmentsClient) ForSubscriptionsDelete(ctx context.Context, id ConfigurationAssignmentId) (result ForSubscriptionsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
+		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -47,7 +44,7 @@ func (c MaintenanceConfigurationsClient) CreateOrUpdate(ctx context.Context, id 
 		return
 	}
 
-	var model MaintenanceConfiguration
+	var model ConfigurationAssignment
 	result.Model = &model
 
 	if err = resp.Unmarshal(result.Model); err != nil {
