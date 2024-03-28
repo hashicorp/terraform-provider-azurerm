@@ -7,8 +7,11 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,48 +102,45 @@ func (SubnetRouteTableAssociationResource) Exists(ctx context.Context, clients *
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroupName
-	virtualNetworkName := id.VirtualNetworkName
-	subnetName := id.SubnetName
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet Route Table Association (%s): %+v", id, err)
 	}
 
-	props := resp.SubnetPropertiesFormat
-	if props == nil || props.RouteTable == nil {
-		return nil, fmt.Errorf("properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", subnetName, virtualNetworkName, resourceGroup)
+	model := resp.Model
+	if model == nil {
+		return nil, fmt.Errorf("model was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
 	}
 
-	return utils.Bool(props.RouteTable.ID != nil), nil
+	props := model.Properties
+	if props == nil || props.RouteTable == nil {
+		return nil, fmt.Errorf("properties was nil for Subnet %q (Virtual Network %q / Resource Group: %q)", id.SubnetName, id.VirtualNetworkName, id.ResourceGroupName)
+	}
+
+	return utils.Bool(props.RouteTable.Id != nil), nil
 }
 
 func (SubnetRouteTableAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	parsedId, err := commonids.ParseSubnetID(state.Attributes["subnet_id"])
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedId.ResourceGroupName
-	virtualNetworkName := parsedId.VirtualNetworkName
-	subnetName := parsedId.SubnetName
-
-	read, err := client.Network.SubnetsClient.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
+	read, err := client.Network.Client.Subnets.Get(ctx, *parsedId, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		if !utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("retrieving Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+		if !response.WasNotFound(read.HttpResponse) {
+			return fmt.Errorf("retrieving Subnet %q (Network %q / Resource Group %q): %+v", parsedId.SubnetName, parsedId.VirtualNetworkName, parsedId.ResourceGroupName, err)
 		}
 	}
 
-	read.SubnetPropertiesFormat.RouteTable = nil
+	read.Model.Properties.RouteTable = nil
 
-	future, err := client.Network.SubnetsClient.CreateOrUpdate(ctx, resourceGroup, virtualNetworkName, subnetName, read)
-	if err != nil {
-		return fmt.Errorf("updating Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", subnetName, virtualNetworkName, resourceGroup, err)
+	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *parsedId, *read.Model); err != nil {
+		return fmt.Errorf("updating Subnet %q (Network %q / Resource Group %q): %+v", parsedId.SubnetName, parsedId.VirtualNetworkName, parsedId.ResourceGroupName, err)
 	}
 
 	return nil

@@ -45,7 +45,6 @@ type Client struct {
 	ServiceAssociationLinkClient           *network.ServiceAssociationLinksClient
 	ServiceEndpointPoliciesClient          *network.ServiceEndpointPoliciesClient
 	ServiceEndpointPolicyDefinitionsClient *network.ServiceEndpointPolicyDefinitionsClient
-	SubnetsClient                          *network.SubnetsClient
 	NatGatewayClient                       *network.NatGatewaysClient
 	VirtualHubBgpConnectionClient          *network.VirtualHubBgpConnectionClient
 	VirtualHubIPClient                     *network.VirtualHubIPConfigurationClient
@@ -143,9 +142,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ServiceEndpointPolicyDefinitionsClient := network.NewServiceEndpointPolicyDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServiceEndpointPolicyDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
-
 	VirtualHubBgpConnectionClient := network.NewVirtualHubBgpConnectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualHubBgpConnectionClient.Client, o.ResourceManagerAuthorizer)
 
@@ -210,7 +206,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SecurityPartnerProviderClient:          &SecurityPartnerProviderClient,
 		ServiceEndpointPoliciesClient:          &ServiceEndpointPoliciesClient,
 		ServiceEndpointPolicyDefinitionsClient: &ServiceEndpointPolicyDefinitionsClient,
-		SubnetsClient:                          &SubnetsClient,
 		NatGatewayClient:                       &NatGatewayClient,
 		VirtualHubBgpConnectionClient:          &VirtualHubBgpConnectionClient,
 		VirtualHubIPClient:                     &VirtualHubIPClient,
