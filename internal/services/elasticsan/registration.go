@@ -26,6 +26,7 @@ func (Registration) Resources() []sdk.Resource {
 		ElasticSANResource{},
 		ElasticSANVolumeGroupResource{},
 		ElasticSANVolumeResource{},
+		ElasticSANSnapshotResource{},
 	}
 }
 
