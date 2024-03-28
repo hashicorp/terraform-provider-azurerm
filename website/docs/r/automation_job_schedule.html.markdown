@@ -52,7 +52,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Automation Job Schedule.
+* `id` - The ID of the Automation Job Schedule. The format of the ID is `azurerm_automation_account.id|azurerm_automation_runbook.id`. There is an example in the [#Import](#import) part.
 
 * `job_schedule_id` - The UUID identifying the Automation Job Schedule.
 
@@ -71,5 +71,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Automation Job Schedules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automation_job_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/runBook/book1/schedule/schedule1
+terraform import azurerm_automation_job_schedule.example "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctestRG-auto-240326135902419761/providers/Microsoft.Automation/automationAccounts/acctestAA-240328091346495956/schedules/acctestAS-240328091346495956|/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/acctestRG-auto-240326135902419761/providers/Microsoft.Automation/automationAccounts/acctestAA-240328091346495956/runbooks/Output-HelloWorld"
 ```
