@@ -19,7 +19,8 @@ type ListByVMMServerOperationResponse struct {
 }
 
 type ListByVMMServerCompleteResult struct {
-	Items []InventoryItem
+	LatestHttpResponse *http.Response
+	Items              []InventoryItem
 }
 
 // ListByVMMServer ...
@@ -83,7 +84,8 @@ func (c InventoryItemsClient) ListByVMMServerCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListByVMMServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

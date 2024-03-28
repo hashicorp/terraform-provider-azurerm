@@ -5,7 +5,6 @@ package provider
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -313,6 +312,14 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "Allow Azure CLI to be used for Authentication.",
 			},
 
+			// Azure AKS Workload Identity fields
+			"use_aks_workload_identity": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_AKS_WORKLOAD_IDENTITY", false),
+				Description: "Allow Azure AKS Workload Identity to be used for Authentication.",
+			},
+
 			// Managed Tracking GUID for User-agent
 			"partner_id": {
 				Type:         schema.TypeString,
@@ -400,6 +407,11 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			return nil, diag.FromErr(err)
 		}
 
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		var (
 			env *environments.Environment
 
@@ -418,13 +430,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		var (
 			enableAzureCli        = d.Get("use_cli").(bool)
 			enableManagedIdentity = d.Get("use_msi").(bool)
-			enableOidc            = d.Get("use_oidc").(bool)
+			enableOidc            = d.Get("use_oidc").(bool) || d.Get("use_aks_workload_identity").(bool)
 		)
 
 		authConfig := &auth.Credentials{
 			Environment:        *env,
 			ClientID:           *clientId,
-			TenantID:           d.Get("tenant_id").(string),
+			TenantID:           *tenantId,
 			AuxiliaryTenantIDs: auxTenants,
 
 			ClientCertificateData:     clientCertificateData,
@@ -495,85 +507,6 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 
 	return client, nil
-}
-
-func decodeCertificate(clientCertificate string) ([]byte, error) {
-	var pfx []byte
-	if clientCertificate != "" {
-		out := make([]byte, base64.StdEncoding.DecodedLen(len(clientCertificate)))
-		n, err := base64.StdEncoding.Decode(out, []byte(clientCertificate))
-		if err != nil {
-			return pfx, fmt.Errorf("could not decode client certificate data: %v", err)
-		}
-		pfx = out[:n]
-	}
-	return pfx, nil
-}
-
-func getOidcToken(d *schema.ResourceData) (*string, error) {
-	idToken := strings.TrimSpace(d.Get("oidc_token").(string))
-
-	if path := d.Get("oidc_token_file_path").(string); path != "" {
-		fileTokenRaw, err := os.ReadFile(path)
-
-		if err != nil {
-			return nil, fmt.Errorf("reading OIDC Token from file %q: %v", path, err)
-		}
-
-		fileToken := strings.TrimSpace(string(fileTokenRaw))
-
-		if idToken != "" && idToken != fileToken {
-			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
-		}
-
-		idToken = fileToken
-	}
-
-	return &idToken, nil
-}
-
-func getClientId(d *schema.ResourceData) (*string, error) {
-	clientId := strings.TrimSpace(d.Get("client_id").(string))
-
-	if path := d.Get("client_id_file_path").(string); path != "" {
-		fileClientIdRaw, err := os.ReadFile(path)
-
-		if err != nil {
-			return nil, fmt.Errorf("reading Client ID from file %q: %v", path, err)
-		}
-
-		fileClientId := strings.TrimSpace(string(fileClientIdRaw))
-
-		if clientId != "" && clientId != fileClientId {
-			return nil, fmt.Errorf("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
-		}
-
-		clientId = fileClientId
-	}
-
-	return &clientId, nil
-}
-
-func getClientSecret(d *schema.ResourceData) (*string, error) {
-	clientSecret := strings.TrimSpace(d.Get("client_secret").(string))
-
-	if path := d.Get("client_secret_file_path").(string); path != "" {
-		fileSecretRaw, err := os.ReadFile(path)
-
-		if err != nil {
-			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
-		}
-
-		fileSecret := strings.TrimSpace(string(fileSecretRaw))
-
-		if clientSecret != "" && clientSecret != fileSecret {
-			return nil, fmt.Errorf("mismatch between supplied Client Secret and supplied Client Secret file contents - please either remove one or ensure they match")
-		}
-
-		clientSecret = fileSecret
-	}
-
-	return &clientSecret, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.

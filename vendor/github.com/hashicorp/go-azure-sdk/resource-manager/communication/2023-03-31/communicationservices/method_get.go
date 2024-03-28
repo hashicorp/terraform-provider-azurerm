@@ -43,7 +43,10 @@ func (c CommunicationServicesClient) Get(ctx context.Context, id CommunicationSe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CommunicationServiceResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

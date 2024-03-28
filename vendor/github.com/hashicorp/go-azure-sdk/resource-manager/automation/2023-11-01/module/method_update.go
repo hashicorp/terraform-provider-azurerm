@@ -47,7 +47,10 @@ func (c ModuleClient) Update(ctx context.Context, id ModuleId, input ModuleUpdat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Module
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

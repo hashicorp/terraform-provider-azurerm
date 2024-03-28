@@ -14,13 +14,10 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
 )
-
-const pollingInterval = time.Second * 15
 
 type BlobUpload struct {
 	Client *blobs.Client
@@ -79,7 +76,7 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 			return sbu.copy(ctx)
 		}
 		if sbu.SourceContent != "" {
-			return fmt.Errorf("`source_content` cannot be specified for a Page blob")
+			return sbu.uploadPageBlobFromContent(ctx)
 		}
 		if sbu.Source != "" {
 			return sbu.uploadPageBlob(ctx)
@@ -96,7 +93,7 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 		CopySource: sbu.SourceUri,
 		MetaData:   sbu.MetaData,
 	}
-	if err := sbu.Client.CopyAndWait(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input, pollingInterval); err != nil {
+	if err := sbu.Client.CopyAndWait(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("copy/waiting: %s", err)
 	}
 
@@ -108,7 +105,7 @@ func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 		ContentType: utils.String(sbu.ContentType),
 		MetaData:    sbu.MetaData,
 	}
-	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutAppendBlob: %s", err)
 	}
 
@@ -124,7 +121,7 @@ func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 		ContentType: utils.String(sbu.ContentType),
 		MetaData:    sbu.MetaData,
 	}
-	if _, err := sbu.Client.PutBlockBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+	if _, err := sbu.Client.PutBlockBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutBlockBlob: %s", err)
 	}
 
@@ -161,7 +158,7 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 	if sbu.ContentMD5 != "" {
 		input.ContentMD5 = utils.String(sbu.ContentMD5)
 	}
-	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
+	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
 		return fmt.Errorf("PutBlockBlobFromFile: %s", err)
 	}
 
@@ -178,11 +175,27 @@ func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 		ContentType:            utils.String(sbu.ContentType),
 		MetaData:               sbu.MetaData,
 	}
-	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+	if _, err := sbu.Client.PutPageBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutPageBlob: %s", err)
 	}
 
 	return nil
+}
+
+func (sbu BlobUpload) uploadPageBlobFromContent(ctx context.Context) error {
+	tmpFile, err := os.CreateTemp(os.TempDir(), "upload-")
+	if err != nil {
+		return fmt.Errorf("creating temporary file: %s", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+		return fmt.Errorf("writing Source Content to Temp File: %s", err)
+	}
+	defer tmpFile.Close()
+
+	sbu.Source = tmpFile.Name()
+	return sbu.uploadPageBlob(ctx)
 }
 
 func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
@@ -212,7 +225,7 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 		ContentType:            utils.String(sbu.ContentType),
 		MetaData:               sbu.MetaData,
 	}
-	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+	if _, err := sbu.Client.PutPageBlob(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("PutPageBlob: %s", err)
 	}
 
@@ -357,7 +370,7 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 			Content:   chunk,
 		}
 
-		if _, err := sbu.Client.PutPageUpdate(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+		if _, err := sbu.Client.PutPageUpdate(ctx, sbu.ContainerName, sbu.BlobName, input); err != nil {
 			uploadCtx.errors <- fmt.Errorf("writing page at offset %d for file %q: %s", page.offset, sbu.Source, err)
 			uploadCtx.wg.Done()
 			continue

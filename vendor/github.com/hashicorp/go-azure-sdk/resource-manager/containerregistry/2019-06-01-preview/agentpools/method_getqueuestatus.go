@@ -44,7 +44,10 @@ func (c AgentPoolsClient) GetQueueStatus(ctx context.Context, id AgentPoolId) (r
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AgentPoolQueueStatus
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

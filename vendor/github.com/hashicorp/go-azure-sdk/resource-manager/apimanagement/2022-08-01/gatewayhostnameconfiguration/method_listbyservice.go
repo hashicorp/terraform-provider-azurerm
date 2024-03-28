@@ -19,7 +19,8 @@ type ListByServiceOperationResponse struct {
 }
 
 type ListByServiceCompleteResult struct {
-	Items []GatewayHostnameConfigurationContract
+	LatestHttpResponse *http.Response
+	Items              []GatewayHostnameConfigurationContract
 }
 
 type ListByServiceOperationOptions struct {
@@ -119,7 +120,8 @@ func (c GatewayHostnameConfigurationClient) ListByServiceCompleteMatchingPredica
 	}
 
 	result = ListByServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

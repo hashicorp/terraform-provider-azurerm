@@ -18,6 +18,7 @@ type CreateOrUpdatePrivateEndpointConnectionOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PrivateEndpointConnection
 }
 
 // CreateOrUpdatePrivateEndpointConnection ...

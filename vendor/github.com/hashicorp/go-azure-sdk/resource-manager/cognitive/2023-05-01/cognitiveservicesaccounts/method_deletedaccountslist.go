@@ -20,7 +20,8 @@ type DeletedAccountsListOperationResponse struct {
 }
 
 type DeletedAccountsListCompleteResult struct {
-	Items []Account
+	LatestHttpResponse *http.Response
+	Items              []Account
 }
 
 // DeletedAccountsList ...
@@ -84,7 +85,8 @@ func (c CognitiveServicesAccountsClient) DeletedAccountsListCompleteMatchingPred
 	}
 
 	result = DeletedAccountsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

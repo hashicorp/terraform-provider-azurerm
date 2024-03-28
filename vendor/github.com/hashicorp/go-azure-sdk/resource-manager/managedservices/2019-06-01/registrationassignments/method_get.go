@@ -72,7 +72,10 @@ func (c RegistrationAssignmentsClient) Get(ctx context.Context, id ScopedRegistr
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RegistrationAssignment
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

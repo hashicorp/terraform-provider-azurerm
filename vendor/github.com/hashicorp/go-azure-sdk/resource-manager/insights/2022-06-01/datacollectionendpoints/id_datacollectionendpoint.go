@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DataCollectionEndpointId{}
+var _ resourceids.ResourceId = &DataCollectionEndpointId{}
 
 // DataCollectionEndpointId is a struct representing the Resource ID for a Data Collection Endpoint
 type DataCollectionEndpointId struct {
@@ -30,7 +30,7 @@ func NewDataCollectionEndpointID(subscriptionId string, resourceGroupName string
 
 // ParseDataCollectionEndpointID parses 'input' into a DataCollectionEndpointId
 func ParseDataCollectionEndpointID(input string) (*DataCollectionEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataCollectionEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataCollectionEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseDataCollectionEndpointID(input string) (*DataCollectionEndpointId, err
 // ParseDataCollectionEndpointIDInsensitively parses 'input' case-insensitively into a DataCollectionEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseDataCollectionEndpointIDInsensitively(input string) (*DataCollectionEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DataCollectionEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&DataCollectionEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

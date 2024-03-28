@@ -19,7 +19,8 @@ type CustomCertificatesListOperationResponse struct {
 }
 
 type CustomCertificatesListCompleteResult struct {
-	Items []CustomCertificate
+	LatestHttpResponse *http.Response
+	Items              []CustomCertificate
 }
 
 // CustomCertificatesList ...
@@ -83,7 +84,8 @@ func (c WebPubSubClient) CustomCertificatesListCompleteMatchingPredicate(ctx con
 	}
 
 	result = CustomCertificatesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

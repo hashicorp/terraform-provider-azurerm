@@ -76,7 +76,10 @@ func (c SessionHostClient) Update(ctx context.Context, id SessionHostId, input S
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SessionHost
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

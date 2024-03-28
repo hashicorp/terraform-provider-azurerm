@@ -19,7 +19,8 @@ type CustomDomainsListOperationResponse struct {
 }
 
 type CustomDomainsListCompleteResult struct {
-	Items []CustomDomain
+	LatestHttpResponse *http.Response
+	Items              []CustomDomain
 }
 
 // CustomDomainsList ...
@@ -83,7 +84,8 @@ func (c SignalRClient) CustomDomainsListCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = CustomDomainsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type SpatialAnchorsAccountsListBySubscriptionOperationResponse struct {
 }
 
 type SpatialAnchorsAccountsListBySubscriptionCompleteResult struct {
-	Items []SpatialAnchorsAccount
+	LatestHttpResponse *http.Response
+	Items              []SpatialAnchorsAccount
 }
 
 // SpatialAnchorsAccountsListBySubscription ...
@@ -84,7 +85,8 @@ func (c ResourceClient) SpatialAnchorsAccountsListBySubscriptionCompleteMatching
 	}
 
 	result = SpatialAnchorsAccountsListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

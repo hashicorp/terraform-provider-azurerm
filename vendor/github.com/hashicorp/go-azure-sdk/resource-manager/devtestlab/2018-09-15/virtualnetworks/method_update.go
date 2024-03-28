@@ -47,7 +47,10 @@ func (c VirtualNetworksClient) Update(ctx context.Context, id VirtualNetworkId, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualNetwork
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

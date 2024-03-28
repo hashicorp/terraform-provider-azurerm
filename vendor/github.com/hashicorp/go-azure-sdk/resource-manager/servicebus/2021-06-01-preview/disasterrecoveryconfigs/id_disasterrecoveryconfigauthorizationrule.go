@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DisasterRecoveryConfigAuthorizationRuleId{}
+var _ resourceids.ResourceId = &DisasterRecoveryConfigAuthorizationRuleId{}
 
 // DisasterRecoveryConfigAuthorizationRuleId is a struct representing the Resource ID for a Disaster Recovery Config Authorization Rule
 type DisasterRecoveryConfigAuthorizationRuleId struct {
@@ -34,7 +34,7 @@ func NewDisasterRecoveryConfigAuthorizationRuleID(subscriptionId string, resourc
 
 // ParseDisasterRecoveryConfigAuthorizationRuleID parses 'input' into a DisasterRecoveryConfigAuthorizationRuleId
 func ParseDisasterRecoveryConfigAuthorizationRuleID(input string) (*DisasterRecoveryConfigAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DisasterRecoveryConfigAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&DisasterRecoveryConfigAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseDisasterRecoveryConfigAuthorizationRuleID(input string) (*DisasterReco
 // ParseDisasterRecoveryConfigAuthorizationRuleIDInsensitively parses 'input' case-insensitively into a DisasterRecoveryConfigAuthorizationRuleId
 // note: this method should only be used for API response data and not user input
 func ParseDisasterRecoveryConfigAuthorizationRuleIDInsensitively(input string) (*DisasterRecoveryConfigAuthorizationRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DisasterRecoveryConfigAuthorizationRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&DisasterRecoveryConfigAuthorizationRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

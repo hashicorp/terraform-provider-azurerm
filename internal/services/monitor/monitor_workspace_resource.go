@@ -19,12 +19,14 @@ import (
 )
 
 type WorkspaceResourceModel struct {
-	Name                       string            `tfschema:"name"`
-	ResourceGroupName          string            `tfschema:"resource_group_name"`
-	QueryEndpoint              string            `tfschema:"query_endpoint"`
-	PublicNetworkAccessEnabled bool              `tfschema:"public_network_access_enabled"`
-	Location                   string            `tfschema:"location"`
-	Tags                       map[string]string `tfschema:"tags"`
+	Name                            string            `tfschema:"name"`
+	ResourceGroupName               string            `tfschema:"resource_group_name"`
+	QueryEndpoint                   string            `tfschema:"query_endpoint"`
+	DefaultDataCollectionEndpointId string            `tfschema:"default_data_collection_endpoint_id"`
+	DefaultDataCollectionRuleId     string            `tfschema:"default_data_collection_rule_id"`
+	PublicNetworkAccessEnabled      bool              `tfschema:"public_network_access_enabled"`
+	Location                        string            `tfschema:"location"`
+	Tags                            map[string]string `tfschema:"tags"`
 }
 
 type WorkspaceResource struct{}
@@ -69,6 +71,14 @@ func (r WorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
 func (r WorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"query_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"default_data_collection_endpoint_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"default_data_collection_rule_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -209,6 +219,15 @@ func (r WorkspaceResource) Read() sdk.ResourceFunc {
 
 					if properties.Metrics != nil && properties.Metrics.PrometheusQueryEndpoint != nil {
 						state.QueryEndpoint = *properties.Metrics.PrometheusQueryEndpoint
+					}
+
+					if properties.DefaultIngestionSettings != nil {
+						if properties.DefaultIngestionSettings.DataCollectionEndpointResourceId != nil {
+							state.DefaultDataCollectionEndpointId = *properties.DefaultIngestionSettings.DataCollectionEndpointResourceId
+						}
+						if properties.DefaultIngestionSettings.DataCollectionRuleResourceId != nil {
+							state.DefaultDataCollectionRuleId = *properties.DefaultIngestionSettings.DataCollectionRuleResourceId
+						}
 					}
 				}
 			}

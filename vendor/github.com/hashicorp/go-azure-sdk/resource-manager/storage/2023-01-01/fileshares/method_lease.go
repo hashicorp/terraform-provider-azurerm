@@ -76,7 +76,10 @@ func (c FileSharesClient) Lease(ctx context.Context, id ShareId, input LeaseShar
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LeaseShareResponse
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

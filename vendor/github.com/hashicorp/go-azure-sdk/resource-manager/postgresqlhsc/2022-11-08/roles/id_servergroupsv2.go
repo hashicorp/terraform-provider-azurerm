@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ServerGroupsv2Id{}
+var _ resourceids.ResourceId = &ServerGroupsv2Id{}
 
 // ServerGroupsv2Id is a struct representing the Resource ID for a Server Groupsv 2
 type ServerGroupsv2Id struct {
@@ -30,7 +30,7 @@ func NewServerGroupsv2ID(subscriptionId string, resourceGroupName string, server
 
 // ParseServerGroupsv2ID parses 'input' into a ServerGroupsv2Id
 func ParseServerGroupsv2ID(input string) (*ServerGroupsv2Id, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServerGroupsv2Id{})
+	parser := resourceids.NewParserFromResourceIdType(&ServerGroupsv2Id{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseServerGroupsv2ID(input string) (*ServerGroupsv2Id, error) {
 // ParseServerGroupsv2IDInsensitively parses 'input' case-insensitively into a ServerGroupsv2Id
 // note: this method should only be used for API response data and not user input
 func ParseServerGroupsv2IDInsensitively(input string) (*ServerGroupsv2Id, error) {
-	parser := resourceids.NewParserFromResourceIdType(ServerGroupsv2Id{})
+	parser := resourceids.NewParserFromResourceIdType(&ServerGroupsv2Id{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

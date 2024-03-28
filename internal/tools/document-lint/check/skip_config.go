@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package check
 
 import (
@@ -14,6 +17,8 @@ var skipProps = []string{
 	"all.time_zone",
 	"all.time_zone_id",
 	"azurerm_nginx_deployment.identity.type", // there is a diff between real supported values and common identity schema
+	"azurerm_kubernetes_cluster.default_node_pool.os_sku",
+	"azurerm_kubernetes_cluster_node_pool.os_sku",
 	"/azurerm_container_app.template..+_scale_rule.authentication.trigger_parameter",
 	"/azurerm_container_app.template..+_probe.header",
 	`/azurerm_automanage_configuration.backup.retention_policy.(?:weekly|daily)_schedule.retention_duration.duration_type`,

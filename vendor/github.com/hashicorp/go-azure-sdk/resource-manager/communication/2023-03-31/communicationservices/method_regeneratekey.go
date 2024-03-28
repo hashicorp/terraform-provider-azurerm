@@ -48,7 +48,10 @@ func (c CommunicationServicesClient) RegenerateKey(ctx context.Context, id Commu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CommunicationServiceKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

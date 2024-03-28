@@ -50,6 +50,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `query_endpoint` - The query endpoint for the Azure Monitor Workspace.
 
+* `default_data_collection_endpoint_id` - The ID of the managed default Data Collection Endpoint created with the Azure Monitor Workspace.
+
+* `default_data_collection_rule_id` - The ID of the managed default Data Collection Rule created with the Azure Monitor Workspace.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

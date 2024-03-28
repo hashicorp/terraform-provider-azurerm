@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AccessPolicyId{}
+var _ resourceids.ResourceId = &AccessPolicyId{}
 
 // AccessPolicyId is a struct representing the Resource ID for a Access Policy
 type AccessPolicyId struct {
@@ -32,7 +32,7 @@ func NewAccessPolicyID(subscriptionId string, resourceGroupName string, redisNam
 
 // ParseAccessPolicyID parses 'input' into a AccessPolicyId
 func ParseAccessPolicyID(input string) (*AccessPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccessPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccessPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseAccessPolicyID(input string) (*AccessPolicyId, error) {
 // ParseAccessPolicyIDInsensitively parses 'input' case-insensitively into a AccessPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseAccessPolicyIDInsensitively(input string) (*AccessPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AccessPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&AccessPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

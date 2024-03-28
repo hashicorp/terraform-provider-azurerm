@@ -19,7 +19,8 @@ type QueriesListOperationResponse struct {
 }
 
 type QueriesListCompleteResult struct {
-	Items []LogAnalyticsQueryPackQuery
+	LatestHttpResponse *http.Response
+	Items              []LogAnalyticsQueryPackQuery
 }
 
 type QueriesListOperationOptions struct {
@@ -115,7 +116,8 @@ func (c QueryPackQueriesClient) QueriesListCompleteMatchingPredicate(ctx context
 	}
 
 	result = QueriesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

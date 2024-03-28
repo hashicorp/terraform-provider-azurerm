@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []TimeSeriesDatabaseConnection
+	LatestHttpResponse *http.Response
+	Items              []TimeSeriesDatabaseConnection
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c TimeSeriesDatabaseConnectionsClient) ListCompleteMatchingPredicate(ctx c
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

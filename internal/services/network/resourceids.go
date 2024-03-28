@@ -69,6 +69,7 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualNetworkGateway -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworkGateways/gw1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualNetworkGatewayIpConfiguration -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworkGateways/gw1/ipConfigurations/cfg1 -rewrite=true
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualNetworkGatewayNatRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworkGateways/gw1/natRules/rule1
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VirtualNetworkGatewayPolicyGroup -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualNetworkGateways/gw1/virtualNetworkGatewayPolicyGroups/policyGroup1
 
 // Express Route Connection
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=ExpressRouteCircuit -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/expressRouteCircuits/erCircuit1

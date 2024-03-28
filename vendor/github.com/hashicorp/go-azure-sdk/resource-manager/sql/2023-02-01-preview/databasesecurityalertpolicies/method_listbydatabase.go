@@ -20,7 +20,8 @@ type ListByDatabaseOperationResponse struct {
 }
 
 type ListByDatabaseCompleteResult struct {
-	Items []DatabaseSecurityAlertPolicy
+	LatestHttpResponse *http.Response
+	Items              []DatabaseSecurityAlertPolicy
 }
 
 // ListByDatabase ...
@@ -84,7 +85,8 @@ func (c DatabaseSecurityAlertPoliciesClient) ListByDatabaseCompleteMatchingPredi
 	}
 
 	result = ListByDatabaseCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

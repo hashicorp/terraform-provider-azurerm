@@ -20,7 +20,8 @@ type DigitalTwinsListByResourceGroupOperationResponse struct {
 }
 
 type DigitalTwinsListByResourceGroupCompleteResult struct {
-	Items []DigitalTwinsDescription
+	LatestHttpResponse *http.Response
+	Items              []DigitalTwinsDescription
 }
 
 // DigitalTwinsListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsListByResourceGroupCompleteMatch
 	}
 
 	result = DigitalTwinsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -20,7 +20,8 @@ type MonitorsListByResourceGroupOperationResponse struct {
 }
 
 type MonitorsListByResourceGroupCompleteResult struct {
-	Items []ElasticMonitorResource
+	LatestHttpResponse *http.Response
+	Items              []ElasticMonitorResource
 }
 
 // MonitorsListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c MonitorsResourceClient) MonitorsListByResourceGroupCompleteMatchingPredi
 	}
 
 	result = MonitorsListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

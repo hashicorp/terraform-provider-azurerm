@@ -43,7 +43,10 @@ func (c StreamingPoliciesAndStreamingLocatorsClient) StreamingPoliciesGet(ctx co
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StreamingPolicy
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

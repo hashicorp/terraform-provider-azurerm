@@ -76,7 +76,10 @@ func (c ProductClient) Update(ctx context.Context, id ProductId, input ProductUp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ProductContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

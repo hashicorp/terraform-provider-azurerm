@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -68,14 +68,21 @@ func TestAccFirewall_enableDNS(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.enableDNS(data, "1.1.1.1", "8.8.8.8"),
+			Config: r.enableDNS(data, true, "1.1.1.1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.enableDNS(data, "1.1.1.1"),
+			Config: r.enableDNS(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableDNS(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -502,10 +509,20 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (FirewallResource) enableDNS(data acceptance.TestData, dnsServers ...string) string {
-	servers := make([]string, len(dnsServers))
-	for idx, server := range dnsServers {
-		servers[idx] = fmt.Sprintf(`"%s"`, server)
+func (FirewallResource) enableDNS(data acceptance.TestData, enableProxy bool, dnsServers ...string) string {
+	dnsServersStr := ""
+	if len(dnsServers) > 0 {
+		servers := make([]string, len(dnsServers))
+		for idx, server := range dnsServers {
+			servers[idx] = fmt.Sprintf(`"%s"`, server)
+		}
+		dnsServersStr = fmt.Sprintf("dns_servers = [%s]", strings.Join(servers, ", "))
+	}
+	enableProxyStr := ""
+	if enableProxy {
+		enableProxyStr = "dns_proxy_enabled = true"
+	} else {
+		enableProxyStr = "dns_proxy_enabled = false"
 	}
 
 	return fmt.Sprintf(`
@@ -553,9 +570,11 @@ resource "azurerm_firewall" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
   threat_intel_mode = "Deny"
-  dns_servers       = [%s]
+  %s
+  %s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, strings.Join(servers, ","))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		dnsServersStr, enableProxyStr)
 }
 
 func (FirewallResource) withManagementIp(data acceptance.TestData) string {
