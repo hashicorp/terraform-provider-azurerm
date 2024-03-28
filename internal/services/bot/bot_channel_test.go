@@ -13,12 +13,6 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being able provision against one app id at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		// "basic": {
-		// 	"basic":                    testAccBotChannelsRegistration_basic,
-		// 	"update":                   testAccBotChannelsRegistration_update,
-		// 	"complete":                 testAccBotChannelsRegistration_complete,
-		// 	"streamingEndpointEnabled": testAccBotChannelsRegistration_streamingEndpointEnabled,
-		// },
 		// "connection": {
 		// 	"basic":    testAccBotConnection_basic,
 		// 	"complete": testAccBotConnection_complete,
