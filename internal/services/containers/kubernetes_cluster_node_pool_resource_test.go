@@ -565,25 +565,27 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data, "2"),
+			Config: r.upgradeSettingsConfig(data, "2", 35),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("2"),
 				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("2"),
+				check.That(data.ResourceName).Key("upgrade_settings.0.drain_timeout_in_minutes").HasValue("35"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, "4"),
+			Config: r.upgradeSettingsConfig(data, "4", 40),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("2"),
 				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("4"),
+				check.That(data.ResourceName).Key("upgrade_settings.0.drain_timeout_in_minutes").HasValue("40"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, ""),
+			Config: r.upgradeSettingsConfig(data, "", 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("0"),
@@ -1986,12 +1988,14 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string) string {
+func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string, drainTimeoutInMinutes int) string {
 	template := r.templateConfig(data)
 	if maxSurge != "" {
 		maxSurge = fmt.Sprintf(`upgrade_settings {
     max_surge = %q
-  }`, maxSurge)
+	drain_timeout_in_minutes = %d
+
+  }`, maxSurge, drainTimeoutInMinutes)
 	}
 
 	return fmt.Sprintf(`
