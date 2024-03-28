@@ -8,8 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -146,9 +145,10 @@ func resourceStorageShare() *pluginsdk.Resource {
 }
 
 func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
 	accountName := d.Get("storage_account_name").(string)
 	shareName := d.Get("name").(string)
@@ -160,7 +160,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	aclsRaw := d.Get("acl").(*pluginsdk.Set).List()
 	acls := expandStorageShareACLs(aclsRaw)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Share %q: %v", accountName, shareName, err)
 	}
@@ -186,8 +186,8 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	if protocol == shares.NFS {
 		// Only FileStorage (whose sku tier is Premium only) storage account is able to have NFS file shares.
 		// See: https://learn.microsoft.com/en-us/azure/storage/files/storage-files-quick-create-use-linux#applies-to
-		if account.Kind != storage.KindFileStorage {
-			return fmt.Errorf("NFS File Share is only supported for Storage Account with kind `FileStorage`, got `%s`", account.Kind)
+		if account.Kind != storageaccounts.KindFileStorage {
+			return fmt.Errorf("NFS File Share is only supported for Storage Account with kind %q but got `%s`", string(storageaccounts.KindFileStorage), account.Kind)
 		}
 	}
 
@@ -231,16 +231,17 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
 	id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Share %q: %v", id.AccountId.AccountName, id.ShareName, err)
 	}
@@ -253,7 +254,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	// The files API does not support bearer tokens (@manicminer, 2024-02-15)
 	client, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 	if err != nil {
-		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	props, err := client.Get(ctx, id.ShareName)
@@ -261,7 +262,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 	if props == nil {
-		log.Printf("[DEBUG] File Share %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ShareName, id.AccountId.AccountName, account.ResourceGroup)
+		log.Printf("[DEBUG] File Share %q was not found in %s - assuming removed & removing from state", id.ShareName, account.StorageAccountId)
 		d.SetId("")
 		return nil
 	}
@@ -286,27 +287,24 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("flattening `metadata`: %+v", err)
 	}
 
-	storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(account.ID)
-	if err != nil {
-		return err
-	}
-	resourceManagerId := parse.NewStorageShareResourceManagerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, "default", id.ShareName)
+	resourceManagerId := parse.NewStorageShareResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", id.ShareName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
 }
 
 func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
 	id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Share %q: %v", id.AccountId.AccountName, id.ShareName, err)
 	}
@@ -317,7 +315,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	// The files API does not support bearer tokens (@manicminer, 2024-02-15)
 	client, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 	if err != nil {
-		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	if d.HasChange("quota") {
@@ -372,16 +370,17 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 }
 
 func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*clients.Client).Storage
 
 	id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 	if err != nil {
 		return err
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Share %q: %v", id.AccountId.AccountName, id.ShareName, err)
 	}
@@ -392,7 +391,7 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	// The files API does not support bearer tokens (@manicminer, 2024-02-15)
 	client, err := storageClient.FileSharesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 	if err != nil {
-		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %v", id.AccountId.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for %s: %+v", account.StorageAccountId, err)
 	}
 
 	if err = client.Delete(ctx, id.ShareName); err != nil {

@@ -90,7 +90,7 @@ func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Queue %q: %+v", id.AccountId.AccountName, id.QueueName, err)
 	}

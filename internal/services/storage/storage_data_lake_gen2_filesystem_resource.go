@@ -38,6 +38,7 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			storageClient := meta.(*clients.Client).Storage
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 			id, err := filesystems.ParseFileSystemID(d.Id(), storageClient.StorageDomainSuffix)
 			if err != nil {
@@ -45,7 +46,7 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 			}
 
 			// we then need to look up the Storage Account ID
-			account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+			account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 			if err != nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountId.AccountName, id.FileSystemName, err)
 			}
@@ -53,7 +54,7 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("unable to locate Storage Account: %q", id.AccountId.AccountName)
 			}
 
-			d.Set("storage_account_id", account.ID)
+			d.Set("storage_account_id", account.StorageAccountId.ID())
 
 			return []*pluginsdk.ResourceData{d}, nil
 		}),
@@ -132,6 +133,7 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 
 func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -144,7 +146,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	// Confirm the storage account exists and retrieve its properties
-	account, err := storageClient.FindAccount(ctx, accountResourceManagerId.StorageAccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountResourceManagerId.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", accountResourceManagerId.StorageAccountName, filesystemName, err)
 	}
@@ -183,10 +185,8 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("parsing ace list: %v", err)
 	}
 
-	if acl != nil && (account.Properties == nil ||
-		account.Properties.IsHnsEnabled == nil ||
-		!*account.Properties.IsHnsEnabled) {
-		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
+	if acl != nil && !account.IsHnsEnabled {
+		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
 	propertiesRaw := d.Get("properties").(map[string]interface{})
@@ -246,6 +246,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 
 func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -255,7 +256,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	// Retrieve the storage account properties
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", id.AccountId.AccountName, id.FileSystemName, err)
 	}
@@ -279,10 +280,8 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("parsing ace list: %v", err)
 	}
 
-	if acl != nil && (account.Properties == nil ||
-		account.Properties.IsHnsEnabled == nil ||
-		!*account.Properties.IsHnsEnabled) {
-		return fmt.Errorf("ACL is enabled only when the Hierarchical Namespace (HNS) feature is turned ON")
+	if acl != nil && !account.IsHnsEnabled {
+		return fmt.Errorf("an ACL can only be configured when Hierarchical Namespace (HNS) is enabled on the Storage Account")
 	}
 
 	propertiesRaw := d.Get("properties").(map[string]interface{})
@@ -329,6 +328,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *pluginsdk.ResourceData, meta
 
 func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -338,7 +338,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	// Retrieve the storage account properties
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", id.AccountId.AccountName, id.FileSystemName, err)
 	}
@@ -376,11 +376,13 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 	var ace []interface{}
 	var owner, group string
 	// acl is only enabled when `IsHnsEnabled` is true otherwise the rest api will report error
-	if account.Properties != nil && account.Properties.IsHnsEnabled != nil &&
-		*account.Properties.IsHnsEnabled {
+	if account.IsHnsEnabled {
 		// The above `getStatus` API request doesn't return the ACLs
 		// Have to make a `getAccessControl` request, but that doesn't return all fields either!
-		pathResponse, err := dataPlanePathsClient.GetProperties(ctx, id.FileSystemName, "/", paths.GetPropertiesInput{Action: paths.GetPropertiesActionGetAccessControl})
+		payload := paths.GetPropertiesInput{
+			Action: paths.GetPropertiesActionGetAccessControl,
+		}
+		pathResponse, err := dataPlanePathsClient.GetProperties(ctx, id.FileSystemName, "/", payload)
 		if err == nil {
 			acl, err := accesscontrol.ParseACL(pathResponse.ACL)
 			if err != nil {
@@ -400,6 +402,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 
 func resourceStorageDataLakeGen2FileSystemDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -409,7 +412,7 @@ func resourceStorageDataLakeGen2FileSystemDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	// Retrieve the storage account properties
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", id.AccountId.AccountName, id.FileSystemName, err)
 	}

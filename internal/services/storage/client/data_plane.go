@@ -56,7 +56,7 @@ func (c Client) configureDataPlane(ctx context.Context, clientName string, baseC
 			return fmt.Errorf("retrieving Storage Account Key: %s", err)
 		}
 
-		storageAuth, err := auth.NewSharedKeyAuthorizer(account.name, *accountKey, operation.sharedKeyAuthenticationType)
+		storageAuth, err := auth.NewSharedKeyAuthorizer(account.StorageAccountId.StorageAccountName, *accountKey, operation.sharedKeyAuthenticationType)
 		if err != nil {
 			return fmt.Errorf("building Shared Key Authorizer for %s client: %+v", clientName, err)
 		}
