@@ -191,13 +191,18 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("invalid registry config for %s: %+v", id, err)
 			}
 
+			secrets, err := helpers.ExpandContainerSecrets(app.Secrets)
+			if err != nil {
+				return fmt.Errorf("invalid secrets config for %s: %+v", id, err)
+			}
+
 			containerApp := containerapps.ContainerApp{
 				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
 					Configuration: &containerapps.Configuration{
 						Ingress:    helpers.ExpandContainerAppIngress(app.Ingress, id.ContainerAppName),
 						Dapr:       helpers.ExpandContainerAppDapr(app.Dapr),
-						Secrets:    helpers.ExpandContainerSecrets(app.Secrets),
+						Secrets:    secrets,
 						Registries: registries,
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
@@ -387,7 +392,10 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("secret") {
-				model.Properties.Configuration.Secrets = helpers.ExpandContainerSecrets(state.Secrets)
+				model.Properties.Configuration.Secrets, err = helpers.ExpandContainerSecrets(state.Secrets)
+				if err != nil {
+					return fmt.Errorf("invalid secrets config for %s: %+v", id, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -487,6 +495,15 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported by the Container Apps Service at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
 						}
 					}
+				}
+			}
+
+			for _, s := range app.Secrets {
+				if s.KeyVaultSecretId != "" && s.Identity == "" {
+					return fmt.Errorf("secret %s must supply identity for key vault secret id", s.Name)
+				}
+				if s.KeyVaultSecretId == "" && s.Identity != "" {
+					return fmt.Errorf("secret %s must supply key vault secret id when specifying identity", s.Name)
 				}
 			}
 			return nil
