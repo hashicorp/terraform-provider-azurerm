@@ -293,7 +293,7 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			if _, ok := metadata.ResourceData.GetOk("interval"); ok {
 				properties.Properties.Interval = pointer.To(model.Interval)
 			}
-			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule)
+			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 
 			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -344,7 +344,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 				properties.Properties.Interval = pointer.To(model.Interval)
 			}
 			if metadata.ResourceData.HasChange("rule") {
-				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule)
+				properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 			}
 			if metadata.ResourceData.HasChange("scopes") {
 				properties.Properties.Scopes = model.Scopes
@@ -422,10 +422,10 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandPrometheusRuleModel(inputList []PrometheusRuleModel) []prometheusrulegroups.PrometheusRule {
+func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.ResourceData) []prometheusrulegroups.PrometheusRule {
 	outputList := make([]prometheusrulegroups.PrometheusRule, 0)
 
-	for _, v := range inputList {
+	for i, v := range inputList {
 		output := prometheusrulegroups.PrometheusRule{
 			Enabled:    pointer.To(v.Enabled),
 			Expression: v.Expression,
@@ -435,8 +435,8 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel) []prometheusrule
 		if v.Alert != "" {
 			output.Actions = expandPrometheusRuleGroupActionModel(v.Action)
 			output.Alert = pointer.To(v.Alert)
-			if v.Severity != 0 {
-				output.Severity = pointer.To(int64(v.Severity))
+			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.severity", i)); ok {
+				output.Severity = pointer.To(int64(v.(int)))
 			}
 			output.Annotations = pointer.To(v.Annotations)
 			output.For = pointer.To(v.For)

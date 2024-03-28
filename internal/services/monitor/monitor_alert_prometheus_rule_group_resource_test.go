@@ -225,7 +225,7 @@ EOF
 histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
 EOF
     for        = "PT5M"
-    severity   = 2
+    severity   = 0
     action {
       action_group_id = azurerm_monitor_action_group.test.id
     }
