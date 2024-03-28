@@ -53,6 +53,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
@@ -170,6 +171,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		domainservices.Registration{},
 		elasticsan.Registration{},
 		eventhub.Registration{},
+		extendedlocation.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
 		storagecache.Registration{},

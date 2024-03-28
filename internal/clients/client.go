@@ -73,6 +73,7 @@ import (
 	elasticsan "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
+	extendedlocation "github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
 	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
@@ -159,9 +160,8 @@ type Client struct {
 	// StopContext is used for propagating control from Terraform Core (e.g. Ctrl/Cmd+C)
 	StopContext context.Context
 
-	Account  *ResourceManagerAccount
-	Features features.UserFeatures
-
+	Account                           *ResourceManagerAccount
+	Features                          features.UserFeatures
 	AadB2c                            *aadb2c_v2021_04_01_preview.Client
 	Advisor                           *advisor.Client
 	AnalysisServices                  *analysisservices_v2017_08_01.Client
@@ -210,6 +210,7 @@ type Client struct {
 	ElasticSan                        *elasticsan.Client
 	EventGrid                         *eventgrid_v2022_06_15.Client
 	Eventhub                          *eventhub.Client
+	ExtendedLocation                  *extendedlocation.Client
 	FluidRelay                        *fluidrelay_2022_05_26.Client
 	Frontdoor                         *frontdoor.Client
 	Graph                             *graph.Client
@@ -446,6 +447,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
+	}
+	if client.ExtendedLocation, err = extendedlocation.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ExtendedLocation: %+v", err)
 	}
 	if client.FluidRelay, err = fluidrelay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for FluidRelay: %+v", err)
