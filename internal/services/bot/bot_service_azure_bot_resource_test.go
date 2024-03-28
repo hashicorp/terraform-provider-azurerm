@@ -166,7 +166,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-	display_name = "acctestReg-%[1]d"
+  display_name = "acctestReg-%[1]d"
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
@@ -211,7 +211,7 @@ resource "azurerm_application_insights_api_key" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-	display_name = "acctestReg-%[1]d"
+  display_name = "acctestReg-%[1]d"
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
@@ -270,7 +270,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-	display_name = "acctestReg-%[1]d"
+  display_name = "acctestReg-%[1]d"
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
@@ -302,7 +302,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-	display_name = "acctestReg-%[1]d"
+  display_name = "acctestReg-%[1]d"
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
