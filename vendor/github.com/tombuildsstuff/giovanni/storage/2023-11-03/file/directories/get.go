@@ -60,7 +60,7 @@ func (c Client) Get(ctx context.Context, shareName, path string) (result GetResp
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.DirectoryMetaDataEncrypted = strings.EqualFold(resp.Header.Get("x-ms-server-encrypted"), "true")
 			result.MetaData = metadata.ParseFromHeaders(resp.Header)
 		}

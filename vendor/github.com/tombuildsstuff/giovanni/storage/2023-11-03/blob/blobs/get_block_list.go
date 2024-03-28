@@ -71,7 +71,7 @@ func (c Client) GetBlockList(ctx context.Context, containerName, blobName string
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.ContentType = resp.Header.Get("Content-Type")
 			result.ETag = resp.Header.Get("ETag")
 

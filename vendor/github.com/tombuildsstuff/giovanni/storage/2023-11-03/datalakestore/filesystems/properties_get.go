@@ -50,7 +50,7 @@ func (c Client) GetProperties(ctx context.Context, fileSystemName string) (resul
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			propertiesRaw := resp.Header.Get("x-ms-properties")
 			var properties *map[string]string
 			properties, err = parseProperties(propertiesRaw)
