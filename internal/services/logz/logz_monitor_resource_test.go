@@ -21,6 +21,8 @@ import (
 type LogzMonitorResource struct{}
 
 func TestAccLogzMonitor_basic(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
 	r := LogzMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -37,6 +39,8 @@ func TestAccLogzMonitor_basic(t *testing.T) {
 }
 
 func TestAccLogzMonitor_requiresImport(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
 	r := LogzMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -56,6 +60,8 @@ func TestAccLogzMonitor_requiresImport(t *testing.T) {
 }
 
 func TestAccLogzMonitor_complete(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
 	r := LogzMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -72,6 +78,8 @@ func TestAccLogzMonitor_complete(t *testing.T) {
 }
 
 func TestAccLogzMonitor_update(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_monitor", "test")
 	r := LogzMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)

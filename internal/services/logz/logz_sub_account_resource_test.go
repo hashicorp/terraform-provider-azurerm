@@ -22,6 +22,8 @@ import (
 type LogzSubAccountResource struct{}
 
 func TestAccLogzSubAccount_basic(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account", "test")
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -38,6 +40,8 @@ func TestAccLogzSubAccount_basic(t *testing.T) {
 }
 
 func TestAccLogzSubAccount_requiresImport(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account", "test")
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -57,6 +61,8 @@ func TestAccLogzSubAccount_requiresImport(t *testing.T) {
 }
 
 func TestAccLogzSubAccount_complete(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account", "test")
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -73,6 +79,8 @@ func TestAccLogzSubAccount_complete(t *testing.T) {
 }
 
 func TestAccLogzSubAccount_update(t *testing.T) {
+	t.Skipf("This resource is being deprecated by Azure and will be removed by end of 2025.")
+
 	data := acceptance.BuildTestData(t, "azurerm_logz_sub_account", "test")
 	r := LogzSubAccountResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
