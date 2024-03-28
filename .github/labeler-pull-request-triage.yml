@@ -580,9 +580,6 @@ service/systemcentervirtualmachinemanager:
   - any-glob-to-any-file:
     - internal/services/systemcentervirtualmachinemanager/**/*
 
-service/systemcentervirtualmachinemanager:
-  - internal/services/systemcentervirtualmachinemanager/**/*
-
 service/traffic-manager:
 - changed-files:
   - any-glob-to-any-file:
