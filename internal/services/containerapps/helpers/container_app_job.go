@@ -17,26 +17,26 @@ type JobTemplateModel struct {
 }
 
 type EventTriggerConfiguration struct {
-	Parallelism            int          `tfschema:"parallelism"`
-	ReplicaCompletionCount int          `tfschema:"replica_completion_count"`
+	Parallelism            int64        `tfschema:"parallelism"`
+	ReplicaCompletionCount int64        `tfschema:"replica_completion_count"`
 	Scale                  []ScaleModel `tfschema:"scale"`
 }
 
 type ScheduleTriggerConfiguration struct {
 	CronExpression         string `tfschema:"cron_expression"`
-	Parallelism            int    `tfschema:"parallelism"`
-	ReplicaCompletionCount int    `tfschema:"replica_completion_count"`
+	Parallelism            int64  `tfschema:"parallelism"`
+	ReplicaCompletionCount int64  `tfschema:"replica_completion_count"`
 }
 
 type ManualTriggerConfiguration struct {
-	Parallelism            int `tfschema:"parallelism"`
-	ReplicaCompletionCount int `tfschema:"replica_completion_count"`
+	Parallelism            int64 `tfschema:"parallelism"`
+	ReplicaCompletionCount int64 `tfschema:"replica_completion_count"`
 }
 
 type ScaleModel struct {
-	MaxExecutions   int         `tfschema:"max_executions"`
-	MinExecutions   int         `tfschema:"min_executions"`
-	PollingInterval int         `tfschema:"polling_interval_in_seconds"`
+	MaxExecutions   int64       `tfschema:"max_executions"`
+	MinExecutions   int64       `tfschema:"min_executions"`
+	PollingInterval int64       `tfschema:"polling_interval_in_seconds"`
 	Rules           []ScaleRule `tfschema:"rules"`
 }
 
@@ -324,10 +324,10 @@ func expandContainerAppJobContainers(input []Container) *[]jobs.Container {
 			VolumeMounts: expandContainerJobVolumeMounts(v.VolumeMounts),
 		}
 		if len(v.Args) != 0 {
-			container.Args = &v.Args
+			container.Args = pointer.To(v.Args)
 		}
 		if len(v.Command) != 0 {
-			container.Command = &v.Command
+			container.Command = pointer.To(v.Command)
 		}
 
 		result = append(result, container)
@@ -857,8 +857,8 @@ func FlattenContainerAppJobConfigurationEventTriggerConfig(input *jobs.JobConfig
 	result := make([]EventTriggerConfiguration, 0)
 
 	eventTriggerConfig := EventTriggerConfiguration{
-		Parallelism:            int(pointer.From(input.Parallelism)),
-		ReplicaCompletionCount: int(pointer.From(input.ReplicaCompletionCount)),
+		Parallelism:            pointer.From(input.Parallelism),
+		ReplicaCompletionCount: pointer.From(input.ReplicaCompletionCount),
 	}
 
 	if input.Scale != nil {
@@ -879,8 +879,8 @@ func FlattenContainerAppJobConfigurationManualTriggerConfig(input *jobs.JobConfi
 	result := make([]ManualTriggerConfiguration, 0)
 
 	manualTriggerConfig := ManualTriggerConfiguration{
-		Parallelism:            int(pointer.From(input.Parallelism)),
-		ReplicaCompletionCount: int(pointer.From(input.ReplicaCompletionCount)),
+		Parallelism:            pointer.From(input.Parallelism),
+		ReplicaCompletionCount: pointer.From(input.ReplicaCompletionCount),
 	}
 
 	result = append(result, manualTriggerConfig)
@@ -896,8 +896,8 @@ func FlattenContainerAppJobConfigurationScheduleTriggerConfig(input *jobs.JobCon
 	result := make([]ScheduleTriggerConfiguration, 0)
 
 	scheduleTriggerConfig := ScheduleTriggerConfiguration{
-		Parallelism:            int(pointer.From(input.Parallelism)),
-		ReplicaCompletionCount: int(pointer.From(input.ReplicaCompletionCount)),
+		Parallelism:            pointer.From(input.Parallelism),
+		ReplicaCompletionCount: pointer.From(input.ReplicaCompletionCount),
 	}
 
 	if input.CronExpression != "" {
@@ -917,9 +917,9 @@ func flattenContainerAppJobScale(input *jobs.JobScale) []ScaleModel {
 	result := make([]ScaleModel, 0)
 
 	scale := ScaleModel{
-		MaxExecutions:   int(pointer.From(input.MaxExecutions)),
-		MinExecutions:   int(pointer.From(input.MinExecutions)),
-		PollingInterval: int(pointer.From(input.PollingInterval)),
+		MaxExecutions:   pointer.From(input.MaxExecutions),
+		MinExecutions:   pointer.From(input.MinExecutions),
+		PollingInterval: pointer.From(input.PollingInterval),
 	}
 
 	if input.Rules != nil {

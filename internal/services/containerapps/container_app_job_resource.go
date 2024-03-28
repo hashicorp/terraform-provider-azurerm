@@ -31,8 +31,8 @@ type ContainerAppJobModel struct {
 	ContainerAppEnvironmentId string                                     `tfschema:"container_app_environment_id"`
 	WorkloadProfileName       string                                     `tfschema:"workload_profile_name"`
 	Template                  []helpers.JobTemplateModel                 `tfschema:"template"`
-	ReplicaRetryLimit         int                                        `tfschema:"replica_retry_limit"`
-	ReplicaTimeoutInSeconds   int                                        `tfschema:"replica_timeout_in_seconds"`
+	ReplicaRetryLimit         int64                                      `tfschema:"replica_retry_limit"`
+	ReplicaTimeoutInSeconds   int64                                      `tfschema:"replica_timeout_in_seconds"`
 	Secrets                   []helpers.Secret                           `tfschema:"secrets"`
 	Registries                []helpers.Registry                         `tfschema:"registries"`
 	EventTriggerConfig        []helpers.EventTriggerConfiguration        `tfschema:"event_trigger_config"`
@@ -242,16 +242,15 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 
 			registries, err := helpers.ExpandContainerAppJobRegistries(model.Registries)
 			if err != nil {
-				return fmt.Errorf("invalid registrry config for %s: %v", id, err)
+				return fmt.Errorf("expanding registry config for %s: %v", id, err)
 			}
 
 			job := jobs.Job{
 				Location: location.Normalize(model.Location),
-				Name:     pointer.To(model.Name),
 				Properties: &jobs.JobProperties{
 					Configuration: &jobs.JobConfiguration{
-						ReplicaRetryLimit: pointer.To(int64(model.ReplicaRetryLimit)),
-						ReplicaTimeout:    int64(model.ReplicaTimeoutInSeconds),
+						ReplicaRetryLimit: pointer.To(model.ReplicaRetryLimit),
+						ReplicaTimeout:    model.ReplicaTimeoutInSeconds,
 						Secrets:           helpers.ExpandContainerAppJobSecrets(model.Secrets),
 						Registries:        registries,
 					},
@@ -341,9 +340,9 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 					state.Template = helpers.FlattenContainerAppJobTemplate(props.Template)
 					if config := props.Configuration; config != nil {
 						state.Registries = helpers.FlattenContainerAppJobRegistries(config.Registries)
-						state.ReplicaTimeoutInSeconds = int(config.ReplicaTimeout)
+						state.ReplicaTimeoutInSeconds = config.ReplicaTimeout
 						if config.ReplicaRetryLimit != nil {
-							state.ReplicaRetryLimit = int(pointer.From(config.ReplicaRetryLimit))
+							state.ReplicaRetryLimit = pointer.From(config.ReplicaRetryLimit)
 						}
 
 						switch config.TriggerType {
@@ -419,11 +418,11 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 			}
 
 			if d.HasChange("replica_retry_limit") {
-				model.Properties.Configuration.ReplicaRetryLimit = pointer.To(int64(state.ReplicaRetryLimit))
+				model.Properties.Configuration.ReplicaRetryLimit = pointer.To(state.ReplicaRetryLimit)
 			}
 
 			if d.HasChange("replica_timeout_in_seconds") {
-				model.Properties.Configuration.ReplicaTimeout = int64(state.ReplicaTimeoutInSeconds)
+				model.Properties.Configuration.ReplicaTimeout = state.ReplicaTimeoutInSeconds
 			}
 
 			if d.HasChange("event_trigger_config") {
