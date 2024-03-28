@@ -94,11 +94,11 @@ The following arguments are supported:
 
 * `container_app_environment_id` - (Required) The ID of the Container App Environment in which to create the Container App Job. Changing this forces a new resource to be created.
 
-*  `template` - (Required) A `template` block as defined below.
-
-* `workload_profile_name` - (Optional) The name of the workload profile to use for the Container App Job.
+* `template` - (Required) A `template` block as defined below.
 
 * `replica_timeout_in_seconds` - (Required) The maximum number of seconds a replica is allowed to run.
+
+* `workload_profile_name` - (Optional) The name of the workload profile to use for the Container App Job.
 
 * `replica_retry_limit` - (Optional) The maximum number of times a replica is allowed to retry.
 
@@ -132,13 +132,21 @@ A `template` block supports the following:
 
 A `container` block supports the following:
 
-* `args` - (Optional) A list of extra arguments to pass to the container.
-
-* `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+* `name` - (Required) The name of the container.
 
 * `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+
+* `image` - (Required) The image to use to create the container.
+
+* `args` - (Optional) A list of extra arguments to pass to the container.
+
+* `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
 * `env` - (Optional) One or more `env` blocks as detailed below.
 
@@ -146,15 +154,7 @@ A `container` block supports the following:
 
 ~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
-* `image` - (Required) The image to use to create the container.
-
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
-
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
-
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
-
-* `name` - (Required) The name of the container
 
 * `readiness_probe` - (Optional) A `readiness_probe` block as detailed below.
 
@@ -166,27 +166,27 @@ A `container` block supports the following:
 
 An `init_container` block supports:
 
-* `args` - (Optional) A list of extra arguments to pass to the container.
-
-* `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
+* `name` - (Required) The name of the container.
 
 * `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
 
 ~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
+
+~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+
+* `image` - (Required) The image to use to create the container.
+
+* `args` - (Optional) A list of extra arguments to pass to the container.
+
+* `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
 * `env` - (Optional) One or more `env` blocks as detailed below.
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
 
 ~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
-
-* `image` - (Required) The image to use to create the container.
-
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
-
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
-
-* `name` - (Required) The name of the container
 
 * `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
 
@@ -204,6 +204,10 @@ A `env` block supports the following:
 
 A `liveness_probe` block supports the following:
 
+* `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
+
+* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
+
 * `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
@@ -216,13 +220,9 @@ A `liveness_probe` block supports the following:
 
 * `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
-* `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
-
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
+* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 ---
 
@@ -236,6 +236,10 @@ A `header` block supports the following:
 
 A `readiness_probe` block supports the following:
 
+* `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
+
+* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
+
 * `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
@@ -246,13 +250,9 @@ A `readiness_probe` block supports the following:
 
 * `path` - (Optional) The URI to use for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
-* `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
-
 * `success_count_threshold` - (Optional) The number of consecutive successful responses required to consider this probe as successful. Possible values are between `1` and `10`. Defaults to `3`.
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
-
-* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
 
 ---
 
@@ -266,6 +266,10 @@ A `header` block supports the following:
 
 A `startup_probe` block supports the following:
 
+* `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
+
+* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
+
 * `failure_count_threshold` - (Optional) The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
 
 * `header` - (Optional) A `header` block as detailed below.
@@ -276,13 +280,9 @@ A `startup_probe` block supports the following:
 
 * `path` - (Optional) The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
-* `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
-
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
+* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 ---
 

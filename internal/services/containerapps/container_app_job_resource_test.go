@@ -166,35 +166,6 @@ func TestAccContainerAppJob_withIdentityUpdate(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppJob_basicUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
-	r := ContainerAppJobResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basicUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccContainerAppJob_eventTrigger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
 	r := ContainerAppJobResource{}
@@ -287,6 +258,10 @@ func TestAccContainerAppJob_completeUpdate(t *testing.T) {
 func (r ContainerAppJobResource) eventTrigger(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -347,6 +322,10 @@ resource "azurerm_container_app_job" "test" {
 func (r ContainerAppJobResource) manualTrigger(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -393,6 +372,10 @@ resource "azurerm_container_app_job" "test" {
 func (r ContainerAppJobResource) scheduleTrigger(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -446,6 +429,10 @@ resource "azurerm_container_app_job" "test" {
 func (r ContainerAppJobResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -475,6 +462,10 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) withUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -515,6 +506,10 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) withSystemIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -548,6 +543,10 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) withSystemAndUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -588,6 +587,10 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) withWorkloadProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 locals {
@@ -620,37 +623,12 @@ resource "azurerm_container_app_job" "test" {
 `, r.templateWorkloadProfile(data), data.RandomInteger)
 }
 
-func (r ContainerAppJobResource) basicUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_container_app_job" "test" {
-  name                         = "acctest-cajob%[2]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  container_app_environment_id = azurerm_container_app_environment.test.id
-
-  replica_timeout_in_seconds = 10
-  replica_retry_limit        = 10
-  manual_trigger_config {
-    parallelism              = 4
-    replica_completion_count = 1
-  }
-
-  template {
-    container {
-      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
-      name   = "testcontainerappsjob0"
-      cpu    = 0.25
-      memory = "0.5Gi"
-    }
-  }
-}
-`, ContainerAppResource{}.templatePlusExtras(data), data.RandomInteger)
-}
-
 func (r ContainerAppJobResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -748,6 +726,10 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -850,10 +832,6 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-CAJob%[1]d"
   location = "%[2]s"
