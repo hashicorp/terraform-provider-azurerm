@@ -91,9 +91,10 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			} else if *resource.Timeouts.Read > 5*time.Minute {
 				exceptionResources := map[string]bool{
 					// The key vault item resources have longer read timeout for mitigating issue: https://github.com/hashicorp/terraform-provider-azurerm/issues/11059.
-					"azurerm_key_vault_key":         true,
-					"azurerm_key_vault_secret":      true,
-					"azurerm_key_vault_certificate": true,
+					"azurerm_key_vault_key":                                  true,
+					"azurerm_key_vault_secret":                               true,
+					"azurerm_key_vault_certificate":                          true,
+					"azurerm_key_vault_managed_hardware_security_module_key": true,
 				}
 				if !exceptionResources[resourceName] {
 					t.Fatalf("Read timeouts shouldn't be more than 5 minutes, this indicates a bug which needs to be fixed")
