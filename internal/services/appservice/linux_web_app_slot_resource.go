@@ -579,7 +579,6 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					Kind:                             pointer.From(model.Kind),
 					Tags:                             pointer.From(model.Tags),
 					AppSettings:                      helpers.FlattenWebStringDictionary(appSettings.Model),
-					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),
 					LogsConfig:                       helpers.FlattenLogsConfig(logsConfig.Model),
@@ -630,6 +629,21 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 						state.VirtualNetworkSubnetID = subnetId
 					}
 				}
+
+				state.AppSettings = helpers.FlattenWebStringDictionary(appSettings.Model)
+				if err != nil {
+					return fmt.Errorf("flattening app settings for Linux %s: %+v", id, err)
+				}
+
+				userSetDefault := false
+				if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+					userSetDefault = true
+				}
+				state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
+
+				state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+
+				state.Backup = helpers.FlattenBackupConfig(backup.Model)
 
 				siteConfig := helpers.SiteConfigLinuxWebAppSlot{}
 				siteConfig.Flatten(webAppSiteSlotConfig.Model.Properties)

@@ -717,7 +717,6 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 					ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 					SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
-					AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 					AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 					Backup:                           helpers.FlattenBackupConfig(backup.Model),
 					StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
@@ -772,6 +771,18 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.SiteConfig = []helpers.SiteConfigLinuxFunctionAppSlot{*siteConfig}
 
 					state.unpackLinuxFunctionAppSettings(*appSettingsResp.Model, metadata)
+
+					state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
+
+					state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+
+					userSetDefault := false
+					if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+						userSetDefault = true
+					}
+					state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
+
+					state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 					state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
 
@@ -1161,7 +1172,7 @@ func (m *LinuxFunctionAppSlotModel) unpackLinuxFunctionAppSettings(input webapps
 			m.BuiltinLogging = true
 
 		case "WEBSITE_VNET_ROUTE_ALL":
-			// Filter out - handled by site_config setting `vnet_route_all_enabled`
+		// Filter out - handled by site_config setting `vnet_route_all_enabled`
 
 		default:
 			appSettings[k] = v

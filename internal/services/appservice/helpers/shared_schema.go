@@ -481,14 +481,12 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 				"token_refresh_extension_hours": {
 					Type:        pluginsdk.TypeFloat,
 					Optional:    true,
-					Default:     72,
 					Description: "The number of hours after session token expiration that a session token can be used to call the token refresh API. Defaults to `72` hours.",
 				},
 
 				"token_store_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Optional:    true,
-					Default:     false,
 					Description: "Should the Windows Web App durably store platform-specific security tokens that are obtained during login flows? Defaults to `false`.",
 				},
 
@@ -1237,9 +1235,17 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 
 	props.RuntimeVersion = pointer.To(v.RuntimeVersion)
 
-	props.TokenStoreEnabled = pointer.To(v.TokenStoreEnabled)
+	tokenStoreEnabled := false
+	if v.TokenStoreEnabled {
+		tokenStoreEnabled = true
+	}
+	props.TokenStoreEnabled = pointer.To(tokenStoreEnabled)
 
-	props.TokenRefreshExtensionHours = pointer.To(v.TokenRefreshExtensionHours)
+	tokenRefreshExtensionHours := 72.0
+	if v.TokenRefreshExtensionHours > 0 {
+		tokenRefreshExtensionHours = v.TokenRefreshExtensionHours
+	}
+	props.TokenRefreshExtensionHours = pointer.To(tokenRefreshExtensionHours)
 
 	props.UnauthenticatedClientAction = pointer.To(webapps.UnauthenticatedClientAction(v.UnauthenticatedClientAction))
 
@@ -1309,8 +1315,8 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 	return result
 }
 
-func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
-	if auth == nil || auth.Properties == nil || !pointer.From(auth.Properties.Enabled) || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
+func FlattenAuthSettings(auth *webapps.SiteAuthSettings, userSetDefault bool) []AuthSettings {
+	if auth == nil || auth.Properties == nil || (!pointer.From(auth.Properties.Enabled) && !userSetDefault) || strings.ToLower(pointer.From(auth.Properties.ConfigVersion)) != "v1" {
 		return []AuthSettings{}
 	}
 
@@ -1351,7 +1357,7 @@ func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
 		result.RuntimeVersion = *props.RuntimeVersion
 	}
 
-	if props.TokenRefreshExtensionHours != nil {
+	if props.TokenRefreshExtensionHours != nil && *props.Enabled {
 		result.TokenRefreshExtensionHours = *props.TokenRefreshExtensionHours
 	}
 

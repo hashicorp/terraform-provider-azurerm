@@ -366,7 +366,6 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
-				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 				Backup:                           helpers.FlattenBackupConfig(backup.Model),
 			}
@@ -420,6 +419,18 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 				state.SiteConfig = []helpers.SiteConfigLinuxFunctionApp{*siteConfig}
 
 				state.unpackLinuxFunctionAppSettings(appSettingsResp.Model, metadata)
+
+				state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
+
+				state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+
+				userSetDefault := false
+				if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+					userSetDefault = true
+				}
+				state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
+
+				state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
 				state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
 

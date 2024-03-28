@@ -728,7 +728,6 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
 				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
-				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 				Backup:                           helpers.FlattenBackupConfig(backup.Model),
 				StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
@@ -798,6 +797,24 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 				state.SiteConfig = []helpers.SiteConfigWindowsFunctionAppSlot{*siteConfig}
 
 				state.unpackWindowsFunctionAppSettings(appSettingsResp.Model, metadata)
+
+				state.ConnectionStrings = helpers.FlattenConnectionStrings(connectionStrings.Model)
+
+				state.SiteCredentials = helpers.FlattenSiteCredentials(siteCredentials)
+
+				userSetDefault := false
+				if len(metadata.ResourceData.Get("auth_settings").([]interface{})) > 0 {
+					userSetDefault = true
+				}
+				state.AuthSettings = helpers.FlattenAuthSettings(auth.Model, userSetDefault)
+
+				state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
+
+				state.Backup = helpers.FlattenBackupConfig(backup.Model)
+
+				state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
+
+				state.StorageAccounts = helpers.FlattenStorageAccounts(storageAccounts.Model)
 
 				state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
 
