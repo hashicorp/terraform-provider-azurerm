@@ -110,12 +110,6 @@ func (r BotConnectionResource) completeUpdateConfig(data acceptance.TestData) st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_bot_connection" "test" {
   name                  = "acctestBc%d"
   bot_name              = azurerm_bot_channels_registration.test.name
@@ -130,7 +124,7 @@ resource "azurerm_bot_connection" "test" {
     loginUri = "https://www.terraform.io"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r BotConnectionResource) template(data acceptance.TestData) string {
