@@ -20,7 +20,7 @@ import (
 
 type BotChannelAlexaResource struct{}
 
-func testAccBotChannelAlexa_basic(t *testing.T) {
+func TestAccBotChannelAlexa_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_alexa", "test")
 	r := BotChannelAlexaResource{}
 
@@ -35,7 +35,7 @@ func testAccBotChannelAlexa_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelAlexa_requiresImport(t *testing.T) {
+func TestAccBotChannelAlexa_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_alexa", "test")
 	r := BotChannelAlexaResource{}
 
@@ -50,7 +50,7 @@ func testAccBotChannelAlexa_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotChannelAlexa_update(t *testing.T) {
+func TestAccBotChannelAlexa_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_alexa", "test")
 	r := BotChannelAlexaResource{}
 

@@ -123,7 +123,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IsUUID,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"luis_app_ids": {

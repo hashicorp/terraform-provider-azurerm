@@ -20,7 +20,7 @@ import (
 
 type BotChannelDirectLineSpeechResource struct{}
 
-func testAccBotChannelDirectLineSpeech_basic(t *testing.T) {
+func TestAccBotChannelDirectLineSpeech_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
@@ -39,7 +39,7 @@ func testAccBotChannelDirectLineSpeech_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelDirectLineSpeech_requiresImport(t *testing.T) {
+func TestAccBotChannelDirectLineSpeech_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
@@ -58,7 +58,7 @@ func testAccBotChannelDirectLineSpeech_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotChannelDirectLineSpeech_complete(t *testing.T) {
+func TestAccBotChannelDirectLineSpeech_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
@@ -77,7 +77,7 @@ func testAccBotChannelDirectLineSpeech_complete(t *testing.T) {
 	})
 }
 
-func testAccBotChannelDirectLineSpeech_update(t *testing.T) {
+func TestAccBotChannelDirectLineSpeech_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 

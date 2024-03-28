@@ -20,7 +20,7 @@ import (
 
 type BotChannelFacebookResource struct{}
 
-func testAccBotChannelFacebook_basic(t *testing.T) {
+func TestAccBotChannelFacebook_basic(t *testing.T) {
 	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
@@ -37,7 +37,7 @@ func testAccBotChannelFacebook_basic(t *testing.T) {
 	})
 }
 
-func testAccBotChannelFacebook_requiresImport(t *testing.T) {
+func TestAccBotChannelFacebook_requiresImport(t *testing.T) {
 	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
@@ -54,7 +54,7 @@ func testAccBotChannelFacebook_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotChannelFacebook_update(t *testing.T) {
+func TestAccBotChannelFacebook_update(t *testing.T) {
 	skipFacebookChannel(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")

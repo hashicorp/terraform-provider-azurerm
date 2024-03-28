@@ -139,7 +139,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IsUUID,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"icon_url": {
