@@ -7,17 +7,21 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.67.0` of `github.com/hashicorp/go-azure-helpers` [GH-25446]
 * `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
 * `azurerm_netapp_account` - can now be imported [GH-25384]
 * `azurerm_netapp_volume` - support for the `kerberos_enabled`, `smb_continuous_availability_enabled`, `kerberos_5_read_only_enabled`, `kerberos_5_read_write_enabled`, `kerberos_5i_read_only_enabled`, `kerberos_5i_read_write_enabled`, `kerberos_5p_read_only_enabled`, and `kerberos_5p_read_write_enabled` properties [GH-25385]
 * `azurerm_recovery_services_vault` - upgrading to version `2024-01-01` [GH-25325]
+* `azurerm_stack_hci_cluster` - the `client_id` property is now optional [GH-25407]
 
 BUG FIXES:
 
+* `azurerm_function_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 * `azurerm_linux_web_app_slot` - fix a crash when upgrading the provider to v3.88.0 or later [GH-25406]
 * `azurerm_network_manager_deployment` - add locking [GH-25368]
+* `azurerm_web_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 
 ## 3.97.1 (March 22, 2024)
 
