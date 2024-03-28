@@ -136,7 +136,7 @@ The following arguments are supported:
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
-~> **NOTE:** `queue_properties` can only be set for `Standard` (`account_tier`) `StorageV2` (`account_kind`) Storage Accounts.
+~> **NOTE:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to `StorageV2` Storage Accounts.
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
