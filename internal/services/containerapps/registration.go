@@ -41,5 +41,6 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerAppEnvironmentStorageResource{},
 		ContainerAppResource{},
 		ContainerAppCustomDomainResource{},
+		ContainerAppJobResource{},
 	}
 }
