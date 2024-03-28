@@ -189,31 +189,36 @@ func populateAccountDetails(accountId commonids.StorageAccountId, account storag
 		StorageAccountId: accountId,
 	}
 
-	if props := account.Properties; props != nil {
-		out.IsHnsEnabled = pointer.From(props.IsHnsEnabled)
+	if account.Properties == nil {
+		return nil, fmt.Errorf("populating details for %s: `model.Properties` was nil", accountId)
+	}
+	if account.Properties.PrimaryEndpoints == nil {
+		return nil, fmt.Errorf("populating details for %s: `model.Properties.PrimaryEndpoints` was nil", accountId)
+	}
 
-		if endpoints := props.PrimaryEndpoints; endpoints != nil {
-			if endpoints.Blob != nil {
-				endpoint := strings.TrimSuffix(*endpoints.Blob, "/")
-				out.primaryBlobEndpoint = pointer.To(endpoint)
-			}
-			if endpoints.Dfs != nil {
-				endpoint := strings.TrimSuffix(*endpoints.Dfs, "/")
-				out.primaryDfsEndpoint = pointer.To(endpoint)
-			}
-			if endpoints.File != nil {
-				endpoint := strings.TrimSuffix(*endpoints.File, "/")
-				out.primaryFileEndpoint = pointer.To(endpoint)
-			}
-			if endpoints.Queue != nil {
-				endpoint := strings.TrimSuffix(*endpoints.Queue, "/")
-				out.primaryQueueEndpoint = pointer.To(endpoint)
-			}
-			if endpoints.Table != nil {
-				endpoint := strings.TrimSuffix(*endpoints.Table, "/")
-				out.primaryTableEndpoint = pointer.To(endpoint)
-			}
-		}
+	props := *account.Properties
+	out.IsHnsEnabled = pointer.From(props.IsHnsEnabled)
+
+	endpoints := *props.PrimaryEndpoints
+	if endpoints.Blob != nil {
+		endpoint := strings.TrimSuffix(*endpoints.Blob, "/")
+		out.primaryBlobEndpoint = pointer.To(endpoint)
+	}
+	if endpoints.Dfs != nil {
+		endpoint := strings.TrimSuffix(*endpoints.Dfs, "/")
+		out.primaryDfsEndpoint = pointer.To(endpoint)
+	}
+	if endpoints.File != nil {
+		endpoint := strings.TrimSuffix(*endpoints.File, "/")
+		out.primaryFileEndpoint = pointer.To(endpoint)
+	}
+	if endpoints.Queue != nil {
+		endpoint := strings.TrimSuffix(*endpoints.Queue, "/")
+		out.primaryQueueEndpoint = pointer.To(endpoint)
+	}
+	if endpoints.Table != nil {
+		endpoint := strings.TrimSuffix(*endpoints.Table, "/")
+		out.primaryTableEndpoint = pointer.To(endpoint)
 	}
 
 	return &out, nil
