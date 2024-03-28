@@ -1,0 +1,3 @@
+<fragment>
+  <set-variable name="var" value="@("user id:" + context.User?.Id)" />
+</fragment>
