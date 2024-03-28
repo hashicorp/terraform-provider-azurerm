@@ -39,11 +39,17 @@ type ContainerAppEnvironmentModel struct {
 	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
 	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
 
+	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
+
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
 	PlatformReservedDnsIP string `tfschema:"platform_reserved_dns_ip_address"`
 	StaticIP              string `tfschema:"static_ip_address"`
+
+	CertificatePassword string `tfschema:"custom_domain_certificate_password"`
+	CertificateValue    string `tfschema:"custom_domain_certificate_blob_base64"`
+	DnsSuffix           string `tfschema:"custom_domain_dns_suffix"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentResource{}
@@ -122,6 +128,29 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 
 		"workload_profile": helpers.WorkloadProfileSchema(),
 
+		"custom_domain_certificate_blob_base64": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"custom_domain_dns_suffix"},
+			ValidateFunc: validation.StringIsBase64,
+			Description:  "The Custom Domain Certificate Private Key as a base64 encoded PFX or PEM.",
+		},
+
+		"custom_domain_certificate_password": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			RequiredWith: []string{"custom_domain_dns_suffix"},
+			Description:  "The Custom Domain Certificate password.",
+		},
+
+		"custom_domain_dns_suffix": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The Custom Domain DNS suffix for this Container App Environment.",
+		},
+
 		"zone_redundancy_enabled": {
 			Type:         pluginsdk.TypeBool,
 			Optional:     true,
@@ -136,6 +165,13 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 
 func (r ContainerAppEnvironmentResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"custom_domain_verification_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
+		},
+
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
@@ -255,6 +291,14 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 
 			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
+			if containerAppEnvironment.DnsSuffix != "" {
+				managedEnvironment.Properties.CustomDomainConfiguration = &managedenvironments.CustomDomainConfiguration{
+					DnsSuffix:           pointer.To(containerAppEnvironment.DnsSuffix),
+					CertificateValue:    pointer.To(containerAppEnvironment.CertificateValue),
+					CertificatePassword: pointer.To(containerAppEnvironment.CertificatePassword),
+				}
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -302,6 +346,17 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						state.PlatformReservedDnsIP = pointer.From(vnet.PlatformReservedDnsIP)
 					}
 
+					if customdomain := props.CustomDomainConfiguration; customdomain.DnsSuffix != nil {
+						state.DnsSuffix = pointer.From(customdomain.DnsSuffix)
+						if certValue, ok := metadata.ResourceData.GetOk("custom_domain_certificate_blob_base64"); ok {
+							state.CertificateValue = certValue.(string)
+						}
+						if certPassword, ok := metadata.ResourceData.GetOk("custom_domain_certificate_password"); ok {
+							state.CertificatePassword = certPassword.(string)
+						}
+					}
+
+					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
@@ -371,6 +426,17 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Model.Tags = tags.Expand(state.Tags)
+			}
+
+			// If custom domain dns suffix or its certificate changed, only update all the required attributes
+			if metadata.ResourceData.HasChange("custom_domain_dns_suffix") ||
+				metadata.ResourceData.HasChange("custom_domain_certificate_blob_base64") ||
+				metadata.ResourceData.HasChange("custom_domain_certificate_password") {
+				existing.Model.Properties.CustomDomainConfiguration = &managedenvironments.CustomDomainConfiguration{
+					DnsSuffix:           pointer.To(state.DnsSuffix),
+					CertificateValue:    pointer.To(state.CertificateValue),
+					CertificatePassword: pointer.To(state.CertificatePassword),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile") {

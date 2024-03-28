@@ -45,6 +45,11 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the Container App Environment is to exist. Changing this forces a new resource to be created.
 
 ---
+* `custom_domain_certificate_blob_base64` - (Optional) The bundle of Private Key and Certificate for the Custom DNS Suffix as a base64 encoded PFX or PEM.
+
+* `custom_domain_certificate_password` - (Optional) The password for the Certificate bundle.
+
+* `custom_domain_dns_suffix` - (Optional) Custom DNS Suffix for the Container App Environment.
 
 * `dapr_application_insights_connection_string` - (Optional) Application Insights connection string used by Dapr to export Service to Service communication telemetry. Changing this forces a new resource to be created.
 
@@ -91,6 +96,8 @@ A `workload_profile` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Container App Environment
+
+* `custom_domain_verification_id` - The ID of the Custom Domain Verification for this Container App Environment.
 
 * `default_domain` - The default, publicly resolvable, name of this Container App Environment.
 

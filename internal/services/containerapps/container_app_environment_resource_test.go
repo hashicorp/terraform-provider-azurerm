@@ -160,6 +160,21 @@ func TestAccContainerAppEnvironment_infraResourceGroup(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_completeWithCustomDnsSuffix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeWithCustomDnsSuffix(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("custom_domain_certificate_blob_base64", "custom_domain_certificate_password", "log_analytics_workspace_id"),
+	})
+}
+
 func (r ContainerAppEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedenvironments.ParseManagedEnvironmentID(state.ID)
 	if err != nil {
@@ -392,6 +407,43 @@ resource "azurerm_container_app_environment" "test" {
   dapr_application_insights_connection_string = azurerm_application_insights.test.connection_string
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) completeWithCustomDnsSuffix(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
+
+  internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
+
+  workload_profile {
+    maximum_count         = 3
+    minimum_count         = 0
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
+
+  custom_domain_certificate_blob_base64 = filebase64("testdata/testacc.pfx")
+  custom_domain_certificate_password    = "TestAcc"
+  custom_domain_dns_suffix              = "acceptancetest.contoso.com"
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) template(data acceptance.TestData) string {
