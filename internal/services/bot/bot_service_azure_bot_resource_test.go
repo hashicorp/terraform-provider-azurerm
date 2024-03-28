@@ -18,7 +18,7 @@ import (
 
 type BotServiceAzureBotResource struct{}
 
-func testAccBotServiceAzureBot_basic(t *testing.T) {
+func TestAccBotServiceAzureBot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
@@ -36,7 +36,7 @@ func testAccBotServiceAzureBot_basic(t *testing.T) {
 	})
 }
 
-func testAccBotServiceAzureBot_completeUpdate(t *testing.T) {
+func TestAccBotServiceAzureBot_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
@@ -58,7 +58,7 @@ func testAccBotServiceAzureBot_completeUpdate(t *testing.T) {
 	})
 }
 
-func testAccBotServiceAzureBot_requiresImport(t *testing.T) {
+func TestAccBotServiceAzureBot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
@@ -76,7 +76,7 @@ func testAccBotServiceAzureBot_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccBotServiceAzureBot_msaAppType(t *testing.T) {
+func TestAccBotServiceAzureBot_msaAppType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
@@ -91,7 +91,7 @@ func testAccBotServiceAzureBot_msaAppType(t *testing.T) {
 	})
 }
 
-func testAccBotServiceAzureBot_streamingEndpointEnabled(t *testing.T) {
+func TestAccBotServiceAzureBot_streamingEndpointEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
@@ -113,7 +113,7 @@ func testAccBotServiceAzureBot_streamingEndpointEnabled(t *testing.T) {
 	})
 }
 
-func testAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
+func TestAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
@@ -165,12 +165,16 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azuread_application_registration" "test" {
+	display_name = "acctestReg-%[1]d"
+}
+
 resource "azurerm_bot_service_azure_bot" "test" {
   name                = "acctestdf%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "global"
   sku                 = "F0"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
 
   tags = {
     environment = "test"
@@ -206,11 +210,15 @@ resource "azurerm_application_insights_api_key" "test" {
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
+resource "azuread_application_registration" "test" {
+	display_name = "acctestReg-%[1]d"
+}
+
 resource "azurerm_bot_service_azure_bot" "test" {
   name                                  = "acctestdf%[1]d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = "global"
-  microsoft_app_id                      = data.azurerm_client_config.current.client_id
+  microsoft_app_id                      = azuread_application_registration.test.client_id
   sku                                   = "F0"
   local_authentication_enabled          = false
   public_network_access_enabled         = false
@@ -261,12 +269,16 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
+resource "azuread_application_registration" "test" {
+	display_name = "acctestReg-%[1]d"
+}
+
 resource "azurerm_bot_service_azure_bot" "test" {
   name                = "acctestdf%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "global"
   sku                 = "F0"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  microsoft_app_id    = azuread_application_registration.test.client_id
 
   microsoft_app_type      = "UserAssignedMSI"
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
@@ -289,12 +301,16 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azuread_application_registration" "test" {
+	display_name = "acctestReg-%[1]d"
+}
+
 resource "azurerm_bot_service_azure_bot" "test" {
   name                       = "acctestdf%[1]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = "global"
   sku                        = "F0"
-  microsoft_app_id           = data.azurerm_client_config.current.client_id
+  microsoft_app_id           = azuread_application_registration.test.client_id
   streaming_endpoint_enabled = %[3]t
 }
 `, data.RandomInteger, data.Locations.Primary, streamingEndpointEnabled)
