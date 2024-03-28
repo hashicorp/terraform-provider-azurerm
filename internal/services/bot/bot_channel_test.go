@@ -19,13 +19,6 @@ func TestAccBotChannelsRegistration(t *testing.T) {
 		// 	"complete":                 testAccBotChannelsRegistration_complete,
 		// 	"streamingEndpointEnabled": testAccBotChannelsRegistration_streamingEndpointEnabled,
 		// },
-		// "bot": {
-		// 	"basic":                    testAccBotServiceAzureBot_basic,
-		// 	"completeUpdate":           testAccBotServiceAzureBot_completeUpdate,
-		// 	"msaAppType":               testAccBotServiceAzureBot_msaAppType,
-		// 	"requiresImport":           testAccBotServiceAzureBot_requiresImport,
-		// 	"streamingEndpointEnabled": testAccBotServiceAzureBot_streamingEndpointEnabled,
-		// },
 		// "connection": {
 		// 	"basic":    testAccBotConnection_basic,
 		// 	"complete": testAccBotConnection_complete,

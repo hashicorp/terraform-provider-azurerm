@@ -81,7 +81,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 		"developer_app_insights_application_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.IsUUID,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"cmk_key_vault_url": {
