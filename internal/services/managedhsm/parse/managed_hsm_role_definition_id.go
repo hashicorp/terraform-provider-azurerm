@@ -31,10 +31,6 @@ func NewManagedHSMRoleDefinitionID(hsmBaseUrl, scope string, name string) (*Mana
 	if err != nil || hsmBaseUrl == "" {
 		return nil, fmt.Errorf("parsing managedHSM nested itemID %q: %+v", hsmBaseUrl, err)
 	}
-	// (@jackofallops) - Log Analytics service adds the port number to the API returns, so we strip it here
-	if hostParts := strings.Split(keyVaultUrl.Host, ":"); len(hostParts) > 1 {
-		keyVaultUrl.Host = hostParts[0]
-	}
 
 	return &ManagedHSMRoleDefinitionId{
 		VaultBaseUrl: keyVaultUrl.String(),
