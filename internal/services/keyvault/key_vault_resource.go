@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -30,13 +31,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+
+	// TODO: Remove in 4.0
 	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var keyVaultResourceName = "azurerm_key_vault"
 
 func resourceKeyVault() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKeyVaultCreate,
 		Read:   resourceKeyVaultRead,
 		Update: resourceKeyVaultUpdate,
@@ -202,27 +205,6 @@ func resourceKeyVault() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(7, 90),
 			},
 
-			"contact": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"email": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-						},
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-						"phone": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
-
 			"tags": commonschema.Tags(),
 
 			// Computed
@@ -232,12 +214,41 @@ func resourceKeyVault() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["contact"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"email": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"phone": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
+			Deprecated: "This property has been deprecated and will be removed in v4.0 of the provider, please use the 'azurerm_key_vault_certificate_contacts' resource to manage this property.",
+		}
+	}
+
+	return resource
 }
 
 func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+
+	// TODO: Remove in 4.0
 	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -283,9 +294,15 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	isPublic := d.Get("public_network_access_enabled").(bool)
-	contactRaw := d.Get("contact").(*pluginsdk.Set).List()
-	if !isPublic && len(contactRaw) > 0 {
-		return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
+
+	// TODO: Remove in 4.0
+	contactRaw := make([]interface{}, 0)
+
+	if !features.FourPointOhBeta() {
+		contactRaw = d.Get("contact").(*pluginsdk.Set).List()
+		if !isPublic && len(contactRaw) > 0 {
+			return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
+		}
 	}
 
 	tenantUUID := d.Get("tenant_id").(string)
@@ -413,16 +430,18 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if len(contactRaw) > 0 {
-		if !isPublic {
-			return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
-		}
+	if !features.FourPointOhBeta() {
+		if len(contactRaw) > 0 {
+			if !isPublic {
+				return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
+			}
 
-		contacts := dataplane.Contacts{
-			ContactList: expandKeyVaultCertificateContactList(contactRaw),
-		}
-		if _, err := dataPlaneClient.SetCertificateContacts(ctx, vaultUri, contacts); err != nil {
-			return fmt.Errorf("failed to set Contacts for %s: %+v", id, err)
+			contacts := dataplane.Contacts{
+				ContactList: expandKeyVaultCertificateContactList(contactRaw),
+			}
+			if _, err := dataPlaneClient.SetCertificateContacts(ctx, vaultUri, contacts); err != nil {
+				return fmt.Errorf("failed to set Contacts for %s: %+v", id, err)
+			}
 		}
 	}
 
@@ -431,7 +450,10 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+
+	// TODO: Remove in 4.0
 	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
+
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -566,7 +588,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			update.Properties = &vaults.VaultPatchProperties{}
 		}
 
-		isPublic = d.Get("public_network_access_enabled").(bool)
+		isPublic := d.Get("public_network_access_enabled").(bool)
 		if isPublic {
 			update.Properties.PublicNetworkAccess = utils.String("Enabled")
 		} else {
@@ -623,30 +645,32 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if d.HasChange("contact") {
-		if !isPublic {
-			return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
-		}
-		contacts := dataplane.Contacts{
-			ContactList: expandKeyVaultCertificateContactList(d.Get("contact").(*pluginsdk.Set).List()),
-		}
-		vaultUri := ""
-		if existing.Model != nil && existing.Model.Properties.VaultUri != nil {
-			vaultUri = *existing.Model.Properties.VaultUri
-		}
-		if vaultUri == "" {
-			return fmt.Errorf("failed to get vault base url for %s: %s", *id, err)
-		}
+	if !features.FourPointOhBeta() {
+		if d.HasChange("contact") {
+			if !isPublic {
+				return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
+			}
+			contacts := dataplane.Contacts{
+				ContactList: expandKeyVaultCertificateContactList(d.Get("contact").(*pluginsdk.Set).List()),
+			}
+			vaultUri := ""
+			if existing.Model != nil && existing.Model.Properties.VaultUri != nil {
+				vaultUri = *existing.Model.Properties.VaultUri
+			}
+			if vaultUri == "" {
+				return fmt.Errorf("failed to get vault base url for %s: %s", *id, err)
+			}
 
-		var err error
-		if len(*contacts.ContactList) == 0 {
-			_, err = managementClient.DeleteCertificateContacts(ctx, vaultUri)
-		} else {
-			_, err = managementClient.SetCertificateContacts(ctx, vaultUri, contacts)
-		}
+			var err error
+			if len(*contacts.ContactList) == 0 {
+				_, err = managementClient.DeleteCertificateContacts(ctx, vaultUri)
+			} else {
+				_, err = managementClient.SetCertificateContacts(ctx, vaultUri, contacts)
+			}
 
-		if err != nil {
-			return fmt.Errorf("setting Contacts for %s: %+v", *id, err)
+			if err != nil {
+				return fmt.Errorf("setting Contacts for %s: %+v", *id, err)
+			}
 		}
 	}
 
@@ -657,7 +681,10 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+
+	// TODO: Remove in 4.0
 	dataplaneClient := meta.(*clients.Client).KeyVault.ManagementClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -690,15 +717,19 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		meta.(*clients.Client).KeyVault.AddToCache(*id, vaultUri)
 	}
 
+	// TODO: Remove in 4.0
 	var contactsResp *dataplane.Contacts
-	if isPublic {
-		contacts, err := dataplaneClient.GetCertificateContacts(ctx, vaultUri)
-		if err != nil {
-			if !utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response) {
-				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+
+	if !features.FourPointOhBeta() {
+		if isPublic {
+			contacts, err := dataplaneClient.GetCertificateContacts(ctx, vaultUri)
+			if err != nil {
+				if !utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response) {
+					return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+				}
 			}
+			contactsResp = &contacts
 		}
-		contactsResp = &contacts
 	}
 
 	d.Set("name", id.VaultName)
@@ -749,8 +780,10 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
 		}
 
-		if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
-			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+		if !features.FourPointOhBeta() {
+			if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
+				return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -916,19 +949,22 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*vaults.NetworkRuleSet, []s
 	return &ruleSet, subnetIds
 }
 
+// TODO: Remove in 4.0
 func expandKeyVaultCertificateContactList(input []interface{}) *[]dataplane.Contact {
 	results := make([]dataplane.Contact, 0)
 	if len(input) == 0 || input[0] == nil {
 		return &results
 	}
 
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		results = append(results, dataplane.Contact{
-			Name:         utils.String(v["name"].(string)),
-			EmailAddress: utils.String(v["email"].(string)),
-			Phone:        utils.String(v["phone"].(string)),
-		})
+	if !features.FourPointOhBeta() {
+		for _, item := range input {
+			v := item.(map[string]interface{})
+			results = append(results, dataplane.Contact{
+				Name:         utils.String(v["name"].(string)),
+				EmailAddress: utils.String(v["email"].(string)),
+				Phone:        utils.String(v["phone"].(string)),
+			})
+		}
 	}
 
 	return &results
@@ -974,33 +1010,36 @@ func flattenKeyVaultNetworkAcls(input *vaults.NetworkRuleSet) []interface{} {
 	}
 }
 
+// TODO: Remove in 4.0
 func flattenKeyVaultCertificateContactList(input *dataplane.Contacts) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || input.ContactList == nil {
 		return results
 	}
 
-	for _, contact := range *input.ContactList {
-		emailAddress := ""
-		if contact.EmailAddress != nil {
-			emailAddress = *contact.EmailAddress
-		}
+	if !features.FourPointOhBeta() {
+		for _, contact := range *input.ContactList {
+			emailAddress := ""
+			if contact.EmailAddress != nil {
+				emailAddress = *contact.EmailAddress
+			}
 
-		name := ""
-		if contact.Name != nil {
-			name = *contact.Name
-		}
+			name := ""
+			if contact.Name != nil {
+				name = *contact.Name
+			}
 
-		phone := ""
-		if contact.Phone != nil {
-			phone = *contact.Phone
-		}
+			phone := ""
+			if contact.Phone != nil {
+				phone = *contact.Phone
+			}
 
-		results = append(results, map[string]interface{}{
-			"email": emailAddress,
-			"name":  name,
-			"phone": phone,
-		})
+			results = append(results, map[string]interface{}{
+				"email": emailAddress,
+				"name":  name,
+				"phone": phone,
+			})
+		}
 	}
 
 	return results
