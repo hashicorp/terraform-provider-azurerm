@@ -68,7 +68,7 @@ func (r MaintenanceDynamicScopeResource) basic(data acceptance.TestData) string 
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
   maintenance_configuration_id = azurerm_maintenance_configuration.test.id
-  subscription_id            = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
+  subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
 
   filter {
 	locations = []
@@ -83,7 +83,7 @@ func (r MaintenanceDynamicScopeResource) requiresImport(data acceptance.TestData
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
 	maintenance_configuration_id = azurerm_maintenance_configuration.test.id
-	subscription_id            = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
+	subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
 
 	filter {
 		locations = []
@@ -106,10 +106,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_maintenance_configuration" "test" {
-  name                = "acctest-MC%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  scope               = "InGuestPatch"
+  name                     = "acctest-MC%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  scope                    = "InGuestPatch"
   in_guest_user_patch_mode = "User"
 
   window {
