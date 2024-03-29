@@ -67,7 +67,6 @@ func (r MaintenanceDynamicScopeResource) basic(data acceptance.TestData) string 
 %s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
-  location                     = azurerm_resource_group.test.location
   maintenance_configuration_id = azurerm_maintenance_configuration.test.id
   subscription_id            = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
 }
@@ -79,7 +78,6 @@ func (r MaintenanceDynamicScopeResource) requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
-	location                     = azurerm_resource_group.test.location
 	maintenance_configuration_id = azurerm_maintenance_configuration.test.id
 	subscription_id            = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
 }

@@ -11,8 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -40,7 +38,6 @@ type Filter struct {
 type MaintenanceDynamicScopeModel struct {
 	MaintenanceConfigurationId string   `tfschema:"maintenance_configuration_id"`
 	Scope                      string   `tfschema:"subscription_id"`
-	Location                   string   `tfschema:"location"`
 	Filter                     []Filter `tfschema:"filter"`
 }
 
@@ -62,8 +59,6 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
-
-		"location": commonschema.Location(),
 
 		"filter": {
 			Type:     pluginsdk.TypeList,
@@ -182,8 +177,7 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 			}
 
 			configurationAssignment := configurationassignments.ConfigurationAssignment{
-				Name:     pointer.To(maintenanceConfigurationId.MaintenanceConfigurationName),
-				Location: pointer.To(location.Normalize(model.Location)),
+				Name: pointer.To(maintenanceConfigurationId.MaintenanceConfigurationName),
 				Properties: &configurationassignments.ConfigurationAssignmentProperties{
 					MaintenanceConfigurationId: pointer.To(maintenanceConfigurationId.ID()),
 					ResourceId:                 pointer.To(subscriptionId.ID()),
@@ -263,8 +257,6 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 			state.Scope = subscriptionId.ID()
 
 			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(model.Location)
-
 				if properties := model.Properties; properties != nil {
 
 					if properties.MaintenanceConfigurationId != nil {
@@ -330,10 +322,6 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("maintenance_configuration_id") {
 				existing.Properties.MaintenanceConfigurationId = pointer.To(model.MaintenanceConfigurationId)
-			}
-
-			if metadata.ResourceData.HasChange("location") {
-				existing.Location = pointer.To(model.Location)
 			}
 
 			if metadata.ResourceData.HasChange("filter") {
