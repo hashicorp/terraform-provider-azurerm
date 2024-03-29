@@ -46,13 +46,13 @@ type AutoHealSlowRequest struct {
 	TimeTaken string `tfschema:"time_taken"`
 	Interval  string `tfschema:"interval"`
 	Count     int64  `tfschema:"count"`
-	Path      string `tfschema:"path"`
+	Path      string `tfschema:"path,removedInNextMajorVersion"`
 }
 
 type AutoHealSlowRequestWithPath struct {
 	TimeTaken string `tfschema:"time_taken"`
 	Interval  string `tfschema:"interval"`
-	Count     int    `tfschema:"count"`
+	Count     int64  `tfschema:"count"`
 	Path      string `tfschema:"path"`
 }
 
@@ -553,7 +553,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 			trigger := webapps.SlowRequestsBasedTrigger{
 				TimeTaken:    pointer.To(sr.TimeTaken),
 				TimeInterval: pointer.To(sr.Interval),
-				Count:        pointer.To(int64(sr.Count)),
+				Count:        pointer.To(sr.Count),
 			}
 			if sr.Path != "" {
 				trigger.Path = pointer.To(sr.Path)
@@ -701,7 +701,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 				sr := AutoHealSlowRequestWithPath{
 					TimeTaken: pointer.From(v.TimeTaken),
 					Interval:  pointer.From(v.TimeInterval),
-					Count:     int(pointer.From(v.Count)),
+					Count:     pointer.From(v.Count),
 					Path:      pointer.From(v.Path),
 				}
 				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)

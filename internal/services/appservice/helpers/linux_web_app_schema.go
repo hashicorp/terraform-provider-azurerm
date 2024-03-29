@@ -1330,7 +1330,7 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 			trigger := webapps.SlowRequestsBasedTrigger{
 				TimeTaken:    pointer.To(sr.TimeTaken),
 				TimeInterval: pointer.To(sr.Interval),
-				Count:        pointer.To(int64(sr.Count)),
+				Count:        pointer.To(sr.Count),
 			}
 			if sr.Path != "" {
 				trigger.Path = pointer.To(sr.Path)
@@ -1461,7 +1461,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 				sr := AutoHealSlowRequestWithPath{
 					TimeTaken: pointer.From(v.TimeTaken),
 					Interval:  pointer.From(v.TimeInterval),
-					Count:     int(pointer.From(v.Count)),
+					Count:     pointer.From(v.Count),
 					Path:      pointer.From(v.Path),
 				}
 				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)

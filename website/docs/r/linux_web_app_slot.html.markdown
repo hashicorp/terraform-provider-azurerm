@@ -810,7 +810,7 @@ A `trigger` block supports the following:
 
 * `requests` - (Optional) A `requests` block as defined above.
 
-* `slow_request` - (Optional) A `slow_request` blocks as defined above.
+* `slow_request` - (Optional) A `slow_request` block as defined above.
 
 * `slow_request_with_path` - (Optional) One or more `slow_request_with_path` blocks as defined above.
 

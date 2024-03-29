@@ -776,7 +776,7 @@ A `slow_request` block supports the following:
 
 * `path` - (Optional) The path for which this slow request rule applies.
 
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
+~> **NOTE:** The `path` property in the `slow_request` block is deprecated and will be removed in 4.0 of provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
 
 ---
 
@@ -830,7 +830,7 @@ A `trigger` block supports the following:
 
 * `requests` - (Optional) A `requests` block as defined above.
 
-* `slow_request` - (Optional) A `slow_request` blocks as defined above.
+* `slow_request` - (Optional) A `slow_request` block as defined above.
 
 * `slow_request_with_path` - (Optional) One or more `slow_request_with_path` blocks as defined above.
 
