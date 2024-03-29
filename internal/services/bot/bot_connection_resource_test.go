@@ -82,7 +82,7 @@ resource "azurerm_bot_connection" "test" {
   client_id             = azuread_application_registration.test.client_id
   client_secret         = "86546868-e7ed-429f-b0e5-3a1caea7db64"
 }
-`, r.template(data), data.RandomInteger)
+`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomInteger)
 }
 
 func (r BotConnectionResource) updateConfig(data acceptance.TestData, scope string, loginUrl string) string {
@@ -103,33 +103,5 @@ resource "azurerm_bot_connection" "test" {
     loginUri = "%s"
   }
 }
-`, r.template(data), data.RandomInteger, scope, loginUrl)
-}
-
-func (r BotConnectionResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azuread_application_registration" "test" {
-  display_name = "acctestReg-%d"
-}
-
-resource "azurerm_bot_channels_registration" "test" {
-  name                = "acctestdf%d"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "F0"
-  microsoft_app_id    = azuread_application_registration.test.client_id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomInteger, scope, loginUrl)
 }
