@@ -26,7 +26,7 @@ func TestAccBotChannelFacebook_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -43,7 +43,7 @@ func TestAccBotChannelFacebook_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -60,7 +60,7 @@ func TestAccBotChannelFacebook_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_facebook", "test")
 	r := BotChannelFacebookResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

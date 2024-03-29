@@ -24,7 +24,7 @@ func TestAccBotChannelWebChat_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -39,7 +39,7 @@ func TestAccBotChannelWebChat_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -54,7 +54,7 @@ func TestAccBotChannelWebChat_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_web_chat", "test")
 	r := BotChannelWebChatResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -76,7 +76,7 @@ func TestAccBotChannelWebChat_update(t *testing.T) {
 		basicConfig = r.siteNames(data)
 	}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: basicConfig,
 			Check: acceptance.ComposeTestCheckFunc(

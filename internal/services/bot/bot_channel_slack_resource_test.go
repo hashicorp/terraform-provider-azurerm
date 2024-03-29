@@ -27,7 +27,7 @@ func TestAccBotChannelSlack_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -45,7 +45,7 @@ func TestAccBotChannelSlack_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,7 +63,7 @@ func TestAccBotChannelSlack_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
 	r := BotChannelSlackResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(

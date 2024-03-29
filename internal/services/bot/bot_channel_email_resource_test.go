@@ -27,7 +27,7 @@ func TestAccBotChannelEmail_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -45,7 +45,7 @@ func TestAccBotChannelEmail_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -71,7 +71,7 @@ func TestAccBotChannelEmail_magicCode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 	r := BotChannelEmailResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.magicCode(),
 			Check: acceptance.ComposeTestCheckFunc(

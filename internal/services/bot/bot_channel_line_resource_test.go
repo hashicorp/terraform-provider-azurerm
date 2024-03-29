@@ -26,7 +26,7 @@ func TestAccBotChannelLine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
 	r := BotChannelLineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -43,7 +43,7 @@ func TestAccBotChannelLine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
 	r := BotChannelLineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -60,7 +60,7 @@ func TestAccBotChannelLine_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
 	r := BotChannelLineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -77,7 +77,7 @@ func TestAccBotChannelLine_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_line", "test")
 	r := BotChannelLineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

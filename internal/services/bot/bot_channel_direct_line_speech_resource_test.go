@@ -24,7 +24,7 @@ func TestAccBotChannelDirectLineSpeech_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveAccount(data),
 		},
@@ -43,7 +43,7 @@ func TestAccBotChannelDirectLineSpeech_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveAccount(data),
 		},
@@ -62,7 +62,7 @@ func TestAccBotChannelDirectLineSpeech_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveAccount(data),
 		},
@@ -81,7 +81,7 @@ func TestAccBotChannelDirectLineSpeech_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
 	r := BotChannelDirectLineSpeechResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cognitiveAccount(data),
 		},

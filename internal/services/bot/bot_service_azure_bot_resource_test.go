@@ -22,7 +22,7 @@ func TestAccBotServiceAzureBot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -40,7 +40,7 @@ func TestAccBotServiceAzureBot_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -62,7 +62,7 @@ func TestAccBotServiceAzureBot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -80,7 +80,7 @@ func TestAccBotServiceAzureBot_msaAppType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.msaAppType(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -95,7 +95,7 @@ func TestAccBotServiceAzureBot_streamingEndpointEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.steamingEndpointEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -117,7 +117,7 @@ func TestAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_service_azure_bot", "test")
 	r := BotServiceAzureBotResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cmekEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(

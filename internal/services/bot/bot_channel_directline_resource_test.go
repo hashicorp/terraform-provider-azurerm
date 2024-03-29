@@ -23,7 +23,7 @@ func TestAccBotChannelDirectline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 	r := BotChannelDirectlineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,7 +38,7 @@ func TestAccBotChannelDirectline_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 	r := BotChannelDirectlineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -53,7 +53,7 @@ func TestAccBotChannelDirectline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 	r := BotChannelDirectlineResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
