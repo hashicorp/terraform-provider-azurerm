@@ -201,7 +201,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			if servicePlan.MaximumElasticWorkerCount > 0 {
 				if !isServicePlanSupportScaleOut(servicePlan.Sku) && (helpers.PlanIsPremium(servicePlan.Sku) && !servicePlan.ElasticScaling) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or Premium V2 and V3 plan with `elastic_scale_enabled` set to true")
+					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Plans, or with Premium V2 or Premium V3 plans with `elastic_scale_enabled` set to true")
 				}
 				if helpers.PlanIsPremium(servicePlan.Sku) {
 					appServicePlan.Properties.ElasticScaleEnabled = pointer.To(servicePlan.ElasticScaling)
@@ -210,9 +210,9 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 			}
 
 			if servicePlan.ElasticScaling && !(helpers.PlanIsPremium(servicePlan.Sku) || isServicePlanSupportScaleOut(servicePlan.Sku)) {
-				return fmt.Errorf("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus")
+				return fmt.Errorf("`elastic_scale_enabled` can only be `true` for Elastic Premium, Premium V2 and Premium V3 Plans")
 			} else if !servicePlan.ElasticScaling && helpers.PlanIsElastic(&servicePlan.Sku) {
-				return fmt.Errorf("`elastic_scale_enabled` cannot be disabled for elastic plans")
+				return fmt.Errorf("`elastic_scale_enabled` cannot be disabled for Elastic Premuim plans")
 			}
 
 			if servicePlan.WorkerCount != 0 {
@@ -366,14 +366,14 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
 				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && (!isServicePlanSupportScaleOut(state.Sku) || helpers.PlanIsPremium(state.Sku) && !state.ElasticScaling) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or Premium v2, v3 with `elastic_scale_enabled` set to true")
+					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Plans, or with Premium V2 or Premium V3 plans with `elastic_scale_enabled` set to true")
 				}
 				model.Properties.MaximumElasticWorkerCount = pointer.To(int64(state.MaximumElasticWorkerCount))
 			}
 
 			if metadata.ResourceData.HasChange("elastic_scale_enabled") {
 				if state.ElasticScaling && !(isServicePlanSupportScaleOut(state.Sku) || helpers.PlanIsPremium(state.Sku)) {
-					return fmt.Errorf("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus")
+					return fmt.Errorf("`elastic_scale_enabled` can only be `true` for Elastic Premium, Premium V2 and Premium V3 Plans")
 				}
 				model.Properties.ElasticScaleEnabled = pointer.To(state.ElasticScaling)
 			}
@@ -413,7 +413,7 @@ func (s ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 			if helpers.PlanIsElastic(&sku) {
 				elasticScalingEnabled := rd.Get("elastic_scale_enabled").(bool)
 				if rd.HasChange("elastic_scale_enabled") && !elasticScalingEnabled {
-					return fmt.Errorf("`elastic_scale_enabled` cannot be disabled for elastic plan")
+					return fmt.Errorf("`elastic_scale_enabled` cannot be disabled for Elastic Premium Plans")
 				}
 			}
 			return nil

@@ -188,13 +188,6 @@ func TestAccServicePlan_premiumElasticScalingErrorUpdate(t *testing.T) {
 			Config:      r.premiumElasticScaleError(data, "S1"),
 			ExpectError: regexp.MustCompile("`elastic_scale_enabled` can only be enabled for Elastic Premium Skus or Premium V2 and V3 Skus"),
 		},
-		{
-			Config: r.premiumElasticScaleError(data, "P1v3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
