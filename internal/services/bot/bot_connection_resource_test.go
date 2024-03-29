@@ -39,14 +39,14 @@ func TestAccBotConnection_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeConfig(data),
+			Config: r.updateConfig(data, "/subscriptions/${data.azurerm_client_config.current.subscription_id}", "https://www.google.com"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("client_secret", "service_provider_name"),
 		{
-			Config: r.completeUpdateConfig(data),
+			Config: r.updateConfig(data, "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}", "https://www.terraform.io"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -85,7 +85,7 @@ resource "azurerm_bot_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BotConnectionResource) completeConfig(data acceptance.TestData) string {
+func (r BotConnectionResource) updateConfig(data acceptance.TestData, scope string, loginUrl string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -97,34 +97,13 @@ resource "azurerm_bot_connection" "test" {
   service_provider_name = "Salesforce"
   client_id             = azuread_application_registration.test.client_id
   client_secret         = "60a97b1d-0894-4c5a-9968-7d1d29d77aed"
-  scopes                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  scopes                = "%s"
 
   parameters = {
-    loginUri = "https://www.google.com"
+    loginUri = "%s"
   }
 }
-`, r.template(data), data.RandomInteger)
-}
-
-func (r BotConnectionResource) completeUpdateConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_bot_connection" "test" {
-  name                  = "acctestBc%d"
-  bot_name              = azurerm_bot_channels_registration.test.name
-  location              = azurerm_bot_channels_registration.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  service_provider_name = "Salesforce"
-  client_id             = azuread_application_registration.test.client_id
-  client_secret         = "32ea21cb-cb20-4df9-ad39-b55e985e9117"
-  scopes                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}"
-
-  parameters = {
-    loginUri = "https://www.terraform.io"
-  }
-}
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, scope, loginUrl)
 }
 
 func (r BotConnectionResource) template(data acceptance.TestData) string {
