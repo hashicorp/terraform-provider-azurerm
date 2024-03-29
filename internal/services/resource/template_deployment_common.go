@@ -155,7 +155,8 @@ func deleteNestedResource(ctx context.Context, resourcesClient *resources.Client
 	if !ok {
 		resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[strings.ToLower(parsedId.SecondaryProvider)]
 		if !ok {
-			return fmt.Errorf("API version information for RP %q (%q) was not found - nestedResource=%q", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
+			log.Printf("[DEBUG] API version information for RP %q (%q) was not found - nestedResource=%q, try to send a fake API version 2000-01-01 to get correct version from API", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
+			resourceProviderApiVersion = "2000-01-01"
 		}
 	}
 
