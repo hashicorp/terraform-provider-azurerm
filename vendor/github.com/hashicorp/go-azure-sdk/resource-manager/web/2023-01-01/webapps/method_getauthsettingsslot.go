@@ -44,7 +44,10 @@ func (c WebAppsClient) GetAuthSettingsSlot(ctx context.Context, id SlotId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteAuthSettings
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -84,7 +84,10 @@ func (c SubscriptionClient) CreateOrUpdate(ctx context.Context, id Subscriptions
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SubscriptionContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

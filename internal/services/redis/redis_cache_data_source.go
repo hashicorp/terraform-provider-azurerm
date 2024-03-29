@@ -86,6 +86,10 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"active_directory_authentication_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
 						"maxclients": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
@@ -159,6 +163,10 @@ func dataSourceRedisCache() *pluginsdk.Resource {
 							Computed: true,
 						},
 						"storage_account_subscription_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"data_persistence_authentication_method": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},

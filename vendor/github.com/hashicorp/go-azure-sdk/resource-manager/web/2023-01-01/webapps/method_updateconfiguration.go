@@ -49,7 +49,10 @@ func (c WebAppsClient) UpdateConfiguration(ctx context.Context, id commonids.App
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SiteConfigResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

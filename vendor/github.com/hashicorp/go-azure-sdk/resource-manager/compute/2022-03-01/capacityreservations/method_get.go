@@ -72,7 +72,10 @@ func (c CapacityReservationsClient) Get(ctx context.Context, id CapacityReservat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CapacityReservation
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

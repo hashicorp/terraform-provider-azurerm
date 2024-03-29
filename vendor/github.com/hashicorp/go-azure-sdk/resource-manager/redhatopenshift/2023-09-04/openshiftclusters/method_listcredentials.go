@@ -44,7 +44,10 @@ func (c OpenShiftClustersClient) ListCredentials(ctx context.Context, id Provide
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model OpenShiftClusterCredentials
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -134,6 +134,21 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				},
 			},
 
+			"kerberos_enabled": {
+				// Due to large infrastructure requirements, there is not a reliable way to test Kerberos volumes in a shared environment at this time
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Enable to allow Kerberos secured volumes. Requires appropriate export rules as well as the parent `azurerm_netapp_account` having a defined AD connection.",
+			},
+
+			"smb_continuous_availability_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Description: "Continuous availability option should be used only for SQL and FSLogix workloads. Using it for any other SMB workloads is not supported.",
+				ForceNew:    true,
+			},
+
 			"security_style": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -203,6 +218,31 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 						},
 
 						"root_access_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"kerberos_5_read_only_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5_read_write_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5i_read_only_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5i_read_write_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5p_read_only_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"kerberos_5p_read_write_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -301,6 +341,20 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 				RequiredWith: []string{"encryption_key_source"},
 			},
+
+			"smb_non_browsable_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable non browsable share setting for SMB/Dual Protocol volume. When enabled, it restricts windows clients to browse the share",
+			},
+
+			"smb_access_based_enumeration_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
+			},
 		},
 	}
 }
@@ -336,6 +390,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := volumes.ServiceLevel(d.Get("service_level").(string))
 	subnetID := d.Get("subnet_id").(string)
+	kerberosEnabled := d.Get("kerberos_enabled").(bool)
+	smbContiuouslyAvailable := d.Get("smb_continuous_availability_enabled").(bool)
 
 	var networkFeatures volumes.NetworkFeatures
 	networkFeaturesString := d.Get("network_features").(string)
@@ -343,6 +399,16 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		networkFeatures = volumes.NetworkFeaturesBasic
 	}
 	networkFeatures = volumes.NetworkFeatures(networkFeaturesString)
+
+	smbNonBrowsable := volumes.SmbNonBrowsableDisabled
+	if d.Get("smb_non_browsable_enabled").(bool) {
+		smbNonBrowsable = volumes.SmbNonBrowsableEnabled
+	}
+
+	smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
+	if d.Get("smb_access_based_enumeration_enabled").(bool) {
+		smbAccessBasedEnumeration = volumes.SmbAccessBasedEnumerationEnabled
+	}
 
 	protocols := d.Get("protocols").(*pluginsdk.Set).List()
 	if len(protocols) == 0 {
@@ -455,16 +521,20 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	parameters := volumes.Volume{
 		Location: location,
 		Properties: volumes.VolumeProperties{
-			CreationToken:   volumePath,
-			ServiceLevel:    &serviceLevel,
-			SubnetId:        subnetID,
-			NetworkFeatures: &networkFeatures,
-			ProtocolTypes:   utils.ExpandStringSlice(protocols),
-			SecurityStyle:   &securityStyle,
-			UsageThreshold:  storageQuotaInGB,
-			ExportPolicy:    exportPolicyRule,
-			VolumeType:      utils.String(volumeType),
-			SnapshotId:      utils.String(snapshotID),
+			CreationToken:             volumePath,
+			ServiceLevel:              &serviceLevel,
+			SubnetId:                  subnetID,
+			KerberosEnabled:           &kerberosEnabled,
+			SmbContinuouslyAvailable:  &smbContiuouslyAvailable,
+			NetworkFeatures:           &networkFeatures,
+			SmbNonBrowsable:           &smbNonBrowsable,
+			SmbAccessBasedEnumeration: &smbAccessBasedEnumeration,
+			ProtocolTypes:             utils.ExpandStringSlice(protocols),
+			SecurityStyle:             &securityStyle,
+			UsageThreshold:            storageQuotaInGB,
+			ExportPolicy:              exportPolicyRule,
+			VolumeType:                utils.String(volumeType),
+			SnapshotId:                utils.String(snapshotID),
 			DataProtection: &volumes.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
@@ -582,6 +652,26 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
+	if d.HasChange("smb_non_browsable_enabled") {
+		shouldUpdate = true
+		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
+		update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		if d.Get("smb_non_browsable_enabled").(bool) {
+			smbNonBrowsable := volumes.SmbNonBrowsableEnabled
+			update.Properties.SmbNonBrowsable = &smbNonBrowsable
+		}
+	}
+
+	if d.HasChange("smb_access_based_enumeration_enabled") {
+		shouldUpdate = true
+		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
+		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		if d.Get("smb_access_based_enumeration_enabled").(bool) {
+			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
+			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		}
+	}
+
 	if d.HasChange("tags") {
 		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
@@ -642,6 +732,8 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", string(pointer.From(props.ServiceLevel)))
 		d.Set("subnet_id", props.SubnetId)
+		d.Set("kerberos_enabled", props.KerberosEnabled)
+		d.Set("smb_continuous_availability_enabled", props.SmbContinuouslyAvailable)
 		d.Set("network_features", string(pointer.From(props.NetworkFeatures)))
 		d.Set("protocols", props.ProtocolTypes)
 		d.Set("security_style", string(pointer.From(props.SecurityStyle)))
@@ -650,6 +742,18 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
+
+		smbNonBrowsable := false
+		if props.SmbNonBrowsable != nil {
+			smbNonBrowsable = strings.EqualFold(string(*props.SmbNonBrowsable), string(volumes.SmbNonBrowsableEnabled))
+		}
+		d.Set("smb_non_browsable_enabled", smbNonBrowsable)
+
+		smbAccessBasedEnumeration := false
+		if props.SmbAccessBasedEnumeration != nil {
+			smbAccessBasedEnumeration = strings.EqualFold(string(*props.SmbAccessBasedEnumeration), string(volumes.SmbAccessBasedEnumerationEnabled))
+		}
+		d.Set("smb_access_based_enumeration_enabled", smbAccessBasedEnumeration)
 
 		avsDataStore := false
 		if props.AvsDataStore != nil {
@@ -787,16 +891,28 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 			rootAccessEnabled := v["root_access_enabled"].(bool)
+			kerberos5ro := v["kerberos_5_read_only_enabled"].(bool)
+			kerberos5rw := v["kerberos_5_read_write_enabled"].(bool)
+			kerberos5iro := v["kerberos_5i_read_only_enabled"].(bool)
+			kerberos5irw := v["kerberos_5i_read_write_enabled"].(bool)
+			kerberos5pro := v["kerberos_5p_read_only_enabled"].(bool)
+			kerberos5prw := v["kerberos_5p_read_write_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients: utils.String(allowedClients),
-				Cifs:           utils.Bool(cifsEnabled),
-				Nfsv3:          utils.Bool(nfsv3Enabled),
-				Nfsv41:         utils.Bool(nfsv41Enabled),
-				RuleIndex:      utils.Int64(ruleIndex),
-				UnixReadOnly:   utils.Bool(unixReadOnly),
-				UnixReadWrite:  utils.Bool(unixReadWrite),
-				HasRootAccess:  utils.Bool(rootAccessEnabled),
+				AllowedClients:      utils.String(allowedClients),
+				Cifs:                utils.Bool(cifsEnabled),
+				Nfsv3:               utils.Bool(nfsv3Enabled),
+				Nfsv41:              utils.Bool(nfsv41Enabled),
+				Kerberos5ReadOnly:   utils.Bool(kerberos5ro),
+				Kerberos5ReadWrite:  utils.Bool(kerberos5rw),
+				Kerberos5iReadOnly:  utils.Bool(kerberos5iro),
+				Kerberos5iReadWrite: utils.Bool(kerberos5irw),
+				Kerberos5pReadOnly:  utils.Bool(kerberos5pro),
+				Kerberos5pReadWrite: utils.Bool(kerberos5prw),
+				RuleIndex:           utils.Int64(ruleIndex),
+				UnixReadOnly:        utils.Bool(unixReadOnly),
+				UnixReadWrite:       utils.Bool(unixReadWrite),
+				HasRootAccess:       utils.Bool(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -879,41 +995,29 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 		}
 
 		protocolsEnabled := []string{}
-		if v := item.Cifs; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "CIFS")
-			}
+		if utils.NormaliseNilableBool(item.Cifs) {
+			protocolsEnabled = append(protocolsEnabled, "CIFS")
 		}
-		if v := item.Nfsv3; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "NFSv3")
-			}
+		if utils.NormaliseNilableBool(item.Nfsv3) {
+			protocolsEnabled = append(protocolsEnabled, "NFSv3")
 		}
-		if v := item.Nfsv41; v != nil {
-			if *v {
-				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
-			}
-		}
-		unixReadOnly := false
-		if v := item.UnixReadOnly; v != nil {
-			unixReadOnly = *v
-		}
-		unixReadWrite := false
-		if v := item.UnixReadWrite; v != nil {
-			unixReadWrite = *v
-		}
-		rootAccessEnabled := false
-		if v := item.HasRootAccess; v != nil {
-			rootAccessEnabled = *v
+		if utils.NormaliseNilableBool(item.Nfsv41) {
+			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 		}
 
 		result := map[string]interface{}{
-			"rule_index":          ruleIndex,
-			"allowed_clients":     utils.FlattenStringSlice(&allowedClients),
-			"unix_read_only":      unixReadOnly,
-			"unix_read_write":     unixReadWrite,
-			"root_access_enabled": rootAccessEnabled,
-			"protocols_enabled":   utils.FlattenStringSlice(&protocolsEnabled),
+			"allowed_clients":                utils.FlattenStringSlice(&allowedClients),
+			"kerberos_5_read_only_enabled":   utils.NormaliseNilableBool(item.Kerberos5ReadOnly),
+			"kerberos_5_read_write_enabled":  utils.NormaliseNilableBool(item.Kerberos5ReadWrite),
+			"kerberos_5i_read_only_enabled":  utils.NormaliseNilableBool(item.Kerberos5iReadOnly),
+			"kerberos_5i_read_write_enabled": utils.NormaliseNilableBool(item.Kerberos5iReadWrite),
+			"kerberos_5p_read_only_enabled":  utils.NormaliseNilableBool(item.Kerberos5pReadOnly),
+			"kerberos_5p_read_write_enabled": utils.NormaliseNilableBool(item.Kerberos5pReadWrite),
+			"protocols_enabled":              utils.FlattenStringSlice(&protocolsEnabled),
+			"root_access_enabled":            utils.NormaliseNilableBool(item.HasRootAccess),
+			"rule_index":                     ruleIndex,
+			"unix_read_only":                 utils.NormaliseNilableBool(item.UnixReadOnly),
+			"unix_read_write":                utils.NormaliseNilableBool(item.UnixReadWrite),
 		}
 		results = append(results, result)
 	}

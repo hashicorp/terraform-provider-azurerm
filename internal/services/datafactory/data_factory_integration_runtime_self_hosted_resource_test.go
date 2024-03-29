@@ -33,6 +33,50 @@ func TestAccDataFactoryIntegrationRuntimeSelfHosted_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryIntegrationRuntimeSelfHosted_selfContainedInteractiveAuthoringEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
+	r := IntegrationRuntimeSelfHostedResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.selfContainedInteractiveAuthoringEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryIntegrationRuntimeSelfHosted_selfContainedInteractiveAuthoringEnabledUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "test")
+	r := IntegrationRuntimeSelfHostedResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.selfContainedInteractiveAuthoringEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactoryIntegrationRuntimeSelfHosted_rbac(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_self_hosted", "target")
 	r := IntegrationRuntimeSelfHostedResource{}
@@ -69,6 +113,31 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
   name            = "acctestSIR%d"
   data_factory_id = azurerm_data_factory.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (IntegrationRuntimeSelfHostedResource) selfContainedInteractiveAuthoringEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirsh%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
+  name                                         = "acctestSIR%d"
+  data_factory_id                              = azurerm_data_factory.test.id
+  self_contained_interactive_authoring_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

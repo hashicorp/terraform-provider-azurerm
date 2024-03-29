@@ -89,6 +89,21 @@ func TestAccDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T)
 	})
 }
 
+func TestAccDataFactoryIntegrationRuntimeManaged_credential(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
+	r := IntegrationRuntimeManagedResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.credential(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactoryIntegrationRuntimeManaged_aadAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 	r := IntegrationRuntimeManagedResource{}
@@ -343,6 +358,53 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   depends_on = [azurerm_sql_active_directory_administrator.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (IntegrationRuntimeManagedResource) credential(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestdf%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_data_factory_credential_user_managed_identity" "test" {
+  name            = "credential%[2]d"
+  description     = "ORIGINAL DESCRIPTION"
+  data_factory_id = azurerm_data_factory.test.id
+  identity_id     = azurerm_user_assigned_identity.test.id
+  annotations     = ["1"]
+}
+
+resource "azurerm_data_factory_integration_runtime_managed" "test" {
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+
+  node_size = "Standard_D8_v3"
+
+  credential_name = azurerm_data_factory_credential_user_managed_identity.test.name
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (t IntegrationRuntimeManagedResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

@@ -2007,7 +2007,7 @@ func (ContainerAppResource) template(data acceptance.TestData) string {
 }
 
 func (ContainerAppResource) templateWorkloadProfile(data acceptance.TestData) string {
-	return ContainerAppEnvironmentResource{}.completeWithWorkloadProfile(data)
+	return ContainerAppEnvironmentResource{}.complete(data)
 }
 
 func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
@@ -2207,29 +2207,29 @@ resource "azurerm_container_app" "test" {
 
 func (r ContainerAppResource) trafficBlockMoreThanOne() string {
 	return `
-    traffic_weight {
-      percentage      = 50
-    }
-    traffic_weight {
-      percentage      = 50
-    }
+traffic_weight {
+  percentage = 50
+}
+traffic_weight {
+  percentage = 50
+}
 `
 }
 
 func (r ContainerAppResource) trafficBlockLatestRevisionNotSet() string {
 	return `
-    traffic_weight {
-      percentage      = 100
-    }
+traffic_weight {
+  percentage = 100
+}
 `
 }
 
 func (r ContainerAppResource) trafficBlockRevisionSuffixSet() string {
 	return `
-    traffic_weight {
-      percentage      = 100
-	  latest_revision = true
-	  revision_suffix = "foo"
-    }
+traffic_weight {
+  percentage      = 100
+  latest_revision = true
+  revision_suffix = "foo"
+}
 `
 }

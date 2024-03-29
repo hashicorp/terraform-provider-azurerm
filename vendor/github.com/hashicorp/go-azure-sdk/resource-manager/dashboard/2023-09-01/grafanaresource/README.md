@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
 ```
 
@@ -85,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := grafanaresource.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.GrafanaList(ctx, id)` can be used to do batched pagination
 items, err := client.GrafanaListComplete(ctx, id)
@@ -102,7 +103,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := grafanaresource.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.GrafanaListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.GrafanaListByResourceGroupComplete(ctx, id)

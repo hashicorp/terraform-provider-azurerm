@@ -48,7 +48,10 @@ func (c DedicatedHostGroupsClient) Update(ctx context.Context, id commonids.Dedi
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DedicatedHostGroup
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -48,7 +48,10 @@ func (c RegionsClient) LocationsCheckNameAvailability(ctx context.Context, id Lo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model NameAvailabilityCheckResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

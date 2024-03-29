@@ -589,11 +589,13 @@ A `site_config` block exports the following:
 
 * `health_check_path` - The path to the Health Check endpoint.
 
-* `health_check_eviction_time_in_min` - (Optional) The amount of time in minutes that a node can be unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`.
+* `health_check_eviction_time_in_min` - The amount of time in minutes that a node can be unhealthy before being removed from the load balancer.
 
 * `http2_enabled` - Is HTTP2.0 enabled.
 
 * `ip_restriction` - A `ip_restriction` block as defined above.
+
+* `ip_restriction_default_action` - The Default action for traffic that does not match any `ip_restriction` rule.
 
 * `linux_fx_version` - The `LinuxFXVersion` string.
 
@@ -610,6 +612,8 @@ A `site_config` block exports the following:
 * `remote_debugging_version` - The Remote Debugging Version.
 
 * `scm_ip_restriction` - A `scm_ip_restriction` block as defined above.
+
+* `scm_ip_restriction_default_action` - The Default action for traffic that does not match any `scm_ip_restriction` rule.
 
 * `scm_minimum_tls_version` - The Minimum version of TLS for requests to SCM.
 

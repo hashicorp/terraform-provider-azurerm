@@ -43,7 +43,10 @@ func (c StreamingEndpointsClient) AsyncOperation(ctx context.Context, id Streami
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AsyncOperationResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

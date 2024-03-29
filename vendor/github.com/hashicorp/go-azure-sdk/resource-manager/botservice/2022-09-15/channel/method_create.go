@@ -49,7 +49,10 @@ func (c ChannelClient) Create(ctx context.Context, id commonids.BotServiceChanne
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model BotChannel
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

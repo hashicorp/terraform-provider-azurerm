@@ -43,7 +43,10 @@ func (c VolumesClient) Get(ctx context.Context, id VolumeId) (result GetOperatio
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Volume
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

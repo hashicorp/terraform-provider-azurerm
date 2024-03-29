@@ -208,10 +208,15 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"node_public_ip_prefix_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			RequiredWith: []string{"enable_node_public_ip"},
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			RequiredWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{"enable_node_public_ip"}
+				}
+				return []string{"node_public_ip_enabled"}
+			}(),
 		},
 
 		// Node Taints control the behaviour of the Node Pool, as such they should not be computed and
@@ -667,13 +672,9 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Properties: &profile,
 	}
 
-	future, err := poolsClient.CreateOrUpdate(ctx, id, parameters)
+	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -833,13 +834,9 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	log.Printf("[DEBUG] Updating existing %s..", *id)
 	existing.Model.Properties = props
-	future, err := client.CreateOrUpdate(ctx, *id, *existing.Model)
+	err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 	if err != nil {
 		return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	d.Partial(false)
@@ -1065,15 +1062,11 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 	}
 
 	ignorePodDisruptionBudget := true
-	future, err := client.Delete(ctx, *id, agentpools.DeleteOperationOptions{
+	err = client.DeleteThenPoll(ctx, *id, agentpools.DeleteOperationOptions{
 		IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
 	})
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", id, err)
 	}
 
 	return nil

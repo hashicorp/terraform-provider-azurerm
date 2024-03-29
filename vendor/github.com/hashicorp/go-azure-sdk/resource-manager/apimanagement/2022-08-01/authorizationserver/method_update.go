@@ -76,7 +76,10 @@ func (c AuthorizationServerClient) Update(ctx context.Context, id AuthorizationS
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AuthorizationServerContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

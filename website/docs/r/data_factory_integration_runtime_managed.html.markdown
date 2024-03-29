@@ -57,6 +57,8 @@ The following arguments are supported:
 
 * `catalog_info` - (Optional) A `catalog_info` block as defined below.
 
+* `credential_name` - (Optional) The name of the credential to use for the Managed Integration Runtime.
+
 * `custom_setup_script` - (Optional) A `custom_setup_script` block as defined below.
 
 * `vnet_integration` - (Optional) A `vnet_integration` block as defined below.

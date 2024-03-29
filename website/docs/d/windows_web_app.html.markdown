@@ -599,6 +599,8 @@ A `site_config` block exports the following:
 
 * `ip_restriction` - A `ip_restriction` block as defined above.
 
+* `ip_restriction_default_action` - The Default action for traffic that does not match any `ip_restriction` rule.
+
 * `load_balancing_mode` - The site Load Balancing Mode.
 
 * `local_mysql_enabled` - Is the Local MySQL enabled.
@@ -612,6 +614,8 @@ A `site_config` block exports the following:
 * `remote_debugging_version` - The Remote Debugging Version.
 
 * `scm_ip_restriction` - A `scm_ip_restriction` block as defined above.
+
+* `scm_ip_restriction_default_action` - The Default action for traffic that does not match any `scm_ip_restriction` rule.
 
 * `scm_minimum_tls_version` - The Minimum version of TLS for requests to SCM.
 

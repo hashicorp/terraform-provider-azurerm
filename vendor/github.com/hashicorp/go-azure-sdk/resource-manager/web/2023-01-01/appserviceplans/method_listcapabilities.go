@@ -45,7 +45,10 @@ func (c AppServicePlansClient) ListCapabilities(ctx context.Context, id commonid
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model []Capability
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

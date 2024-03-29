@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2023-09-01/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,6 +27,7 @@ type DeploymentDataSourceModel struct {
 	ManagedResourceGroup   string                                     `tfschema:"managed_resource_group"`
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
+	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
 	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
@@ -34,6 +35,7 @@ type DeploymentDataSourceModel struct {
 	FrontendPublic         []FrontendPublic                           `tfschema:"frontend_public"`
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
+	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
@@ -77,6 +79,29 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"capacity": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
+		},
+
+		"auto_scale_profile": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"min_capacity": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"max_capacity": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+				},
+			},
 		},
 
 		"diagnose_support_enabled": {
@@ -162,6 +187,11 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"automatic_upgrade_channel": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"tags": commonschema.TagsDataSource(),
@@ -261,11 +291,27 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if scaling := props.ScalingProperties; scaling != nil {
-						output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+						if capacity := scaling.Capacity; capacity != nil {
+							output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+						}
+						if autoScaleProfiles := scaling.AutoScaleSettings; autoScaleProfiles != nil {
+							profiles := autoScaleProfiles.Profiles
+							for _, profile := range profiles {
+								output.AutoScaleProfile = append(output.AutoScaleProfile, AutoScaleProfile{
+									Name: profile.Name,
+									Min:  profile.Capacity.Min,
+									Max:  profile.Capacity.Max,
+								})
+							}
+						}
 					}
 
 					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
 						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
+					}
+
+					if props.AutoUpgradeProfile != nil {
+						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
 					}
 				}
 			}

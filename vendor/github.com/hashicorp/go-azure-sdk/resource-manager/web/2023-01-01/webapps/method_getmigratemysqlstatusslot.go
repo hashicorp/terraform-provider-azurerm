@@ -44,7 +44,10 @@ func (c WebAppsClient) GetMigrateMySqlStatusSlot(ctx context.Context, id SlotId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MigrateMySqlStatus
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

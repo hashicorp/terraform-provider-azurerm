@@ -64,8 +64,8 @@ resource "azurerm_disk_encryption_set" "example" {
 resource "azurerm_key_vault_access_policy" "example-disk" {
   key_vault_id = azurerm_key_vault.example.id
 
-  tenant_id = azurerm_disk_encryption_set.example.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.example.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.example.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.example.identity[0].principal_id
 
   key_permissions = [
     "Create",
@@ -103,7 +103,7 @@ resource "azurerm_key_vault_access_policy" "example-user" {
 resource "azurerm_role_assignment" "example-disk" {
   scope                = azurerm_key_vault.example.id
   role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = azurerm_disk_encryption_set.example.identity.0.principal_id
+  principal_id         = azurerm_disk_encryption_set.example.identity[0].principal_id
 }
 
 ```
@@ -164,8 +164,8 @@ resource "azurerm_disk_encryption_set" "example" {
 resource "azurerm_key_vault_access_policy" "example-disk" {
   key_vault_id = azurerm_key_vault.example.id
 
-  tenant_id = azurerm_disk_encryption_set.example.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.example.identity.0.principal_id
+  tenant_id = azurerm_disk_encryption_set.example.identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.example.identity[0].principal_id
 
   key_permissions = [
     "Create",
@@ -203,7 +203,7 @@ resource "azurerm_key_vault_access_policy" "example-user" {
 resource "azurerm_role_assignment" "example-disk" {
   scope                = azurerm_key_vault.example.id
   role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = azurerm_disk_encryption_set.example.identity.0.principal_id
+  principal_id         = azurerm_disk_encryption_set.example.identity[0].principal_id
 }
 
 ```

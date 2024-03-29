@@ -43,7 +43,10 @@ func (c IntegrationAccountAssembliesClient) Get(ctx context.Context, id Assembly
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AssemblyDefinition
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

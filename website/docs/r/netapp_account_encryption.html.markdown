@@ -102,9 +102,7 @@ resource "azurerm_netapp_account_encryption" "example" {
 
   user_assigned_identity_id = azurerm_user_assigned_identity.example.id
 
-  encryption {
-    key_vault_key_id = azurerm_key_vault_key.example.versionless_id
-  }
+  encryption_key = azurerm_key_vault_key.example.versionless_id
 }
 ```
 
@@ -112,7 +110,7 @@ resource "azurerm_netapp_account_encryption" "example" {
 
 The following arguments are supported:
 
-* `encryption` - (Required) A `encryption` block as defined below.
+* `encryption_key` - (Required) Specify the versionless ID of the encryption key.
 
 * `netapp_account_id` - (Required) The ID of the NetApp account where volume under it will have customer managed keys-based encryption enabled.
 
@@ -124,15 +122,13 @@ The following arguments are supported:
 
 ---
 
-A `encryption` block supports the following:
 
-* `key_vault_key_id` - (Required) The versionless ID of the customer managed key.
 
 A full example of the `azurerm_netapp_account_encryption` resource and NetApp Volume with customer-managed keys encryption enabled can be found in [the `./examples/netapp/nfsv3_volume_cmk_userassigned` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/nfsv3_volume_cmk_userassigned)
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Account Encryption Resource.
 
@@ -140,7 +136,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour and 30 minutes) Used when creating the Account Encryption Resource.
+* `create` - (Defaults to 90 minutes) Used when creating the Account Encryption Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Account Encryption Resource.
 * `update` - (Defaults to 2 hours) Used when updating the Account Encryption Resource.
 * `delete` - (Defaults to 2 hours) Used when deleting the Account Encryption Resource.

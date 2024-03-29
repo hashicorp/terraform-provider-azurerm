@@ -47,7 +47,10 @@ func (c WebAppsClient) CreateOrUpdateVnetConnectionGatewaySlot(ctx context.Conte
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VnetGateway
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
