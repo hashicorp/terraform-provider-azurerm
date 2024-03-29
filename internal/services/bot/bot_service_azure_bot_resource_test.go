@@ -384,13 +384,13 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_service_azure_bot" "test" {
-  name                = "acctestdf%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "global"
-  sku                 = "F0"
-  microsoft_app_id    = azuread_application_registration.test.client_id
-  cmk_key_vault_key_url   = azurerm_key_vault_key.test.id
-  endpoint            = "https://example2.com"
+  name                  = "acctestdf%[1]d"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = "global"
+  sku                   = "F0"
+  microsoft_app_id      = azuread_application_registration.test.client_id
+  cmk_key_vault_key_url = azurerm_key_vault_key.test.id
+  endpoint              = "https://example2.com"
 
   depends_on = [azurerm_role_assignment.test]
 }
