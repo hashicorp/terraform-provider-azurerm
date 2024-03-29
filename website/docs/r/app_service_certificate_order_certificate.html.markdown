@@ -14,12 +14,12 @@ Manages an App Service Certificate Order Certificate.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "test" {}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
+
+data "azurerm_client_config" "test" {}
 
 resource "azurerm_key_vault" "test" {
   name                = "example-keyvault"
@@ -86,9 +86,9 @@ resource "azurerm_app_service_certificate_order" "example" {
 }
 
 resource "azurerm_app_service_certificate_order_certificate" "test" {
-  name = "example-certorder-cert"
-  certificate_order_id = azurerm_app_service_certificate_order.example.id
-  key_vault_id = azurerm_key_vault.example.id
+  name                  = "example-certorder-cert"
+  certificate_order_id  = azurerm_app_service_certificate_order.example.id
+  key_vault_id          = azurerm_key_vault.example.id
   key_vault_secret_name = "example-keyvault-secret"
 }
 ```
