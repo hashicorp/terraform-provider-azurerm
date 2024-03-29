@@ -389,7 +389,7 @@ resource "azurerm_bot_service_azure_bot" "test" {
   location            = "global"
   sku                 = "F0"
   microsoft_app_id    = azuread_application_registration.test.client_id
-  cmk_key_vault_url   = azurerm_key_vault_key.test.id
+  cmk_key_vault_key_url   = azurerm_key_vault_key.test.id
   endpoint            = "https://example2.com"
 
   depends_on = [azurerm_role_assignment.test]
