@@ -37,7 +37,7 @@ func TestNewManagedHSMRoleDefinitionID(t *testing.T) {
 			keyVaultBaseUrl: "https://test.managedhsm.azure.net:443",
 			Scope:           "/keys",
 			Name:            "test",
-			Expected:        fmt.Sprintf("https://test.managedhsm.azure.net//keys/%s/test", mhsmType),
+			Expected:        fmt.Sprintf("https://test.managedhsm.azure.net:443//keys/%s/test", mhsmType),
 			ExpectError:     false,
 		},
 	}
