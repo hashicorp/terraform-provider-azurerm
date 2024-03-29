@@ -3,6 +3,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -136,6 +137,8 @@ resource "azurerm_app_service_certificate_order_certificate" "test" {
 }
 
 func (r CertificateOrderCertificateResource) template(data acceptance.TestData) string {
+	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
+	dnsZoneRG := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,9 +193,10 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  // app service
+  // app service object ID
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
+    //object_id = "f8daea97-62e7-4026-becf-13c2ea98e8b4"
     object_id = data.azuread_service_principal.app-service-spn.object_id
 
     secret_permissions = [
@@ -213,10 +217,11 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  // Microsoft.Azure.CertificateRegistration
+  // Microsoft.Azure.CertificateRegistration 
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
     object_id = data.azuread_service_principal.cert-spn.object_id
+    //object_id = "ed47c2a1-bd23-4341-b39c-f4fd69138dd3"
 
     secret_permissions = [
       "Delete",
@@ -273,6 +278,7 @@ resource "azurerm_key_vault" "test1" {
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
     object_id = data.azuread_service_principal.app-service-spn.object_id
+    //object_id = "f8daea97-62e7-4026-becf-13c2ea98e8b4"
 
     secret_permissions = [
       "Delete",
@@ -296,6 +302,7 @@ resource "azurerm_key_vault" "test1" {
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
     object_id = data.azuread_service_principal.cert-spn.object_id
+    //object_id = "ed47c2a1-bd23-4341-b39c-f4fd69138dd3"
 
     secret_permissions = [
       "Delete",
@@ -316,13 +323,28 @@ resource "azurerm_key_vault" "test1" {
   }
 }
 
+data "azurerm_dns_zone" "test" {
+  name                = "%[4]s"
+  resource_group_name = "%[5]s"
+}
+
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "tftestASCO-cert-%[3]s"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
-  distinguished_name  = "CN=example.com"
+  distinguished_name  = "CN=${data.azurerm_dns_zone.test.name}"
   product_type        = "Standard"
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
+resource "azurerm_dns_txt_record" "test" {
+  name                = "@"
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 3600
+
+  record {
+    value = azurerm_app_service_certificate_order.test.domain_verification_token
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5), dnsZone, dnsZoneRG)
 }
