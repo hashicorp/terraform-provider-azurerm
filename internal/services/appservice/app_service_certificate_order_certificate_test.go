@@ -102,7 +102,7 @@ func (r CertificateOrderCertificateResource) basic(data acceptance.TestData) str
 %s
 resource "azurerm_app_service_certificate_order_certificate" "test" {
   name                  = "acctestcokv-%[2]s"
-  certificate_order_id  = data.azurerm_app_service_certificate_order.test.id
+  certificate_order_id  = azurerm_app_service_certificate_order.test.id
   key_vault_id          = azurerm_key_vault.test.id
   key_vault_secret_name = "kvsec%[2]s"
 }
@@ -115,7 +115,7 @@ func (r CertificateOrderCertificateResource) keyVaultIdUpdate(data acceptance.Te
 %s
 resource "azurerm_app_service_certificate_order_certificate" "test" {
   name                  = "acctestcokv-%[2]s"
-  certificate_order_id  = data.azurerm_app_service_certificate_order.test.id
+  certificate_order_id  = azurerm_app_service_certificate_order.test.id
   key_vault_id          = azurerm_key_vault.test1.id
   key_vault_secret_name = "kvsec%[2]s"
 }
@@ -128,7 +128,7 @@ func (r CertificateOrderCertificateResource) keyVaultNameUpdate(data acceptance.
 %s
 resource "azurerm_app_service_certificate_order_certificate" "test" {
   name                  = "acctestcokv-%[2]s"
-  certificate_order_id  = data.azurerm_app_service_certificate_order.test.id
+  certificate_order_id  = azurerm_app_service_certificate_order.test.id
   key_vault_id          = azurerm_key_vault.test.id
   key_vault_secret_name = "kvsec1%[2]s"
 }
