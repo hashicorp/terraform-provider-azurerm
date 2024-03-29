@@ -1,9 +1,9 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_app_sevice_certificate_order_certificate"
+page_title: "Azure Resource Manager: azurerm_app_service_certificate_order_certificate"
 description: |-
-  Manages an App Service Certificate Order.
+  Manages an App Service Certificate Order Certificate.
 
 ---
 
@@ -99,19 +99,19 @@ resource "azurerm_app_service_certificate_order_certificate" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the certificate. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the certificate order certificate key vault binding. Changing this forces a new resource to be created.
 
-* `certificate_order_id` - (Required) The id of the certificate order in which to create the certificate. Changing this forces a new resource to be created.
+* `certificate_order_id` - (Required) The id of the certificate order in which to configure the certificate. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The id of the key vault in which to bind the certificate.
+* `key_vault_id` - (Required) The id of the key vault in which to bind the certificate order certificate.
 
-* `key_vault_secret_name` - (Required) The name of the key vault secrete in which to bind the certificate.
+* `key_vault_secret_name` - (Required) The name of the key vault secrete in which to bind the certificate order certificate.
 
 ## Attributes Reference
 
-* `location` - The location of the certificate.
+* `location` - The location of the certificate order certificate.
 
-* `type` - The type of the certificate.
+* `type` - The type of the certificate order certificate.
 
 ## Timeouts
 
@@ -124,10 +124,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-App Service Certificate Orders can be imported using the `resource id`, e.g.
+App Service Certificate Order Certificate can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_certificate_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1/certificates/certificates1
+terraform import azurerm_app_service_certificate_order_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1/certificates/certificates1
 ```
 
 
