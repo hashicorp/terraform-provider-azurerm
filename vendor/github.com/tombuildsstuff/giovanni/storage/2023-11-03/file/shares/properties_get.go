@@ -53,7 +53,7 @@ func (c Client) GetProperties(ctx context.Context, shareName string) (result Get
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.MetaData = metadata.ParseFromHeaders(resp.Header)
 
 			quotaRaw := resp.Header.Get("x-ms-share-quota")
