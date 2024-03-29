@@ -84,7 +84,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"cmk_key_vault_url": {
+		"cmk_key_vault_key_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
@@ -214,7 +214,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					DeveloperAppInsightsApplicationID: pointer.To(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
 					DisableLocalAuth:                  pointer.To(!metadata.ResourceData.Get("local_authentication_enabled").(bool)),
 					IsCmekEnabled:                     utils.Bool(false),
-					CmekKeyVaultURL:                   pointer.To(metadata.ResourceData.Get("cmk_key_vault_url").(string)),
+					CmekKeyVaultURL:                   pointer.To(metadata.ResourceData.Get("cmk_key_vault_key_url").(string)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           pointer.To(metadata.ResourceData.Get("luis_key").(string)),
 					PublicNetworkAccess:               publicNetworkEnabled,
@@ -224,7 +224,7 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
 			}
 
-			if _, ok := metadata.ResourceData.GetOk("cmk_key_vault_url"); ok {
+			if _, ok := metadata.ResourceData.GetOk("cmk_key_vault_key_url"); ok {
 				props.Properties.IsCmekEnabled = utils.Bool(true)
 			}
 
@@ -438,7 +438,7 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 
 				metadata.ResourceData.Set("icon_url", pointer.From(props.IconURL))
 
-				metadata.ResourceData.Set("cmk_key_vault_url", pointer.From(props.CmekKeyVaultURL))
+				metadata.ResourceData.Set("cmk_key_vault_key_url", pointer.From(props.CmekKeyVaultURL))
 			}
 
 			return nil

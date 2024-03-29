@@ -122,7 +122,7 @@ func TestAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
 			Config: r.cmekEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cmk_key_vault_url").IsNotEmpty(),
+				check.That(data.ResourceName).Key("cmk_key_vault_key_url").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -130,7 +130,7 @@ func TestAccBotServiceAzureBot_cmekEnabled(t *testing.T) {
 			Config: r.cmekEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cmk_key_vault_url").IsNotEmpty(),
+				check.That(data.ResourceName).Key("cmk_key_vault_key_url").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
