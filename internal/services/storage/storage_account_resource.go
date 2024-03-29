@@ -70,14 +70,14 @@ func resolveStorageAccountServiceSupportLevel(kind storage.Kind, tier storage.Sk
 	supportBlob := kind != storage.KindFileStorage
 
 	// Queue is only supported for Storage and StorageV2, in Standard sku tier.
-	supportQueue := tier == storage.SkuTierStandard && kind == storage.KindStorageV2
+	supportQueue := tier == storage.SkuTierStandard && slices.Contains([]storage.Kind{storage.KindStorage, storage.KindStorageV2}, kind)
 
 	// File share is only supported for StorageV2 and FileStorage.
 	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
 	// Per test, the StorageV2 with Premium sku tier also doesn't support file share.
-	supportShare := kind == storage.KindFileStorage || (kind == storage.KindStorageV2 && tier != storage.SkuTierPremium)
+	supportShare := kind == storage.KindFileStorage || (slices.Contains([]storage.Kind{storage.KindStorage, storage.KindStorageV2}, kind) && tier != storage.SkuTierPremium)
 
-	// Static Website is only supported for StorageV2 and BlockBlobStorage
+	// Static Website is only supported for StorageV2 (not for Storage(v1)) and BlockBlobStorage
 	supportStaticWebSite := kind == storage.KindStorageV2 || kind == storage.KindBlockBlobStorage
 
 	return storageAccountServiceSupportLevel{

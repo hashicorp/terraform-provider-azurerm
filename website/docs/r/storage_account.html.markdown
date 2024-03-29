@@ -136,7 +136,7 @@ The following arguments are supported:
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
-~> **NOTE:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to `StorageV2`.
+~> **NOTE:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to `Storage(V2)`.
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
@@ -144,7 +144,7 @@ The following arguments are supported:
 
 * `share_properties` - (Optional) A `share_properties` block as defined below.
 
-~> **NOTE:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
+~> **NOTE:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is `Storage(V2)` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
