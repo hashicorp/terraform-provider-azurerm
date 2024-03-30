@@ -8,7 +8,9 @@ description: |-
 
 # Data Source: azurerm_billing_mpa_account_scope
 
-Use this data source to access an ID for your MPA Account billing scope.
+Use this helper Data Source to provide a correctly formatted Billing Scope ID for a Microsoft Partner Agreement Account.
+
+!> **Note:** This data source is a helper function only and no data actually is read from Azure.
 
 ## Example Usage
 

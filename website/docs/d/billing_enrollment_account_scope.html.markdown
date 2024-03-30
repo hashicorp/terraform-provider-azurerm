@@ -8,7 +8,9 @@ description: |-
 
 # Data Source: azurerm_billing_enrollment_account_scope
 
-Use this data source to access information about an existing Enrollment Account Billing Scope.
+Use this helper Data Source to provide a correctly formatted Billing Scope ID for an Enterprise Account Enrollment.
+
+!> **Note:** This data source is a helper function only and no data actually is read from Azure.
 
 !> **Note:** The `azurerm_billing_enrollment_account_scope` data source is deprecated and will be removed in version 4.0 of the AzureRM Provider. Please use the [`azurerm_billing_enrollment_account`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/billing_enrollment_account) data source instead.
 
