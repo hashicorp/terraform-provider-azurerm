@@ -15,9 +15,13 @@ Use this data source to access information about an existing Enterprise Billing 
 ## Example Usage
 
 ```hcl
+data "azurerm_billing_account" "example" {
+  name    = "12345678"
+}
+
 data "azurerm_billing_enrollment_account" "example" {
-  billing_account_name    = "existing"
-  enrollment_account_name = "existing"
+  billing_account_name    = data.azurerm_billing_account.example.name
+  enrollment_account_name = "123456"
 }
 
 output "id" {
@@ -29,9 +33,9 @@ output "id" {
 
 The following arguments are supported:
 
-* `billing_account_name` - (Required) The Billing Account Name of the Enterprise Account.
+* `billing_account_name` - (Required) The Billing Account Name of the Enterprise Account. Note that in the Azure Portal this is actually referred to as the "Billing Account ID".
 
-* `enrollment_account_name` - (Required) The Enrollment Account Name in the above Enterprise Account.
+* `enrollment_account_name` - (Required) The Enrollment Account Name in the above Enterprise Account. Note that in the Azure Portal this is actually referred to as the "Enrollment Account ID".
 
 ## Attributes Reference
 

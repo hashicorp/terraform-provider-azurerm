@@ -14,7 +14,7 @@ Use this data source to access information about an existing Billing Account.
 
 ```hcl
 data "azurerm_billing_account" "example" {
-  name    = "existing"
+  name    = "12345678"
 }
 
 output "id" {
@@ -26,7 +26,7 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The Billing Account Name.
+* `name` - (Required) The Billing Account Name. Note that in the Azure Portal this is actually referred to as the "Billing Account ID".
 
 ## Attributes Reference
 
@@ -48,7 +48,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `sold_to` block exports the following:
+A `sold_to` block exports the following. Note that most of these fields are optional and may be empty:
 
 * `address_line_1`
 
