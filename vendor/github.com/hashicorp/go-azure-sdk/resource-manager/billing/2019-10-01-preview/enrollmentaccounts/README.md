@@ -42,11 +42,12 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := enrollmentaccounts.NewBillingAccountID("billingAccountValue")
 
-read, err := client.ListByBillingAccountName(ctx, id, enrollmentaccounts.DefaultListByBillingAccountNameOperationOptions())
+// alternatively `client.ListByBillingAccountName(ctx, id, enrollmentaccounts.DefaultListByBillingAccountNameOperationOptions())` can be used to do batched pagination
+items, err := client.ListByBillingAccountNameComplete(ctx, id, enrollmentaccounts.DefaultListByBillingAccountNameOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
