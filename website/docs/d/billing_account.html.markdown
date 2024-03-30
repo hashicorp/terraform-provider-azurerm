@@ -14,7 +14,7 @@ Use this data source to access information about an existing Billing Account.
 
 ```hcl
 data "azurerm_billing_account" "example" {
-  name    = "12345678"
+  name = "12345678"
 }
 
 output "id" {
