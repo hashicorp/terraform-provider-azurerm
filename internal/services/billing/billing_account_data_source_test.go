@@ -4,7 +4,6 @@
 package billing_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -19,7 +18,7 @@ func TestAccBillingAccountDataSource_basic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Billing/billingAccounts/12345678"),
 				check.That(data.ResourceName).Key("account_status").IsNotEmpty(),
@@ -33,8 +32,8 @@ func TestAccBillingAccountDataSource_basic(t *testing.T) {
 	})
 }
 
-func (BillingAccountDataSource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (BillingAccountDataSource) basic() string {
+	return `
 provider "azurerm" {
   features {}
 }
@@ -42,5 +41,5 @@ provider "azurerm" {
 data "azurerm_billing_account" "test" {
   name = "12345678"
 }
-`)
+`
 }
