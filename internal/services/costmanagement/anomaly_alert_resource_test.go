@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-06-01-preview/scheduledactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -81,6 +82,9 @@ resource "azurerm_cost_anomaly_alert" "test" {
 }
 
 func (AnomalyAlertResource) completeConfig(data acceptance.TestData) string {
+	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
+	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -95,8 +99,10 @@ resource "azurerm_cost_anomaly_alert" "test" {
   email_subject   = "Hi"
   email_addresses = ["test@test.com", "test@hashicorp.developer"]
   message         = "Cost anomaly complete test"
+  start_date      = "%s"
+  end_date        = "%s"
 }
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, start, end)
 }
 
 func (r AnomalyAlertResource) requiresImportConfig(data acceptance.TestData) string {

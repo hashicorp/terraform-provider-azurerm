@@ -69,6 +69,22 @@ func (AnomalyAlertResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: validation.StringLenBetween(1, 250),
 		},
+
+		"start_date": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Computed:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+
+		"end_date": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Computed:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
 	}
 }
 
@@ -114,8 +130,19 @@ func (r AnomalyAlertResource) Create() sdk.ResourceFunc {
 			schedule := scheduledactions.ScheduleProperties{
 				Frequency: scheduledactions.ScheduleFrequencyDaily,
 			}
-			schedule.SetEndDateAsTime(time.Now().AddDate(1, 0, 0))
-			schedule.SetStartDateAsTime(time.Now())
+
+			if v, ok := metadata.ResourceData.GetOk("start_date"); ok {
+				schedule.StartDate = v.(string)
+			} else {
+				schedule.SetStartDateAsTime(time.Now())
+			}
+
+			if v, ok := metadata.ResourceData.GetOk("end_date"); ok {
+				schedule.EndDate = v.(string)
+			} else {
+				// Adding 365 days instead of 1 year to avoid leap year issues caused by golang time AddDate normalization
+				schedule.SetEndDateAsTime(time.Now().AddDate(0, 0, 365))
+			}
 
 			param := scheduledactions.ScheduledAction{
 				Kind: pointer.To(scheduledactions.ScheduledActionKindInsightAlert),
@@ -180,8 +207,19 @@ func (r AnomalyAlertResource) Update() sdk.ResourceFunc {
 			schedule := scheduledactions.ScheduleProperties{
 				Frequency: scheduledactions.ScheduleFrequencyDaily,
 			}
-			schedule.SetEndDateAsTime(time.Now().AddDate(1, 0, 0))
-			schedule.SetStartDateAsTime(time.Now())
+
+			if v, ok := metadata.ResourceData.GetOk("start_date"); ok {
+				schedule.StartDate = v.(string)
+			} else {
+				schedule.SetStartDateAsTime(time.Now())
+			}
+
+			if v, ok := metadata.ResourceData.GetOk("end_date"); ok {
+				schedule.EndDate = v.(string)
+			} else {
+				// Adding 365 days instead of 1 year to avoid leap year issues caused by golang time AddDate normalization
+				schedule.SetEndDateAsTime(time.Now().AddDate(0, 0, 365))
+			}
 
 			param := scheduledactions.ScheduledAction{
 				Kind: pointer.To(scheduledactions.ScheduledActionKindInsightAlert),
@@ -236,6 +274,8 @@ func (AnomalyAlertResource) Read() sdk.ResourceFunc {
 					metadata.ResourceData.Set("email_subject", props.Notification.Subject)
 					metadata.ResourceData.Set("email_addresses", props.Notification.To)
 					metadata.ResourceData.Set("message", props.Notification.Message)
+					metadata.ResourceData.Set("start_date", props.Schedule.StartDate)
+					metadata.ResourceData.Set("end_date", props.Schedule.EndDate)
 				}
 			}
 

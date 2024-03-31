@@ -21,6 +21,8 @@ resource "azurerm_cost_anomaly_alert" "example" {
   subscription_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
   email_subject   = "My Test Anomaly Alert"
   email_addresses = ["example@test.net"]
+  start_date      = "2023-01-02T00:00:00Z"
+  end_date        = "2023-02-02T00:00:00Z"
 }
 ```
 
@@ -38,7 +40,9 @@ The following arguments are supported:
 
 * `email_subject` - (Required) The email subject of the Cost Anomaly Alerts. Maximum length of the subject is 70.
 
+* `start_date` - (Optional) The start date and time of the Scheduled Action (UTC). When not supplied defaults to the current date and time. Changing this forces a new resource to be created.
 
+* `end_date` - (Optional) The end date and time of the Scheduled Action (UTC). When not supplied defaults to the current date and time plus 365 days. Note you cannot set and end date more than 365 days in the future. Changing this forces a new resource to be created.
 
 ---
 
