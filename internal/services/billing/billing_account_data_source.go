@@ -106,8 +106,8 @@ func (BillingAccountDataSource) Read() sdk.ResourceFunc {
 					state.AccountStatus = string(pointer.From(props.AccountStatus))
 					state.AccountType = string(pointer.From(props.AccountType))
 					state.AgreementType = string(pointer.From(props.AgreementType))
-					state.DisplayName = string(pointer.From(props.DisplayName))
-					state.HasReadAccess = bool(pointer.From(props.HasReadAccess))
+					state.DisplayName = pointer.From(props.DisplayName)
+					state.HasReadAccess = pointer.From(props.HasReadAccess)
 					state.SoldTo = helpers.FlattenAddressDetails(props.SoldTo)
 				}
 			}

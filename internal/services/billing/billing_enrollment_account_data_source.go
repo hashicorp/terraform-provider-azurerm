@@ -113,12 +113,12 @@ func (BillingEnrollmentAccountDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.AccountName = string(pointer.From(props.AccountName))
-					state.AccountOwner = string(pointer.From(props.AccountOwner))
-					state.CostCenter = string(pointer.From(props.CostCenter))
-					state.EndDate = string(pointer.From(props.EndDate))
-					state.StartDate = string(pointer.From(props.StartDate))
-					state.Status = string(pointer.From(props.Status))
+					state.AccountName = pointer.From(props.AccountName)
+					state.AccountOwner = pointer.From(props.AccountOwner)
+					state.CostCenter = pointer.From(props.CostCenter)
+					state.EndDate = pointer.From(props.EndDate)
+					state.StartDate = pointer.From(props.StartDate)
+					state.Status = pointer.From(props.Status)
 				}
 			}
 
