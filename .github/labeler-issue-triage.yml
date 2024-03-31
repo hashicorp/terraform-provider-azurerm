@@ -52,7 +52,7 @@ service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
 
 service/billing:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(billing_enrollment_account_scope\W+|billing_mca_account_scope\W+|billing_mpa_account_scope\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(billing_account\W+|billing_enrollment_account\W+|billing_enrollment_account_scope\W+|billing_mca_account_scope\W+|billing_mpa_account_scope\W+)((.|\n)*)###'
 
 service/blueprints:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_blueprint_((.|\n)*)###'
