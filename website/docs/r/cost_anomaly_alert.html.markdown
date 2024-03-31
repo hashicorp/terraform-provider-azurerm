@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `start_date` - (Optional) The start date and time of the Scheduled Action (UTC). When not supplied defaults to the current date and time. Changing this forces a new resource to be created.
 
-* `end_date` - (Optional) The end date and time of the Scheduled Action (UTC). When not supplied defaults to the current date and time plus 365 days. Note you cannot set and end date more than 365 days in the future. Changing this forces a new resource to be created.
+* `end_date` - (Optional) The end date and time of the Scheduled Action (UTC). When not supplied defaults to the current date and time plus 365 days. Note you cannot set an end date more than 365 days in the future. Changing this forces a new resource to be created.
 
 ---
 
