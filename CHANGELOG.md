@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
 * `maintenance`: updating to API Version `2023-04-01` [GH-25388]
 * `azurerm_bot_service_azure_bot` - support for the `cmk_key_vault_key_url` property [GH-23640]
+* `azurerm_capacity_reservation` - update validation for `capacity` [GH-25471]
 * `azurerm_managed_hsm_role_*_ids`: use specific resource id to replace generic nested item id [GH-25323]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
