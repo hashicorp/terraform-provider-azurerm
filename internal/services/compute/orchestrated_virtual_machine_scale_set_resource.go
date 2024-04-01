@@ -52,7 +52,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		// The plan was to remove support the the legacy Orchestrated Virtual Machine Scale Set in 3.0.
+		// The plan was to remove support the legacy Orchestrated Virtual Machine Scale Set in 3.0.
 		// Turns out it's still in use
 		// TODO: Revisit in 4.0
 		// TODO: exposing requireGuestProvisionSignal once it's available

@@ -1104,7 +1104,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"12", // Deprecated, and removed from portal, but seemingly accepted by API
 						"14",
 						"16",
-						"18", // preview LTS Support
+						"18",
 						"20",
 					}, false),
 					ExactlyOneOf: []string{
@@ -1116,7 +1116,7 @@ func linuxFunctionAppStackSchema() *pluginsdk.Schema {
 						"site_config.0.application_stack.0.docker",
 						"site_config.0.application_stack.0.use_custom_runtime",
 					},
-					Description: "The version of Node to use. Possible values include `12`, `14`, `16` and `18`",
+					Description: "The version of Node to use. Possible values include `12`, `14`, `16`, `18` and `20`",
 				},
 
 				"powershell_core_version": {

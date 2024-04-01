@@ -10,7 +10,9 @@ import (
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	storageClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 )
 
 func TestShareV0ToV1(t *testing.T) {
@@ -59,10 +61,10 @@ func TestShareV0ToV1(t *testing.T) {
 }
 
 func TestShareV1ToV2(t *testing.T) {
-	clouds := []azure.Environment{
-		azure.ChinaCloud,
-		azure.PublicCloud,
-		azure.USGovernmentCloud,
+	clouds := []*environments.Environment{
+		environments.AzureChina(),
+		environments.AzurePublic(),
+		environments.AzureUSGovernment(),
 	}
 
 	for _, cloud := range clouds {
@@ -76,14 +78,22 @@ func TestShareV1ToV2(t *testing.T) {
 			"quota":                5120,
 		}
 
+		storageSuffix, ok := cloud.Storage.DomainSuffix()
+		if !ok {
+			t.Fatalf("determining domain suffix for storage in environment: %s", cloud.Name)
+		}
+
 		meta := &clients.Client{
 			Account: &clients.ResourceManagerAccount{
-				AzureEnvironment: cloud,
+				Environment: *cloud,
+			},
+			Storage: &storageClient.Client{
+				StorageDomainSuffix: *storageSuffix,
 			},
 		}
 
 		expected := map[string]interface{}{
-			"id":                   fmt.Sprintf("https://account1.file.%s/share1", cloud.StorageEndpointSuffix),
+			"id":                   fmt.Sprintf("https://account1.file.%s/share1", *storageSuffix),
 			"name":                 "share1",
 			"resource_group_name":  "group1",
 			"storage_account_name": "account1",

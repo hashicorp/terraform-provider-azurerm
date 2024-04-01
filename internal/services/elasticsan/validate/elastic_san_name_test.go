@@ -51,7 +51,7 @@ func TestElasticSanName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// can end with an underscore
+			// cannot end with an underscore
 			input:    "hello_",
 			expected: false,
 		},

@@ -35,7 +35,7 @@ func resourceDataFactoryIntegrationRuntimeManaged() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The resource 'azurerm_data_factory_integration_runtime_managed' has been superseded by the 'azurerm_data_factory_integration_runtime_azure_ssis'.",
+		DeprecationMessage: "The resource 'azurerm_data_factory_integration_runtime_managed' has been superseded by the 'azurerm_data_factory_integration_runtime_azure_ssis' resource and will be removed in v4.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),

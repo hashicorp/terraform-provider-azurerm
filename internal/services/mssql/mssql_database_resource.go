@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
@@ -284,6 +284,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
 			EncryptionProtectorAutoRotation:  pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool)),
+			SecondaryType:                    pointer.To(databases.SecondaryType(d.Get("secondary_type").(string))),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -574,7 +575,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	shortTermSecurityAlertPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
-	if securityAlertPolicyProps != nil {
+	if shortTermSecurityAlertPolicyProps != nil {
 		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
 		if !strings.HasPrefix(skuName, "DW") {
@@ -951,7 +952,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return nil
 			}
 		}
-
 	}
 
 	if d.HasChange("import") {
@@ -1091,12 +1091,19 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
 			}
 
+			// A named replica doesn't return props.RequestedBackupStorageRedundancy from the api but it is Geo in the portal regardless of what the parent database has
+			// so we'll copy that here to get around a perpetual diff
+			if props.SecondaryType != nil && *props.SecondaryType == "Named" {
+				requestedBackupStorageRedundancy = string(databases.BackupStorageRedundancyGeo)
+			}
+
 			d.Set("auto_pause_delay_in_minutes", pointer.From(props.AutoPauseDelay))
 			d.Set("collation", pointer.From(props.Collation))
 			d.Set("read_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
 			d.Set("storage_account_type", requestedBackupStorageRedundancy)
 			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
 			d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScaleEnabled)
+			d.Set("secondary_type", pointer.From(props.SecondaryType))
 
 			if props.ElasticPoolId != nil {
 				elasticPoolId = pointer.From(props.ElasticPoolId)
@@ -1727,6 +1734,15 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      false,
 			RequiredWith: []string{"transparent_data_encryption_key_vault_key_id"},
+		},
+
+		"secondary_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// This must be Computed as it has defaulted to Geo for replicas but not all databases are replicas.
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForSecondaryType(), false),
 		},
 
 		"tags": commonschema.Tags(),
