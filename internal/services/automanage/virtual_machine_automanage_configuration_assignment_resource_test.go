@@ -31,6 +31,20 @@ func TestAccVirtualMachineConfigurationAssignment_basic(t *testing.T) {
 	})
 }
 
+func TestAccVirtualMachineConfigurationAssignment_requireImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_automanage_configuration_assignment", "test")
+	r := VirtualMachineConfigurationAssignmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func (r VirtualMachineConfigurationAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Automanage.ConfigurationProfileVMAssignmentsClient
 
@@ -118,9 +132,21 @@ resource "azurerm_automanage_configuration" "test" {
 }
 
 resource "azurerm_virtual_machine_automanage_configuration_assignment" "test" {
-	virtual_machine_id = azurerm_virtual_machine.test.id
-	configuration_id  = azurerm_virtual_machine_automanage_configuration_profile.test.id
+	virtual_machine_id = azurerm_linux_virtual_machine.test.id
+	configuration_id   = azurerm_automanage_configuration.test.id
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r VirtualMachineConfigurationAssignmentResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_virtual_machine_automanage_configuration_assignment" "import" {
+  virtual_machine_id = azurerm_virtual_machine_automanage_configuration_assignment.test.virtual_machine_id
+  configuration_id   = azurerm_virtual_machine_automanage_configuration_assignment.test.configuration_id
+}
+`, config)
 }

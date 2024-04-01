@@ -69,7 +69,8 @@ func (v VirtualMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := configurationprofileassignments.NewVirtualMachineProviders2ConfigurationProfileAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, configurationId.ConfigurationProfileName)
+			// Currently, the configuration profile assignment name has to be hardcoded to "default" by API requirement.
+			id := configurationprofileassignments.NewVirtualMachineProviders2ConfigurationProfileAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.VirtualMachineName, "default")
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -80,15 +81,15 @@ func (v VirtualMachineConfigurationAssignment) Create() sdk.ResourceFunc {
 			}
 
 			properties := configurationprofileassignments.ConfigurationProfileAssignment{
-				Name: &configurationId.ConfigurationProfileName,
+				Name: pointer.To(id.ConfigurationProfileAssignmentName),
 				Properties: &configurationprofileassignments.ConfigurationProfileAssignmentProperties{
 					ConfigurationProfile: pointer.To(configurationId.ID()),
 					TargetId:             pointer.To(vmId.ID()),
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if _, respErr := client.CreateOrUpdate(ctx, id, properties); respErr != nil {
+				return fmt.Errorf("creating %s: %+v", id.String(), respErr)
 			}
 
 			metadata.SetID(id)
@@ -132,7 +133,7 @@ func (v VirtualMachineConfigurationAssignment) Read() sdk.ResourceFunc {
 				state.VirtualMachineId = virtualMachineId.ID()
 			}
 
-			return metadata.Encode(state)
+			return metadata.Encode(&state)
 		},
 	}
 }
