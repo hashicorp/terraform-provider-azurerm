@@ -309,16 +309,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							},
 						},
 
-						"managed": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							AtLeastOneOf: []string{
-								"azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed",
-								"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
-							},
-						},
-
 						"azure_rbac_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -1610,8 +1600,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					},
 
 					"managed": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
+						Deprecated: "Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated and clusters can no longer be created with the Azure AD integration (legacy) enabled. This field will be removed in v4.0 of the AzureRM Provider.",
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
 						AtLeastOneOf: []string{
 							"azure_active_directory_role_based_access_control.0.client_app_id", "azure_active_directory_role_based_access_control.0.server_app_id",
 							"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
@@ -3715,10 +3706,20 @@ func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []i
 		return nil, nil
 	}
 
-	var aad *managedclusters.ManagedClusterAADProfile
-
 	azureAdRaw := input[0].(map[string]interface{})
 
+	if features.FourPointOhBeta() {
+		adminGroupObjectIdsRaw := azureAdRaw["admin_group_object_ids"].([]interface{})
+		adminGroupObjectIds := utils.ExpandStringSlice(adminGroupObjectIdsRaw)
+		return &managedclusters.ManagedClusterAADProfile{
+			TenantID:            pointer.To(azureAdRaw["tenant_id"].(string)),
+			Managed:             pointer.To(true),
+			AdminGroupObjectIDs: adminGroupObjectIds,
+			EnableAzureRBAC:     pointer.To(azureAdRaw["azure_rbac_enabled"].(bool)),
+		}, nil
+	}
+
+	var aad *managedclusters.ManagedClusterAADProfile
 	clientAppId := azureAdRaw["client_app_id"].(string)
 	serverAppId := azureAdRaw["server_app_id"].(string)
 	serverAppSecret := azureAdRaw["server_app_secret"].(string)
@@ -3790,55 +3791,68 @@ func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*identi
 
 func flattenKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input *managedclusters.ManagedClusterProperties, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
-	if profile := input.AadProfile; profile != nil {
-		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
+	if !features.FourPointOhBeta() {
+		if profile := input.AadProfile; profile != nil {
+			adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
 
-		clientAppId := ""
-		if profile.ClientAppID != nil {
-			clientAppId = *profile.ClientAppID
-		}
+			clientAppId := ""
+			if profile.ClientAppID != nil {
+				clientAppId = *profile.ClientAppID
+			}
 
-		managed := false
-		if profile.Managed != nil {
-			managed = *profile.Managed
-		}
+			managed := false
+			if profile.Managed != nil {
+				managed = *profile.Managed
+			}
 
-		azureRbacEnabled := false
-		if profile.EnableAzureRBAC != nil {
-			azureRbacEnabled = *profile.EnableAzureRBAC
-		}
+			azureRbacEnabled := false
+			if profile.EnableAzureRBAC != nil {
+				azureRbacEnabled = *profile.EnableAzureRBAC
+			}
 
-		serverAppId := ""
-		if profile.ServerAppID != nil {
-			serverAppId = *profile.ServerAppID
-		}
+			serverAppId := ""
+			if profile.ServerAppID != nil {
+				serverAppId = *profile.ServerAppID
+			}
 
-		serverAppSecret := ""
-		// since input.ServerAppSecret isn't returned we're pulling this out of the existing state (which won't work for Imports)
-		// azure_active_directory_role_based_access_control.0.server_app_secret
-		if existing, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
-			aadRbacRaw := existing.([]interface{})
-			if len(aadRbacRaw) > 0 {
-				aadRbac := aadRbacRaw[0].(map[string]interface{})
-				if v := aadRbac["server_app_secret"]; v != nil {
-					serverAppSecret = v.(string)
+			serverAppSecret := ""
+			// since input.ServerAppSecret isn't returned we're pulling this out of the existing state (which won't work for Imports)
+			// azure_active_directory_role_based_access_control.0.server_app_secret
+			if existing, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
+				aadRbacRaw := existing.([]interface{})
+				if len(aadRbacRaw) > 0 {
+					aadRbac := aadRbacRaw[0].(map[string]interface{})
+					if v := aadRbac["server_app_secret"]; v != nil {
+						serverAppSecret = v.(string)
+					}
 				}
 			}
+
+			tenantId := ""
+			if profile.TenantID != nil {
+				tenantId = *profile.TenantID
+			}
+
+			results = append(results, map[string]interface{}{
+				"admin_group_object_ids": adminGroupObjectIds,
+				"client_app_id":          clientAppId,
+				"managed":                managed,
+				"server_app_id":          serverAppId,
+				"server_app_secret":      serverAppSecret,
+				"tenant_id":              tenantId,
+				"azure_rbac_enabled":     azureRbacEnabled,
+			})
 		}
 
-		tenantId := ""
-		if profile.TenantID != nil {
-			tenantId = *profile.TenantID
-		}
+		return results
+	}
 
+	if profile := input.AadProfile; profile != nil {
+		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
 		results = append(results, map[string]interface{}{
 			"admin_group_object_ids": adminGroupObjectIds,
-			"client_app_id":          clientAppId,
-			"managed":                managed,
-			"server_app_id":          serverAppId,
-			"server_app_secret":      serverAppSecret,
-			"tenant_id":              tenantId,
-			"azure_rbac_enabled":     azureRbacEnabled,
+			"tenant_id":              pointer.From(profile.TenantID),
+			"azure_rbac_enabled":     pointer.From(profile.EnableAzureRBAC),
 		})
 	}
 
