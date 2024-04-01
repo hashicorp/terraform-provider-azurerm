@@ -189,7 +189,7 @@ ASP.NET V4.8 | v4.0
 
 ~> **NOTE:** For currently supported versions, please see the official documentation. Some example values include: `1.8`, `1.8.0_322`,  `11`, `11.0.14`, `17` and `17.0.2`
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, and `~18`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, `~18` and `~20`.
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
@@ -625,6 +625,8 @@ A `ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
+
 ---
 
 A `logs` block supports the following:
@@ -693,6 +695,7 @@ A `scm_ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
 ---
 
 A `site_config` block supports the following:

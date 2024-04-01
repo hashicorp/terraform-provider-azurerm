@@ -1,6 +1,10 @@
 package scheduledqueryrules
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -23,6 +27,19 @@ func PossibleValuesForAlertSeverity() []string {
 		string(AlertSeverityTwo),
 		string(AlertSeverityZero),
 	}
+}
+
+func (s *AlertSeverity) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAlertSeverity(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAlertSeverity(input string) (*AlertSeverity, error) {
@@ -62,6 +79,19 @@ func PossibleValuesForConditionalOperator() []string {
 	}
 }
 
+func (s *ConditionalOperator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConditionalOperator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseConditionalOperator(input string) (*ConditionalOperator, error) {
 	vals := map[string]ConditionalOperator{
 		"equal":              ConditionalOperatorEqual,
@@ -93,6 +123,19 @@ func PossibleValuesForEnabled() []string {
 	}
 }
 
+func (s *Enabled) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnabled(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseEnabled(input string) (*Enabled, error) {
 	vals := map[string]Enabled{
 		"false": EnabledFalse,
@@ -121,6 +164,19 @@ func PossibleValuesForMetricTriggerType() []string {
 	}
 }
 
+func (s *MetricTriggerType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMetricTriggerType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseMetricTriggerType(input string) (*MetricTriggerType, error) {
 	vals := map[string]MetricTriggerType{
 		"consecutive": MetricTriggerTypeConsecutive,
@@ -145,6 +201,19 @@ func PossibleValuesForOperator() []string {
 	return []string{
 		string(OperatorInclude),
 	}
+}
+
+func (s *Operator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseOperator(input string) (*Operator, error) {
@@ -178,6 +247,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"canceled":  ProvisioningStateCanceled,
@@ -204,6 +286,19 @@ func PossibleValuesForQueryType() []string {
 	return []string{
 		string(QueryTypeResultCount),
 	}
+}
+
+func (s *QueryType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseQueryType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseQueryType(input string) (*QueryType, error) {

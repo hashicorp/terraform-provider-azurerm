@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
+	apikeys "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentapikeysapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -26,7 +26,7 @@ func (ApiKeyUpgradeV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// new:
 		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/component1/apiKeys/key1
 		oldIdRaw := rawState["id"].(string)
-		id, err := parse.ApiKeyIDInsensitively(oldIdRaw)
+		id, err := apikeys.ParseApiKeyIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}

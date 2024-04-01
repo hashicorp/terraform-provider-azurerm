@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type StorageContainerResource struct{}
@@ -96,14 +96,14 @@ func TestAccStorageContainer_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.update(data, "private"),
+			Config: r.update(data, "private", "yes"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container_access_type").HasValue("private"),
 			),
 		},
 		{
-			Config: r.update(data, "container"),
+			Config: r.update(data, "container", "no"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container_access_type").HasValue("container"),
@@ -187,48 +187,55 @@ func TestAccStorageContainer_web(t *testing.T) {
 }
 
 func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageContainerDataPlaneID(state.ID)
+	id, err := containers.ParseContainerID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountName, id.Name, err)
+		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
+		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
 	}
 
-	containersClient, err := client.Storage.ContainersClient(ctx, *account)
+	containersClient, err := client.Storage.ContainersDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Containers Client: %+v", err)
 	}
-	prop, err := containersClient.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
+
+	prop, err := containersClient.Get(ctx, id.ContainerName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %+v", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
 	}
+
 	return utils.Bool(prop != nil), nil
 }
 
 func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.StorageContainerDataPlaneID(state.ID)
+	id, err := containers.ParseContainerID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+
+	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountName, id.Name, err)
+		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
+		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountId.AccountName)
 	}
-	containersClient, err := client.Storage.ContainersClient(ctx, *account)
+
+	containersClient, err := client.Storage.ContainersDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Containers Client: %+v", err)
 	}
-	if err := containersClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
-		return nil, fmt.Errorf("deleting Container %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+
+	if err = containersClient.Delete(ctx, id.ContainerName); err != nil {
+		return nil, fmt.Errorf("deleting Container %q (Account %q / Resource Group %q): %+v", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
@@ -290,7 +297,7 @@ resource "azurerm_storage_container" "import" {
 `, template)
 }
 
-func (r StorageContainerResource) update(data acceptance.TestData, accessType string) string {
+func (r StorageContainerResource) update(data acceptance.TestData, accessType, metadataVal string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -299,8 +306,12 @@ resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "%s"
+  metadata = {
+    foo  = "bar"
+    test = "%s"
+  }
 }
-`, template, accessType)
+`, template, accessType, metadataVal)
 }
 
 func (r StorageContainerResource) metaData(data acceptance.TestData) string {

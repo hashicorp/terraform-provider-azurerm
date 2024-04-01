@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -121,6 +122,30 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 					string(datafactory.IntegrationRuntimeEditionStandard),
 					string(datafactory.IntegrationRuntimeEditionEnterprise),
 				}, false),
+			},
+
+			"copy_compute_scale": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"data_integration_unit": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(4, 256),
+								validation.IntDivisibleBy(4),
+							),
+						},
+
+						"time_to_live": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(5),
+						},
+					},
+				},
 			},
 
 			"express_vnet_integration": {
@@ -423,6 +448,33 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				},
 			},
 
+			"pipeline_external_compute_scale": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"number_of_external_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 10),
+						},
+
+						"number_of_pipeline_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 10),
+						},
+
+						"time_to_live": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(5),
+						},
+					},
+				},
+			},
+
 			"proxy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -560,6 +612,14 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		if err := d.Set("vnet_integration", flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(computeProps.VNetProperties)); err != nil {
 			return fmt.Errorf("setting `vnet_integration`: %+v", err)
 		}
+
+		if err := d.Set("copy_compute_scale", flattenDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(computeProps.CopyComputeScaleProperties)); err != nil {
+			return fmt.Errorf("setting `copy_compute_scale`: %+v", err)
+		}
+
+		if err := d.Set("pipeline_external_compute_scale", flattenDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScaleProperties(computeProps.PipelineExternalComputeScaleProperties)); err != nil {
+			return fmt.Errorf("setting `pipeline_external_compute_scale`: %+v", err)
+		}
 	}
 
 	if ssisProps := managedIntegrationRuntime.SsisProperties; ssisProps != nil {
@@ -643,6 +703,44 @@ func expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d *pluginsdk.
 
 		if publicIPs := vnetProps["public_ips"].([]interface{}); len(publicIPs) > 0 {
 			computeProperties.VNetProperties.PublicIPs = utils.ExpandStringSlice(publicIPs)
+		}
+	}
+
+	if copyComputeScales, ok := d.GetOk("copy_compute_scale"); ok && len(copyComputeScales.([]interface{})) > 0 {
+		copyComputeScale := copyComputeScales.([]interface{})[0].(map[string]interface{})
+		if v := copyComputeScale["data_integration_unit"].(int); v != 0 {
+			if computeProperties.CopyComputeScaleProperties == nil {
+				computeProperties.CopyComputeScaleProperties = &datafactory.CopyComputeScaleProperties{}
+			}
+			computeProperties.CopyComputeScaleProperties.DataIntegrationUnit = pointer.To(int32(copyComputeScale["data_integration_unit"].(int)))
+		}
+		if v := copyComputeScale["time_to_live"].(int); v != 0 {
+			if computeProperties.CopyComputeScaleProperties == nil {
+				computeProperties.CopyComputeScaleProperties = &datafactory.CopyComputeScaleProperties{}
+			}
+			computeProperties.CopyComputeScaleProperties.TimeToLive = pointer.To(int32(copyComputeScale["time_to_live"].(int)))
+		}
+	}
+
+	if pipelineExternalComputeScales, ok := d.GetOk("pipeline_external_compute_scale"); ok && len(pipelineExternalComputeScales.([]interface{})) > 0 {
+		pipelineExternalComputeScale := pipelineExternalComputeScales.([]interface{})[0].(map[string]interface{})
+		if v := pipelineExternalComputeScale["number_of_external_nodes"].(int); v != 0 {
+			if computeProperties.PipelineExternalComputeScaleProperties == nil {
+				computeProperties.PipelineExternalComputeScaleProperties = &datafactory.PipelineExternalComputeScaleProperties{}
+			}
+			computeProperties.PipelineExternalComputeScaleProperties.NumberOfExternalNodes = pointer.To(int32(pipelineExternalComputeScale["number_of_external_nodes"].(int)))
+		}
+		if v := pipelineExternalComputeScale["number_of_pipeline_nodes"].(int); v != 0 {
+			if computeProperties.PipelineExternalComputeScaleProperties == nil {
+				computeProperties.PipelineExternalComputeScaleProperties = &datafactory.PipelineExternalComputeScaleProperties{}
+			}
+			computeProperties.PipelineExternalComputeScaleProperties.NumberOfPipelineNodes = pointer.To(int32(pipelineExternalComputeScale["number_of_pipeline_nodes"].(int)))
+		}
+		if v := pipelineExternalComputeScale["time_to_live"].(int); v != 0 {
+			if computeProperties.PipelineExternalComputeScaleProperties == nil {
+				computeProperties.PipelineExternalComputeScaleProperties = &datafactory.PipelineExternalComputeScaleProperties{}
+			}
+			computeProperties.PipelineExternalComputeScaleProperties.TimeToLive = pointer.To(int32(pipelineExternalComputeScale["time_to_live"].(int)))
 		}
 	}
 
@@ -1141,6 +1239,31 @@ func flattenDataFactoryIntegrationRuntimeCustomerVnetIntegration(input *datafact
 	return []interface{}{
 		map[string]interface{}{
 			"subnet_id": subnetId,
+		},
+	}
+}
+
+func flattenDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScaleProperties(input *datafactory.PipelineExternalComputeScaleProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"number_of_external_nodes": pointer.From(input.NumberOfPipelineNodes),
+			"number_of_pipeline_nodes": pointer.From(input.NumberOfPipelineNodes),
+			"time_to_live":             pointer.From(input.TimeToLive),
+		},
+	}
+}
+
+func flattenDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(input *datafactory.CopyComputeScaleProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"data_integration_unit": pointer.From(input.DataIntegrationUnit),
+			"time_to_live":          pointer.From(input.TimeToLive),
 		},
 	}
 }

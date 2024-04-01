@@ -29,6 +29,8 @@ func TestAccCosmosDbPostgreSQLCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("servers.0.fqdn").IsNotEmpty(),
+				check.That(data.ResourceName).Key("servers.0.name").IsNotEmpty(),
 			),
 		},
 		data.ImportStep("administrator_login_password"),

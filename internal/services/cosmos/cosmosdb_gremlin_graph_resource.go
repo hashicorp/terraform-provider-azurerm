@@ -218,7 +218,7 @@ func resourceCosmosDbGremlinGraphCreate(d *pluginsdk.ResourceData, meta interfac
 		Properties: cosmosdb.GremlinGraphCreateUpdateProperties{
 			Resource: cosmosdb.GremlinGraphResource{
 				Id:                       id.GraphName,
-				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
+				IndexingPolicy:           expandAzureRmCosmosDbGremlinGraphIndexingPolicy(d),
 				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
@@ -293,7 +293,7 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 		Properties: cosmosdb.GremlinGraphCreateUpdateProperties{
 			Resource: cosmosdb.GremlinGraphResource{
 				Id:             id.GraphName,
-				IndexingPolicy: expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
+				IndexingPolicy: expandAzureRmCosmosDbGremlinGraphIndexingPolicy(d),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -332,17 +332,12 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if common.HasThroughputChange(d) {
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		throughputFuture, err := client.GremlinResourcesUpdateGremlinGraphThroughput(ctx, *id, *throughputParameters)
+		err = client.GremlinResourcesUpdateGremlinGraphThroughputThenPoll(ctx, *id, *throughputParameters)
 		if err != nil {
-			if response.WasNotFound(throughputFuture.HttpResponse) {
-				return fmt.Errorf("setting Throughput for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v - "+
-					"If the graph has not been created with an initial throughput, you cannot configure it later", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
-			}
+			return fmt.Errorf("setting Throughput for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v - "+
+				"If the graph has not been created with an initial throughput, you cannot configure it later", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 		}
 
-		if err := throughputFuture.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting on ThroughputUpdate future for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
-		}
 	}
 
 	return resourceCosmosDbGremlinGraphRead(d, meta)
@@ -454,21 +449,15 @@ func resourceCosmosDbGremlinGraphDelete(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	future, err := client.GremlinResourcesDeleteGremlinGraph(ctx, *id)
+	err = client.GremlinResourcesDeleteGremlinGraphThenPoll(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(future.HttpResponse) {
-			return fmt.Errorf("deleting Cosmos Gremlin Graph %q (Account: %q): %+v", id.GremlinDatabaseName, id.GraphName, err)
-		}
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting on delete future for Comos Gremlin Graph %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
+		return fmt.Errorf("deleting Cosmos Gremlin Graph %q (Account: %q): %+v", id.GremlinDatabaseName, id.GraphName, err)
 	}
 
 	return nil
 }
 
-func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.IndexingPolicy {
+func expandAzureRmCosmosDbGremlinGraphIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.IndexingPolicy {
 	i := d.Get("index_policy").([]interface{})
 	if len(i) == 0 || i[0] == nil {
 		return nil
@@ -478,7 +467,7 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *pluginsdk.ResourceData) *
 	indexingPolicy := cosmosdb.IndexingMode(strings.ToLower(input["indexing_mode"].(string)))
 	policy := &cosmosdb.IndexingPolicy{
 		IndexingMode:  &indexingPolicy,
-		IncludedPaths: expandAzureRmCosmosDbGrelimGraphIncludedPath(input),
+		IncludedPaths: expandAzureRmCosmosDbGremlinGraphIncludedPath(input),
 		ExcludedPaths: expandAzureRmCosmosDbGremlinGraphExcludedPath(input),
 	}
 	if v, ok := input["composite_index"].([]interface{}); ok {
@@ -494,7 +483,7 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *pluginsdk.ResourceData) *
 	return policy
 }
 
-func expandAzureRmCosmosDbGrelimGraphIncludedPath(input map[string]interface{}) *[]cosmosdb.IncludedPath {
+func expandAzureRmCosmosDbGremlinGraphIncludedPath(input map[string]interface{}) *[]cosmosdb.IncludedPath {
 	includedPath := input["included_paths"].(*pluginsdk.Set).List()
 	paths := make([]cosmosdb.IncludedPath, len(includedPath))
 

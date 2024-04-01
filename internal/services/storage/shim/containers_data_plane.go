@@ -6,12 +6,10 @@ package shim
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/containers"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type DataPlaneStorageContainerWrapper struct {
@@ -24,59 +22,37 @@ func NewDataPlaneStorageContainerWrapper(client *containers.Client) StorageConta
 	}
 }
 
-func (w DataPlaneStorageContainerWrapper) Create(ctx context.Context, _, accountName, containerName string, input containers.CreateInput) error {
-	timeout, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("context is missing a timeout")
-	}
-
-	if resp, err := w.client.Create(ctx, accountName, containerName, input); err != nil {
-		// If we fail due to previous delete still in progress, then we can retry
-		if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:        []string{"waitingOnDelete"},
-				Target:         []string{"succeeded"},
-				Refresh:        w.createRefreshFunc(ctx, accountName, containerName, input),
-				PollInterval:   10 * time.Second,
-				NotFoundChecks: 180,
-				Timeout:        time.Until(timeout),
-			}
-
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("failed creating container: %+v", err)
-			}
-		} else {
-			return fmt.Errorf("failed creating container: %+v", err)
-		}
+func (w DataPlaneStorageContainerWrapper) Create(ctx context.Context, containerName string, input containers.CreateInput) error {
+	if _, err := w.client.Create(ctx, containerName, input); err != nil {
+		return fmt.Errorf("creating container: %+v", err)
 	}
 	return nil
 }
 
-func (w DataPlaneStorageContainerWrapper) Delete(ctx context.Context, _, accountName, containerName string) error {
-	resp, err := w.client.Delete(ctx, accountName, containerName)
-	if utils.ResponseWasNotFound(resp) {
+func (w DataPlaneStorageContainerWrapper) Delete(ctx context.Context, containerName string) error {
+	resp, err := w.client.Delete(ctx, containerName)
+	if response.WasNotFound(resp.HttpResponse) {
 		return nil
 	}
 
 	return err
 }
 
-func (w DataPlaneStorageContainerWrapper) Exists(ctx context.Context, _, accountName, containerName string) (*bool, error) {
-	existing, err := w.client.GetProperties(ctx, accountName, containerName)
+func (w DataPlaneStorageContainerWrapper) Exists(ctx context.Context, containerName string) (*bool, error) {
+	existing, err := w.client.GetProperties(ctx, containerName, containers.GetPropertiesInput{})
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return nil, err
+		if response.WasNotFound(existing.HttpResponse) {
+			return pointer.To(false), nil
 		}
+		return nil, err
 	}
-
-	exists := !utils.ResponseWasNotFound(existing.Response)
-	return &exists, nil
+	return pointer.To(true), nil
 }
 
-func (w DataPlaneStorageContainerWrapper) Get(ctx context.Context, _, accountName, containerName string) (*StorageContainerProperties, error) {
-	props, err := w.client.GetProperties(ctx, accountName, containerName)
+func (w DataPlaneStorageContainerWrapper) Get(ctx context.Context, containerName string) (*StorageContainerProperties, error) {
+	props, err := w.client.GetProperties(ctx, containerName, containers.GetPropertiesInput{})
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
+		if response.WasNotFound(props.HttpResponse) {
 			return nil, nil
 		}
 
@@ -91,29 +67,18 @@ func (w DataPlaneStorageContainerWrapper) Get(ctx context.Context, _, accountNam
 	}, nil
 }
 
-func (w DataPlaneStorageContainerWrapper) UpdateAccessLevel(ctx context.Context, _, accountName, containerName string, level containers.AccessLevel) error {
-	_, err := w.client.SetAccessControl(ctx, accountName, containerName, level)
-	return err
-}
-
-func (w DataPlaneStorageContainerWrapper) UpdateMetaData(ctx context.Context, _, accountName, containerName string, metaData map[string]string) error {
-	_, err := w.client.SetMetaData(ctx, accountName, containerName, metaData)
-	return err
-}
-
-func (w DataPlaneStorageContainerWrapper) createRefreshFunc(ctx context.Context, accountName string, containerName string, input containers.CreateInput) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := w.client.Create(ctx, accountName, containerName, input)
-		if err != nil {
-			if !utils.ResponseWasConflict(resp.Response) {
-				return nil, "", err
-			}
-
-			if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
-				return nil, "waitingOnDelete", nil
-			}
-		}
-
-		return "succeeded", "succeeded", nil
+func (w DataPlaneStorageContainerWrapper) UpdateAccessLevel(ctx context.Context, containerName string, level containers.AccessLevel) error {
+	input := containers.SetAccessControlInput{
+		AccessLevel: level,
 	}
+	_, err := w.client.SetAccessControl(ctx, containerName, input)
+	return err
+}
+
+func (w DataPlaneStorageContainerWrapper) UpdateMetaData(ctx context.Context, containerName string, metaData map[string]string) error {
+	input := containers.SetMetaDataInput{
+		MetaData: metaData,
+	}
+	_, err := w.client.SetMetaData(ctx, containerName, input)
+	return err
 }

@@ -6,7 +6,7 @@ package loadbalancer
 import (
 	"context"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
