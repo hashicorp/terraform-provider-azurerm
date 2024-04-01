@@ -76,11 +76,11 @@ resource "azurerm_redis_cache" "test" {
 }
 
 resource "azurerm_redis_cache_access_policy_assignment" "test" {
-  name = "acctestRedisAccessPolicyAssignmentName-%d"
-  redis_cache_id = azurerm_redis_cache.test.id
+  name               = "acctestRedisAccessPolicyAssignmentName-%d"
+  redis_cache_id     = azurerm_redis_cache.test.id
   access_policy_name = "Data Contributor"
-  object_id = data.azurerm_client_config.test.object_id
-  object_id_alias = "ServicePrincipal"
+  object_id          = data.azurerm_client_config.test.object_id
+  object_id_alias    = "ServicePrincipal"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
