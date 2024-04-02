@@ -182,13 +182,13 @@ func (r RedisCacheAccessPolicyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 			client := metadata.Client.Redis.Redis
-			id, err := redis.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
+			id, err := redis.ParseAccessPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			if _, err := client.AccessPolicyAssignmentDelete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting Redis Cache Access Policy Assignment %s in Redis Cache %s in resource group %s: %s", id.AccessPolicyAssignmentName, id.RedisName, id.ResourceGroupName, err)
+			if _, err := client.AccessPolicyDelete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting Redis Cache Access Policy %s in Redis Cache %s in resource group %s: %s", id.AccessPolicyName, id.RedisName, id.ResourceGroupName, err)
 			}
 
 			return nil

@@ -79,7 +79,7 @@ resource "azurerm_redis_cache" "test" {
 resource "azurerm_redis_cache_access_policy" "test" {
   name           = "acctestRedisAccessPolicy-%d"
   redis_cache_id = azurerm_redis_cache.test.id
-  permissions    = "+@read +@connection +cluster|info"
+  permissions    = "+@read +@connection +cluster|info allkeys"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
