@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.67.0` of `github.com/hashicorp/go-azure-helpers` [GH-25446]
 * dependencies: updating to `v0.25.4` of `github.com/tombuildsstuff/giovanni` [GH-25404]
 * `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
+* `containerinstance` - update to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25416]
 * `maintenance`: updating to API Version `2023-04-01` [GH-25388]
 * `azurerm_bot_service_azure_bot` - support for the `cmk_key_vault_key_url` property [GH-23640]
 * `azurerm_capacity_reservation` - update validation for `capacity` [GH-25471]
