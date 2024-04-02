@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20240402.1085733` [GH-25482]
 * dependencies: updating to `v0.67.0` of `github.com/hashicorp/go-azure-helpers` [GH-25446]
 * dependencies: updating to `v0.25.4` of `github.com/tombuildsstuff/giovanni` [GH-25404]
 * `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
@@ -15,6 +16,7 @@ ENHANCEMENTS:
 * `storage`: the Storage Account cache is now populated using `hashicorp/go-azure-sdk` [GH-25437]
 * `azurerm_bot_service_azure_bot` - support for the `cmk_key_vault_key_url` property [GH-23640]
 * `azurerm_capacity_reservation` - update validation for `capacity` [GH-25471]
+* `azurerm_container_app` - add support for `key_vault_id` and `identity` properties in the `secret` block [GH-24773]
 * `azurerm_managed_hsm_role_*_ids`: use specific resource id to replace generic nested item id [GH-25323]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
