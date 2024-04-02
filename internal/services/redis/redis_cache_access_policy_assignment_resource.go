@@ -122,7 +122,7 @@ func (r RedisCacheAccessPolicyAssignmentResource) Update() sdk.ResourceFunc {
 			}
 
 			updateInput := redis.RedisCacheAccessPolicyAssignment{
-				Name: existing.Model.Name,
+				Name: &id.AccessPolicyAssignmentName,
 				Properties: &redis.RedisCacheAccessPolicyAssignmentProperties{
 					AccessPolicyName: existing.Model.Properties.AccessPolicyName,
 					ObjectId:         existing.Model.Properties.ObjectId,
@@ -172,10 +172,9 @@ func (r RedisCacheAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 
 			state := RedisCacheAccessPolicyAssignmentResourceModel{}
 
+			state.Name = id.AccessPolicyAssignmentName
+
 			if model := resp.Model; model != nil {
-				if model.Name != nil {
-					state.Name = *model.Name
-				}
 				state.RedisCacheID = redis.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName).ID()
 				if model.Properties != nil {
 					state.AccessPolicyName = model.Properties.AccessPolicyName
