@@ -28,8 +28,9 @@ type RedisCacheAccessPolicyAssignmentResourceModel struct {
 func (r RedisCacheAccessPolicyAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"redis_cache_id": {

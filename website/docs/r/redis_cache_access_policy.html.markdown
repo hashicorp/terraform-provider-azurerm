@@ -45,7 +45,7 @@ resource "azurerm_redis_cache_access_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Redis Cache Access Policy.
+* `name` - (Required) The name of the Redis Cache Access Policy. Changing this forces a new Redis Cache Access Policy to be created.
 
 * `redis_cache_id` - (Required) The ID of the Redis Cache. Changing this forces a new Redis Cache Access Policy to be created.
 

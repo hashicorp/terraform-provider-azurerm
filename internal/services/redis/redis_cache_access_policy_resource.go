@@ -27,6 +27,7 @@ func (r RedisCacheAccessPolicyResource) Arguments() map[string]*pluginsdk.Schema
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 		"redis_cache_id": {
 			Type:         pluginsdk.TypeString,
