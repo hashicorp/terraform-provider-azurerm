@@ -52,7 +52,7 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
-								ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForScheme(), features.FourPointOhBeta()),
+								ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForScheme(), !features.FourPointOhBeta()),
 							},
 							"http_headers": {
 								Type:     pluginsdk.TypeMap,
