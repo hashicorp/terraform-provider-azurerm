@@ -37,7 +37,7 @@ resource "azurerm_redis_cache" "example" {
 resource "azurerm_redis_cache_access_policy" "example" {
   name           = "example"
   redis_cache_id = azurerm_redis_cache.example.id
-  permissions    = "+@read +@connection +cluster|info" 
+  permissions    = "+@read +@connection +cluster|info"
 }
 ```
 
@@ -48,6 +48,8 @@ The following arguments are supported:
 * `name` - (Required) The name of the Redis Cache Access Policy.
 
 * `redis_cache_id` - (Required) The ID of the Redis Cache. Changing this forces a new Redis to be created.
+
+* `permissions` - (Required) Permissions that are going to be assigned to this Redis Cache Access Policy.
 
 ## Attributes Reference
 
