@@ -41,8 +41,11 @@ type Client struct {
 }
 
 func NewContainersClient(o *common.ClientOptions) (*Client, error) {
-	containerInstanceClient := containerinstance.NewContainerInstanceClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&containerInstanceClient.Client, o.ResourceManagerAuthorizer)
+	containerInstanceClient, err := containerinstance.NewContainerInstanceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Container Instance client : %+v", err)
+	}
+	o.Configure(containerInstanceClient.Client, o.Authorizers.ResourceManager)
 
 	containerRegistryClient_v2019_06_01_preview, err := containerregistry_v2019_06_01_preview.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
@@ -115,7 +118,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		AgentPoolsClient:                            agentPoolsClient,
-		ContainerInstanceClient:                     &containerInstanceClient,
+		ContainerInstanceClient:                     containerInstanceClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
