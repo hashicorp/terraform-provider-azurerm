@@ -232,6 +232,25 @@ func TestAccBackupProtectedVm_protectionStopped(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectedVm_protectionStoppedOnDestroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protectionStoppedOnDestroy(data),
+		},
+	})
+}
+
 func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protecteditems.ParseProtectedItemID(state.ID)
 	if err != nil {
@@ -248,10 +267,6 @@ func (t BackupProtectedVmResource) Exists(ctx context.Context, clients *clients.
 
 func (BackupProtectedVmResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%d"
   location = "%s"
@@ -395,10 +410,6 @@ resource "azurerm_backup_policy_vm" "test" {
 
 func (BackupProtectedVmResource) baseWithoutVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%d"
   location = "%s"
@@ -475,6 +486,10 @@ resource "azurerm_backup_policy_vm" "test" {
 
 func (r BackupProtectedVmResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_backup_protected_vm" "test" {
@@ -490,6 +505,10 @@ resource "azurerm_backup_protected_vm" "test" {
 
 func (r BackupProtectedVmResource) updateDiskExclusion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_backup_protected_vm" "test" {
@@ -506,10 +525,6 @@ resource "azurerm_backup_protected_vm" "test" {
 // For update backup policy id test
 func (BackupProtectedVmResource) basePolicyTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%d-1"
   location = "%s"
@@ -572,6 +587,10 @@ resource "azurerm_managed_disk" "test" {
 // For update backup policy id test
 func (r BackupProtectedVmResource) withBasePolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_backup_policy_vm" "test_change_backup" {
@@ -594,6 +613,10 @@ resource "azurerm_backup_policy_vm" "test_change_backup" {
 // For update backup policy id test
 func (r BackupProtectedVmResource) linkFirstBackupPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_backup_protected_vm" "test" {
@@ -608,6 +631,10 @@ resource "azurerm_backup_protected_vm" "test" {
 // For update backup policy id test
 func (r BackupProtectedVmResource) linkSecondBackupPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_backup_protected_vm" "test" {
@@ -621,6 +648,10 @@ resource "azurerm_backup_protected_vm" "test" {
 
 func (r BackupProtectedVmResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_backup_protected_vm" "import" {
@@ -634,6 +665,10 @@ resource "azurerm_backup_protected_vm" "import" {
 
 func (r BackupProtectedVmResource) additionalVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_resource_group" "test2" {
@@ -669,6 +704,10 @@ resource "azurerm_backup_policy_vm" "test2" {
 
 func (r BackupProtectedVmResource) separateResourceGroups(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_backup_protected_vm" "test" {
@@ -732,5 +771,20 @@ resource "azurerm_backup_protected_vm" "test" {
   include_disk_luns = [0]
   protection_state  = "ProtectionStopped"
 }
+`, r.base(data))
+}
+
+func (r BackupProtectedVmResource) protectionStoppedOnDestroy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    recovery_service {
+      vm_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy          = true
+    }
+  }
+}
+
+%s
 `, r.base(data))
 }

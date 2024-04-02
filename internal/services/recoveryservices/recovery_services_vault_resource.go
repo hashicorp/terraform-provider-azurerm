@@ -6,6 +6,8 @@ package recoveryservices
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"log"
 	"strings"
 	"time"
@@ -667,12 +669,53 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
+	protectedItemsClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
+	protectedItemClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
+	opResultClient := meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := vaults.ParseVaultID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	if meta.(*clients.Client).Features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
+		log.Printf("[DEBUG] Purging Protected Items from %s", id.String())
+
+		vaultId := backupprotecteditems.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)
+
+		protectedItems, err := protectedItemsClient.ListComplete(ctx, vaultId, backupprotecteditems.ListOperationOptions{})
+		if err != nil {
+			return fmt.Errorf("listing protected items in %s: %+v", id, err)
+		}
+
+		for _, item := range protectedItems.Items {
+			if item.Id != nil {
+				protectedItemId, err := protecteditems.ParseProtectedItemID(pointer.From(item.Id))
+				if err != nil {
+					return err
+				}
+
+				log.Printf("[DEBUG] Purging %s from %s", protectedItemId, id)
+
+				resp, err := protectedItemClient.Delete(ctx, *protectedItemId)
+				if err != nil {
+					if !response.WasNotFound(resp.HttpResponse) {
+						return fmt.Errorf("issuing delete request for %s: %+v", protectedItemId, err)
+					}
+				}
+
+				operationId, err := parseBackupOperationId(resp.HttpResponse)
+				if err != nil {
+					return fmt.Errorf("purging %s from %s: %+v", protectedItemId, id, err)
+				}
+
+				if err = resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, protectedItemClient, opResultClient, *protectedItemId, operationId); err != nil {
+					return fmt.Errorf("waiting for %s to be purged from %s: %+v", protectedItemId, id, err)
+				}
+			}
+		}
 	}
 
 	log.Printf("[DEBUG] Deleting Recovery Service  %s", id.String())
