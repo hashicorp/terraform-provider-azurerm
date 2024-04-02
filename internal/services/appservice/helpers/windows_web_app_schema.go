@@ -644,14 +644,25 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+		if appSettings == nil {
+			appSettings = make(map[string]string)
+		}
+		appSettings["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(s.HealthCheckEvictionTime))
+	}
+
 	if len(s.ApplicationStack) == 1 {
 		winAppStack := s.ApplicationStack[0]
-		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") {
+
+		// (@apokalypt) If we are using node we need to always set the version since we remove it when we are parsing the web app
+		// https://github.com/hashicorp/terraform-provider-azurerm/issues/25452
+		if winAppStack.NodeVersion != "" {
 			if appSettings == nil {
 				appSettings = make(map[string]string)
 			}
 			appSettings["WEBSITE_NODE_DEFAULT_VERSION"] = winAppStack.NodeVersion
 		}
+
 		if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.dotnet_version", "site_config.0.application_stack.0.dotnet_core_version") {
 			switch {
 			case winAppStack.NetFrameworkVersion != "":
@@ -709,7 +720,6 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
-
 		}
 
 	} else {
