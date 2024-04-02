@@ -71,5 +71,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Redis Cache Access Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_redis_cache_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redis/cache1/accessPolicies/policy1
+terraform import azurerm_redis_cache_access_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redis/cache1/accessPolicies/policy1
 ```
