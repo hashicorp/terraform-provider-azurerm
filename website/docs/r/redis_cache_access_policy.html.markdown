@@ -55,7 +55,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Redis.
+* `id` - The ID of the Redis Cache Access Policy.
 
 ## Timeouts
 
