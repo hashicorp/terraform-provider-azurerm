@@ -19,7 +19,7 @@ import (
 type RedisCacheAccessPolicyResource struct{}
 
 func TestAccRedisCacheAccessPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy_assignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy", "test")
 	r := RedisCacheAccessPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,15 +62,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "acctestRedis-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 1
-  family              = "C"
+  name                          = "acctestRedis-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  capacity                      = 1
+  family                        = "C"
   public_network_access_enabled = false
-  sku_name            = "Basic"
-  enable_non_ssl_port = true
-  minimum_tls_version = "1.2"
+  sku_name                      = "Basic"
+  enable_non_ssl_port           = true
+  minimum_tls_version           = "1.2"
 
   redis_configuration {
   }
