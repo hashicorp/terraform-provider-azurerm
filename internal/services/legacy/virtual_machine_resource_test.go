@@ -246,7 +246,7 @@ func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, sh
 		accountName := state.Attributes["storage_account_name"]
 		containerName := state.Attributes["name"]
 
-		account, err := clients.Storage.FindAccount(ctx, accountName)
+		account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, accountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
 		}
