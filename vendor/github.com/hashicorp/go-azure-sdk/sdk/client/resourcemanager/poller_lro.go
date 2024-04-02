@@ -215,6 +215,9 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 			// AnalysisServices @ 2017-08-01 (Servers Suspend) returns `Pausing` during update
 			"Pausing": pollers.PollingStatusInProgress,
 
+			// ContainerInstance @ 2023-05-01 returns `Pending` during creation/update
+			"Pending": pollers.PollingStatusInProgress,
+
 			// SAPVirtualInstance @ 2023-04-01 returns `Preparing System Configuration` during Creation
 			"Preparing System Configuration": pollers.PollingStatusInProgress,
 
