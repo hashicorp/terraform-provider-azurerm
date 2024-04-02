@@ -66,7 +66,7 @@ func (r VirtualMachineConfigurationAssignmentResource) Exists(ctx context.Contex
 func (r VirtualMachineConfigurationAssignmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -132,9 +132,10 @@ resource "azurerm_automanage_configuration" "test" {
 }
 
 resource "azurerm_virtual_machine_automanage_configuration_assignment" "test" {
-	virtual_machine_id = azurerm_linux_virtual_machine.test.id
-	configuration_id   = azurerm_automanage_configuration.test.id
+  virtual_machine_id = azurerm_linux_virtual_machine.test.id
+  configuration_id   = azurerm_automanage_configuration.test.id
 }
+
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
