@@ -29,9 +29,10 @@ func (r RedisCacheAccessPolicyResource) Arguments() map[string]*pluginsdk.Schema
 			Required: true,
 		},
 		"redis_cache_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: redis.ValidateRediID,
 		},
 		"permissions": {
 			Type:     pluginsdk.TypeString,
@@ -175,7 +176,7 @@ func (r RedisCacheAccessPolicyResource) Read() sdk.ResourceFunc {
 
 func (r RedisCacheAccessPolicyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model RedisCacheAccessPolicyResourceModel
 			if err := metadata.Decode(&model); err != nil {

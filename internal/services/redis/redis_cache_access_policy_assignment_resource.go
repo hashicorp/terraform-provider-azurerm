@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type RedisCacheAccessPolicyAssignmentResource struct {
@@ -32,9 +33,10 @@ func (r RedisCacheAccessPolicyAssignmentResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"redis_cache_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: redis.ValidateRediID,
 		},
 		"access_policy_name": {
 			Type:     pluginsdk.TypeString,
@@ -47,6 +49,11 @@ func (r RedisCacheAccessPolicyAssignmentResource) Arguments() map[string]*plugin
 		"object_id_alias": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ValidateFunc: validation.StringInSlice(
+				[]string{
+					"ServicePrincipal",
+					"UserMSI",
+				}, false),
 		},
 	}
 }
@@ -192,7 +199,7 @@ func (r RedisCacheAccessPolicyAssignmentResource) Read() sdk.ResourceFunc {
 
 func (r RedisCacheAccessPolicyAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model RedisCacheAccessPolicyAssignmentResourceModel
 			if err := metadata.Decode(&model); err != nil {
