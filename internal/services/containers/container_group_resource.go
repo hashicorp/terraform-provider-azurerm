@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -1944,9 +1943,6 @@ func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface
 		}
 		httpGet["port"] = get.Port
 		httpGet["scheme"] = get.Scheme
-		if !features.FourPointOh() {
-			httpGet["scheme"] = strings.Title(string(pointer.From(get.Scheme)))
-		}
 		httpGet["http_headers"] = flattenContainerProbeHttpHeaders(get.HTTPHeaders)
 		httpGets = append(httpGets, httpGet)
 	}

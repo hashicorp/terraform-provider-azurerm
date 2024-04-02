@@ -4,6 +4,7 @@
 package containers
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -11,7 +12,7 @@ import (
 )
 
 func SchemaContainerGroupProbe() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		ForceNew: true,
@@ -48,13 +49,10 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 								ValidateFunc: validate.PortNumber,
 							},
 							"scheme": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"Http",
-									"Https",
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ForceNew:     true,
+								ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForScheme(), features.FourPointOhBeta()),
 							},
 							"http_headers": {
 								Type:     pluginsdk.TypeMap,
@@ -100,13 +98,4 @@ func SchemaContainerGroupProbe() *pluginsdk.Schema {
 			},
 		},
 	}
-	if features.FourPointOh() {
-		httpGetSchema := schema.Elem.(*pluginsdk.Resource).Schema["http_get"]
-		httpGetSchema.Elem.(*pluginsdk.Resource).Schema["scheme"].ValidateFunc = validation.StringInSlice([]string{
-			"http",
-			"https",
-		}, false)
-		schema.Elem.(*pluginsdk.Resource).Schema["http_get"] = httpGetSchema
-	}
-	return schema
 }
