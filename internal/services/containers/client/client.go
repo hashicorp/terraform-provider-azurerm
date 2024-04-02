@@ -43,7 +43,7 @@ type Client struct {
 func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	containerInstanceClient, err := containerinstance.NewContainerInstanceClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Container Instance Runs Client: %+v", err)
+		return nil, fmt.Errorf("building Container Instance client : %+v", err)
 	}
 	o.Configure(containerInstanceClient.Client, o.Authorizers.ResourceManager)
 
