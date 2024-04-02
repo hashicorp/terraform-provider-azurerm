@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
 * `containerinstance` - update to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25416]
 * `maintenance`: updating to API Version `2023-04-01` [GH-25388]
+* `storage`: the Storage Account cache is now populated using `hashicorp/go-azure-sdk` [GH-25437]
 * `azurerm_bot_service_azure_bot` - support for the `cmk_key_vault_key_url` property [GH-23640]
 * `azurerm_capacity_reservation` - update validation for `capacity` [GH-25471]
 * `azurerm_managed_hsm_role_*_ids`: use specific resource id to replace generic nested item id [GH-25323]
@@ -21,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_volume` - support for the `kerberos_enabled`, `smb_continuous_availability_enabled`, `kerberos_5_read_only_enabled`, `kerberos_5_read_write_enabled`, `kerberos_5i_read_only_enabled`, `kerberos_5i_read_write_enabled`, `kerberos_5p_read_only_enabled`, and `kerberos_5p_read_write_enabled` properties [GH-25385]
 * `azurerm_recovery_services_vault` - upgrading to version `2024-01-01` [GH-25325]
 * `azurerm_stack_hci_cluster` - the `client_id` property is now optional [GH-25407]
+* `azurerm_storage_encryption_scope` - refactoring to use `hashicorp/go-azure-sdk` rather than `Azure/azure-sdk-for-go` [GH-25437]
 
 BUG FIXES:
 
