@@ -17,24 +17,20 @@ func (AppServiceCertificateOrderResourceV0ToV1) Schema() map[string]*pluginsdk.S
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"location": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 
 		"auto_renew": {
 			Type:     pluginsdk.TypeBool,
-			Default:  true,
 			Optional: true,
 		},
 
@@ -81,19 +77,16 @@ func (AppServiceCertificateOrderResourceV0ToV1) Schema() map[string]*pluginsdk.S
 		"key_size": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Default:  2048,
 		},
 
 		"product_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "Standard",
 		},
 
 		"validity_in_years": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			Default:  1,
 		},
 
 		"domain_verification_token": {
