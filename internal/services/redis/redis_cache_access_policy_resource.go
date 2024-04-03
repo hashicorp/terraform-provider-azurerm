@@ -14,7 +14,7 @@ import (
 type RedisCacheAccessPolicyResource struct {
 }
 
-var _ sdk.ResourceWithUpdate = RedisCacheAccessPolicyResource{}
+var _ sdk.Resource = RedisCacheAccessPolicyResource{}
 
 type RedisCacheAccessPolicyResourceModel struct {
 	Name         string `tfschema:"name"`
@@ -38,6 +38,7 @@ func (r RedisCacheAccessPolicyResource) Arguments() map[string]*pluginsdk.Schema
 		"permissions": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 	}
 }
@@ -98,51 +99,6 @@ func (r RedisCacheAccessPolicyResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (r RedisCacheAccessPolicyResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Redis.Redis
-			id, err := redis.ParseAccessPolicyID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var state RedisCacheAccessPolicyResourceModel
-			if err := metadata.Decode(&state); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			existing, err := client.AccessPolicyGet(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("reading Redis Cache Access Policy %s: %v", id.AccessPolicyName, err)
-			}
-
-			policyTypeCustom := redis.AccessPolicyTypeCustom
-
-			updateInput := redis.RedisCacheAccessPolicy{
-				Name: &id.AccessPolicyName,
-				Properties: &redis.RedisCacheAccessPolicyProperties{
-					Permissions: existing.Model.Properties.Permissions,
-					Type:        &policyTypeCustom,
-				},
-			}
-
-			if metadata.ResourceData.HasChange("name") {
-				updateInput.Name = &state.Name
-			}
-			if metadata.ResourceData.HasChange("permissions") {
-				updateInput.Properties.Permissions = state.Permissions
-			}
-			if err := client.AccessPolicyCreateUpdateThenPoll(ctx, *id, updateInput); err != nil {
-				return fmt.Errorf("failed to update Redis Cache Access Policy %s: %+v", id.AccessPolicyName, err)
-			}
-
 			return nil
 		},
 	}

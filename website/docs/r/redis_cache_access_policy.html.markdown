@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `redis_cache_id` - (Required) The ID of the Redis Cache. Changing this forces a new Redis Cache Access Policy to be created.
 
-* `permissions` - (Required) Permissions that are going to be assigned to this Redis Cache Access Policy.
+* `permissions` - (Required) Permissions that are going to be assigned to this Redis Cache Access Policy. Changing this forces a new Redis Cache Access Policy to be created.
 
 ## Attributes Reference
 
@@ -62,7 +62,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Redis Cache Access Policy.
-* `update` - (Defaults to 5 minutes) Used when updating the Redis Cache Access Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache Access Policy.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Redis Cache Access Policy.
 
