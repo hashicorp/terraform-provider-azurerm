@@ -75,6 +75,15 @@ func (r RedisCacheAccessPolicyResource) Create() sdk.ResourceFunc {
 			}
 			id := redis.NewAccessPolicyID(subscriptionId, redisId.ResourceGroupName, redisId.RedisName, model.Name)
 
+			existing, err := client.AccessPolicyGet(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
 			policyTypeCustom := redis.AccessPolicyTypeCustom
 
 			createInput := redis.RedisCacheAccessPolicy{

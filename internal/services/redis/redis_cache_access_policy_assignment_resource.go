@@ -95,6 +95,15 @@ func (r RedisCacheAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 			}
 			id := redis.NewAccessPolicyAssignmentID(subscriptionId, redisId.ResourceGroupName, redisId.RedisName, model.Name)
 
+			existing, err := client.AccessPolicyAssignmentGet(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
 			createInput := redis.RedisCacheAccessPolicyAssignment{
 				Name: &model.Name,
 				Properties: &redis.RedisCacheAccessPolicyAssignmentProperties{
