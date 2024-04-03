@@ -6,6 +6,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -70,6 +71,8 @@ type WindowsFunctionAppModel struct {
 	PublishingDeployBasicAuthEnabled bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled    bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
 
+	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans todo add in 4.0 provider
+
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
@@ -104,7 +107,7 @@ func (r WindowsFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -304,6 +307,15 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Windows Function App. **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`.",
 		},
 	}
+	if features.FourPointOhBeta() {
+		s["vnet_image_pull_enabled"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+		}
+	}
+	return s
 }
 
 func (r WindowsFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -429,6 +441,11 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 						availabilityRequest.Name = fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix)
 						availabilityRequest.IsFqdn = pointer.To(true)
+						if features.FourPointOhBeta() {
+							if !metadata.ResourceData.Get("vnet_image_pull_enabled").(bool) {
+								return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+							}
+						}
 					}
 				}
 			}
@@ -525,6 +542,10 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota),
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
 				},
+			}
+
+			if features.FourPointOhBeta() {
+				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -751,6 +772,9 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 
+					if features.FourPointOhBeta() {
+						metadata.ResourceData.Set("vnet_image_pull_enabled", pointer.From(props.VnetImagePullEnabled))
+					}
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
 						return err
@@ -934,6 +958,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("https_only") {
 				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
+			}
+
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") && features.FourPointOhBeta() {
+				model.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {
@@ -1231,6 +1259,30 @@ func (r WindowsFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.ServicePlanClient
 			rd := metadata.ResourceDiff
+
+			if rd.HasChange("vnet_image_pull_enabled") {
+				planId := rd.Get("service_plan_id")
+				// the plan id is known after apply during the initial creation
+				if planId.(string) == "" {
+					return nil
+				}
+				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				servicePlanId, err := commonids.ParseAppServicePlanID(planId.(string))
+				if err != nil {
+					return fmt.Errorf("reading service plan id %+v", err)
+				}
+
+				asp, err := client.Get(ctx, *servicePlanId)
+				if err != nil {
+					return fmt.Errorf("could not read Service Plan %s: %+v", servicePlanId, err)
+				}
+				if aspModel := asp.Model; aspModel != nil {
+					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
+						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+					}
+				}
+			}
 
 			if rd.HasChange("service_plan_id") {
 				currentPlanIdRaw, newPlanIdRaw := rd.GetChange("service_plan_id")

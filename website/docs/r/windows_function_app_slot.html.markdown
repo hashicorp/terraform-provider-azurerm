@@ -131,6 +131,9 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+[//]: # (todo: add it in 4.0 provider)
+[//]: # (* `vnet_image_pull_enabled` - &#40;Optional&#41; Should the traffic for the image pull be routed over virtual network enabled. Defaults to `false`.)
+
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ---

@@ -74,6 +74,7 @@ type LinuxFunctionAppSlotModel struct {
 	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans todo add in 4.0 provider
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
@@ -437,6 +438,11 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 					availabilityRequest.Name = fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix)
 					availabilityRequest.IsFqdn = pointer.To(true)
+					if features.FourPointOhBeta() {
+						if !metadata.ResourceData.Get("vnet_image_pull_enabled").(bool) {
+							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+						}
+					}
 				}
 
 			}
@@ -1204,6 +1210,38 @@ func (r LinuxFunctionAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.LinuxFunctionAppSlotV0toV1{},
+		},
+	}
+}
+
+func (r LinuxFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			appClient := metadata.Client.AppService.WebAppsClient
+			rd := metadata.ResourceDiff
+			if rd.HasChange("vnet_image_pull_enabled") {
+				appId := rd.Get("function_app_id")
+				if appId.(string) == "" {
+					return nil
+				}
+				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				functionAppId, err := commonids.ParseAppServiceID(appId.(string))
+				if err != nil {
+					return fmt.Errorf("reading Function App %+v", err)
+				}
+
+				functionApp, err := appClient.Get(ctx, *functionAppId)
+				if err != nil {
+					return fmt.Errorf("could not read Function App %s: %+v", functionApp, err)
+				}
+				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment.")
+					}
+				}
+			}
+			return nil
 		},
 	}
 }
