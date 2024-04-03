@@ -30,6 +30,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `network`: updating the `GatewaySubnet` validation to show the Subnet Name when the validation fails [GH-25484]
 * `azurerm_function_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 * `azurerm_linux_web_app_slot` - fix a crash when upgrading the provider to v3.88.0 or later [GH-25406]
 * `azurerm_network_manager_deployment` - add locking [GH-25368]
