@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
@@ -51,7 +52,7 @@ type Client struct {
 	GalleryApplicationsClient        *galleryapplications.GalleryApplicationsClient
 	GalleryApplicationVersionsClient *galleryapplicationversions.GalleryApplicationVersionsClient
 	GalleryImagesClient              *galleryimages.GalleryImagesClient
-	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
+	GalleryImageVersionsClient       *galleryimageversions.GalleryImageVersionsClient
 	GallerySharingUpdateClient       *gallerysharingupdate.GallerySharingUpdateClient
 	ImagesClient                     *images.ImagesClient
 	MarketplaceAgreementsClient      *agreements.AgreementsClient
@@ -144,8 +145,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(galleryImagesClient.Client, o.Authorizers.ResourceManager)
 
-	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&galleryImageVersionsClient.Client, o.ResourceManagerAuthorizer)
+	galleryImageVersionsClient, err := galleryimageversions.NewGalleryImageVersionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building GalleryImageVersions client: %+v", err)
+	}
+	o.Configure(galleryImageVersionsClient.Client, o.Authorizers.ResourceManager)
 
 	gallerySharingUpdateClient, err := gallerysharingupdate.NewGallerySharingUpdateClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -241,7 +245,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		GalleryApplicationsClient:        galleryApplicationsClient,
 		GalleryApplicationVersionsClient: galleryApplicationVersionsClient,
 		GalleryImagesClient:              galleryImagesClient,
-		GalleryImageVersionsClient:       &galleryImageVersionsClient,
+		GalleryImageVersionsClient:       galleryImageVersionsClient,
 		GallerySharingUpdateClient:       gallerySharingUpdateClient,
 		ImagesClient:                     imagesClient,
 		MarketplaceAgreementsClient:      marketplaceAgreementsClient,

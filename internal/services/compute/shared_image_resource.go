@@ -6,17 +6,17 @@ package compute
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -29,9 +29,9 @@ import (
 
 func resourceSharedImage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSharedImageCreateUpdate,
+		Create: resourceSharedImageCreate,
 		Read:   resourceSharedImageRead,
-		Update: resourceSharedImageCreateUpdate,
+		Update: resourceSharedImageUpdate,
 		Delete: resourceSharedImageDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -269,26 +269,24 @@ func resourceSharedImage() *pluginsdk.Resource {
 	}
 }
 
-func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
 	id := galleryimages.NewGalleryImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
 	}
 
 	recommended, err := expandGalleryImageRecommended(d)
@@ -332,7 +330,78 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, image); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceSharedImageRead(d, meta)
+}
+
+func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.GalleryImagesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := galleryimages.ParseGalleryImageID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+	}
+
+	payload := existing.Model
+
+	if payload == nil {
+		return fmt.Errorf("model is nil for %s", id)
+	}
+
+	if d.HasChange("disk_types_not_allowed") {
+		payload.Properties.Disallowed = expandGalleryImageDisallowed(d)
+	}
+
+	if d.HasChange("end_of_life_date") {
+		endOfLifeDate, _ := time.Parse(time.RFC3339, d.Get("end_of_life_date").(string))
+		payload.Properties.EndOfLifeDate = pointer.To(date.Time{
+			Time: endOfLifeDate,
+		}.String())
+	}
+
+	if d.HasChange("description") {
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("eula") {
+		payload.Properties.Description = pointer.To(d.Get("eula").(string))
+	}
+
+	if d.HasChange("specialized") {
+		if d.Get("specialized").(bool) {
+			payload.Properties.OsState = galleryimages.OperatingSystemStateTypesSpecialized
+		} else {
+			payload.Properties.OsState = galleryimages.OperatingSystemStateTypesGeneralized
+		}
+	}
+
+	if d.HasChanges("max_recommended_vcpu_count", "min_recommended_vcpu_count", "max_recommended_memory_in_gb", "min_recommended_memory_in_gb") {
+		recommended, err := expandGalleryImageRecommended(d)
+		if err != nil {
+			return err
+		}
+		payload.Properties.Recommended = recommended
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -380,7 +449,7 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("disk_types_not_allowed", diskTypesNotAllowed)
 
 			if v := props.EndOfLifeDate; v != nil {
-				d.Set("end_of_life_date", props.EndOfLifeDate) //.Format(time.RFC3339))
+				d.Set("end_of_life_date", props.EndOfLifeDate)
 			}
 
 			d.Set("eula", props.Eula)
