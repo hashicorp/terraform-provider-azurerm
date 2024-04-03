@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_managed_hsm_role_*_ids`: use specific resource id to replace generic nested item id [GH-25323]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
+* `azurerm_mssql_server_extended_auditing_policy` - support for `audit_actions_and_groups` and `predicate_expression` [GH-25425]
 * `azurerm_netapp_account` - can now be imported [GH-25384]
 * `azurerm_netapp_volume` - support for the `kerberos_enabled`, `smb_continuous_availability_enabled`, `kerberos_5_read_only_enabled`, `kerberos_5_read_write_enabled`, `kerberos_5i_read_only_enabled`, `kerberos_5i_read_write_enabled`, `kerberos_5p_read_only_enabled`, and `kerberos_5p_read_write_enabled` properties [GH-25385]
 * `azurerm_recovery_services_vault` - upgrading to version `2024-01-01` [GH-25325]
