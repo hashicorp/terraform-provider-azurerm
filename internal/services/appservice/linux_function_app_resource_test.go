@@ -3462,7 +3462,7 @@ resource "azurerm_linux_function_app" "test" {
 
     vnet_route_all_enabled = true
   }
-  vnet_image_pull_enabled = true
+  // vnet_image_pull_enabled = true 
 
 }
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
@@ -4156,7 +4156,7 @@ resource "azurerm_linux_function_app" "test" {
   service_plan_id           = azurerm_service_plan.test.id
   virtual_network_subnet_id = azurerm_subnet.test1.id
 
-  vnet_image_pull_enabled    = true
+  // vnet_image_pull_enabled    = true 
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
@@ -4247,7 +4247,7 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  vnet_image_pull_enabled = true
+  // vnet_image_pull_enabled = true 
   site_config {
     vnet_route_all_enabled = true
   }

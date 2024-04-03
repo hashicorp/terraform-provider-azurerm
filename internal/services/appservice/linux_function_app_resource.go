@@ -6,6 +6,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -66,11 +67,12 @@ type LinuxFunctionAppModel struct {
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Tags                             map[string]string                          `tfschema:"tags"`
 	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
-	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans
 	ZipDeployFile                    string                                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+
+	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans todo add in 4.0 provider
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -298,13 +300,6 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"vnet_image_pull_enabled": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
-		},
-
 		"zip_deploy_file": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -316,7 +311,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r LinuxFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
@@ -366,6 +361,15 @@ func (r LinuxFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_credential": helpers.SiteCredentialSchema(),
 	}
+	if features.FourPointOhBeta() {
+		s["vnet_image_pull_enabled"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+		}
+	}
+	return s
 }
 
 func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
@@ -402,7 +406,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			var planSKU *string
-			var isAseEnvironment bool
 			availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
 				Name: functionApp.Name,
 				Type: resourceproviders.CheckNameResourceTypesMicrosoftPointWebSites,
@@ -413,7 +416,6 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				}
 
 				if ase := servicePlanModel.Properties.HostingEnvironmentProfile; ase != nil {
-					isAseEnvironment = true
 					// Attempt to check the ASE for the appropriate suffix for the name availability request.
 					// This varies between internal and external ASE Types, and potentially has other names in other clouds
 					// We use the "internal" as the fallback here, if we can read the ASE, we'll get the full one
@@ -435,6 +437,11 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 
 					availabilityRequest.Name = fmt.Sprintf("%s.%s", functionApp.Name, nameSuffix)
 					availabilityRequest.IsFqdn = pointer.To(true)
+					if features.FourPointOhBeta() {
+						if !metadata.ResourceData.Get("vnet_image_pull_enabled").(bool) {
+							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+						}
+					}
 				}
 			}
 			// Only send for ElasticPremium and Consumption plan
@@ -533,12 +540,10 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
-					VnetImagePullEnabled: pointer.To(functionApp.VnetImagePullEnabled),
 				},
 			}
-
-			if isAseEnvironment && !functionApp.VnetImagePullEnabled {
-				return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
+			if features.FourPointOhBeta() {
+				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -778,8 +783,10 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
+					if features.FourPointOhBeta() {
+						metadata.ResourceData.Set("vnet_image_pull_enabled", pointer.From(props.VnetImagePullEnabled))
+					}
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 					if err != nil {
 						return err
@@ -945,8 +952,8 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
-				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") && features.FourPointOhBeta() {
+				model.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
 			}
 
 			if metadata.ResourceData.HasChange("client_certificate_enabled") {

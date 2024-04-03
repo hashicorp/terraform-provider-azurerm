@@ -6,6 +6,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -59,7 +60,6 @@ type LinuxFunctionAppSlotModel struct {
 	SiteConfig                       []helpers.SiteConfigLinuxFunctionAppSlot   `tfschema:"site_config"`
 	Tags                             map[string]string                          `tfschema:"tags"`
 	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
-	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans
 	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
 	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
 	DefaultHostname                  string                                     `tfschema:"default_hostname"`
@@ -93,7 +93,7 @@ func (r LinuxFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -281,14 +281,16 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
-
-		"vnet_image_pull_enabled": {
+	}
+	if features.FourPointOhBeta() {
+		s["vnet_image_pull_enabled"] = &pluginsdk.Schema{
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
-		},
+		}
 	}
+	return s
 }
 
 func (r LinuxFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -525,8 +527,11 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
-					VnetImagePullEnabled: pointer.To(functionAppSlot.VnetImagePullEnabled),
 				},
+			}
+
+			if features.FourPointOhBeta() {
+				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
 			}
 
 			pan := helpers.PublicNetworkAccessEnabled
@@ -744,8 +749,10 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
+					if features.FourPointOhBeta() {
+						metadata.ResourceData.Set("vnet_image_pull_enabled", pointer.From(props.VnetImagePullEnabled))
+					}
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
 					}
@@ -933,8 +940,8 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
-				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") && features.FourPointOhBeta() {
+				model.Properties.VnetImagePullEnabled = pointer.To(metadata.ResourceData.Get("vnet_image_pull_enabled").(bool))
 			}
 
 			storageString := state.StorageAccountName
