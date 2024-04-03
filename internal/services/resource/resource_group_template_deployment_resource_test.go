@@ -291,6 +291,21 @@ func TestAccResourceGroupTemplateDeployment_nestedResources(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_nestedTemplate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+	r := ResourceGroupTemplateDeploymentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nestedTemplate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ResourceGroupTemplateDeploymentID(state.ID)
 	if err != nil {
@@ -556,6 +571,7 @@ TEMPLATE
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func (ResourceGroupTemplateDeploymentResource) inconsistentProviderCasingEmpty(data acceptance.TestData) string {
 	return `
 provider "azurerm" {
@@ -961,6 +977,93 @@ resource "azurerm_resource_group_template_deployment" "test" {
       "dependsOn": [
         "[resourceId('Microsoft.HealthcareApis/workspaces', parameters('healthworkspacename'))]"
       ]
+    }
+  ]
+}
+TEMPLATE
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (ResourceGroupTemplateDeploymentResource) nestedTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = %[2]q
+}
+
+data "azurerm_subscription" "default" {}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+  parameters_content = jsonencode({
+    "subscriptionId" = {
+      value = data.azurerm_subscription.default.id
+    },
+  })
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "subscriptionId": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "activityLogAlert",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "subscriptionId": {
+            "value": "[parameters('subscriptionId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "subscriptionId": {
+              "type": "String"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/activityLogAlerts",
+              "apiVersion": "2020-10-01",
+              "name": "acctest-%[1]d",
+              "location": "%[2]s",
+              "properties": {
+                "enabled": false,
+                "scopes": [
+                  "[parameters('subscriptionId')]"
+                ],
+                "condition": {
+                  "allOf": [
+                    {
+                      "field": "category",
+                      "equals": "ResourceHealth"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }

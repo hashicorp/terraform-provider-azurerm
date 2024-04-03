@@ -155,7 +155,10 @@ func deleteNestedResource(ctx context.Context, resourcesClient *resources.Client
 	if !ok {
 		resourceProviderApiVersion, ok = (*resourceProviderApiVersions)[strings.ToLower(parsedId.SecondaryProvider)]
 		if !ok {
-			return fmt.Errorf("API version information for RP %q (%q) was not found - nestedResource=%q", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
+			log.Printf("[DEBUG] API version information for RP %q (%q) was not found - nestedResource=%q", parsedId.Provider, parsedId.SecondaryProvider, *nestedResource.ID)
+			// The resource type is not returned if nested template is used, https://github.com/Azure/azure-rest-api-specs/issues/28517
+			// if that happens we try to send a fake version and get the usable API version from error message
+			resourceProviderApiVersion = "2000-01-01"
 		}
 	}
 
