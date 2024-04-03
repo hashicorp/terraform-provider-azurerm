@@ -6,7 +6,6 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -1228,12 +1228,12 @@ func (r LinuxFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 				_, newValue := rd.GetChange("vnet_image_pull_enabled")
 				functionAppId, err := commonids.ParseAppServiceID(appId.(string))
 				if err != nil {
-					return fmt.Errorf("reading Function App %+v", err)
+					return err
 				}
 
 				functionApp, err := appClient.Get(ctx, *functionAppId)
 				if err != nil {
-					return fmt.Errorf("could not read Function App %s: %+v", functionApp, err)
+					return fmt.Errorf("retrieving %s: %+v", functionApp, err)
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
 					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {

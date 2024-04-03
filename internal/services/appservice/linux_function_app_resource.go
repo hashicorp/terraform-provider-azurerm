@@ -6,7 +6,6 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -1246,12 +1246,12 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 				_, newValue := rd.GetChange("vnet_image_pull_enabled")
 				servicePlanId, err := commonids.ParseAppServicePlanID(planId.(string))
 				if err != nil {
-					return fmt.Errorf("reading service plan id %+v", err)
+					return err
 				}
 
 				asp, err := client.Get(ctx, *servicePlanId)
 				if err != nil {
-					return fmt.Errorf("could not read Service Plan %s: %+v", servicePlanId, err)
+					return fmt.Errorf("retrieving %s: %+v", servicePlanId, err)
 				}
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
