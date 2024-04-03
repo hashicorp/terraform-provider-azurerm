@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
@@ -49,7 +50,7 @@ type Client struct {
 	GalleriesClient                  *galleries.GalleriesClient
 	GalleryApplicationsClient        *galleryapplications.GalleryApplicationsClient
 	GalleryApplicationVersionsClient *galleryapplicationversions.GalleryApplicationVersionsClient
-	GalleryImagesClient              *compute.GalleryImagesClient
+	GalleryImagesClient              *galleryimages.GalleryImagesClient
 	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
 	GallerySharingUpdateClient       *gallerysharingupdate.GallerySharingUpdateClient
 	ImagesClient                     *images.ImagesClient
@@ -137,8 +138,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(galleryApplicationVersionsClient.Client, o.Authorizers.ResourceManager)
 
-	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&galleryImagesClient.Client, o.ResourceManagerAuthorizer)
+	galleryImagesClient, err := galleryimages.NewGalleryImagesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building GalleryImages client: %+v", err)
+	}
+	o.Configure(galleryImagesClient.Client, o.Authorizers.ResourceManager)
 
 	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&galleryImageVersionsClient.Client, o.ResourceManagerAuthorizer)
@@ -236,7 +240,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		GalleriesClient:                  galleriesClient,
 		GalleryApplicationsClient:        galleryApplicationsClient,
 		GalleryApplicationVersionsClient: galleryApplicationVersionsClient,
-		GalleryImagesClient:              &galleryImagesClient,
+		GalleryImagesClient:              galleryImagesClient,
 		GalleryImageVersionsClient:       &galleryImageVersionsClient,
 		GallerySharingUpdateClient:       gallerySharingUpdateClient,
 		ImagesClient:                     imagesClient,
