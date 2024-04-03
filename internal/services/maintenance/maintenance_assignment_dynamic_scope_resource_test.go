@@ -64,32 +64,35 @@ func (MaintenanceDynamicScopeResource) Exists(ctx context.Context, clients *clie
 
 func (r MaintenanceDynamicScopeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
-	maintenance_configuration_id = azurerm_maintenance_configuration.test.id
-	subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
-  
-	filter {
-	  locations = []
-	}
+  name                         = "acctest-CA%[2]d"
+  maintenance_configuration_id = azurerm_maintenance_configuration.test.id
+  subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
+
+  filter {
+    locations      = ["%[3]s"]
+    resource_types = ["Microsoft.Compute/virtualMachines"]
+  }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MaintenanceDynamicScopeResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
-	maintenance_configuration_id = azurerm_maintenance_configuration.test.id
-	subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
-  
-	filter {
-	  locations = []
-	}
+  name                         = "acctest-CA%[2]d"
+  maintenance_configuration_id = azurerm_maintenance_configuration.test.id
+  subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
+
+  filter {
+    locations = ["%[3]s"]
+  }
 }
-`, r.basic(data))
+`, r.basic(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (MaintenanceDynamicScopeResource) template(data acceptance.TestData) string {

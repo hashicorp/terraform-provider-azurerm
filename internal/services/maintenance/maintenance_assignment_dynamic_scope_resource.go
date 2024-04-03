@@ -36,6 +36,7 @@ type Filter struct {
 }
 
 type MaintenanceDynamicScopeModel struct {
+	Name                       string   `tfschema:"name"`
 	MaintenanceConfigurationId string   `tfschema:"maintenance_configuration_id"`
 	Scope                      string   `tfschema:"subscription_id"`
 	Filter                     []Filter `tfschema:"filter"`
@@ -45,6 +46,13 @@ var _ sdk.Resource = MaintenanceDynamicScopeResource{}
 
 func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			ValidateFunc:     validation.StringIsNotEmpty,
+		},
+
 		"maintenance_configuration_id": {
 			Type:             pluginsdk.TypeString,
 			Required:         true,
@@ -62,7 +70,7 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 
 		"filter": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -163,7 +171,7 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := configurationassignments.NewScopedConfigurationAssignmentID(subscriptionId.ID(), maintenanceConfigurationId.MaintenanceConfigurationName)
+			id := configurationassignments.NewScopedConfigurationAssignmentID(subscriptionId.ID(), model.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -177,7 +185,7 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 			}
 
 			configurationAssignment := configurationassignments.ConfigurationAssignment{
-				Name: pointer.To(maintenanceConfigurationId.MaintenanceConfigurationName),
+				Name: pointer.To(model.Name),
 				Properties: &configurationassignments.ConfigurationAssignmentProperties{
 					MaintenanceConfigurationId: pointer.To(maintenanceConfigurationId.ID()),
 					ResourceId:                 pointer.To(subscriptionId.ID()),
@@ -249,14 +257,12 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId, err := commonids.ParseSubscriptionID(id.Scope)
-			if err != nil {
-				return err
-			}
-
-			state.Scope = subscriptionId.ID()
-
 			if model := resp.Model; model != nil {
+
+				if model.Name != nil {
+					state.Name = pointer.From(model.Name)
+				}
+
 				if properties := model.Properties; properties != nil {
 
 					if properties.MaintenanceConfigurationId != nil {
@@ -265,6 +271,14 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 							return fmt.Errorf("parsing %q: %+v", pointer.From(properties.MaintenanceConfigurationId), err)
 						}
 						state.MaintenanceConfigurationId = maintenanceConfigurationId.ID()
+					}
+
+					if properties.ResourceId != nil {
+						subscriptionId, err := commonids.ParseSubscriptionIDInsensitively(pointer.From(properties.ResourceId))
+						if err != nil {
+							return fmt.Errorf("parsing %q: %+v", pointer.From(properties.ResourceId), err)
+						}
+						state.Scope = subscriptionId.ID()
 					}
 
 					if filter := properties.Filter; filter != nil {
@@ -320,8 +334,16 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 
 			existing := resp.Model
 
+			if metadata.ResourceData.HasChange("name") {
+				existing.Name = pointer.To(model.Name)
+			}
+
 			if metadata.ResourceData.HasChange("maintenance_configuration_id") {
 				existing.Properties.MaintenanceConfigurationId = pointer.To(model.MaintenanceConfigurationId)
+			}
+
+			if metadata.ResourceData.HasChange("subscription_id") {
+				existing.Properties.ResourceId = pointer.To(model.Scope)
 			}
 
 			if metadata.ResourceData.HasChange("filter") {
