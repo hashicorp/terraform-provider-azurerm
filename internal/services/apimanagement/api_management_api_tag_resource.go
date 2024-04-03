@@ -136,9 +136,7 @@ func resourceApiManagementApiTagDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	name := getApiName(id.ApiId)
-
-	newId := apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name, id.TagId)
+	newId := apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId, id.TagId)
 	if _, err = client.TagDetachFromApi(ctx, newId); err != nil {
 		return fmt.Errorf("detaching api tag %q: %+v", newId, err)
 	}
