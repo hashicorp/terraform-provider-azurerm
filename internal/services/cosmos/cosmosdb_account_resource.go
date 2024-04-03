@@ -124,7 +124,7 @@ func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *pluginsd
 }
 
 func resourceCosmosDbAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceCosmosDbAccountCreate,
 		Read:   resourceCosmosDbAccountRead,
 		Update: resourceCosmosDbAccountUpdate,
@@ -709,16 +709,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"connection_strings": {
-				Type:      pluginsdk.TypeList,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &pluginsdk.Schema{
-					Type:      pluginsdk.TypeString,
-					Sensitive: true,
-				},
-			},
-
 			"primary_sql_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -770,6 +760,21 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["connection_strings"] = &pluginsdk.Schema{
+			Type:      pluginsdk.TypeList,
+			Computed:  true,
+			Sensitive: true,
+			Elem: &pluginsdk.Schema{
+				Type:      pluginsdk.TypeString,
+				Sensitive: true,
+			},
+			Deprecated: "This property has been superseded by the primary and secondary connection strings for sql, mongodb and readonly and will be removed in v4.0 of the provider",
+		}
+	}
+
+	return resource
 }
 
 func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1550,7 +1555,9 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	d.Set("connection_strings", connStrings)
+	if !features.FourPointOhBeta() {
+		d.Set("connection_strings", connStrings)
+	}
 
 	return tags.FlattenAndSet(d, existing.Model.Tags)
 }
