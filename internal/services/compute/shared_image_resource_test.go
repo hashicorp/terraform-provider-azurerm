@@ -34,7 +34,7 @@ func TestAccSharedImage_basic(t *testing.T) {
 	})
 }
 
-func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
+func TestAccSharedImage_basicHyperVGenerationV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -50,7 +50,7 @@ func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
 	})
 }
 
-func TestAccSharedImage_basic_Arm(t *testing.T) {
+func TestAccSharedImage_basicArmArchitecture(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

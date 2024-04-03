@@ -30,9 +30,9 @@ import (
 
 func resourceSharedImageVersion() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSharedImageVersionCreateUpdate,
+		Create: resourceSharedImageVersionCreate,
 		Read:   resourceSharedImageVersionRead,
-		Update: resourceSharedImageVersionCreateUpdate,
+		Update: resourceSharedImageVersionUpdate,
 		Delete: resourceSharedImageVersionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -201,25 +201,23 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 	}
 }
 
-func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := galleryimageversions.NewImageVersionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("image_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, galleryimageversions.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_shared_image_version", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_shared_image_version", id.ID())
 	}
 
 	targetRegions, err := expandSharedImageVersionTargetRegions(d)
@@ -275,6 +273,69 @@ func resourceSharedImageVersionCreateUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, version); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceSharedImageVersionRead(d, meta)
+}
+
+func resourceSharedImageVersionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := galleryimageversions.ParseImageVersionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, galleryimageversions.DefaultGetOperationOptions())
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+	}
+
+	payload := existing.Model
+	if payload == nil {
+		return fmt.Errorf("model is nil for %s", id)
+	}
+
+	if payload.Properties == nil {
+		return fmt.Errorf("properties is nil for %s", id)
+	}
+
+	if payload.Properties.PublishingProfile == nil {
+		payload.Properties.PublishingProfile = &galleryimageversions.GalleryArtifactPublishingProfileBase{}
+	}
+
+	if d.HasChange("target_region") {
+		targetRegions, err := expandSharedImageVersionTargetRegions(d)
+		if err != nil {
+			return err
+		}
+
+		payload.Properties.PublishingProfile.TargetRegions = targetRegions
+	}
+
+	if d.HasChange("end_of_life_date") {
+		endOfLifeDate, _ := time.Parse(time.RFC3339, d.Get("end_of_life_date").(string))
+		payload.Properties.PublishingProfile.EndOfLifeDate = pointer.To(date.Time{
+			Time: endOfLifeDate,
+		}.String())
+	}
+
+	if d.HasChange("exclude_from_latest") {
+		payload.Properties.PublishingProfile.ExcludeFromLatest = pointer.To(d.Get("exclude_from_latest").(bool))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
