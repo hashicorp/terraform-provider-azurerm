@@ -202,6 +202,26 @@ func TestAccKubernetesCluster_edgeZone(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkProfile(data, "loadBalancer"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfile(data, "userDefinedRouting"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfile(data, "loadBalancer"),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseKubernetesClusterID(state.ID)
 	if err != nil {
@@ -298,6 +318,93 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) vnetWithRoutetable(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "k8s-vnet"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["172.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "node_subnet" {
+  name                 = "node-subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.32.0/24"]
+}
+
+resource "azurerm_subnet" "pod_subnet" {
+  name                 = "pod-subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.0.48.0/20"]
+
+  delegation {
+    name = "aks-delegation"
+
+    service_delegation {
+        actions = [
+            "Microsoft.Network/virtualNetworks/subnets/join/action",
+          ]
+        name    = "Microsoft.ContainerService/managedClusters"
+      }
+  }
+}
+
+resource "azurerm_route_table" "test" {
+  name                          = "test"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  disable_bgp_route_propagation = false
+}
+
+resource "azurerm_subnet_route_table_association" "node_subnet" {
+  route_table_id = azurerm_route_table.test.id
+  subnet_id = azurerm_subnet.node_subnet.id
+}
+  `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r KubernetesClusterResource) networkProfile(data acceptance.TestData, outboundType string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "1.29"
+
+  default_node_pool {
+    name                   = "default"
+    node_count             = 1
+    vm_size                = "Standard_DS2_v2"
+    vnet_subnet_id 		   = azurerm_subnet.node_subnet.id
+    pod_subnet_id 		   = azurerm_subnet.pod-subnet.id
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+  network_profile {
+    network_plugin = "azure"
+	outbound_type = %q
+  }
+}
+  `, r.vnetWithRoutetable(data), data.RandomInteger, data.RandomInteger, outboundType)
 }
 
 func (KubernetesClusterResource) dedicatedHost(data acceptance.TestData) string {
