@@ -8,7 +8,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.20240402.1085733` [GH-25482]
+* dependencies: updating to `v0.20240402.1085733` of `github.com/hashicorp/go-azure-sdk` [GH-25482]
 * dependencies: updating to `v0.67.0` of `github.com/hashicorp/go-azure-helpers` [GH-25446]
 * dependencies: updating to `v0.25.4` of `github.com/tombuildsstuff/giovanni` [GH-25404]
 * `alertsmanagement` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25486]
