@@ -1240,7 +1240,7 @@ func (r WindowsFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 
 				functionApp, err := appClient.Get(ctx, *functionAppId)
 				if err != nil {
-					return fmt.Errorf("retrieving %s: %+v", functionApp, err)
+					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
 				}
 				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
 					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
