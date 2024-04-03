@@ -145,7 +145,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Read() sdk.ResourceFunc 
 				Name:              id.CloudName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
-			
+
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
