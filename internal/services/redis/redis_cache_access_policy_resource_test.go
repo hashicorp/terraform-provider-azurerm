@@ -111,7 +111,7 @@ resource "azurerm_redis_cache" "test" {
 }
 
 resource "azurerm_redis_cache_access_policy" "test" {
-  name           = "acctestRedisAccessPolicy-test"
+  name           = "acctestRedisAccessPolicytest"
   redis_cache_id = azurerm_redis_cache.test.id
   permissions    = "+@read +@connection +cluster|info allkeys"
 }

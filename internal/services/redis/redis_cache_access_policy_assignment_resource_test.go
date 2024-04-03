@@ -33,26 +33,6 @@ func TestAccRedisCacheAccessPolicyAssignment_basic(t *testing.T) {
 	})
 }
 
-func TestAccRedisCacheAccessPolicyAssignment_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy_assignment", "test")
-	r := RedisCacheAccessPolicyAssignmentResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
 func TestAccRedisCacheAccessPolicyAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy_assignment", "test")
 	r := RedisCacheAccessPolicyAssignmentResource{}
@@ -114,45 +94,6 @@ resource "azurerm_redis_cache_access_policy_assignment" "test" {
   name               = "acctestRedisAccessPolicyAssignmentTest"
   redis_cache_id     = azurerm_redis_cache.test.id
   access_policy_name = "Data Contributor"
-  object_id          = data.azurerm_client_config.test.object_id
-  object_id_alias    = "ServicePrincipal"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (RedisCacheAccessPolicyAssignmentResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "test" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_redis_cache" "test" {
-  name                          = "acctestRedis-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  capacity                      = 1
-  family                        = "C"
-  public_network_access_enabled = false
-  sku_name                      = "Basic"
-  enable_non_ssl_port           = true
-  minimum_tls_version           = "1.2"
-
-  redis_configuration {
-  }
-}
-
-resource "azurerm_redis_cache_access_policy_assignment" "test" {
-  name               = "acctestRedisAccessPolicyAssignmentTest"
-  redis_cache_id     = azurerm_redis_cache.test.id
-  access_policy_name = "Data Owner"
   object_id          = data.azurerm_client_config.test.object_id
   object_id_alias    = "ServicePrincipal"
 }

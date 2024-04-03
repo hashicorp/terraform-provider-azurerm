@@ -54,11 +54,11 @@ The following arguments are supported:
 
 * `redis_cache_id` - (Required) The ID of the Redis Cache. Changing this forces a new Redis Cache Access Policy Assignment to be created.
 
-* `access_policy_name` - (Required) The name of the Access Policy to be assigned.
+* `access_policy_name` - (Required) The name of the Access Policy to be assigned. Changing this forces a new Redis Cache Access Policy Assignment to be created.
 
-* `object_id` - (Required) The principal ID to be assigned the Access Policy.
+* `object_id` - (Required) The principal ID to be assigned the Access Policy. Changing this forces a new Redis Cache Access Policy Assignment to be created.
 
-* `object_id_alias` - (Required) The alias of the principal ID. Possible values are `ServicePrincipal` and `UserMSI`.
+* `object_id_alias` - (Required) The alias of the principal ID. Possible values are `ServicePrincipal` and `UserMSI`. Changing this forces a new Redis Cache Access Policy Assignment to be created.
 
 ## Attributes Reference
 
@@ -71,7 +71,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 60 minutes) Used when creating the Redis Cache Access Policy Assignment.
-* `update` - (Defaults to 5 minutes) Used when updating the Redis Cache Access Policy Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache Access Policy Assignment.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Redis Cache Access Policy Assignment.
 

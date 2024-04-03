@@ -15,7 +15,7 @@ import (
 type RedisCacheAccessPolicyAssignmentResource struct {
 }
 
-var _ sdk.ResourceWithUpdate = RedisCacheAccessPolicyAssignmentResource{}
+var _ sdk.Resource = RedisCacheAccessPolicyAssignmentResource{}
 
 type RedisCacheAccessPolicyAssignmentResourceModel struct {
 	Name             string `tfschema:"name"`
@@ -42,14 +42,17 @@ func (r RedisCacheAccessPolicyAssignmentResource) Arguments() map[string]*plugin
 		"access_policy_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 		"object_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 		},
 		"object_id_alias": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice(
 				[]string{
 					"ServicePrincipal",
@@ -105,56 +108,6 @@ func (r RedisCacheAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
-		},
-	}
-}
-
-func (r RedisCacheAccessPolicyAssignmentResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Redis.Redis
-			id, err := redis.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var state RedisCacheAccessPolicyAssignmentResourceModel
-			if err := metadata.Decode(&state); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			existing, err := client.AccessPolicyAssignmentGet(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("reading Redis Cache Access Policy Assignment %s: %v", id, err)
-			}
-
-			updateInput := redis.RedisCacheAccessPolicyAssignment{
-				Name: existing.Model.Name,
-				Properties: &redis.RedisCacheAccessPolicyAssignmentProperties{
-					AccessPolicyName: existing.Model.Properties.AccessPolicyName,
-					ObjectId:         existing.Model.Properties.ObjectId,
-					ObjectIdAlias:    existing.Model.Properties.ObjectIdAlias,
-				},
-			}
-
-			if metadata.ResourceData.HasChange("name") {
-				updateInput.Name = &state.Name
-			}
-			if metadata.ResourceData.HasChange("access_policy_name") {
-				updateInput.Properties.AccessPolicyName = state.AccessPolicyName
-			}
-			if metadata.ResourceData.HasChange("object_id") {
-				updateInput.Properties.ObjectId = state.ObjectID
-			}
-			if metadata.ResourceData.HasChange("object_id_alias") {
-				updateInput.Properties.ObjectIdAlias = state.ObjectIDAlias
-			}
-			if err := client.AccessPolicyAssignmentCreateUpdateThenPoll(ctx, *id, updateInput); err != nil {
-				return fmt.Errorf("failed to update Redis Cache Access Policy Assignment: %s: %+v", id.AccessPolicyAssignmentName, err)
-			}
-
 			return nil
 		},
 	}
