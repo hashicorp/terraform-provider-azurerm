@@ -1413,17 +1413,18 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Deleting %s", *id)
+	log.Printf("[DEBUG] Deleting start %s", *id)
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+	log.Printf("[DEBUG] Deleting end %s", *id)
 
 	if model := existing.Model; model != nil {
 		locationName := location.NormalizeNilable(pointer.To(model.Location))
 
 		// Purge the soft deleted Api Management permanently if the feature flag is enabled
 		if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
-			log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
+			log.Printf("[DEBUG] %s marked for purge - executing purge start", *id)
 			deletedServiceId := deletedservice.NewDeletedServiceID(id.SubscriptionId, locationName, id.ServiceName)
 			if _, err := deletedServicesClient.GetByName(ctx, deletedServiceId); err != nil {
 				return fmt.Errorf("retrieving the deleted %s to be able to purge it: %+v", *id, err)
@@ -1439,7 +1440,7 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 				}
 			}
 
-			log.Printf("[DEBUG] Purged %s.", *id)
+			log.Printf("[DEBUG] Purged %s end.", *id)
 			return nil
 		}
 	}
