@@ -37,6 +37,7 @@ BUG FIXES:
 * `azurerm_function_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 * `azurerm_linux_web_app_slot` - fix a crash when upgrading the provider to v3.88.0 or later [GH-25406]
 * `azurerm_network_manager_deployment` - add locking [GH-25368]
+* `azurerm_resource_group_template_deployment` - changes to `parameters_content` and `template_content` now force `output_content` to be updated in the plan [GH-25403]
 * `azurerm_storage_blob` - fix a potential crash when the endpoint is unreachable [GH-25404]
 * `azurerm_storage_container` - fix a potential crash when the endpoint is unreachable [GH-25404]
 * `azurerm_storage_data_lake_gen2_filesystem` - fix a potential crash when the endpoint is unreachable [GH-25404]
