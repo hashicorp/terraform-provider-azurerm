@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `alertsmanagement` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25486]
 * `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
 * `compute` - update to API version `2024-03-01` [GH-25436]
+* `compute` - update shared image resources and data sources to use `hashicorp/go-azure-sdk` [GH-25503]
 * `containerinstance` - update to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25416]
 * `maintenance`: updating to API Version `2023-04-01` [GH-25388]
 * `storage`: the Storage Account cache is now populated using `hashicorp/go-azure-sdk` [GH-25437]
