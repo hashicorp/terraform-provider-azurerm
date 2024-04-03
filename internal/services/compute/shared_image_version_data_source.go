@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -221,8 +222,8 @@ func obtainImage(client *galleryimageversions.GalleryImageVersionsClient, ctx co
 						return nil, fmt.Errorf("parsing published date for %s: %+v", galleryImageId, err)
 					}
 					if recentDate == nil || publishedDate.After(*recentDate) {
-						recentDate = &publishedDate
-						image = &currentImage
+						recentDate = pointer.To(publishedDate)
+						image = pointer.To(currentImage)
 					}
 				}
 			}
