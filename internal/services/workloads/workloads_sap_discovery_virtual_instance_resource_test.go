@@ -200,7 +200,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
   location                          = azurerm_resource_group.test.location
   environment                       = "NonProd"
   sap_product                       = "S4HANA"
-  managed_resource_group_name       = "managedTestRG%d"
+  managed_resource_group_name       = "acctestmanagedRG%d"
   central_server_virtual_machine_id = "%s"
   managed_storage_account_name      = "acctestmanagedsa%s"
 
@@ -236,7 +236,7 @@ resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
   location                          = azurerm_resource_group.test.location
   environment                       = "NonProd"
   sap_product                       = "S4HANA"
-  managed_resource_group_name       = "managedTestRG%d"
+  managed_resource_group_name       = "acctestmanagedRG%d"
   central_server_virtual_machine_id = "%s"
   managed_storage_account_name      = "acctestmanagedsa%s"
 
