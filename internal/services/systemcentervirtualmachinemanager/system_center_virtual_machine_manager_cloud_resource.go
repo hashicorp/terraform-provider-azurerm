@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerCloudModel struct {
@@ -103,12 +102,12 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Create() sdk.ResourceFun
 				Location: location.Normalize(model.Location),
 				ExtendedLocation: clouds.ExtendedLocation{
 					Type: pointer.To("customLocation"),
-					Name: utils.String(model.CustomLocationId),
+					Name: pointer.To(model.CustomLocationId),
 				},
 				Properties: clouds.CloudProperties{
-					InventoryItemId: utils.String(scvmmServerInventoryItemId.ID()),
-					Uuid:            utils.String(scvmmServerInventoryItemId.InventoryItemName),
-					VMmServerId:     utils.String(vmmservers.NewVMmServerID(scvmmServerInventoryItemId.SubscriptionId, scvmmServerInventoryItemId.ResourceGroupName, scvmmServerInventoryItemId.VmmServerName).ID()),
+					InventoryItemId: pointer.To(scvmmServerInventoryItemId.ID()),
+					Uuid:            pointer.To(scvmmServerInventoryItemId.InventoryItemName),
+					VMmServerId:     pointer.To(vmmservers.NewVMmServerID(scvmmServerInventoryItemId.SubscriptionId, scvmmServerInventoryItemId.ResourceGroupName, scvmmServerInventoryItemId.VmmServerName).ID()),
 				},
 				Tags: pointer.To(model.Tags),
 			}
