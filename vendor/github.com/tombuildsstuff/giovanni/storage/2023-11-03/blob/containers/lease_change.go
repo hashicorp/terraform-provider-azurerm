@@ -62,7 +62,7 @@ func (c Client) ChangeLease(ctx context.Context, containerName string, input Cha
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.LeaseID = resp.Header.Get("x-ms-lease-id")
 		}
 	}

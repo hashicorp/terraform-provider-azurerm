@@ -89,7 +89,7 @@ func (c Client) Copy(ctx context.Context, shareName, path, fileName string, inpu
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.CopyID = resp.Header.Get("x-ms-copy-id")
 			result.CopySuccess = resp.Header.Get("x-ms-copy-status")
 		}

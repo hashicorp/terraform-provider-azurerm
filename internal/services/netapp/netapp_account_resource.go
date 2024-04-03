@@ -137,10 +137,11 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Description: "If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.",
 						},
 						"ldap_over_tls_enabled": {
-							Type:        pluginsdk.TypeBool,
-							Optional:    true,
-							Default:     false,
-							Description: "Specifies whether or not the LDAP traffic needs to be secured via TLS.",
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							Default:      false,
+							RequiredWith: []string{"active_directory.0.server_root_ca_certificate"},
+							Description:  "Specifies whether or not the LDAP traffic needs to be secured via TLS.",
 						},
 						"server_root_ca_certificate": {
 							Type:         pluginsdk.TypeString,
@@ -313,6 +314,20 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
+		if model.Properties.ActiveDirectories != nil {
+			adProps := *model.Properties.ActiveDirectories
+			// response returns an array, but only 1 NetApp AD connection is allowed per the Azure platform currently
+			if len(adProps) > 0 {
+				// the API returns opaque('***') values for password and server_root_ca_certificate, so we pass through current state values so change detection works
+				prevPassword := d.Get("active_directory.0.password").(string)
+				prevCaCert := d.Get("active_directory.0.server_root_ca_certificate").(string)
+
+				if err = d.Set("active_directory", flattenNetAppActiveDirectories(&adProps[0], &prevPassword, &prevCaCert)); err != nil {
+					return fmt.Errorf("setting `active_directory`: %+v", err)
+				}
+			}
+		}
+
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 
@@ -369,4 +384,29 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 		results = append(results, result)
 	}
 	return &results
+}
+
+func flattenNetAppActiveDirectories(input *netappaccounts.ActiveDirectory, prevPassword *string, prevCaCert *string) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"dns_servers":                       utils.FlattenStringSliceWithDelimiter(input.Dns, ","),
+			"domain":                            input.Domain,
+			"organizational_unit":               input.OrganizationalUnit,
+			"password":                          prevPassword,
+			"smb_server_name":                   input.SmbServerName,
+			"username":                          input.Username,
+			"site_name":                         input.Site,
+			"kerberos_ad_name":                  input.AdName,
+			"kerberos_kdc_ip":                   input.KdcIP,
+			"aes_encryption_enabled":            input.AesEncryption,
+			"local_nfs_users_with_ldap_allowed": input.AllowLocalNfsUsersWithLdap,
+			"ldap_over_tls_enabled":             input.LdapOverTLS,
+			"server_root_ca_certificate":        prevCaCert,
+			"ldap_signing_enabled":              input.LdapSigning,
+		},
+	}
 }
