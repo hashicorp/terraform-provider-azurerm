@@ -82,7 +82,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Create() sdk.ResourceFun
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(model.SystemCenterVirtualMachineManagerServerInventoryItemId)
+			scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemID(model.SystemCenterVirtualMachineManagerServerInventoryItemId)
 			if err != nil {
 				return err
 			}
@@ -102,7 +102,7 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Create() sdk.ResourceFun
 			parameters := clouds.Cloud{
 				Location: location.Normalize(model.Location),
 				ExtendedLocation: clouds.ExtendedLocation{
-					Type: utils.String("customLocation"),
+					Type: pointer.To("customLocation"),
 					Name: utils.String(model.CustomLocationId),
 				},
 				Properties: clouds.CloudProperties{
@@ -143,10 +143,10 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Read() sdk.ResourceFunc 
 			}
 
 			state := SystemCenterVirtualMachineManagerCloudModel{}
+			state.Name = id.CloudName
+			state.ResourceGroupName = id.ResourceGroupName
 			if model := resp.Model; model != nil {
-				state.Name = id.CloudName
 				state.Location = location.Normalize(model.Location)
-				state.ResourceGroupName = id.ResourceGroupName
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.SystemCenterVirtualMachineManagerServerInventoryItemId = pointer.From(model.Properties.InventoryItemId)
 				state.Tags = pointer.From(model.Tags)
