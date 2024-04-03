@@ -29,6 +29,7 @@ ENHANCEMENTS:
 * `azurerm_stack_hci_cluster` - the `client_id` property is now optional [GH-25407]
 * `azurerm_storage_encryption_scope` - refactoring to use `hashicorp/go-azure-sdk` rather than `Azure/azure-sdk-for-go` [GH-25437]
 * `azurerm_mssql_elasticpool` - the `maintenance_configuration_name` property now supports values `SQL_SouthAfricaNorth_DB_1`, `SQL_SouthAfricaNorth_DB_2`, `SQL_WestUS3_DB_1` and `SQL_WestUS3_DB_2` [GH-25500]
+* `azurerm_lighthouse_assignment` - updating API Version from `2019-06-01` to `2022-10-01`  [GH-25473]
 
 BUG FIXES:
 
