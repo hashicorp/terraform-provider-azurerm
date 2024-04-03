@@ -66,9 +66,7 @@ func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface
 
 	tagId := tag.NewTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, d.Get("name").(string))
 
-	apiName := getApiName(apiId.ApiId)
-
-	id := apitag.NewApiTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiName, d.Get("name").(string))
+	id := apitag.NewApiTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiId.ApiId, d.Get("name").(string))
 
 	tagExists, err := tagClient.Get(ctx, tagId)
 	if err != nil {
@@ -108,9 +106,8 @@ func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	apiName := getApiName(id.ApiId)
-
-	tagId := apitag.NewApiTagID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.TagId)
+	apiId := api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId)
+	tagId := apitag.NewApiTagID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId, id.TagId)
 
 	resp, err := client.TagGetByApi(ctx, tagId)
 	if err != nil {
@@ -123,6 +120,7 @@ func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %q: %+v", tagId, err)
 	}
 
+	d.Set("api_id", apiId.ID())
 	d.Set("name", id.TagId)
 
 	return nil
