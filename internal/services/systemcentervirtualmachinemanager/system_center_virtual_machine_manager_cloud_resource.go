@@ -141,9 +141,11 @@ func (r SystemCenterVirtualMachineManagerCloudResource) Read() sdk.ResourceFunc 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := SystemCenterVirtualMachineManagerCloudModel{}
-			state.Name = id.CloudName
-			state.ResourceGroupName = id.ResourceGroupName
+			state := SystemCenterVirtualMachineManagerCloudModel{
+				Name:              id.CloudName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
+			
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
