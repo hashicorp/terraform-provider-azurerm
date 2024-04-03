@@ -644,10 +644,6 @@ resource "azurerm_backup_protected_vm" "test" {
 
 func (r BackupProtectedVmResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_backup_protected_vm" "import" {
