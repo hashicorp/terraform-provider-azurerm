@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineTemplateModel struct {
@@ -82,7 +81,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Create(
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemIDInsensitively(model.SystemCenterVirtualMachineManagerServerInventoryItemId)
+			scvmmServerInventoryItemId, err := inventoryitems.ParseInventoryItemID(model.SystemCenterVirtualMachineManagerServerInventoryItemId)
 			if err != nil {
 				return err
 			}
@@ -101,14 +100,14 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Create(
 
 			parameters := virtualmachinetemplates.VirtualMachineTemplate{
 				ExtendedLocation: virtualmachinetemplates.ExtendedLocation{
-					Type: utils.String("customLocation"),
-					Name: utils.String(model.CustomLocationId),
+					Type: pointer.To("customLocation"),
+					Name: pointer.To(model.CustomLocationId),
 				},
 				Location: location.Normalize(model.Location),
 				Properties: virtualmachinetemplates.VirtualMachineTemplateProperties{
-					InventoryItemId: utils.String(scvmmServerInventoryItemId.ID()),
-					Uuid:            utils.String(scvmmServerInventoryItemId.InventoryItemName),
-					VMmServerId:     utils.String(vmmservers.NewVMmServerID(scvmmServerInventoryItemId.SubscriptionId, scvmmServerInventoryItemId.ResourceGroupName, scvmmServerInventoryItemId.VmmServerName).ID()),
+					InventoryItemId: pointer.To(scvmmServerInventoryItemId.ID()),
+					Uuid:            pointer.To(scvmmServerInventoryItemId.InventoryItemName),
+					VMmServerId:     pointer.To(vmmservers.NewVMmServerID(scvmmServerInventoryItemId.SubscriptionId, scvmmServerInventoryItemId.ResourceGroupName, scvmmServerInventoryItemId.VmmServerName).ID()),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -142,11 +141,13 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Read() 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := SystemCenterVirtualMachineManagerVirtualMachineTemplateModel{}
+			state := SystemCenterVirtualMachineManagerVirtualMachineTemplateModel{
+				Name:              id.VirtualMachineTemplateName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
+
 			if model := resp.Model; model != nil {
-				state.Name = id.VirtualMachineTemplateName
 				state.Location = location.Normalize(model.Location)
-				state.ResourceGroupName = id.ResourceGroupName
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.SystemCenterVirtualMachineManagerServerInventoryItemId = pointer.From(model.Properties.InventoryItemId)
 				state.Tags = pointer.From(model.Tags)

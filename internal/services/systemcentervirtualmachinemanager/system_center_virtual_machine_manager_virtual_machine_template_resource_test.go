@@ -84,6 +84,13 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_update(t *te
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -98,7 +105,7 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_update(t *te
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
