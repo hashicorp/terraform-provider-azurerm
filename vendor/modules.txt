@@ -609,7 +609,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-0
 github.com/hashicorp/go-azure-sdk/resource-manager/managedapplications/2021-07-01/applications
 github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31
 github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities
-github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationassignments
+github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/accounts
 github.com/hashicorp/go-azure-sdk/resource-manager/maps/2021-02-01/creators

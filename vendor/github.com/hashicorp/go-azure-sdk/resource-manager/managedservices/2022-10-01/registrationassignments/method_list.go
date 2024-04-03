@@ -26,6 +26,7 @@ type ListCompleteResult struct {
 
 type ListOperationOptions struct {
 	ExpandRegistrationDefinition *bool
+	Filter                       *string
 }
 
 func DefaultListOperationOptions() ListOperationOptions {
@@ -47,6 +48,9 @@ func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	out := client.QueryParams{}
 	if o.ExpandRegistrationDefinition != nil {
 		out.Append("$expandRegistrationDefinition", fmt.Sprintf("%v", *o.ExpandRegistrationDefinition))
+	}
+	if o.Filter != nil {
+		out.Append("$filter", fmt.Sprintf("%v", *o.Filter))
 	}
 	return &out
 }
