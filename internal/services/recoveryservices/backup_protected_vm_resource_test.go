@@ -587,10 +587,6 @@ resource "azurerm_managed_disk" "test" {
 // For update backup policy id test
 func (r BackupProtectedVmResource) withBasePolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_backup_policy_vm" "test_change_backup" {
@@ -704,10 +700,6 @@ resource "azurerm_backup_policy_vm" "test2" {
 
 func (r BackupProtectedVmResource) separateResourceGroups(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_backup_protected_vm" "test" {
