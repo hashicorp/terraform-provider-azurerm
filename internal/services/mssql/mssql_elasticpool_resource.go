@@ -184,6 +184,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(databases.AlwaysEncryptedEnclaveTypeVBS),
+					string(databases.AlwaysEncryptedEnclaveTypeDefault),
 				}, false),
 			},
 
@@ -236,13 +237,6 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := expandMsSqlElasticPoolSku(d)
 
-	// NOTE: Set the default value, if the field exists in the config the only value
-	// that it could be is 'VBS'...
-	enclaveType := elasticpools.AlwaysEncryptedEnclaveTypeDefault
-	if v, ok := d.GetOk("enclave_type"); ok {
-		enclaveType = elasticpools.AlwaysEncryptedEnclaveType(v.(string))
-	}
-
 	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
 	elasticPool := elasticpools.ElasticPool{
 		Name:     pointer.To(id.ElasticPoolName),
@@ -252,10 +246,16 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Properties: &elasticpools.ElasticPoolProperties{
 			LicenseType:                pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
-			PreferredEnclaveType:       pointer.To(enclaveType),
 			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
 		},
+	}
+
+	// PER THE SERVICE TEAM: If the config doesn’t specify any value for the 'enclave_type'
+	// field it shouldn’t be passed as part of the ARM API request for database or
+	// elastic pool, as it is an optional parameter and not a required one.
+	if v, ok := d.GetOk("enclave_type"); ok {
+		elasticPool.Properties.PreferredEnclaveType = pointer.To(elasticpools.AlwaysEncryptedEnclaveType(v.(string)))
 	}
 
 	if d.HasChange("max_size_gb") {
@@ -308,9 +308,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			enclaveType := ""
-
-			// NOTE: Always set the PreferredEnclaveType to an empty string unless it isn't 'Default'...
-			if v := props.PreferredEnclaveType; v != nil && pointer.From(v) != elasticpools.AlwaysEncryptedEnclaveTypeDefault {
+			if v := props.PreferredEnclaveType; v != nil {
 				enclaveType = string(pointer.From(v))
 			}
 			d.Set("enclave_type", enclaveType)

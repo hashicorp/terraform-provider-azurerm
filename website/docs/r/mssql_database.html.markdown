@@ -190,7 +190,7 @@ The following arguments are supported:
 
 * `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database.
 
-* `enclave_type` - (Optional) Specifies the type of enclave to be used by the database. Possible value `VBS`.
+* `enclave_type` - (Optional) Specifies the type of enclave to be used by the database. Possible values are `Default` or `VBS`.
 
 ~> **NOTE:** `enclave_type` is currently not supported for DW (e.g, DataWarehouse) and DC-series SKUs.
 
