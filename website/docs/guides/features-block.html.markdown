@@ -61,10 +61,10 @@ provider "azurerm" {
     postgresql_flexible_server {
       restart_server_on_configuration_value_change = true
     }
-    
+
     recovery_service {
       retain_data_and_stop_protection_on_back_vm_destroy = true
-      purge_protected_items_from_vault_on_destroy = true
+      purge_protected_items_from_vault_on_destroy        = true
     }
 
     resource_group {
