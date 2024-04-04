@@ -207,6 +207,7 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
+					state.SubjectName = pointer.From(props.SubjectName)
 					state.Issuer = pointer.From(props.Issuer)
 					state.IssueDate = pointer.From(props.IssueDate)
 					state.ExpirationDate = pointer.From(props.ExpirationDate)
