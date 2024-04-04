@@ -898,7 +898,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			enableAutomaticFailover = v.(bool)
 		}
 		// nolint : staticcheck
-		if v, ok := d.GetOkExists("multiple_write_locations_enabled"); ok {
+		if v, ok := d.GetOkExists("enable_multiple_write_locations"); ok {
 			enableMultipleWriteLocations = v.(bool)
 		}
 		// nolint : staticcheck
