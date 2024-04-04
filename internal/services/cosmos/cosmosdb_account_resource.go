@@ -242,12 +242,17 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO: 4.0 - set the default to Tls12
 			// per Microsoft's documentation, as of April 1 2023 the default minimal TLS version for all new accounts is 1.2
 			"minimal_tls_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: !features.FourPointOhBeta(),
+				Default: func() interface{} {
+					if !features.FourPointOhBeta() {
+						return nil
+					}
+					return string(cosmosdb.MinimalTlsVersionTlsOneTwo)
+				}(),
 				ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
 			},
 
@@ -469,13 +474,6 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 					},
 				},
 				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
-			},
-
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_multiple_write_locations": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
 			},
 
 			"access_key_metadata_writes_enabled": {
@@ -770,7 +768,27 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Sensitive: true,
 			},
-			Deprecated: "This property has been superseded by the primary and secondary connection strings for sql, mongodb and readonly and will be removed in v4.0 of the provider",
+			Deprecated: "This property has been superseded by the primary and secondary connection strings for sql, mongodb and readonly and will be removed in v4.0 of the AzureRM provider",
+		}
+		resource.Schema["enable_multiple_write_locations"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "This property will be renamed to `multiple_write_locations_enabled` in v4.0 of the AzureRM Provider",
+		}
+		resource.Schema["enable_free_tier"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "This property will be renamed to `multiple_write_locations_enabled` in v4.0 of the AzureRM Provider",
+		}
+	}
+
+	if features.FourPointOh() {
+		resource.Schema["multiple_write_locations_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		}
 	}
 
