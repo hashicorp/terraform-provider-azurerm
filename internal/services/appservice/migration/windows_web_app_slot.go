@@ -1811,7 +1811,6 @@ func (w WindowsWebAppSlotV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		oldId := rawState["service_plan_id"].(string)
 		// service_plan_id can be empty if it is not in a different Service Plan to the "parent" app
 		if oldId == "" {
-
 			return rawState, nil
 		}
 		parsedId, err := commonids.ParseAppServicePlanIDInsensitively(oldId)
