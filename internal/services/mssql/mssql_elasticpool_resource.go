@@ -182,6 +182,7 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			"enclave_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Computed: true, // TODO: Remove Computed in 4.0
 				ValidateFunc: validation.StringInSlice([]string{
 					string(databases.AlwaysEncryptedEnclaveTypeVBS),
 					string(databases.AlwaysEncryptedEnclaveTypeDefault),
@@ -201,13 +202,27 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
-				return err
-			}
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
+					return err
+				}
 
-			return nil
-		}),
+				return nil
+			},
+
+			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ interface{}) bool {
+				// enclave_type cannot be removed once it has been set
+				// but can be changed between VBS and Default...
+				// this Diff will not work until 4.0 when we remove
+				// the computed property from the field scheam.
+				if old.(string) != "" && new.(string) == "" {
+					return true
+				}
+
+				return false
+			}),
+		),
 	}
 }
 
@@ -248,13 +263,14 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
 			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
+			PreferredEnclaveType:       nil,
 		},
 	}
 
 	// PER THE SERVICE TEAM: If the config doesn’t specify any value for the 'enclave_type'
 	// field it shouldn’t be passed as part of the ARM API request for database or
 	// elastic pool, as it is an optional parameter and not a required one.
-	if v, ok := d.GetOk("enclave_type"); ok {
+	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
 		elasticPool.Properties.PreferredEnclaveType = pointer.To(elasticpools.AlwaysEncryptedEnclaveType(v.(string)))
 	}
 

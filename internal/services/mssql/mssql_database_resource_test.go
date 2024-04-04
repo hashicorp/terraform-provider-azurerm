@@ -844,12 +844,13 @@ func TestAccMsSqlDatabase_enclaveType(t *testing.T) {
 }
 
 func TestAccMsSqlDatabase_enclaveTypeUpdate(t *testing.T) {
+	// NOTE: Once the enclave_type field has be set it cannot be changed...
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.enclaveType(data, ""),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
@@ -865,10 +866,18 @@ func TestAccMsSqlDatabase_enclaveTypeUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.enclaveType(data, ""),
+			Config: r.enclaveType(data, `  enclave_type = "Default"`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("Default"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enclaveType(data, `  enclave_type = "VBS"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
 		data.ImportStep(),

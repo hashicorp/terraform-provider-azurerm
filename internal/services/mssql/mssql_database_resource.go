@@ -69,8 +69,19 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ interface{}) bool {
-				// "hyperscale can not change to other sku
+				// hyperscale can not be changed to another sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
+			}),
+			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ interface{}) bool {
+				// enclave_type cannot be removed once it has been set
+				// but can be changed between VBS and Default...
+				// this Diff will not work until 4.0 when we remove
+				// the computed property from the field scheam.
+				if old.(string) != "" && new.(string) == "" {
+					return true
+				}
+
+				return false
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
@@ -105,9 +116,9 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	// PER THE SERVICE TEAM: If the config doesn’t specify any value for the 'enclave_type'
 	// field it shouldn’t be passed as part of the ARM API request for database or
 	// elastic pool, as it is an optional parameter and not a required one.
-	enclaveType := ""
+	var enclaveType databases.AlwaysEncryptedEnclaveType
 	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
-		enclaveType = v.(string)
+		enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 	}
 	d.Set("enclave_type", enclaveType)
 
@@ -207,9 +218,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// PER THE SERVICE TEAM: If the config doesn’t specify any value for the 'enclave_type'
 	// field it shouldn’t be passed as part of the ARM API request for database or
 	// elastic pool, as it is an optional parameter and not a required one.
-	enclaveType := ""
+	var enclaveType databases.AlwaysEncryptedEnclaveType
 	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
-		enclaveType = v.(string)
+		enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 	}
 
 	skuName := d.Get("sku_name").(string)
@@ -267,9 +278,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
 			elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+			databaseEnclaveType := string(enclaveType)
 
-			if !strings.EqualFold(elasticEnclaveType, enclaveType) {
-				return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, enclaveType, elasticId, elasticEnclaveType)
+			if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
+				return fmt.Errorf("adding the %s with enclave type %q to the %s with enclave type %q is not supported. Before adding a database to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
 			}
 		}
 	}
@@ -317,7 +329,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("retrieving creation source %s: %+v", primaryDatabaseId, err)
 			}
 
-			if model := primaryDatabase.Model; model != nil && model.Properties != nil && model.Properties.PreferredEnclaveType != nil && enclaveType != string(*model.Properties.PreferredEnclaveType) {
+			if model := primaryDatabase.Model; model != nil && model.Properties != nil && model.Properties.PreferredEnclaveType != nil && enclaveType != *model.Properties.PreferredEnclaveType {
 				return fmt.Errorf("specifying different 'enclave_type' properties for 'create_mode' %q is not supported, primary 'enclave_type' %q does not match current 'enclave_type' %q. please ensure that the 'enclave_type' is the same for both databases", createMode, string(*model.Properties.PreferredEnclaveType), string(enclaveType))
 			}
 		}
@@ -691,15 +703,17 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("enclave_type") {
-		enclaveType := ""
-		if v, ok := d.GetOk("enclave_type"); ok {
-			enclaveType = v.(string)
+		var enclaveType databases.AlwaysEncryptedEnclaveType
+		if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
+			enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 		}
 
 		// The 'PreferredEnclaveType' field cannot be passed to the APIs Update if the
 		// 'sku_name' is a DW or DC-series SKU...
 		if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
 			props.PreferredEnclaveType = pointer.To(databases.AlwaysEncryptedEnclaveType(enclaveType))
+		} else {
+			props.PreferredEnclaveType = nil
 		}
 
 		// If the database belongs to an elastic pool, we need to GET the elastic pool and check
@@ -718,9 +732,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
 				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
+				databaseEnclaveType := string(enclaveType)
 
-				if !strings.EqualFold(elasticEnclaveType, enclaveType) {
-					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, enclaveType, elasticId, elasticEnclaveType)
+				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
+					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
 				}
 			}
 		}
@@ -779,9 +794,9 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Place a lock for the current database so any partner resources can't bump its SKU out of band
 		if skuName != "" {
-			existingEnclaveType := ""
+			var existingEnclaveType databases.AlwaysEncryptedEnclaveType
 			if model := existing.Model; model != nil && model.Properties != nil && model.Properties.PreferredEnclaveType != nil {
-				existingEnclaveType = string(*model.Properties.PreferredEnclaveType)
+				existingEnclaveType = *model.Properties.PreferredEnclaveType
 			}
 
 			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, existingEnclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
@@ -1510,6 +1525,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"enclave_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true, // TODO: Remove Computed in 4.0
 			ValidateFunc: validation.StringInSlice([]string{
 				string(databases.AlwaysEncryptedEnclaveTypeVBS),
 				string(databases.AlwaysEncryptedEnclaveTypeDefault),

@@ -20,7 +20,7 @@ import (
 // FindDatabaseReplicationPartners looks for partner databases having one of the specified replication roles, by
 // reading any replication links then attempting to discover and match the corresponding server/database resources for
 // the other end of the link.
-func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *sql.ReplicationLinksClient, resourcesClient *resources.Client, id commonids.SqlDatabaseId, primaryEnclaveType string, rolesToFind []sql.ReplicationRole) ([]databases.Database, error) {
+func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *sql.ReplicationLinksClient, resourcesClient *resources.Client, id commonids.SqlDatabaseId, primaryEnclaveType databases.AlwaysEncryptedEnclaveType, rolesToFind []sql.ReplicationRole) ([]databases.Database, error) {
 	var partnerDatabases []databases.Database
 
 	matchesRole := func(role sql.ReplicationRole) bool {
