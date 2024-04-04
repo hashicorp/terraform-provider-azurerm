@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2019-06-01/registrationassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -89,6 +89,27 @@ func TestAccLighthouseAssignment_emptyID(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 			),
 		},
+	})
+}
+
+func TestAccLighthouseAssignment_eligibleAuthorization(t *testing.T) {
+	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
+	principalID := os.Getenv("ARM_USER_GROUP_ID_ALT_TENANT")
+	if secondTenantID == "" || principalID == "" {
+		t.Skip("Skipping as ARM_TENANT_ID_ALT and/or ARM_USER_GROUP_ID_ALT_TENANT are not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_lighthouse_assignment", "test")
+	r := LighthouseAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.eligibleAuthorization(uuid.New().String(), secondTenantID, principalID, data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -184,4 +205,56 @@ resource "azurerm_lighthouse_assignment" "test" {
   lighthouse_definition_id = azurerm_lighthouse_definition.test.id
 }
 `, data.RandomInteger, secondTenantID, principalID)
+}
+
+func (LighthouseAssignmentResource) eligibleAuthorization(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_role_definition" "contributor" {
+  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c" // Contributor role
+}
+
+data "azurerm_role_definition" "reader" {
+  role_definition_id = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+}
+
+data "azurerm_subscription" "test" {}
+
+resource "azurerm_lighthouse_definition" "test" {
+  name               = "acctest-LD-%d"
+  managing_tenant_id = "%s"
+  scope              = data.azurerm_subscription.test.id
+
+  authorization {
+    principal_id           = "%s"
+    role_definition_id     = data.azurerm_role_definition.reader.role_definition_id
+    principal_display_name = "Reader"
+  }
+
+  eligible_authorization {
+    principal_id           = "%s"
+    role_definition_id     = data.azurerm_role_definition.contributor.role_definition_id
+    principal_display_name = "Tier 1 Support"
+
+    just_in_time_access_policy {
+      multi_factor_auth_provider  = "Azure"
+      maximum_activation_duration = "PT7H"
+
+      approver {
+        principal_id           = "%s"
+        principal_display_name = "Tier 2 Support"
+      }
+    }
+  }
+}
+
+resource "azurerm_lighthouse_assignment" "test" {
+  name                     = "%s"
+  scope                    = data.azurerm_subscription.test.id
+  lighthouse_definition_id = azurerm_lighthouse_definition.test.id
+}
+`, data.RandomInteger, secondTenantID, principalID, principalID, principalID, id)
 }

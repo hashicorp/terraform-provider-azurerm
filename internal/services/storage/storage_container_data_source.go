@@ -63,13 +63,14 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 
 func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	containerName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Account %q for Container %q: %v", accountName, containerName, err)
 	}
@@ -117,11 +118,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	storageAccountId, err := commonids.ParseStorageAccountIDInsensitively(account.ID)
-	if err != nil {
-		return err
-	}
-	resourceManagerId := commonids.NewStorageContainerID(storageAccountId.SubscriptionId, storageAccountId.ResourceGroupName, storageAccountId.StorageAccountName, containerName)
+	resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, containerName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

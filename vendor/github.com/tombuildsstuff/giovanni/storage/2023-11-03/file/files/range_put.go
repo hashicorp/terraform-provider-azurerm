@@ -65,7 +65,7 @@ func (c Client) PutByteRange(ctx context.Context, shareName, path, fileName stri
 	}
 
 	if path != "" {
-		path = fmt.Sprintf("/%s/", path)
+		path = fmt.Sprintf("%s/", path)
 	}
 
 	opts := client.RequestOptions{

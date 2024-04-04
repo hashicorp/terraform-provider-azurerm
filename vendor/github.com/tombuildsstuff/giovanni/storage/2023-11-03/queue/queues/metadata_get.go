@@ -49,7 +49,7 @@ func (c Client) GetMetaData(ctx context.Context, queueName string) (result GetMe
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.MetaData = metadata.ParseFromHeaders(resp.Header)
 		}
 	}

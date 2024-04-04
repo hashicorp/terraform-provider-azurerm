@@ -3,16 +3,56 @@
 FEATURES:
 
 * New Resource: `azurerm_static_web_app_function_app_registration` [GH-25331]
+* New Resource: `azurerm_system_center_virtual_machine_manager_inventory_items` [GH-25110]
+* New Resource: `azurerm_workloads_sap_discovery_virtual_instance` [GH-24342]
+* New Resource: `azurerm_redis_cache_policy` [GH-25477]
+* New Resource: `azurerm_redis_cache_policy_assignment` [GH-25477]
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20240402.1085733` of `github.com/hashicorp/go-azure-sdk` [GH-25482]
+* dependencies: updating to `v0.67.0` of `github.com/hashicorp/go-azure-helpers` [GH-25446]
+* dependencies: updating to `v0.25.4` of `github.com/tombuildsstuff/giovanni` [GH-25404]
+* `alertsmanagement` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25486]
+* `applicationinsights` - updating remaining resources to use `hashicorp/go-azure-sdk` [GH-25376]
+* `compute` - update to API version `2024-03-01` [GH-25436]
+* `compute` - update shared image resources and data sources to use `hashicorp/go-azure-sdk` [GH-25503]
+* `containerinstance` - update to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25416]
+* `maintenance`: updating to API Version `2023-04-01` [GH-25388]
+* `storage`: the Storage Account cache is now populated using `hashicorp/go-azure-sdk` [GH-25437]
+* `azurerm_bot_service_azure_bot` - support for the `cmk_key_vault_key_url` property [GH-23640]
+* `azurerm_capacity_reservation` - update validation for `capacity` [GH-25471]
+* `azurerm_container_app` - add support for `key_vault_id` and `identity` properties in the `secret` block [GH-24773]
+* `azurerm_managed_hsm_role_*_ids`: use specific resource id to replace generic nested item id [GH-25323]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
+* `azurerm_mssql_server_extended_auditing_policy` - support for `audit_actions_and_groups` and `predicate_expression` [GH-25425]
 * `azurerm_netapp_account` - can now be imported [GH-25384]
+* `azurerm_netapp_volume` - support for the `kerberos_enabled`, `smb_continuous_availability_enabled`, `kerberos_5_read_only_enabled`, `kerberos_5_read_write_enabled`, `kerberos_5i_read_only_enabled`, `kerberos_5i_read_write_enabled`, `kerberos_5p_read_only_enabled`, and `kerberos_5p_read_write_enabled` properties [GH-25385]
+* `azurerm_recovery_services_vault` - upgrading to version `2024-01-01` [GH-25325]
+* `azurerm_stack_hci_cluster` - the `client_id` property is now optional [GH-25407]
+* `azurerm_storage_encryption_scope` - refactoring to use `hashicorp/go-azure-sdk` rather than `Azure/azure-sdk-for-go` [GH-25437]
+* `azurerm_mssql_elasticpool` - the `maintenance_configuration_name` property now supports values `SQL_SouthAfricaNorth_DB_1`, `SQL_SouthAfricaNorth_DB_2`, `SQL_WestUS3_DB_1` and `SQL_WestUS3_DB_2` [GH-25500]
+* `azurerm_lighthouse_assignment` - updating API Version from `2019-06-01` to `2022-10-01`  [GH-25473]
 
 BUG FIXES:
 
+* `network`: updating the `GatewaySubnet` validation to show the Subnet Name when the validation fails [GH-25484]
+* `azurerm_function_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
+* `azurerm_linux_web_app_slot` - fix a crash when upgrading the provider to v3.88.0 or later [GH-25406]
 * `azurerm_network_manager_deployment` - add locking [GH-25368]
+* `azurerm_resource_group_template_deployment` - changes to `parameters_content` and `template_content` now force `output_content` to be updated in the plan [GH-25403]
+* `azurerm_storage_blob` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_container` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_data_lake_gen2_filesystem` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_data_lake_gen2_filesystem_path` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_queue` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_share` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_share_directory` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_share_directory` - resolve an issue where directories might fail to destroy [GH-25404]
+* `azurerm_storage_share_file` - fix a potential crash when the endpoint is unreachable [GH-25404]
+* `azurerm_storage_share_file` - fix several bugs with path handling when creating files in subdirectories [GH-25404]
+* `azurerm_web_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 
 ## 3.97.1 (March 22, 2024)
 
@@ -43,7 +83,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20240321.1145953` of `github.com/hashicorp/go-azure-sdk` ([#25332](https://github.com/hashicorp/terraform-provider-azurerm/issues/25332))
 * dependencies: updating to `v0.25.2` of `github.com/tombuildsstuff/giovanni` ([#25305](https://github.com/hashicorp/terraform-provider-azurerm/issues/25305))
 * `azurestackhci`: updating to API Version `2024-01-01` ([#25279](https://github.com/hashicorp/terraform-provider-azurerm/issues/25279))
-* `monitor/scheduledqueryrules`: updatingt to API version `2023-03-15-preview` ([#25350](https://github.com/hashicorp/terraform-provider-azurerm/issues/25350))
+* `monitor/scheduledqueryrules`: updating to API version `2023-03-15-preview` ([#25350](https://github.com/hashicorp/terraform-provider-azurerm/issues/25350))
 * `cosmosdb`: updating to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` ([#25166](https://github.com/hashicorp/terraform-provider-azurerm/issues/25166))
 * Data Source `azurerm_stack_hci_cluster`: refactoring the association to use `hashicorp/go-azure-sdk` ([#25293](https://github.com/hashicorp/terraform-provider-azurerm/issues/25293))
 * `azurerm_app_configuration` - support for Environments other than Azure Public ([#25271](https://github.com/hashicorp/terraform-provider-azurerm/issues/25271))

@@ -1739,8 +1739,8 @@ func (l LinuxWebAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 
 func (l LinuxWebAppSlotV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		oldId := rawState["service_plan_id"].(string)
-		if oldId == "" {
+		oldId, ok := rawState["service_plan_id"].(string)
+		if !ok || oldId == "" {
 			return rawState, nil
 		}
 		parsedId, err := commonids.ParseAppServicePlanIDInsensitively(oldId)

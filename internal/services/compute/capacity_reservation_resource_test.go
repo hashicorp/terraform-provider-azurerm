@@ -209,7 +209,7 @@ resource "azurerm_capacity_reservation" "test" {
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   sku {
     name     = "Standard_F2"
-    capacity = 2
+    capacity = 0
   }
 }
 `, template, data.RandomInteger)
