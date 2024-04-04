@@ -267,9 +267,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	// PER THE SERVICE TEAM: If the config doesn’t specify any value for the 'enclave_type'
-	// field it shouldn’t be passed as part of the ARM API request for database or
-	// elastic pool, as it is an optional parameter and not a required one.
+	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
 	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
 		elasticPool.Properties.PreferredEnclaveType = pointer.To(elasticpools.AlwaysEncryptedEnclaveType(v.(string)))
 	}

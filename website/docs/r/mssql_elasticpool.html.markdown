@@ -73,11 +73,11 @@ The following arguments are supported:
 
 -> **NOTE:** One of either `max_size_gb` or `max_size_bytes` must be specified.
 
-* `enclave_type` - (Optional) Specifies the type of enclave to be used by the elastic pool. Possible values are `Default` or `VBS`. Removing `enclave_type` from the configuration file after it has been set will cause a new resource to be created.
+* `enclave_type` - (Optional) Specifies the type of enclave to be used by the elastic pool. When `enclave_type` is not specified in the configuration file (e.g., the default) enclaves are not enabled on the elastic pool. Once enabled, by specifying `Default` or `VBS`, removing the `enclave_type` field from the configuration file will force the creation of a new resource. Possible values are `Default` or `VBS`.
 
-~> **NOTE:** All databases that are added to the elastic pool must have the same `enclave_type` as the elastic pool.
+-> **NOTE:** All databases that are added to the elastic pool must have the same `enclave_type` as the elastic pool.
 
-~> **NOTE:** `enclave_type` is not supported for DC-series SKUs.
+-> **NOTE:** `enclave_type` is not supported for DC-series SKUs.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

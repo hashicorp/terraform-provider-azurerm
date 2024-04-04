@@ -90,7 +90,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("license_type").HasValue("LicenseIncluded"),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("2"),
-				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("Default"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Staging"),
 			),
@@ -1076,6 +1076,7 @@ resource "azurerm_mssql_database" "test" {
   license_type = "LicenseIncluded"
   max_size_gb  = 2
   sku_name     = "GP_Gen5_2"
+  enclave_type = "Default"
 
   storage_account_type = "Zone"
 

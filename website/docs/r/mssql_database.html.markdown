@@ -190,7 +190,7 @@ The following arguments are supported:
 
 * `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database.
 
-* `enclave_type` - (Optional) Specifies the type of enclave to be used by the database. Possible values are `Default` or `VBS`. Removing `enclave_type` from the configuration file after it has been set will cause a new resource to be created.
+* `enclave_type` - (Optional) Specifies the type of enclave to be used by the elastic pool. When `enclave_type` is not specified in the configuration file (e.g., the default) enclaves are not enabled on the database. Once enabled, by specifying `Default` or `VBS`, removing the `enclave_type` field from the configuration file will force the creation of a new resource. Possible values are `Default` or `VBS`.
 
 -> **NOTE:** `enclave_type` is currently not supported for DW (e.g, DataWarehouse) and DC-series SKUs.
 
