@@ -5,6 +5,8 @@ FEATURES:
 * New Resource: `azurerm_static_web_app_function_app_registration` [GH-25331]
 * New Resource: `azurerm_system_center_virtual_machine_manager_inventory_items` [GH-25110]
 * New Resource: `azurerm_workloads_sap_discovery_virtual_instance` [GH-24342]
+* New Resource: `azurerm_redis_cache_policy` [GH-25477]
+* New Resource: `azurerm_redis_cache_policy_assignment` [GH-25477]
 
 ENHANCEMENTS:
 
