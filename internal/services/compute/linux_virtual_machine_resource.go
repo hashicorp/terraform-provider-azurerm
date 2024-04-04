@@ -5,6 +5,8 @@ package compute
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"log"
 	"strconv"
 	"strings"
@@ -18,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,7 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceLinuxVirtualMachine() *pluginsdk.Resource {
@@ -44,7 +44,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseVirtualMachineID(id)
 			return err
-		}, importVirtualMachine(compute.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine")),
+		}, importVirtualMachine(virtualmachines.OperatingSystemTypesLinux, "azurerm_linux_virtual_machine")),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
@@ -196,8 +196,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.DiskControllerTypesNVMe),
-					string(compute.DiskControllerTypesSCSI),
+					string(virtualmachines.DiskControllerTypesNVMe),
+					string(virtualmachines.DiskControllerTypesSCSI),
 				}, false),
 			},
 
@@ -214,8 +214,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachineEvictionPolicyTypesDeallocate),
-					string(compute.VirtualMachineEvictionPolicyTypesDelete),
+					string(virtualmachines.VirtualMachineEvictionPolicyTypesDeallocate),
+					string(virtualmachines.VirtualMachineEvictionPolicyTypesDelete),
 				}, false),
 			},
 
@@ -252,10 +252,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(compute.VirtualMachinePriorityTypesRegular),
+				Default:  string(virtualmachines.VirtualMachinePriorityTypesRegular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.VirtualMachinePriorityTypesRegular),
-					string(compute.VirtualMachinePriorityTypesSpot),
+					string(virtualmachines.VirtualMachinePriorityTypesRegular),
+					string(virtualmachines.VirtualMachinePriorityTypesSpot),
 				}, false),
 			},
 
@@ -270,19 +270,19 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
-					string(compute.LinuxVMGuestPatchModeImageDefault),
+					string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform),
+					string(virtualmachines.LinuxVMGuestPatchModeImageDefault),
 				}, false),
-				Default: string(compute.LinuxVMGuestPatchModeImageDefault),
+				Default: string(virtualmachines.LinuxVMGuestPatchModeImageDefault),
 			},
 
 			"patch_assessment_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(compute.LinuxPatchAssessmentModeImageDefault),
+				Default:  string(virtualmachines.LinuxPatchAssessmentModeImageDefault),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
-					string(compute.LinuxPatchAssessmentModeImageDefault),
+					string(virtualmachines.LinuxPatchAssessmentModeAutomaticByPlatform),
+					string(virtualmachines.LinuxPatchAssessmentModeImageDefault),
 				}, false),
 			},
 
@@ -302,9 +302,9 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.LinuxVMGuestPatchAutomaticByPlatformRebootSettingAlways),
-					string(compute.LinuxVMGuestPatchAutomaticByPlatformRebootSettingIfRequired),
-					string(compute.LinuxVMGuestPatchAutomaticByPlatformRebootSettingNever),
+					string(virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSettingAlways),
+					string(virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSettingIfRequired),
+					string(virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSettingNever),
 				}, false),
 			},
 
@@ -413,24 +413,24 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 }
 
 func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := commonids.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
+	resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(resp.Response) {
+	if !response.WasNotFound(resp.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_linux_virtual_machine", *resp.ID)
 	}
 
@@ -455,7 +455,6 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
 	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
-	location := azure.NormalizeLocation(d.Get("location").(string))
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandVirtualMachineIdentity(identityRaw)
 	if err != nil {
@@ -463,7 +462,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
-	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
+	priority := virtualmachines.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	size := d.Get("size").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -472,7 +471,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	osDiskRaw := d.Get("os_disk").([]interface{})
-	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
+	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesLinux)
 	if err != nil {
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
 	}
@@ -488,44 +487,44 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
 	sshKeys := ExpandSSHKeys(sshKeysRaw)
 
-	params := compute.VirtualMachine{
+	params := virtualmachines.VirtualMachine{
 		Name:             utils.String(id.VirtualMachineName),
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
-		Location:         utils.String(location),
+		Location:         location.Normalize(d.Get("location").(string)),
 		Identity:         identity,
 		Plan:             plan,
-		VirtualMachineProperties: &compute.VirtualMachineProperties{
-			ApplicationProfile: &compute.ApplicationProfile{
+		Properties: &virtualmachines.VirtualMachineProperties{
+			ApplicationProfile: &virtualmachines.ApplicationProfile{
 				GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 			},
-			HardwareProfile: &compute.HardwareProfile{
-				VMSize: compute.VirtualMachineSizeTypes(size),
+			HardwareProfile: &virtualmachines.HardwareProfile{
+				VMSize: virtualmachines.VirtualMachineSizeTypes(size),
 			},
-			OsProfile: &compute.OSProfile{
+			OsProfile: &virtualmachines.OSProfile{
 				AdminUsername:            utils.String(adminUsername),
 				ComputerName:             utils.String(computerName),
 				AllowExtensionOperations: utils.Bool(allowExtensionOperations),
-				LinuxConfiguration: &compute.LinuxConfiguration{
+				LinuxConfiguration: &virtualmachines.LinuxConfiguration{
 					DisablePasswordAuthentication: utils.Bool(disablePasswordAuthentication),
 					EnableVMAgentPlatformUpdates:  utils.Bool(vmAgentPlatformUpdatesEnabled),
 					ProvisionVMAgent:              utils.Bool(provisionVMAgent),
-					SSH: &compute.SSHConfiguration{
+					SSH: &virtualmachines.SSHConfiguration{
 						PublicKeys: &sshKeys,
 					},
 				},
 				Secrets: secrets,
 			},
-			NetworkProfile: &compute.NetworkProfile{
+			NetworkProfile: &virtualmachines.NetworkProfile{
 				NetworkInterfaces: &networkInterfaceIds,
 			},
 			Priority: priority,
-			StorageProfile: &compute.StorageProfile{
+			StorageProfile: &virtualmachines.StorageProfile{
 				ImageReference: sourceImageReference,
 				OsDisk:         osDisk,
 
 				// Data Disks are instead handled via the Association resource - as such we can send an empty value here
 				// but for Updates this'll need to be nil, else any associations will be overwritten
-				DataDisks: &[]compute.DataDisk{},
+				DataDisks: &[]virtualmachines.DataDisk{},
 			},
 
 			// Optional
@@ -537,17 +536,17 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
-		params.StorageProfile.DiskControllerType = compute.DiskControllerTypes(diskControllerType.(string))
+		params.StorageProfile.DiskControllerType = virtualmachines.DiskControllerTypes(diskControllerType.(string))
 	}
 
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		if encryptionAtHostEnabled.(bool) {
-			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
 				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 			}
 		}
 
-		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+		params.VirtualMachineProperties.SecurityProfile = &virtualmachines.SecurityProfile{
 			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
 		}
 	}
@@ -558,62 +557,62 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 	patchMode := d.Get("patch_mode").(string)
 	if patchMode != "" {
-		if patchMode == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
+		if patchMode == string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform) && !provisionVMAgent {
 			return fmt.Errorf("%q cannot be set to %q when %q is set to %q", "patch_mode", "AutomaticByPlatform", "provision_vm_agent", "false")
 		}
 
-		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{
-			PatchMode: compute.LinuxVMGuestPatchMode(patchMode),
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{
+			PatchMode: virtualmachines.LinuxVMGuestPatchMode(patchMode),
 		}
 	}
 
 	if v, ok := d.GetOk("patch_assessment_mode"); ok {
-		if v.(string) == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
+		if v.(string) == string(virtualmachines.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
 			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
 		}
 
 		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
-			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{}
 		}
-		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(v.(string))
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = virtualmachines.LinuxPatchAssessmentMode(v.(string))
 	}
 
 	if d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool) {
-		if patchMode != string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) {
+		if patchMode != string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform) {
 			return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
 		}
 
 		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
-			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{}
 		}
 
 		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
-			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.LinuxVMGuestPatchAutomaticByPlatformSettings{}
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.LinuxVMGuestPatchAutomaticByPlatformSettings{}
 		}
 
 		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(true)
 	}
 
 	if v, ok := d.GetOk("reboot_setting"); ok {
-		if patchMode != string(compute.LinuxVMGuestPatchModeAutomaticByPlatform) {
+		if patchMode != string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform) {
 			return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `reboot_setting` is specified")
 		}
 
 		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
-			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{}
 		}
 
 		if params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
-			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.LinuxVMGuestPatchAutomaticByPlatformSettings{}
+			params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.LinuxVMGuestPatchAutomaticByPlatformSettings{}
 		}
 
-		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = compute.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(v.(string))
+		params.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(v.(string))
 	}
 
 	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
 	vtpmEnabled := d.Get("vtpm_enabled").(bool)
 	if securityEncryptionType != "" {
-		if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
+		if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
 			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
 		if !vtpmEnabled {
@@ -621,41 +620,41 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if params.VirtualMachineProperties.SecurityProfile == nil {
-			params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+			params.VirtualMachineProperties.SecurityProfile = &virtualmachines.SecurityProfile{}
 		}
-		params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesConfidentialVM
+		params.VirtualMachineProperties.SecurityProfile.SecurityType = virtualmachines.SecurityTypesConfidentialVM
 
 		if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
-			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+			params.VirtualMachineProperties.SecurityProfile.UefiSettings = &virtualmachines.UefiSettings{}
 		}
 		params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
 		params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
 	} else {
 		if secureBootEnabled {
 			if params.VirtualMachineProperties.SecurityProfile == nil {
-				params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+				params.VirtualMachineProperties.SecurityProfile = &virtualmachines.SecurityProfile{}
 			}
 			if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
-				params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+				params.VirtualMachineProperties.SecurityProfile.UefiSettings = &virtualmachines.UefiSettings{}
 			}
-			params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+			params.VirtualMachineProperties.SecurityProfile.SecurityType = virtualmachines.SecurityTypesTrustedLaunch
 			params.VirtualMachineProperties.SecurityProfile.UefiSettings.SecureBootEnabled = utils.Bool(secureBootEnabled)
 		}
 
 		if vtpmEnabled {
 			if params.VirtualMachineProperties.SecurityProfile == nil {
-				params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{}
+				params.VirtualMachineProperties.SecurityProfile = &virtualmachines.SecurityProfile{}
 			}
 			if params.VirtualMachineProperties.SecurityProfile.UefiSettings == nil {
-				params.VirtualMachineProperties.SecurityProfile.UefiSettings = &compute.UefiSettings{}
+				params.VirtualMachineProperties.SecurityProfile.UefiSettings = &virtualmachines.UefiSettings{}
 			}
-			params.VirtualMachineProperties.SecurityProfile.SecurityType = compute.SecurityTypesTrustedLaunch
+			params.VirtualMachineProperties.SecurityProfile.SecurityType = virtualmachines.SecurityTypesTrustedLaunch
 			params.VirtualMachineProperties.SecurityProfile.UefiSettings.VTpmEnabled = utils.Bool(vtpmEnabled)
 		}
 	}
 
-	var osImageNotificationProfile *compute.OSImageNotificationProfile
-	var terminateNotificationProfile *compute.TerminateNotificationProfile
+	var osImageNotificationProfile *virtualmachines.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachines.TerminateNotificationProfile
 
 	if v, ok := d.GetOk("os_image_notification"); ok {
 		osImageNotificationProfile = expandOsImageNotificationProfile(v.([]interface{}))
@@ -666,7 +665,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if terminateNotificationProfile != nil || osImageNotificationProfile != nil {
-		params.VirtualMachineProperties.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+		params.VirtualMachineProperties.ScheduledEventsProfile = &virtualmachines.ScheduledEventsProfile{
 			OsImageNotificationProfile:   osImageNotificationProfile,
 			TerminateNotificationProfile: terminateNotificationProfile,
 		}
@@ -677,14 +676,14 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
-		params.AvailabilitySet = &compute.SubResource{
+		params.AvailabilitySet = &virtualmachines.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
-		params.CapacityReservation = &compute.CapacityReservationProfile{
-			CapacityReservationGroup: &compute.SubResource{
+		params.CapacityReservation = &virtualmachines.CapacityReservationProfile{
+			CapacityReservationGroup: &virtualmachines.SubResource{
 				ID: utils.String(v.(string)),
 			},
 		}
@@ -695,45 +694,45 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
-		params.Host = &compute.SubResource{
+		params.Host = &virtualmachines.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("dedicated_host_group_id"); ok {
-		params.HostGroup = &compute.SubResource{
+		params.HostGroup = &virtualmachines.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if params.Priority != compute.VirtualMachinePriorityTypesSpot {
+		if params.Priority != virtualmachines.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
-		params.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.VirtualMachinePriorityTypesSpot {
+		params.EvictionPolicy = virtualmachines.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
+	} else if priority == virtualmachines.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.VirtualMachinePriorityTypesSpot {
+		if priority != virtualmachines.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
-		params.BillingProfile = &compute.BillingProfile{
+		params.BillingProfile = &virtualmachines.BillingProfile{
 			MaxPrice: utils.Float(v),
 		}
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
-		params.ProximityPlacementGroup = &compute.SubResource{
+		params.ProximityPlacementGroup = &virtualmachines.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
-		params.VirtualMachineScaleSet = &compute.SubResource{
+		params.VirtualMachineScaleSet = &virtualmachines.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
@@ -791,9 +790,9 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
+	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, virtualmachines.InstanceViewTypesUserData)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Linux %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
@@ -918,13 +917,13 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSSHKeys)); err != nil {
 				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
-			patchMode := string(compute.LinuxVMGuestPatchModeImageDefault)
+			patchMode := string(virtualmachines.LinuxVMGuestPatchModeImageDefault)
 			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.PatchMode != "" {
 				patchMode = string(patchSettings.PatchMode)
 			}
 			d.Set("patch_mode", patchMode)
 
-			assessmentMode := string(compute.LinuxPatchAssessmentModeImageDefault)
+			assessmentMode := string(virtualmachines.LinuxPatchAssessmentModeImageDefault)
 			if patchSettings := config.PatchSettings; patchSettings != nil && patchSettings.AssessmentMode != "" {
 				assessmentMode = string(patchSettings.AssessmentMode)
 			}
@@ -946,7 +945,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	// Resources created with azurerm_virtual_machine have priority set to ""
 	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
-	priority := string(compute.VirtualMachinePriorityTypesRegular)
+	priority := string(virtualmachines.VirtualMachinePriorityTypesRegular)
 	if props.Priority != "" {
 		priority = string(props.Priority)
 	}
@@ -1056,7 +1055,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Linux %s", id)
-	existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, compute.InstanceViewTypesUserData)
+	existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, virtualmachines.InstanceViewTypesUserData)
 	if err != nil {
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
@@ -1073,7 +1072,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		if storage := props.StorageProfile; storage != nil {
 			if disk := storage.OsDisk; disk != nil {
 				if settings := disk.DiffDiskSettings; settings != nil {
-					hasEphemeralOSDisk = settings.Option == compute.DiffDiskOptionsLocal
+					hasEphemeralOSDisk = settings.Option == virtualmachines.DiffDiskOptionsLocal
 				}
 			}
 		}
@@ -1083,8 +1082,8 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	shouldShutDown := false
 	shouldDeallocate := false
 
-	update := compute.VirtualMachineUpdate{
-		VirtualMachineProperties: &compute.VirtualMachineProperties{},
+	update := virtualmachines.VirtualMachineUpdate{
+		VirtualMachineProperties: &virtualmachines.VirtualMachineProperties{},
 	}
 
 	if d.HasChange("boot_diagnostics") {
@@ -1097,7 +1096,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("secret") {
 		shouldUpdate = true
 
-		profile := compute.OSProfile{}
+		profile := virtualmachines.OSProfile{}
 
 		if d.HasChange("secret") {
 			secretsRaw := d.Get("secret").([]interface{})
@@ -1131,14 +1130,14 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
-			update.CapacityReservation = &compute.CapacityReservationProfile{
-				CapacityReservationGroup: &compute.SubResource{
+			update.CapacityReservation = &virtualmachines.CapacityReservationProfile{
+				CapacityReservationGroup: &virtualmachines.SubResource{
 					ID: utils.String(v.(string)),
 				},
 			}
 		} else {
-			update.CapacityReservation = &compute.CapacityReservationProfile{
-				CapacityReservationGroup: &compute.SubResource{},
+			update.CapacityReservation = &virtualmachines.CapacityReservationProfile{
+				CapacityReservationGroup: &virtualmachines.SubResource{},
 			}
 		}
 	}
@@ -1150,11 +1149,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		if v, ok := d.GetOk("dedicated_host_id"); ok {
-			update.Host = &compute.SubResource{
+			update.Host = &virtualmachines.SubResource{
 				ID: utils.String(v.(string)),
 			}
 		} else {
-			update.Host = &compute.SubResource{}
+			update.Host = &virtualmachines.SubResource{}
 		}
 	}
 
@@ -1165,11 +1164,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		if v, ok := d.GetOk("dedicated_host_group_id"); ok {
-			update.HostGroup = &compute.SubResource{
+			update.HostGroup = &virtualmachines.SubResource{
 				ID: utils.String(v.(string)),
 			}
 		} else {
-			update.HostGroup = &compute.SubResource{}
+			update.HostGroup = &virtualmachines.SubResource{}
 		}
 	}
 
@@ -1180,7 +1179,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("gallery_application") {
 		shouldUpdate = true
-		update.ApplicationProfile = &compute.ApplicationProfile{
+		update.ApplicationProfile = &virtualmachines.ApplicationProfile{
 			GalleryApplications: expandVirtualMachineGalleryApplication(d.Get("gallery_application").([]interface{})),
 		}
 	}
@@ -1197,7 +1196,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		maxBidPrice := d.Get("max_bid_price").(float64)
-		update.VirtualMachineProperties.BillingProfile = &compute.BillingProfile{
+		update.VirtualMachineProperties.BillingProfile = &virtualmachines.BillingProfile{
 			MaxPrice: utils.Float(maxBidPrice),
 		}
 	}
@@ -1215,7 +1214,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		networkInterfaceIdsRaw := d.Get("network_interface_ids").([]interface{})
 		networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
-		update.VirtualMachineProperties.NetworkProfile = &compute.NetworkProfile{
+		update.VirtualMachineProperties.NetworkProfile = &virtualmachines.NetworkProfile{
 			NetworkInterfaces: &networkInterfaceIds,
 		}
 	}
@@ -1225,10 +1224,10 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		if update.VirtualMachineProperties.StorageProfile == nil {
-			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
+			update.VirtualMachineProperties.StorageProfile = &virtualmachines.StorageProfile{}
 		}
 
-		update.VirtualMachineProperties.StorageProfile.DiskControllerType = compute.DiskControllerTypes(d.Get("disk_controller_type").(string))
+		update.VirtualMachineProperties.StorageProfile.DiskControllerType = virtualmachines.DiskControllerTypes(d.Get("disk_controller_type").(string))
 	}
 
 	if d.HasChange("os_disk") {
@@ -1239,13 +1238,13 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		osDiskRaw := d.Get("os_disk").([]interface{})
-		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, compute.OperatingSystemTypesLinux)
+		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesLinux)
 		if err != nil {
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
 		}
 
 		if update.VirtualMachineProperties.StorageProfile == nil {
-			update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{}
+			update.VirtualMachineProperties.StorageProfile = &virtualmachines.StorageProfile{}
 		}
 
 		update.VirtualMachineProperties.StorageProfile.OsDisk = osDisk
@@ -1255,11 +1254,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldUpdate = true
 
 		if vmssIDRaw, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
-			update.VirtualMachineProperties.VirtualMachineScaleSet = &compute.SubResource{
+			update.VirtualMachineProperties.VirtualMachineScaleSet = &virtualmachines.SubResource{
 				ID: utils.String(vmssIDRaw.(string)),
 			}
 		} else {
-			update.VirtualMachineProperties.VirtualMachineScaleSet = &compute.SubResource{}
+			update.VirtualMachineProperties.VirtualMachineScaleSet = &virtualmachines.SubResource{}
 		}
 	}
 
@@ -1271,11 +1270,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldDeallocate = true
 
 		if ppgIDRaw, ok := d.GetOk("proximity_placement_group_id"); ok {
-			update.VirtualMachineProperties.ProximityPlacementGroup = &compute.SubResource{
+			update.VirtualMachineProperties.ProximityPlacementGroup = &virtualmachines.SubResource{
 				ID: utils.String(ppgIDRaw.(string)),
 			}
 		} else {
-			update.VirtualMachineProperties.ProximityPlacementGroup = &compute.SubResource{}
+			update.VirtualMachineProperties.ProximityPlacementGroup = &virtualmachines.SubResource{}
 		}
 	}
 
@@ -1317,19 +1316,19 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			shouldDeallocate = true
 		}
 
-		update.VirtualMachineProperties.HardwareProfile = &compute.HardwareProfile{
-			VMSize: compute.VirtualMachineSizeTypes(vmSize),
+		update.VirtualMachineProperties.HardwareProfile = &virtualmachines.HardwareProfile{
+			VMSize: virtualmachines.VirtualMachineSizeTypes(vmSize),
 		}
 	}
 
 	if d.HasChange("vm_agent_platform_updates_enabled") {
 		shouldUpdate = true
 		if update.VirtualMachineProperties.OsProfile == nil {
-			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+			update.VirtualMachineProperties.OsProfile = &virtualmachines.OSProfile{}
 		}
 
 		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &virtualmachines.LinuxConfiguration{}
 		}
 
 		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.EnableVMAgentPlatformUpdates = utils.Bool(d.Get("vm_agent_platform_updates_enabled").(bool))
@@ -1337,20 +1336,20 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("patch_mode") {
 		shouldUpdate = true
-		patchSettings := &compute.LinuxPatchSettings{}
+		patchSettings := &virtualmachines.LinuxPatchSettings{}
 
 		if patchMode, ok := d.GetOk("patch_mode"); ok {
-			patchSettings.PatchMode = compute.LinuxVMGuestPatchMode(patchMode.(string))
+			patchSettings.PatchMode = virtualmachines.LinuxVMGuestPatchMode(patchMode.(string))
 		} else {
-			patchSettings.PatchMode = compute.LinuxVMGuestPatchModeImageDefault
+			patchSettings.PatchMode = virtualmachines.LinuxVMGuestPatchModeImageDefault
 		}
 
 		if update.VirtualMachineProperties.OsProfile == nil {
-			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+			update.VirtualMachineProperties.OsProfile = &virtualmachines.OSProfile{}
 		}
 
 		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &virtualmachines.LinuxConfiguration{}
 		}
 
 		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = patchSettings
@@ -1358,28 +1357,28 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("patch_assessment_mode") {
 		assessmentMode := d.Get("patch_assessment_mode").(string)
-		if assessmentMode == string(compute.LinuxPatchAssessmentModeAutomaticByPlatform) && !d.Get("provision_vm_agent").(bool) {
+		if assessmentMode == string(virtualmachines.LinuxPatchAssessmentModeAutomaticByPlatform) && !d.Get("provision_vm_agent").(bool) {
 			return fmt.Errorf("`provision_vm_agent` must be set to `true` when `patch_assessment_mode` is set to `AutomaticByPlatform`")
 		}
 
 		shouldUpdate = true
 
 		if update.VirtualMachineProperties.OsProfile == nil {
-			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+			update.VirtualMachineProperties.OsProfile = &virtualmachines.OSProfile{}
 		}
 
 		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &virtualmachines.LinuxConfiguration{}
 		}
 
 		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{}
 		}
 
-		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = compute.LinuxPatchAssessmentMode(assessmentMode)
+		update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AssessmentMode = virtualmachines.LinuxPatchAssessmentMode(assessmentMode)
 	}
 
-	isPatchModeAutomaticByPlatform := d.Get("patch_mode") == string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)
+	isPatchModeAutomaticByPlatform := d.Get("patch_mode") == string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform)
 	bypassPlatformSafetyChecksOnUserScheduleEnabled := d.Get("bypass_platform_safety_checks_on_user_schedule_enabled").(bool)
 	if bypassPlatformSafetyChecksOnUserScheduleEnabled && !isPatchModeAutomaticByPlatform {
 		return fmt.Errorf("`patch_mode` must be set to `AutomaticByPlatform` when `bypass_platform_safety_checks_on_user_schedule_enabled` is set to `true`")
@@ -1388,20 +1387,20 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldUpdate = true
 
 		if update.VirtualMachineProperties.OsProfile == nil {
-			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+			update.VirtualMachineProperties.OsProfile = &virtualmachines.OSProfile{}
 		}
 
 		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &virtualmachines.LinuxConfiguration{}
 		}
 
 		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{}
 		}
 
 		if isPatchModeAutomaticByPlatform {
 			if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
-				update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.LinuxVMGuestPatchAutomaticByPlatformSettings{}
+				update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.LinuxVMGuestPatchAutomaticByPlatformSettings{}
 			}
 
 			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.BypassPlatformSafetyChecksOnUserSchedule = pointer.To(bypassPlatformSafetyChecksOnUserScheduleEnabled)
@@ -1416,23 +1415,23 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldUpdate = true
 
 		if update.VirtualMachineProperties.OsProfile == nil {
-			update.VirtualMachineProperties.OsProfile = &compute.OSProfile{}
+			update.VirtualMachineProperties.OsProfile = &virtualmachines.OSProfile{}
 		}
 
 		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration == nil {
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &compute.LinuxConfiguration{}
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration = &virtualmachines.LinuxConfiguration{}
 		}
 
 		if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings == nil {
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &compute.LinuxPatchSettings{}
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings = &virtualmachines.LinuxPatchSettings{}
 		}
 
 		if isPatchModeAutomaticByPlatform {
 			if update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings == nil {
-				update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &compute.LinuxVMGuestPatchAutomaticByPlatformSettings{}
+				update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings = &virtualmachines.LinuxVMGuestPatchAutomaticByPlatformSettings{}
 			}
 
-			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = compute.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(rebootSetting)
+			update.VirtualMachineProperties.OsProfile.LinuxConfiguration.PatchSettings.AutomaticByPlatformSettings.RebootSetting = virtualmachines.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(rebootSetting)
 		}
 	}
 
@@ -1442,14 +1441,14 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldUpdate = true
 
 		if update.OsProfile == nil {
-			update.OsProfile = &compute.OSProfile{}
+			update.OsProfile = &virtualmachines.OSProfile{}
 		}
 
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
 	}
 
-	var osImageNotificationProfile *compute.OSImageNotificationProfile
-	var terminateNotificationProfile *compute.TerminateNotificationProfile
+	var osImageNotificationProfile *virtualmachines.OSImageNotificationProfile
+	var terminateNotificationProfile *virtualmachines.TerminateNotificationProfile
 
 	if d.HasChange("os_image_notification") {
 		shouldUpdate = true
@@ -1462,7 +1461,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if osImageNotificationProfile != nil || terminateNotificationProfile != nil {
-		update.ScheduledEventsProfile = &compute.ScheduledEventsProfile{
+		update.ScheduledEventsProfile = &virtualmachines.ScheduledEventsProfile{
 			OsImageNotificationProfile:   osImageNotificationProfile,
 			TerminateNotificationProfile: terminateNotificationProfile,
 		}
@@ -1492,7 +1491,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		if d.Get("encryption_at_host_enabled").(bool) {
 			osDiskRaw := d.Get("os_disk").([]interface{})
 			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
-			if compute.SecurityEncryptionTypesDiskWithVMGuestState == compute.SecurityEncryptionTypes(securityEncryptionType) {
+			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
 				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
 			}
 		}
@@ -1500,7 +1499,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
 
-		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+		update.VirtualMachineProperties.SecurityProfile = &virtualmachines.SecurityProfile{
 			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 		}
 	}
@@ -1683,7 +1682,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	log.Printf("[DEBUG] Retrieving Linux %s", id)
 	existing, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(existing.Response) {
+		if response.WasNotFound(existing.HttpResponse) {
 			return nil
 		}
 
@@ -1765,11 +1764,11 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 
 	log.Printf("[INFO] verifying Linux %s has been deleted", id)
 	virtualMachine, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
-	if err != nil && !utils.ResponseWasNotFound(virtualMachine.Response) {
+	if err != nil && !response.WasNotFound(virtualMachine.HttpResponse) {
 		return fmt.Errorf("verifying Linux %s has been deleted: %+v", id, err)
 	}
 
-	if !utils.ResponseWasNotFound(virtualMachine.Response) {
+	if !response.WasNotFound(virtualMachine.HttpResponse) {
 		log.Printf("[INFO] %s still exists, waiting on vm to be deleted", id)
 
 		deleteWait := &pluginsdk.StateChangeConf{
@@ -1781,7 +1780,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 				log.Printf("[INFO] checking on state of Linux %s", id)
 				resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
 				if err != nil {
-					if utils.ResponseWasNotFound(resp.Response) {
+					if response.WasNotFound(resp.HttpResponse) {
 						return resp, strconv.Itoa(resp.StatusCode), nil
 					}
 					return nil, "nil", fmt.Errorf("polling for the status of Linux %s: %v", id, err)

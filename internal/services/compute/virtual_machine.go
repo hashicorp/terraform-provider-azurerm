@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -265,64 +266,64 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSystemTypes) (*compute.OSDisk, error) {
+func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.OperatingSystemTypes) (*virtualmachines.OSDisk, error) {
 	raw := input[0].(map[string]interface{})
 	caching := raw["caching"].(string)
-	disk := compute.OSDisk{
-		Caching: compute.CachingTypes(caching),
-		ManagedDisk: &compute.ManagedDiskParameters{
-			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
+	disk := virtualmachines.OSDisk{
+		Caching: pointer.To(virtualmachines.CachingTypes(caching)),
+		ManagedDisk: &virtualmachines.ManagedDiskParameters{
+			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(raw["storage_account_type"].(string))),
 		},
-		WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
+		WriteAcceleratorEnabled: pointer.To(raw["write_accelerator_enabled"].(bool)),
 
 		// these have to be hard-coded so there's no point exposing them
 		// for CreateOption, whilst it's possible for this to be "Attach" for an OS Disk
 		// from what we can tell this approach has been superseded by provisioning from
 		// an image of the machine (e.g. an Image/Shared Image Gallery)
-		CreateOption: compute.DiskCreateOptionTypesFromImage,
-		OsType:       osType,
+		CreateOption: virtualmachines.DiskCreateOptionTypesFromImage,
+		OsType:       pointer.To(osType),
 	}
 
 	securityEncryptionType := raw["security_encryption_type"].(string)
 	if securityEncryptionType != "" {
-		disk.ManagedDisk.SecurityProfile = &compute.VMDiskSecurityProfile{
-			SecurityEncryptionType: compute.SecurityEncryptionTypes(securityEncryptionType),
+		disk.ManagedDisk.SecurityProfile = &virtualmachines.VMDiskSecurityProfile{
+			SecurityEncryptionType: pointer.To(virtualmachines.SecurityEncryptionTypes(securityEncryptionType)),
 		}
 	}
 	if secureVMDiskEncryptionId := raw["secure_vm_disk_encryption_set_id"].(string); secureVMDiskEncryptionId != "" {
-		if compute.SecurityEncryptionTypesDiskWithVMGuestState != compute.SecurityEncryptionTypes(securityEncryptionType) {
+		if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState != virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
 			return nil, fmt.Errorf("`secure_vm_disk_encryption_set_id` can only be specified when `security_encryption_type` is set to `DiskWithVMGuestState`")
 		}
-		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
-			ID: utils.String(secureVMDiskEncryptionId),
+		disk.ManagedDisk.SecurityProfile.DiskEncryptionSet = &virtualmachines.SubResource{
+			Id: pointer.To(secureVMDiskEncryptionId),
 		}
 	}
 
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
-		disk.DiskSizeGB = utils.Int32(int32(osDiskSize))
+		disk.DiskSizeGB = pointer.To(int64(osDiskSize))
 	}
 
 	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
-		if caching != string(compute.CachingTypesReadOnly) {
+		if caching != string(virtualmachines.CachingTypesReadOnly) {
 			// Restriction per https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment
 			return nil, fmt.Errorf("`diff_disk_settings` can only be set when `caching` is set to `ReadOnly`")
 		}
 
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
-		disk.DiffDiskSettings = &compute.DiffDiskSettings{
-			Option:    compute.DiffDiskOptions(diffDiskRaw["option"].(string)),
-			Placement: compute.DiffDiskPlacement(diffDiskRaw["placement"].(string)),
+		disk.DiffDiskSettings = &virtualmachines.DiffDiskSettings{
+			Option:    pointer.To(virtualmachines.DiffDiskOptions(diffDiskRaw["option"].(string))),
+			Placement: pointer.To(virtualmachines.DiffDiskPlacement(diffDiskRaw["placement"].(string))),
 		}
 	}
 
 	if id := raw["disk_encryption_set_id"].(string); id != "" {
-		disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
-			ID: utils.String(id),
+		disk.ManagedDisk.DiskEncryptionSet = &virtualmachines.SubResource{
+			Id: pointer.To(id),
 		}
 	}
 
 	if name := raw["name"].(string); name != "" {
-		disk.Name = utils.String(name)
+		disk.Name = pointer.To(name)
 	}
 
 	return &disk, nil

@@ -5,17 +5,18 @@ package compute
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
-func expandEdgeZone(input string) *compute.ExtendedLocation {
+func expandEdgeZone(input string) *virtualmachines.Model {
 	normalized := edgezones.Normalize(input)
 	if normalized == "" {
 		return nil
 	}
 
-	return &compute.ExtendedLocation{
+	return &virtualmachines.Model{
 		Name: utils.String(normalized),
 		Type: compute.ExtendedLocationTypesEdgeZone,
 	}
