@@ -11,21 +11,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.Id = CertificateOrderId{}
+var _ resourceids.Id = CertificateOrderOldId{}
 
-func TestCertificateOrderIDFormatter(t *testing.T) {
-	actual := NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "resGroup1", "order1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CertificateRegistration/certificateOrders/order1"
+func TestCertificateOrderOldIDFormatter(t *testing.T) {
+	actual := NewCertificateOrderOldID("12345678-1234-9876-4563-123456789012", "resGroup1", "order1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificateOrders/order1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestCertificateOrderID(t *testing.T) {
+func TestCertificateOrderOldID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *CertificateOrderId
+		Expected *CertificateOrderOldId
 	}{
 
 		{
@@ -59,30 +59,30 @@ func TestCertificateOrderID(t *testing.T) {
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CertificateRegistration/",
+			// missing CertificateOrderName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CertificateRegistration/certificateOrders/",
+			// missing value for CertificateOrderName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificateOrders/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CertificateRegistration/certificateOrders/order1",
-			Expected: &CertificateOrderId{
-				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resGroup1",
-				Name:           "order1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificateOrders/order1",
+			Expected: &CertificateOrderOldId{
+				SubscriptionId:       "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:        "resGroup1",
+				CertificateOrderName: "order1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CERTIFICATEREGISTRATION/CERTIFICATEORDERS/ORDER1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/CERTIFICATEORDERS/ORDER1",
 			Error: true,
 		},
 	}
@@ -90,7 +90,7 @@ func TestCertificateOrderID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := CertificateOrderID(v.Input)
+		actual, err := CertificateOrderOldID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -108,8 +108,8 @@ func TestCertificateOrderID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.CertificateOrderName != v.Expected.CertificateOrderName {
+			t.Fatalf("Expected %q but got %q for CertificateOrderName", v.Expected.CertificateOrderName, actual.CertificateOrderName)
 		}
 	}
 }
