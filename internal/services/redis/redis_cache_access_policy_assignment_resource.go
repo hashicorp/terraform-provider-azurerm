@@ -171,7 +171,7 @@ func (r RedisCacheAccessPolicyAssignmentResource) Delete() sdk.ResourceFunc {
 			client := metadata.Client.Redis.Redis
 			id, err := redis.ParseAccessPolicyAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("while parsing resource ID: %+v", err)
+				return err
 			}
 
 			if _, err := client.AccessPolicyAssignmentDelete(ctx, *id); err != nil {
