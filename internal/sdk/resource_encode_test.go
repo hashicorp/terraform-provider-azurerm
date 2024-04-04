@@ -97,6 +97,72 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 	}.test(t)
 }
 
+func TestResourceEncode_TopLevelAllTypesAndCombinations(t *testing.T) {
+
+	encodeTestData{
+		Input: &OneOfEverything{
+			RequiredStr:           "foo",
+			OptionalStr:           pointer.To("bar"),
+			RequiredInt:           451,
+			OptionalInt:           pointer.To(10),
+			RequiredInt64:         101,
+			OptionalInt64:         pointer.To(int64(20)),
+			RequiredFloat:         3.14159,
+			OptionalFloat:         pointer.To(1.41442),
+			RequiredBoolean:       true,
+			OptionalBoolean:       pointer.To(true),
+			RequiredListOfFloat:   []float64{3.142, 1.414, 2.718},
+			OptionalListOfFloat:   pointer.To([]float64{2.718, 1.414, 3.142}),
+			RequiredListOfInt:     []int{1, 2, 3, 4},
+			OptionalListOfInt:     pointer.To([]int{0, 9, 8, 7, 6}),
+			RequiredListOfInt64:   []int64{10, 20, 30, 40, 50},
+			OptionalListOfInt64:   pointer.To([]int64{100, 90, 80, 70, 60}),
+			RequiredListOfStrings: []string{"foo", "bar"},
+			OptionalListOfStrings: pointer.To([]string{"bar", "foo"}),
+			RequiredMapOfBooleans: map[string]bool{"itsTrue": true, "itsFalse": false},
+			OptionalMapOfBooleans: pointer.To(map[string]bool{"itsNotNotFalse": false, "itsMoreTrue": true}),
+			RequiredMapOfFloat:    map[string]float64{"avogadro": 6.022},
+			OptionalMapOfFloat:    pointer.To(map[string]float64{"pythagoras": 1.41421, "pi": 3.14159}),
+			RequiredMapOfInt:      map[string]int{"first": 101, "second": 102, "third": 103},
+			OptionalMapOfInt:      pointer.To(map[string]int{"primary": 9, "secondary": 109}),
+			RequiredMapOfInt64:    map[string]int64{"alpha": 200, "beta": 300},
+			OptionalMapOfInt64:    pointer.To(map[string]int64{"gamma": 400, "delta": 500}),
+			RequiredMapOfStrings:  map[string]string{"epsilon": "zeta", "eta": "theta"},
+			OptionalMapOfStrings:  pointer.To(map[string]string{"iota": "kappa", "lambda": "mu", "nu": "xi"}),
+		},
+		Expected: map[string]interface{}{
+			"required_str":             "foo",
+			"optional_str":             "bar",
+			"required_int":             int64(451),
+			"optional_int":             int64(10),
+			"required_int64":           int64(101),
+			"optional_int64":           int64(20),
+			"required_float":           3.14159,
+			"optional_float":           1.41442,
+			"required_boolean":         true,
+			"optional_boolean":         true,
+			"required_list_of_float":   []float64{3.142, 1.414, 2.718},
+			"optional_list_of_float":   []float64{2.718, 1.414, 3.142},
+			"required_list_of_int":     []int{1, 2, 3, 4},
+			"optional_list_of_int":     []int{0, 9, 8, 7, 6},
+			"required_list_of_int64":   []int64{10, 20, 30, 40, 50},
+			"optional_list_of_int64":   []int64{100, 90, 80, 70, 60},
+			"required_list_of_strings": []string{"foo", "bar"},
+			"optional_list_of_strings": []string{"bar", "foo"},
+			"required_map_of_booleans": map[string]interface{}{"itsTrue": true, "itsFalse": false},
+			"optional_map_of_booleans": map[string]interface{}{"itsNotNotFalse": false, "itsMoreTrue": true},
+			"required_map_of_float":    map[string]interface{}{"avogadro": 6.022},
+			"optional_map_of_float":    map[string]interface{}{"pythagoras": 1.41421, "pi": 3.14159},
+			"required_map_of_int":      map[string]interface{}{"first": 101, "second": 102, "third": 103},
+			"optional_map_of_int":      map[string]interface{}{"primary": 9, "secondary": 109},
+			"required_map_of_int64":    map[string]interface{}{"alpha": int64(200), "beta": int64(300)},
+			"optional_map_of_int64":    map[string]interface{}{"gamma": int64(400), "delta": int64(500)},
+			"required_map_of_strings":  map[string]interface{}{"epsilon": "zeta", "eta": "theta"},
+			"optional_map_of_strings":  map[string]interface{}{"iota": "kappa", "lambda": "mu", "nu": "xi"},
+		},
+	}.test(t)
+}
+
 func TestResourceEncode_TopLevelEmptyPointers(t *testing.T) {
 	type SimpleType struct {
 		String           string             `tfschema:"string"`
@@ -1013,7 +1079,7 @@ func (testData encodeTestData) test(t *testing.T) {
 		t.Fatalf("expected an error but didn't get one!")
 	}
 
-	if !cmp.Equal(output, testData.Expected) {
-		t.Fatalf("Output mismatch:\n\n Expected: %+v\n\n Received: %+v\n\n", testData.Expected, output)
+	if diff := cmp.Diff(output, testData.Expected); diff != "" {
+		t.Fatalf("Output mismatch, diff:\n\n %s", diff)
 	}
 }

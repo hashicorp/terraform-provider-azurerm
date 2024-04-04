@@ -4,9 +4,9 @@
 package sdk
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
@@ -17,43 +17,122 @@ type decodeTestData struct {
 	ExpectError bool
 }
 
+type AllRequired struct {
+	String        string             `tfschema:"string"`
+	Int           int                `tfschema:"int"`
+	Int64         int64              `tfschema:"int64"`
+	Float         float64            `tfschema:"float"`
+	Float32       float32            `tfschema:"float32"`
+	Enabled       bool               `tfschema:"enabled"`
+	ListOfFloat   []float64          `tfschema:"list_of_float"`
+	ListOfFloat32 []float32          `tfschema:"list_of_float32"`
+	ListOfInt     []int              `tfschema:"list_of_int"`
+	ListOfInt64   []int              `tfschema:"list_of_int64"`
+	ListOfStrings []string           `tfschema:"list_of_strings"`
+	MapOfBooleans map[string]bool    `tfschema:"map_of_booleans"`
+	MapOfFloat    map[string]float64 `tfschema:"map_of_float"`
+	MapOfFloat32  map[string]float32 `tfschema:"map_of_float32"`
+	MapOfInt      map[string]int     `tfschema:"map_of_int"`
+	MapOfInt64    map[string]int64   `tfschema:"map_of_int64"`
+	MapOfStrings  map[string]string  `tfschema:"map_of_strings"`
+}
+
+type OneRequiredRestOptional struct {
+	Required      string              `tfschema:"required"`
+	String        *string             `tfschema:"string"`
+	Int           *int                `tfschema:"int"`
+	Int64         *int64              `tfschema:"int64"`
+	Float         *float64            `tfschema:"float"`
+	Float32       *float32            `tfschema:"float32"`
+	EmptyBoolean  bool                `tfschema:"empty_boolean"`
+	Enabled       *bool               `tfschema:"enabled"`
+	ListOfFloat   *[]float64          `tfschema:"list_of_float"`
+	ListOfFloat32 *[]float32          `tfschema:"list_of_float32"`
+	ListOfInt     *[]int              `tfschema:"list_of_int"`
+	ListOfInt64   *[]int64            `tfschema:"list_of_int64"`
+	ListOfStrings *[]string           `tfschema:"list_of_strings"`
+	MapOfBooleans *map[string]bool    `tfschema:"map_of_booleans"`
+	MapOfFloat    *map[string]float64 `tfschema:"map_of_float"`
+	MapOfFloat32  *map[string]float32 `tfschema:"map_of_float32"`
+	MapOfInt      *map[string]int     `tfschema:"map_of_int"`
+	MapOfInt64    *map[string]int64   `tfschema:"map_of_int64"`
+	MapOfStrings  *map[string]string  `tfschema:"map_of_strings"`
+}
+
+type OneOfEverything struct {
+	RequiredStr           string              `tfschema:"required_str"`
+	OptionalStr           *string             `tfschema:"optional_str"`
+	RequiredInt           int                 `tfschema:"required_int"`
+	OptionalInt           *int                `tfschema:"optional_int"`
+	RequiredInt64         int64               `tfschema:"required_int64"`
+	OptionalInt64         *int64              `tfschema:"optional_int64"`
+	RequiredFloat         float64             `tfschema:"required_float"`
+	OptionalFloat         *float64            `tfschema:"optional_float"`
+	RequiredBoolean       bool                `tfschema:"required_boolean"`
+	OptionalBoolean       *bool               `tfschema:"optional_boolean"`
+	RequiredListOfFloat   []float64           `tfschema:"required_list_of_float"`
+	OptionalListOfFloat   *[]float64          `tfschema:"optional_list_of_float"`
+	RequiredListOfInt     []int               `tfschema:"required_list_of_int"`
+	OptionalListOfInt     *[]int              `tfschema:"optional_list_of_int"`
+	RequiredListOfInt64   []int64             `tfschema:"required_list_of_int64"`
+	OptionalListOfInt64   *[]int64            `tfschema:"optional_list_of_int64"`
+	RequiredListOfStrings []string            `tfschema:"required_list_of_strings"`
+	OptionalListOfStrings *[]string           `tfschema:"optional_list_of_strings"`
+	RequiredMapOfBooleans map[string]bool     `tfschema:"required_map_of_booleans"`
+	OptionalMapOfBooleans *map[string]bool    `tfschema:"optional_map_of_booleans"`
+	RequiredMapOfFloat    map[string]float64  `tfschema:"required_map_of_float"`
+	OptionalMapOfFloat    *map[string]float64 `tfschema:"optional_map_of_float"`
+	RequiredMapOfInt      map[string]int      `tfschema:"required_map_of_int"`
+	OptionalMapOfInt      *map[string]int     `tfschema:"optional_map_of_int"`
+	RequiredMapOfInt64    map[string]int64    `tfschema:"required_map_of_int64"`
+	OptionalMapOfInt64    *map[string]int64   `tfschema:"optional_map_of_int64"`
+	RequiredMapOfStrings  map[string]string   `tfschema:"required_map_of_strings"`
+	OptionalMapOfStrings  *map[string]string  `tfschema:"optional_map_of_strings"`
+}
+
 func TestDecode_TopLevelFieldsRequired(t *testing.T) {
-	type SimpleType struct {
-		String        string            `tfschema:"string"`
-		Number        int               `tfschema:"number"`
-		Price         float64           `tfschema:"price"`
-		Enabled       bool              `tfschema:"enabled"`
-		ListOfFloats  []float64         `tfschema:"list_of_floats"`
-		ListOfNumbers []int             `tfschema:"list_of_numbers"`
-		ListOfStrings []string          `tfschema:"list_of_strings"`
-		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
-		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
-	}
 	decodeTestData{
 		State: map[string]interface{}{
-			"number":  int64(42),
-			"price":   float64(129.99),
+			"int":     42,
+			"float":   129.99,
+			"float32": 19.84,
 			"string":  "world",
 			"enabled": true,
-			"list_of_floats": []interface{}{
+			"list_of_float": []interface{}{
 				1.0,
 				2.0,
 				3.0,
 				1.234567890,
 			},
-			"list_of_numbers": []interface{}{1, 2, 3},
+			"list_of_float32": []interface{}{
+				4.0,
+				5.0,
+				2.3456789,
+			},
+			"list_of_int": []interface{}{1, 2, 3},
 			"list_of_strings": []interface{}{
 				"have",
 				"you",
 				"heard",
 			},
-			"map_of_bools": map[string]interface{}{
+			"map_of_booleans": map[string]interface{}{
 				"awesome_feature": true,
 			},
-			"map_of_numbers": map[string]interface{}{
+			"map_of_int": map[string]interface{}{
 				"hello": 1,
 				"there": 3,
+			},
+			"map_of_int64": map[string]interface{}{
+				"ten":    10,
+				"eleven": 11,
+			},
+			"map_of_float": map[string]interface{}{
+				"pi":    3.12,
+				"fifth": 0.2,
+			},
+			"map_of_float32": map[string]interface{}{
+				"pi":    3.12,
+				"tenth": 0.1,
 			},
 			"map_of_strings": map[string]interface{}{
 				"hello":   "there",
@@ -62,30 +141,48 @@ func TestDecode_TopLevelFieldsRequired(t *testing.T) {
 				"morning": "alvaro",
 			},
 		},
-		Input: &SimpleType{},
-		Expected: &SimpleType{
+		Input: &AllRequired{},
+		Expected: &AllRequired{
 			String:  "world",
-			Price:   129.99,
+			Float:   129.99,
+			Float32: float32(19.84),
 			Enabled: true,
-			Number:  42,
-			ListOfFloats: []float64{
+			Int:     42,
+			ListOfFloat: []float64{
 				1.0,
 				2.0,
 				3.0,
 				1.234567890,
 			},
-			ListOfNumbers: []int{1, 2, 3},
+			ListOfFloat32: []float32{
+				4.0,
+				5.0,
+				2.3456789,
+			},
+			ListOfInt: []int{1, 2, 3},
 			ListOfStrings: []string{
 				"have",
 				"you",
 				"heard",
 			},
-			MapOfBools: map[string]bool{
+			MapOfBooleans: map[string]bool{
 				"awesome_feature": true,
 			},
-			MapOfNumbers: map[string]int{
+			MapOfFloat: map[string]float64{
+				"pi":    3.12,
+				"fifth": 0.2,
+			},
+			MapOfFloat32: map[string]float32{
+				"pi":    3.12,
+				"tenth": 0.1,
+			},
+			MapOfInt: map[string]int{
 				"hello": 1,
 				"there": 3,
+			},
+			MapOfInt64: map[string]int64{
+				"ten":    10,
+				"eleven": 11,
 			},
 			MapOfStrings: map[string]string{
 				"hello":   "there",
@@ -211,90 +308,46 @@ func TestDecode_TopLevelFieldsOptional(t *testing.T) {
 }
 
 func TestDecode_TopLevelFieldsOptionalNullValues(t *testing.T) {
-	type SimpleType struct {
-		Required      string             `tfschema:"required"`
-		String        *string            `tfschema:"string"`
-		Number        *int               `tfschema:"number"`
-		Price         *float64           `tfschema:"price"`
-		Enabled       *bool              `tfschema:"enabled"`
-		EmptyBool     bool               `tfschema:"empty_bool"`
-		ListOfFloats  *[]float64         `tfschema:"list_of_floats"`
-		ListOfNumbers *[]int             `tfschema:"list_of_numbers"`
-		ListOfStrings *[]string          `tfschema:"list_of_strings"`
-		MapOfBools    *map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  *map[string]int    `tfschema:"map_of_numbers"`
-		MapOfStrings  *map[string]string `tfschema:"map_of_strings"`
-	}
 	decodeTestData{
 		State: map[string]interface{}{
-			"required":        "name",
-			"number":          nil,
-			"price":           nil,
-			"string":          nil,
-			"enabled":         nil,
-			"empty_bool":      nil,
-			"list_of_floats":  nil,
-			"list_of_numbers": nil,
-			"list_of_strings": nil,
-			"map_of_bools":    nil,
-			"map_of_numbers":  nil,
-			"map_of_strings":  nil,
+			"required": "name",
 		},
-		Input: &SimpleType{},
-		Expected: &SimpleType{
-			Required:  "name",
-			EmptyBool: false,
+		Input: &OneRequiredRestOptional{},
+		Expected: &OneRequiredRestOptional{
+			Required:     "name",
+			EmptyBoolean: false,
 		},
 		ExpectError: false,
 	}.test(t)
 }
 
 func TestDecode_TopLevelFieldsOptionalMixedValues(t *testing.T) {
-	type SimpleType struct {
-		Required      string             `tfschema:"required"`
-		String        *string            `tfschema:"string"`
-		Number        *int               `tfschema:"number"`
-		Price         *float64           `tfschema:"price"`
-		Enabled       *bool              `tfschema:"enabled"`
-		ListOfFloats  *[]float64         `tfschema:"list_of_floats"`
-		ListOfNumbers *[]int             `tfschema:"list_of_numbers"`
-		ListOfStrings *[]string          `tfschema:"list_of_strings"`
-		MapOfBools    *map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  *map[string]int    `tfschema:"map_of_numbers"`
-		MapOfStrings  *map[string]string `tfschema:"map_of_strings"`
-	}
 	decodeTestData{
 		State: map[string]interface{}{
-			"required":        "name",
-			"number":          nil,
-			"price":           3.5,
-			"string":          nil,
-			"enabled":         false,
-			"list_of_floats":  nil,
-			"list_of_numbers": nil,
+			"required": "name",
+			"float":    3.5,
+			"enabled":  false,
 			"list_of_strings": []interface{}{
 				"have",
 				"you",
 				"heard",
 			},
-			"map_of_bools": nil,
-			"map_of_numbers": &map[string]interface{}{
+			"map_of_int": &map[string]interface{}{
 				"ten":       10,
 				"twentyone": 21,
 			},
-			"map_of_strings": nil,
 		},
-		Input: &SimpleType{},
-		Expected: &SimpleType{
+		Input: &OneRequiredRestOptional{},
+		Expected: &OneRequiredRestOptional{
 			Required: "name",
-			Price:    pointer.To(3.5),
+			Float:    pointer.To(3.5),
 			Enabled:  pointer.To(false),
 			ListOfStrings: pointer.To([]string{
 				"have",
 				"you",
 				"heard",
 			}),
-			MapOfNumbers: pointer.To(map[string]int{
+			MapOfInt: pointer.To(map[string]int{
 				"ten":       10,
 				"twentyone": 21,
 			}),
@@ -304,80 +357,94 @@ func TestDecode_TopLevelFieldsOptionalMixedValues(t *testing.T) {
 }
 
 func TestDecode_TopLevelFieldsOptionalComplete(t *testing.T) {
-	type SimpleType struct {
-		Required      string             `tfschema:"required"`
-		String        *string            `tfschema:"string"`
-		Number        *int               `tfschema:"number"`
-		Price         *float64           `tfschema:"price"`
-		Enabled       *bool              `tfschema:"enabled"`
-		EmptyBool     bool               `tfschema:"empty_bool"`
-		ListOfFloats  *[]float64         `tfschema:"list_of_floats"`
-		ListOfNumbers *[]int             `tfschema:"list_of_numbers"`
-		ListOfStrings *[]string          `tfschema:"list_of_strings"`
-		MapOfBools    *map[string]bool   `tfschema:"map_of_bools"`
-		MapOfNumbers  *map[string]int    `tfschema:"map_of_numbers"`
-		MapOfStrings  *map[string]string `tfschema:"map_of_strings"`
-	}
 	decodeTestData{
 		State: map[string]interface{}{
 			"required":   "name",
-			"number":     1984,
-			"price":      3.5,
+			"int":        451,
+			"int64":      1984,
+			"float":      3.5,
+			"float32":    3.142,
 			"string":     "do you know where your towel is",
 			"enabled":    true,
 			"empty_bool": nil,
-			"list_of_floats": []interface{}{
+			"list_of_float": []interface{}{
 				1.2,
 				3.142,
 			},
-			"list_of_numbers": []interface{}{
+			"list_of_float32": []interface{}{
+				0.01,
+				0.99,
+			},
+			"list_of_int": []interface{}{
 				20,
 				30,
+			},
+			"list_of_int64": []interface{}{
+				100,
+				200,
 			},
 			"list_of_strings": []interface{}{
 				"have",
 				"you",
 				"heard",
 			},
-			"map_of_bools": map[string]interface{}{
+			"map_of_booleans": map[string]interface{}{
 				"first":  true,
 				"second": false,
 			},
-			"map_of_numbers": map[string]interface{}{
+			"map_of_int": map[string]interface{}{
 				"ten":       10,
 				"twentyone": 21,
+			},
+			"map_of_int64": map[string]interface{}{
+				"Orwell":     1984,
+				"fahrenheit": 451,
 			},
 			"map_of_strings": map[string]interface{}{
 				"foo":  "bar",
 				"ford": "prefect",
 			},
 		},
-		Input: &SimpleType{},
-		Expected: &SimpleType{
-			Required:  "name",
-			String:    pointer.To("do you know where your towel is"),
-			Price:     pointer.To(3.5),
-			Number:    pointer.To(1984),
-			Enabled:   pointer.To(true),
-			EmptyBool: false,
-			ListOfFloats: pointer.To([]float64{
+		Input: &OneRequiredRestOptional{},
+		Expected: &OneRequiredRestOptional{
+			Required:     "name",
+			String:       pointer.To("do you know where your towel is"),
+			Float:        pointer.To(3.5),
+			Float32:      pointer.To(float32(3.142)),
+			Int:          pointer.To(451),
+			Int64:        pointer.To(int64(1984)),
+			Enabled:      pointer.To(true),
+			EmptyBoolean: false,
+			ListOfFloat: pointer.To([]float64{
 				1.2,
 				3.142,
 			}),
-			ListOfNumbers: pointer.To([]int{
+			ListOfFloat32: pointer.To([]float32{
+				0.01,
+				0.99,
+			}),
+			ListOfInt: pointer.To([]int{
 				20,
 				30,
+			}),
+			ListOfInt64: pointer.To([]int64{
+				100,
+				200,
 			}),
 			ListOfStrings: pointer.To([]string{
 				"have",
 				"you",
 				"heard",
 			}),
-			MapOfNumbers: pointer.To(map[string]int{
+			MapOfInt: pointer.To(map[string]int{
 				"ten":       10,
 				"twentyone": 21,
 			}),
-			MapOfBools: pointer.To(map[string]bool{
+			MapOfInt64: pointer.To(map[string]int64{
+				"Orwell":     1984,
+				"fahrenheit": 451,
+			}),
+			MapOfBooleans: pointer.To(map[string]bool{
 				"first":  true,
 				"second": false,
 			}),
@@ -401,7 +468,7 @@ func TestDecode_TopLevelFieldsComputed(t *testing.T) {
 	decodeTestData{
 		State: map[string]interface{}{
 			"computed_string":          "je suis computed",
-			"computed_number":          int64(732),
+			"computed_number":          732,
 			"computed_bool":            true,
 			"computed_list_of_numbers": []interface{}{1, 2, 3},
 			"computed_list_of_strings": []interface{}{
@@ -451,10 +518,13 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 		Price         float64           `tfschema:"price"`
 		Enabled       bool              `tfschema:"enabled"`
 		ListOfFloats  []float64         `tfschema:"list_of_floats"`
+		ListOfFloat32 []float32         `tfschema:"list_of_float32"`
 		ListOfNumbers []int             `tfschema:"list_of_numbers"`
+		ListOfInt64   []int64           `tfschema:"list_of_int64"`
 		ListOfStrings []string          `tfschema:"list_of_strings"`
 		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
 		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
+		MapOfInt64    map[string]int64  `tfschema:"map_of_int64"`
 		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 	type Type struct {
@@ -464,7 +534,7 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 		State: map[string]interface{}{
 			"inner": []interface{}{
 				map[string]interface{}{
-					"number":  int64(42),
+					"number":  42,
 					"price":   float64(129.99),
 					"string":  "world",
 					"enabled": true,
@@ -474,6 +544,13 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 						3.0,
 						1.234567890,
 					},
+					"list_of_float32": []interface{}{
+						1.0,
+						2.0,
+						3.0,
+						1.234567890,
+					},
+					"list_of_int64":   []interface{}{2, 4, 6},
 					"list_of_numbers": []interface{}{1, 2, 3},
 					"list_of_strings": []interface{}{
 						"have",
@@ -487,9 +564,13 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 						"hello": 1,
 						"there": 3,
 					},
+					"map_of_int64": map[string]interface{}{
+						"hello": 2,
+						"there": 6,
+					},
 					"map_of_strings": map[string]interface{}{
 						"hello":   "there",
-						"salut":   "tous les monde",
+						"salut":   "tout les monde",
 						"guten":   "tag",
 						"morning": "alvaro",
 					},
@@ -510,7 +591,14 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 						3.0,
 						1.234567890,
 					},
+					ListOfFloat32: []float32{
+						1.0,
+						2.0,
+						3.0,
+						1.234567890,
+					},
 					ListOfNumbers: []int{1, 2, 3},
+					ListOfInt64:   []int64{2, 4, 6},
 					ListOfStrings: []string{
 						"have",
 						"you",
@@ -519,13 +607,17 @@ func TestResourceDecode_NestedOneLevelDeepSingle(t *testing.T) {
 					MapOfBools: map[string]bool{
 						"awesome_feature": true,
 					},
+					MapOfInt64: map[string]int64{
+						"hello": 2,
+						"there": 6,
+					},
 					MapOfNumbers: map[string]int{
 						"hello": 1,
 						"there": 3,
 					},
 					MapOfStrings: map[string]string{
 						"hello":   "there",
-						"salut":   "tous les monde",
+						"salut":   "tout les monde",
 						"guten":   "tag",
 						"morning": "alvaro",
 					},
@@ -542,10 +634,13 @@ func TestResourceDecode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 		Price         float64           `tfschema:"price"`
 		Enabled       bool              `tfschema:"enabled"`
 		ListOfFloats  []float64         `tfschema:"list_of_floats"`
+		ListOfFloat32 []float32         `tfschema:"list_of_float32"`
 		ListOfNumbers []int             `tfschema:"list_of_numbers"`
+		ListOfInt64   []int64           `tfschema:"list_of_int64"`
 		ListOfStrings []string          `tfschema:"list_of_strings"`
 		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
 		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
+		MapOfInt64    map[string]int64  `tfschema:"map_of_int64"`
 		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 	type Type struct {
@@ -555,15 +650,18 @@ func TestResourceDecode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 		State: map[string]interface{}{
 			"inner": []interface{}{
 				map[string]interface{}{
-					"number":          int64(0),
+					"number":          0,
 					"price":           float64(0),
 					"string":          "",
 					"enabled":         false,
 					"list_of_floats":  []float64{},
+					"list_of_float32": []float32{},
 					"list_of_numbers": []int{},
+					"list_of_int64":   []int64{},
 					"list_of_strings": []string{},
 					"map_of_bools":    map[string]interface{}{},
 					"map_of_numbers":  map[string]interface{}{},
+					"map_of_int64":    map[string]interface{}{},
 					"map_of_strings":  map[string]interface{}{},
 				},
 			},
@@ -575,6 +673,7 @@ func TestResourceDecode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 					MapOfBools:   map[string]bool{},
 					MapOfNumbers: map[string]int{},
 					MapOfStrings: map[string]string{},
+					MapOfInt64:   map[string]int64{},
 				},
 			},
 		},
@@ -888,8 +987,9 @@ func TestResourceDecode_NestedThreeLevelsDeepMultipleOptionalItems(t *testing.T)
 		Value string `tfschema:"value"`
 	}
 	type SecondInner struct {
-		Value *string       `tfschema:"value"`
-		Third *[]ThirdInner `tfschema:"third"`
+		Value  *string       `tfschema:"value"`
+		Number *int64        `tfschema:"number"`
+		Third  *[]ThirdInner `tfschema:"third"`
 	}
 	type FirstInner struct {
 		Value  *string        `tfschema:"value"`
@@ -906,7 +1006,8 @@ func TestResourceDecode_NestedThreeLevelsDeepMultipleOptionalItems(t *testing.T)
 					"value": "first - 1",
 					"second": []interface{}{
 						map[string]interface{}{
-							"value": "second - 1",
+							"value":  "second - 1",
+							"number": 2,
 							"third": []interface{}{
 								map[string]interface{}{
 									"value": "third - 1",
@@ -968,7 +1069,8 @@ func TestResourceDecode_NestedThreeLevelsDeepMultipleOptionalItems(t *testing.T)
 					Value: pointer.To("first - 1"),
 					Second: &[]SecondInner{
 						{
-							Value: pointer.To("second - 1"),
+							Value:  pointer.To("second - 1"),
+							Number: pointer.To(int64(2)),
 							Third: &[]ThirdInner{
 								{
 									Value: "third - 1",
@@ -1041,8 +1143,8 @@ func (testData decodeTestData) test(t *testing.T) {
 		t.Fatalf("expected an error but didn't get one!")
 	}
 
-	if !reflect.DeepEqual(testData.Input, testData.Expected) {
-		t.Fatalf("\nExpected: %+v\n\n Received %+v\n\n", testData.Expected, testData.Input)
+	if diff := cmp.Diff(testData.Input, testData.Expected); diff != "" {
+		t.Fatalf("Output mismatch, diff:\n\n %s", diff)
 	}
 }
 
