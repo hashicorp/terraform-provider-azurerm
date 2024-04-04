@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `compute` - update shared image resources and data sources to use `hashicorp/go-azure-sdk` [GH-25503]
 * `containerinstance` - update to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25416]
 * `maintenance`: updating to API Version `2023-04-01` [GH-25388]
+* `recovery_services` - Add `recovery_service` block to the provider that supports `vm_backup_stop_protection_and_retain_data_on_destroy` and `purge_protected_items_from_vault_on_destroy`[GH-25515]
 * `storage`: the Storage Account cache is now populated using `hashicorp/go-azure-sdk` [GH-25437]
 * `azurerm_bot_service_azure_bot` - support for the `cmk_key_vault_key_url` property [GH-23640]
 * `azurerm_capacity_reservation` - update validation for `capacity` [GH-25471]
