@@ -186,11 +186,11 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("network_access_policy"); ok {
-		properties.Properties.NetworkAccessPolicy = pointer.To(v.(snapshots.NetworkAccessPolicy))
+		properties.Properties.NetworkAccessPolicy = pointer.To(snapshots.NetworkAccessPolicy(v.(string)))
 	}
 
 	if v, ok := d.GetOk("public_network_access"); ok {
-		properties.Properties.PublicNetworkAccess = pointer.To(v.(snapshots.PublicNetworkAccess))
+		properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccess(v.(string)))
 	}
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
@@ -251,13 +251,17 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `encryption_settings`: %+v", err)
 			}
 
+			networkAccessPolicy := snapshots.NetworkAccessPolicyAllowAll
 			if props.NetworkAccessPolicy != nil {
-				d.Set("network_access_policy", string(*props.NetworkAccessPolicy))
+				networkAccessPolicy = *props.NetworkAccessPolicy
 			}
+			d.Set("network_access_policy", string(networkAccessPolicy))
 
+			publicNetworkAccess := snapshots.PublicNetworkAccessEnabled
 			if props.PublicNetworkAccess != nil {
-				d.Set("public_network_access", string(*props.PublicNetworkAccess))
+				publicNetworkAccess = *props.PublicNetworkAccess
 			}
+			d.Set("public_network_access", string(publicNetworkAccess))
 
 			incrementalEnabled := false
 			if props.Incremental != nil {
