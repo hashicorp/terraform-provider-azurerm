@@ -23,6 +23,8 @@ ENHANCEMENTS:
 * `azurerm_bot_service_azure_bot` - support for the `cmk_key_vault_key_url` property [GH-23640]
 * `azurerm_capacity_reservation` - update validation for `capacity` [GH-25471]
 * `azurerm_container_app` - add support for `key_vault_id` and `identity` properties in the `secret` block [GH-24773]
+* `azurerm_databricks_workspace` - expose `managed_services_cmk_key_vault_id` and `managed_disk_cmk_key_vault_id and key_vault_id` to support cross subscription CMK's. [GH-25091]
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - expose `key_vault_id` to support cross subscription CMK's. [GH-25091]
 * `azurerm_managed_hsm_role_*_ids`: use specific resource id to replace generic nested item id [GH-25323]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
