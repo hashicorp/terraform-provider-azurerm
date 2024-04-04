@@ -893,12 +893,15 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	enableMultipleWriteLocations := d.Get("multiple_write_locations_enabled").(bool)
 
 	if !features.FourPointOhBeta() {
+		// nolint : staticcheck
 		if v, ok := d.GetOkExists("enable_automatic_failover"); ok {
 			enableAutomaticFailover = v.(bool)
 		}
+		// nolint : staticcheck
 		if v, ok := d.GetOkExists("multiple_write_locations_enabled"); ok {
 			enableMultipleWriteLocations = v.(bool)
 		}
+		// nolint : staticcheck
 		if v, ok := d.GetOkExists("enable_free_tier"); ok {
 			enableFreeTier = v.(bool)
 		}
@@ -1136,6 +1139,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		disableLocalAuthentication := pointer.To(d.Get("local_authentication_disabled").(bool))
 		enableAutomaticFailover := pointer.To(d.Get("automatic_failover_enabled").(bool))
 		if !features.FourPointOhBeta() {
+			// nolint : staticcheck
 			if v, ok := d.GetOkExists("enable_automatic_failover"); ok {
 				enableAutomaticFailover = pointer.To(v.(bool))
 			}
