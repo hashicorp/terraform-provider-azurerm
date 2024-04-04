@@ -91,7 +91,7 @@ func (r RedisCacheAccessPolicyAssignmentResource) Create() sdk.ResourceFunc {
 
 			redisId, err := redis.ParseRediID(model.RedisCacheID)
 			if err != nil {
-				return fmt.Errorf("parsing Redis Cache ID (%s): %+v", model.RedisCacheID, err)
+				return err
 			}
 			id := redis.NewAccessPolicyAssignmentID(subscriptionId, redisId.ResourceGroupName, redisId.RedisName, model.Name)
 
