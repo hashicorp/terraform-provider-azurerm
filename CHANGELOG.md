@@ -53,6 +53,7 @@ BUG FIXES:
 * `azurerm_storage_share_file` - fix a potential crash when the endpoint is unreachable [GH-25404]
 * `azurerm_storage_share_file` - fix several bugs with path handling when creating files in subdirectories [GH-25404]
 * `azurerm_web_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
+* `azurerm_windows_web_app` - prevent a panic during resource upgrade [GH-25509]
 
 ## 3.97.1 (March 22, 2024)
 
