@@ -308,7 +308,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
 	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
-		input.Properties.PreferredEnclaveType = pointer.To(databases.AlwaysEncryptedEnclaveType(enclaveType))
+		input.Properties.PreferredEnclaveType = pointer.To(enclaveType)
 	}
 
 	createMode := d.Get("create_mode").(string)
@@ -711,7 +711,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		// The 'PreferredEnclaveType' field cannot be passed to the APIs Update if the
 		// 'sku_name' is a DW or DC-series SKU...
 		if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
-			props.PreferredEnclaveType = pointer.To(databases.AlwaysEncryptedEnclaveType(enclaveType))
+			props.PreferredEnclaveType = pointer.To(enclaveType)
 		} else {
 			props.PreferredEnclaveType = nil
 		}

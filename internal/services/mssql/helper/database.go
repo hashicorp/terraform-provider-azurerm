@@ -108,7 +108,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 						}
 
 						if partnerDatabase.Id != nil && partnerDatabase.Properties != nil && partnerDatabase.Properties.PreferredEnclaveType != nil {
-							if primaryEnclaveType != "" && databases.AlwaysEncryptedEnclaveType(primaryEnclaveType) == *partnerDatabase.Properties.PreferredEnclaveType {
+							if primaryEnclaveType != "" && primaryEnclaveType == *partnerDatabase.Properties.PreferredEnclaveType {
 								log.Printf("[INFO] Found Partner %s", partnerDatabaseId)
 								partnerDatabases = append(partnerDatabases, *partnerDatabase)
 							} else {
