@@ -88,12 +88,14 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForNetworkAccessPolicy(), false),
+				Default:      string(snapshots.NetworkAccessPolicyAllowAll),
 			},
 
 			"public_network_access": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForPublicNetworkAccess(), false),
+				Default:      string(snapshots.PublicNetworkAccessEnabled),
 			},
 
 			"source_resource_id": {
