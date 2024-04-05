@@ -1,3 +1,10 @@
+## 3.99.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_monitor_alert_prometheus_rule_group` - the `severity` property is now set correctly when `0` [GH-25408]
+
+
 ## 3.98.0 (April 04, 2024)
 
 FEATURES:
