@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* `azurerm_application_insights` - fix issue where the wrong Application ID was set into the property `app_id` [GH-25520]
 * `azurerm_monitor_alert_prometheus_rule_group` - the `severity` property is now set correctly when `0` [GH-25408]
 
 
