@@ -32,6 +32,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -63,6 +64,7 @@ type Client struct {
 	SnapshotsClient                  *snapshots.SnapshotsClient
 	VirtualMachinesClient            *virtualmachines.VirtualMachinesClient
 	VirtualMachineRunCommandsClient  *virtualmachineruncommands.VirtualMachineRunCommandsClient
+	VirtualMachineScaleSetsClient    *virtualmachinescalesets.VirtualMachineScaleSetsClient
 	VMExtensionImageClient           *compute.VirtualMachineExtensionImagesClient
 	VMExtensionClient                *compute.VirtualMachineExtensionsClient
 	VMScaleSetClient                 *compute.VirtualMachineScaleSetsClient
@@ -203,6 +205,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(virtualMachinesClient.Client, o.Authorizers.ResourceManager)
 
+	virtualMachineScaleSetsClient, err := virtualmachinescalesets.NewVirtualMachineScaleSetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VirtualMachineScaleSets client: %+v", err)
+	}
+	o.Configure(virtualMachineScaleSetsClient.Client, o.Authorizers.ResourceManager)
+
 	virtualMachineRunCommandsClient, err := virtualmachineruncommands.NewVirtualMachineRunCommandsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualMachineRunCommands client: %+v", err)
@@ -259,6 +267,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SnapshotsClient:                  snapshotsClient,
 		VirtualMachinesClient:            virtualMachinesClient,
 		VirtualMachineRunCommandsClient:  virtualMachineRunCommandsClient,
+		VirtualMachineScaleSetsClient:    virtualMachineScaleSetsClient,
 		VMExtensionImageClient:           &vmExtensionImageClient,
 		VMExtensionClient:                &vmExtensionClient,
 		VMScaleSetClient:                 &vmScaleSetClient,

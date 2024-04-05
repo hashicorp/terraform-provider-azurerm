@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"sort"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
@@ -12,12 +13,12 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
-func expandIDsToSubResources(input []interface{}) *[]compute.SubResource {
-	ids := make([]compute.SubResource, 0)
+func expandIDsToSubResources(input []interface{}) *[]virtualmachinescalesets.SubResource {
+	ids := make([]virtualmachinescalesets.SubResource, 0)
 
 	for _, v := range input {
-		ids = append(ids, compute.SubResource{
-			ID: utils.String(v.(string)),
+		ids = append(ids, virtualmachinescalesets.SubResource{
+			Id: utils.String(v.(string)),
 		})
 	}
 
