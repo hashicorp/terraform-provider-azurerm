@@ -374,7 +374,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 			} else {
 				d.Set("application_type", string(props.ApplicationType))
 			}
-			d.Set("app_id", props.ApplicationId)
+			d.Set("app_id", props.AppId)
 			d.Set("instrumentation_key", props.InstrumentationKey)
 			d.Set("sampling_percentage", props.SamplingPercentage)
 			d.Set("disable_ip_masking", props.DisableIPMasking)
