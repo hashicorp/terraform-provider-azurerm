@@ -18,15 +18,15 @@ ENHANCEMENTS:
 * `compute` - update to API version `2024-03-01` [GH-25436]
 * `compute` - update shared image resources and data sources to use `hashicorp/go-azure-sdk` [GH-25503]
 * `containerinstance` - update to use the transport layer from `hashicorp/go-azure-sdk` rather than `Azure/go-autorest` [GH-25416]
-* `maintenance`: updating to API Version `2023-04-01` [GH-25388]
+* `maintenance` -  updating to API Version `2023-04-01` [GH-25388]
 * `recovery_services` - Add `recovery_service` block to the provider that supports `vm_backup_stop_protection_and_retain_data_on_destroy` and `purge_protected_items_from_vault_on_destroy`[GH-25515]
-* `storage`: the Storage Account cache is now populated using `hashicorp/go-azure-sdk` [GH-25437]
+* `storage` -  the Storage Account cache is now populated using `hashicorp/go-azure-sdk` [GH-25437]
 * `azurerm_bot_service_azure_bot` - support for the `cmk_key_vault_key_url` property [GH-23640]
 * `azurerm_capacity_reservation` - update validation for `capacity` [GH-25471]
 * `azurerm_container_app` - add support for `key_vault_id` and `identity` properties in the `secret` block [GH-24773]
 * `azurerm_databricks_workspace` - expose `managed_services_cmk_key_vault_id` and `managed_disk_cmk_key_vault_id and key_vault_id` to support cross subscription CMK's. [GH-25091]
 * `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - expose `key_vault_id` to support cross subscription CMK's. [GH-25091]
-* `azurerm_managed_hsm_role_*_ids`: use specific resource id to replace generic nested item id [GH-25323]
+* `azurerm_managed_hsm_role_*_ids` - use specific resource id to replace generic nested item id [GH-25323]
 * `azurerm_mssql_database` - add support for `secondary_type` [GH-25360]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - support for the `identity` block [GH-25365]
 * `azurerm_mssql_server_extended_auditing_policy` - support for `audit_actions_and_groups` and `predicate_expression` [GH-25425]
@@ -40,7 +40,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `network`: updating the `GatewaySubnet` validation to show the Subnet Name when the validation fails [GH-25484]
+* `network` -  updating the `GatewaySubnet` validation to show the Subnet Name when the validation fails [GH-25484]
 * `azurerm_function_app_hybrid_connection` - fix an issue during creation when `send_key_name` is specified [GH-25379]
 * `azurerm_linux_web_app_slot` - fix a crash when upgrading the provider to v3.88.0 or later [GH-25406]
 * `azurerm_mssql_database` - update the behavior of the `enclave_type` field. [GH-25508]
