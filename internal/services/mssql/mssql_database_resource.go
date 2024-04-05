@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
@@ -728,12 +729,14 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("retrieving %s: %s", elasticId, err)
 			}
 
+			var elasticEnclaveType elasticpools.AlwaysEncryptedEnclaveType
 			if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
-				databaseEnclaveType := string(enclaveType)
+				elasticEnclaveType = pointer.From(elasticPool.Model.Properties.PreferredEnclaveType)
+			}
 
-				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
-					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+			if elasticEnclaveType != "" || enclaveType != "" {
+				if !strings.EqualFold(string(elasticEnclaveType), string(enclaveType)) {
+					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, enclaveType, elasticId, elasticEnclaveType)
 				}
 			}
 		}
