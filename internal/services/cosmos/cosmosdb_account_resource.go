@@ -1140,7 +1140,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		enableAutomaticFailover := pointer.To(d.Get("automatic_failover_enabled").(bool))
 		if !features.FourPointOhBeta() {
 			// nolint : staticcheck
-			if v, ok := d.GetOkExists("enable_automatic_failover"); ok {
+			if v, ok := d.GetOkExists("enable_automatic_failover"); ok && v.(bool) {
 				enableAutomaticFailover = pointer.To(v.(bool))
 			}
 		}
