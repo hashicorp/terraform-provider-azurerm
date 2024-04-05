@@ -50,14 +50,10 @@ func (r RedisCacheAccessPolicyAssignmentResource) Arguments() map[string]*plugin
 			ForceNew: true,
 		},
 		"object_id_alias": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice(
-				[]string{
-					"ServicePrincipal",
-					"UserMSI",
-				}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }

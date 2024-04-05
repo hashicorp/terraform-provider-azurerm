@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `object_id` - (Required) The principal ID to be assigned the Access Policy. Changing this forces a new Redis Cache Access Policy Assignment to be created.
 
-* `object_id_alias` - (Required) The alias of the principal ID. Possible values are `ServicePrincipal` and `UserMSI`. Changing this forces a new Redis Cache Access Policy Assignment to be created.
+* `object_id_alias` - (Required) The alias of the principal ID. User-friendly name for object ID. Also represents username for token based authentication. Changing this forces a new Redis Cache Access Policy Assignment to be created.
 
 ## Attributes Reference
 
