@@ -2461,8 +2461,6 @@ resource "azurerm_linux_function_app_slot" "test" {
     vnet_route_all_enabled = true
   }
 
-  // vnet_image_pull_enabled = true 
-
   tags = {
     terraform = "true"
     Env       = "AccTest"
@@ -2504,9 +2502,6 @@ resource "azurerm_linux_function_app_slot" "test" {
       virtual_network_subnet_id = azurerm_subnet.test.id
     }
   }
-
-  // vnet_image_pull_enabled = true
-
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
@@ -2645,7 +2640,6 @@ resource "azurerm_linux_function_app_slot" "test" {
 
     vnet_route_all_enabled = true
   }
-  // vnet_image_pull_enabled = true
 }
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
@@ -3232,13 +3226,12 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
-
-  // vnet_image_pull_enabled = true
 }
 
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
+// TODO 4.0 remove this test case as it's replaced by vNetIntegration_subnet1WithVnetProperties
 func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet1(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3294,9 +3287,6 @@ resource "azurerm_linux_function_app_slot" "test" {
   virtual_network_subnet_id  = azurerm_subnet.test1.id
 
   site_config {}
-
-  // vnet_image_pull_enabled = true
-
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
@@ -3360,6 +3350,67 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
+func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet1WithVnetProperties(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  virtual_network_subnet_id  = azurerm_subnet.test1.id
+
+  vnet_image_pull_enabled = true
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
+}
+
+// TODO 4.0 enable the vnet_image_pull_enabled property for app running in ase env
 func (r LinuxFunctionAppSlotResource) withASEV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -3381,8 +3432,7 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  // vnet_image_pull_enabled = true 
-
+  // vnet_image_pull_enabled = true
   site_config {
     vnet_route_all_enabled = true
   }
@@ -3394,6 +3444,7 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
+  // vnet_image_pull_enabled = true
   site_config {
     vnet_route_all_enabled = true
   }

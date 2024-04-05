@@ -72,7 +72,7 @@ type LinuxFunctionAppModel struct {
 	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 
-	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans todo add in 4.0 provider
+	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // TODO 4.0 not supported on Consumption plans
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
