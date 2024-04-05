@@ -108,7 +108,7 @@ func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFun
 }
 
 func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -308,10 +308,19 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Linux Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 	}
+	if features.FourPointOhBeta() {
+		s["vnet_image_pull_enabled"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+		}
+	}
+	return s
 }
 
 func (r LinuxFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
@@ -361,15 +370,6 @@ func (r LinuxFunctionAppResource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_credential": helpers.SiteCredentialSchema(),
 	}
-	if features.FourPointOhBeta() {
-		s["vnet_image_pull_enabled"] = &pluginsdk.Schema{
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
-		}
-	}
-	return s
 }
 
 func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
@@ -1246,16 +1246,16 @@ func (r LinuxFunctionAppResource) CustomizeDiff() sdk.ResourceFunc {
 				_, newValue := rd.GetChange("vnet_image_pull_enabled")
 				servicePlanId, err := commonids.ParseAppServicePlanID(planId.(string))
 				if err != nil {
-					return fmt.Errorf("reading service plan id %+v", err)
+					return err
 				}
 
 				asp, err := client.Get(ctx, *servicePlanId)
 				if err != nil {
-					return fmt.Errorf("could not read Service Plan %s: %+v", servicePlanId, err)
+					return fmt.Errorf("retrieving %s: %+v", servicePlanId, err)
 				}
 				if aspModel := asp.Model; aspModel != nil {
 					if aspModel.Properties != nil && aspModel.Properties.HostingEnvironmentProfile != nil &&
-						aspModel.Properties.HostingEnvironmentProfile.Id != nil && !newValue.(bool) {
+						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment.")
 					}
 				}

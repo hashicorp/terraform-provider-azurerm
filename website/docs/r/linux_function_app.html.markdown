@@ -142,7 +142,7 @@ The following arguments are supported:
 [//]: # (TODO 4.0 add it in 4.0 provider)
 [//]: # (* `vnet_image_pull_enabled` - &#40;Optional&#41; Should the traffic for the image pull be routed over virtual network enabled. Defaults to `false`.)
 
-~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. The Setting is enabled by default for app running in the App Service Environment. 
+[//]: # (~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.)
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
