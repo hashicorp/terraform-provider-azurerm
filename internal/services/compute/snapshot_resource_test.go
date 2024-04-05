@@ -279,7 +279,7 @@ resource "azurerm_snapshot" "test" {
   create_option         = "Copy"
   source_uri            = azurerm_managed_disk.test.id
   network_access_policy = "AllowAll"
-  public_access         = "Enabled"
+  public_network_access = "Enabled"
 
   tags = {
     Hello = "World"
