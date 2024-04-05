@@ -4,6 +4,7 @@ BUG FIXES:
 
 * `azurerm_application_insights` - fix issue where the wrong Application ID was set into the property `app_id` [GH-25520]
 * `azurerm_monitor_alert_prometheus_rule_group` - the `severity` property is now set correctly when `0` [GH-25408]
+* `azurerm_redis_cache_access_policy_assignment` - the `object_id_alias` property now allows usernames [GH-25523]
 
 
 ## 3.98.0 (April 04, 2024)
