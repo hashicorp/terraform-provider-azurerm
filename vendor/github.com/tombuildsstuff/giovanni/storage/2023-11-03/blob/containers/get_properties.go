@@ -47,10 +47,10 @@ func (c Client) GetProperties(ctx context.Context, containerName string, input G
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Response != nil && resp.Header != nil {
+		if resp.Header != nil {
 			result.DefaultEncryptionScope = resp.Header.Get("x-ms-default-encryption-scope")
 			result.LeaseStatus = LeaseStatus(resp.Header.Get("x-ms-lease-status"))
 			result.LeaseState = LeaseState(resp.Header.Get("x-ms-lease-state"))

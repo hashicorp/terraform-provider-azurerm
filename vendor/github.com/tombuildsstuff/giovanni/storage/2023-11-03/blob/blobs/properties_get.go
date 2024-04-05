@@ -197,10 +197,10 @@ func (c Client) GetProperties(ctx context.Context, containerName, blobName strin
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Response != nil && resp.Header != nil {
+		if resp.Header != nil {
 			result.AccessTier = AccessTier(resp.Header.Get("x-ms-access-tier"))
 			result.AccessTierChangeTime = resp.Header.Get("x-ms-access-tier-change-time")
 			result.ArchiveStatus = ArchiveStatus(resp.Header.Get("x-ms-archive-status"))

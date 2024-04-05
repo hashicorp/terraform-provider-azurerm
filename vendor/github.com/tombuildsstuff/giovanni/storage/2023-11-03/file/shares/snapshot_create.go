@@ -64,10 +64,10 @@ func (c Client) CreateSnapshot(ctx context.Context, shareName string, input Crea
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Response != nil && resp.Header != nil {
+		if resp.Header != nil {
 			result.SnapshotDateTime = resp.Header.Get("x-ms-snapshot")
 		}
 	}
