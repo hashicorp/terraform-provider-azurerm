@@ -74,7 +74,7 @@ type LinuxFunctionAppSlotModel struct {
 	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // Not supported on Consumption plans todo add in 4.0 provider
+	// VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"` // TODO 4.0 not supported on Consumption plans
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}
