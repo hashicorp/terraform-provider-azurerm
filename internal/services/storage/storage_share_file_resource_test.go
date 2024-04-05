@@ -203,7 +203,7 @@ func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	account, err := clients.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountId.AccountName, id.FileName, id.ShareName, err)
 	}
@@ -219,7 +219,7 @@ func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Cli
 	resp, err := client.GetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountId.AccountName, account.ResourceGroup, err)
+			return nil, fmt.Errorf("checking for presence of existing File %q (File Share %q in %s): %+v", id.FileName, id.ShareName, account.StorageAccountId, err)
 		}
 	}
 
