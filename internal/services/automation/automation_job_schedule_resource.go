@@ -130,7 +130,6 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 	runbookID := runbook.NewRunbookID(subscriptionId, resourceGroup, accountName, runbookName)
 	id := jobschedule.NewJobScheduleID(subscriptionId, resourceGroup, accountName, jobScheduleUUID.String())
 
-	// tfID := parse.NewAutomationJobScheduleID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, runbookName, scheduleName)
 	tfID := &commonids.CompositeResourceID[*schedule.ScheduleId, *runbook.RunbookId]{
 		First:  &scheduleID,
 		Second: &runbookID,
