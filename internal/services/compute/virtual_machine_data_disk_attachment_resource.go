@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -29,9 +30,46 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 		Read:   resourceVirtualMachineDataDiskAttachmentRead,
 		Update: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
 		Delete: resourceVirtualMachineDataDiskAttachmentDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataDiskID(id)
 			return err
+		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			client := meta.(*clients.Client).Compute.VMClient
+			id, err := parse.DataDiskID(d.Id())
+			if err != nil {
+				return nil, err
+			}
+
+			virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+			if err != nil {
+				if utils.ResponseWasNotFound(virtualMachine.Response) {
+					return nil, fmt.Errorf("Virtual Machine %q was not found in Resource Group %q", id.VirtualMachineName, id.ResourceGroup)
+				}
+
+				return nil, fmt.Errorf("retrieving Virtual Machine %q in Resource Group %q: %+v", id.VirtualMachineName, id.ResourceGroup, err)
+			}
+
+			var disk *compute.DataDisk
+			if profile := virtualMachine.StorageProfile; profile != nil {
+				if dataDisks := profile.DataDisks; dataDisks != nil {
+					for _, dataDisk := range *dataDisks {
+						if *dataDisk.Name == id.Name {
+							disk = &dataDisk
+							break
+						}
+					}
+				}
+			}
+
+			if disk == nil {
+				return nil, fmt.Errorf("Data Disk %q was not found on Virtual Machine %q", id.Name, id.VirtualMachineName)
+			}
+
+			if disk.CreateOption != compute.DiskCreateOptionTypesAttach && disk.CreateOption != compute.DiskCreateOptionTypesEmpty {
+				return nil, fmt.Errorf("the value of `create_option` for the imported `azurerm_virtual_machine_data_disk_attachment` instance must be `Attach` or `Empty`, whereas now is %s", disk.CreateOption)
+			}
+
+			return []*pluginsdk.ResourceData{d}, nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
