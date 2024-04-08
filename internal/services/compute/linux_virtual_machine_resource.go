@@ -485,7 +485,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
-	sshKeys := ExpandSSHKeys(sshKeysRaw)
+	sshKeys := expandSSHKeys(sshKeysRaw)
 
 	params := virtualmachines.VirtualMachine{
 		Name:             pointer.To(id.VirtualMachineName),
@@ -910,7 +910,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 					d.Set("provision_vm_agent", config.ProvisionVMAgent)
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
-					flattenedSSHKeys, err := FlattenSSHKeys(config.Ssh)
+					flattenedSSHKeys, err := flattenSSHKeys(config.Ssh)
 					if err != nil {
 						return fmt.Errorf("flattening `admin_ssh_key`: %+v", err)
 					}
@@ -1061,7 +1061,7 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving InstanceView for Linux %s: %+v", id, err)
 	}
 
-	shouldTurnBackOn := virtualMachineShouldBeStarted(*instanceView.Model)
+	shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView.Model)
 	hasEphemeralOSDisk := false
 	if model := existing.Model; model != nil && model.Properties != nil {
 		if storage := model.Properties.StorageProfile; storage != nil {

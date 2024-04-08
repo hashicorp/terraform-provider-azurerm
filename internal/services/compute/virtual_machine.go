@@ -6,14 +6,13 @@ package compute
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -72,51 +71,6 @@ func flattenVirtualMachineAdditionalCapabilities(input *virtualmachines.Addition
 			"ultra_ssd_enabled": ultraSsdEnabled,
 		},
 	}
-}
-
-func expandVirtualMachineIdentity(input []interface{}) (*compute.VirtualMachineIdentity, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	out := compute.VirtualMachineIdentity{
-		Type: compute.ResourceIdentityType(string(expanded.Type)),
-	}
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		out.UserAssignedIdentities = make(map[string]*compute.UserAssignedIdentitiesValue)
-		for k := range expanded.IdentityIds {
-			out.UserAssignedIdentities[k] = &compute.UserAssignedIdentitiesValue{
-				// intentionally empty
-			}
-		}
-	}
-	return &out, nil
-}
-
-func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) (*[]interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
-
-		if input.PrincipalID != nil {
-			transform.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transform.TenantId = *input.TenantID
-		}
-		for k, v := range input.UserAssignedIdentities {
-			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
-				ClientId:    v.ClientID,
-				PrincipalId: v.PrincipalID,
-			}
-		}
-	}
-	return identity.FlattenSystemAndUserAssignedMap(transform)
 }
 
 func expandVirtualMachineNetworkInterfaceIDs(input []interface{}) []virtualmachines.NetworkInterfaceReference {
@@ -599,20 +553,13 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]virtualmachi
 	}
 
 	for _, v := range input {
-		packageReferenceId := v.(map[string]interface{})["version_id"].(string)
-		automaticUpgradeEnabled := v.(map[string]interface{})["automatic_upgrade_enabled"].(bool)
-		configurationReference := v.(map[string]interface{})["configuration_blob_uri"].(string)
-		order := v.(map[string]interface{})["order"].(int)
-		tag := v.(map[string]interface{})["tag"].(string)
-		treatFailureAsDeploymentFailureEnabled := v.(map[string]interface{})["treat_failure_as_deployment_failure_enabled"].(bool)
-
 		app := &virtualmachines.VMGalleryApplication{
-			PackageReferenceId:              pointer.To(packageReferenceId),
-			ConfigurationReference:          pointer.To(configurationReference),
-			Order:                           pointer.To(int64(order)),
-			Tags:                            pointer.To(tag),
-			EnableAutomaticUpgrade:          pointer.To(automaticUpgradeEnabled),
-			TreatFailureAsDeploymentFailure: pointer.To(treatFailureAsDeploymentFailureEnabled),
+			PackageReferenceId:              v.(map[string]interface{})["version_id"].(string),
+			ConfigurationReference:          pointer.To(v.(map[string]interface{})["configuration_blob_uri"].(string)),
+			Order:                           pointer.To(int64(v.(map[string]interface{})["order"].(int))),
+			Tags:                            pointer.To(v.(map[string]interface{})["tag"].(string)),
+			EnableAutomaticUpgrade:          pointer.To(v.(map[string]interface{})["automatic_upgrade_enabled"].(bool)),
+			TreatFailureAsDeploymentFailure: pointer.To(v.(map[string]interface{})["treat_failure_as_deployment_failure_enabled"].(bool)),
 		}
 
 		out = append(out, *app)

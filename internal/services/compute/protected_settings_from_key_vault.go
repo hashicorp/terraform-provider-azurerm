@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
@@ -38,6 +39,21 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 	}
 }
 
+func expandProtectedSettingsFromKeyVaultOld(input []interface{}) *compute.KeyVaultSecretReference {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &compute.KeyVaultSecretReference{
+		SecretURL: pointer.To(v["secret_url"].(string)),
+		SourceVault: &compute.SubResource{
+			ID: utils.String(v["source_vault_id"].(string)),
+		},
+	}
+}
+
 func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachinescalesets.KeyVaultSecretReference {
 	if len(input) == 0 {
 		return nil
@@ -53,24 +69,37 @@ func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachinesca
 	}
 }
 
-func flattenProtectedSettingsFromKeyVault(input *compute.KeyVaultSecretReference) []interface{} {
+func flattenProtectedSettingsFromKeyVaultOld(input *compute.KeyVaultSecretReference) []interface{} {
 	if input == nil {
 		return nil
 	}
 
-	secretUrl := ""
-	if input.SecretURL != nil {
-		secretUrl = *input.SecretURL
-	}
-
 	sourceVaultId := ""
-	if input.SourceVault != nil && input.SourceVault.ID != nil {
+	if input.SourceVault.ID != nil {
 		sourceVaultId = *input.SourceVault.ID
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      secretUrl,
+			"secret_url":      input.SecretURL,
+			"source_vault_id": sourceVaultId,
+		},
+	}
+}
+
+func flattenProtectedSettingsFromKeyVault(input *virtualmachinescalesets.KeyVaultSecretReference) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	sourceVaultId := ""
+	if input.SourceVault.Id != nil {
+		sourceVaultId = *input.SourceVault.Id
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"secret_url":      input.SecretUrl,
 			"source_vault_id": sourceVaultId,
 		},
 	}

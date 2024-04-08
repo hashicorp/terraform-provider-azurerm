@@ -5,21 +5,21 @@ package compute
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -78,7 +78,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if !response.WasNotFound(exists.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", *exists.ID)
+		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -122,7 +122,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 
 	sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
-	sshKeys := expandSSHKeys(sshKeysRaw)
+	sshKeys := expandSSHKeysVMSS(sshKeysRaw)
 
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -429,7 +429,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
-		props.Properties.PlatformFaultDomainCount = utils.Int32(int32(v.(int)))
+		props.Properties.PlatformFaultDomainCount = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -515,11 +515,11 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
 		if existing.Model.Properties.UpgradePolicy == nil {
 			upgradePolicy = virtualmachinescalesets.UpgradePolicy{
-				Mode: virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string)),
+				Mode: pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))),
 			}
 		} else {
 			upgradePolicy = *existing.Model.Properties.UpgradePolicy
-			upgradePolicy.Mode = virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
+			upgradePolicy.Mode = pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string)))
 		}
 
 		if d.HasChange("automatic_os_upgrade_policy") {
@@ -571,7 +571,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 			if d.HasChange("admin_ssh_key") {
 				sshKeysRaw := d.Get("admin_ssh_key").(*pluginsdk.Set).List()
-				sshKeys := expandSSHKeys(sshKeysRaw)
+				sshKeys := expandSSHKeysVMSS(sshKeysRaw)
 				linuxConfig.Ssh = &virtualmachinescalesets.SshConfiguration{
 					PublicKeys: &sshKeys,
 				}
@@ -630,7 +630,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+			sourceImageReference := expandSourceImageReferenceVMSS(sourceImageReferenceRaw, sourceImageId)
 
 			// Must include all storage profile properties when updating disk image.  See: https://github.com/hashicorp/terraform-provider-azurerm/issues/8273
 			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = existing.Model.Properties.VirtualMachineProfile.StorageProfile.DataDisks
@@ -669,7 +669,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateInstances = true
 
 		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
+		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(bootDiagnosticsRaw)
 	}
 
 	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
@@ -731,24 +731,23 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("identity") {
-		identityRaw := d.Get("identity").([]interface{})
-		identity, err := expandVirtualMachineScaleSetIdentity(identityRaw)
+		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 
-		update.Identity = identity
+		update.Identity = identityExpanded
 	}
 
 	if d.HasChange("plan") {
 		planRaw := d.Get("plan").([]interface{})
-		update.Plan = expandPlan(planRaw)
+		update.Plan = expandPlanVMSS(planRaw)
 	}
 
 	if d.HasChange("sku") || d.HasChange("instances") {
 		// in-case ignore_changes is being used, since both fields are required
 		// look up the current values and override them as needed
-		sku := existing.Sku
+		sku := existing.Model.Sku
 
 		if d.HasChange("sku") {
 			updateInstances = true
@@ -783,7 +782,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.VirtualMachineProfile.UserData = pointer.To(d.Get("user_data").(string))
 	}
 
-	update.VirtualMachineScaleSetUpdateProperties = &updateProps
+	update.Properties = &updateProps
 
 	metaData := virtualMachineScaleSetUpdateMetaData{
 		AutomaticOSUpgradeIsEnabled:  automaticOSUpgradeIsEnabled,
@@ -791,7 +790,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
 		UpdateInstances:              updateInstances,
 		Client:                       meta.(*clients.Client).Compute,
-		Existing:                     existing,
+		Existing:                     *existing.Model,
 		ID:                           id,
 		OSType:                       virtualmachinescalesets.OperatingSystemTypesLinux,
 	}
@@ -804,17 +803,17 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 }
 
 func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Linux %s - removing from state!", id)
@@ -827,267 +826,269 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 
 	d.Set("name", id.VirtualMachineScaleSetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
-	d.Set("zones", zones.FlattenUntyped(resp.Zones))
 
-	var skuName *string
-	var instances int
-	if resp.Sku != nil {
-		skuName = resp.Sku.Name
-		if resp.Sku.Capacity != nil {
-			instances = int(*resp.Sku.Capacity)
-		}
-	}
-	d.Set("instances", instances)
-	d.Set("sku", skuName)
-
-	identity, err := flattenVirtualMachineScaleSetIdentity(resp.Identity)
-	if err != nil {
-		return err
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	if err := d.Set("plan", flattenPlan(resp.Plan)); err != nil {
-		return fmt.Errorf("setting `plan`: %+v", err)
-	}
-
-	if resp.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("retrieving Linux %s: `properties` was nil", id)
-	}
-	props := *resp.VirtualMachineScaleSetProperties
-
-	if err := d.Set("additional_capabilities", FlattenVirtualMachineScaleSetAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
-		return fmt.Errorf("setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
-	}
-
-	if err := d.Set("automatic_instance_repair", FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
-		return fmt.Errorf("setting `automatic_instance_repair`: %+v", err)
-	}
-
-	d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
-	if props.HostGroup != nil && props.HostGroup.ID != nil {
-		d.Set("host_group_id", props.HostGroup.ID)
-	}
-	d.Set("overprovision", props.Overprovision)
-	proximityPlacementGroupId := ""
-	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
-		proximityPlacementGroupId = *props.ProximityPlacementGroup.ID
-	}
-	d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
-	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
-	d.Set("single_placement_group", props.SinglePlacementGroup)
-	d.Set("unique_id", props.UniqueID)
-	d.Set("zone_balance", props.ZoneBalance)
-	d.Set("scale_in", FlattenVirtualMachineScaleSetScaleInPolicy(props.ScaleInPolicy))
-
-	if !features.FourPointOhBeta() {
-		rule := string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault)
-
-		if props.ScaleInPolicy != nil {
-			if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
-				rule = string((*rules)[0])
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
+		var skuName *string
+		var instances int
+		if model.Sku != nil {
+			skuName = model.Sku.Name
+			if model.Sku.Capacity != nil {
+				instances = int(*model.Sku.Capacity)
 			}
 		}
+		d.Set("instances", instances)
+		d.Set("sku", skuName)
 
-		d.Set("scale_in_policy", rule)
-	}
-
-	if props.SpotRestorePolicy != nil {
-		d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
-	}
-
-	if profile := props.VirtualMachineProfile; profile != nil {
-		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
-			return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
+		identityFlattened, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("identity", identityFlattened); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		capacityReservationGroupId := ""
-		if profile.CapacityReservation != nil && profile.CapacityReservation.CapacityReservationGroup != nil && profile.CapacityReservation.CapacityReservationGroup.ID != nil {
-			capacityReservationGroupId = *profile.CapacityReservation.CapacityReservationGroup.ID
+		if err := d.Set("plan", flattenPlanVMSS(model.Plan)); err != nil {
+			return fmt.Errorf("setting `plan`: %+v", err)
 		}
-		d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
-		// defaulted since BillingProfile isn't returned if it's unset
-		maxBidPrice := float64(-1.0)
-		if profile.BillingProfile != nil && profile.BillingProfile.MaxPrice != nil {
-			maxBidPrice = *profile.BillingProfile.MaxPrice
-		}
-		d.Set("max_bid_price", maxBidPrice)
+		if props := model.Properties; props != nil {
+			if err := d.Set("additional_capabilities", FlattenVirtualMachineScaleSetAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
+				return fmt.Errorf("setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
+			}
 
-		d.Set("eviction_policy", string(profile.EvictionPolicy))
+			if err := d.Set("automatic_instance_repair", FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
+				return fmt.Errorf("setting `automatic_instance_repair`: %+v", err)
+			}
 
-		if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
-			d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
+			d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
+			if props.HostGroup != nil && props.HostGroup.Id != nil {
+				d.Set("host_group_id", props.HostGroup.Id)
+			}
+			d.Set("overprovision", props.Overprovision)
+			proximityPlacementGroupId := ""
+			if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.Id != nil {
+				proximityPlacementGroupId = *props.ProximityPlacementGroup.Id
+			}
+			d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+			d.Set("proximity_placement_group_id", proximityPlacementGroupId)
+			d.Set("single_placement_group", props.SinglePlacementGroup)
+			d.Set("unique_id", props.UniqueId)
+			d.Set("zone_balance", props.ZoneBalance)
+			d.Set("scale_in", FlattenVirtualMachineScaleSetScaleInPolicy(props.ScaleInPolicy))
 
 			if !features.FourPointOhBeta() {
-				d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
-			}
-		}
+				rule := string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault)
 
-		// the service just return empty when this is not assigned when provisioned
-		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
-		priority := virtualmachinescalesets.VirtualMachinePriorityTypesRegular
-		if profile.Priority != "" {
-			priority = profile.Priority
-		}
-		d.Set("priority", priority)
-
-		if storageProfile := profile.StorageProfile; storageProfile != nil {
-			if err := d.Set("os_disk", FlattenVirtualMachineScaleSetOSDisk(storageProfile.OsDisk)); err != nil {
-				return fmt.Errorf("setting `os_disk`: %+v", err)
+				if props.ScaleInPolicy != nil {
+					if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
+						rule = string((*rules)[0])
+					}
+				}
+				d.Set("scale_in_policy", rule)
 			}
 
-			if err := d.Set("data_disk", FlattenVirtualMachineScaleSetDataDisk(storageProfile.DataDisks)); err != nil {
-				return fmt.Errorf("setting `data_disk`: %+v", err)
+			if props.SpotRestorePolicy != nil {
+				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
 
-			var storageImageId string
-			if storageProfile.ImageReference != nil && storageProfile.ImageReference.ID != nil {
-				storageImageId = *storageProfile.ImageReference.ID
-			}
-			if storageProfile.ImageReference != nil && storageProfile.ImageReference.CommunityGalleryImageID != nil {
-				storageImageId = *storageProfile.ImageReference.CommunityGalleryImageID
-			}
-			if storageProfile.ImageReference != nil && storageProfile.ImageReference.SharedGalleryImageID != nil {
-				storageImageId = *storageProfile.ImageReference.SharedGalleryImageID
-			}
-			d.Set("source_image_id", storageImageId)
+			if profile := props.VirtualMachineProfile; profile != nil {
+				if err := d.Set("boot_diagnostics", flattenBootDiagnosticsVMSS(profile.DiagnosticsProfile)); err != nil {
+					return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
+				}
 
-			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference, storageImageId != "")); err != nil {
-				return fmt.Errorf("setting `source_image_reference`: %+v", err)
-			}
-		}
+				capacityReservationGroupId := ""
+				if profile.CapacityReservation != nil && profile.CapacityReservation.CapacityReservationGroup != nil && profile.CapacityReservation.CapacityReservationGroup.Id != nil {
+					capacityReservationGroupId = *profile.CapacityReservation.CapacityReservationGroup.Id
+				}
+				d.Set("capacity_reservation_group_id", capacityReservationGroupId)
 
-		extensionOperationsEnabled := true
-		if osProfile := profile.OsProfile; osProfile != nil {
-			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
-			d.Set("admin_username", osProfile.AdminUsername)
-			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
+				// defaulted since BillingProfile isn't returned if it's unset
+				maxBidPrice := float64(-1.0)
+				if profile.BillingProfile != nil && profile.BillingProfile.MaxPrice != nil {
+					maxBidPrice = *profile.BillingProfile.MaxPrice
+				}
+				d.Set("max_bid_price", maxBidPrice)
 
-			if osProfile.AllowExtensionOperations != nil {
-				extensionOperationsEnabled = *osProfile.AllowExtensionOperations
-			}
+				d.Set("eviction_policy", string(pointer.From(profile.EvictionPolicy)))
 
-			if linux := osProfile.LinuxConfiguration; linux != nil {
-				d.Set("disable_password_authentication", linux.DisablePasswordAuthentication)
-				d.Set("provision_vm_agent", linux.ProvisionVMAgent)
+				if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
+					d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
 
-				flattenedSshKeys, err := FlattenSSHKeys(linux.SSH)
+					if !features.FourPointOhBeta() {
+						d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
+					}
+				}
+
+				// the service just return empty when this is not assigned when provisioned
+				// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
+				priority := virtualmachinescalesets.VirtualMachinePriorityTypesRegular
+				if pointer.From(profile.Priority) != "" {
+					priority = pointer.From(profile.Priority)
+				}
+				d.Set("priority", priority)
+
+				if storageProfile := profile.StorageProfile; storageProfile != nil {
+					if err := d.Set("os_disk", FlattenVirtualMachineScaleSetOSDisk(storageProfile.OsDisk)); err != nil {
+						return fmt.Errorf("setting `os_disk`: %+v", err)
+					}
+
+					if err := d.Set("data_disk", FlattenVirtualMachineScaleSetDataDisk(storageProfile.DataDisks)); err != nil {
+						return fmt.Errorf("setting `data_disk`: %+v", err)
+					}
+
+					var storageImageId string
+					if storageProfile.ImageReference != nil && storageProfile.ImageReference.Id != nil {
+						storageImageId = *storageProfile.ImageReference.Id
+					}
+					if storageProfile.ImageReference != nil && storageProfile.ImageReference.CommunityGalleryImageId != nil {
+						storageImageId = *storageProfile.ImageReference.CommunityGalleryImageId
+					}
+					if storageProfile.ImageReference != nil && storageProfile.ImageReference.SharedGalleryImageId != nil {
+						storageImageId = *storageProfile.ImageReference.SharedGalleryImageId
+					}
+					d.Set("source_image_id", storageImageId)
+
+					if err := d.Set("source_image_reference", flattenSourceImageReferenceVMSS(storageProfile.ImageReference, storageImageId != "")); err != nil {
+						return fmt.Errorf("setting `source_image_reference`: %+v", err)
+					}
+				}
+
+				extensionOperationsEnabled := true
+				if osProfile := profile.OsProfile; osProfile != nil {
+					// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
+					d.Set("admin_username", osProfile.AdminUsername)
+					d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
+
+					if osProfile.AllowExtensionOperations != nil {
+						extensionOperationsEnabled = *osProfile.AllowExtensionOperations
+					}
+
+					if linux := osProfile.LinuxConfiguration; linux != nil {
+						d.Set("disable_password_authentication", linux.DisablePasswordAuthentication)
+						d.Set("provision_vm_agent", linux.ProvisionVMAgent)
+
+						flattenedSshKeys, err := flattenSSHKeysVMSS(linux.Ssh)
+						if err != nil {
+							return fmt.Errorf("flattening `admin_ssh_key`: %+v", err)
+						}
+						if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSshKeys)); err != nil {
+							return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
+						}
+					}
+
+					if err := d.Set("secret", flattenLinuxSecretsVMSS(osProfile.Secrets)); err != nil {
+						return fmt.Errorf("setting `secret`: %+v", err)
+					}
+				}
+				d.Set("extension_operations_enabled", extensionOperationsEnabled)
+
+				if nwProfile := profile.NetworkProfile; nwProfile != nil {
+					flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
+					if err := d.Set("network_interface", flattenedNics); err != nil {
+						return fmt.Errorf("setting `network_interface`: %+v", err)
+					}
+
+					healthProbeId := ""
+					if nwProfile.HealthProbe != nil && nwProfile.HealthProbe.Id != nil {
+						healthProbeId = *nwProfile.HealthProbe.Id
+					}
+					d.Set("health_probe_id", healthProbeId)
+				}
+
+				if !features.FourPointOhBeta() {
+					if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
+						if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+							return fmt.Errorf("setting `terminate_notification`: %+v", err)
+						}
+					}
+				}
+
+				if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
+					if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
+						return fmt.Errorf("setting `termination_notification`: %+v", err)
+					}
+				}
+
+				extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
 				if err != nil {
-					return fmt.Errorf("flattening `admin_ssh_key`: %+v", err)
+					return fmt.Errorf("failed flattening `extension`: %+v", err)
 				}
-				if err := d.Set("admin_ssh_key", pluginsdk.NewSet(SSHKeySchemaHash, *flattenedSshKeys)); err != nil {
-					return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
+				d.Set("extension", extensionProfile)
+
+				extensionsTimeBudget := "PT1H30M"
+				if profile.ExtensionProfile != nil && profile.ExtensionProfile.ExtensionsTimeBudget != nil {
+					extensionsTimeBudget = *profile.ExtensionProfile.ExtensionsTimeBudget
 				}
-			}
+				d.Set("extensions_time_budget", extensionsTimeBudget)
 
-			if err := d.Set("secret", flattenLinuxSecrets(osProfile.Secrets)); err != nil {
-				return fmt.Errorf("setting `secret`: %+v", err)
-			}
-		}
-		d.Set("extension_operations_enabled", extensionOperationsEnabled)
+				encryptionAtHostEnabled := false
+				vtpmEnabled := false
+				secureBootEnabled := false
 
-		if nwProfile := profile.NetworkProfile; nwProfile != nil {
-			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
-			if err := d.Set("network_interface", flattenedNics); err != nil {
-				return fmt.Errorf("setting `network_interface`: %+v", err)
-			}
-
-			healthProbeId := ""
-			if nwProfile.HealthProbe != nil && nwProfile.HealthProbe.ID != nil {
-				healthProbeId = *nwProfile.HealthProbe.ID
-			}
-			d.Set("health_probe_id", healthProbeId)
-		}
-
-		if !features.FourPointOhBeta() {
-			if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-				if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
-					return fmt.Errorf("setting `terminate_notification`: %+v", err)
+				if secprofile := profile.SecurityProfile; secprofile != nil {
+					if secprofile.EncryptionAtHost != nil {
+						encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+					}
+					if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
+						if uefi.VTpmEnabled != nil {
+							vtpmEnabled = *uefi.VTpmEnabled
+						}
+						if uefi.SecureBootEnabled != nil {
+							secureBootEnabled = *uefi.SecureBootEnabled
+						}
+					}
 				}
+
+				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+				d.Set("vtpm_enabled", vtpmEnabled)
+				d.Set("secure_boot_enabled", secureBootEnabled)
+				d.Set("user_data", profile.UserData)
 			}
-		}
 
-		if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-			if err := d.Set("termination_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
-				return fmt.Errorf("setting `termination_notification`: %+v", err)
-			}
-		}
+			if policy := props.UpgradePolicy; policy != nil {
+				d.Set("upgrade_mode", string(pointer.From(policy.Mode)))
 
-		extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
-		if err != nil {
-			return fmt.Errorf("failed flattening `extension`: %+v", err)
-		}
-		d.Set("extension", extensionProfile)
-
-		extensionsTimeBudget := "PT1H30M"
-		if profile.ExtensionProfile != nil && profile.ExtensionProfile.ExtensionsTimeBudget != nil {
-			extensionsTimeBudget = *profile.ExtensionProfile.ExtensionsTimeBudget
-		}
-		d.Set("extensions_time_budget", extensionsTimeBudget)
-
-		encryptionAtHostEnabled := false
-		vtpmEnabled := false
-		secureBootEnabled := false
-
-		if secprofile := profile.SecurityProfile; secprofile != nil {
-			if secprofile.EncryptionAtHost != nil {
-				encryptionAtHostEnabled = *secprofile.EncryptionAtHost
-			}
-			if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
-				if uefi.VTpmEnabled != nil {
-					vtpmEnabled = *uefi.VTpmEnabled
+				flattenedAutomatic := FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(policy.AutomaticOSUpgradePolicy)
+				if err := d.Set("automatic_os_upgrade_policy", flattenedAutomatic); err != nil {
+					return fmt.Errorf("setting `automatic_os_upgrade_policy`: %+v", err)
 				}
-				if uefi.SecureBootEnabled != nil {
-					secureBootEnabled = *uefi.SecureBootEnabled
+
+				flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
+				if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+					return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
 				}
 			}
 		}
-
-		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-		d.Set("vtpm_enabled", vtpmEnabled)
-		d.Set("secure_boot_enabled", secureBootEnabled)
-		d.Set("user_data", profile.UserData)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	if policy := props.UpgradePolicy; policy != nil {
-		d.Set("upgrade_mode", string(policy.Mode))
-
-		flattenedAutomatic := FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(policy.AutomaticOSUpgradePolicy)
-		if err := d.Set("automatic_os_upgrade_policy", flattenedAutomatic); err != nil {
-			return fmt.Errorf("setting `automatic_os_upgrade_policy`: %+v", err)
-		}
-
-		flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
-		if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
-			return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
-		}
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := commonids.ParseVirtualMachineScaleSetID(d.Id())
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
 
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
+	}
+
+	if resp.Model == nil {
+		return fmt.Errorf("model was nil for %s", id)
 	}
 
 	// If rolling upgrades are configured and running we need to cancel them before trying to delete the VMSS
@@ -1102,22 +1103,15 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
 	scaleToZeroOnDelete := meta.(*clients.Client).Features.VirtualMachineScaleSet.ScaleToZeroOnDelete
-	if scaleToZeroOnDelete && resp.Sku != nil {
-		resp.Sku.Capacity = utils.Int64(int64(0))
+	if scaleToZeroOnDelete && resp.Model.Sku != nil {
+		resp.Model.Sku.Capacity = utils.Int64(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{
-			Sku: resp.Sku,
+			Sku: resp.Model.Sku,
 		}
-		future, err := client.Update(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, update)
-		if err != nil {
+		if err := client.UpdateThenPoll(ctx, *id, update, virtualmachinescalesets.DefaultUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating number of instances in %s to scale to 0: %+v", id, err)
-		}
-
-		log.Printf("[DEBUG] Waiting for scaling of instances to 0 prior to deletion - this helps avoids networking issues within Azure")
-		err = future.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("waiting for number of instances in Linux %s to scale to 0: %+v", id, err)
 		}
 		log.Printf("[DEBUG] Scaled instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 	} else {
@@ -1128,16 +1122,10 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	// @ArcturusZhang (mimicking from linux_virtual_machine_pluginsdk.go): sending `nil` here omits this value from being sent
 	// which matches the previous behaviour - we're only splitting this out so it's clear why
 	// TODO: support force deletion once it's out of Preview, if applicable
-	var forceDeletion *bool = nil
-	future, err := client.Delete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, forceDeletion)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
 		return fmt.Errorf("deleting Linux %s: %+v", id, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deletion of Linux %s", id)
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Linux %s: %+v", id, err)
-	}
 	log.Printf("[DEBUG] Deleted Linux %s", id)
 
 	return nil
