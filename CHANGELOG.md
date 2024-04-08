@@ -1,7 +1,12 @@
 ## 3.99.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.25.5` of `github.com/tombuildsstuff/giovanni` [GH-25525]
+
 BUG FIXES:
 
+* storage: fix a number of potential crashes during plan/apply with resources using the Storage data plane API [GH-25525]
 * `azurerm_application_insights` - fix issue where the wrong Application ID was set into the property `app_id` [GH-25520]
 * `azurerm_monitor_alert_prometheus_rule_group` - the `severity` property is now set correctly when `0` [GH-25408]
 * `azurerm_redis_cache_access_policy_assignment` - the `object_id_alias` property now allows usernames [GH-25523]
