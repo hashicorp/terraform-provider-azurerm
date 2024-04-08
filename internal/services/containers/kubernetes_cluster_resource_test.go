@@ -212,15 +212,15 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
-		},
-		data.ImportStep(),
-		{
 			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
 		},
 		data.ImportStep(),
 		{
 			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
 		},
 		data.ImportStep(),
 		{
