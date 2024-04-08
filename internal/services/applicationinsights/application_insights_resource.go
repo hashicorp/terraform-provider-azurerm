@@ -5,23 +5,21 @@ package applicationinsights
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	billing "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2015-05-01/componentfeaturesandpricingapis"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
-	monitorParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -293,24 +291,28 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 		err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 			time.Sleep(30 * time.Second)
 			ruleName := fmt.Sprintf("Failure Anomalies - %s", id.ComponentName)
-			ruleId := monitorParse.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
-			result, err := ruleClient.Get(ctx, ruleId.ResourceGroup, ruleId.Name, pointer.To(true))
+			ruleId := smartdetectoralertrules.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
+			result, err := ruleClient.Get(ctx, ruleId, smartdetectoralertrules.DefaultGetOperationOptions())
 			if err != nil {
-				if utils.ResponseWasNotFound(result.Response) {
+				if response.WasNotFound(result.HttpResponse) {
 					return pluginsdk.RetryableError(fmt.Errorf("expected %s to be created but was not found, retrying", ruleId))
 				}
 				return pluginsdk.NonRetryableError(fmt.Errorf("making Read request for %s: %+v", ruleId, err))
 			}
 
-			if result.AlertRuleProperties != nil {
-				result.AlertRuleProperties.State = alertsmanagement.AlertRuleStateDisabled
-				updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId.ResourceGroup, ruleId.Name, result)
-				if err != nil {
-					if !utils.ResponseWasNotFound(updateRuleResult.Response) {
-						return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
+			if model := result.Model; model != nil {
+				if props := model.Properties; props != nil {
+					props.State = smartdetectoralertrules.AlertRuleStateDisabled
+					updateRuleResult, err := ruleClient.CreateOrUpdate(ctx, ruleId, *model)
+					if err != nil {
+						if !response.WasNotFound(updateRuleResult.HttpResponse) {
+							return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
+						}
 					}
+
 				}
 			}
+
 			return nil
 		})
 		if err != nil {
@@ -372,7 +374,7 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 			} else {
 				d.Set("application_type", string(props.ApplicationType))
 			}
-			d.Set("app_id", props.ApplicationId)
+			d.Set("app_id", props.AppId)
 			d.Set("instrumentation_key", props.InstrumentationKey)
 			d.Set("sampling_percentage", props.SamplingPercentage)
 			d.Set("disable_ip_masking", props.DisableIPMasking)
@@ -426,9 +428,9 @@ func resourceApplicationInsightsDelete(d *pluginsdk.ResourceData, meta interface
 	// if disable_generated_rule=true, the generated rule is not automatically deleted.
 	if meta.(*clients.Client).Features.ApplicationInsights.DisableGeneratedRule {
 		ruleName := fmt.Sprintf("Failure Anomalies - %s", id.ComponentName)
-		ruleId := monitorParse.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
-		deleteResp, deleteErr := ruleClient.Delete(ctx, ruleId.ResourceGroup, ruleId.Name)
-		if deleteErr != nil && deleteResp.StatusCode != http.StatusNotFound {
+		ruleId := smartdetectoralertrules.NewSmartDetectorAlertRuleID(id.SubscriptionId, id.ResourceGroupName, ruleName)
+		deleteResp, deleteErr := ruleClient.Delete(ctx, ruleId)
+		if deleteErr != nil && !response.WasNotFound(deleteResp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", ruleId, deleteErr)
 		}
 	}

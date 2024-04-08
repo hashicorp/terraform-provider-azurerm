@@ -11,11 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/availabilitysets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhostgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/dedicatedhosts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/sshpublickeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
@@ -26,9 +21,16 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabilitysets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -49,8 +51,8 @@ type Client struct {
 	GalleriesClient                  *galleries.GalleriesClient
 	GalleryApplicationsClient        *galleryapplications.GalleryApplicationsClient
 	GalleryApplicationVersionsClient *galleryapplicationversions.GalleryApplicationVersionsClient
-	GalleryImagesClient              *compute.GalleryImagesClient
-	GalleryImageVersionsClient       *compute.GalleryImageVersionsClient
+	GalleryImagesClient              *galleryimages.GalleryImagesClient
+	GalleryImageVersionsClient       *galleryimageversions.GalleryImageVersionsClient
 	GallerySharingUpdateClient       *gallerysharingupdate.GallerySharingUpdateClient
 	ImagesClient                     *images.ImagesClient
 	MarketplaceAgreementsClient      *agreements.AgreementsClient
@@ -137,11 +139,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(galleryApplicationVersionsClient.Client, o.Authorizers.ResourceManager)
 
-	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&galleryImagesClient.Client, o.ResourceManagerAuthorizer)
+	galleryImagesClient, err := galleryimages.NewGalleryImagesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building GalleryImages client: %+v", err)
+	}
+	o.Configure(galleryImagesClient.Client, o.Authorizers.ResourceManager)
 
-	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&galleryImageVersionsClient.Client, o.ResourceManagerAuthorizer)
+	galleryImageVersionsClient, err := galleryimageversions.NewGalleryImageVersionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building GalleryImageVersions client: %+v", err)
+	}
+	o.Configure(galleryImageVersionsClient.Client, o.Authorizers.ResourceManager)
 
 	gallerySharingUpdateClient, err := gallerysharingupdate.NewGallerySharingUpdateClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -236,8 +244,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		GalleriesClient:                  galleriesClient,
 		GalleryApplicationsClient:        galleryApplicationsClient,
 		GalleryApplicationVersionsClient: galleryApplicationVersionsClient,
-		GalleryImagesClient:              &galleryImagesClient,
-		GalleryImageVersionsClient:       &galleryImageVersionsClient,
+		GalleryImagesClient:              galleryImagesClient,
+		GalleryImageVersionsClient:       galleryImageVersionsClient,
 		GallerySharingUpdateClient:       gallerySharingUpdateClient,
 		ImagesClient:                     imagesClient,
 		MarketplaceAgreementsClient:      marketplaceAgreementsClient,

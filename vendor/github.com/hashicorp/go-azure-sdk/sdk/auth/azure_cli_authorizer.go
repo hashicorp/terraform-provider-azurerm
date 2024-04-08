@@ -65,9 +65,29 @@ func (a *AzureCliAuthorizer) Token(_ context.Context, _ *http.Request) (*oauth2.
 	}
 	azArgs = append(azArgs, "--scope", *scope)
 
+	accountType, err := azurecli.GetAccountType()
+	if err != nil {
+		return nil, fmt.Errorf("determining account type: %+v", err)
+	}
+
+	accountName, err := azurecli.GetAccountName()
+	if err != nil {
+		return nil, fmt.Errorf("determining account name: %+v", err)
+	}
+
+	tenantIdRequired := true
+
 	// Try to detect if we're running in Cloud Shell
-	if cloudShell := os.Getenv("AZUREPS_HOST_ENVIRONMENT"); !strings.HasPrefix(cloudShell, "cloud-shell/") {
-		// Seemingly not, so we'll append the tenant ID to the az args
+	if cloudShell := os.Getenv("AZUREPS_HOST_ENVIRONMENT"); strings.HasPrefix(cloudShell, "cloud-shell/") {
+		tenantIdRequired = false
+	}
+
+	// Try to detect whether authenticated principal is a managed identity
+	if accountType != nil && accountName != nil && *accountType == "servicePrincipal" && (*accountName == "systemAssignedIdentity" || *accountName == "userAssignedIdentity") {
+		tenantIdRequired = false
+	}
+
+	if tenantIdRequired {
 		azArgs = append(azArgs, "--tenant", a.conf.TenantID)
 	}
 
