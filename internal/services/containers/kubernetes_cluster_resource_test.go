@@ -328,7 +328,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) vnetWithRoutetable(data acceptance.TestData) string {
+func (KubernetesClusterResource) vnetWithNetworkProfileInfra(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -485,7 +485,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 	outbound_type = %q
   }
 }
-  `, r.vnetWithRoutetable(data), data.RandomInteger, data.RandomInteger, "10%", outboundType)
+  `, r.vnetWithNetworkProfileInfra(data), data.RandomInteger, data.RandomInteger, "10%", outboundType)
 }
 
 func (KubernetesClusterResource) dedicatedHost(data acceptance.TestData) string {
