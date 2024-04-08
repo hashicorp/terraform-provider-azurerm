@@ -111,9 +111,17 @@ func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]jobschedule.JobSchedulePro
 			runOn = *js.RunOn
 		}
 
+		// for API casing issue: https://github.com/Azure/azure-sdk-for-go/issues/4780
+		parameters := map[string]string{}
+		if js.Parameters != nil {
+			for key, value := range *js.Parameters {
+				parameters[strings.ToLower(key)] = value
+			}
+		}
+
 		res.Add(map[string]interface{}{
 			"schedule_name":   scheduleName,
-			"parameters":      pointer.From(js.Parameters),
+			"parameters":      parameters,
 			"run_on":          runOn,
 			"job_schedule_id": jsId.String(),
 		})
