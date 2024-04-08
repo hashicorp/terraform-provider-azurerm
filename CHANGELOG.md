@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.25.5` of `github.com/tombuildsstuff/giovanni` [GH-25525]
 * `azurerm_snapshot` - add support for `network_access_policy` and `public_network_access` properties [GH-25421]
+* `azurerm_storage_account` - extend the support level of `(blob|queue|share)_properties` for Storage kind [GH-25427]
 
 BUG FIXES:
 
@@ -12,6 +13,10 @@ BUG FIXES:
 * `azurerm_monitor_alert_prometheus_rule_group` - the `severity` property is now set correctly when `0` [GH-25408]
 * `azurerm_redis_cache_access_policy_assignment` - the `object_id_alias` property now allows usernames [GH-25523]
 * `azurerm_container_app_environment_certificate` - the `subject_name` attribute is now correctly populated [GH-25516]
+* `azurerm_linux_function_app` - will not taint the resource when partially created [GH-24520]
+* `azurerm_function_app_slot` - will not taint the resource when partially created [GH-24520]
+* `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
+* `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
 
 DEPRECATIONS:
 
@@ -19,10 +24,6 @@ DEPRECATIONS:
 * `azurerm_cosmosdb_account` - the `enable_free_tier` property has been superseded by `free_tier_enabled` [GH-25510]
 * `azurerm_cosmosdb_account` - the `enable_multiple_write_locations` property  has been superseded by `multiple_write_locations_enabled` [GH-25510]
 * `azurerm_cosmosdb_account` - the `enable_automatic_failover` property has been superseded by `automatic_failover_enabled` [GH-25510]
-* `azurerm_linux_function_app` - will not taint the resource when partially created [GH-24520]
-* `azurerm_function_app_slot` - will not taint the resource when partially created [GH-24520]
-* `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
-* `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
 
 ## 3.98.0 (April 04, 2024)
 
