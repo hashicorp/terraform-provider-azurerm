@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.25.5` of `github.com/tombuildsstuff/giovanni` [GH-25525]
+* `azurerm_snapshot` - add support for `network_access_policy` and `public_network_access` properties [GH-25421]
 
 BUG FIXES:
 
