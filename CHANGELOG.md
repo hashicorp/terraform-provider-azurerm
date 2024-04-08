@@ -7,6 +7,12 @@ BUG FIXES:
 * `azurerm_redis_cache_access_policy_assignment` - the `object_id_alias` property now allows usernames [GH-25523]
 * `azurerm_container_app_environment_certificate` - the `subject_name` attribute is now correctly populated [GH-25516]
 
+DEPRECATIONS:
+
+* `azurerm_cosmosdb_account` - `connection_strings` has been superseded by the primary and secondary connection strings for sql, mongodb and readonly [GH-25510]
+* `azurerm_cosmosdb_account` - `enable_free_tier` has been superseded by `free_tier_enabled` [GH-25510]
+* `azurerm_cosmosdb_account` - `enable_multiple_write_locations` has been superseded by `multiple_write_locations_enabled` [GH-25510]
+* `azurerm_cosmosdb_account` - `enable_automatic_failover` has been superseded by `automatic_failover_enabled` [GH-25510]
 
 ## 3.98.0 (April 04, 2024)
 
