@@ -343,14 +343,14 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			for _, mapVal := range v {
 				if test, ok := mapVal.(map[string]interface{}); ok && test != nil {
 					elem := reflect.New(fieldType.Elem().Elem())
-					debugLogger.Infof("element ", elem)
+					debugLogger.Infof("element %s", elem.String())
 					for j := 0; j < elem.Type().Elem().NumField(); j++ {
 						nestedField := elem.Type().Elem().Field(j)
-						debugLogger.Infof("nestedField ", nestedField)
+						debugLogger.Infof("nestedField Name: '%s', Tags: '%+v'", nestedField.Name, nestedField.Tag)
 
 						structTags, err := parseStructTags(nestedField.Tag)
 						if err != nil {
-							return fmt.Errorf("parsing struct tags for nested field %q: %+v", nestedField.Name, err)
+							return fmt.Errorf("parsing struct tags for nested field `%s`: %+v", nestedField.Name, err)
 						}
 
 						if structTags != nil {
@@ -371,7 +371,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 						valueToSet = reflect.Append(valueToSet, elem)
 					}
 
-					debugLogger.Infof("value to set type after changes", valueToSet.Type())
+					debugLogger.Infof("value to set type after changes %s", valueToSet.Type().String())
 				}
 			}
 
@@ -379,19 +379,19 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			n.Set(tmp)
 		} else {
 			valueToSet := reflect.MakeSlice(n.Type(), 0, 0)
-			debugLogger.Infof("List Type", valueToSet.Type())
+			debugLogger.Infof("List Type '%s'", valueToSet.Type().String())
 
 			for _, mapVal := range v {
 				if test, ok := mapVal.(map[string]interface{}); ok && test != nil {
 					elem := reflect.New(fieldType.Elem())
-					debugLogger.Infof("element ", elem)
+					debugLogger.Infof("element '%s'", elem.String())
 					for j := 0; j < elem.Type().Elem().NumField(); j++ {
 						nestedField := elem.Type().Elem().Field(j)
-						debugLogger.Infof("nestedField ", nestedField)
+						debugLogger.Infof("nestedField Name '%s', Tags: '%+v'", nestedField.Name, nestedField.Tag)
 
 						structTags, err := parseStructTags(nestedField.Tag)
 						if err != nil {
-							return fmt.Errorf("parsing struct tags for nested field %q: %+v", nestedField.Name, err)
+							return fmt.Errorf("parsing struct tags for nested field '%s': %+v", nestedField.Name, err)
 						}
 
 						if structTags != nil {
@@ -412,7 +412,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 						valueToSet = reflect.Append(valueToSet, elem)
 					}
 
-					debugLogger.Infof("value to set type after changes", valueToSet.Type())
+					debugLogger.Infof("value to set type after changes '%s'", valueToSet.Type().String())
 				}
 			}
 
