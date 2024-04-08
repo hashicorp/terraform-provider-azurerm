@@ -123,7 +123,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyCreate(d *pluginsdk.Resource
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, managedInstanceName, *alertPolicy)
 	if err != nil {
-		return fmt.Errorf("updataing managed instance security alert policy: %v", err)
+		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -210,15 +210,27 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyUpdate(d *pluginsdk.Resource
 		}
 	}
 
-	props.StorageAccountAccessKey = utils.String(d.Get("storage_account_access_key").(string))
+	if d.HasChange("storage_account_access_key") {
+		props.StorageAccountAccessKey = utils.String(d.Get("storage_account_access_key").(string))
+	}
+
+	// StorageAccountAccessKey cannot be passed in if it is empty. The api returns this as empty so we need to nil it before sending it back to the api
+	if props.StorageAccountAccessKey != nil && *props.StorageAccountAccessKey == "" {
+		props.StorageAccountAccessKey = nil
+	}
 
 	if d.HasChange("storage_endpoint") {
 		props.StorageEndpoint = utils.String(d.Get("storage_endpoint").(string))
 	}
 
+	// StorageEndpoint cannot be passed in if it is empty. The api returns this as empty so we need to nil it before sending it back to the api
+	if props.StorageEndpoint != nil && *props.StorageEndpoint == "" {
+		props.StorageEndpoint = nil
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, instanceName, existing)
 	if err != nil {
-		return fmt.Errorf("updataing managed instance security alert policy: %v", err)
+		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -319,7 +331,7 @@ func resourceMsSqlManagedInstanceSecurityAlertPolicyDelete(d *pluginsdk.Resource
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ManagedInstanceName, disabledPolicy)
 	if err != nil {
-		return fmt.Errorf("updataing managed instance security alert policy: %v", err)
+		return fmt.Errorf("updating managed instance security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {

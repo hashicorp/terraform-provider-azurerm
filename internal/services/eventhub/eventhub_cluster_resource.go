@@ -63,7 +63,6 @@ func resourceEventHubCluster() *pluginsdk.Resource {
 			"sku_name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^Dedicated_[1-9][0-9]*$`),
 					"SKU name must match /^Dedicated_[1-9][0-9]*$/.",

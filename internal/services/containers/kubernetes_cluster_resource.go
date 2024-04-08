@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
@@ -38,7 +38,6 @@ import (
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -111,6 +110,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) != "" || new.(string) != string(managedclusters.NetworkPolicyCilium)
 			}),
+			pluginsdk.ForceNewIfChange("custom_ca_trust_certificates_base64", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -174,17 +176,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 					},
 				},
-			},
-
-			"automatic_channel_upgrade": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(managedclusters.UpgradeChannelPatch),
-					string(managedclusters.UpgradeChannelRapid),
-					string(managedclusters.UpgradeChannelStable),
-					string(managedclusters.UpgradeChannelNodeNegativeimage),
-				}, false),
 			},
 
 			"auto_scaler_profile": {
@@ -440,12 +431,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"http_proxy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"https_proxy": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 						"no_proxy": {
 							Type:     pluginsdk.TypeSet,
@@ -468,13 +457,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"image_cleaner_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"image_cleaner_interval_hours": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      48,
 				ValidateFunc: validation.IntBetween(24, 2160),
 			},
 
@@ -489,6 +476,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.Any(
 								dnsValidate.ValidateDnsZoneID,
+								privatezones.ValidatePrivateDnsZoneID,
 								validation.StringIsEmpty,
 							),
 						},
@@ -967,17 +955,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"node_os_channel_upgrade": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(managedclusters.NodeOSUpgradeChannelNodeImage),
-					string(managedclusters.NodeOSUpgradeChannelNone),
-					string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
-					string(managedclusters.NodeOSUpgradeChannelUnmanaged),
-				}, false),
-			},
-
 			"key_management_service": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1135,7 +1112,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"outbound_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							ForceNew: true,
 							Default:  string(managedclusters.OutboundTypeLoadBalancer),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.OutboundTypeLoadBalancer),
@@ -1163,7 +1139,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
 										Default:      30,
-										ValidateFunc: validation.IntBetween(4, 120),
+										ValidateFunc: validation.IntBetween(4, 100),
 									},
 									"managed_outbound_ip_count": {
 										Type:          pluginsdk.TypeInt,
@@ -1267,6 +1243,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+
+			"current_kubernetes_version": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"node_resource_group_id": {
@@ -1396,6 +1377,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierFree),
 					string(managedclusters.ManagedClusterSKUTierStandard),
+					string(managedclusters.ManagedClusterSKUTierPremium),
 				}, false),
 			},
 
@@ -1437,6 +1419,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"support_plan": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.KubernetesSupportPlanKubernetesOfficial),
+					string(managedclusters.KubernetesSupportPlanAKSLongTermSupport),
+				}, false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -1562,6 +1554,62 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			Sensitive:    true,
 			ValidateFunc: validation.StringLenBetween(8, 123),
 		}
+		resource.Schema["image_cleaner_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		}
+		resource.Schema["image_cleaner_interval_hours"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Default:      48,
+			ValidateFunc: validation.IntBetween(24, 2160),
+		}
+		resource.Schema["automatic_channel_upgrade"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.UpgradeChannelPatch),
+				string(managedclusters.UpgradeChannelRapid),
+				string(managedclusters.UpgradeChannelStable),
+				string(managedclusters.UpgradeChannelNodeNegativeimage),
+			}, false),
+			Deprecated: features.DeprecatedInFourPointOh("The property `automatic_channel_upgrade` will be renamed to `automatic_upgrade_channel` in v4.0 of the AzureRM Provider."),
+		}
+		resource.Schema["node_os_channel_upgrade"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.NodeOSUpgradeChannelNodeImage),
+				string(managedclusters.NodeOSUpgradeChannelNone),
+				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
+				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
+			}, false),
+			Deprecated: features.DeprecatedInFourPointOh("The property `node_os_channel_upgrade` will be renamed to `node_os_upgrade_channel` in v4.0 of the AzureRM Provider."),
+		}
+	}
+
+	if features.FourPointOhBeta() {
+		resource.Schema["automatic_upgrade_channel"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.UpgradeChannelPatch),
+				string(managedclusters.UpgradeChannelRapid),
+				string(managedclusters.UpgradeChannelStable),
+				string(managedclusters.UpgradeChannelNodeNegativeimage),
+			}, false),
+		}
+		resource.Schema["node_os_upgrade_channel"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.NodeOSUpgradeChannelNodeImage),
+				string(managedclusters.NodeOSUpgradeChannelNone),
+				string(managedclusters.NodeOSUpgradeChannelSecurityPatch),
+				string(managedclusters.NodeOSUpgradeChannelUnmanaged),
+			}, false),
+		}
 	}
 
 	return resource
@@ -1572,7 +1620,6 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Containers.KubernetesClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	env := meta.(*clients.Client).Containers.Environment
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1699,25 +1746,36 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
-		Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
-		IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+	if !features.FourPointOhBeta() || d.Get("image_cleaner_enabled").(bool) {
+		securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
+			Enabled:       utils.Bool(d.Get("image_cleaner_enabled").(bool)),
+			IntervalHours: utils.Int64(int64(d.Get("image_cleaner_interval_hours").(int))),
+		}
 	}
 
 	azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
-	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+	securityProfile.AzureKeyVaultKms, err = expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, id.SubscriptionId, d, azureKeyVaultKmsRaw)
 	if err != nil {
 		return err
 	}
 
 	autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
+
 	autoChannelUpgrade := d.Get("automatic_channel_upgrade").(string)
 	nodeOsChannelUpgrade := d.Get("node_os_channel_upgrade").(string)
+	if features.FourPointOhBeta() {
+		autoChannelUpgrade = d.Get("automatic_upgrade_channel").(string)
+		nodeOsChannelUpgrade = d.Get("node_os_upgrade_channel").(string)
+
+	}
 
 	// this check needs to be separate and gated since node_os_channel_upgrade is a preview feature
 	if nodeOsChannelUpgrade != "" && autoChannelUpgrade != "" {
 		if autoChannelUpgrade == string(managedclusters.UpgradeChannelNodeNegativeimage) && nodeOsChannelUpgrade != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
-			return fmt.Errorf("`node_os_channel_upgrade` cannot be set to a value other than `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
+			if !features.FourPointOhBeta() {
+				return fmt.Errorf("`node_os_channel_upgrade` cannot be set to a value other than `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
+			}
+			return fmt.Errorf("`node_os_upgrade_channel` cannot be set to a value other than `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
 		}
 	}
 
@@ -1739,8 +1797,8 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
 		Sku: &managedclusters.ManagedClusterSKU{
-			Name: utils.ToPtr(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
-			Tier: utils.ToPtr(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
+			Name: pointer.To(managedclusters.ManagedClusterSKUNameBase), // the only possible value at this point
+			Tier: pointer.To(managedclusters.ManagedClusterSKUTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &managedclusters.ManagedClusterProperties{
 			ApiServerAccessProfile:    apiAccessProfile,
@@ -1816,6 +1874,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.DiskEncryptionSetID = utils.String(v.(string))
 	}
 
+	if v := d.Get("support_plan").(string); v != "" {
+		parameters.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(v))
+	}
+
 	if ingressProfile := expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{})); ingressProfile != nil {
 		parameters.Properties.IngressProfile = ingressProfile
 	}
@@ -1824,13 +1886,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window"); ok {
@@ -1847,7 +1905,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window_auto_upgrade"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
+			Properties: expandKubernetesClusterMaintenanceConfigurationForCreate(maintenanceConfigRaw.([]interface{})),
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
@@ -1858,7 +1916,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	if maintenanceConfigRaw, ok := d.GetOk("maintenance_window_node_os"); ok {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		parameters := maintenanceconfigurations.MaintenanceConfiguration{
-			Properties: expandKubernetesClusterMaintenanceConfiguration(maintenanceConfigRaw.([]interface{})),
+			Properties: expandKubernetesClusterMaintenanceConfigurationForCreate(maintenanceConfigRaw.([]interface{})),
 		}
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
 		if _, err := client.CreateOrUpdate(ctx, maintenanceId, parameters); err != nil {
@@ -1875,7 +1933,6 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	nodePoolsClient := containersClient.AgentPoolsClient
 	clusterClient := containersClient.KubernetesClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1922,12 +1979,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			Secret:   utils.String(clientSecret),
 		}
 
-		future, err := clusterClient.ResetServicePrincipalProfile(ctx, *id, params)
+		err = clusterClient.ResetServicePrincipalProfileThenPoll(ctx, *id, params)
 		if err != nil {
 			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
-		}
-		if err = future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for update of Service Principal for %s: %+v", *id, err)
 		}
 		log.Printf("[DEBUG] Updated the Service Principal for %s.", *id)
 
@@ -1971,13 +2025,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		props.AadProfile = azureADProfile
 		if props.AadProfile != nil && (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
 			log.Printf("[DEBUG] Updating the RBAC AAD profile")
-			future, err := clusterClient.ResetAADProfile(ctx, *id, *props.AadProfile)
+			err = clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile)
 			if err != nil {
 				return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile for %s: %+v", *id, err)
-			}
-
-			if err = future.Poller.PollUntilDone(); err != nil {
-				return fmt.Errorf("waiting for update of RBAC AAD profile of %s: %+v", *id, err)
 			}
 		}
 
@@ -2156,6 +2206,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			ebpfDataPlane := d.Get(key).(string)
 			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
 		}
+
+		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
+			existing.Model.Properties.NetworkProfile.OutboundType = pointer.To(managedclusters.OutboundType(d.Get(key).(string)))
+		}
 	}
 	if d.HasChange("service_mesh_profile") {
 		updateCluster = true
@@ -2204,27 +2258,36 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Sku.Tier = &skuTier
 	}
 
-	if d.HasChange("automatic_channel_upgrade") {
+	autoUpgradeChannel := "automatic_upgrade_channel"
+	nodeOsUpgradeChannel := "node_os_upgrade_channel"
+	if !features.FourPointOhBeta() {
+		autoUpgradeChannel = "automatic_channel_upgrade"
+		nodeOsUpgradeChannel = "node_os_channel_upgrade"
+	}
+	if d.HasChange(autoUpgradeChannel) {
 		updateCluster = true
 		if existing.Model.Properties.AutoUpgradeProfile == nil {
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
 		}
-		channel := d.Get("automatic_channel_upgrade").(string)
+		channel := d.Get(autoUpgradeChannel).(string)
 		if channel == "" {
 			channel = string(managedclusters.UpgradeChannelNone)
 		}
 		existing.Model.Properties.AutoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(channel))
 	}
 
-	if d.HasChange("node_os_channel_upgrade") {
+	if d.HasChange(nodeOsUpgradeChannel) {
 		updateCluster = true
-		if d.Get("automatic_channel_upgrade").(string) == string(managedclusters.UpgradeChannelNodeNegativeimage) && d.Get("node_os_channel_upgrade").(string) != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
-			return fmt.Errorf("`node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
+		if d.Get(autoUpgradeChannel).(string) == string(managedclusters.UpgradeChannelNodeNegativeimage) && d.Get(nodeOsUpgradeChannel).(string) != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
+			if !features.FourPointOhBeta() {
+				return fmt.Errorf("`node_os_channel_upgrade` must be set to `NodeImage` if `automatic_channel_upgrade` is set to `node-image`")
+			}
+			return fmt.Errorf("`node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
 		}
 		if existing.Model.Properties.AutoUpgradeProfile == nil {
 			existing.Model.Properties.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
 		}
-		existing.Model.Properties.AutoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(d.Get("node_os_channel_upgrade").(string)))
+		existing.Model.Properties.AutoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(d.Get(nodeOsUpgradeChannel).(string)))
 	}
 
 	if d.HasChange("http_proxy_config") {
@@ -2244,7 +2307,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChanges("key_management_service") {
 		updateCluster = true
 		azureKeyVaultKmsRaw := d.Get("key_management_service").([]interface{})
-		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, resourcesClient, d, azureKeyVaultKmsRaw)
+		azureKeyVaultKms, _ := expandKubernetesClusterAzureKeyVaultKms(ctx, keyVaultsClient, id.SubscriptionId, d, azureKeyVaultKmsRaw)
 		if existing.Model.Properties.SecurityProfile == nil {
 			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 		}
@@ -2316,6 +2379,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
 	}
 
+	if d.HasChange("support_plan") {
+		updateCluster = true
+		existing.Model.Properties.SupportPlan = pointer.To(managedclusters.KubernetesSupportPlan(d.Get("support_plan").(string)))
+	}
+
 	if updateCluster {
 		// If Defender was explicitly disabled in a prior update then we should strip SecurityProfile.AzureDefender from the request
 		// body to prevent errors in cases where Defender is disabled for the entire subscription
@@ -2327,14 +2395,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		log.Printf("[DEBUG] Updating %s..", *id)
-		future, err := clusterClient.CreateOrUpdate(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 
-		if err = future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
-		}
 		log.Printf("[DEBUG] Updated %s..", *id)
 	}
 
@@ -2352,13 +2417,9 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
 		existing.Model.Properties.KubernetesVersion = utils.String(kubernetesVersion)
 
-		future, err := clusterClient.CreateOrUpdate(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 		if err != nil {
 			return fmt.Errorf("updating Kubernetes Version for %s: %+v", *id, err)
-		}
-
-		if err = future.Poller.PollUntilDone(); err != nil {
-			return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 		}
 
 		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
@@ -2393,10 +2454,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.name",
 			"default_node_pool.0.enable_host_encryption",
 			"default_node_pool.0.enable_node_public_ip",
+			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
-			"default_node_pool.0.node_taints",
 			"default_node_pool.0.only_critical_addons_enabled",
 			"default_node_pool.0.os_disk_size_gb",
 			"default_node_pool.0.os_disk_type",
@@ -2497,8 +2558,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("maintenance_window_auto_upgrade") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
-		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_auto_upgrade").([]interface{}))
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
+		existing, err := client.Get(ctx, maintenanceId)
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("retrieving Auto Upgrade Schedule Maintenance Configuration for %s: %+v", id, err)
+		}
+		var existingProperties *maintenanceconfigurations.MaintenanceConfigurationProperties
+		if existing.Model != nil {
+			existingProperties = existing.Model.Properties
+		}
+		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfigurationForUpdate(d.Get("maintenance_window_auto_upgrade").([]interface{}), existingProperties)
 		if maintenanceWindowProperties != nil {
 			parameters := maintenanceconfigurations.MaintenanceConfiguration{
 				Properties: maintenanceWindowProperties,
@@ -2516,7 +2585,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("maintenance_window_node_os") {
 		client := meta.(*clients.Client).Containers.MaintenanceConfigurationsClient
 		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
-		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfiguration(d.Get("maintenance_window_node_os").([]interface{}))
+		existing, err := client.Get(ctx, maintenanceId)
+		if err != nil && !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("retrieving Node OS Upgrade Schedule Maintenance Configuration for %s: %+v", id, err)
+		}
+		var existingProperties *maintenanceconfigurations.MaintenanceConfigurationProperties
+		if existing.Model != nil {
+			existingProperties = existing.Model.Properties
+		}
+		maintenanceWindowProperties := expandKubernetesClusterMaintenanceConfigurationForUpdate(d.Get("maintenance_window_node_os").([]interface{}), existingProperties)
 		if maintenanceWindowProperties != nil {
 			parameters := maintenanceconfigurations.MaintenanceConfiguration{
 				Properties: maintenanceWindowProperties,
@@ -2586,6 +2663,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("portal_fqdn", props.AzurePortalFQDN)
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("kubernetes_version", props.KubernetesVersion)
+			d.Set("current_kubernetes_version", props.CurrentKubernetesVersion)
 			d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 			d.Set("local_account_disabled", props.DisableLocalAccounts)
 
@@ -2608,15 +2686,26 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 					nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
 				}
 			}
-			d.Set("automatic_channel_upgrade", upgradeChannel)
+
+			if !features.FourPointOhBeta() {
+				d.Set("automatic_channel_upgrade", upgradeChannel)
+			} else {
+				d.Set("automatic_upgrade_channel", upgradeChannel)
+			}
 
 			// the API returns `node_os_channel_upgrade` when `automatic_channel_upgrade` is set to `node-image`
 			// since it's a preview feature we will only set this if it's explicitly been set in the config for the time being
-			if v, ok := d.GetOk("node_os_channel_upgrade"); ok && v.(string) != "" {
-				d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
+			if !features.FourPointOhBeta() {
+				if v, ok := d.GetOk("node_os_channel_upgrade"); ok && v.(string) != "" {
+					d.Set("node_os_channel_upgrade", nodeOSUpgradeChannel)
+				}
+			} else {
+				if v, ok := d.GetOk("node_os_upgrade_channel"); ok && v.(string) != "" {
+					d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
+				}
 			}
 
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
 			d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
 
 			enablePrivateCluster := false
@@ -2807,6 +2896,8 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("kube_admin_config", adminKubeConfig); err != nil {
 				return fmt.Errorf("setting `kube_admin_config`: %+v", err)
 			}
+
+			d.Set("support_plan", pointer.From(props.SupportPlan))
 		}
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
@@ -2869,15 +2960,11 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	ignorePodDisruptionBudget := true
-	future, err := client.Delete(ctx, *id, managedclusters.DeleteOperationOptions{
+	err = client.DeleteThenPoll(ctx, *id, managedclusters.DeleteOperationOptions{
 		IgnorePodDisruptionBudget: &ignorePodDisruptionBudget,
 	})
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil
@@ -3233,19 +3320,19 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 	}
 
 	networkProfile := managedclusters.ContainerServiceNetworkProfile{
-		NetworkPlugin:   utils.ToPtr(managedclusters.NetworkPlugin(networkPlugin)),
-		NetworkMode:     utils.ToPtr(managedclusters.NetworkMode(networkMode)),
-		NetworkPolicy:   utils.ToPtr(managedclusters.NetworkPolicy(networkPolicy)),
-		LoadBalancerSku: utils.ToPtr(managedclusters.LoadBalancerSku(loadBalancerSku)),
-		OutboundType:    utils.ToPtr(managedclusters.OutboundType(outboundType)),
+		NetworkPlugin:   pointer.To(managedclusters.NetworkPlugin(networkPlugin)),
+		NetworkMode:     pointer.To(managedclusters.NetworkMode(networkMode)),
+		NetworkPolicy:   pointer.To(managedclusters.NetworkPolicy(networkPolicy)),
+		LoadBalancerSku: pointer.To(managedclusters.LoadBalancerSku(loadBalancerSku)),
+		OutboundType:    pointer.To(managedclusters.OutboundType(outboundType)),
 		IPFamilies:      ipVersions,
 	}
 
 	if ebpfDataPlane := config["ebpf_data_plane"].(string); ebpfDataPlane != "" {
-		networkProfile.NetworkDataplane = utils.ToPtr(managedclusters.NetworkDataplane(ebpfDataPlane))
+		networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(ebpfDataPlane))
 	}
 	if networkPluginMode := config["network_plugin_mode"].(string); networkPluginMode != "" {
-		networkProfile.NetworkPluginMode = utils.ToPtr(managedclusters.NetworkPluginMode(networkPluginMode))
+		networkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
 	}
 
 	if len(loadBalancerProfileRaw) > 0 {
@@ -3892,7 +3979,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 
 	return &managedclusters.ManagedClusterPropertiesAutoScalerProfile{
 		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
-		Expander:                      utils.ToPtr(managedclusters.Expander(expander)),
+		Expander:                      pointer.To(managedclusters.Expander(expander)),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
 		MaxNodeProvisionTime:          utils.String(maxNodeProvisionTime),
 		MaxTotalUnreadyPercentage:     utils.String(maxUnreadyPercentage),
@@ -3911,7 +3998,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclust
 	}
 }
 
-func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClient *keyVaultClient.Client, resourcesClient *resourcesClient.Client, d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
+func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClient *keyVaultClient.Client, subscriptionId string, d *pluginsdk.ResourceData, input []interface{}) (*managedclusters.AzureKeyVaultKms, error) {
 	if ((input == nil) || len(input) == 0) && d.HasChanges("key_management_service") {
 		return &managedclusters.AzureKeyVaultKms{
 			Enabled: utils.Bool(false),
@@ -3931,11 +4018,12 @@ func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClien
 
 	// Set Key vault Resource ID in case public access is disabled
 	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate {
+		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
 		keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(*azureKeyVaultKms.KeyId)
 		if err != nil {
 			return nil, err
 		}
-		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyId.KeyVaultBaseUrl)
+		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyId.KeyVaultBaseUrl)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
 		}
@@ -3957,7 +4045,7 @@ func expandKubernetesClusterMaintenanceConfigurationDefault(input []interface{})
 	}
 }
 
-func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *maintenanceconfigurations.MaintenanceConfigurationProperties {
+func expandKubernetesClusterMaintenanceConfigurationForCreate(input []interface{}) *maintenanceconfigurations.MaintenanceConfigurationProperties {
 	if len(input) == 0 {
 		return nil
 	}
@@ -4019,6 +4107,72 @@ func expandKubernetesClusterMaintenanceConfiguration(input []interface{}) *maint
 	return output
 }
 
+func expandKubernetesClusterMaintenanceConfigurationForUpdate(input []interface{}, existing *maintenanceconfigurations.MaintenanceConfigurationProperties) *maintenanceconfigurations.MaintenanceConfigurationProperties {
+	if len(input) == 0 {
+		return nil
+	}
+	value := input[0].(map[string]interface{})
+
+	var schedule maintenanceconfigurations.Schedule
+
+	if value["frequency"] == "Daily" {
+		schedule = maintenanceconfigurations.Schedule{
+			Daily: &maintenanceconfigurations.DailySchedule{
+				IntervalDays: int64(value["interval"].(int)),
+			},
+		}
+	}
+	if value["frequency"] == "Weekly" {
+		schedule = maintenanceconfigurations.Schedule{
+			Weekly: &maintenanceconfigurations.WeeklySchedule{
+				IntervalWeeks: int64(value["interval"].(int)),
+				DayOfWeek:     maintenanceconfigurations.WeekDay(value["day_of_week"].(string)),
+			},
+		}
+	}
+	if value["frequency"] == "AbsoluteMonthly" {
+		schedule = maintenanceconfigurations.Schedule{
+			AbsoluteMonthly: &maintenanceconfigurations.AbsoluteMonthlySchedule{
+				DayOfMonth:     int64(value["day_of_month"].(int)),
+				IntervalMonths: int64(value["interval"].(int)),
+			},
+		}
+	}
+	if value["frequency"] == "RelativeMonthly" {
+		schedule = maintenanceconfigurations.Schedule{
+			RelativeMonthly: &maintenanceconfigurations.RelativeMonthlySchedule{
+				DayOfWeek:      maintenanceconfigurations.WeekDay(value["day_of_week"].(string)),
+				WeekIndex:      maintenanceconfigurations.Type(value["week_index"].(string)),
+				IntervalMonths: int64(value["interval"].(int)),
+			},
+		}
+	}
+
+	output := &maintenanceconfigurations.MaintenanceConfigurationProperties{
+		MaintenanceWindow: &maintenanceconfigurations.MaintenanceWindow{
+			StartTime:       value["start_time"].(string),
+			UtcOffset:       utils.String(value["utc_offset"].(string)),
+			NotAllowedDates: expandKubernetesClusterMaintenanceConfigurationDateSpans(value["not_allowed"].(*pluginsdk.Set).List()),
+			Schedule:        schedule,
+		},
+	}
+
+	if startDateRaw := value["start_date"]; startDateRaw != nil && startDateRaw.(string) != "" {
+		startDate, _ := time.Parse(time.RFC3339, startDateRaw.(string))
+		startDateStr := startDate.Format("2006-01-02")
+		// start_date is an Optional+Computed property, the default value returned by the API could be invalid during update, so we only set it if it's different from the existing value
+		if existing == nil || existing.MaintenanceWindow.StartDate == nil || *existing.MaintenanceWindow.StartDate != startDateStr {
+			output.MaintenanceWindow.StartDate = pointer.To(startDateStr)
+		}
+	}
+
+	if duration := value["duration"]; duration != nil && duration.(int) != 0 {
+		output.MaintenanceWindow.DurationHours = int64(duration.(int))
+	}
+
+	return output
+}
+
 func expandKubernetesClusterMaintenanceConfigurationTimeSpans(input []interface{}) *[]maintenanceconfigurations.TimeSpan {
 	results := make([]maintenanceconfigurations.TimeSpan, 0)
 	for _, item := range input {
@@ -4026,8 +4180,8 @@ func expandKubernetesClusterMaintenanceConfigurationTimeSpans(input []interface{
 		start, _ := time.Parse(time.RFC3339, v["start"].(string))
 		end, _ := time.Parse(time.RFC3339, v["end"].(string))
 		results = append(results, maintenanceconfigurations.TimeSpan{
-			Start: utils.ToPtr(start.Format("2006-01-02T15:04:05Z07:00")),
-			End:   utils.ToPtr(end.Format("2006-01-02T15:04:05Z07:00")),
+			Start: pointer.To(start.Format("2006-01-02T15:04:05Z07:00")),
+			End:   pointer.To(end.Format("2006-01-02T15:04:05Z07:00")),
 		})
 	}
 	return &results
@@ -4052,7 +4206,7 @@ func expandKubernetesClusterMaintenanceConfigurationTimeInWeeks(input []interfac
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, maintenanceconfigurations.TimeInWeek{
-			Day:       utils.ToPtr(maintenanceconfigurations.WeekDay(v["day"].(string))),
+			Day:       pointer.To(maintenanceconfigurations.WeekDay(v["day"].(string))),
 			HourSlots: utils.ExpandInt64Slice(v["hours"].(*pluginsdk.Set).List()),
 		})
 	}

@@ -19,7 +19,8 @@ type ListByCommunicationsGatewayOperationResponse struct {
 }
 
 type ListByCommunicationsGatewayCompleteResult struct {
-	Items []TestLine
+	LatestHttpResponse *http.Response
+	Items              []TestLine
 }
 
 // ListByCommunicationsGateway ...
@@ -83,7 +84,8 @@ func (c TestLinesClient) ListByCommunicationsGatewayCompleteMatchingPredicate(ct
 	}
 
 	result = ListByCommunicationsGatewayCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

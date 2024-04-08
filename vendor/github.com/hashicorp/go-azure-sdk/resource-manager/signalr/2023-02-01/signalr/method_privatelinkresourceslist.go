@@ -19,7 +19,8 @@ type PrivateLinkResourcesListOperationResponse struct {
 }
 
 type PrivateLinkResourcesListCompleteResult struct {
-	Items []PrivateLinkResource
+	LatestHttpResponse *http.Response
+	Items              []PrivateLinkResource
 }
 
 // PrivateLinkResourcesList ...
@@ -83,7 +84,8 @@ func (c SignalRClient) PrivateLinkResourcesListCompleteMatchingPredicate(ctx con
 	}
 
 	result = PrivateLinkResourcesListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

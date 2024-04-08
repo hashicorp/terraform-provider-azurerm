@@ -19,7 +19,8 @@ type ListByTrafficControllerOperationResponse struct {
 }
 
 type ListByTrafficControllerCompleteResult struct {
-	Items []Association
+	LatestHttpResponse *http.Response
+	Items              []Association
 }
 
 // ListByTrafficController ...
@@ -83,7 +84,8 @@ func (c AssociationsInterfaceClient) ListByTrafficControllerCompleteMatchingPred
 	}
 
 	result = ListByTrafficControllerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

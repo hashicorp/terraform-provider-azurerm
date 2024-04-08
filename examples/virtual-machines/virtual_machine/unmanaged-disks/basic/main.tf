@@ -7,8 +7,8 @@ locals {
 
 resource "azurerm_virtual_machine" "example" {
   name                  = "${var.prefix}-vm"
-  location              = "${azurerm_resource_group.example.location}"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_F2"
 
@@ -22,8 +22,8 @@ resource "azurerm_virtual_machine" "example" {
 
   storage_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 

@@ -20,7 +20,8 @@ type MonitorsListOperationResponse struct {
 }
 
 type MonitorsListCompleteResult struct {
-	Items []DatadogMonitorResource
+	LatestHttpResponse *http.Response
+	Items              []DatadogMonitorResource
 }
 
 // MonitorsList ...
@@ -84,7 +85,8 @@ func (c MonitorsResourceClient) MonitorsListCompleteMatchingPredicate(ctx contex
 	}
 
 	result = MonitorsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

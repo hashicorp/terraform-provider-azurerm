@@ -85,7 +85,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `virtual_network_subnet_ids` to empty slice (`[]`) to remove it.
 
-* `private_link_access` - (Optional) One or More `private_link_access` block as defined below.
+* `private_link_access` - (Optional) One or more `private_link_access` block as defined below.
 
 ---
 

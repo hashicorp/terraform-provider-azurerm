@@ -10,6 +10,7 @@ import (
 
 type Registration struct{}
 
+var _ sdk.TypedServiceRegistration = Registration{}
 var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -46,5 +47,18 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_protection_backup_policy_postgresql":     resourceDataProtectionBackupPolicyPostgreSQL(),
 		"azurerm_data_protection_backup_vault":                 resourceDataProtectionBackupVault(),
 		"azurerm_data_protection_resource_guard":               resourceDataProtectionResourceGuard(),
+	}
+}
+
+// DataSources returns a list of Data Sources supported by this Service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+// Resources returns a list of Resources supported by this Service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		DataProtectionBackupPolicyKubernatesClusterResource{},
+		DataProtectionBackupInstanceKubernatesClusterResource{},
 	}
 }

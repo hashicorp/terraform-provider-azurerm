@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SyncGroupId{}
+var _ resourceids.ResourceId = &SyncGroupId{}
 
 // SyncGroupId is a struct representing the Resource ID for a Sync Group
 type SyncGroupId struct {
@@ -32,29 +32,15 @@ func NewSyncGroupID(subscriptionId string, resourceGroupName string, storageSync
 
 // ParseSyncGroupID parses 'input' into a SyncGroupId
 func ParseSyncGroupID(input string) (*SyncGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SyncGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&SyncGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SyncGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageSyncServiceName, ok = parsed.Parsed["storageSyncServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageSyncServiceName", *parsed)
-	}
-
-	if id.SyncGroupName, ok = parsed.Parsed["syncGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "syncGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseSyncGroupID(input string) (*SyncGroupId, error) {
 // ParseSyncGroupIDInsensitively parses 'input' case-insensitively into a SyncGroupId
 // note: this method should only be used for API response data and not user input
 func ParseSyncGroupIDInsensitively(input string) (*SyncGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SyncGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&SyncGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := SyncGroupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.StorageSyncServiceName, ok = parsed.Parsed["storageSyncServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "storageSyncServiceName", *parsed)
-	}
-
-	if id.SyncGroupName, ok = parsed.Parsed["syncGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "syncGroupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *SyncGroupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.StorageSyncServiceName, ok = input.Parsed["storageSyncServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "storageSyncServiceName", input)
+	}
+
+	if id.SyncGroupName, ok = input.Parsed["syncGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "syncGroupName", input)
+	}
+
+	return nil
 }
 
 // ValidateSyncGroupID checks that 'input' can be parsed as a Sync Group ID

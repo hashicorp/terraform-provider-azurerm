@@ -19,7 +19,8 @@ type FhirDestinationsListByIotConnectorOperationResponse struct {
 }
 
 type FhirDestinationsListByIotConnectorCompleteResult struct {
-	Items []IotFhirDestination
+	LatestHttpResponse *http.Response
+	Items              []IotFhirDestination
 }
 
 // FhirDestinationsListByIotConnector ...
@@ -83,7 +84,8 @@ func (c IotConnectorsClient) FhirDestinationsListByIotConnectorCompleteMatchingP
 	}
 
 	result = FhirDestinationsListByIotConnectorCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

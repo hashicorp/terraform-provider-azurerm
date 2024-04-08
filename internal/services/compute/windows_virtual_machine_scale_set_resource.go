@@ -689,6 +689,11 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = utils.Bool(v)
 	}
 
+	if d.HasChange("overprovision") {
+		v := d.Get("overprovision").(bool)
+		updateProps.Overprovision = utils.Bool(v)
+	}
+
 	if d.HasChange("scale_in") {
 		if updateScaleInPolicy := ExpandVirtualMachineScaleSetScaleInPolicy(d.Get("scale_in").([]interface{})); updateScaleInPolicy != nil {
 			updateProps.ScaleInPolicy = updateScaleInPolicy
@@ -807,6 +812,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 	metaData := virtualMachineScaleSetUpdateMetaData{
 		AutomaticOSUpgradeIsEnabled:  automaticOSUpgradeIsEnabled,
+		CanReimageOnManualUpgrade:    meta.(*clients.Client).Features.VirtualMachineScaleSet.ReimageOnManualUpgrade,
 		CanRollInstancesWhenRequired: meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired,
 		UpdateInstances:              updateInstances,
 		Client:                       meta.(*clients.Client).Compute,

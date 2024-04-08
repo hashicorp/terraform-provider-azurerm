@@ -20,7 +20,8 @@ type DedicatedHsmListByResourceGroupOperationResponse struct {
 }
 
 type DedicatedHsmListByResourceGroupCompleteResult struct {
-	Items []DedicatedHsm
+	LatestHttpResponse *http.Response
+	Items              []DedicatedHsm
 }
 
 type DedicatedHsmListByResourceGroupOperationOptions struct {
@@ -112,7 +113,8 @@ func (c DedicatedHsmsClient) DedicatedHsmListByResourceGroupCompleteMatchingPred
 	}
 
 	result = DedicatedHsmListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

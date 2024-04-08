@@ -19,7 +19,8 @@ type QueriesSearchOperationResponse struct {
 }
 
 type QueriesSearchCompleteResult struct {
-	Items []LogAnalyticsQueryPackQuery
+	LatestHttpResponse *http.Response
+	Items              []LogAnalyticsQueryPackQuery
 }
 
 type QueriesSearchOperationOptions struct {
@@ -115,7 +116,8 @@ func (c QueryPackQueriesClient) QueriesSearchCompleteMatchingPredicate(ctx conte
 	}
 
 	result = QueriesSearchCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

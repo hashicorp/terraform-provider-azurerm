@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -49,8 +50,12 @@ func (FeatureResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 			return rawState, fmt.Errorf("parseing Configuration Store ID %q: %+v", configurationStoreId, err)
 		}
 
-		configurationStoreEndpoint := fmt.Sprintf("https://%s.azconfig.io", configurationStoreId.ConfigurationStoreName)
+		domainSuffix, ok := meta.(*clients.Client).Account.Environment.AppConfiguration.DomainSuffix()
+		if !ok {
+			return rawState, fmt.Errorf("App Configuration is not supported in this Environment")
+		}
 
+		configurationStoreEndpoint := fmt.Sprintf("https://%s.%s", configurationStoreId.ConfigurationStoreName, *domainSuffix)
 		featureKey := fmt.Sprintf("%s/%s", FeatureKeyPrefix, parsedOldId.Name)
 		nestedItemId, err := parse.NewNestedItemID(configurationStoreEndpoint, featureKey, parsedOldId.Label)
 		if err != nil {

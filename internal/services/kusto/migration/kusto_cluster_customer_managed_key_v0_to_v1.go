@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -46,7 +46,7 @@ func (s KustoClusterCustomerManagedKeyV0ToV1) Schema() map[string]*pluginsdk.Sch
 func (s KustoClusterCustomerManagedKeyV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId := rawState["id"].(string)
-		newId, err := parse.ClusterIDInsensitively(oldId)
+		newId, err := commonids.ParseKustoClusterIDInsensitively(oldId)
 		if err != nil {
 			return nil, err
 		}

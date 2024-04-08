@@ -19,7 +19,8 @@ type ListByPrivateLinkScopeOperationResponse struct {
 }
 
 type ListByPrivateLinkScopeCompleteResult struct {
-	Items []PrivateEndpointConnection
+	LatestHttpResponse *http.Response
+	Items              []PrivateEndpointConnection
 }
 
 // ListByPrivateLinkScope ...
@@ -83,7 +84,8 @@ func (c PrivateEndpointConnectionsClient) ListByPrivateLinkScopeCompleteMatching
 	}
 
 	result = ListByPrivateLinkScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

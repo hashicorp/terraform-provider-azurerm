@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -76,6 +77,25 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 					"S0",
 					"E0",
 				}, false),
+			},
+
+			"sku_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Basic",
+					"Enterprise",
+					"Standard",
+					"StandardGen2",
+				}, false),
+			},
+
+			"managed_environment_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"build_agent_pool_size": {
@@ -452,6 +472,13 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
+	// we set sku_tier only when managed_environment_id is set
+	// otherwise we break the existing flows where sku_name is set to E0/Basic etc.,
+	if v, ok := d.GetOk("managed_environment_id"); ok {
+		resource.Properties.ManagedEnvironmentID = utils.String(v.(string))
+		resource.Sku.Tier = utils.String(d.Get("sku_tier").(string))
+	}
+
 	gitProperty, err := expandSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
 	if err != nil {
 		return err
@@ -511,7 +538,7 @@ func resourceSpringCloudServiceCreate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("applying container registries for %s: %+v", id, err)
 		}
 		buildResource := appplatform.BuildService{
-			Properties: utils.ToPtr(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), id)),
+			Properties: pointer.To(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), id)),
 		}
 		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
 		if err != nil {
@@ -639,7 +666,7 @@ func resourceSpringCloudServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("applying container registries for %s: %+v", id, err)
 		}
 		buildResource := appplatform.BuildService{
-			Properties: utils.ToPtr(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), *id)),
+			Properties: pointer.To(expandSpringCloudBuildService(d.Get("default_build_service").([]interface{}), *id)),
 		}
 		buildServiceCreateFuture, err := buildServiceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.SpringName, "default", buildResource)
 		if err != nil {
@@ -751,6 +778,7 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
+		d.Set("sku_tier", resp.Sku.Tier)
 	}
 
 	d.Set("service_registry_enabled", serviceRegistryEnabled)
@@ -795,6 +823,12 @@ func resourceSpringCloudServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		if vnetAddons := props.VnetAddons; vnetAddons != nil {
 			if err := d.Set("log_stream_public_endpoint_enabled", utils.Bool(*vnetAddons.LogStreamPublicEndpoint)); err != nil {
 				return fmt.Errorf("setting `log_stream_public_endpoint_enabled`: %+v", err)
+			}
+		}
+
+		if managedEnvironmentID := props.ManagedEnvironmentID; managedEnvironmentID != nil {
+			if err := d.Set("managed_environment_id", utils.String(*props.ManagedEnvironmentID)); err != nil {
+				return fmt.Errorf("setting `managed_environment_id`: %+v", err)
 			}
 		}
 

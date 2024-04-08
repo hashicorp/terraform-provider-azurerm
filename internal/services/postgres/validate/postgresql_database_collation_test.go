@@ -142,6 +142,8 @@ func TestPostgresqlDatabaseCollation_SpecialCases(t *testing.T) {
 		"English_United Kingdom.1252": {},
 		"English_United States.1252":  {},
 		"En-US":                       {},
+		"French_France.1252":          {},
+		"Norwegian_Norway.1252":       {},
 		"ucs_basic":                   {},
 		"default":                     {},
 	}

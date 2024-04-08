@@ -8,15 +8,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-05-05-preview/actionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -40,9 +41,9 @@ func resourceMonitorActionRuleSuppression() *pluginsdk.Resource {
 		DeprecationMessage: `This resource has been deprecated in favour of the 'azurerm_monitor_alert_processing_rule_suppression' resource and will be removed in v4.0 of the AzureRM Provider`,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := parse.ActionRuleID(id)
+			_, err := actionrules.ParseActionRuleID(id)
 			return err
-		}, importMonitorActionRule(alertsmanagement.TypeSuppression)),
+		}, importMonitorActionRule(actionrules.ActionRuleTypeSuppression)),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -64,11 +65,11 @@ func resourceMonitorActionRuleSuppression() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(alertsmanagement.Always),
-								string(alertsmanagement.Once),
-								string(alertsmanagement.Daily),
-								string(alertsmanagement.Weekly),
-								string(alertsmanagement.Monthly),
+								string(actionrules.SuppressionTypeAlways),
+								string(actionrules.SuppressionTypeOnce),
+								string(actionrules.SuppressionTypeDaily),
+								string(actionrules.SuppressionTypeWeekly),
+								string(actionrules.SuppressionTypeMonthly),
 							}, false),
 						},
 
@@ -141,8 +142,8 @@ func resourceMonitorActionRuleSuppression() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(alertsmanagement.ScopeTypeResourceGroup),
-								string(alertsmanagement.ScopeTypeResource),
+								string(actionrules.ScopeTypeResourceGroup),
+								string(actionrules.ScopeTypeResource),
 							}, false),
 						},
 
@@ -158,7 +159,7 @@ func resourceMonitorActionRuleSuppression() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -169,23 +170,23 @@ func resourceMonitorActionRuleSuppressionCreateUpdate(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewActionRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := actionrules.NewActionRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.GetByName(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.GetByName(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Monitor %s: %+v", id, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_monitor_action_rule_suppression", id.ID())
 		}
 	}
 
-	actionRuleStatus := alertsmanagement.Enabled
+	actionRuleStatus := actionrules.ActionRuleStatusEnabled
 	if !d.Get("enabled").(bool) {
-		actionRuleStatus = alertsmanagement.Disabled
+		actionRuleStatus = actionrules.ActionRuleStatusDisabled
 	}
 
 	suppressionConfig, err := expandActionRuleSuppressionConfig(d.Get("suppression").([]interface{}))
@@ -193,21 +194,20 @@ func resourceMonitorActionRuleSuppressionCreateUpdate(d *pluginsdk.ResourceData,
 		return err
 	}
 
-	actionRule := alertsmanagement.ActionRule{
+	actionRule := actionrules.ActionRule{
 		// the location is always global from the portal
-		Location: utils.String(location.Normalize("Global")),
-		Properties: &alertsmanagement.Suppression{
+		Location: location.Normalize("Global"),
+		Properties: &actionrules.Suppression{
 			SuppressionConfig: suppressionConfig,
 			Scope:             expandActionRuleScope(d.Get("scope").([]interface{})),
 			Conditions:        expandActionRuleConditions(d.Get("condition").([]interface{})),
 			Description:       utils.String(d.Get("description").(string)),
-			Status:            actionRuleStatus,
-			Type:              alertsmanagement.TypeSuppression,
+			Status:            pointer.To(actionRuleStatus),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateUpdate(ctx, id.ResourceGroup, id.Name, actionRule); err != nil {
+	if _, err := client.CreateUpdate(ctx, id, actionRule); err != nil {
 		return fmt.Errorf("creating/updating Monitor %s: %+v", id, err)
 	}
 
@@ -220,27 +220,33 @@ func resourceMonitorActionRuleSuppressionRead(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ActionRuleID(d.Id())
+	id, err := actionrules.ParseActionRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetByName(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.GetByName(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Action Rule %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s does not exist - removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Monitor %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if resp.Properties != nil {
-		props, _ := resp.Properties.AsSuppression()
+	d.Set("name", id.ActionRuleName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		props, ok := model.Properties.(actionrules.Suppression)
+		if !ok {
+			return fmt.Errorf("%s is not of type `Suppression`", id)
+		}
 		d.Set("description", props.Description)
-		d.Set("enabled", props.Status == alertsmanagement.Enabled)
+		if props.Status != nil {
+			d.Set("enabled", *props.Status == actionrules.ActionRuleStatusEnabled)
+		}
 		if err := d.Set("suppression", flattenActionRuleSuppression(props.SuppressionConfig)); err != nil {
 			return fmt.Errorf("setting suppression: %+v", err)
 		}
@@ -250,9 +256,9 @@ func resourceMonitorActionRuleSuppressionRead(d *pluginsdk.ResourceData, meta in
 		if err := d.Set("condition", flattenActionRuleConditions(props.Conditions)); err != nil {
 			return fmt.Errorf("setting condition: %+v", err)
 		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceMonitorActionRuleSuppressionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -260,37 +266,37 @@ func resourceMonitorActionRuleSuppressionDelete(d *pluginsdk.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ActionRuleID(d.Id())
+	id, err := actionrules.ParseActionRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Monitor %s: %+v", *id, err)
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 	return nil
 }
 
-func expandActionRuleSuppressionConfig(input []interface{}) (*alertsmanagement.SuppressionConfig, error) {
+func expandActionRuleSuppressionConfig(input []interface{}) (*actionrules.SuppressionConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
 	v := input[0].(map[string]interface{})
-	recurrenceType := alertsmanagement.SuppressionType(v["recurrence_type"].(string))
+	recurrenceType := actionrules.SuppressionType(v["recurrence_type"].(string))
 	schedule, err := expandActionRuleSuppressionSchedule(v["schedule"].([]interface{}), recurrenceType)
 	if err != nil {
 		return nil, err
 	}
-	if recurrenceType != alertsmanagement.Always && schedule == nil {
+	if recurrenceType != actionrules.SuppressionTypeAlways && schedule == nil {
 		return nil, fmt.Errorf("`schedule` block must be set when `recurrence_type` is Once, Daily, Weekly or Monthly.")
 	}
-	return &alertsmanagement.SuppressionConfig{
+	return &actionrules.SuppressionConfig{
 		RecurrenceType: recurrenceType,
 		Schedule:       schedule,
 	}, nil
 }
 
-func expandActionRuleSuppressionSchedule(input []interface{}, suppressionType alertsmanagement.SuppressionType) (*alertsmanagement.SuppressionSchedule, error) {
+func expandActionRuleSuppressionSchedule(input []interface{}, suppressionType actionrules.SuppressionType) (*actionrules.SuppressionSchedule, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -298,14 +304,14 @@ func expandActionRuleSuppressionSchedule(input []interface{}, suppressionType al
 
 	var recurrence []interface{}
 	switch suppressionType {
-	case alertsmanagement.Weekly:
+	case actionrules.SuppressionTypeWeekly:
 		if recurrenceWeekly, ok := v["recurrence_weekly"]; ok {
 			recurrence = expandActionRuleSuppressionScheduleRecurrenceWeekly(recurrenceWeekly.(*pluginsdk.Set).List())
 		}
 		if len(recurrence) == 0 {
 			return nil, fmt.Errorf("`recurrence_weekly` must be set and should have at least one element when `recurrence_type` is Weekly.")
 		}
-	case alertsmanagement.Monthly:
+	case actionrules.SuppressionTypeMonthly:
 		if recurrenceMonthly, ok := v["recurrence_monthly"]; ok {
 			recurrence = recurrenceMonthly.(*pluginsdk.Set).List()
 		}
@@ -316,12 +322,12 @@ func expandActionRuleSuppressionSchedule(input []interface{}, suppressionType al
 
 	startDateUTC, _ := time.Parse(time.RFC3339, v["start_date_utc"].(string))
 	endDateUTC, _ := time.Parse(time.RFC3339, v["end_date_utc"].(string))
-	return &alertsmanagement.SuppressionSchedule{
+	return &actionrules.SuppressionSchedule{
 		StartDate:        utils.String(startDateUTC.Format(scheduleDateLayout)),
 		EndDate:          utils.String(endDateUTC.Format(scheduleDateLayout)),
 		StartTime:        utils.String(startDateUTC.Format(scheduleTimeLayout)),
 		EndTime:          utils.String(endDateUTC.Format(scheduleTimeLayout)),
-		RecurrenceValues: utils.ExpandInt32Slice(recurrence),
+		RecurrenceValues: utils.ExpandInt64Slice(recurrence),
 	}, nil
 }
 
@@ -333,12 +339,12 @@ func expandActionRuleSuppressionScheduleRecurrenceWeekly(input []interface{}) []
 	return result
 }
 
-func flattenActionRuleSuppression(input *alertsmanagement.SuppressionConfig) []interface{} {
+func flattenActionRuleSuppression(input *actionrules.SuppressionConfig) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	var recurrenceType alertsmanagement.SuppressionType
+	var recurrenceType actionrules.SuppressionType
 	if input.RecurrenceType != "" {
 		recurrenceType = input.RecurrenceType
 	}
@@ -350,7 +356,7 @@ func flattenActionRuleSuppression(input *alertsmanagement.SuppressionConfig) []i
 	}
 }
 
-func flattenActionRuleSuppressionSchedule(input *alertsmanagement.SuppressionSchedule, recurrenceType alertsmanagement.SuppressionType) []interface{} {
+func flattenActionRuleSuppressionSchedule(input *actionrules.SuppressionSchedule, recurrenceType actionrules.SuppressionType) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -369,11 +375,11 @@ func flattenActionRuleSuppressionSchedule(input *alertsmanagement.SuppressionSch
 		endDateUTCStr = date.Format(time.RFC3339)
 	}
 
-	if recurrenceType == alertsmanagement.Weekly {
+	if recurrenceType == actionrules.SuppressionTypeWeekly {
 		recurrenceWeekly = flattenActionRuleSuppressionScheduleRecurrenceWeekly(input.RecurrenceValues)
 	}
-	if recurrenceType == alertsmanagement.Monthly {
-		recurrenceMonthly = utils.FlattenInt32Slice(input.RecurrenceValues)
+	if recurrenceType == actionrules.SuppressionTypeMonthly {
+		recurrenceMonthly = utils.FlattenInt64Slice(input.RecurrenceValues)
 	}
 	return []interface{}{
 		map[string]interface{}{
@@ -385,7 +391,7 @@ func flattenActionRuleSuppressionSchedule(input *alertsmanagement.SuppressionSch
 	}
 }
 
-func flattenActionRuleSuppressionScheduleRecurrenceWeekly(input *[]int32) []interface{} {
+func flattenActionRuleSuppressionScheduleRecurrenceWeekly(input *[]int64) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {

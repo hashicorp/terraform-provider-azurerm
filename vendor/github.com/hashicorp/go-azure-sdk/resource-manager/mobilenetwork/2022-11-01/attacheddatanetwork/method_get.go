@@ -43,7 +43,10 @@ func (c AttachedDataNetworkClient) Get(ctx context.Context, id AttachedDataNetwo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AttachedDataNetwork
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

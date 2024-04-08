@@ -19,7 +19,8 @@ type ServicesListSkusOperationResponse struct {
 }
 
 type ServicesListSkusCompleteResult struct {
-	Items []AvailableServiceSku
+	LatestHttpResponse *http.Response
+	Items              []AvailableServiceSku
 }
 
 // ServicesListSkus ...
@@ -83,7 +84,8 @@ func (c ServiceResourceClient) ServicesListSkusCompleteMatchingPredicate(ctx con
 	}
 
 	result = ServicesListSkusCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

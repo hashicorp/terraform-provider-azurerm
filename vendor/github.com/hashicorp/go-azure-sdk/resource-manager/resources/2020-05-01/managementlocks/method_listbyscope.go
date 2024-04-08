@@ -20,7 +20,8 @@ type ListByScopeOperationResponse struct {
 }
 
 type ListByScopeCompleteResult struct {
-	Items []ManagementLockObject
+	LatestHttpResponse *http.Response
+	Items              []ManagementLockObject
 }
 
 type ListByScopeOperationOptions struct {
@@ -112,7 +113,8 @@ func (c ManagementLocksClient) ListByScopeCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByScopeCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

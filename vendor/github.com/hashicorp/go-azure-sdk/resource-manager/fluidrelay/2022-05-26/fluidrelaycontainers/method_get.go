@@ -43,7 +43,10 @@ func (c FluidRelayContainersClient) Get(ctx context.Context, id FluidRelayContai
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FluidRelayContainer
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

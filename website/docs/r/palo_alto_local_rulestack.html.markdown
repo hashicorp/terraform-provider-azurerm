@@ -37,7 +37,7 @@ The following arguments are supported:
 
 ---
 
-* `anti_spyware_profile` - (Optional) The setting to use for Anti-Spyware.  Possible values include `BestPractice`, and `Custom`.
+* `anti_spyware_profile` - (Optional) The setting to use for Anti-Spyware. Possible values include `BestPractice`, and `Custom`.
 
 * `anti_virus_profile` - (Optional) The setting to use for Anti-Virus. Possible values include `BestPractice`, and `Custom`.
 

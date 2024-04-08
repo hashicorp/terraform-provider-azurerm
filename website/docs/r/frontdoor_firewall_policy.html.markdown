@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the policy a enabled state or disabled state. Defaults to `true`.
 
-* `mode` - (Optional) The firewall policy mode. Possible values are `Detection`, `Prevention` and defaults to `Prevention`.
+* `mode` - (Optional) The firewall policy mode. Possible values are `Detection`, `Prevention`. Defaults to `Prevention`.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.
 

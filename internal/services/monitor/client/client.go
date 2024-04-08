@@ -6,11 +6,12 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement" // nolint: staticcheck
-	classic "github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2021-07-01-preview/insights"          // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-05-05-preview/actionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2016-03-01/logprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
 	scheduledqueryrules2018 "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
@@ -19,12 +20,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 	diagnosticSettingClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
 	diagnosticCategoryClient "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettingscategories"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-08-01/scheduledqueryrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionruleassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-10-01/autoscalesettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-15-preview/scheduledqueryrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-04-03/azuremonitorworkspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -37,16 +38,15 @@ type Client struct {
 	AutoscaleSettingsClient *autoscalesettings.AutoScaleSettingsClient
 
 	// alerts management
-	ActionRulesClient             *alertsmanagement.ActionRulesClient
+	ActionRulesClient             *actionrules.ActionRulesClient
 	AlertProcessingRulesClient    *alertprocessingrules.AlertProcessingRulesClient
-	SmartDetectorAlertRulesClient *alertsmanagement.SmartDetectorAlertRulesClient
+	SmartDetectorAlertRulesClient *smartdetectoralertrules.SmartDetectorAlertRulesClient
 
 	// Monitor
 	ActionGroupsClient                   *actiongroupsapis.ActionGroupsAPIsClient
-	ActivityLogsClient                   *classic.ActivityLogsClient
+	ActivityLogsClient                   *activitylogs.ActivityLogsClient
 	ActivityLogAlertsClient              *activitylogalertsapis.ActivityLogAlertsAPIsClient
 	AlertPrometheusRuleGroupClient       *prometheusrulegroups.PrometheusRuleGroupsClient
-	AlertRulesClient                     *classic.AlertRulesClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
 	DataCollectionRuleAssociationsClient *datacollectionruleassociations.DataCollectionRuleAssociationsClient
 	DataCollectionRulesClient            *datacollectionrules.DataCollectionRulesClient
@@ -68,11 +68,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(aadDiagnosticSettingsClient.Client, o.Authorizers.ResourceManager)
 
-	AutoscaleSettingsClient := autoscalesettings.NewAutoScaleSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&AutoscaleSettingsClient.Client, o.ResourceManagerAuthorizer)
+	AutoscaleSettingsClient, err := autoscalesettings.NewAutoScaleSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Autoscale Settings client: %+v", err)
+	}
+	o.Configure(AutoscaleSettingsClient.Client, o.Authorizers.ResourceManager)
 
-	ActionRulesClient := alertsmanagement.NewActionRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ActionRulesClient.Client, o.ResourceManagerAuthorizer)
+	ActionRulesClient, err := actionrules.NewActionRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Action Rules client: %+v", err)
+	}
+	o.Configure(ActionRulesClient.Client, o.Authorizers.ResourceManager)
 
 	alertProcessingRulesClient, err := alertprocessingrules.NewAlertProcessingRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -80,17 +86,29 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(alertProcessingRulesClient.Client, o.Authorizers.ResourceManager)
 
-	SmartDetectorAlertRulesClient := alertsmanagement.NewSmartDetectorAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SmartDetectorAlertRulesClient.Client, o.ResourceManagerAuthorizer)
+	SmartDetectorAlertRulesClient, err := smartdetectoralertrules.NewSmartDetectorAlertRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Smart Detector Alert Rules client: %+v", err)
+	}
+	o.Configure(SmartDetectorAlertRulesClient.Client, o.Authorizers.ResourceManager)
 
-	ActionGroupsClient := actiongroupsapis.NewActionGroupsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
+	ActionGroupsClient, err := actiongroupsapis.NewActionGroupsAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Action Groups client: %+v", err)
+	}
+	o.Configure(ActionGroupsClient.Client, o.Authorizers.ResourceManager)
 
-	activityLogsClient := classic.NewActivityLogsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&activityLogsClient.Client, o.ResourceManagerAuthorizer)
+	activityLogsClient, err := activitylogs.NewActivityLogsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Activity Logs client: %+v", err)
+	}
+	o.Configure(activityLogsClient.Client, o.Authorizers.ResourceManager)
 
-	ActivityLogAlertsClient := activitylogalertsapis.NewActivityLogAlertsAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ActivityLogAlertsClient.Client, o.ResourceManagerAuthorizer)
+	ActivityLogAlertsClient, err := activitylogalertsapis.NewActivityLogAlertsAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Activity Log Alerts client: %+v", err)
+	}
+	o.Configure(ActivityLogAlertsClient.Client, o.Authorizers.ResourceManager)
 
 	alertPrometheusRuleGroupClient, err := prometheusrulegroups.NewPrometheusRuleGroupsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -98,67 +116,99 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(alertPrometheusRuleGroupClient.Client, o.Authorizers.ResourceManager)
 
-	AlertRulesClient := classic.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AlertRulesClient.Client, o.ResourceManagerAuthorizer)
+	DataCollectionEndpointsClient, err := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Data Collection Endpoints client: %+v", err)
+	}
+	o.Configure(DataCollectionEndpointsClient.Client, o.Authorizers.ResourceManager)
 
-	DataCollectionEndpointsClient := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DataCollectionEndpointsClient.Client, o.ResourceManagerAuthorizer)
+	DataCollectionRuleAssociationsClient, err := datacollectionruleassociations.NewDataCollectionRuleAssociationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Data Collection Rule Associations client: %+v", err)
+	}
+	o.Configure(DataCollectionRuleAssociationsClient.Client, o.Authorizers.ResourceManager)
 
-	DataCollectionRuleAssociationsClient := datacollectionruleassociations.NewDataCollectionRuleAssociationsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DataCollectionRuleAssociationsClient.Client, o.ResourceManagerAuthorizer)
+	DataCollectionRulesClient, err := datacollectionrules.NewDataCollectionRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Data Collection Rules client: %+v", err)
+	}
+	o.Configure(DataCollectionRulesClient.Client, o.Authorizers.ResourceManager)
 
-	DataCollectionRulesClient := datacollectionrules.NewDataCollectionRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DataCollectionRulesClient.Client, o.ResourceManagerAuthorizer)
+	DiagnosticSettingsClient, err := diagnosticSettingClient.NewDiagnosticSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Diagnostic Settings client: %+v", err)
+	}
+	o.Configure(DiagnosticSettingsClient.Client, o.Authorizers.ResourceManager)
 
-	DiagnosticSettingsClient := diagnosticSettingClient.NewDiagnosticSettingsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DiagnosticSettingsClient.Client, o.ResourceManagerAuthorizer)
+	DiagnosticSettingsCategoryClient, err := diagnosticCategoryClient.NewDiagnosticSettingsCategoriesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Diagnostic Settings Categories client: %+v", err)
+	}
+	o.Configure(DiagnosticSettingsCategoryClient.Client, o.Authorizers.ResourceManager)
 
-	DiagnosticSettingsCategoryClient := diagnosticCategoryClient.NewDiagnosticSettingsCategoriesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&DiagnosticSettingsCategoryClient.Client, o.ResourceManagerAuthorizer)
+	LogProfilesClient, err := logprofiles.NewLogProfilesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Log Profiles client: %+v", err)
+	}
+	o.Configure(LogProfilesClient.Client, o.Authorizers.ResourceManager)
 
-	LogProfilesClient := logprofiles.NewLogProfilesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&LogProfilesClient.Client, o.ResourceManagerAuthorizer)
+	MetricAlertsClient, err := metricalerts.NewMetricAlertsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Metric Alerts client: %+v", err)
+	}
+	o.Configure(MetricAlertsClient.Client, o.Authorizers.ResourceManager)
 
-	MetricAlertsClient := metricalerts.NewMetricAlertsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&MetricAlertsClient.Client, o.ResourceManagerAuthorizer)
+	PrivateLinkScopesClient, err := privatelinkscopesapis.NewPrivateLinkScopesAPIsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Private Link Scopes client: %+v", err)
+	}
+	o.Configure(PrivateLinkScopesClient.Client, o.Authorizers.ResourceManager)
 
-	PrivateLinkScopesClient := privatelinkscopesapis.NewPrivateLinkScopesAPIsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&PrivateLinkScopesClient.Client, o.ResourceManagerAuthorizer)
+	PrivateLinkScopedResourcesClient, err := privatelinkscopedresources.NewPrivateLinkScopedResourcesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Private Link Scoped Resources client: %+v", err)
+	}
+	o.Configure(PrivateLinkScopedResourcesClient.Client, o.Authorizers.ResourceManager)
 
-	PrivateLinkScopedResourcesClient := privatelinkscopedresources.NewPrivateLinkScopedResourcesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&PrivateLinkScopedResourcesClient.Client, o.ResourceManagerAuthorizer)
+	ScheduledQueryRulesClient, err := scheduledqueryrules2018.NewScheduledQueryRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Scheduled Query Rules client: %+v", err)
+	}
+	o.Configure(ScheduledQueryRulesClient.Client, o.Authorizers.ResourceManager)
 
-	ScheduledQueryRulesClient := scheduledqueryrules2018.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ScheduledQueryRulesClient.Client, o.ResourceManagerAuthorizer)
+	ScheduledQueryRulesV2Client, err := scheduledqueryrules.NewScheduledQueryRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Scheduled Query Rules V2 client: %+v", err)
+	}
+	o.Configure(ScheduledQueryRulesV2Client.Client, o.Authorizers.ResourceManager)
 
-	ScheduledQueryRulesV2Client := scheduledqueryrules.NewScheduledQueryRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&ScheduledQueryRulesV2Client.Client, o.ResourceManagerAuthorizer)
-
-	WorkspacesClient := azuremonitorworkspaces.NewAzureMonitorWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
+	WorkspacesClient, err := azuremonitorworkspaces.NewAzureMonitorWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Workspaces client: %+v", err)
+	}
+	o.Configure(WorkspacesClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
 		AADDiagnosticSettingsClient:          aadDiagnosticSettingsClient,
-		AutoscaleSettingsClient:              &AutoscaleSettingsClient,
-		ActionRulesClient:                    &ActionRulesClient,
-		SmartDetectorAlertRulesClient:        &SmartDetectorAlertRulesClient,
-		ActionGroupsClient:                   &ActionGroupsClient,
-		ActivityLogsClient:                   &activityLogsClient,
-		ActivityLogAlertsClient:              &ActivityLogAlertsClient,
+		AutoscaleSettingsClient:              AutoscaleSettingsClient,
+		ActionRulesClient:                    ActionRulesClient,
+		SmartDetectorAlertRulesClient:        SmartDetectorAlertRulesClient,
+		ActionGroupsClient:                   ActionGroupsClient,
+		ActivityLogsClient:                   activityLogsClient,
+		ActivityLogAlertsClient:              ActivityLogAlertsClient,
 		AlertPrometheusRuleGroupClient:       alertPrometheusRuleGroupClient,
-		AlertRulesClient:                     &AlertRulesClient,
 		AlertProcessingRulesClient:           alertProcessingRulesClient,
-		DataCollectionEndpointsClient:        &DataCollectionEndpointsClient,
-		DataCollectionRuleAssociationsClient: &DataCollectionRuleAssociationsClient,
-		DataCollectionRulesClient:            &DataCollectionRulesClient,
-		DiagnosticSettingsClient:             &DiagnosticSettingsClient,
-		DiagnosticSettingsCategoryClient:     &DiagnosticSettingsCategoryClient,
-		LogProfilesClient:                    &LogProfilesClient,
-		MetricAlertsClient:                   &MetricAlertsClient,
-		PrivateLinkScopesClient:              &PrivateLinkScopesClient,
-		PrivateLinkScopedResourcesClient:     &PrivateLinkScopedResourcesClient,
-		ScheduledQueryRulesClient:            &ScheduledQueryRulesClient,
-		ScheduledQueryRulesV2Client:          &ScheduledQueryRulesV2Client,
-		WorkspacesClient:                     &WorkspacesClient,
+		DataCollectionEndpointsClient:        DataCollectionEndpointsClient,
+		DataCollectionRuleAssociationsClient: DataCollectionRuleAssociationsClient,
+		DataCollectionRulesClient:            DataCollectionRulesClient,
+		DiagnosticSettingsClient:             DiagnosticSettingsClient,
+		DiagnosticSettingsCategoryClient:     DiagnosticSettingsCategoryClient,
+		LogProfilesClient:                    LogProfilesClient,
+		MetricAlertsClient:                   MetricAlertsClient,
+		PrivateLinkScopesClient:              PrivateLinkScopesClient,
+		PrivateLinkScopedResourcesClient:     PrivateLinkScopedResourcesClient,
+		ScheduledQueryRulesClient:            ScheduledQueryRulesClient,
+		ScheduledQueryRulesV2Client:          ScheduledQueryRulesV2Client,
+		WorkspacesClient:                     WorkspacesClient,
 	}, nil
 }

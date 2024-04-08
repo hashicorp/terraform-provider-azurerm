@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package springcloud
 
 import (
@@ -6,14 +9,15 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-07-01-preview/appplatform"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudApplicationInsightsApplicationPerformanceMonitoringModel struct {
@@ -108,11 +112,11 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 			}
 
 			client := metadata.Client.AppPlatform.AppPlatformClient
-			springId, err := appplatform.ParseSpringID(model.SpringCloudServiceId)
+			springId, err := commonids.ParseSpringCloudServiceID(model.SpringCloudServiceId)
 			if err != nil {
 				return fmt.Errorf("parsing spring service ID: %+v", err)
 			}
-			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.SpringName, model.Name)
+			id := appplatform.NewApmID(springId.SubscriptionId, springId.ResourceGroupName, springId.ServiceName, model.Name)
 
 			existing, err := client.ApmsGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -125,13 +129,13 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 			resource := appplatform.ApmResource{
 				Properties: &appplatform.ApmProperties{
 					Type: "ApplicationInsights",
-					Properties: utils.ToPtr(map[string]string{
+					Properties: pointer.To(map[string]string{
 						"role_name":                    model.RoleName,
 						"role_instance":                model.RoleInstance,
 						"sampling_requests_per_second": fmt.Sprintf("%d", model.SamplingRequestsPerSecond),
 						"sampling_percentage":          fmt.Sprintf("%d", model.SamplingPercentage),
 					}),
-					Secrets: utils.ToPtr(map[string]string{
+					Secrets: pointer.To(map[string]string{
 						"connection_string": model.ConnectionString,
 					}),
 				},
@@ -216,7 +220,7 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 				apmReference := appplatform.ApmReference{
 					ResourceId: id.ID(),
 				}
-				springId := appplatform.NewSpringID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
+				springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 				if model.GloballyEnabled {
 					err := client.ServicesEnableApmGloballyThenPoll(ctx, springId, apmReference)
 					if err != nil {
@@ -255,7 +259,7 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			springId := appplatform.NewSpringID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
+			springId := commonids.NewSpringCloudServiceID(id.SubscriptionId, id.ResourceGroupName, id.SpringName)
 			result, err := client.ServicesListGloballyEnabledApms(ctx, springId)
 			if err != nil {
 				return fmt.Errorf("listing globally enabled apms: %+v", err)

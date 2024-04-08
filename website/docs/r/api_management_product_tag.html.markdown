@@ -75,7 +75,6 @@ The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Product.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Product.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Product.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Product.
 

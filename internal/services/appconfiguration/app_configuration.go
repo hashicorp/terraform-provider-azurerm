@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -44,7 +45,7 @@ func flattenAppConfigurationReplicas(input []replicas.Replica) ([]interface{}, e
 
 		result := map[string]interface{}{
 			"name":     pointer.From(v.Name),
-			"location": pointer.From(v.Location),
+			"location": location.Normalize(pointer.From(v.Location)),
 			"endpoint": pointer.From(v.Properties.Endpoint),
 			"id":       replicaId.ID(),
 		}
@@ -57,7 +58,7 @@ func resourceConfigurationStoreReplicaHash(input interface{}) int {
 	var buf bytes.Buffer
 	if rawData, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(rawData["name"].(string))
-		buf.WriteString(rawData["location"].(string))
+		buf.WriteString(location.Normalize(rawData["location"].(string)))
 	}
 	return pluginsdk.HashString(buf.String())
 }

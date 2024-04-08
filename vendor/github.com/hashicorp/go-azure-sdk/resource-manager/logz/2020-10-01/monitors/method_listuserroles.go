@@ -19,7 +19,8 @@ type ListUserRolesOperationResponse struct {
 }
 
 type ListUserRolesCompleteResult struct {
-	Items []UserRoleResponse
+	LatestHttpResponse *http.Response
+	Items              []UserRoleResponse
 }
 
 // ListUserRoles ...
@@ -83,7 +84,8 @@ func (c MonitorsClient) ListUserRolesCompleteMatchingPredicate(ctx context.Conte
 	}
 
 	result = ListUserRolesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

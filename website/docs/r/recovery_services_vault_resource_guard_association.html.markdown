@@ -44,7 +44,7 @@ resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
 
 The following arguments are supported:
 
-* `name` - (Optional) Specifies the name of the Recovery Services Vault Resource Guard Association. Changing this forces a new resource to be created.
+* `name` - (Optional) Specifies the name of the Recovery Services Vault Resource Guard Association. Changing this forces a new resource to be created. Defaults to `VaultProxy`.
 
 -> **NOTE:** `name` has been deprecated and will be removed in version 4.0 of the provider.
 

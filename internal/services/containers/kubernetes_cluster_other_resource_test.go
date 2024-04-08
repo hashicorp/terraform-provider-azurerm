@@ -8,14 +8,16 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -109,7 +111,36 @@ func TestAccKubernetesCluster_kubeletAndLinuxOSConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+	})
+}
+
+func TestAccKubernetesCluster_kubeletAndLinuxOSConfigUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.kubeletAndLinuxOSConfigPartial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.kubeletAndLinuxOSConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.kubeletAndLinuxOSConfigPartial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -124,7 +155,7 @@ func TestAccKubernetesCluster_kubeletAndLinuxOSConfigPartial(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
 }
 
@@ -308,6 +339,7 @@ func TestAccKubernetesCluster_upgrade(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
 		{
@@ -315,6 +347,7 @@ func TestAccKubernetesCluster_upgrade(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(currentKubernetesVersion),
+				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
 	})
@@ -458,53 +491,60 @@ func TestAccKubernetesCluster_upgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
+	autoUpgradeChannel := "automatic_upgrade_channel"
+	nodeOsUpgradeChannel := "node_os_upgrade_channel"
+	if !features.FourPointOhBeta() {
+		autoUpgradeChannel = "automatic_channel_upgrade"
+		nodeOsUpgradeChannel = "node_os_channel_upgrade"
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "rapid"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("rapid"),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("rapid"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "patch"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("patch"),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("patch"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "node-image"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("node-image"),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("node-image"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			// unset = none
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue(""),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue(""),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
-				check.That(data.ResourceName).Key("automatic_channel_upgrade").HasValue("stable"),
+				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("stable"),
 			),
 		},
-		data.ImportStep("node_os_channel_upgrade"),
+		data.ImportStep(nodeOsUpgradeChannel),
 	})
 }
 
@@ -876,6 +916,22 @@ func TestAccKubernetesCluster_webAppRouting(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_webAppRoutingPrivateDNS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.webAppRoutingPrivateDNS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_azureMonitorKubernetesMetrics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -909,12 +965,16 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
+	nodeOsUpgradeChannel := "node_os_upgrade_channel"
+	if !features.FourPointOhBeta() {
+		nodeOsUpgradeChannel = "node_os_channel_upgrade"
+	}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.nodeOsUpgradeChannel(data, "Unmanaged"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("Unmanaged"),
+				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("Unmanaged"),
 			),
 		},
 		// TODO add this back in when upgrading to 2023-06-02-preview
@@ -924,7 +984,7 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 			Config: r.nodeOsUpgradeChannel(data, "SecurityPatch"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("SecurityPatch"),
+				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("SecurityPatch"),
 			),
 		},
 		// data.ImportStep(),
@@ -932,7 +992,7 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 			Config: r.nodeOsUpgradeChannel(data, "NodeImage"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("NodeImage"),
+				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("NodeImage"),
 			),
 		},
 		// data.ImportStep(),
@@ -940,7 +1000,7 @@ func TestAccKubernetesCluster_nodeOsUpgradeChannel(t *testing.T) {
 			Config: r.nodeOsUpgradeChannel(data, "None"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("node_os_channel_upgrade").HasValue("None"),
+				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("None"),
 			),
 		},
 		// data.ImportStep(),
@@ -956,6 +1016,10 @@ func TestAccKubernetesCluster_customCaTrustCerts(t *testing.T) {
 		"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURmakNDQW1hZ0F3SUJBZ0lFZnlWdk56QU5CZ2txaGtpRzl3MEJBUXNGQURCWU1Rc3dDUVlEVlFRR0V3SlEKVERFVU1CSUdBMVVFQXd3TFJtRnJaU0JEWlhKMElESXhGVEFUQmdOVkJBY01ERVJsWm1GMWJIUWdRMmwwZVRFYwpNQm9HQTFVRUNnd1RSR1ZtWVhWc2RDQkRiMjF3WVc1NUlFeDBaREFlRncweU16QTJNRFF3TnpJME1qZGFGdzB5Ck5UQTJNRE13TnpJME1qZGFNRmd4Q3pBSkJnTlZCQVlUQWxCTU1SUXdFZ1lEVlFRRERBdEdZV3RsSUVObGNuUWcKTWpFVk1CTUdBMVVFQnd3TVJHVm1ZWFZzZENCRGFYUjVNUnd3R2dZRFZRUUtEQk5FWldaaGRXeDBJRU52YlhCaApibmtnVEhSa01JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBMENTdVdUaGNjSG5MCkhFdjk4SUVNc2JLY3h4YVh4YTZiRXl1Yy9sUjRackpVN2p6eVlWNGVscTV5WTgwdDFCM0MyV3E2SXFoajErSGYKYW0xaStsU1FTejM1eWNnTWlwSWp2cUxKOVIzMVF0Wi9TRURkdGV2b2JqbytEa1dCOE55cG9Ia0pVbEIyQnR6ZgpOK09KeVFSdXU1b1cya2c5OE5Bd3JuTGpmQ0lremVWcFh5d0l4Tkx2ZmFrVGxpNWpYdG9WWG5pOTU5bmtINWVwClkrRnVoSEQwaU5CS25XYVkxR2QwVGhhSHNwTERmNFUycmo2WE5SZHd6QVZoVkdhUm02cndvSHRZeDVrYys1ZWMKQ0F4UEdRWFRzTzJUTHVrQzJ2YXI0M3RUM0ZjSC9taDRST2JaaThZS2xSQ3Fldm1QU1RmZ293RUFkTjlvSmxyRApXN2lzN2NnQjhRSURBUUFCbzFBd1RqQWRCZ05WSFE0RUZnUVVuRkRqN0pBQW9WZ2NzQkgyNzdMOHZlM0Q4U293Ckh3WURWUjBqQkJnd0ZvQVVuRkRqN0pBQW9WZ2NzQkgyNzdMOHZlM0Q4U293REFZRFZSMFRCQVV3QXdFQi96QU4KQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBT0diT0Zyek4rN2YxbzhJSDNtMXZxT3IyTUtvNEZMWExGRjBVbEhkNApwZXRhL05aQjArUmQ3TnUrOCtnUnlUbEJWZU9EZjN5SXU0TlFCUU92MlNqdS9Jakd0MUtmaUF3WkUwT1RUQXc3CnhIWStsMVBJWEFFVWNqNk00cjFKQzc4ZVZrc2pycTZoV1RPZ0RrSVZuRjY3bXlReXduR25EY1k0d0Fqc2pUajgKKzR4NTIrRi9QaVNQVGtjUFNuN0s2UjQzaEt5QUs2Z0poOHE5cVNhME5RQ2U2czhwTGU2SVY5SElWVVFFVERVOQpsM1VWWHNBMGx4dlB0blU1TXo2QWQ5cDA5L2w4d3o0cUdBdGFCUEd3K0R2cTNlaHdTd2VZZ3VHSktDQjhjb01JCjJRVUo0Zi9mNkFNVWtMeWxYZ3RSUEt1QjA3d3YwTmk1eWI5MjlFY1FJQ0l2dFE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t",
 	}
 
+	fakeCertList2 := []string{
+		"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURjRENDQWxpZ0F3SUJBZ0lFU1QwSUhEQU5CZ2txaGtpRzl3MEJBUXNGQURCUk1Rc3dDUVlEVlFRR0V3SlEKVERFTk1Bc0dBMVVFQXd3RVZHVnpkREVWTUJNR0ExVUVCd3dNUkdWbVlYVnNkQ0JEYVhSNU1Sd3dHZ1lEVlFRSwpEQk5FWldaaGRXeDBJRU52YlhCaGJua2dUSFJrTUI0WERUSXpNRFV5T0RFeE1qY3dNMW9YRFRNek1EVXlOVEV4Ck1qY3dNMW93VVRFTE1Ba0dBMVVFQmhNQ1VFd3hEVEFMQmdOVkJBTU1CRlJsYzNReEZUQVRCZ05WQkFjTURFUmwKWm1GMWJIUWdRMmwwZVRFY01Cb0dBMVVFQ2d3VFJHVm1ZWFZzZENCRGIyMXdZVzU1SUV4MFpEQ0NBU0l3RFFZSgpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLN2JIYWtxSkdRMWVBOUFHUmlhNGl2anNDRXlGMDhDCjNpSzJZeWthNkREeldmTk1tRWpOUjJiQVZOMEhlLy9pWTd1VjJ2dXl6V1UxMzZGVkdMZkdyeTZGOHNQQUZaSzcKSE4vcWk1QVp6MUpoOGdWSTRwS1pjZEFxQS81clF3VVlvWVN3Q245dGVOYytsbU1ZUk5OcTVwdlV2NjcrNEM3MgpPc3BOSUxSclhBbWNUb1YveVRZVzFKWDBOeEJJSHZZaFZXUE9LQXpRZDQ5UEpSeFpqMUgydCszMEFsazgzTDFwClFzTGx2SzV3MjJpeXdkYVpRN1lmV0xXd1hPQzVPWXdRTUw1R3BHUFNQaEdxdjhqSUhpcHBVeTdrRDlNWFFZOFoKdDl2QkczMzVWSEdlUjI2QnNQQXRFbTJjR05ocjA5cmRvdWJGd2tDR05OYXNVamFoVW9CKzhPY0NBd0VBQWFOUQpNRTR3SFFZRFZSME9CQllFRk9CNmNpTGtUL21Cc2xXSm5Na2phQzZqbjd4ek1COEdBMVVkSXdRWU1CYUFGT0I2CmNpTGtUL21Cc2xXSm5Na2phQzZqbjd4ek1Bd0dBMVVkRXdRRk1BTUJBZjh3RFFZSktvWklodmNOQVFFTEJRQUQKZ2dFQkFKTklHdHJpeFlCRUc1Yy9iQWdOMHlMOEJvOW9nN29ha0hVMUc5TjBxOUNWWXhjOVhma2ZUaEhYOVBUeApMbVNGcHJEQlAyYnVGTzVIUDFpbnNFT1E2N1lGanAvRjVJWGdaQ2twZUpGdDBTL0R3N2ZRbFJJN2RCNGQzNmIzCmE1R2txU0M4aFlZemxLUm9DRGNhalp4QmdoVUFxK0tnTnV4RmNsM1Fnd1Uyam1QbkU4a1A4TmgyM3hlVUJ3WEkKL3pqbU1rdjV4SFhKdHBpdlpzTlpSSUttQW56RU9TWGlRK2JMTStTdlhtSkhYd29YYTZyTXg4YmkySzV4WkhIRwpkUHA1TnQ3L2dxOUdXcm95SkVjSFpEclBiSnR2WGFibTZYUXpxTTFYUzA3SDlaSFBXc0dENGlBM1k0T3JUUlRCClZ5blRPUDl5U3cwbklaVEk4YjZuR2RHTzBOOD0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==",
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.customCATrustCertificates(data, fakeCertList),
@@ -967,10 +1031,10 @@ func TestAccKubernetesCluster_customCaTrustCerts(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.customCATrustCertificates(data, nil),
+			Config: r.customCATrustCertificates(data, fakeCertList2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.0").DoesNotExist(),
+				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.0").Exists(),
 				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.1").DoesNotExist(),
 			),
 		},
@@ -1036,6 +1100,51 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 				}, "azurerm_kubernetes_cluster.source"),
 			),
 		},
+	})
+}
+
+func TestAccKubernetesCluster_gpuInstance(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gpuInstance(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_supportPlanKubernetesOfficial(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.supportPlanKubernetesOfficial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_supportPlanAKSLongTermSupport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.supportPlanAKSLongTermSupport(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1371,9 +1480,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name                        = "default"
+    node_count                  = 1
+    vm_size                     = "Standard_DS2_v2"
+    temporary_name_for_rotation = "temp"
     kubelet_config {
       cpu_manager_policy        = "static"
       cpu_cfs_quota_enabled     = true
@@ -1451,9 +1561,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name                        = "default"
+    node_count                  = 1
+    vm_size                     = "Standard_DS2_v2"
+    temporary_name_for_rotation = "temp"
     kubelet_config {
       cpu_manager_policy    = "static"
       cpu_cfs_quota_enabled = true
@@ -2121,7 +2232,8 @@ func (KubernetesClusterResource) upgradeChannelConfig(data acceptance.TestData, 
 		upgradeChannel = "null"
 	}
 
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -2139,6 +2251,37 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version        = %q
   automatic_channel_upgrade = %s
   node_os_channel_upgrade   = "NodeImage"
+
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, upgradeChannel)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                      = "acctestaks%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  dns_prefix                = "acctestaks%d"
+  kubernetes_version        = %q
+  automatic_upgrade_channel = %s
+  node_os_upgrade_channel   = "NodeImage"
 
   default_node_pool {
     name       = "default"
@@ -2323,21 +2466,23 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) completeMaintenanceConfigAutoUpgrade(data acceptance.TestData) string {
+	startDate := time.Now().Format("2006-01-02T00:00:00Z")
+	endDate := time.Now().AddDate(0, 0, 4).Format("2006-01-02T00:00:00Z")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -2355,19 +2500,19 @@ resource "azurerm_kubernetes_cluster" "test" {
     week_index  = "First"
     start_time  = "07:00"
     utc_offset  = "+01:00"
-    start_date  = "2023-11-26T00:00:00Z"
+    start_date  = "%[3]s"
 
     not_allowed {
-      end   = "2023-11-30T00:00:00Z"
-      start = "2023-11-26T00:00:00Z"
+      end   = "%[4]s"
+      start = "%[3]s"
     }
     not_allowed {
-      end   = "2023-12-30T00:00:00Z"
-      start = "2023-12-26T00:00:00Z"
+      end   = "%[4]s"
+      start = "%[3]s"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, startDate, endDate)
 }
 
 func (KubernetesClusterResource) completeMaintenanceConfigDefault(data acceptance.TestData) string {
@@ -2425,21 +2570,23 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) completeMaintenanceConfigNodeOs(data acceptance.TestData) string {
+	startDate := time.Now().Format("2006-01-02T00:00:00Z")
+	endDate := time.Now().AddDate(0, 0, 4).Format("2006-01-02T00:00:00Z")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -2456,19 +2603,19 @@ resource "azurerm_kubernetes_cluster" "test" {
     day_of_month = 5
     start_time   = "07:00"
     utc_offset   = "+01:00"
-    start_date   = "2023-11-26T00:00:00Z"
+    start_date   = "%[3]s"
 
     not_allowed {
-      end   = "2023-11-30T00:00:00Z"
-      start = "2023-11-26T00:00:00Z"
+      end   = "%[4]s"
+      start = "%[3]s"
     }
     not_allowed {
-      end   = "2023-12-30T00:00:00Z"
-      start = "2023-12-26T00:00:00Z"
+      end   = "%[4]s"
+      start = "%[3]s"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, startDate, endDate)
 }
 
 func (KubernetesClusterResource) ultraSSD(data acceptance.TestData, ultraSSDEnabled bool) string {
@@ -2836,6 +2983,45 @@ resource "azurerm_kubernetes_cluster" "test" {
  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) webAppRoutingPrivateDNS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.%s.azmk8s.io"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  web_app_routing {
+    dns_zone_id = azurerm_private_dns_zone.test.id
+  }
+}
+ `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
 func (KubernetesClusterResource) customCATrustEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2962,7 +3148,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) nodeOsUpgradeChannel(data acceptance.TestData, nodeOsUpgradeChannel string) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -2976,6 +3163,31 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   dns_prefix              = "acctestaks%d"
   node_os_channel_upgrade = "%s"
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, nodeOsUpgradeChannel)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_cluster" "test" {
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  node_os_upgrade_channel = "%s"
   default_node_pool {
     name       = "default"
     vm_size    = "Standard_DS2_v2"
@@ -3098,4 +3310,95 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
+}
+
+func (KubernetesClusterResource) gpuInstance(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name         = "default"
+    node_count   = 1
+    vm_size      = "Standard_NC24ads_A100_v4"
+    gpu_instance = "MIG1g"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) supportPlanKubernetesOfficial(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  support_plan = "KubernetesOfficial"
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) supportPlanAKSLongTermSupport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+  default_node_pool {
+    name       = "default"
+    vm_size    = "Standard_DS2_v2"
+    node_count = 1
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  support_plan = "AKSLongTermSupport"
+  sku_tier     = "Premium"
+}
+`, data.Locations.Primary, data.RandomInteger)
 }

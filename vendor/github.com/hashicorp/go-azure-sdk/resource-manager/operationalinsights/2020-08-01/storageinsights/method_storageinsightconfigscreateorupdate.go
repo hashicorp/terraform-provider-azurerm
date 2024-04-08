@@ -48,7 +48,10 @@ func (c StorageInsightsClient) StorageInsightConfigsCreateOrUpdate(ctx context.C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model StorageInsight
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

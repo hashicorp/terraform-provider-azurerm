@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/streamingjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
@@ -65,7 +66,7 @@ func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"last_output_time": {
 				Type:     pluginsdk.TypeString,
@@ -96,6 +97,11 @@ func dataSourceStreamAnalyticsJob() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"sku_name": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -108,7 +114,7 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 
 	id := streamingjobs.NewStreamingJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	opts := streamingjobs.GetOperationOptions{
-		Expand: utils.ToPtr("transformation"),
+		Expand: pointer.To("transformation"),
 	}
 	resp, err := client.Get(ctx, id, opts)
 	if err != nil {
@@ -126,7 +132,11 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		if err := d.Set("identity", flattenJobIdentity(model.Identity)); err != nil {
+		flattenedIdentity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
 			return fmt.Errorf("setting `identity`: %v", err)
 		}
 
@@ -190,6 +200,12 @@ func dataSourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{
 				jobId = *v
 			}
 			d.Set("job_id", jobId)
+
+			sku := ""
+			if props.Sku != nil && props.Sku.Name != nil {
+				sku = string(*props.Sku.Name)
+			}
+			d.Set("sku_name", sku)
 
 			if props.Transformation != nil && props.Transformation.Properties != nil {
 				var streamingUnits int64

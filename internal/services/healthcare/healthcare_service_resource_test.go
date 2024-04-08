@@ -57,6 +57,9 @@ func TestAccHealthCareService_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -72,6 +75,23 @@ func TestAccHealthCareService_publicNetworkAccessDisabled(t *testing.T) {
 			Config: r.publicNetworkAccessDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+func TestAccHealthCareService_updateIdentitySystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+	r := HealthCareServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateIdentitySystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -165,6 +185,14 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_key_vault" "test" {
   name                = "acctestkv-%s"
   location            = azurerm_resource_group.test.location
@@ -229,6 +257,10 @@ resource "azurerm_healthcare_service" "test" {
     purpose     = "AcceptanceTests"
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   access_policy_object_ids = [
     data.azurerm_client_config.current.object_id,
   ]
@@ -247,10 +279,56 @@ resource "azurerm_healthcare_service" "test" {
     allow_credentials  = true
   }
 
+  configuration_export_storage_account_name = azurerm_storage_account.test.name
+
   cosmosdb_throughput                   = 400
   cosmosdb_key_vault_key_versionless_id = azurerm_key_vault_key.test.versionless_id
 }
-`, data.RandomInteger, location, data.RandomString, data.RandomIntOfLength(17)) // name can only be 24 chars long
+`, data.RandomInteger, location, data.RandomIntOfLength(8), data.RandomString, data.RandomIntOfLength(17)) // name can only be 24 chars long
+}
+
+func (HealthCareServiceResource) updateIdentitySystemAssigned(data acceptance.TestData) string {
+	location := "westus2"
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+provider "azuread" {}
+
+data "azurerm_client_config" "current" {
+}
+
+data "azuread_service_principal" "cosmosdb" {
+  display_name = "Azure Cosmos DB"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-health-%d"
+  location = "%s"
+}
+
+resource "azurerm_healthcare_service" "test" {
+  name                = "testacc%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  authentication_configuration {
+    authority           = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}"
+    audience            = "https://azurehealthcareapis.com"
+    smart_proxy_enabled = true
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) // name can only be 24 chars long
 }
 
 func (HealthCareServiceResource) publicNetworkAccessDisabled(data acceptance.TestData) string {

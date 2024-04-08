@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -115,12 +116,11 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 			},
 
 			"aad_admin": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				Computed:      true,
-				MaxItems:      1,
-				ConfigMode:    pluginsdk.SchemaConfigModeAttr,
-				ConflictsWith: []string{"customer_managed_key"},
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"login": {
@@ -293,7 +293,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
-				ConflictsWith: []string{"aad_admin", "sql_aad_admin"},
+				ConflictsWith: []string{"sql_aad_admin"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_versionless_id": {
@@ -308,8 +308,19 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 							Optional: true,
 							Default:  "cmk",
 						},
+
+						"user_assigned_identity_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
 					},
 				},
+			},
+
+			"azuread_authentication_only": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"tags": tags.Schema(),
@@ -358,6 +369,7 @@ func resourceSynapseWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{})
 			ManagedResourceGroupName:         utils.String(d.Get("managed_resource_group_name").(string)),
 			WorkspaceRepositoryConfiguration: expandWorkspaceRepositoryConfiguration(d),
 			Encryption:                       expandEncryptionDetails(d),
+			AzureADOnlyAuthentication:        utils.Bool(d.Get("azuread_authentication_only").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -519,7 +531,11 @@ func resourceSynapseWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 		d.Set("managed_resource_group_name", props.ManagedResourceGroupName)
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
 		d.Set("public_network_access_enabled", resp.PublicNetworkAccess == synapse.WorkspacePublicNetworkAccessEnabled)
-		cmk := flattenEncryptionDetails(props.Encryption)
+		d.Set("azuread_authentication_only", props.AzureADOnlyAuthentication)
+		cmk, err := flattenEncryptionDetails(props.Encryption)
+		if err != nil {
+			return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
+		}
 		if err := d.Set("customer_managed_key", cmk); err != nil {
 			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 		}
@@ -559,6 +575,7 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	sqlAdminClient := meta.(*clients.Client).Synapse.WorkspaceSQLAadAdminsClient
+	azureADOnlyAuthenticationsClient := meta.(*clients.Client).Synapse.WorkspaceAzureADOnlyAuthenticationsClient
 	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -611,6 +628,21 @@ func resourceSynapseWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		if err := waitSynapseWorkspaceCMKState(ctx, client, id); err != nil {
 			return fmt.Errorf("failed waiting for updating %s: %+v", id, err)
+		}
+	}
+
+	if d.HasChange("azuread_authentication_only") {
+		future, err := azureADOnlyAuthenticationsClient.Create(ctx, id.ResourceGroup, id.Name, synapse.AzureADOnlyAuthentication{
+			AzureADOnlyAuthenticationProperties: &synapse.AzureADOnlyAuthenticationProperties{
+				AzureADOnlyAuthentication: pointer.To(d.Get("azuread_authentication_only").(bool)),
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("updating azuread_authentication_only for %s: %+v", id, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting for azuread_authentication_only to finish updating for %s: %+v", id, err)
 		}
 	}
 
@@ -869,7 +901,8 @@ func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLC
 func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetails {
 	if cmkList, ok := d.GetOk("customer_managed_key"); ok {
 		cmk := cmkList.([]interface{})[0].(map[string]interface{})
-		return &synapse.EncryptionDetails{
+
+		encryptionDetails := &synapse.EncryptionDetails{
 			Cmk: &synapse.CustomerManagedKeyDetails{
 				Key: &synapse.WorkspaceKeyDetails{
 					Name:        utils.String(cmk["key_name"].(string)),
@@ -877,6 +910,15 @@ func expandEncryptionDetails(d *pluginsdk.ResourceData) *synapse.EncryptionDetai
 				},
 			},
 		}
+
+		if v, ok := cmk["user_assigned_identity_id"]; ok && v.(string) != "" {
+			encryptionDetails.Cmk.KekIdentity = &synapse.KekIdentityProperties{
+				UserAssignedIdentity:      pointer.To(v.(string)),
+				UseSystemAssignedIdentity: false,
+			}
+		}
+
+		return encryptionDetails
 	}
 
 	return nil
@@ -967,25 +1009,25 @@ func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLContro
 	return false
 }
 
-func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) []interface{} {
-	if encryption != nil {
-		if cmk := encryption.Cmk; cmk != nil {
-			if cmk.Key != nil {
-				resultMap := map[string]interface{}{}
-				resultMap["key_name"] = *cmk.Key.Name
-				resultMap["key_versionless_id"] = *cmk.Key.KeyVaultURL
-				return []interface{}{resultMap}
-			}
-		}
+func flattenEncryptionDetails(encryption *synapse.EncryptionDetails) ([]interface{}, error) {
+	output := make([]interface{}, 0)
+	if encryption == nil || encryption.Cmk == nil || encryption.Cmk.Key == nil {
+		return output, nil
+	}
+	resultMap := map[string]interface{}{}
 
-		// if cmk := encryption.Cmk; cmk != nil {
-		// 	if key := cmk.Key; key != nil {
-		// 		return key.Name, key.KeyVaultURL
-		// 	}
-		// }
+	resultMap["key_name"] = pointer.From(encryption.Cmk.Key.Name)
+	resultMap["key_versionless_id"] = pointer.From(encryption.Cmk.Key.KeyVaultURL)
+
+	if encryption.Cmk.KekIdentity != nil && encryption.Cmk.KekIdentity.UserAssignedIdentity != nil {
+		parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encryption.Cmk.KekIdentity.UserAssignedIdentity))
+		if err != nil {
+			return nil, fmt.Errorf("parsing %q: %+v", pointer.From(encryption.Cmk.KekIdentity.UserAssignedIdentity), err)
+		}
+		resultMap["user_assigned_identity_id"] = parsed.ID()
 	}
 
-	return make([]interface{}, 0)
+	return append(output, resultMap), nil
 }
 
 func expandIdentity(input []interface{}) (*synapse.ManagedIdentity, error) {

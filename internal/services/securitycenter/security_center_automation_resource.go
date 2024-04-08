@@ -9,21 +9,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+// TODO: 4.0 - remove these and use the SDK constants instead
 const (
 	typeLogicApp     = "logicapp"
 	typeEventHub     = "eventhub"
@@ -98,6 +100,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								// TODO: 4.0 - remove these and use the SDK constants instead
 								typeLogicApp,
 								typeLogAnalytics,
 								typeEventHub,
@@ -137,15 +140,17 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(security.EventSourceAlerts),
-								string(security.EventSourceAssessments),
-								string(security.EventSourceRegulatoryComplianceAssessment),
-								string(security.EventSourceRegulatoryComplianceAssessmentSnapshot),
-								string(security.EventSourceSecureScoreControls),
-								string(security.EventSourceSecureScoreControlsSnapshot),
-								string(security.EventSourceSecureScores),
-								string(security.EventSourceSecureScoresSnapshot),
-								string(security.EventSourceSubAssessments),
+								string(automations.EventSourceAlerts),
+								string(automations.EventSourceAssessments),
+								string(automations.EventSourceAssessmentsSnapshot),
+								string(automations.EventSourceRegulatoryComplianceAssessment),
+								string(automations.EventSourceRegulatoryComplianceAssessmentSnapshot),
+								string(automations.EventSourceSecureScoreControls),
+								string(automations.EventSourceSecureScoreControlsSnapshot),
+								string(automations.EventSourceSecureScores),
+								string(automations.EventSourceSecureScoresSnapshot),
+								string(automations.EventSourceSubAssessments),
+								string(automations.EventSourceSubAssessmentsSnapshot),
 							}, false),
 						},
 
@@ -171,25 +176,25 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(security.Contains),
-														string(security.EndsWith),
-														string(security.Equals),
-														string(security.GreaterThan),
-														string(security.GreaterThanOrEqualTo),
-														string(security.LesserThan),
-														string(security.LesserThanOrEqualTo),
-														string(security.NotEquals),
-														string(security.StartsWith),
+														string(automations.OperatorContains),
+														string(automations.OperatorEndsWith),
+														string(automations.OperatorEquals),
+														string(automations.OperatorGreaterThan),
+														string(automations.OperatorGreaterThanOrEqualTo),
+														string(automations.OperatorLesserThan),
+														string(automations.OperatorLesserThanOrEqualTo),
+														string(automations.OperatorNotEquals),
+														string(automations.OperatorStartsWith),
 													}, false),
 												},
 												"property_type": {
 													Type:     pluginsdk.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(security.Integer),
-														string(security.String),
-														string(security.Boolean),
-														string(security.Number),
+														string(automations.PropertyTypeInteger),
+														string(automations.PropertyTypeString),
+														string(automations.PropertyTypeBoolean),
+														string(automations.PropertyTypeNumber),
 													}, false),
 												},
 											},
@@ -202,7 +207,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.TagsForceNew(),
 		},
 	}
 }
@@ -214,15 +219,16 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 	defer cancel()
 
 	id := parse.NewAutomationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, automationId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_security_center_automation", id.ID())
 		}
 	}
@@ -231,29 +237,29 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 	enabled := d.Get("enabled").(bool)
 
 	// Build automation struct
-	automation := security.Automation{
+	automation := automations.Automation{
 		Location: &location,
-		AutomationProperties: &security.AutomationProperties{
+		Properties: &automations.AutomationProperties{
 			Description: utils.String(d.Get("description").(string)),
 			IsEnabled:   &enabled,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	automation.AutomationProperties.Scopes = expandSecurityCenterAutomationScopes(d.Get("scopes").([]interface{}))
+	automation.Properties.Scopes = expandSecurityCenterAutomationScopes(d.Get("scopes").([]interface{}))
 
 	var err error
-	automation.AutomationProperties.Actions, err = expandSecurityCenterAutomationActions(d.Get("action").([]interface{}))
+	automation.Properties.Actions, err = expandSecurityCenterAutomationActions(d.Get("action").([]interface{}))
 	if err != nil {
 		return err
 	}
 
-	automation.AutomationProperties.Sources, err = expandSecurityCenterAutomationSources(d.Get("source").([]interface{}))
+	automation.Properties.Sources, err = expandSecurityCenterAutomationSources(d.Get("source").([]interface{}))
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, automation); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, automationId, automation); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -270,10 +276,11 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
+	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, automationId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -284,9 +291,9 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("location", location.NormalizeNilable(resp.Model.Location))
 
-	if properties := resp.AutomationProperties; properties != nil {
+	if properties := resp.Model.Properties; properties != nil {
 		d.Set("description", properties.Description)
 		d.Set("enabled", properties.IsEnabled)
 
@@ -315,7 +322,7 @@ func resourceSecurityCenterAutomationRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return tags.FlattenAndSet(d, resp.Model.Tags)
 }
 
 func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -327,21 +334,22 @@ func resourceSecurityCenterAutomationDelete(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
+	automationId := automations.NewAutomationID(id.SubscriptionId, id.ResourceGroup, id.Name)
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	if _, err := client.Delete(ctx, automationId); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]security.AutomationSource, error) {
+func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]automations.AutomationSource, error) {
 	if len(sourcesRaw) == 0 {
-		return &[]security.AutomationSource{}, nil
+		return &[]automations.AutomationSource{}, nil
 	}
 
 	// Output is an array of AutomationSource
-	output := make([]security.AutomationSource, 0)
+	output := make([]automations.AutomationSource, 0)
 
 	// Top level loop over sources array
 	for _, sourceRaw := range sourcesRaw {
@@ -351,43 +359,43 @@ func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]securit
 		}
 
 		// Build and parse array of RuleSets
-		ruleSets := make([]security.AutomationRuleSet, 0)
+		ruleSets := make([]automations.AutomationRuleSet, 0)
 		ruleSetsRaw := sourceMap["rule_set"].([]interface{})
 		for _, ruleSetRaw := range ruleSetsRaw {
 			ruleSetMap := ruleSetRaw.(map[string]interface{})
 			rulesRaw := ruleSetMap["rule"].([]interface{})
 
 			// Build and parse array of Rules in each RuleSet
-			rules := make([]security.AutomationTriggeringRule, 0)
+			rules := make([]automations.AutomationTriggeringRule, 0)
 			for _, ruleRaw := range rulesRaw {
 				// Parse the rule fields
 				ruleMap := ruleRaw.(map[string]interface{})
 				rulePath := ruleMap["property_path"].(string)
-				ruleType := security.PropertyType(ruleMap["property_type"].(string))
+				ruleType := automations.PropertyType(ruleMap["property_type"].(string))
 				ruleValue := ruleMap["expected_value"].(string)
-				ruleOperator := security.Operator(ruleMap["operator"].(string))
+				ruleOperator := automations.Operator(ruleMap["operator"].(string))
 
 				// Create AutomationTriggeringRule struct and push into array
-				rule := security.AutomationTriggeringRule{
+				rule := automations.AutomationTriggeringRule{
 					PropertyJPath: &rulePath,
-					PropertyType:  ruleType,
+					PropertyType:  &ruleType,
 					ExpectedValue: &ruleValue,
-					Operator:      ruleOperator,
+					Operator:      &ruleOperator,
 				}
 				rules = append(rules, rule)
 			}
 
 			// Create AutomationRuleSet struct and push into array
-			ruleSet := security.AutomationRuleSet{
+			ruleSet := automations.AutomationRuleSet{
 				Rules: &rules,
 			}
 			ruleSets = append(ruleSets, ruleSet)
 		}
 
 		// Finally create AutomationSource struct holding our list of RuleSets
-		eventSource := security.EventSource(sourceMap["event_source"].(string))
-		source := security.AutomationSource{
-			EventSource: eventSource,
+		eventSource := automations.EventSource(sourceMap["event_source"].(string))
+		source := automations.AutomationSource{
+			EventSource: &eventSource,
 			RuleSets:    &ruleSets,
 		}
 
@@ -398,13 +406,13 @@ func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]securit
 	return &output, nil
 }
 
-func expandSecurityCenterAutomationScopes(scopePathsRaw []interface{}) *[]security.AutomationScope {
-	scopes := make([]security.AutomationScope, 0)
+func expandSecurityCenterAutomationScopes(scopePathsRaw []interface{}) *[]automations.AutomationScope {
+	scopes := make([]automations.AutomationScope, 0)
 
 	for _, scopePathRaw := range scopePathsRaw {
 		if path, ok := scopePathRaw.(string); ok {
 			desc := fmt.Sprintf("scope for %s", path)
-			scope := security.AutomationScope{
+			scope := automations.AutomationScope{
 				ScopePath:   &path,
 				Description: &desc,
 			}
@@ -415,17 +423,17 @@ func expandSecurityCenterAutomationScopes(scopePathsRaw []interface{}) *[]securi
 	return &scopes
 }
 
-func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction, error) {
+func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]automations.AutomationAction, error) {
 	if len(actionsRaw) == 0 {
-		return &[]security.BasicAutomationAction{}, nil
+		return &[]automations.AutomationAction{}, nil
 	}
 
-	output := make([]security.BasicAutomationAction, 0)
+	output := make([]automations.AutomationAction, 0)
 
 	for _, actionRaw := range actionsRaw {
 		actionMap := actionRaw.(map[string]interface{})
 
-		var autoAction security.BasicAutomationAction
+		var autoAction automations.AutomationAction
 		var resourceID string
 		var actionType string
 		var ok bool
@@ -442,32 +450,29 @@ func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]securit
 			if triggerURL, ok = actionMap["trigger_url"].(string); !ok || triggerURL == "" {
 				return nil, fmt.Errorf("Security Center automation, trigger_url is required for LogicApp action")
 			}
-			autoAction = security.AutomationActionLogicApp{
-				LogicAppResourceID: &resourceID,
-				URI:                &triggerURL,
-				ActionType:         security.ActionTypeLogicApp,
+			autoAction = automations.AutomationActionLogicApp{
+				LogicAppResourceId: &resourceID,
+				Uri:                &triggerURL,
 			}
 
-		// Handle LogAnalytics action type
+			// Handle LogAnalytics action type
 		case typeLogAnalytics:
-			autoAction = security.AutomationActionWorkspace{
-				WorkspaceResourceID: &resourceID,
-				ActionType:          security.ActionTypeWorkspace,
+			autoAction = automations.AutomationActionWorkspace{
+				WorkspaceResourceId: &resourceID,
 			}
 
-		// Handle EventHub action type
+			// Handle EventHub action type
 		case typeEventHub:
 			var connString string
 			if connString, ok = actionMap["connection_string"].(string); !ok || connString == "" {
 				return nil, fmt.Errorf("Security Center automation, connection_string is required for EventHub action")
 			}
-			autoAction = security.AutomationActionEventHub{
-				EventHubResourceID: &resourceID,
+			autoAction = automations.AutomationActionEventHub{
+				EventHubResourceId: &resourceID,
 				ConnectionString:   &connString,
-				ActionType:         security.ActionTypeEventHub,
 			}
 		default:
-			return nil, fmt.Errorf("Security Center automation, expected action type to be one of: %s, %s or %s", typeEventHub, typeLogAnalytics, typeLogicApp)
+			return nil, fmt.Errorf("Security Center automation, expected action type to be one of: %s, %s or %s", automations.ActionTypeEventHub, automations.ActionTypeWorkspace, automations.ActionTypeLogicApp)
 		}
 		output = append(output, autoAction)
 	}
@@ -475,7 +480,7 @@ func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]securit
 	return &output, nil
 }
 
-func flattenSecurityCenterAutomationSources(sources *[]security.AutomationSource) ([]map[string]interface{}, error) {
+func flattenSecurityCenterAutomationSources(sources *[]automations.AutomationSource) ([]map[string]interface{}, error) {
 	if sources == nil {
 		return make([]map[string]interface{}, 0), nil
 	}
@@ -499,8 +504,8 @@ func flattenSecurityCenterAutomationSources(sources *[]security.AutomationSource
 					ruleMap := map[string]string{
 						"property_path":  *rule.PropertyJPath,
 						"expected_value": *rule.ExpectedValue,
-						"operator":       string(rule.Operator),
-						"property_type":  string(rule.PropertyType),
+						"operator":       string(*rule.Operator),
+						"property_type":  string(*rule.PropertyType),
 					}
 					ruleSlice = append(ruleSlice, ruleMap)
 				}
@@ -522,7 +527,7 @@ func flattenSecurityCenterAutomationSources(sources *[]security.AutomationSource
 	return resultSlice, nil
 }
 
-func flattenSecurityCenterAutomationScopes(scopes *[]security.AutomationScope) ([]string, error) {
+func flattenSecurityCenterAutomationScopes(scopes *[]automations.AutomationScope) ([]string, error) {
 	if scopes == nil {
 		return []string{}, nil
 	}
@@ -539,7 +544,7 @@ func flattenSecurityCenterAutomationScopes(scopes *[]security.AutomationScope) (
 	return resultSlice, nil
 }
 
-func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationAction, d *pluginsdk.ResourceData) ([]map[string]string, error) {
+func flattenSecurityCenterAutomationActions(actions *[]automations.AutomationAction, d *pluginsdk.ResourceData) ([]map[string]string, error) {
 	if actions == nil {
 		return []map[string]string{}, nil
 	}
@@ -548,15 +553,15 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 
 	for i, action := range *actions {
 		// Use type assertion to discover the underlying action
-		// Trying to use action.(security.AutomationAction).ActionType results in a panic
-		actionLogicApp, isLogicApp := action.(security.AutomationActionLogicApp)
+		// Trying to use action.(automations.AutomationAction).ActionType results in a panic
+		actionLogicApp, isLogicApp := action.(automations.AutomationActionLogicApp)
 		if isLogicApp {
-			if actionLogicApp.LogicAppResourceID == nil {
+			if actionLogicApp.LogicAppResourceId == nil {
 				return nil, fmt.Errorf("Security Center automation, API returned an action with empty logicAppResourceId")
 			}
 			actionMap := map[string]string{
-				"resource_id": *actionLogicApp.LogicAppResourceID,
-				"type":        "logicapp",
+				"resource_id": *actionLogicApp.LogicAppResourceId,
+				"type":        string(typeLogicApp),
 				"trigger_url": "",
 			}
 
@@ -569,14 +574,14 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			resultSlice = append(resultSlice, actionMap)
 		}
 
-		actionEventHub, isEventHub := action.(security.AutomationActionEventHub)
+		actionEventHub, isEventHub := action.(automations.AutomationActionEventHub)
 		if isEventHub {
-			if actionEventHub.EventHubResourceID == nil {
+			if actionEventHub.EventHubResourceId == nil {
 				return nil, fmt.Errorf("Security Center automation, API returned an action with empty eventHubResourceId")
 			}
 			actionMap := map[string]string{
-				"resource_id":       *actionEventHub.EventHubResourceID,
-				"type":              "eventhub",
+				"resource_id":       *actionEventHub.EventHubResourceId,
+				"type":              string(typeEventHub),
 				"connection_string": "",
 			}
 
@@ -589,14 +594,14 @@ func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationA
 			resultSlice = append(resultSlice, actionMap)
 		}
 
-		actionLogAnalytics, isLogAnalytics := action.(security.AutomationActionWorkspace)
+		actionLogAnalytics, isLogAnalytics := action.(automations.AutomationActionWorkspace)
 		if isLogAnalytics {
-			if actionLogAnalytics.WorkspaceResourceID == nil {
+			if actionLogAnalytics.WorkspaceResourceId == nil {
 				return nil, fmt.Errorf("Security Center automation, API returned an action with empty workspaceResourceId")
 			}
 			actionMap := map[string]string{
-				"resource_id": *actionLogAnalytics.WorkspaceResourceID,
-				"type":        "loganalytics",
+				"resource_id": *actionLogAnalytics.WorkspaceResourceId,
+				"type":        string(typeLogAnalytics),
 			}
 
 			resultSlice = append(resultSlice, actionMap)

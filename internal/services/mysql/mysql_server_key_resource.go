@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	resourcesClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -31,6 +30,8 @@ func resourceMySQLServerKey() *pluginsdk.Resource {
 		Read:   resourceMySQLServerKeyRead,
 		Update: resourceMySQLServerKeyCreateUpdate,
 		Delete: resourceMySQLServerKeyDelete,
+
+		DeprecationMessage: "Azure Database for MySQL Single Server and its sub resources are scheduled for retirement by 2024-09-16 and will migrate to using Azure Database for MySQL Flexible Server: https://go.microsoft.com/fwlink/?linkid=2216041. The `azurerm_mysql_server_key` resource is deprecated and will be removed in v4.0 of the AzureRM Provider. Please use the `customer_managed_key` property of the `azurerm_mysql_flexible_server` resource instead.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := serverkeys.ParseKeyID(id)
@@ -61,12 +62,13 @@ func resourceMySQLServerKey() *pluginsdk.Resource {
 	}
 }
 
-func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, resourcesClient *resourcesClient.Client, keyVaultKeyURI string) (*string, error) {
+func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, subscriptionId string, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := keyVaultParse.ParseNestedItemID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultKeyID.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIDRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +82,6 @@ func getMySQLServerKeyName(ctx context.Context, keyVaultsClient *client.Client, 
 func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient.ServerKeys
 	keyVaultsClient := meta.(*clients.Client).KeyVault
-	resourcesClient := meta.(*clients.Client).Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -122,7 +123,7 @@ func resourceMySQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
-	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, resourcesClient, keyVaultKeyURI)
+	name, err := getMySQLServerKeyName(ctx, keyVaultsClient, serverID.SubscriptionId, keyVaultKeyURI)
 	if err != nil {
 		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroupName, serverID.ServerName, err)
 	}

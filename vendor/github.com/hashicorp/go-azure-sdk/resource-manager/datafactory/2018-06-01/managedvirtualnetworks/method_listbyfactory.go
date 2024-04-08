@@ -19,7 +19,8 @@ type ListByFactoryOperationResponse struct {
 }
 
 type ListByFactoryCompleteResult struct {
-	Items []ManagedVirtualNetworkResource
+	LatestHttpResponse *http.Response
+	Items              []ManagedVirtualNetworkResource
 }
 
 // ListByFactory ...
@@ -83,7 +84,8 @@ func (c ManagedVirtualNetworksClient) ListByFactoryCompleteMatchingPredicate(ctx
 	}
 
 	result = ListByFactoryCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

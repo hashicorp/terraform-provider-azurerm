@@ -104,7 +104,36 @@ func TestAccWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(t *testin
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scalingOverProvisionDisabled(data),
+			Config: r.scalingOverProvision(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccWindowsVirtualMachineScaleSet_scalingOverProvisionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingOverProvision(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.scalingOverProvision(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.scalingOverProvision(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -553,7 +582,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.template(data), instanceCount)
 }
 
-func (r WindowsVirtualMachineScaleSetResource) scalingOverProvisionDisabled(data acceptance.TestData) string {
+func (r WindowsVirtualMachineScaleSetResource) scalingOverProvision(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -565,7 +594,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 3
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  overprovision       = false
+  overprovision       = %t
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -590,7 +619,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data))
+`, r.template(data), enabled)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) scalingProximityPlacementGroup(data acceptance.TestData) string {

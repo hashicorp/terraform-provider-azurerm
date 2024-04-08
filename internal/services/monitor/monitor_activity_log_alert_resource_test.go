@@ -568,7 +568,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     resource_type           = "Microsoft.Storage/storageAccounts"
     resource_group          = azurerm_resource_group.test.name
     resource_id             = azurerm_storage_account.test.id
-    recommendation_category = "OperationalExcellence"
+    recommendation_category = "HighAvailability"
     recommendation_impact   = "High"
     caller                  = "test email address"
     level                   = "Critical"

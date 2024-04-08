@@ -21,11 +21,12 @@ import (
 )
 
 type cognitiveDeploymentModel struct {
-	Name               string                         `tfschema:"name"`
-	CognitiveAccountId string                         `tfschema:"cognitive_account_id"`
-	Model              []DeploymentModelModel         `tfschema:"model"`
-	RaiPolicyName      string                         `tfschema:"rai_policy_name"`
-	ScaleSettings      []DeploymentScaleSettingsModel `tfschema:"scale"`
+	Name                 string                         `tfschema:"name"`
+	CognitiveAccountId   string                         `tfschema:"cognitive_account_id"`
+	Model                []DeploymentModelModel         `tfschema:"model"`
+	RaiPolicyName        string                         `tfschema:"rai_policy_name"`
+	ScaleSettings        []DeploymentScaleSettingsModel `tfschema:"scale"`
+	VersionUpgradeOption string                         `tfschema:"version_upgrade_option"`
 }
 
 type DeploymentModelModel struct {
@@ -99,7 +100,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"version": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 					},
 				},
 			},
@@ -108,8 +109,18 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"rai_policy_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"version_upgrade_option": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(deployments.DeploymentModelVersionUpgradeOptionOnceCurrentVersionExpired),
+				string(deployments.DeploymentModelVersionUpgradeOptionOnceNewDefaultVersionAvailable),
+				string(deployments.DeploymentModelVersionUpgradeOptionNoAutoUpgrade),
+			}, false),
 		},
 	}
 	if !features.FourPointOh() {
@@ -245,6 +256,11 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 				properties.Properties.RaiPolicyName = &model.RaiPolicyName
 			}
 
+			if model.VersionUpgradeOption != "" {
+				option := deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption)
+				properties.Properties.VersionUpgradeOption = &option
+			}
+
 			properties.Sku = expandDeploymentSkuModel(model.ScaleSettings)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
@@ -289,6 +305,16 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("scale.0.capacity") {
 				properties.Sku.Capacity = pointer.To(model.ScaleSettings[0].Capacity)
 			}
+
+			if metadata.ResourceData.HasChange("rai_policy_name") {
+				properties.Properties.RaiPolicyName = pointer.To(model.RaiPolicyName)
+			}
+
+			if metadata.ResourceData.HasChange("model.0.version") {
+				properties.Properties.Model.Version = pointer.To(model.Model[0].Version)
+			}
+
+			properties.Properties.VersionUpgradeOption = pointer.To(deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption))
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -336,6 +362,9 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 
 				if v := properties.RaiPolicyName; v != nil {
 					state.RaiPolicyName = *v
+				}
+				if v := properties.VersionUpgradeOption; v != nil {
+					state.VersionUpgradeOption = string(*v)
 				}
 				state.ScaleSettings = flattenDeploymentScaleSettingsModel(properties.ScaleSettings)
 			}

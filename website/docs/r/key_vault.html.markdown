@@ -83,7 +83,7 @@ The following arguments are supported:
 
 ---
 
-* `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of up to 1024 objects describing access policies, as described below.
+* `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `access_policy` objects (up to 1024) describing access policies, as described below.
 
 -> **NOTE** Since `access_policy` can be configured both inline and via the separate `azurerm_key_vault_access_policy` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
@@ -110,6 +110,8 @@ The following arguments are supported:
 * `contact` - (Optional) One or more `contact` block as defined below.
 
 ~> **Note:** This field can only be set once user has `managecontacts` certificate permission.
+
+~> **Note:** This field can only be set when `public_network_access_enabled` is set to `true`. To manage the `contact` with `public_network_access_enabled` set to `false`, please use [the `azurerm_key_vault_certificate_contacts` resource](key_vault_certificate_contacts.html) instead of this property, and remove this property from the configuration. Especially for existing `azurerm_key_vault`, this means you'll need to import the `azurerm_key_vault_certificate_contacts` manually.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

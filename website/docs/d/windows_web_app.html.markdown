@@ -63,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enabled` - Is the Windows Web App enabled?
 
+* `ftp_publish_basic_authentication_enabled` - Are the default FTP Basic Authentication publishing credentials enabled.
+
 * `https_only` - Does the Windows Web App require HTTPS connections.
 
 * `identity` - A `identity` block as defined below.
@@ -81,6 +83,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_addresses` - The string representation of the list of Possible Outbound IP Addresses that could be used by this Windows Web App.
 
+* `public_network_access_enabled` - Is Public Network Access enabled for the Windows Web App.
+
 * `service_plan_id` - The ID of the Service Plan in which this Windows Web App resides.
 
 * `site_config` - A `site_config` block as defined below.
@@ -94,6 +98,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `tags` - A mapping of tags assigned to the Windows Web App.
 
 * `virtual_network_subnet_id` - The subnet id which the Windows Web App is vNet Integrated with.
+
+* `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
 
 ---
 
@@ -593,6 +599,8 @@ A `site_config` block exports the following:
 
 * `ip_restriction` - A `ip_restriction` block as defined above.
 
+* `ip_restriction_default_action` - The Default action for traffic that does not match any `ip_restriction` rule.
+
 * `load_balancing_mode` - The site Load Balancing Mode.
 
 * `local_mysql_enabled` - Is the Local MySQL enabled.
@@ -606,6 +614,8 @@ A `site_config` block exports the following:
 * `remote_debugging_version` - The Remote Debugging Version.
 
 * `scm_ip_restriction` - A `scm_ip_restriction` block as defined above.
+
+* `scm_ip_restriction_default_action` - The Default action for traffic that does not match any `scm_ip_restriction` rule.
 
 * `scm_minimum_tls_version` - The Minimum version of TLS for requests to SCM.
 

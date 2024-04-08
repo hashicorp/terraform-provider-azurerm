@@ -102,8 +102,6 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `child_prefixes` - A list of child prefixes for this Custom IP Prefix. Populated for IPv6 global prefixes.
-
 * `id` - The ID of the Custom IP Prefix.
 
 ## Timeouts

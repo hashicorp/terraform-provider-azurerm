@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -111,8 +112,38 @@ func TestAccSharedImageGallery_communityGallery(t *testing.T) {
 	})
 }
 
+func TestAccSharedImageGallery_groupsGallery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.groupsGallery(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSharedImageGallery_privateGallery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
+	r := SharedImageGalleryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateGallery(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SharedImageGalleryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := galleries.ParseGalleryID(state.ID)
+	id, err := commonids.ParseSharedImageGalleryID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -209,6 +240,52 @@ resource "azurerm_shared_image_gallery" "test" {
       publisher_email = "publisher@test.net"
       publisher_uri   = "https://publisher.net"
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (SharedImageGalleryResource) groupsGallery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sharing {
+    permission = "Groups"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (SharedImageGalleryResource) privateGallery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sharing {
+    permission = "Private"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

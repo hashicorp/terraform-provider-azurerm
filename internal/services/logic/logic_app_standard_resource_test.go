@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -29,7 +30,12 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,workflowapp"),
-				check.That(data.ResourceName).Key("version").HasValue("~3"),
+				func() pluginsdk.TestCheckFunc {
+					if features.FourPointOhBeta() {
+						return check.That(data.ResourceName).Key("version").HasValue("~4")
+					}
+					return check.That(data.ResourceName).Key("version").HasValue("~3")
+				}(),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
@@ -780,7 +786,7 @@ func TestAccLogicAppStandard_dotnetVersion5(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dotnetVersion(data, "~3", "v5.0"),
+			Config: r.dotnetVersion(data, "~4", "v5.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v5.0"),
@@ -860,6 +866,30 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 			Config: r.vNetIntegration_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccessEnabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccessEnabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1834,7 +1864,7 @@ resource "azurerm_logic_app_standard" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  version                    = "~3"
+  version                    = "~4"
 
   site_config {
     pre_warmed_instance_count        = 1
@@ -2173,4 +2203,27 @@ resource "azurerm_logic_app_standard" "test" {
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r LogicAppStandardResource) publicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    public_network_access_enabled = %t
+  }
+}
+`, r.template(data), data.RandomInteger, enabled)
 }

@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package migration
 
 import (
@@ -5,7 +8,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/apipolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apipolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

@@ -30,6 +30,12 @@ resource "azurerm_api_management_api_operation" "example" {
   url_template        = "/users/{id}/delete"
   description         = "This can only be done by the logged in user."
 
+  template_parameter {
+    name     = "id"
+    type     = "number"
+    required = true
+  }
+
   response {
     status_code = 200
   }

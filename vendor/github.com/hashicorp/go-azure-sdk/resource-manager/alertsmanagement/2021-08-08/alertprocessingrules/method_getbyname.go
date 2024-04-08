@@ -43,7 +43,10 @@ func (c AlertProcessingRulesClient) GetByName(ctx context.Context, id ActionRule
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AlertProcessingRule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -36,6 +36,7 @@ func (r Registration) Resources() []sdk.Resource {
 		VMWareReplicationPolicyResource{},
 		VMWareReplicationPolicyAssociationResource{},
 		VaultGuardProxyResource{},
+		VMWareReplicatedVmResource{},
 	}
 }
 

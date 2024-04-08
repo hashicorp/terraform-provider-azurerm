@@ -121,10 +121,7 @@ func (r DataConnectorThreatIntelligenceTAXIIResource) IDValidationFunc() plugins
 }
 
 func (r DataConnectorThreatIntelligenceTAXIIResource) CustomImporter() sdk.ResourceRunFunc {
-	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := importSentinelDataConnector(securityinsight.DataConnectorKindThreatIntelligenceTaxii)(ctx, metadata.ResourceData, metadata.Client)
-		return err
-	}
+	return importDataConnectorTyped(securityinsight.DataConnectorKindThreatIntelligenceTaxii)
 }
 
 func (r DataConnectorThreatIntelligenceTAXIIResource) Create() sdk.ResourceFunc {
