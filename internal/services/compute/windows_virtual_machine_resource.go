@@ -959,7 +959,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 					bypassPlatformSafetyChecksOnUserScheduleEnabled := false
 					rebootSetting := ""
 					if patchSettings := config.PatchSettings; patchSettings != nil {
-						d.Set("patch_mode", patchSettings.PatchMode)
+						d.Set("patch_mode", pointer.From(patchSettings.PatchMode))
 						d.Set("hotpatching_enabled", patchSettings.EnableHotpatching)
 
 						if patchSettings.AutomaticByPlatformSettings != nil {
