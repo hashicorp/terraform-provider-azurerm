@@ -363,19 +363,19 @@ resource "azurerm_subnet" "pod_subnet" {
     name = "aks-delegation"
 
     service_delegation {
-        actions = [
-            "Microsoft.Network/virtualNetworks/subnets/join/action",
-          ]
-        name    = "Microsoft.ContainerService/managedClusters"
-      }
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+      name = "Microsoft.ContainerService/managedClusters"
+    }
   }
 }
 
 resource "azurerm_subnet" "firewall_subnet" {
-  name = "AzureFirewallSubnet"
-  resource_group_name = azurerm_resource_group.test.name
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes = ["172.0.35.0/26"]
+  address_prefixes     = ["172.0.35.0/26"]
 }
 
 resource "azurerm_public_ip" "fw" {
@@ -390,8 +390,8 @@ resource "azurerm_firewall" "test" {
   name                = "firewall"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku_name = "AZFW_VNet"
-  sku_tier = "Standard"
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
 
   ip_configuration {
     name                 = "configuration"
@@ -436,21 +436,21 @@ resource "azurerm_route_table" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   disable_bgp_route_propagation = false
   route {
-    name = "internal"
+    name           = "internal"
     address_prefix = azurerm_virtual_network.test.address_space[0]
-    next_hop_type = "VnetLocal"
+    next_hop_type  = "VnetLocal"
   }
   route {
-    name = "internet"
-    address_prefix = "0.0.0.0/0"
-    next_hop_type = "VirtualAppliance"
+    name                   = "internet"
+    address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.test.ip_configuration[0].private_ip_address
   }
 }
 
 resource "azurerm_subnet_route_table_association" "node_subnet" {
   route_table_id = azurerm_route_table.test.id
-  subnet_id = azurerm_subnet.node_subnet.id
+  subnet_id      = azurerm_subnet.node_subnet.id
 }
   `, data.RandomInteger, data.Locations.Primary)
 }
@@ -467,14 +467,14 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = "1.29"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = %q
     }
-    vnet_subnet_id 		   = azurerm_subnet.node_subnet.id
-    pod_subnet_id 		   = azurerm_subnet.pod_subnet.id
+    vnet_subnet_id = azurerm_subnet.node_subnet.id
+    pod_subnet_id  = azurerm_subnet.pod_subnet.id
   }
 
   identity {
@@ -482,7 +482,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   network_profile {
     network_plugin = "azure"
-	outbound_type = %q
+    outbound_type  = %q
   }
 }
   `, r.vnetWithNetworkProfileInfra(data), data.RandomInteger, data.RandomInteger, "10%", outboundType)
