@@ -208,15 +208,23 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkProfile(data, "loadBalancer"),
+			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkProfile(data, "userDefinedRouting"),
+			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkProfile(data, "loadBalancer"),
+			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
 		},
 		data.ImportStep(),
 	})
@@ -363,11 +371,81 @@ resource "azurerm_subnet" "pod_subnet" {
   }
 }
 
+resource "azurerm_subnet" "firewall_subnet" {
+  name = "AzureFirewallSubnet"
+  resource_group_name = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes = ["172.0.35.0/26"]
+}
+
+resource "azurerm_public_ip" "fw" {
+  name                = "fw-pip"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "firewall"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name = "AZFW_VNet"
+  sku_tier = "Standard"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.firewall_subnet.id
+    public_ip_address_id = azurerm_public_ip.fw.id
+  }
+}
+
+resource "azurerm_public_ip" "nat_gw" {
+  name                = "nat-gw"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "test"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.nat_gw.id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "pod" {
+  subnet_id      = azurerm_subnet.pod_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "node" {
+  subnet_id      = azurerm_subnet.node_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.test.id
+}
+
 resource "azurerm_route_table" "test" {
   name                          = "test"
   location                      = azurerm_resource_group.test.location
   resource_group_name           = azurerm_resource_group.test.name
   disable_bgp_route_propagation = false
+  route {
+    name = "internal"
+    address_prefix = azurerm_virtual_network.test.address_space[0]
+    next_hop_type = "VnetLocal"
+  }
+  route {
+    name = "internet"
+    address_prefix = "0.0.0.0/0"
+    next_hop_type = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.test.ip_configuration[0].private_ip_address
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "node_subnet" {
@@ -377,7 +455,7 @@ resource "azurerm_subnet_route_table_association" "node_subnet" {
   `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r KubernetesClusterResource) networkProfile(data acceptance.TestData, outboundType string) string {
+func (r KubernetesClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -392,8 +470,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                   = "default"
     node_count             = 1
     vm_size                = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = %q
+    }
     vnet_subnet_id 		   = azurerm_subnet.node_subnet.id
-    pod_subnet_id 		   = azurerm_subnet.pod-subnet.id
+    pod_subnet_id 		   = azurerm_subnet.pod_subnet.id
   }
 
   identity {
@@ -404,7 +485,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 	outbound_type = %q
   }
 }
-  `, r.vnetWithRoutetable(data), data.RandomInteger, data.RandomInteger, outboundType)
+  `, r.vnetWithRoutetable(data), data.RandomInteger, data.RandomInteger, "10%", outboundType)
 }
 
 func (KubernetesClusterResource) dedicatedHost(data acceptance.TestData) string {
