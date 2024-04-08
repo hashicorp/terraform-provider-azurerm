@@ -548,6 +548,13 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.updateServiceDelegation(data, "Oracle.Database/networkAttachments"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
