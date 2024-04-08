@@ -207,7 +207,7 @@ A `cluster_profile` block supports the following:
 
 * `fips_enabled` - (Optional) Whether Federal Information Processing Standard (FIPS) validated cryptographic modules are used. Defaults to `false`. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Optional) The name of a Resource Group which will be created and used to deploy the infrastructure of Azure Red Hat OpenShift Cluster. Defaults to `aro-{domain}`. Changing this forces a new resource to be created.
+* `resource_group_name` - (Optional) The name of a Resource Group which will be created and used to deploy the infrastructure of Azure Red Hat OpenShift Cluster. The value should not contain uppercase characters. Defaults to `aro-{domain}`. Changing this forces a new resource to be created.
 
 ---
 

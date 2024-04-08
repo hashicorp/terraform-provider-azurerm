@@ -159,13 +159,13 @@ func TestAccOpenShiftCluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccOpenShiftCluster_basicCustomResourceGroupName(t *testing.T) {
+func TestAccOpenShiftCluster_basicResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
 	r := OpenShiftClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicCustomResourceGroupName(data),
+			Config: r.basicResourceGroupName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -719,7 +719,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r OpenShiftClusterResource) basicCustomResourceGroupName(data acceptance.TestData) string {
+func (r OpenShiftClusterResource) basicResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -731,7 +731,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   cluster_profile {
     domain              = "aro-%[3]s.com"
     version             = "4.13.23"
-    resource_group_name = "acctestRG-aro-infra-%[3]s"
+    resource_group_name = "acctestrg-aro-infra-%[3]s"
   }
 
   network_profile {

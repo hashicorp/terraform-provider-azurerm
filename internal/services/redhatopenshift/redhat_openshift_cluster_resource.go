@@ -140,7 +140,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validate.ClusterResourceGroupName,
 						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
 							defaultResourceGroupName := fmt.Sprintf("aro-%s", d.Get("cluster_profile.0.domain").(string))
 							if old == defaultResourceGroupName && new == "" {
