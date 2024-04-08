@@ -144,7 +144,7 @@ The following arguments are supported:
 
 * `share_properties` - (Optional) A `share_properties` block as defined below.
 
-~> **NOTE:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is `Storage(V2)` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
+~> **NOTE:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
