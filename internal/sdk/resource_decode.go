@@ -267,14 +267,14 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 		slice = reflect.MakeSlice(fieldType.Elem(), len(v), len(v))
 	}
 	isPtr := fieldType.Kind() == reflect.Ptr
-	var dereferenceFieldType reflect.Type
+	var dereferenceFieldType reflect.Kind
 	if isPtr {
-		dereferenceFieldType = fieldType.Elem()
+		dereferenceFieldType = fieldType.Elem().Elem().Kind()
 	} else {
-		dereferenceFieldType = fieldType
+		dereferenceFieldType = fieldType.Elem().Kind()
 	}
 	switch dereferenceFieldType {
-	case reflect.TypeOf([]string{}):
+	case reflect.String:
 		if !isPtr {
 			for i, stringVal := range v {
 				slice.Index(i).SetString(stringVal.(string))
@@ -289,7 +289,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
 
-	case reflect.TypeOf([]int{}), reflect.TypeOf([]int32{}), reflect.TypeOf([]int64{}):
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if !isPtr {
 			for i, iVal := range v {
 				slice.Index(i).SetInt(int64(iVal.(int)))
@@ -304,7 +304,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
 
-	case reflect.TypeOf([]float64{}), reflect.TypeOf([]float32{}):
+	case reflect.Float64, reflect.Float32:
 		if !isPtr {
 			for i, fVal := range v {
 				slice.Index(i).SetFloat(fVal.(float64))
@@ -319,7 +319,7 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 			reflect.ValueOf(input).Elem().Field(index).Set(tmp)
 		}
 
-	case reflect.TypeOf([]bool{}):
+	case reflect.Bool:
 		if !isPtr {
 			for i, bVal := range v {
 				slice.Index(i).SetBool(bVal.(bool))
