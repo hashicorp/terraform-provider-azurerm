@@ -50,7 +50,7 @@ func (c Client) GetProperties(ctx context.Context, shareName, path, fileName str
 	}
 
 	if path != "" {
-		path = fmt.Sprintf("/%s/", path)
+		path = fmt.Sprintf("%s/", path)
 	}
 
 	opts := client.RequestOptions{
@@ -74,7 +74,7 @@ func (c Client) GetProperties(ctx context.Context, shareName, path, fileName str
 	if resp != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
+		if resp.Response != nil && resp.Header != nil {
 			result.CacheControl = resp.Header.Get("Cache-Control")
 			result.ContentDisposition = resp.Header.Get("Content-Disposition")
 			result.ContentEncoding = resp.Header.Get("Content-Encoding")

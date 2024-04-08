@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
+	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -80,7 +81,13 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 		"developer_app_insights_application_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.IsUUID,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"cmk_key_vault_key_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
 		},
 
 		"microsoft_app_msi_id": {
@@ -206,6 +213,8 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					DeveloperAppInsightsAPIKey:        pointer.To(metadata.ResourceData.Get("developer_app_insights_api_key").(string)),
 					DeveloperAppInsightsApplicationID: pointer.To(metadata.ResourceData.Get("developer_app_insights_application_id").(string)),
 					DisableLocalAuth:                  pointer.To(!metadata.ResourceData.Get("local_authentication_enabled").(bool)),
+					IsCmekEnabled:                     utils.Bool(false),
+					CmekKeyVaultURL:                   pointer.To(metadata.ResourceData.Get("cmk_key_vault_key_url").(string)),
 					LuisAppIds:                        utils.ExpandStringSlice(metadata.ResourceData.Get("luis_app_ids").([]interface{})),
 					LuisKey:                           pointer.To(metadata.ResourceData.Get("luis_key").(string)),
 					PublicNetworkAccess:               publicNetworkEnabled,
@@ -213,6 +222,10 @@ func (br botBaseResource) createFunc(resourceName, botKind string) sdk.ResourceF
 					IconURL:                           pointer.To(metadata.ResourceData.Get("icon_url").(string)),
 				},
 				Tags: tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
+			}
+
+			if _, ok := metadata.ResourceData.GetOk("cmk_key_vault_key_url"); ok {
+				props.Properties.IsCmekEnabled = utils.Bool(true)
 			}
 
 			if v, ok := metadata.ResourceData.GetOk("microsoft_app_type"); ok {
@@ -424,6 +437,8 @@ func (br botBaseResource) readFunc() sdk.ResourceFunc {
 				metadata.ResourceData.Set("streaming_endpoint_enabled", streamingEndpointEnabled)
 
 				metadata.ResourceData.Set("icon_url", pointer.From(props.IconURL))
+
+				metadata.ResourceData.Set("cmk_key_vault_key_url", pointer.From(props.CmekKeyVaultURL))
 			}
 
 			return nil

@@ -166,7 +166,12 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: networkValidate.PublicIpPrefixID,
-						RequiredWith: []string{"default_node_pool.0.enable_node_public_ip"},
+						RequiredWith: func() []string {
+							if !features.FourPointOhBeta() {
+								return []string{"default_node_pool.0.enable_node_public_ip"}
+							}
+							return []string{"default_node_pool.0.node_public_ip_enabled"}
+						}(),
 					},
 
 					"node_taints": {

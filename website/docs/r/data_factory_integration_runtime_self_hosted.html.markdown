@@ -44,6 +44,8 @@ The following arguments are supported:
 
 * `rbac_authorization` - (Optional) A `rbac_authorization` block as defined below. Changing this forces a new resource to be created.
 
+* `self_contained_interactive_authoring_enabled` - (Optional) Specifies whether enable interactive authoring function when your self-hosted integration runtime is unable to establish a connection with Azure Relay.
+
 ---
 
 A `rbac_authorization` block supports the following:

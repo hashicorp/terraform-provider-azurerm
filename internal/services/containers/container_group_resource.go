@@ -1583,6 +1583,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				scheme := x["scheme"].(string)
 
 				httpGetScheme := containerinstance.Scheme(scheme)
+
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.FromString(path),
 					Port:        int64(port),

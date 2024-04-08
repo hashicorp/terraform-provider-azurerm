@@ -303,14 +303,14 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Share %q: %s", data.AccountName, data.FileShareName, err)
 			}
 			if storageAccount == nil {
 				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
 			}
-			fileShareId := storageparse.NewStorageShareResourceManagerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, "default", data.FileShareName)
+			fileShareId := storageparse.NewStorageShareResourceManagerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, "default", data.FileShareName)
 			model.StorageFileShareID = fileShareId.ID()
 
 			model.IsDefault = *data.IsDefault

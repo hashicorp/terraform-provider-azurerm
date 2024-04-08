@@ -60,5 +60,9 @@ func Default() UserFeatures {
 		PostgresqlFlexibleServer: PostgresqlFlexibleServerFeatures{
 			RestartServerOnConfigurationValueChange: true,
 		},
+		RecoveryService: RecoveryServiceFeatures{
+			VMBackupStopProtectionAndRetainDataOnDestroy: false,
+			PurgeProtectedItemsFromVaultOnDestroy:        false,
+		},
 	}
 }
