@@ -102,10 +102,10 @@ func (c Client) AppendBlock(ctx context.Context, containerName, blobName string,
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Response != nil && resp.Header != nil {
+		if resp.Header != nil {
 			result.BlobAppendOffset = resp.Header.Get("x-ms-blob-append-offset")
 			result.ContentMD5 = resp.Header.Get("Content-MD5")
 			result.ETag = resp.Header.Get("ETag")

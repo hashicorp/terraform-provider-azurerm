@@ -47,10 +47,10 @@ func (c Client) GetProperties(ctx context.Context, fileSystemName string) (resul
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Response != nil && resp.Header != nil {
+		if resp.Header != nil {
 			propertiesRaw := resp.Header.Get("x-ms-properties")
 			var properties *map[string]string
 			properties, err = parseProperties(propertiesRaw)

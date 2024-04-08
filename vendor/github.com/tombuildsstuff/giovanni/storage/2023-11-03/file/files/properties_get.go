@@ -71,10 +71,10 @@ func (c Client) GetProperties(ctx context.Context, shareName, path, fileName str
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Response != nil && resp.Header != nil {
+		if resp.Header != nil {
 			result.CacheControl = resp.Header.Get("Cache-Control")
 			result.ContentDisposition = resp.Header.Get("Content-Disposition")
 			result.ContentEncoding = resp.Header.Get("Content-Encoding")
