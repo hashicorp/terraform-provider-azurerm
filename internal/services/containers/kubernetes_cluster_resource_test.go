@@ -353,6 +353,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count    = 1
     vm_size       = "Standard_D2s_v3"
     host_group_id = azurerm_dedicated_host_group.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

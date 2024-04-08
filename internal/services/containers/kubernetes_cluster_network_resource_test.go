@@ -1127,6 +1127,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test1.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1178,6 +1181,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 2
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1235,6 +1241,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1292,6 +1301,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1358,6 +1370,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1423,6 +1438,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1488,6 +1506,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1549,6 +1570,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1599,6 +1623,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1650,6 +1677,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1729,6 +1759,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1808,6 +1841,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1847,6 +1883,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count            = 1
     vm_size               = "Standard_DS2_v2"
     enable_node_public_ip = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1901,6 +1940,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
     max_pods       = 60
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1940,6 +1982,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size                  = "Standard_DS2_v2"
     enable_node_public_ip    = true
     node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1971,6 +2016,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count = 2
     vm_size    = "Standard_DS2_v2"
     max_pods   = 60
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2011,6 +2059,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count = 2
     vm_size    = "Standard_DS2_v2"
     max_pods   = 60
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2095,6 +2146,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size        = "Standard_DS2_v2"
     max_pods       = 60
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2135,6 +2189,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count = 2
     vm_size    = "Standard_DS2_v2"
     max_pods   = 60
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2183,6 +2240,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2245,6 +2305,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2305,6 +2368,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   network_profile {
@@ -2362,6 +2428,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2412,6 +2481,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -2443,6 +2515,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   network_profile {
@@ -2474,6 +2549,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   network_profile {
@@ -2506,6 +2584,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   network_profile {
@@ -2538,6 +2619,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   network_profile {
@@ -2678,6 +2762,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -3984,6 +4071,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
   identity {
     type = "SystemAssigned"
@@ -4033,6 +4123,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
   identity {
     type = "SystemAssigned"
@@ -4079,6 +4172,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
   identity {
     type = "SystemAssigned"
@@ -4123,6 +4219,9 @@ resource "azurerm_kubernetes_cluster" "test" {
       node_public_ip_tags = {
         RoutingPreference = "Internet"
       }
+    }
+    upgrade_settings {
+      max_surge = "10%%"
     }
   }
   identity {
@@ -4169,6 +4268,9 @@ resource "azurerm_kubernetes_cluster" "test" {
       node_public_ip_tags = {
         RoutingPreference = "Internet"
       }
+    }
+    upgrade_settings {
+      max_surge = "10%%"
     }
   }
   identity {
