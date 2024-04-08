@@ -15,10 +15,14 @@ BUG FIXES:
 
 DEPRECATIONS:
 
-* `azurerm_cosmosdb_account` - `connection_strings` has been superseded by the primary and secondary connection strings for sql, mongodb and readonly [GH-25510]
-* `azurerm_cosmosdb_account` - `enable_free_tier` has been superseded by `free_tier_enabled` [GH-25510]
-* `azurerm_cosmosdb_account` - `enable_multiple_write_locations` has been superseded by `multiple_write_locations_enabled` [GH-25510]
-* `azurerm_cosmosdb_account` - `enable_automatic_failover` has been superseded by `automatic_failover_enabled` [GH-25510]
+* `azurerm_cosmosdb_account` - the `connection_strings` property has been superseded by the primary and secondary connection strings for sql, mongodb and readonly [GH-25510]
+* `azurerm_cosmosdb_account` - the `enable_free_tier` property has been superseded by `free_tier_enabled` [GH-25510]
+* `azurerm_cosmosdb_account` - the `enable_multiple_write_locations` property  has been superseded by `multiple_write_locations_enabled` [GH-25510]
+* `azurerm_cosmosdb_account` - the `enable_automatic_failover` property has been superseded by `automatic_failover_enabled` [GH-25510]
+* `azurerm_linux_function_app` - will not taint the resource when partially created [GH-24520]
+* `azurerm_function_app_slot` - will not taint the resource when partially created [GH-24520]
+* `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
+* `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
 
 ## 3.98.0 (April 04, 2024)
 
