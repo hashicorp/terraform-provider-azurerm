@@ -58,7 +58,7 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 			},
 			MapOfStrings: map[string]string{
 				"hello":   "there",
-				"salut":   "tous les monde",
+				"salut":   "tout les monde",
 				"guten":   "tag",
 				"morning": "alvaro",
 			},
@@ -89,7 +89,7 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 			},
 			"map_of_strings": map[string]interface{}{
 				"hello":   "there",
-				"salut":   "tous les monde",
+				"salut":   "tout les monde",
 				"guten":   "tag",
 				"morning": "alvaro",
 			},
@@ -98,7 +98,6 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 }
 
 func TestResourceEncode_TopLevelAllTypesAndCombinations(t *testing.T) {
-
 	encodeTestData{
 		Input: &OneOfEverything{
 			RequiredStr:           "foo",
