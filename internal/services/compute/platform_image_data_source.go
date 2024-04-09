@@ -84,7 +84,11 @@ func dataSourcePlatformImageRead(d *pluginsdk.ResourceData, meta interface{}) er
 		image = &(*result.Model)[len(*result.Model)-1]
 	}
 
-	d.SetId(*image.Id)
+	imageId, err := virtualmachineimages.ParseSkuVersionIDInsensitively(*image.Id)
+	if err != nil {
+		return err
+	}
+	d.SetId(imageId.ID())
 
 	d.Set("location", location.Normalize(image.Location))
 	d.Set("publisher", id.PublisherName)
