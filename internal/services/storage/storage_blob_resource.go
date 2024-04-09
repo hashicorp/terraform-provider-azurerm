@@ -111,6 +111,13 @@ func resourceStorageBlob() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"encryption_scope": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageEncryptionScopeName,
+			},
+
 			"source": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -239,6 +246,11 @@ func resourceStorageBlobCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		SourceContent: d.Get("source_content").(string),
 		SourceUri:     d.Get("source_uri").(string),
 	}
+
+	if encryptionScope := d.Get("encryption_scope"); encryptionScope.(string) != "" {
+		blobInput.EncryptionScope = encryptionScope.(string)
+	}
+
 	if err = blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
@@ -379,6 +391,8 @@ func resourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 	d.Set("content_md5", contentMD5)
+
+	d.Set("encryption_scope", props.EncryptionScope)
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 	d.Set("url", d.Id())
