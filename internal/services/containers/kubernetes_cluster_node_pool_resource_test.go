@@ -583,10 +583,11 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, ""),
+			Config: r.upgradeSettingsConfig(data, "10%"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("0"),
+				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("10%"),
 			),
 		},
 		data.ImportStep(),
@@ -2109,7 +2110,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_type               = "Windows"
-
+  windows_profile {
+    outbound_nat_enabled = true
+  }
   tags = {
     Os = "Windows"
   }
@@ -2132,7 +2135,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2019"
-
+  windows_profile {
+    outbound_nat_enabled = true
+  }
   tags = {
     Os = "Windows"
   }
@@ -2155,7 +2160,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2022"
-
+  windows_profile {
+    outbound_nat_enabled = true
+  }
   tags = {
     Os = "Windows"
   }
@@ -2184,6 +2191,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_type               = "Windows"
+  windows_profile {
+    outbound_nat_enabled = true
+  }
 }
 `, r.templateWindowsConfig(data))
 }
