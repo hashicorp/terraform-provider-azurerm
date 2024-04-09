@@ -315,7 +315,7 @@ func (r WebAppHybridConnectionResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return err
 				}
-	
+
 				sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
 				if err != nil {
 					return err
