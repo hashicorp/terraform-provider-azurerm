@@ -159,6 +159,13 @@ func TestAccMsSqlServer_systemAndUserAssignedIdentity(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.systemAndUserAssignedIdentityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
@@ -696,6 +703,46 @@ resource "azurerm_mssql_server" "test" {
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (MsSqlServerResource) systemAndUserAssignedIdentityUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  tags = {
+    ENV      = "Staging"
+    database = "NotProd"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

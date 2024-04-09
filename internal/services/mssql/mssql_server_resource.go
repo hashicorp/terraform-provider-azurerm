@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -340,6 +341,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 			payload.Identity = expanded
+		} else {
+			// switch out the legacy API value (no space) for the value used in the Schema (w/space for consistency)
+			if strings.EqualFold(string(payload.Identity.Type), "SystemAssigned,UserAssigned") {
+				payload.Identity.Type = identity.TypeSystemAssignedUserAssigned
+			}
 		}
 
 		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
