@@ -19,15 +19,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signinsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/delegationsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/deletedservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/signinsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/signupsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/tenantaccess"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1413,18 +1413,17 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	log.Printf("[DEBUG] Deleting start %s", *id)
+	log.Printf("[DEBUG] Deleting %s", *id)
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
-	log.Printf("[DEBUG] Deleting end %s", *id)
 
 	if model := existing.Model; model != nil {
 		locationName := location.NormalizeNilable(pointer.To(model.Location))
 
 		// Purge the soft deleted Api Management permanently if the feature flag is enabled
 		if meta.(*clients.Client).Features.ApiManagement.PurgeSoftDeleteOnDestroy {
-			log.Printf("[DEBUG] %s marked for purge - executing purge start", *id)
+			log.Printf("[DEBUG] %s marked for purge - executing purge", *id)
 			deletedServiceId := deletedservice.NewDeletedServiceID(id.SubscriptionId, locationName, id.ServiceName)
 			if _, err := deletedServicesClient.GetByName(ctx, deletedServiceId); err != nil {
 				return fmt.Errorf("retrieving the deleted %s to be able to purge it: %+v", *id, err)
@@ -1440,7 +1439,7 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 				}
 			}
 
-			log.Printf("[DEBUG] Purged %s end.", *id)
+			log.Printf("[DEBUG] Purged %s.", *id)
 			return nil
 		}
 	}
