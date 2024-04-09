@@ -30,7 +30,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
 	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
@@ -984,7 +984,7 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 
 			if osDisk.Vhd != nil {
-				if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, osDisk.Vhd); err != nil {
+				if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, id.SubscriptionId, osDisk.Vhd); err != nil {
 					return fmt.Errorf("deleting OS Disk VHD: %+v", err)
 				}
 			} else if osDisk.ManagedDisk != nil {
@@ -1009,7 +1009,7 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 
 				if disk.Vhd != nil {
-					if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, disk.Vhd); err != nil {
+					if err = resourceVirtualMachineDeleteVhd(ctx, storageClient, id.SubscriptionId, disk.Vhd); err != nil {
 						return fmt.Errorf("deleting Data Disk VHD: %+v", err)
 					}
 				} else if disk.ManagedDisk != nil {
@@ -1024,7 +1024,7 @@ func resourceVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, vhd *compute.VirtualHardDisk) error {
+func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor.Client, subscriptionId string, vhd *compute.VirtualHardDisk) error {
 	if vhd == nil {
 		return fmt.Errorf("`vhd` was nil`")
 	}
@@ -1033,24 +1033,24 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 	}
 
 	uri := *vhd.URI
-	id, err := blobs.ParseResourceID(uri)
+	id, err := blobs.ParseBlobID(uri, storageClient.StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %s", uri, err)
 	}
 
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q (Disk %q)!", id.AccountName, uri)
+		return fmt.Errorf("Unable to locate Storage Account %q (Disk %q)!", id.AccountId.AccountName, uri)
 	}
 
 	if err != nil {
 		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
-	blobsClient, err := storageClient.BlobsClient(ctx, *account)
+	blobsClient, err := storageClient.BlobsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return fmt.Errorf("building Blobs Client: %s", err)
 	}
@@ -1058,8 +1058,8 @@ func resourceVirtualMachineDeleteVhd(ctx context.Context, storageClient *intStor
 	input := blobs.DeleteInput{
 		DeleteSnapshots: false,
 	}
-	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return fmt.Errorf("deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	if _, err := blobsClient.Delete(ctx, id.ContainerName, id.BlobName, input); err != nil {
+		return fmt.Errorf("deleting Blob %q (Container %q in %s): %+v", id.BlobName, id.ContainerName, id.AccountId, err)
 	}
 
 	return nil

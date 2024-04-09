@@ -195,6 +195,50 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_withElasticPool(t *testing.
 	})
 }
 
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_computeScale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.computeScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_computeScaleUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.computeScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (IntegrationRuntimeManagedSsisResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -927,6 +971,43 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   depends_on = [azurerm_sql_active_directory_administrator.test]
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (IntegrationRuntimeManagedSsisResource) computeScale(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
+  name            = "acctestir%[2]d"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
+
+  copy_compute_scale {
+    data_integration_unit = 8
+    time_to_live          = 6
+  }
+
+  pipeline_external_compute_scale {
+    number_of_external_nodes = 6
+    number_of_pipeline_nodes = 6
+    time_to_live             = 8
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

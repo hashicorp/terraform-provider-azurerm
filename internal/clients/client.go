@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/validation"
 	aadb2c_v2021_04_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview"
 	analysisservices_v2017_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01"
-	azurestackhci_v2023_08_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2023-08-01"
+	azurestackhci_v2024_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01"
 	datadog_v2021_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01"
 	dns_v2018_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01"
 	eventgrid_v2022_06_15 "github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15"
@@ -23,6 +23,7 @@ import (
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
 	timeseriesinsights_v2020_05_15 "github.com/hashicorp/go-azure-sdk/resource-manager/timeseriesinsights/2020-05-15"
+	workloads_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -149,6 +150,7 @@ import (
 	vmware "github.com/hashicorp/terraform-provider-azurerm/internal/services/vmware/client"
 	voiceServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/voiceservices/client"
 	web "github.com/hashicorp/terraform-provider-azurerm/internal/services/web/client"
+	workloads "github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/client"
 )
 
 type Client struct {
@@ -174,7 +176,7 @@ type Client struct {
 	Authorization                     *authorization.Client
 	Automanage                        *automanage.Client
 	Automation                        *automation.Client
-	AzureStackHCI                     *azurestackhci_v2023_08_01.Client
+	AzureStackHCI                     *azurestackhci_v2024_01_01.Client
 	Batch                             *batch.Client
 	Blueprints                        *blueprints.Client
 	Bot                               *bot.Client
@@ -284,6 +286,7 @@ type Client struct {
 	Vmware                            *vmware.Client
 	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
+	Workloads                         *workloads_v2023_04_01.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -338,7 +341,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.Authorization, err = authorization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Authorization: %+v", err)
 	}
-	client.Automanage = automanage.NewClient(o)
+	if client.Automanage, err = automanage.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for AutoManage: %+v", err)
+	}
 	if client.Automation, err = automation.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Automation: %+v", err)
 	}
@@ -655,6 +660,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for Voice Services: %+v", err)
 	}
 	client.Web = web.NewClient(o)
+
+	if client.Workloads, err = workloads.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Workloads: %+v", err)
+	}
 
 	return nil
 }

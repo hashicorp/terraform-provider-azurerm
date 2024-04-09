@@ -1,6 +1,10 @@
 package cosmosdb
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForAnalyticalStorageSchemaType() []string {
 		string(AnalyticalStorageSchemaTypeFullFidelity),
 		string(AnalyticalStorageSchemaTypeWellDefined),
 	}
+}
+
+func (s *AnalyticalStorageSchemaType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAnalyticalStorageSchemaType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAnalyticalStorageSchemaType(input string) (*AnalyticalStorageSchemaType, error) {
@@ -51,6 +68,19 @@ func PossibleValuesForBackupPolicyMigrationStatus() []string {
 	}
 }
 
+func (s *BackupPolicyMigrationStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBackupPolicyMigrationStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseBackupPolicyMigrationStatus(input string) (*BackupPolicyMigrationStatus, error) {
 	vals := map[string]BackupPolicyMigrationStatus{
 		"completed":  BackupPolicyMigrationStatusCompleted,
@@ -79,6 +109,19 @@ func PossibleValuesForBackupPolicyType() []string {
 		string(BackupPolicyTypeContinuous),
 		string(BackupPolicyTypePeriodic),
 	}
+}
+
+func (s *BackupPolicyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBackupPolicyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseBackupPolicyType(input string) (*BackupPolicyType, error) {
@@ -111,6 +154,19 @@ func PossibleValuesForBackupStorageRedundancy() []string {
 	}
 }
 
+func (s *BackupStorageRedundancy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBackupStorageRedundancy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseBackupStorageRedundancy(input string) (*BackupStorageRedundancy, error) {
 	vals := map[string]BackupStorageRedundancy{
 		"geo":   BackupStorageRedundancyGeo,
@@ -138,6 +194,19 @@ func PossibleValuesForCompositePathSortOrder() []string {
 		string(CompositePathSortOrderAscending),
 		string(CompositePathSortOrderDescending),
 	}
+}
+
+func (s *CompositePathSortOrder) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCompositePathSortOrder(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCompositePathSortOrder(input string) (*CompositePathSortOrder, error) {
@@ -168,6 +237,19 @@ func PossibleValuesForConflictResolutionMode() []string {
 	}
 }
 
+func (s *ConflictResolutionMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConflictResolutionMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseConflictResolutionMode(input string) (*ConflictResolutionMode, error) {
 	vals := map[string]ConflictResolutionMode{
 		"custom":         ConflictResolutionModeCustom,
@@ -192,6 +274,19 @@ func PossibleValuesForConnectorOffer() []string {
 	return []string{
 		string(ConnectorOfferSmall),
 	}
+}
+
+func (s *ConnectorOffer) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConnectorOffer(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseConnectorOffer(input string) (*ConnectorOffer, error) {
@@ -221,6 +316,19 @@ func PossibleValuesForContinuousTier() []string {
 	}
 }
 
+func (s *ContinuousTier) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContinuousTier(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseContinuousTier(input string) (*ContinuousTier, error) {
 	vals := map[string]ContinuousTier{
 		"continuous7days":  ContinuousTierContinuousSevenDays,
@@ -247,6 +355,19 @@ func PossibleValuesForCreateMode() []string {
 		string(CreateModeDefault),
 		string(CreateModeRestore),
 	}
+}
+
+func (s *CreateMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCreateMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCreateMode(input string) (*CreateMode, error) {
@@ -285,6 +406,19 @@ func PossibleValuesForDataType() []string {
 	}
 }
 
+func (s *DataType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDataType(input string) (*DataType, error) {
 	vals := map[string]DataType{
 		"linestring":   DataTypeLineString,
@@ -319,6 +453,19 @@ func PossibleValuesForDatabaseAccountKind() []string {
 	}
 }
 
+func (s *DatabaseAccountKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatabaseAccountKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDatabaseAccountKind(input string) (*DatabaseAccountKind, error) {
 	vals := map[string]DatabaseAccountKind{
 		"globaldocumentdb": DatabaseAccountKindGlobalDocumentDB,
@@ -344,6 +491,19 @@ func PossibleValuesForDatabaseAccountOfferType() []string {
 	return []string{
 		string(DatabaseAccountOfferTypeStandard),
 	}
+}
+
+func (s *DatabaseAccountOfferType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatabaseAccountOfferType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseDatabaseAccountOfferType(input string) (*DatabaseAccountOfferType, error) {
@@ -379,6 +539,19 @@ func PossibleValuesForDefaultConsistencyLevel() []string {
 	}
 }
 
+func (s *DefaultConsistencyLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDefaultConsistencyLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDefaultConsistencyLevel(input string) (*DefaultConsistencyLevel, error) {
 	vals := map[string]DefaultConsistencyLevel{
 		"boundedstaleness": DefaultConsistencyLevelBoundedStaleness,
@@ -412,6 +585,19 @@ func PossibleValuesForIndexKind() []string {
 	}
 }
 
+func (s *IndexKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIndexKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseIndexKind(input string) (*IndexKind, error) {
 	vals := map[string]IndexKind{
 		"hash":    IndexKindHash,
@@ -441,6 +627,19 @@ func PossibleValuesForIndexingMode() []string {
 		string(IndexingModeLazy),
 		string(IndexingModeNone),
 	}
+}
+
+func (s *IndexingMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIndexingMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseIndexingMode(input string) (*IndexingMode, error) {
@@ -474,6 +673,19 @@ func PossibleValuesForKeyKind() []string {
 		string(KeyKindSecondary),
 		string(KeyKindSecondaryReadonly),
 	}
+}
+
+func (s *KeyKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKeyKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKeyKind(input string) (*KeyKind, error) {
@@ -510,6 +722,19 @@ func PossibleValuesForKind() []string {
 	}
 }
 
+func (s *Kind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseKind(input string) (*Kind, error) {
 	vals := map[string]Kind{
 		"primary":           KindPrimary,
@@ -542,6 +767,19 @@ func PossibleValuesForMinimalTlsVersion() []string {
 	}
 }
 
+func (s *MinimalTlsVersion) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMinimalTlsVersion(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseMinimalTlsVersion(input string) (*MinimalTlsVersion, error) {
 	vals := map[string]MinimalTlsVersion{
 		"tls":   MinimalTlsVersionTls,
@@ -569,6 +807,19 @@ func PossibleValuesForNetworkAclBypass() []string {
 		string(NetworkAclBypassAzureServices),
 		string(NetworkAclBypassNone),
 	}
+}
+
+func (s *NetworkAclBypass) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkAclBypass(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNetworkAclBypass(input string) (*NetworkAclBypass, error) {
@@ -599,6 +850,19 @@ func PossibleValuesForPartitionKind() []string {
 		string(PartitionKindMultiHash),
 		string(PartitionKindRange),
 	}
+}
+
+func (s *PartitionKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePartitionKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePartitionKind(input string) (*PartitionKind, error) {
@@ -638,6 +902,19 @@ func PossibleValuesForPrimaryAggregationType() []string {
 	}
 }
 
+func (s *PrimaryAggregationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrimaryAggregationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePrimaryAggregationType(input string) (*PrimaryAggregationType, error) {
 	vals := map[string]PrimaryAggregationType{
 		"average": PrimaryAggregationTypeAverage,
@@ -672,6 +949,19 @@ func PossibleValuesForPublicNetworkAccess() []string {
 	}
 }
 
+func (s *PublicNetworkAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicNetworkAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
 	vals := map[string]PublicNetworkAccess{
 		"disabled":           PublicNetworkAccessDisabled,
@@ -697,6 +987,19 @@ func PossibleValuesForRestoreMode() []string {
 	return []string{
 		string(RestoreModePointInTime),
 	}
+}
+
+func (s *RestoreMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRestoreMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRestoreMode(input string) (*RestoreMode, error) {
@@ -728,6 +1031,19 @@ func PossibleValuesForServerVersion() []string {
 		string(ServerVersionThreePointSix),
 		string(ServerVersionThreePointTwo),
 	}
+}
+
+func (s *ServerVersion) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseServerVersion(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseServerVersion(input string) (*ServerVersion, error) {
@@ -764,6 +1080,19 @@ func PossibleValuesForSpatialType() []string {
 	}
 }
 
+func (s *SpatialType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSpatialType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSpatialType(input string) (*SpatialType, error) {
 	vals := map[string]SpatialType{
 		"linestring":   SpatialTypeLineString,
@@ -798,6 +1127,19 @@ func PossibleValuesForStatus() []string {
 		string(StatusOnline),
 		string(StatusUninitialized),
 	}
+}
+
+func (s *Status) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStatus(input string) (*Status, error) {
@@ -837,6 +1179,19 @@ func PossibleValuesForTriggerOperation() []string {
 	}
 }
 
+func (s *TriggerOperation) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTriggerOperation(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseTriggerOperation(input string) (*TriggerOperation, error) {
 	vals := map[string]TriggerOperation{
 		"all":     TriggerOperationAll,
@@ -866,6 +1221,19 @@ func PossibleValuesForTriggerType() []string {
 		string(TriggerTypePost),
 		string(TriggerTypePre),
 	}
+}
+
+func (s *TriggerType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseTriggerType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseTriggerType(input string) (*TriggerType, error) {
@@ -908,6 +1276,19 @@ func PossibleValuesForType() []string {
 		string(TypeTable),
 		string(TypeUndefined),
 	}
+}
+
+func (s *Type) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseType(input string) (*Type, error) {
@@ -953,6 +1334,19 @@ func PossibleValuesForUnitType() []string {
 		string(UnitTypePercent),
 		string(UnitTypeSeconds),
 	}
+}
+
+func (s *UnitType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUnitType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseUnitType(input string) (*UnitType, error) {

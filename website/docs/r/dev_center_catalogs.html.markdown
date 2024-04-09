@@ -55,7 +55,7 @@ The following arguments are supported:
 
 ---
 
-* `catalog_github` supports the following:
+The `catalog_github` block supports the following:
 
 * `branch` - (Required) The Git branch of the Dev Center Catalog.
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 ---
 
-* `catalog_adogit` supports the following:
+The `catalog_adogit` block supports the following:
 
 * `branch` - (Required) The Git branch of the Dev Center Catalog.
 

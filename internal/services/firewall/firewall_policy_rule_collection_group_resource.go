@@ -509,7 +509,6 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 }
 
 func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -531,7 +530,7 @@ func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.RuleCollectionGroupName)
-	d.Set("firewall_policy_id", firewallpolicies.NewFirewallPolicyID(subscriptionId, id.ResourceGroupName, id.FirewallPolicyName).ID())
+	d.Set("firewall_policy_id", firewallpolicies.NewFirewallPolicyID(id.SubscriptionId, id.ResourceGroupName, id.FirewallPolicyName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {

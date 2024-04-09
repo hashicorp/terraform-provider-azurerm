@@ -34,6 +34,21 @@ func TestAccContainerAppEnvironment_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_consumptionWorkloadProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id", "workload_profile"),
+	})
+}
+
 func TestAccContainerAppEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
@@ -64,21 +79,6 @@ func TestAccContainerAppEnvironment_complete(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppEnvironment_withWorkloadProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
-	r := ContainerAppEnvironmentResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.completeWithWorkloadProfile(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("log_analytics_workspace_id"),
-	})
-}
-
 func TestAccContainerAppEnvironment_updateWorkloadProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
@@ -92,17 +92,23 @@ func TestAccContainerAppEnvironment_updateWorkloadProfile(t *testing.T) {
 		},
 		data.ImportStep("log_analytics_workspace_id"),
 		{
-			Config: r.completeWithWorkloadProfile(data),
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("log_analytics_workspace_id"),
 		{
-			Config: r.completeUpdate(data),
+			Config: r.completeMultipleWorkloadProfiles(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workload_profile.0.maximum_count").HasValue("3"),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id"),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("log_analytics_workspace_id"),
@@ -187,6 +193,18 @@ resource "azurerm_container_app_environment" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppEnvironmentResource) basicNoProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppEnvironmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -214,10 +232,17 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-
-  infrastructure_subnet_id = azurerm_subnet.control.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
+
+  workload_profile {
+    maximum_count         = 3
+    minimum_count         = 0
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
 
   tags = {
     Foo    = "Bar"
@@ -227,7 +252,7 @@ resource "azurerm_container_app_environment" "test" {
 `, r.templateVNet(data), data.RandomInteger)
 }
 
-func (r ContainerAppEnvironmentResource) completeWithWorkloadProfile(data acceptance.TestData) string {
+func (r ContainerAppEnvironmentResource) consumptionWorkloadProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -235,49 +260,18 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[2]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "control" {
-  name                 = "control-plane"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
-  delegation {
-    name = "acctestdelegation%[2]d"
-    service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.App/environments"
-    }
-  }
-}
-
 resource "azurerm_container_app_environment" "test" {
-  name                     = "acctest-CAEnv%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  infrastructure_subnet_id = azurerm_subnet.control.id
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
   workload_profile {
-    maximum_count         = 2
-    minimum_count         = 0
-    name                  = "My-GP-01"
-    workload_profile_type = "D4"
-  }
-
-  zone_redundancy_enabled = true
-
-  tags = {
-    Foo    = "Bar"
-    secret = "sauce"
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
   }
 }
-`, r.template(data), data.RandomInteger)
-
+`, r.templateVNet(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) completeUpdate(data acceptance.TestData) string {
@@ -288,49 +282,78 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[2]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
 
-resource "azurerm_subnet" "control" {
-  name                 = "control-plane"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
-  delegation {
-    name = "acctestdelegation%[2]d"
-    service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.App/environments"
-    }
+  internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "E4-01"
+    workload_profile_type = "E4"
+  }
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
   }
 }
+`, r.templateVNet(data), data.RandomInteger)
+
+}
+
+func (r ContainerAppEnvironmentResource) completeMultipleWorkloadProfiles(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
 
 resource "azurerm_container_app_environment" "test" {
   name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-
-  infrastructure_subnet_id = azurerm_subnet.control.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
 
   internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
 
   workload_profile {
-    maximum_count         = 3
+    maximum_count         = 2
     minimum_count         = 0
-    name                  = "My-GP-01"
+    name                  = "E4-01"
+    workload_profile_type = "E4"
+  }
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "D4-02"
+    workload_profile_type = "E4"
+  }
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "D4-01"
     workload_profile_type = "D4"
   }
 
   tags = {
-    Foo = "test"
+    Foo    = "Bar"
+    secret = "sauce"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateVNet(data), data.RandomInteger)
+
 }
 
 func (r ContainerAppEnvironmentResource) completeZoneRedundant(data acceptance.TestData) string {
@@ -403,6 +426,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 func (r ContainerAppEnvironmentResource) templateVNet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_virtual_network" "test" {
@@ -417,7 +441,16 @@ resource "azurerm_subnet" "control" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/23"]
+
+  delegation {
+    name = "acctestdelegation%[2]d"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.App/environments"
+    }
+  }
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
@@ -430,27 +463,6 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[2]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "control" {
-  name                 = "control-plane"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
-  delegation {
-    name = "acctestdelegation%[2]d"
-    service_delegation {
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-      name    = "Microsoft.App/environments"
-    }
-  }
-}
-
 resource "azurerm_container_app_environment" "test" {
   name                     = "acctest-CAEnv%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -462,7 +474,7 @@ resource "azurerm_container_app_environment" "test" {
   workload_profile {
     maximum_count         = 2
     minimum_count         = 0
-    name                  = "My-GP-01"
+    name                  = "D4-01"
     workload_profile_type = "D4"
   }
 
@@ -473,5 +485,5 @@ resource "azurerm_container_app_environment" "test" {
     secret = "sauce"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateVNet(data), data.RandomInteger)
 }

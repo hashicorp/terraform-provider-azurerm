@@ -61,13 +61,10 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
+	customizedKeyVaultId := d.Get("key_vault_id").(string)
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	t := d.Get("tags").(map[string]interface{})
-
-	if pfxBlob == "" && keyVaultSecretId == "" {
-		return fmt.Errorf("Either `pfx_blob` or `key_vault_secret_id` must be set")
-	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
@@ -108,15 +105,20 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 			return err
 		}
 
-		keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
+		var keyVaultId *string
+		if customizedKeyVaultId != "" {
+			keyVaultId = utils.String(customizedKeyVaultId)
+		} else {
+			keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
 
-		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-		keyVaultId, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultBaseUrl)
-		if err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
-		}
-		if keyVaultId == nil {
-			return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
+			subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+			keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultBaseUrl)
+			if err != nil {
+				return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
+			}
+			if keyVaultId == nil {
+				return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
+			}
 		}
 
 		certificate.CertificateProperties.KeyVaultID = keyVaultId
@@ -238,6 +240,14 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.NoZeroValues,
 		},
 
+		"key_vault_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateKeyVaultID,
+			RequiredWith: []string{"key_vault_secret_id"},
+		},
+
 		"key_vault_secret_id": {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
@@ -245,6 +255,7 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
 			ValidateFunc:     keyVaultValidate.NestedItemId,
 			ConflictsWith:    []string{"pfx_blob", "password"},
+			ExactlyOneOf:     []string{"key_vault_secret_id", "pfx_blob"},
 		},
 
 		"app_service_plan_id": {

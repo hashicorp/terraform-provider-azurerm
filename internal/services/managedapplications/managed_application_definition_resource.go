@@ -20,14 +20,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceManagedApplicationDefinitionCreateUpdate,
+		Create: resourceManagedApplicationDefinitionCreate,
 		Read:   resourceManagedApplicationDefinitionRead,
-		Update: resourceManagedApplicationDefinitionCreateUpdate,
+		Update: resourceManagedApplicationDefinitionUpdate,
 		Delete: resourceManagedApplicationDefinitionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -132,7 +131,7 @@ func resourceManagedApplicationDefinition() *pluginsdk.Resource {
 	}
 }
 
-func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceManagedApplicationDefinitionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -140,16 +139,14 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 
 	id := applicationdefinitions.NewApplicationDefinitionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("failed to check for presence of existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_managed_application_definition", id.ID())
+			return fmt.Errorf("failed to check for presence of existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_managed_application_definition", id.ID())
 	}
 
 	parameters := applicationdefinitions.ApplicationDefinition{
@@ -158,7 +155,7 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 			Authorizations: expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List()),
 			Description:    pointer.To(d.Get("description").(string)),
 			DisplayName:    pointer.To(d.Get("display_name").(string)),
-			IsEnabled:      utils.Bool(d.Get("package_enabled").(bool)),
+			IsEnabled:      pointer.To(d.Get("package_enabled").(bool)),
 			LockLevel:      applicationdefinitions.ApplicationLockLevel(d.Get("lock_level").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -177,7 +174,66 @@ func resourceManagedApplicationDefinitionCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("failed to create %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceManagedApplicationDefinitionRead(d, meta)
+}
+
+func resourceManagedApplicationDefinitionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedApplication.ApplicationDefinitionClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := applicationdefinitions.ParseApplicationDefinitionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("description") {
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("display_name") {
+		payload.Properties.DisplayName = pointer.To(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("package_enabled") {
+		payload.Properties.IsEnabled = pointer.To(d.Get("package_enabled").(bool))
+	}
+
+	if d.HasChange("authorization") {
+		payload.Properties.Authorizations = expandManagedApplicationDefinitionAuthorization(d.Get("authorization").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("create_ui_definition") {
+		payload.Properties.CreateUiDefinition = pointer.To(d.Get("create_ui_definition"))
+	}
+
+	if d.HasChange("main_template") {
+		payload.Properties.MainTemplate = pointer.To(d.Get("main_template"))
+	}
+
+	if d.HasChange("package_file_uri") {
+		payload.Properties.PackageFileUri = pointer.To(d.Get("package_file_uri").(string))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	// update payload only supports tags, so we'll continue using CreateOrUpdate method here
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

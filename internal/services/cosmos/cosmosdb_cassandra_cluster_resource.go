@@ -347,15 +347,9 @@ func resourceCassandraClusterDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	future, err := client.CassandraClustersDelete(ctx, *id)
+	err = client.CassandraClustersDeleteThenPoll(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(future.HttpResponse) {
-			return fmt.Errorf("deleting %q: %+v", id, err)
-		}
-	}
-
-	if err := future.Poller.PollUntilDone(); err != nil {
-		return fmt.Errorf("waiting on delete future for %q: %+v", id, err)
+		return fmt.Errorf("deleting %q: %+v", id, err)
 	}
 
 	return nil

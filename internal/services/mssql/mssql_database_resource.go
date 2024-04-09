@@ -17,10 +17,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/backupshorttermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/databasesecurityalertpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/elasticpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/longtermretentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
@@ -69,8 +70,19 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, _ interface{}) bool {
-				// "hyperscale can not change to other sku
+				// hyperscale can not be changed to another sku
 				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
+			}),
+			pluginsdk.ForceNewIfChange("enclave_type", func(ctx context.Context, old, new, _ interface{}) bool {
+				// enclave_type cannot be removed once it has been set
+				// but can be changed between VBS and Default...
+				// this Diff will not work until 4.0 when we remove
+				// the computed property from the field scheam.
+				if old.(string) != "" && new.(string) == "" {
+					return true
+				}
+
+				return false
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
@@ -102,10 +114,12 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 		return nil, err
 	}
 
-	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
-	if v := d.Get("enclave_type").(string); v != "" {
-		enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
+	var enclaveType databases.AlwaysEncryptedEnclaveType
+	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
+		enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 	}
+	d.Set("enclave_type", enclaveType)
 
 	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyreplicationLinksClient, resourcesClient, *id, enclaveType, []sql.ReplicationRole{sql.ReplicationRolePrimary})
 	if err != nil {
@@ -200,11 +214,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	// NOTE: Set the default value, if the field exists in the config the only value
-	// that it could be is 'VBS'...
-	enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
-	if _, ok := d.GetOk("enclave_type"); ok {
-		enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
+	var enclaveType databases.AlwaysEncryptedEnclaveType
+	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
+		enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 	}
 
 	skuName := d.Get("sku_name").(string)
@@ -247,7 +260,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// NOTE: If the database is being added to an elastic pool, we need to GET the elastic pool and check
-	// if the 'enclave_type' match. If they don't we need to raise an error stating that they must match.
+	// if the 'enclave_type' matches. If they don't we need to raise an error stating that they must match.
 	elasticPoolId := d.Get("elastic_pool_id").(string)
 	if elasticPoolId != "" {
 		elasticId, err := commonids.ParseSqlElasticPoolID(elasticPoolId)
@@ -284,13 +297,14 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
 			EncryptionProtectorAutoRotation:  pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool)),
+			SecondaryType:                    pointer.To(databases.SecondaryType(d.Get("secondary_type").(string))),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
-	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") {
+	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
 		input.Properties.PreferredEnclaveType = pointer.To(enclaveType)
 	}
 
@@ -325,8 +339,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode)
 		}
 	case databases.CreateModeRestoreLongTermRetentionBackup:
-		if _, dbok := d.GetOk("long_term_retention_backup_id"); !dbok {
-			return fmt.Errorf("'long_term_retention_backup_id' is required for create_mode %s", createMode)
+		if _, dbok := d.GetOk("restore_long_term_retention_backup_id"); !dbok {
+			return fmt.Errorf("'restore_long_term_retention_backup_id' is required for create_mode %s", createMode)
 		}
 	}
 
@@ -574,7 +588,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	shortTermSecurityAlertPolicyProps := helper.ExpandShortTermRetentionPolicy(d.Get("short_term_retention_policy").([]interface{}))
-	if securityAlertPolicyProps != nil {
+	if shortTermSecurityAlertPolicyProps != nil {
 		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
 		if !strings.HasPrefix(skuName, "DW") {
@@ -686,15 +700,17 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("enclave_type") {
-		enclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
-		if v := d.Get("enclave_type").(string); v != "" {
-			enclaveType = databases.AlwaysEncryptedEnclaveTypeVBS
+		var enclaveType databases.AlwaysEncryptedEnclaveType
+		if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
+			enclaveType = databases.AlwaysEncryptedEnclaveType(v.(string))
 		}
 
 		// The 'PreferredEnclaveType' field cannot be passed to the APIs Update if the
 		// 'sku_name' is a DW or DC-series SKU...
-		if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") {
+		if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
 			props.PreferredEnclaveType = pointer.To(enclaveType)
+		} else {
+			props.PreferredEnclaveType = nil
 		}
 
 		// If the database belongs to an elastic pool, we need to GET the elastic pool and check
@@ -711,12 +727,14 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("retrieving %s: %s", elasticId, err)
 			}
 
+			var elasticEnclaveType elasticpools.AlwaysEncryptedEnclaveType
 			if elasticPool.Model != nil && elasticPool.Model.Properties != nil && elasticPool.Model.Properties.PreferredEnclaveType != nil {
-				elasticEnclaveType := string(pointer.From(elasticPool.Model.Properties.PreferredEnclaveType))
-				databaseEnclaveType := string(enclaveType)
+				elasticEnclaveType = pointer.From(elasticPool.Model.Properties.PreferredEnclaveType)
+			}
 
-				if !strings.EqualFold(elasticEnclaveType, databaseEnclaveType) {
-					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, databaseEnclaveType, elasticId, elasticEnclaveType)
+			if elasticEnclaveType != "" || enclaveType != "" {
+				if !strings.EqualFold(string(elasticEnclaveType), string(enclaveType)) {
+					return fmt.Errorf("updating the %s with enclave type %q to the %s with enclave type %q is not supported. Before updating a database that belongs to an elastic pool please ensure that the 'enclave_type' is the same for both the database and the elastic pool", id, enclaveType, elasticId, elasticEnclaveType)
 				}
 			}
 		}
@@ -775,7 +793,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Place a lock for the current database so any partner resources can't bump its SKU out of band
 		if skuName != "" {
-			existingEnclaveType := databases.AlwaysEncryptedEnclaveTypeDefault
+			var existingEnclaveType databases.AlwaysEncryptedEnclaveType
 			if model := existing.Model; model != nil && model.Properties != nil && model.Properties.PreferredEnclaveType != nil {
 				existingEnclaveType = *model.Properties.PreferredEnclaveType
 			}
@@ -951,7 +969,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return nil
 			}
 		}
-
 	}
 
 	if d.HasChange("import") {
@@ -1091,12 +1108,19 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				requestedBackupStorageRedundancy = string(*props.RequestedBackupStorageRedundancy)
 			}
 
+			// A named replica doesn't return props.RequestedBackupStorageRedundancy from the api but it is Geo in the portal regardless of what the parent database has
+			// so we'll copy that here to get around a perpetual diff
+			if props.SecondaryType != nil && *props.SecondaryType == "Named" {
+				requestedBackupStorageRedundancy = string(databases.BackupStorageRedundancyGeo)
+			}
+
 			d.Set("auto_pause_delay_in_minutes", pointer.From(props.AutoPauseDelay))
 			d.Set("collation", pointer.From(props.Collation))
 			d.Set("read_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
 			d.Set("storage_account_type", requestedBackupStorageRedundancy)
 			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
 			d.Set("read_scale", pointer.From(props.ReadScale) == databases.DatabaseReadScaleEnabled)
+			d.Set("secondary_type", pointer.From(props.SecondaryType))
 
 			if props.ElasticPoolId != nil {
 				elasticPoolId = pointer.From(props.ElasticPoolId)
@@ -1121,8 +1145,9 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				ledgerEnabled = *props.IsLedgerOn
 			}
 
-			// NOTE: Always set the PreferredEnclaveType to an empty string unless it isn't 'Default'...
-			if v := props.PreferredEnclaveType; v != nil && pointer.From(v) != databases.AlwaysEncryptedEnclaveTypeDefault {
+			// NOTE: Always set the PreferredEnclaveType to an empty string
+			// if not in the properties that were returned from Azure...
+			if v := props.PreferredEnclaveType; v != nil {
 				enclaveType = string(pointer.From(v))
 			}
 
@@ -1375,6 +1400,7 @@ func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExi
 	return
 }
 
+// The following data comes from the results of "az maintenance public-configuration list --query "[?contains(name, `SQL`) && contains(name, `DB`)]".name --output table"
 func resourceMsSqlDatabaseMaintenanceNames() []string {
 	return []string{"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
 		"SQL_UKSouth_DB_1", "SQL_WestEurope_DB_1", "SQL_EastUS_DB_2", "SQL_EastUS2_DB_2", "SQL_WestUS2_DB_2", "SQL_SoutheastAsia_DB_2", "SQL_AustraliaEast_DB_2", "SQL_NorthEurope_DB_2", "SQL_SouthCentralUS_DB_2",
@@ -1383,7 +1409,7 @@ func resourceMsSqlDatabaseMaintenanceNames() []string {
 		"SQL_WestUS_DB_1", "SQL_AustraliaSoutheast_DB_2", "SQL_BrazilSouth_DB_2", "SQL_CanadaCentral_DB_2", "SQL_CanadaEast_DB_2", "SQL_CentralUS_DB_2", "SQL_EastAsia_DB_2", "SQL_FranceCentral_DB_2",
 		"SQL_GermanyWestCentral_DB_2", "SQL_CentralIndia_DB_2", "SQL_SouthIndia_DB_2", "SQL_JapanEast_DB_2", "SQL_JapanWest_DB_2", "SQL_NorthCentralUS_DB_2", "SQL_UKWest_DB_2", "SQL_WestUS_DB_2",
 		"SQL_WestCentralUS_DB_1", "SQL_FranceSouth_DB_1", "SQL_WestCentralUS_DB_2", "SQL_FranceSouth_DB_2", "SQL_SwitzerlandNorth_DB_1", "SQL_SwitzerlandNorth_DB_2", "SQL_BrazilSoutheast_DB_1",
-		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2"}
+		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2", "SQL_SouthAfricaNorth_DB_1", "SQL_SouthAfricaNorth_DB_2", "SQL_WestUS3_DB_1", "SQL_WestUS3_DB_2"}
 }
 
 type EmailAccountAdminsStatus string
@@ -1498,8 +1524,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"enclave_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true, // TODO: Remove Computed in 4.0
 			ValidateFunc: validation.StringInSlice([]string{
 				string(databases.AlwaysEncryptedEnclaveTypeVBS),
+				string(databases.AlwaysEncryptedEnclaveTypeDefault),
 			}, false),
 		},
 
@@ -1727,6 +1755,15 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Default:      false,
 			RequiredWith: []string{"transparent_data_encryption_key_vault_key_id"},
+		},
+
+		"secondary_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// This must be Computed as it has defaulted to Geo for replicas but not all databases are replicas.
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForSecondaryType(), false),
 		},
 
 		"tags": commonschema.Tags(),

@@ -128,6 +128,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 					"~14",
 					"~16",
 					"~18",
+					"~20",
 				}, false),
 				AtLeastOneOf: windowsApplicationStackConstraint,
 			},
@@ -282,6 +283,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 			"~14",
 			"~16",
 			"~18",
+			"~20",
 		}, false)
 		r.Schema["java_version"].AtLeastOneOf = windowsApplicationStackConstraintThreePointX
 

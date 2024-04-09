@@ -160,14 +160,9 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 				Type: pointer.To(string(datastore.DatastoreTypeAzureBlob)),
 			}
 
-			storageDomainSuffix, ok := metadata.Client.Account.Environment.Storage.DomainSuffix()
-			if !ok {
-				return fmt.Errorf("could not determine Storage domain suffix for environment %q", metadata.Client.Account.Environment.Name)
-			}
-
 			props := &datastore.AzureBlobDatastore{
 				AccountName:                   pointer.To(containerId.StorageAccountName),
-				Endpoint:                      storageDomainSuffix,
+				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				ContainerName:                 pointer.To(containerId.ContainerName),
 				Description:                   pointer.To(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataAuthIdentity)),
@@ -311,14 +306,14 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataAuthIdentity = serviceDataAuth
 
-			storageAccount, err := storageClient.FindAccount(ctx, *data.AccountName)
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, *data.AccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Container %q: %s", *data.AccountName, *data.ContainerName, err)
 			}
 			if storageAccount == nil {
 				return fmt.Errorf("Unable to locate Storage Account %q!", *data.AccountName)
 			}
-			containerId := commonids.NewStorageContainerID(subscriptionId, storageAccount.ResourceGroup, *data.AccountName, *data.ContainerName)
+			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, *data.AccountName, *data.ContainerName)
 			model.StorageContainerID = containerId.ID()
 
 			model.IsDefault = *data.IsDefault
