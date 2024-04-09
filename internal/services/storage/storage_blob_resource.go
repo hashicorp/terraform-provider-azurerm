@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
 )
@@ -285,11 +285,24 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
+	log.Printf("[INFO] Retrieving %s", id)
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, id.ContainerName, id.BlobName, input)
+	if err != nil {
+		if response.WasNotFound(props.HttpResponse) {
+			log.Printf("[INFO] Blob %q was not found in Container %q / Account %q - assuming removed & removing from state...", id.BlobName, id.ContainerName, id.AccountId.AccountName)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("retrieving properties for %s: %v", id, err)
+	}
+
 	if d.HasChange("content_type") || d.HasChange("cache_control") {
 		log.Printf("[DEBUG] Updating Properties for %s...", id)
 		input := blobs.SetPropertiesInput{
-			ContentType:  utils.String(d.Get("content_type").(string)),
-			CacheControl: utils.String(d.Get("cache_control").(string)),
+			ContentType:  pointer.To(d.Get("content_type").(string)),
+			CacheControl: pointer.To(d.Get("cache_control").(string)),
 		}
 
 		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload, or it will be zeroed on the blob.
@@ -298,10 +311,8 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			if err != nil {
 				return fmt.Errorf("converting hex to base64 encoding for content_md5: %v", err)
 			}
-
-			input.ContentMD5 = utils.String(data)
+			input.ContentMD5 = pointer.To(data)
 		}
-
 		if _, err = blobsClient.SetProperties(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating Properties for %s: %v", id, err)
 		}
@@ -313,6 +324,10 @@ func resourceStorageBlobUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		input := blobs.SetMetaDataInput{
 			MetaData: ExpandMetaData(metaDataRaw),
+		}
+		// Encryption Scope must be specified when updating metadata
+		if props.EncryptionScope != "" {
+			input.EncryptionScope = pointer.To(props.EncryptionScope)
 		}
 		if _, err = blobsClient.SetMetaData(ctx, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("updating MetaData for %s: %v", id, err)
