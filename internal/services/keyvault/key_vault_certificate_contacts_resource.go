@@ -44,11 +44,10 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 	}
 
-	if !features.FourPointOhBeta() {
+	if features.FourPointOhBeta() {
 		schema["contact"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -74,7 +73,8 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 	} else {
 		schema["contact"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Required: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -163,11 +163,7 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if !features.FourPointOhBeta() {
-				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
-					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
-				}
-			} else {
+			if features.FourPointOhBeta() {
 				if len(*contacts.ContactList) == 0 {
 					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
 						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
@@ -176,6 +172,10 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 					if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
 						return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
 					}
+				}
+			} else {
+				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
 				}
 			}
 
@@ -259,11 +259,7 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				existing.ContactList = expandKeyVaultCertificateContactsContact(state.Contact)
 			}
 
-			if !features.FourPointOhBeta() {
-				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
-					return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
-				}
-			} else {
+			if features.FourPointOhBeta() {
 				if len(*existing.ContactList) == 0 {
 					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
 						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
@@ -272,6 +268,10 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 					if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
 						return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
 					}
+				}
+			} else {
+				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
+					return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
 				}
 			}
 
