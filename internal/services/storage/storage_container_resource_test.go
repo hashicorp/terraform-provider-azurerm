@@ -113,6 +113,21 @@ func TestAccStorageContainer_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageContainer_encryptionScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageContainer_metaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
@@ -312,6 +327,27 @@ resource "azurerm_storage_container" "test" {
   }
 }
 `, template, accessType, metadataVal)
+}
+
+func (r StorageContainerResource) encryptionScope(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+
+  default_encryption_scope = azurerm_storage_encryption_scope.test.name
+}
+`, template, data.RandomInteger)
 }
 
 func (r StorageContainerResource) metaData(data acceptance.TestData) string {
