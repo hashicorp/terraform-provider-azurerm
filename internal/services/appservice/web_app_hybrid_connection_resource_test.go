@@ -269,8 +269,8 @@ resource "azurerm_relay_hybrid_connection" "test" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
- }
-  
+}
+
 resource "azurerm_service_plan" "test" {
   name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -278,7 +278,7 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Windows"
   sku_name            = "%[3]s"
 }
-  
+
 resource "azurerm_windows_web_app" "test" {
   name                = "acctestWA-%[1]d"
   location            = azurerm_resource_group.test.location
