@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
@@ -521,7 +522,10 @@ func (OrchestratedVirtualMachineScaleSetResource) Destroy(ctx context.Context, c
 		return nil, err
 	}
 
-	if err := client.Compute.VirtualMachineScaleSetsClient.DeleteThenPoll(ctx, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	if err := client.Compute.VirtualMachineScaleSetsClient.DeleteThenPoll(ctx2, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
 		return nil, fmt.Errorf("Bad: deleting %s: %+v", *id, err)
 	}
 

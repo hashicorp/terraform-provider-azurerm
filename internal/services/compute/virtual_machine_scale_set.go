@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
@@ -2264,4 +2265,23 @@ func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.Virt
 		})
 	}
 	return result, nil
+}
+
+func flattenOrchestratedVirtualMachineScaleSetIdentity(input *identity.SystemAndUserAssignedMap) (*[]interface{}, error) {
+	var transform *identity.UserAssignedMap
+
+	if input != nil {
+		transform = &identity.UserAssignedMap{
+			Type:        input.Type,
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+		for k, v := range input.IdentityIds {
+			transform.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+				ClientId:    v.ClientId,
+				PrincipalId: v.PrincipalId,
+			}
+		}
+	}
+
+	return identity.FlattenUserAssignedMap(transform)
 }

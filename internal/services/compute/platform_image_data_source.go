@@ -84,7 +84,7 @@ func dataSourcePlatformImageRead(d *pluginsdk.ResourceData, meta interface{}) er
 		image = &(*result.Model)[len(*result.Model)-1]
 	}
 
-	d.SetId(id.ID())
+	d.SetId(*image.Id)
 
 	d.Set("location", location.Normalize(image.Location))
 	d.Set("publisher", id.PublisherName)

@@ -1812,11 +1812,11 @@ func FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(input *[]virtualm
 	}
 
 	results := make([]interface{}, 0)
-	var networkSecurityGroupId string
-	var enableAcceleratedNetworking, enableIPForwarding, primary bool
-	var dnsServers []interface{}
-	var ipConfigurations []interface{}
 	for _, v := range *input {
+		var networkSecurityGroupId string
+		var enableAcceleratedNetworking, enableIPForwarding, primary bool
+		var dnsServers []interface{}
+		var ipConfigurations []interface{}
 		if props := v.Properties; props != nil {
 			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
 				networkSecurityGroupId = *props.NetworkSecurityGroup.Id

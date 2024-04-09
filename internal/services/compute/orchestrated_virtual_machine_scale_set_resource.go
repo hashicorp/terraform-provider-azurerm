@@ -640,7 +640,6 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.Properties.VirtualMachineProfile = &virtualMachineProfile
 	}
 
-	// TODO replace with createorupdatethenpoll, link this to a go-azure-sdk issue on retryable errors
 	log.Printf("[DEBUG] Creating Orchestrated %s.", id)
 	if err := client.CreateOrUpdateThenPoll(ctx, id, props, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating Orchestrated %s: %+v", id, err)
@@ -1141,7 +1140,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			d.Set("instances", instances)
 		}
 
-		identityFlattened, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		identityFlattened, err := flattenOrchestratedVirtualMachineScaleSetIdentity(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
