@@ -22,7 +22,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c LoadTestsClient) Update(ctx context.Context, id LoadTestId, input LoadTestResourcePatchRequestBody) (result UpdateOperationResponse, err error) {
+func (c LoadTestsClient) Update(ctx context.Context, id LoadTestId, input LoadTestResourceUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c LoadTestsClient) Update(ctx context.Context, id LoadTestId, input LoadTe
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c LoadTestsClient) UpdateThenPoll(ctx context.Context, id LoadTestId, input LoadTestResourcePatchRequestBody) error {
+func (c LoadTestsClient) UpdateThenPoll(ctx context.Context, id LoadTestId, input LoadTestResourceUpdate) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
