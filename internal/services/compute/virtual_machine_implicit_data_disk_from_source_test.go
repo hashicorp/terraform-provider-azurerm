@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VirtualMachineImplicitDataDiskResource struct{}
+type VirtualMachineImplicitDataDiskFromSourceResource struct{}
 
-func TestAccVirtualMachineImplicitDataDisk_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "test")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,9 +32,9 @@ func TestAccVirtualMachineImplicitDataDisk_basic(t *testing.T) {
 	})
 }
 
-func TestAccVirtualMachineImplicitDataDisk_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "test")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,14 +45,14 @@ func TestAccVirtualMachineImplicitDataDisk_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_implicit_data_disk"),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_implicit_data_disk_from_source"),
 		},
 	})
 }
 
-func TestAccVirtualMachineImplicitDataDisk_destroy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "test")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_destroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -62,11 +62,11 @@ func TestAccVirtualMachineImplicitDataDisk_destroy(t *testing.T) {
 	})
 }
 
-func TestAccVirtualMachineImplicitDataDisk_multipleDisks(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "first")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_multipleDisks(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "first")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 
-	secondResourceName := "azurerm_virtual_machine_implicit_data_disk.second"
+	secondResourceName := "azurerm_virtual_machine_implicit_data_disk_from_source.second"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,9 +84,9 @@ func TestAccVirtualMachineImplicitDataDisk_multipleDisks(t *testing.T) {
 	})
 }
 
-func TestAccVirtualMachineImplicitDataDisk_updatingCaching(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "test")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_updatingCaching(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -109,9 +109,9 @@ func TestAccVirtualMachineImplicitDataDisk_updatingCaching(t *testing.T) {
 	})
 }
 
-func TestAccVirtualMachineImplicitDataDisk_updatingWriteAccelerator(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "test")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_updatingWriteAccelerator(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.writeAccelerator(data, false),
@@ -134,9 +134,9 @@ func TestAccVirtualMachineImplicitDataDisk_updatingWriteAccelerator(t *testing.T
 	})
 }
 
-func TestAccVirtualMachineImplicitDataDisk_managedServiceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "test")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_managedServiceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -149,9 +149,9 @@ func TestAccVirtualMachineImplicitDataDisk_managedServiceIdentity(t *testing.T) 
 	})
 }
 
-func TestAccVirtualMachineImplicitDataDisk_virtualMachineExtension(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "test")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_virtualMachineExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualMachineExtensionPrep(data),
@@ -165,9 +165,9 @@ func TestAccVirtualMachineImplicitDataDisk_virtualMachineExtension(t *testing.T)
 	})
 }
 
-func TestAccVirtualMachineImplicitDataDisk_virtualMachineApplication(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk", "test")
-	r := VirtualMachineImplicitDataDiskResource{}
+func TestAccVirtualMachineImplicitDataDiskFromSource_virtualMachineApplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualMachineApplicationPrep(data),
@@ -181,7 +181,7 @@ func TestAccVirtualMachineImplicitDataDisk_virtualMachineApplication(t *testing.
 	})
 }
 
-func (t VirtualMachineImplicitDataDiskResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t VirtualMachineImplicitDataDiskFromSourceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataDiskID(state.ID)
 	if err != nil {
 		return nil, err
@@ -212,7 +212,7 @@ func (t VirtualMachineImplicitDataDiskResource) Exists(ctx context.Context, clie
 	return pointer.To(disk != nil), nil
 }
 
-func (VirtualMachineImplicitDataDiskResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (VirtualMachineImplicitDataDiskFromSourceResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataDiskID(state.ID)
 	if err != nil {
 		return nil, err
@@ -267,15 +267,14 @@ func (VirtualMachineImplicitDataDiskResource) Destroy(ctx context.Context, clien
 	return pointer.To(true), nil
 }
 
-func (r VirtualMachineImplicitDataDiskResource) basic(data acceptance.TestData) string {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_implicit_data_disk" "test" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
-  caching            = "None"
   create_option      = "Copy"
   delete_option      = "Delete"
   disk_size_gb       = 20
@@ -284,24 +283,23 @@ resource "azurerm_virtual_machine_implicit_data_disk" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualMachineImplicitDataDiskResource) requiresImport(data acceptance.TestData) string {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_implicit_data_disk" "import" {
-  name               = azurerm_virtual_machine_implicit_data_disk.test.name
-  virtual_machine_id = azurerm_virtual_machine_implicit_data_disk.test.virtual_machine_id
-  lun                = azurerm_virtual_machine_implicit_data_disk.test.lun
-  caching            = azurerm_virtual_machine_implicit_data_disk.test.caching
-  create_option      = azurerm_virtual_machine_implicit_data_disk.test.create_option
-  delete_option      = azurerm_virtual_machine_implicit_data_disk.test.delete_option
-  disk_size_gb       = azurerm_virtual_machine_implicit_data_disk.test.disk_size_gb
-  source_resource_id = azurerm_virtual_machine_implicit_data_disk.test.source_resource_id
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "import" {
+  name               = azurerm_virtual_machine_implicit_data_disk_from_source.test.name
+  virtual_machine_id = azurerm_virtual_machine_implicit_data_disk_from_source.test.virtual_machine_id
+  lun                = azurerm_virtual_machine_implicit_data_disk_from_source.test.lun
+  create_option      = azurerm_virtual_machine_implicit_data_disk_from_source.test.create_option
+  delete_option      = azurerm_virtual_machine_implicit_data_disk_from_source.test.delete_option
+  disk_size_gb       = azurerm_virtual_machine_implicit_data_disk_from_source.test.disk_size_gb
+  source_resource_id = azurerm_virtual_machine_implicit_data_disk_from_source.test.source_resource_id
 }
 `, r.basic(data))
 }
 
-func (VirtualMachineImplicitDataDiskResource) managedServiceIdentity(data acceptance.TestData) string {
+func (VirtualMachineImplicitDataDiskFromSourceResource) managedServiceIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -385,11 +383,10 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = 10
 }
 
-resource "azurerm_virtual_machine_implicit_data_disk" "test" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
-  caching            = "None"
   create_option      = "Copy"
   delete_option      = "Delete"
   disk_size_gb       = 20
@@ -398,15 +395,14 @@ resource "azurerm_virtual_machine_implicit_data_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VirtualMachineImplicitDataDiskResource) multipleDisks(data acceptance.TestData) string {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) multipleDisks(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_implicit_data_disk" "first" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "first" {
   name               = "acctestVMIDD-%d"
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
-  caching            = "None"
   create_option      = "Copy"
   delete_option      = "Delete"
   disk_size_gb       = 20
@@ -430,7 +426,7 @@ resource "azurerm_snapshot" "second" {
   source_uri          = azurerm_managed_disk.second.id
 }
 
-resource "azurerm_virtual_machine_implicit_data_disk" "second" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "second" {
   name               = "acctestVMIDD2-%d"
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "20"
@@ -443,11 +439,11 @@ resource "azurerm_virtual_machine_implicit_data_disk" "second" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VirtualMachineImplicitDataDiskResource) readOnly(data acceptance.TestData) string {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) readOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_implicit_data_disk" "test" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
@@ -460,11 +456,11 @@ resource "azurerm_virtual_machine_implicit_data_disk" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualMachineImplicitDataDiskResource) readWrite(data acceptance.TestData) string {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) readWrite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_implicit_data_disk" "test" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
@@ -477,7 +473,7 @@ resource "azurerm_virtual_machine_implicit_data_disk" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (VirtualMachineImplicitDataDiskResource) writeAccelerator(data acceptance.TestData, enabled bool) string {
+func (VirtualMachineImplicitDataDiskFromSourceResource) writeAccelerator(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -565,11 +561,10 @@ resource "azurerm_snapshot" "test" {
   source_uri          = azurerm_managed_disk.test.id
 }
 
-resource "azurerm_virtual_machine_implicit_data_disk" "test" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name                      = "acctestVMIDD-%d"
   virtual_machine_id        = azurerm_virtual_machine.test.id
   lun                       = "0"
-  caching                   = "None"
   create_option             = "Copy"
   delete_option             = "Delete"
   disk_size_gb              = 20
@@ -579,7 +574,10 @@ resource "azurerm_virtual_machine_implicit_data_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func (VirtualMachineImplicitDataDiskResource) template(data acceptance.TestData) string {
+func (VirtualMachineImplicitDataDiskFromSourceResource) template(data acceptance.TestData) string {
+	// currently only supported in "eastus2" and "westus2".
+	location := "westus2"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -666,10 +664,10 @@ resource "azurerm_snapshot" "test" {
   create_option       = "Copy"
   source_uri          = azurerm_managed_disk.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (VirtualMachineImplicitDataDiskResource) virtualMachineExtensionPrep(data acceptance.TestData) string {
+func (VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineExtensionPrep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -773,7 +771,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VirtualMachineImplicitDataDiskResource) virtualMachineExtensionComplete(data acceptance.TestData) string {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineExtensionComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -794,7 +792,7 @@ resource "azurerm_snapshot" "test" {
   source_uri          = azurerm_managed_disk.test.id
 }
 
-resource "azurerm_virtual_machine_implicit_data_disk" "test" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "11"
@@ -807,7 +805,7 @@ resource "azurerm_virtual_machine_implicit_data_disk" "test" {
 `, r.virtualMachineExtensionPrep(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (VirtualMachineImplicitDataDiskResource) virtualMachineApplicationPrep(data acceptance.TestData) string {
+func (VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineApplicationPrep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -947,7 +945,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r VirtualMachineImplicitDataDiskResource) virtualMachineApplicationComplete(data acceptance.TestData) string {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineApplicationComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -968,7 +966,7 @@ resource "azurerm_snapshot" "test" {
   source_uri          = azurerm_managed_disk.test.id
 }
 
-resource "azurerm_virtual_machine_implicit_data_disk" "test" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   name               = "acctestVMIDD-%d"
   virtual_machine_id = azurerm_linux_virtual_machine.test.id
   lun                = "11"

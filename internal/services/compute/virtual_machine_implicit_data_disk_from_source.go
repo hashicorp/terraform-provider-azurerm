@@ -18,18 +18,18 @@ import (
 )
 
 var (
-	_ sdk.Resource                   = VirtualMachineImplicitDataDiskResource{}
-	_ sdk.ResourceWithUpdate         = VirtualMachineImplicitDataDiskResource{}
-	_ sdk.ResourceWithCustomImporter = VirtualMachineImplicitDataDiskResource{}
+	_ sdk.Resource                   = VirtualMachineImplicitDataDiskFromSourceResource{}
+	_ sdk.ResourceWithUpdate         = VirtualMachineImplicitDataDiskFromSourceResource{}
+	_ sdk.ResourceWithCustomImporter = VirtualMachineImplicitDataDiskFromSourceResource{}
 )
 
-type VirtualMachineImplicitDataDiskResource struct{}
+type VirtualMachineImplicitDataDiskFromSourceResource struct{}
 
-func (r VirtualMachineImplicitDataDiskResource) ModelObject() interface{} {
-	return &VirtualMachineImplicitDataDiskResourceModel{}
+func (r VirtualMachineImplicitDataDiskFromSourceResource) ModelObject() interface{} {
+	return &VirtualMachineImplicitDataDiskFromSourceResourceModel{}
 }
 
-type VirtualMachineImplicitDataDiskResourceModel struct {
+type VirtualMachineImplicitDataDiskFromSourceResourceModel struct {
 	Name                    string `tfschema:"name"`
 	VirtualMachineId        string `tfschema:"virtual_machine_id"`
 	Lun                     int64  `tfschema:"lun"`
@@ -41,15 +41,15 @@ type VirtualMachineImplicitDataDiskResourceModel struct {
 	WriteAcceleratorEnabled bool   `tfschema:"write_accelerator_enabled"`
 }
 
-func (r VirtualMachineImplicitDataDiskResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.DataDiskID
 }
 
-func (r VirtualMachineImplicitDataDiskResource) ResourceType() string {
-	return "azurerm_virtual_machine_implicit_data_disk"
+func (r VirtualMachineImplicitDataDiskFromSourceResource) ResourceType() string {
+	return "azurerm_virtual_machine_implicit_data_disk_from_source"
 }
 
-func (r VirtualMachineImplicitDataDiskResource) Arguments() map[string]*pluginsdk.Schema {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -72,16 +72,6 @@ func (r VirtualMachineImplicitDataDiskResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
-		"caching": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualmachines.CachingTypesNone),
-				string(virtualmachines.CachingTypesReadOnly),
-				string(virtualmachines.CachingTypesReadWrite),
-			}, false),
-		},
-
 		"create_option": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -92,12 +82,9 @@ func (r VirtualMachineImplicitDataDiskResource) Arguments() map[string]*pluginsd
 		},
 
 		"delete_option": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualmachines.DiskDeleteOptionTypesDetach),
-				string(virtualmachines.DiskDeleteOptionTypesDelete),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiskDeleteOptionTypes(), false),
 		},
 
 		"disk_size_gb": {
@@ -114,6 +101,15 @@ func (r VirtualMachineImplicitDataDiskResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.Any(snapshots.ValidateSnapshotID, commonids.ValidateManagedDiskID),
 		},
 
+		"caching": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(virtualmachines.CachingTypesReadOnly),
+				string(virtualmachines.CachingTypesReadWrite),
+			}, false),
+		},
+
 		"write_accelerator_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -122,17 +118,17 @@ func (r VirtualMachineImplicitDataDiskResource) Arguments() map[string]*pluginsd
 	}
 }
 
-func (r VirtualMachineImplicitDataDiskResource) Attributes() map[string]*pluginsdk.Schema {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r VirtualMachineImplicitDataDiskResource) Create() sdk.ResourceFunc {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Compute.VirtualMachinesClient
 
-			var config VirtualMachineImplicitDataDiskResourceModel
+			var config VirtualMachineImplicitDataDiskFromSourceResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -153,9 +149,14 @@ func (r VirtualMachineImplicitDataDiskResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("checking for the presence of an existing %s: %+v", *virtualMachineId, err)
 			}
 
+			caching := string(virtualmachines.CachingTypesNone)
+			if config.Caching != "" {
+				caching = config.Caching
+			}
+
 			expandedDisk := virtualmachines.DataDisk{
 				Name:         pointer.To(config.Name),
-				Caching:      pointer.To(virtualmachines.CachingTypes(config.Caching)),
+				Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
 				CreateOption: virtualmachines.DiskCreateOptionTypes(config.CreateOption),
 				DeleteOption: pointer.To(virtualmachines.DiskDeleteOptionTypes(config.DeleteOption)),
 				DiskSizeGB:   pointer.To(config.DiskSizeGb),
@@ -167,35 +168,40 @@ func (r VirtualMachineImplicitDataDiskResource) Create() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if profile := props.StorageProfile; profile != nil {
-						if dataDisks := profile.DataDisks; dataDisks != nil {
-							existingIndex := -1
-							disks := *dataDisks
-							for i, disk := range disks {
-								if pointer.From(disk.Name) == config.Name {
-									existingIndex = i
-									break
-								}
-							}
+				if model.Properties != nil {
+					// there are ways to provision a VM without a StorageProfile and/or DataDisks
+					if model.Properties.StorageProfile == nil {
+						model.Properties.StorageProfile = &virtualmachines.StorageProfile{}
+					}
 
-							if existingIndex != -1 {
-								return metadata.ResourceRequiresImport(r.ResourceType(), id)
-							}
+					if model.Properties.StorageProfile.DataDisks == nil {
+						model.Properties.StorageProfile.DataDisks = pointer.To(make([]virtualmachines.DataDisk, 0))
+					}
 
-							disks = append(disks, expandedDisk)
-							profile.DataDisks = &disks
-							// fixes #24145
-							props.ApplicationProfile = nil
-							// fixes #2485
-							model.Identity = nil
-							// fixes #1600
-							model.Resources = nil
-							err = client.CreateOrUpdateThenPoll(ctx, *virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions())
-							if err != nil {
-								return fmt.Errorf("creating %s: %+v", id, err)
-							}
+					existingIndex := -1
+					disks := *model.Properties.StorageProfile.DataDisks
+					for i, disk := range disks {
+						if pointer.From(disk.Name) == config.Name {
+							existingIndex = i
+							break
 						}
+					}
+
+					if existingIndex != -1 {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
+
+					disks = append(disks, expandedDisk)
+					model.Properties.StorageProfile.DataDisks = &disks
+					// fixes #24145
+					model.Properties.ApplicationProfile = nil
+					// fixes #2485
+					model.Identity = nil
+					// fixes #1600
+					model.Resources = nil
+					err = client.CreateOrUpdateThenPoll(ctx, *virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions())
+					if err != nil {
+						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 				}
 			}
@@ -206,7 +212,7 @@ func (r VirtualMachineImplicitDataDiskResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r VirtualMachineImplicitDataDiskResource) Read() sdk.ResourceFunc {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -223,7 +229,7 @@ func (r VirtualMachineImplicitDataDiskResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", virtualMachineId, err)
 			}
 
-			schema := VirtualMachineImplicitDataDiskResourceModel{
+			schema := VirtualMachineImplicitDataDiskFromSourceResourceModel{
 				Name:             id.Name,
 				VirtualMachineId: virtualMachineId.ID(),
 			}
@@ -249,7 +255,10 @@ func (r VirtualMachineImplicitDataDiskResource) Read() sdk.ResourceFunc {
 			}
 
 			schema.Lun = disk.Lun
-			schema.Caching = string(pointer.From(disk.Caching))
+			if v := pointer.From(disk.Caching); v != virtualmachines.CachingTypesNone {
+				schema.Caching = string(v)
+			}
+
 			schema.CreateOption = string(disk.CreateOption)
 			schema.DeleteOption = string(pointer.From(disk.DeleteOption))
 			schema.DiskSizeGb = pointer.From(disk.DiskSizeGB)
@@ -264,7 +273,7 @@ func (r VirtualMachineImplicitDataDiskResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r VirtualMachineImplicitDataDiskResource) Delete() sdk.ResourceFunc {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -294,7 +303,7 @@ func (r VirtualMachineImplicitDataDiskResource) Delete() sdk.ResourceFunc {
 								if pointer.From(dataDisk.Name) != id.Name {
 									newDisks = append(newDisks, dataDisk)
 								} else {
-									toBeDeletedDisk = &dataDisk
+									toBeDeletedDisk = pointer.To(dataDisk)
 								}
 							}
 						}
@@ -337,13 +346,13 @@ func (r VirtualMachineImplicitDataDiskResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r VirtualMachineImplicitDataDiskResource) Update() sdk.ResourceFunc {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Compute.VirtualMachinesClient
 
-			var config VirtualMachineImplicitDataDiskResourceModel
+			var config VirtualMachineImplicitDataDiskFromSourceResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -381,7 +390,12 @@ func (r VirtualMachineImplicitDataDiskResource) Update() sdk.ResourceFunc {
 
 							expandedDisk := &disks[existingIndex]
 							if metadata.ResourceData.HasChange("caching") {
-								expandedDisk.Caching = pointer.To(virtualmachines.CachingTypes(config.Caching))
+								caching := string(virtualmachines.CachingTypesNone)
+								if config.Caching != "" {
+									caching = config.Caching
+								}
+
+								expandedDisk.Caching = pointer.To(virtualmachines.CachingTypes(caching))
 							}
 
 							if metadata.ResourceData.HasChange("delete_option") {
@@ -418,7 +432,7 @@ func (r VirtualMachineImplicitDataDiskResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r VirtualMachineImplicitDataDiskResource) CustomImporter() sdk.ResourceRunFunc {
+func (r VirtualMachineImplicitDataDiskFromSourceResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		client := metadata.Client.Compute.VirtualMachinesClient
 
@@ -450,7 +464,7 @@ func (r VirtualMachineImplicitDataDiskResource) CustomImporter() sdk.ResourceRun
 						}
 
 						if disk.CreateOption != virtualmachines.DiskCreateOptionTypesCopy {
-							return fmt.Errorf("the value of `create_option` for the imported `azurerm_virtual_machine_implicit_data_disk` instance must be `Copy`, whereas now is %s", disk.CreateOption)
+							return fmt.Errorf("the value of `create_option` for the imported `azurerm_virtual_machine_implicit_data_disk_from_source` instance must be `Copy`, whereas now is %s", disk.CreateOption)
 						}
 					}
 				}

@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
@@ -181,6 +182,15 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 			StorageAccountType: compute.StorageAccountTypes(string(*managedDisk.Sku.Name)),
 		},
 		WriteAcceleratorEnabled: utils.Bool(writeAcceleratorEnabled),
+	}
+
+	// there are ways to provision a VM without a StorageProfile and/or DataDisks
+	if virtualMachine.StorageProfile == nil {
+		virtualMachine.StorageProfile = &compute.StorageProfile{}
+	}
+
+	if virtualMachine.StorageProfile.DataDisks == nil {
+		virtualMachine.StorageProfile.DataDisks = pointer.To(make([]compute.DataDisk, 0))
 	}
 
 	disks := *virtualMachine.StorageProfile.DataDisks

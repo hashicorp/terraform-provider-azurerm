@@ -1,12 +1,12 @@
 ---
 subcategory: "Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_virtual_machine_implicit_data_disk"
+page_title: "Azure Resource Manager: azurerm_virtual_machine_implicit_data_disk_from_source"
 description: |-
   Manages an implicit Data Disk of a Virtual Machine.
 ---
 
-# azurerm_virtual_machine_implicit_data_disk
+# azurerm_virtual_machine_implicit_data_disk_from_source
 
 Manages an implicit Data Disk of a Virtual Machine.
 
@@ -101,7 +101,7 @@ resource "azurerm_snapshot" "example" {
   source_uri          = azurerm_managed_disk.example.id
 }
 
-resource "azurerm_virtual_machine_implicit_data_disk" "example" {
+resource "azurerm_virtual_machine_implicit_data_disk_from_source" "example" {
   name               = "${local.vm_name}-implicitdisk1"
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
@@ -123,8 +123,6 @@ The following arguments are supported:
 
 * `lun` - (Required) The Logical Unit Number of the Data Disk, which needs to be unique within the Virtual Machine. Changing this forces a new resource to be created.
 
-* `caching` - (Required) Specifies the caching requirements for this Data Disk. Possible values include `None`, `ReadOnly` and `ReadWrite`.
-
 * `create_option` - (Required) Specifies the Create Option of the Data Disk. The only possible value is `Copy`. Changing this forces a new resource to be created.
 
 * `delete_option` - (Required) Specifies the Delete Option of the Data Disk. Possible values are `Delete` and `Detach`.
@@ -134,6 +132,8 @@ The following arguments are supported:
 * `disk_size_gb` - (Required) Specifies the size of the Data Disk in gigabytes. Changing this forces a new resource to be created.
 
 * `source_resource_id` - (Required) The ID of the source resource which this Data Disk was created from. Changing this forces a new resource to be created.
+
+* `caching` - (Optional) Specifies the caching requirements for this Data Disk. Possible values are `ReadOnly` and `ReadWrite`.
 
 * `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the disk. This can only be enabled on `Premium_LRS` managed disks with no caching and [M-Series VMs](https://docs.microsoft.com/azure/virtual-machines/workloads/sap/how-to-enable-write-accelerator). Defaults to `false`.
 
@@ -157,7 +157,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 The implicit Data Disk of the Virtual Machine can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_machine_implicit_data_disk.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/disk1
+terraform import azurerm_virtual_machine_implicit_data_disk_from_source.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/disk1
 ```
 
 -> **Please Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`
