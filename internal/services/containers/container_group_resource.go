@@ -841,8 +841,11 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	existing, err := client.ContainerGroupsGet(ctx, *id)
-	if err != nil || existing.Model == nil {
-		return fmt.Errorf("reading Container Group %s: %v", id, err)
+	if err != nil {
+		return fmt.Errorf("reading %s: %v", id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("reading %s: `model` was nil", id)
 	}
 
 	model := *existing.Model
