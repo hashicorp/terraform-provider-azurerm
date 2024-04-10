@@ -160,7 +160,7 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := apikeys.ParseApiKeyID(d.Id())
+	id, err := apikeys.ParseApiKeyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
