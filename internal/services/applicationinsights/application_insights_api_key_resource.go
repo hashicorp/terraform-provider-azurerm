@@ -30,9 +30,10 @@ func resourceApplicationInsightsAPIKey() *pluginsdk.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ApiKeyUpgradeV0ToV1{},
+			1: migration.ApiKeyUpgradeV1ToV2{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -160,7 +161,7 @@ func resourceApplicationInsightsAPIKeyRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := apikeys.ParseApiKeyIDInsensitively(d.Id())
+	id, err := apikeys.ParseApiKeyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -203,7 +204,7 @@ func resourceApplicationInsightsAPIKeyDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := apikeys.ParseApiKeyIDInsensitively(d.Id())
+	id, err := apikeys.ParseApiKeyID(d.Id())
 	if err != nil {
 		return err
 	}
