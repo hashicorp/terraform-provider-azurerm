@@ -36,6 +36,21 @@ func TestAccBackendAddressPoolBasicSkuBasic(t *testing.T) {
 	})
 }
 
+func TestAccBackendAddressPoolSynchronousMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+	r := LoadBalancerBackendAddressPool{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.syncMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccBackendAddressPoolBasicSkuDisappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 	r := LoadBalancerBackendAddressPool{}
@@ -248,6 +263,24 @@ provider "azurerm" {
 resource "azurerm_lb_backend_address_pool" "test" {
   name            = "pool"
   loadbalancer_id = azurerm_lb.test.id
+}
+`, template)
+}
+
+func (r LoadBalancerBackendAddressPool) syncMode(data acceptance.TestData) string {
+	template := r.template(data, "Standard")
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name               = "pool"
+  loadbalancer_id    = azurerm_lb.test.id
+  synchronous_mode   = "Automatic"
+  virtual_network_id = azurerm_virtual_network.test.id
 }
 `, template)
 }
