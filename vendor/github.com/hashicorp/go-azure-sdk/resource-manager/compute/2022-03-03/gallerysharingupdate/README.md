@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 ```
 
@@ -24,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := gallerysharingupdate.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
+id := commonids.NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "example-resource-group", "galleryValue")
 
 payload := gallerysharingupdate.SharingUpdate{
 	// ...

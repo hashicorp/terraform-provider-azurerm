@@ -19,7 +19,8 @@ type AttachedNetworksListByProjectOperationResponse struct {
 }
 
 type AttachedNetworksListByProjectCompleteResult struct {
-	Items []AttachedNetworkConnection
+	LatestHttpResponse *http.Response
+	Items              []AttachedNetworkConnection
 }
 
 type AttachedNetworksListByProjectOperationOptions struct {
@@ -111,7 +112,8 @@ func (c AttachedNetworkConnectionsClient) AttachedNetworksListByProjectCompleteM
 	}
 
 	result = AttachedNetworksListByProjectCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

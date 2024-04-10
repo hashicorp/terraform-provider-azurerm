@@ -45,7 +45,10 @@ func (c VirtualMachineInstancesClient) Get(ctx context.Context, id commonids.Sco
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VirtualMachineInstance
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

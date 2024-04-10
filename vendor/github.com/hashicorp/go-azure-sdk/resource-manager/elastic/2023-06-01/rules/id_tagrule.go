@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = TagRuleId{}
+var _ resourceids.ResourceId = &TagRuleId{}
 
 // TagRuleId is a struct representing the Resource ID for a Tag Rule
 type TagRuleId struct {
@@ -32,7 +32,7 @@ func NewTagRuleID(subscriptionId string, resourceGroupName string, monitorName s
 
 // ParseTagRuleID parses 'input' into a TagRuleId
 func ParseTagRuleID(input string) (*TagRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TagRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&TagRuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseTagRuleID(input string) (*TagRuleId, error) {
 // ParseTagRuleIDInsensitively parses 'input' case-insensitively into a TagRuleId
 // note: this method should only be used for API response data and not user input
 func ParseTagRuleIDInsensitively(input string) (*TagRuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(TagRuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&TagRuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

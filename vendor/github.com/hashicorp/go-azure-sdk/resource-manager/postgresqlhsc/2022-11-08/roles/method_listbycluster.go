@@ -44,7 +44,10 @@ func (c RolesClient) ListByCluster(ctx context.Context, id ServerGroupsv2Id) (re
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model RoleListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

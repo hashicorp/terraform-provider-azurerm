@@ -19,7 +19,8 @@ type JobsListOperationResponse struct {
 }
 
 type JobsListCompleteResult struct {
-	Items []Job
+	LatestHttpResponse *http.Response
+	Items              []Job
 }
 
 type JobsListOperationOptions struct {
@@ -115,7 +116,8 @@ func (c EncodingsClient) JobsListCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = JobsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type DomainTopicEventSubscriptionsListOperationResponse struct {
 }
 
 type DomainTopicEventSubscriptionsListCompleteResult struct {
-	Items []EventSubscription
+	LatestHttpResponse *http.Response
+	Items              []EventSubscription
 }
 
 type DomainTopicEventSubscriptionsListOperationOptions struct {
@@ -115,7 +116,8 @@ func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsListCompleteMatch
 	}
 
 	result = DomainTopicEventSubscriptionsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1418,6 +1418,87 @@ resource "azurerm_web_application_firewall_policy" "test" {
         rule {
           id      = "911100"
           enabled = true
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "LFI"
+        rule {
+          id      = "930100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "RFI"
+        rule {
+          id      = "931100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "RCE"
+        rule {
+          id      = "932100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "PHP"
+        rule {
+          id      = "933100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "NODEJS"
+        rule {
+          id      = "934100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "XSS"
+        rule {
+          id      = "941100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "SQLI"
+        rule {
+          id      = "942100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "FIX"
+        rule {
+          id      = "943100"
+          enabled = false
+          action  = "Log"
+        }
+      }
+
+      rule_group_override {
+        rule_group_name = "JAVA"
+        rule {
+          id      = "944100"
+          enabled = false
           action  = "Log"
         }
       }

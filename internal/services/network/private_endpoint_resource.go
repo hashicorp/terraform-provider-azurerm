@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
 	postgresqlServers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
@@ -468,6 +468,19 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("validating the configuration for %s: %+v", id, err)
 	}
 
+	// Ensure we don't overwrite the existing ApplicationSecurityGroups
+	existing, err := client.Get(ctx, *id, privateendpoints.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving existing %s: `model.Properties` was nil", *id)
+	}
+
+	applicationSecurityGroupAssociation := existing.Model.Properties.ApplicationSecurityGroups
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
@@ -479,6 +492,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	parameters := privateendpoints.PrivateEndpoint{
 		Location: utils.String(location),
 		Properties: &privateendpoints.PrivateEndpointProperties{
+			ApplicationSecurityGroups:           applicationSecurityGroupAssociation,
 			PrivateLinkServiceConnections:       expandPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
 			ManualPrivateLinkServiceConnections: expandPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
 			Subnet: &privateendpoints.Subnet{
@@ -1168,7 +1182,7 @@ func normalizePrivateConnectionId(privateConnectionId string) string {
 		}
 	}
 	if strings.Contains(strings.ToLower(privateConnectionId), "microsoft.kusto") {
-		if clusterId, err := clusters.ParseClusterIDInsensitively(privateConnectionId); err == nil {
+		if clusterId, err := commonids.ParseKustoClusterIDInsensitively(privateConnectionId); err == nil {
 			privateConnectionId = clusterId.ID()
 		}
 	}

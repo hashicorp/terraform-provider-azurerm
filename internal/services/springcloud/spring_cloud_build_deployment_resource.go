@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
@@ -63,6 +64,16 @@ func resourceSpringCloudBuildDeployment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"application_performance_monitoring_ids": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: appplatform2.ValidateApmID,
+				},
 			},
 
 			"addon_json": {
@@ -169,6 +180,7 @@ func resourceSpringCloudBuildDeploymentCreateUpdate(d *pluginsdk.ResourceData, m
 			},
 			DeploymentSettings: &appplatform.DeploymentSettings{
 				AddonConfigs:         addonConfig,
+				Apms:                 expandSpringCloudDeploymentApms(d.Get("application_performance_monitoring_ids").([]interface{})),
 				EnvironmentVariables: expandSpringCloudDeploymentEnvironmentVariables(d.Get("environment_variables").(map[string]interface{})),
 				ResourceRequests:     expandSpringCloudBuildDeploymentResourceRequests(d.Get("quota").([]interface{})),
 			},
@@ -223,6 +235,11 @@ func resourceSpringCloudBuildDeploymentRead(d *pluginsdk.ResourceData, meta inte
 			if err := d.Set("addon_json", flattenSpringCloudAppAddon(settings.AddonConfigs)); err != nil {
 				return fmt.Errorf("setting `addon_json`: %s", err)
 			}
+			apmIds, err := flattenSpringCloudDeploymentApms(settings.Apms)
+			if err != nil {
+				return fmt.Errorf("setting `application_performance_monitoring_ids`: %+v", err)
+			}
+			d.Set("application_performance_monitoring_ids", apmIds)
 		}
 		if source, ok := resp.Properties.Source.AsBuildResultUserSourceInfo(); ok && source != nil {
 			d.Set("build_result_id", source.BuildResultID)

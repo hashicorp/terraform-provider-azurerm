@@ -6,8 +6,9 @@ package shim
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/table/tables"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
 )
 
 type DataPlaneStorageTableWrapper struct {
@@ -20,31 +21,29 @@ func NewDataPlaneStorageTableWrapper(client *tables.Client) StorageTableWrapper 
 	}
 }
 
-func (w DataPlaneStorageTableWrapper) Create(ctx context.Context, _, accountName, tableName string) error {
-	_, err := w.client.Create(ctx, accountName, tableName)
+func (w DataPlaneStorageTableWrapper) Create(ctx context.Context, tableName string) error {
+	_, err := w.client.Create(ctx, tableName)
 	return err
 }
 
-func (w DataPlaneStorageTableWrapper) Delete(ctx context.Context, _, accountName, tableName string) error {
-	_, err := w.client.Delete(ctx, accountName, tableName)
+func (w DataPlaneStorageTableWrapper) Delete(ctx context.Context, tableName string) error {
+	_, err := w.client.Delete(ctx, tableName)
 	return err
 }
 
-func (w DataPlaneStorageTableWrapper) Exists(ctx context.Context, _, accountName, tableName string) (*bool, error) {
-	existing, err := w.client.Exists(ctx, accountName, tableName)
+func (w DataPlaneStorageTableWrapper) Exists(ctx context.Context, tableName string) (*bool, error) {
+	existing, err := w.client.Exists(ctx, tableName)
 	if err != nil {
-		if utils.ResponseWasNotFound(existing) {
-			return nil, nil
+		if response.WasNotFound(existing.HttpResponse) {
+			return pointer.To(false), nil
 		}
-
 		return nil, err
 	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
-func (w DataPlaneStorageTableWrapper) GetACLs(ctx context.Context, _, accountName, tableName string) (*[]tables.SignedIdentifier, error) {
-	acls, err := w.client.GetACL(ctx, accountName, tableName)
+func (w DataPlaneStorageTableWrapper) GetACLs(ctx context.Context, tableName string) (*[]tables.SignedIdentifier, error) {
+	acls, err := w.client.GetACL(ctx, tableName)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +51,7 @@ func (w DataPlaneStorageTableWrapper) GetACLs(ctx context.Context, _, accountNam
 	return &acls.SignedIdentifiers, nil
 }
 
-func (w DataPlaneStorageTableWrapper) UpdateACLs(ctx context.Context, _, accountName, tableName string, acls []tables.SignedIdentifier) error {
-	_, err := w.client.SetACL(ctx, accountName, tableName, acls)
+func (w DataPlaneStorageTableWrapper) UpdateACLs(ctx context.Context, tableName string, acls []tables.SignedIdentifier) error {
+	_, err := w.client.SetACL(ctx, tableName, acls)
 	return err
 }

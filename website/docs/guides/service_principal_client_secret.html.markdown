@@ -15,6 +15,7 @@ Terraform supports a number of different methods for authenticating to Azure:
 * [Authenticating to Azure using a Service Principal and a Client Certificate](service_principal_client_certificate.html)
 * Authenticating to Azure using a Service Principal and a Client Secret (which is covered in this guide)
 * [Authenticating to Azure using a Service Principal and OpenID Connect](service_principal_oidc.html)
+* [Authenticating to Azure using AKS Workload Identity](aks_workload_identity.html)
 
 ---
 
@@ -28,7 +29,7 @@ It's possible to complete this task in either the [Azure CLI](#creating-a-servic
 
 ### Creating a Service Principal using the Azure CLI
 
-~> **Note**: If you're using the **China** or **US Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
+~> **Note:** If you're using the **China** or **US Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
 ```shell
 az cloud set --name AzureChinaCloud|AzureUSGovernment
@@ -111,7 +112,7 @@ Once logged in as the Service Principal - we should be able to list the VM sizes
 az vm list-sizes --location westus
 ```
 
-~> **Note**: If you're using the **China** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
+~> **Note:** If you're using the **China** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
 
 ```shell
 az account list-locations

@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AgentId{}
+var _ resourceids.ResourceId = &AgentId{}
 
 // AgentId is a struct representing the Resource ID for a Agent
 type AgentId struct {
@@ -32,7 +32,7 @@ func NewAgentID(subscriptionId string, resourceGroupName string, storageMoverNam
 
 // ParseAgentID parses 'input' into a AgentId
 func ParseAgentID(input string) (*AgentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AgentId{})
+	parser := resourceids.NewParserFromResourceIdType(&AgentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseAgentID(input string) (*AgentId, error) {
 // ParseAgentIDInsensitively parses 'input' case-insensitively into a AgentId
 // note: this method should only be used for API response data and not user input
 func ParseAgentIDInsensitively(input string) (*AgentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AgentId{})
+	parser := resourceids.NewParserFromResourceIdType(&AgentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

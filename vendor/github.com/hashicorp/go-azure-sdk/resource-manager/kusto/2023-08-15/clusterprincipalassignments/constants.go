@@ -1,6 +1,10 @@
 package clusterprincipalassignments
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForClusterPrincipalRole() []string {
 		string(ClusterPrincipalRoleAllDatabasesAdmin),
 		string(ClusterPrincipalRoleAllDatabasesViewer),
 	}
+}
+
+func (s *ClusterPrincipalRole) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterPrincipalRole(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseClusterPrincipalRole(input string) (*ClusterPrincipalRole, error) {
@@ -43,6 +60,19 @@ func PossibleValuesForPrincipalAssignmentType() []string {
 	return []string{
 		string(PrincipalAssignmentTypeMicrosoftPointKustoClustersPrincipalAssignments),
 	}
+}
+
+func (s *PrincipalAssignmentType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrincipalAssignmentType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrincipalAssignmentType(input string) (*PrincipalAssignmentType, error) {
@@ -72,6 +102,19 @@ func PossibleValuesForPrincipalType() []string {
 		string(PrincipalTypeGroup),
 		string(PrincipalTypeUser),
 	}
+}
+
+func (s *PrincipalType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrincipalType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrincipalType(input string) (*PrincipalType, error) {
@@ -113,6 +156,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"canceled":  ProvisioningStateCanceled,
@@ -144,6 +200,19 @@ func PossibleValuesForReason() []string {
 		string(ReasonAlreadyExists),
 		string(ReasonInvalid),
 	}
+}
+
+func (s *Reason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseReason(input string) (*Reason, error) {

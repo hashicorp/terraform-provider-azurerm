@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -82,6 +82,21 @@ func TestAccVPNServerConfigurationPolicyGroup_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccVPNServerConfigurationPolicyGroup_multiplePolicyGroups(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration_policy_group", "test")
+	r := VPNServerConfigurationPolicyGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiplePolicyGroups(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -169,6 +184,51 @@ resource "azurerm_vpn_server_configuration_policy_group" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r VPNServerConfigurationPolicyGroupResource) multiplePolicyGroups(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_server_configuration_policy_group" "test" {
+  name                        = "acctestVPNSCPG-%d"
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  is_default                  = true
+  priority                    = 1
+
+  policy {
+    name  = "policy1"
+    type  = "RadiusAzureGroupId"
+    value = "6ad1bd08"
+  }
+}
+
+resource "azurerm_vpn_server_configuration_policy_group" "test2" {
+  name                        = "acctestVPNSCPG2-%d"
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  is_default                  = false
+  priority                    = 2
+
+  policy {
+    name  = "policy2"
+    type  = "CertificateGroupId"
+    value = "red.com"
+  }
+}
+
+resource "azurerm_vpn_server_configuration_policy_group" "test3" {
+  name                        = "acctestVPNSCPG3-%d"
+  vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
+  is_default                  = false
+  priority                    = 3
+
+  policy {
+    name  = "policy3"
+    type  = "CertificateGroupId"
+    value = "green.com"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r VPNServerConfigurationPolicyGroupResource) template(data acceptance.TestData) string {

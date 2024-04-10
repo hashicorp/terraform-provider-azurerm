@@ -76,9 +76,9 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Windows Web App be enabled? Defaults to `true`.
 
-* `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
+* `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
-* `https_only` - (Optional) Should the Windows Web App require HTTPS connections.
+* `https_only` - (Optional) Should the Windows Web App require HTTPS connections. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Web App. Defaults to `true`.
 
@@ -102,7 +102,7 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
-* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
+* `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
 
@@ -140,7 +140,7 @@ A `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
-* `file_system_level` - (Required) Log level. Possible values include: `Verbose`, `Information`, `Warning`, and `Error`.
+* `file_system_level` - (Required) Log level. Possible values include: `Off`, `Verbose`, `Information`, `Warning`, and `Error`.
 
 ---
 
@@ -189,7 +189,7 @@ ASP.NET V4.8 | v4.0
 
 ~> **NOTE:** For currently supported versions, please see the official documentation. Some example values include: `1.8`, `1.8.0_322`,  `11`, `11.0.14`, `17` and `17.0.2`
 
-* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, and `~18`.
+* `node_version` - (Optional) The version of node to use when `current_stack` is set to `node`. Possible values are `~12`, `~14`, `~16`, `~18` and `~20`.
 
 ~> **NOTE:** This property conflicts with `java_version`.
 
@@ -319,7 +319,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
@@ -583,7 +583,7 @@ A `headers` block supports the following:
 
 A `http_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined above.
+* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined below.
 
 * `file_system` - (Optional) A `file_system` block as defined above.
 
@@ -624,6 +624,8 @@ A `ip_restriction` block supports the following:
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 ---
 
@@ -693,6 +695,7 @@ A `scm_ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
 ---
 
 A `site_config` block supports the following:
@@ -733,6 +736,8 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
+* `ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
+
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
 * `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
@@ -743,9 +748,11 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019` and `VS2022`.
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
+
+* `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
 * `scm_minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 

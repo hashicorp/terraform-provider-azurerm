@@ -19,7 +19,8 @@ type DigitalTwinsEndpointListOperationResponse struct {
 }
 
 type DigitalTwinsEndpointListCompleteResult struct {
-	Items []DigitalTwinsEndpointResource
+	LatestHttpResponse *http.Response
+	Items              []DigitalTwinsEndpointResource
 }
 
 // DigitalTwinsEndpointList ...
@@ -83,7 +84,8 @@ func (c EndpointsClient) DigitalTwinsEndpointListCompleteMatchingPredicate(ctx c
 	}
 
 	result = DigitalTwinsEndpointListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

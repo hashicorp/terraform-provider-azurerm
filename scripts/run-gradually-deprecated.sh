@@ -6,7 +6,7 @@
 function runGraduallyDeprecatedFunctions {
   echo "==> Checking for use of gradually deprecated functions..."
 
-  IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only)
+  IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only --merge-base)
 
   for f in "${flist[@]}"; do
     # require resources to be imported is now hard-coded on - but only checking for additions
@@ -109,6 +109,43 @@ function runGraduallyDeprecatedFunctions {
             echo "The Azure SDK (track1 & kermit) clients should be created with the function NewFoosClientWithBaseURI() "
             echo "that has the resource manager endpoint explicitly specified. These can be found in:"
             echo "* $f"
+            exit 1
+        }
+
+        ## Test Configurations should NOT use os.GetEnv to load credentials and use these in tests
+        ## Instead a User Assigned Identity should be created as a part of the Test Configuration with as
+        ## minimal permissions as possible - which can then be cleaned up as a part of the test.
+
+        # Ensure the Test Configuration doesn't use the Client ID
+        grep -H -n "os.Getenv(\"ARM_CLIENT_ID\")" "$f" && {
+            echo "A usage of 'os.Getenv('ARM_CLIENT_ID') has been detected in:"
+            echo "* $f"
+            echo ""
+            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
+            exit 1
+        }
+
+        # Ensure the Test Configuration doesn't use the Client Secret
+        grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET\")" "$f" && {
+            echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET') has been detected in:"
+            echo "* $f"
+            echo ""
+            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
+            exit 1
+        }
+
+        # Ensure the Test Configuration doesn't use the Client Secret
+        grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET_ALT\")" "$f" && {
+            echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET_ALT') has been detected in:"
+            echo "* $f"
+            echo ""
+            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
             exit 1
         }
     fi

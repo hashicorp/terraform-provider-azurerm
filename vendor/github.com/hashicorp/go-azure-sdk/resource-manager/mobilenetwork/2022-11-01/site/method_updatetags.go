@@ -47,7 +47,10 @@ func (c SiteClient) UpdateTags(ctx context.Context, id SiteId, input TagsObject)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Site
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

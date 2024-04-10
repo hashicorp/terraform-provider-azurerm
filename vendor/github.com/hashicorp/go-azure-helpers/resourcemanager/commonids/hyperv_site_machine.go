@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-var _ resourceids.ResourceId = HyperVSiteMachineId{}
+var _ resourceids.ResourceId = &HyperVSiteMachineId{}
 
 // HyperVSiteMachineId is a struct representing the Resource ID for a Hyper V Site Machine
 type HyperVSiteMachineId struct {
@@ -32,29 +32,15 @@ func NewHyperVSiteMachineID(subscriptionId string, resourceGroupName string, hyp
 
 // ParseHyperVSiteMachineID parses 'input' into a HyperVSiteMachineId
 func ParseHyperVSiteMachineID(input string) (*HyperVSiteMachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HyperVSiteMachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&HyperVSiteMachineId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HyperVSiteMachineId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.HyperVSiteName, ok = parsed.Parsed["hyperVSiteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hyperVSiteName", *parsed)
-	}
-
-	if id.MachineName, ok = parsed.Parsed["machineName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "machineName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +49,40 @@ func ParseHyperVSiteMachineID(input string) (*HyperVSiteMachineId, error) {
 // ParseHyperVSiteMachineIDInsensitively parses 'input' case-insensitively into a HyperVSiteMachineId
 // note: this method should only be used for API response data and not user input
 func ParseHyperVSiteMachineIDInsensitively(input string) (*HyperVSiteMachineId, error) {
-	parser := resourceids.NewParserFromResourceIdType(HyperVSiteMachineId{})
+	parser := resourceids.NewParserFromResourceIdType(&HyperVSiteMachineId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := HyperVSiteMachineId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.HyperVSiteName, ok = parsed.Parsed["hyperVSiteName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "hyperVSiteName", *parsed)
-	}
-
-	if id.MachineName, ok = parsed.Parsed["machineName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "machineName", *parsed)
+	if err = id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *HyperVSiteMachineId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.HyperVSiteName, ok = input.Parsed["hyperVSiteName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "hyperVSiteName", input)
+	}
+
+	if id.MachineName, ok = input.Parsed["machineName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "machineName", input)
+	}
+
+	return nil
 }
 
 // ValidateHyperVSiteMachineID checks that 'input' can be parsed as a Hyper V Site Machine ID

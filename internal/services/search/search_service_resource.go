@@ -341,19 +341,33 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	if resp.Model == nil {
 		return fmt.Errorf("retrieving existing %s: %+v", id, err)
 	}
+
 	model := *resp.Model
-	if model.Properties == nil {
+	if props := model.Properties; props == nil {
 		return fmt.Errorf("retrieving existing %s: `properties` was nil", id)
 	}
+
+	// The service API has changed where it will not allow the updated model to be
+	// passed to the update PATCH call. You must now create a new update payload
+	// object by removing all of the READ-ONLY fields from the model...
+	// (e.g., privateEndpointConnections, provisioningState, sharedPrivateLinkResources,
+	// status and statusDetails)
+	model.Properties.PrivateEndpointConnections = nil
+	model.Properties.ProvisioningState = nil
+	model.Properties.SharedPrivateLinkResources = nil
+	model.Properties.Status = nil
+	model.Properties.StatusDetails = nil
 
 	if d.HasChange("customer_managed_key_enforcement_enabled") {
 		cmkEnforcement := services.SearchEncryptionWithCmkDisabled
 		if enabled := d.Get("customer_managed_key_enforcement_enabled").(bool); enabled {
 			cmkEnforcement = services.SearchEncryptionWithCmkEnabled
 		}
+
 		model.Properties.EncryptionWithCmk = &services.EncryptionWithCmk{
 			Enforcement: pointer.To(cmkEnforcement),
 		}
@@ -449,6 +463,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("allowed_ips") {
 		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
+
 		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
 			IPRules: expandSearchServiceIPRules(ipRulesRaw),
 		}

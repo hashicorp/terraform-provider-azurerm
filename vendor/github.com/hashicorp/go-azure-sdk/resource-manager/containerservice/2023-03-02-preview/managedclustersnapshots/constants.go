@@ -1,6 +1,10 @@
 package managedclustersnapshots
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForLoadBalancerSku() []string {
 		string(LoadBalancerSkuBasic),
 		string(LoadBalancerSkuStandard),
 	}
+}
+
+func (s *LoadBalancerSku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLoadBalancerSku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLoadBalancerSku(input string) (*LoadBalancerSku, error) {
@@ -43,6 +60,19 @@ func PossibleValuesForManagedClusterSKUName() []string {
 	return []string{
 		string(ManagedClusterSKUNameBase),
 	}
+}
+
+func (s *ManagedClusterSKUName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseManagedClusterSKUName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseManagedClusterSKUName(input string) (*ManagedClusterSKUName, error) {
@@ -74,6 +104,19 @@ func PossibleValuesForManagedClusterSKUTier() []string {
 	}
 }
 
+func (s *ManagedClusterSKUTier) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseManagedClusterSKUTier(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseManagedClusterSKUTier(input string) (*ManagedClusterSKUTier, error) {
 	vals := map[string]ManagedClusterSKUTier{
 		"free":     ManagedClusterSKUTierFree,
@@ -101,6 +144,19 @@ func PossibleValuesForNetworkMode() []string {
 		string(NetworkModeBridge),
 		string(NetworkModeTransparent),
 	}
+}
+
+func (s *NetworkMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNetworkMode(input string) (*NetworkMode, error) {
@@ -133,6 +189,19 @@ func PossibleValuesForNetworkPlugin() []string {
 	}
 }
 
+func (s *NetworkPlugin) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkPlugin(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNetworkPlugin(input string) (*NetworkPlugin, error) {
 	vals := map[string]NetworkPlugin{
 		"azure":   NetworkPluginAzure,
@@ -158,6 +227,19 @@ func PossibleValuesForNetworkPluginMode() []string {
 	return []string{
 		string(NetworkPluginModeOverlay),
 	}
+}
+
+func (s *NetworkPluginMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkPluginMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseNetworkPluginMode(input string) (*NetworkPluginMode, error) {
@@ -189,6 +271,19 @@ func PossibleValuesForNetworkPolicy() []string {
 	}
 }
 
+func (s *NetworkPolicy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkPolicy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseNetworkPolicy(input string) (*NetworkPolicy, error) {
 	vals := map[string]NetworkPolicy{
 		"azure":  NetworkPolicyAzure,
@@ -216,6 +311,19 @@ func PossibleValuesForSnapshotType() []string {
 		string(SnapshotTypeManagedCluster),
 		string(SnapshotTypeNodePool),
 	}
+}
+
+func (s *SnapshotType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSnapshotType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSnapshotType(input string) (*SnapshotType, error) {

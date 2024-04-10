@@ -19,7 +19,8 @@ type WebTestsListByComponentOperationResponse struct {
 }
 
 type WebTestsListByComponentCompleteResult struct {
-	Items []WebTest
+	LatestHttpResponse *http.Response
+	Items              []WebTest
 }
 
 // WebTestsListByComponent ...
@@ -83,7 +84,8 @@ func (c WebTestsAPIsClient) WebTestsListByComponentCompleteMatchingPredicate(ctx
 	}
 
 	result = WebTestsListByComponentCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

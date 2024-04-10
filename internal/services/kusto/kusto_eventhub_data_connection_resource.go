@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -121,7 +120,7 @@ func resourceKustoEventHubDataConnection() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					clusters.ValidateClusterID,
+					commonids.ValidateKustoClusterID,
 					commonids.ValidateUserAssignedIdentityID,
 				),
 			},
@@ -240,7 +239,7 @@ func resourceKustoEventHubDataConnectionRead(d *pluginsdk.ResourceData, meta int
 				identityId := ""
 				if props.ManagedIdentityResourceId != nil {
 					identityId = *props.ManagedIdentityResourceId
-					clusterId, clusterIdErr := clusters.ParseClusterIDInsensitively(identityId)
+					clusterId, clusterIdErr := commonids.ParseKustoClusterIDInsensitively(identityId)
 					if clusterIdErr == nil {
 						identityId = clusterId.ID()
 					} else {

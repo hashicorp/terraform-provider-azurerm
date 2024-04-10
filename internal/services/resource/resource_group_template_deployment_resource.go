@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
@@ -106,6 +107,31 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 			},
+		},
+
+		// this is needed to fix https://github.com/hashicorp/terraform-provider-azurerm/issues/12828
+		// On a change to `template_content` or `parameters_content`, we'll set `output_content` to empty
+		// The adverse effect of this is that any change to `template_content` will also cause any resource referencing `output_content` to update
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if d.HasChange("template_content") {
+				o, n := d.GetChange("template_content")
+
+				// the json has to be normalized and then compared against to see if a change has occurred
+				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+					return d.SetNewComputed("output_content")
+				}
+			}
+
+			if d.HasChange("parameters_content") {
+				o, n := d.GetChange("parameters_content")
+
+				// the json has to be normalized and then compared against to see if a change has occurred
+				if !strings.EqualFold(o.(string), utils.NormalizeJson(n)) {
+					return d.SetNewComputed("output_content")
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -241,6 +267,10 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 	if d.HasChange("template_spec_version_id") {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
 			ID: utils.String(d.Get("template_spec_version_id").(string)),
+		}
+
+		if d.Get("template_spec_version_id").(string) != "" {
+			deployment.Properties.Template = nil
 		}
 	}
 

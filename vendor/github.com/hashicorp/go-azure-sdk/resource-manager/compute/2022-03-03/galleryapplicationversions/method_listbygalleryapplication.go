@@ -19,7 +19,8 @@ type ListByGalleryApplicationOperationResponse struct {
 }
 
 type ListByGalleryApplicationCompleteResult struct {
-	Items []GalleryApplicationVersion
+	LatestHttpResponse *http.Response
+	Items              []GalleryApplicationVersion
 }
 
 // ListByGalleryApplication ...
@@ -83,7 +84,8 @@ func (c GalleryApplicationVersionsClient) ListByGalleryApplicationCompleteMatchi
 	}
 
 	result = ListByGalleryApplicationCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

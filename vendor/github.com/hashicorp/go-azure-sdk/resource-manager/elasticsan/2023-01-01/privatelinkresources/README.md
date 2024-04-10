@@ -26,11 +26,12 @@ client.Client.Authorizer = authorizer
 ctx := context.TODO()
 id := privatelinkresources.NewElasticSanID("12345678-1234-9876-4563-123456789012", "example-resource-group", "elasticSanValue")
 
-read, err := client.ListByElasticSan(ctx, id)
+// alternatively `client.ListByElasticSan(ctx, id)` can be used to do batched pagination
+items, err := client.ListByElasticSanComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```

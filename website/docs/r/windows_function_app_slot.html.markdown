@@ -93,11 +93,11 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Windows Function App Slot enabled. Defaults to `true`.
 
-* `ftp_publish_basic_authentication_enabled` - Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
+* `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`.
 
 * `functions_extension_version` - (Optional) The runtime version associated with the Function App Slot. Defaults to `~4`.
 
-* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?
+* `https_only` - (Optional) Can the Function App Slot only be accessed via HTTPS?. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
@@ -131,7 +131,7 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
-* `webdeploy_publish_basic_authentication_enabled` - Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to`true`.
+* `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
 ---
 
@@ -253,7 +253,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-~> **NOTE:** One of `client_secret_setting_name` or `client_secret_certificate_thumbprint` must be specified.
+!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
@@ -473,6 +473,8 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) an `ip_restriction` block as detailed below.
 
+* `ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
+
 * `load_balancing_mode` - (Optional) The Site load balancing mode. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
@@ -490,6 +492,8 @@ A `site_config` block supports the following:
 ~> **NOTE:** Functions runtime scale monitoring can only be enabled for Elastic Premium Function Apps or Workflow Standard Logic Apps and requires a minimum prewarmed instance count of 1.
 
 * `scm_ip_restriction` - (Optional) a `scm_ip_restriction` block as detailed below.
+
+* `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
 * `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
@@ -625,7 +629,7 @@ An `application_stack` block supports the following:
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `1.8`, `11` and `17` (In-Preview).
 
-* `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16` and `~18`.
+* `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16`, `~18` and `~20`.
 
 * `powershell_core_version` - (Optional) The PowerShell Core version to use. Possible values are `7`, and `7.2`.
 
@@ -659,6 +663,7 @@ An `ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
 ---
 
 A `scm_ip_restriction` block supports the following:
@@ -679,6 +684,7 @@ A `scm_ip_restriction` block supports the following:
 
 ~> **NOTE:** Exactly one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
 ---
 
 A `headers` block supports the following:

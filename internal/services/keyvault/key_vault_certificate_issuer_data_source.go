@@ -26,7 +26,7 @@ func dataSourceKeyVaultCertificateIssuer() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 
 			"name": {
 				Type:         pluginsdk.TypeString,

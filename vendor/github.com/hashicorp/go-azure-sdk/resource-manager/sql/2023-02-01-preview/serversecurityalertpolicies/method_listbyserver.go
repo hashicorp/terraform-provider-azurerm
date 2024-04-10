@@ -20,7 +20,8 @@ type ListByServerOperationResponse struct {
 }
 
 type ListByServerCompleteResult struct {
-	Items []ServerSecurityAlertPolicy
+	LatestHttpResponse *http.Response
+	Items              []ServerSecurityAlertPolicy
 }
 
 // ListByServer ...
@@ -84,7 +85,8 @@ func (c ServerSecurityAlertPoliciesClient) ListByServerCompleteMatchingPredicate
 	}
 
 	result = ListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

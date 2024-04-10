@@ -19,7 +19,8 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []JobSchedule
+	LatestHttpResponse *http.Response
+	Items              []JobSchedule
 }
 
 type ListByAutomationAccountOperationOptions struct {
@@ -111,7 +112,8 @@ func (c JobScheduleClient) ListByAutomationAccountCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

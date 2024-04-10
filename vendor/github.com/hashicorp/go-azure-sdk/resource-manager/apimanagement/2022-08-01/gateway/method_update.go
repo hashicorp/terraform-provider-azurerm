@@ -76,7 +76,10 @@ func (c GatewayClient) Update(ctx context.Context, id GatewayId, input GatewayCo
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GatewayContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -43,7 +43,10 @@ func (c ClustersClient) Get(ctx context.Context, id ClusterId) (result GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Cluster
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

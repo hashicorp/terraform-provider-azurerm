@@ -36,7 +36,9 @@ output "elasticpool_id" {
 
 * `id` - The ID of the elastic pool.
 
-* `license_type` - The license type to apply for this database.
+* `enclave_type` - The type of enclave being used by the elastic pool.
+
+* `license_type` - The license type to apply for this elastic pool.
 
 * `location` - Specifies the supported Azure location where the resource exists.
 

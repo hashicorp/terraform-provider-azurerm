@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,7 +20,6 @@ import (
 	storageparse "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningDataStoreFileShare struct{}
@@ -155,16 +155,17 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(model.Name),
-				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureFile)),
+				Name: pointer.To(model.Name),
+				Type: pointer.To(string(datastore.DatastoreTypeAzureFile)),
 			}
 
 			props := &datastore.AzureFileDatastore{
 				AccountName:                   fileShareId.StorageAccountName,
+				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				FileShareName:                 fileShareId.FileshareName,
-				Description:                   utils.String(model.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
-				Tags:                          utils.ToPtr(model.Tags),
+				Description:                   pointer.To(model.Description),
+				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
+				Tags:                          pointer.To(model.Tags),
 			}
 
 			accountKey := model.AccountKey
@@ -190,7 +191,7 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 			}
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
 			if err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
@@ -223,16 +224,16 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(id.DataStoreName),
-				Type: utils.ToPtr(string(datastore.DatastoreTypeAzureFile)),
+				Name: pointer.To(id.DataStoreName),
+				Type: pointer.To(string(datastore.DatastoreTypeAzureFile)),
 			}
 
 			props := &datastore.AzureFileDatastore{
 				AccountName:                   fileShareId.StorageAccountName,
 				FileShareName:                 fileShareId.FileshareName,
-				Description:                   utils.String(state.Description),
-				ServiceDataAccessAuthIdentity: utils.ToPtr(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
-				Tags:                          utils.ToPtr(state.Tags),
+				Description:                   pointer.To(state.Description),
+				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
+				Tags:                          pointer.To(state.Tags),
 			}
 
 			accountKey := state.AccountKey
@@ -258,7 +259,7 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 			}
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.DefaultCreateOrUpdateOperationOptions())
+			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -302,14 +303,14 @@ func (r MachineLearningDataStoreFileShare) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Share %q: %s", data.AccountName, data.FileShareName, err)
 			}
 			if storageAccount == nil {
 				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
 			}
-			fileShareId := storageparse.NewStorageShareResourceManagerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, "default", data.FileShareName)
+			fileShareId := storageparse.NewStorageShareResourceManagerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, "default", data.FileShareName)
 			model.StorageFileShareID = fileShareId.ID()
 
 			model.IsDefault = *data.IsDefault

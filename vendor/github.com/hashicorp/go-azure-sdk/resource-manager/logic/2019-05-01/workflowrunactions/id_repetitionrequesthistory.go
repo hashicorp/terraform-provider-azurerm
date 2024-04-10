@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RepetitionRequestHistoryId{}
+var _ resourceids.ResourceId = &RepetitionRequestHistoryId{}
 
 // RepetitionRequestHistoryId is a struct representing the Resource ID for a Repetition Request History
 type RepetitionRequestHistoryId struct {
@@ -38,7 +38,7 @@ func NewRepetitionRequestHistoryID(subscriptionId string, resourceGroupName stri
 
 // ParseRepetitionRequestHistoryID parses 'input' into a RepetitionRequestHistoryId
 func ParseRepetitionRequestHistoryID(input string) (*RepetitionRequestHistoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RepetitionRequestHistoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&RepetitionRequestHistoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -55,7 +55,7 @@ func ParseRepetitionRequestHistoryID(input string) (*RepetitionRequestHistoryId,
 // ParseRepetitionRequestHistoryIDInsensitively parses 'input' case-insensitively into a RepetitionRequestHistoryId
 // note: this method should only be used for API response data and not user input
 func ParseRepetitionRequestHistoryIDInsensitively(input string) (*RepetitionRequestHistoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RepetitionRequestHistoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&RepetitionRequestHistoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

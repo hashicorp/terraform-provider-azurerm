@@ -43,6 +43,12 @@ func dataSourceSharedImageGallery() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"image_names": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
 			"unique_name": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -55,6 +61,7 @@ func dataSourceSharedImageGallery() *pluginsdk.Resource {
 
 func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleriesClient
+	imagesClient := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -89,6 +96,20 @@ func dataSourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
+
+	imagesResp, err := imagesClient.ListByGalleryComplete(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	imageNames := make([]string, 0)
+	for _, image := range imagesResp.Items {
+		if image.Name != nil {
+			imageNames = append(imageNames, *image.Name)
+		}
+	}
+
+	d.Set("image_names", imageNames)
 
 	return nil
 }

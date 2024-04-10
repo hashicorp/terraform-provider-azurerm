@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedRoleAssignmentScheduleRequestId{}
+var _ resourceids.ResourceId = &ScopedRoleAssignmentScheduleRequestId{}
 
 // ScopedRoleAssignmentScheduleRequestId is a struct representing the Resource ID for a Scoped Role Assignment Schedule Request
 type ScopedRoleAssignmentScheduleRequestId struct {
@@ -28,7 +28,7 @@ func NewScopedRoleAssignmentScheduleRequestID(scope string, roleAssignmentSchedu
 
 // ParseScopedRoleAssignmentScheduleRequestID parses 'input' into a ScopedRoleAssignmentScheduleRequestId
 func ParseScopedRoleAssignmentScheduleRequestID(input string) (*ScopedRoleAssignmentScheduleRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRoleAssignmentScheduleRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRoleAssignmentScheduleRequestId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +45,7 @@ func ParseScopedRoleAssignmentScheduleRequestID(input string) (*ScopedRoleAssign
 // ParseScopedRoleAssignmentScheduleRequestIDInsensitively parses 'input' case-insensitively into a ScopedRoleAssignmentScheduleRequestId
 // note: this method should only be used for API response data and not user input
 func ParseScopedRoleAssignmentScheduleRequestIDInsensitively(input string) (*ScopedRoleAssignmentScheduleRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRoleAssignmentScheduleRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRoleAssignmentScheduleRequestId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

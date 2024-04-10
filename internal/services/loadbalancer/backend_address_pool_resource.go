@@ -8,17 +8,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var backendAddressPoolResourceName = "azurerm_lb_backend_address_pool"
@@ -30,13 +29,13 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 		Read:   resourceArmLoadBalancerBackendAddressPoolRead,
 		Delete: resourceArmLoadBalancerBackendAddressPoolDelete,
 
-		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
-			id, err := parse.LoadBalancerBackendAddressPoolID(input)
+		Importer: loadBalancerSubResourceImporter(func(input string) (*loadbalancers.LoadBalancerId, error) {
+			id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(input)
 			if err != nil {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+			lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -59,7 +58,7 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LoadBalancerID,
+				ValidateFunc: loadbalancers.ValidateLoadBalancerID,
 			},
 
 			"tunnel_interface": {
@@ -77,9 +76,9 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.GatewayLoadBalancerTunnelInterfaceTypeNone),
-								string(network.GatewayLoadBalancerTunnelInterfaceTypeInternal),
-								string(network.GatewayLoadBalancerTunnelInterfaceTypeExternal),
+								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeNone),
+								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeInternal),
+								string(loadbalancers.GatewayLoadBalancerTunnelInterfaceTypeExternal),
 							},
 								false,
 							),
@@ -89,9 +88,9 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.GatewayLoadBalancerTunnelProtocolNone),
-								string(network.GatewayLoadBalancerTunnelProtocolNative),
-								string(network.GatewayLoadBalancerTunnelProtocolVXLAN),
+								string(loadbalancers.GatewayLoadBalancerTunnelProtocolNone),
+								string(loadbalancers.GatewayLoadBalancerTunnelProtocolNative),
+								string(loadbalancers.GatewayLoadBalancerTunnelProtocolVXLAN),
 							},
 								false,
 							),
@@ -147,28 +146,27 @@ func resourceArmLoadBalancerBackendAddressPool() *pluginsdk.Resource {
 }
 
 func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
+	loadBalancerId, err := loadbalancers.ParseLoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
 	}
 
 	name := d.Get("name").(string)
-	id := parse.NewLoadBalancerBackendAddressPoolID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, name)
+	id := loadbalancers.NewLoadBalancerBackendAddressPoolID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroupName, loadBalancerId.LoadBalancerName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+		existing, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Load Balancer Backend Address Pool %q: %+v", id, err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", id.ID())
 		}
 	}
@@ -179,15 +177,16 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	locks.ByID(loadBalancerId.ID())
 	defer locks.UnlockByID(loadBalancerId.ID())
 
-	lb, err := lbClient.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: loadBalancerId.SubscriptionId, ResourceGroupName: loadBalancerId.ResourceGroupName, LoadBalancerName: loadBalancerId.LoadBalancerName}
+	lb, err := lbClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(lb.Response) {
-			return fmt.Errorf("Load Balancer %q for Backend Address Pool %q was not found", loadBalancerId, id)
+		if response.WasNotFound(lb.HttpResponse) {
+			return fmt.Errorf("%s was not found", *loadBalancerId)
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q for Backend Address Pool %q: %+v", loadBalancerId, id, err)
+		return fmt.Errorf("retrieving %s: %+v", *loadBalancerId, err)
 	}
 
-	param := network.BackendAddressPool{
+	param := loadbalancers.BackendAddressPool{
 		Name: &id.BackendAddressPoolName,
 	}
 
@@ -197,172 +196,167 @@ func resourceArmLoadBalancerBackendAddressPoolCreateUpdate(d *pluginsdk.Resource
 	// - Standard sku: interact with BAP endpoint for CUD
 	// Particularly, the BAP endpoint can be used for R for bot cases.
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/11234 for details.
-	sku := lb.Sku
+	if lb.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *loadBalancerId)
+	}
+	sku := lb.Model.Sku
 	if sku == nil {
-		return fmt.Errorf("nil or empty `sku` for Load Balancer %q for Backend Address Pool %q was not found", loadBalancerId, id)
+		return fmt.Errorf("nil or empty `sku` for Load Balancer %q for Backend Address Pool %q was not found", *loadBalancerId, id)
 	}
 
-	if len(d.Get("tunnel_interface").([]interface{})) != 0 && sku.Name != network.LoadBalancerSkuNameGateway {
+	if len(d.Get("tunnel_interface").([]interface{})) != 0 && *sku.Name != loadbalancers.LoadBalancerSkuNameGateway {
 		return fmt.Errorf("only the Gateway (sku) Load Balancer allows IP based Backend Address Pool configuration,"+
-			"whilst %q is of sku %s", id, sku.Name)
+			"whilst %q is of sku %s", id, *sku.Name)
 	}
-	if len(d.Get("tunnel_interface").([]interface{})) == 0 && sku.Name == network.LoadBalancerSkuNameGateway {
-		return fmt.Errorf("`tunnel_interface` is required for %q when sku is set to %s", id, sku.Name)
+	if len(d.Get("tunnel_interface").([]interface{})) == 0 && *sku.Name == loadbalancers.LoadBalancerSkuNameGateway {
+		return fmt.Errorf("`tunnel_interface` is required for %q when sku is set to %s", id, *sku.Name)
 	}
 
 	if v, ok := d.GetOk("virtual_network_id"); ok {
-		param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{
-			VirtualNetwork: &network.SubResource{
-				ID: utils.String(v.(string)),
+		param.Properties = &loadbalancers.BackendAddressPoolPropertiesFormat{
+			VirtualNetwork: &loadbalancers.SubResource{
+				Id: pointer.To(v.(string)),
 			}}
 	}
 
-	switch sku.Name {
-	case network.LoadBalancerSkuNameBasic:
-		if !d.IsNewResource() && d.HasChange("virtual_network_id") {
-			return fmt.Errorf("updating the virtual_network_id of Backend Address Pool %q is not allowed for basic (sku) Load Balancer", id)
-		}
+	if properties := lb.Model.Properties; properties != nil {
+		switch *sku.Name {
+		case loadbalancers.LoadBalancerSkuNameBasic:
+			if !d.IsNewResource() && d.HasChange("virtual_network_id") {
+				return fmt.Errorf("updating the virtual_network_id of Backend Address Pool %q is not allowed for basic (sku) Load Balancer", id)
+			}
 
-		// Insert this BAP and update the LB since the dedicated BAP endpoint doesn't work for the Basic sku.
-		backendAddressPools := append(*lb.LoadBalancerPropertiesFormat.BackendAddressPools, param)
-		_, existingPoolIndex, exists := FindLoadBalancerBackEndAddressPoolByName(&lb, id.BackendAddressPoolName)
-		if exists {
-			// this pool is being updated/reapplied remove the old copy from the slice
-			backendAddressPools = append(backendAddressPools[:existingPoolIndex], backendAddressPools[existingPoolIndex+1:]...)
-		}
+			// Insert this BAP and update the LB since the dedicated BAP endpoint doesn't work for the Basic sku.
+			backendAddressPools := append(*properties.BackendAddressPools, param)
+			_, existingPoolIndex, exists := FindLoadBalancerBackEndAddressPoolByName(lb.Model, id.BackendAddressPoolName)
+			if exists {
+				// this pool is being updated/reapplied remove the old copy from the slice
+				backendAddressPools = append(backendAddressPools[:existingPoolIndex], backendAddressPools[existingPoolIndex+1:]...)
+			}
 
-		lb.LoadBalancerPropertiesFormat.BackendAddressPools = &backendAddressPools
+			properties.BackendAddressPools = &backendAddressPools
 
-		future, err := lbClient.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, lb)
-		if err != nil {
-			return fmt.Errorf("updating Load Balancer %q for Backend Address Pool %q: %+v", loadBalancerId, id, err)
-		}
+			err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
+			if err != nil {
+				return fmt.Errorf("updating %s: %+v", *loadBalancerId, err)
+			}
+		case loadbalancers.LoadBalancerSkuNameStandard:
+			if param.Properties == nil {
+				param.Properties = &loadbalancers.BackendAddressPoolPropertiesFormat{
+					// NOTE: Backend Addresses are managed using `azurerm_lb_backend_pool_address`
+				}
+			}
 
-		if err = future.WaitForCompletionRef(ctx, lbClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Load Balancer %q for Backend Address Pool %q: %+v", loadBalancerId, id, err)
-		}
-	case network.LoadBalancerSkuNameStandard:
-		if param.BackendAddressPoolPropertiesFormat == nil {
-			param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{
-				// NOTE: Backend Addresses are managed using `azurerm_lb_backend_pool_address`
+			err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param)
+			if err != nil {
+				return fmt.Errorf("creating/updating Load Balancer Backend Address Pool %q: %+v", id, err)
+			}
+		case loadbalancers.LoadBalancerSkuNameGateway:
+			if param.Properties == nil {
+				param.Properties = &loadbalancers.BackendAddressPoolPropertiesFormat{}
+			}
+			param.Properties.TunnelInterfaces = expandGatewayLoadBalancerTunnelInterfaces(d.Get("tunnel_interface").([]interface{}))
+
+			err := lbClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, id, param)
+			if err != nil {
+				return fmt.Errorf("creating/updating %q: %+v", id, err)
 			}
 		}
 
-		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName, param)
-		if err != nil {
-			return fmt.Errorf("creating/updating Load Balancer Backend Address Pool %q: %+v", id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for Creating/Updating of Load Balancer Backend Address Pool %q: %+v", id, err)
-		}
-	case network.LoadBalancerSkuNameGateway:
-		if param.BackendAddressPoolPropertiesFormat == nil {
-			param.BackendAddressPoolPropertiesFormat = &network.BackendAddressPoolPropertiesFormat{}
-		}
-		param.BackendAddressPoolPropertiesFormat.TunnelInterfaces = expandGatewayLoadBalancerTunnelInterfaces(d.Get("tunnel_interface").([]interface{}))
-
-		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName, param)
-		if err != nil {
-			return fmt.Errorf("creating/updating %q: %+v", id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for Creating/Updating of %q: %+v", id, err)
-		}
+		d.SetId(id.ID())
 	}
-
-	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerBackendAddressPoolRead(d, meta)
 }
 
 func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
+	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerBackendAddressPoolID(d.Id())
+	id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	lbId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+	resp, err := lbClient.LoadBalancerBackendAddressPoolsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
-			log.Printf("[INFO] Load Balancer Backend Address Pool %q not found - removing from state", id)
+			log.Printf("[INFO] %s was not found - removing from state", *id)
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer Backend Address Pool %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.BackendAddressPoolName)
 	d.Set("loadbalancer_id", lbId.ID())
 
-	if props := resp.BackendAddressPoolPropertiesFormat; props != nil {
-		if err := d.Set("tunnel_interface", flattenGatewayLoadBalancerTunnelInterfaces(props.TunnelInterfaces)); err != nil {
-			return fmt.Errorf("setting `tunnel_interface`: %v", err)
-		}
-
-		var backendIPConfigurations []string
-		if configs := props.BackendIPConfigurations; configs != nil {
-			for _, backendConfig := range *configs {
-				if backendConfig.ID == nil {
-					continue
-				}
-				backendIPConfigurations = append(backendIPConfigurations, *backendConfig.ID)
+	if model := resp.Model; model != nil {
+		if properties := model.Properties; properties != nil {
+			if err := d.Set("tunnel_interface", flattenGatewayLoadBalancerTunnelInterfaces(properties.TunnelInterfaces)); err != nil {
+				return fmt.Errorf("setting `tunnel_interface`: %v", err)
 			}
-		}
-		if err := d.Set("backend_ip_configurations", backendIPConfigurations); err != nil {
-			return fmt.Errorf("setting `backend_ip_configurations`: %v", err)
-		}
 
-		network := ""
-		if vnet := props.VirtualNetwork; vnet != nil && vnet.ID != nil {
-			network = *vnet.ID
-		}
-		d.Set("virtual_network_id", network)
-
-		var loadBalancingRules []string
-		if rules := props.LoadBalancingRules; rules != nil {
-			for _, rule := range *rules {
-				if rule.ID == nil {
-					continue
+			var backendIPConfigurations []string
+			if configs := properties.BackendIPConfigurations; configs != nil {
+				for _, backendConfig := range *configs {
+					if backendConfig.Id == nil {
+						continue
+					}
+					backendIPConfigurations = append(backendIPConfigurations, *backendConfig.Id)
 				}
-				loadBalancingRules = append(loadBalancingRules, *rule.ID)
 			}
-		}
-		if err := d.Set("load_balancing_rules", loadBalancingRules); err != nil {
-			return fmt.Errorf("setting `load_balancing_rules`: %v", err)
-		}
+			if err := d.Set("backend_ip_configurations", backendIPConfigurations); err != nil {
+				return fmt.Errorf("setting `backend_ip_configurations`: %v", err)
+			}
 
-		var outboundRules []string
-		if rules := props.OutboundRules; rules != nil {
-			for _, rule := range *rules {
-				if rule.ID == nil {
-					continue
-				}
-				outboundRules = append(outboundRules, *rule.ID)
+			network := ""
+			if vnet := properties.VirtualNetwork; vnet != nil && vnet.Id != nil {
+				network = *vnet.Id
 			}
-		}
-		if err := d.Set("outbound_rules", outboundRules); err != nil {
-			return fmt.Errorf("setting `outbound_rules`: %v", err)
-		}
+			d.Set("virtual_network_id", network)
 
-		var inboundNATRules []string
-		if rules := props.InboundNatRules; rules != nil {
-			for _, rule := range *rules {
-				if rule.ID == nil {
-					continue
+			var loadBalancingRules []string
+			if rules := properties.LoadBalancingRules; rules != nil {
+				for _, rule := range *rules {
+					if rule.Id == nil {
+						continue
+					}
+					loadBalancingRules = append(loadBalancingRules, *rule.Id)
 				}
-				inboundNATRules = append(inboundNATRules, *rule.ID)
 			}
-		}
-		if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
-			return fmt.Errorf("setting `inbound_nat_rules`: %v", err)
+			if err := d.Set("load_balancing_rules", loadBalancingRules); err != nil {
+				return fmt.Errorf("setting `load_balancing_rules`: %v", err)
+			}
+
+			var outboundRules []string
+			if rules := properties.OutboundRules; rules != nil {
+				for _, rule := range *rules {
+					if rule.Id == nil {
+						continue
+					}
+					outboundRules = append(outboundRules, *rule.Id)
+				}
+			}
+			if err := d.Set("outbound_rules", outboundRules); err != nil {
+				return fmt.Errorf("setting `outbound_rules`: %v", err)
+			}
+
+			var inboundNATRules []string
+			if rules := properties.InboundNatRules; rules != nil {
+				for _, rule := range *rules {
+					if rule.Id == nil {
+						continue
+					}
+					inboundNATRules = append(inboundNATRules, *rule.Id)
+				}
+			}
+			if err := d.Set("inbound_nat_rules", inboundNATRules); err != nil {
+				return fmt.Errorf("setting `inbound_nat_rules`: %v", err)
+			}
 		}
 	}
 
@@ -370,17 +364,16 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LoadBalancers.LoadBalancerBackendAddressPoolsClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerBackendAddressPoolID(d.Id())
+	id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := loadbalancers.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName)
 	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
@@ -388,73 +381,73 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *pluginsdk.ResourceData, 
 	locks.ByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
 	defer locks.UnlockByName(id.BackendAddressPoolName, backendAddressPoolResourceName)
 
-	lb, err := lbClient.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: id.SubscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	lb, err := lbClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(lb.Response) {
+		if response.WasNotFound(lb.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Backend Address Pool %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, id.BackendAddressPoolName, err)
+		return fmt.Errorf("retrieving %s: %+v", loadBalancerId, err)
 	}
 
-	sku := lb.Sku
+	if lb.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", plbId)
+	}
+	sku := lb.Model.Sku
 	if sku == nil {
 		return fmt.Errorf("nil or empty `sku` for Load Balancer %q for Backend Address Pool %q was not found", loadBalancerId, id)
 	}
 
-	if sku.Name == network.LoadBalancerSkuNameBasic {
-		_, index, exists := FindLoadBalancerBackEndAddressPoolByName(&lb, id.BackendAddressPoolName)
+	if *sku.Name == loadbalancers.LoadBalancerSkuNameBasic {
+		_, index, exists := FindLoadBalancerBackEndAddressPoolByName(lb.Model, id.BackendAddressPoolName)
 		if !exists {
 			return nil
 		}
 
-		backEndPools := *lb.LoadBalancerPropertiesFormat.BackendAddressPools
-		backEndPools = append(backEndPools[:index], backEndPools[index+1:]...)
-		lb.LoadBalancerPropertiesFormat.BackendAddressPools = &backEndPools
-
-		future, err := lbClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, lb)
-		if err != nil {
-			return fmt.Errorf("updating Load Balancer %q (resource group %q) to remove Backend Address Pool %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.BackendAddressPoolName, err)
+		if lb.Model.Properties == nil {
+			return fmt.Errorf("retrieving %s: properties was nil", *id)
 		}
 
-		if err = future.WaitForCompletionRef(ctx, lbClient.Client); err != nil {
-			return fmt.Errorf("waiting for update of Load Balancer %q (resource group %q) for Backend Address Pool %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.BackendAddressPoolName, err)
+		backEndPools := *lb.Model.Properties.BackendAddressPools
+		backEndPools = append(backEndPools[:index], backEndPools[index+1:]...)
+		lb.Model.Properties.BackendAddressPools = &backEndPools
+
+		err := lbClient.CreateOrUpdateThenPoll(ctx, plbId, *lb.Model)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", loadBalancerId, err)
 		}
 	} else {
-		future, err := client.Delete(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+		err := lbClient.LoadBalancerBackendAddressPoolsDeleteThenPoll(ctx, *id)
 		if err != nil {
-			return fmt.Errorf("deleting Load Balancer Backend Address Pool %q: %+v", id, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for deleting of Load Balancer Backend Address Pool %q: %+v", id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
 	return nil
 }
 
-func expandGatewayLoadBalancerTunnelInterfaces(input []interface{}) *[]network.GatewayLoadBalancerTunnelInterface {
+func expandGatewayLoadBalancerTunnelInterfaces(input []interface{}) *[]loadbalancers.GatewayLoadBalancerTunnelInterface {
 	if len(input) == 0 {
 		return nil
 	}
 
-	result := make([]network.GatewayLoadBalancerTunnelInterface, 0)
+	result := make([]loadbalancers.GatewayLoadBalancerTunnelInterface, 0)
 
 	for _, e := range input {
 		e := e.(map[string]interface{})
-		result = append(result, network.GatewayLoadBalancerTunnelInterface{
-			Identifier: utils.Int32(int32(e["identifier"].(int))),
-			Type:       network.GatewayLoadBalancerTunnelInterfaceType(e["type"].(string)),
-			Protocol:   network.GatewayLoadBalancerTunnelProtocol(e["protocol"].(string)),
-			Port:       utils.Int32(int32(e["port"].(int))),
+		result = append(result, loadbalancers.GatewayLoadBalancerTunnelInterface{
+			Identifier: pointer.To(int64(e["identifier"].(int))),
+			Type:       pointer.To(loadbalancers.GatewayLoadBalancerTunnelInterfaceType(e["type"].(string))),
+			Protocol:   pointer.To(loadbalancers.GatewayLoadBalancerTunnelProtocol(e["protocol"].(string))),
+			Port:       pointer.To(int64(e["port"].(int))),
 		})
 	}
 
 	return &result
 }
 
-func flattenGatewayLoadBalancerTunnelInterfaces(input *[]network.GatewayLoadBalancerTunnelInterface) []interface{} {
+func flattenGatewayLoadBalancerTunnelInterfaces(input *[]loadbalancers.GatewayLoadBalancerTunnelInterface) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -467,9 +460,9 @@ func flattenGatewayLoadBalancerTunnelInterfaces(input *[]network.GatewayLoadBala
 			identifier = int(*e.Identifier)
 		}
 
-		t := string(e.Type)
+		t := string(pointer.From(e.Type))
 
-		protocol := string(e.Protocol)
+		protocol := string(pointer.From(e.Protocol))
 
 		var port int
 		if e.Port != nil {

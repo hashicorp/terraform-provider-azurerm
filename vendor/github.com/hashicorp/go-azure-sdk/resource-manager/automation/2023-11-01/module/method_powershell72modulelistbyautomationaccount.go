@@ -19,7 +19,8 @@ type PowerShell72ModuleListByAutomationAccountOperationResponse struct {
 }
 
 type PowerShell72ModuleListByAutomationAccountCompleteResult struct {
-	Items []Module
+	LatestHttpResponse *http.Response
+	Items              []Module
 }
 
 // PowerShell72ModuleListByAutomationAccount ...
@@ -83,7 +84,8 @@ func (c ModuleClient) PowerShell72ModuleListByAutomationAccountCompleteMatchingP
 	}
 
 	result = PowerShell72ModuleListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

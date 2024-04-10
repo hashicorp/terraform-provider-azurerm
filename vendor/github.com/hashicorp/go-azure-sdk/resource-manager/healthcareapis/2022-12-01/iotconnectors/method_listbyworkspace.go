@@ -19,7 +19,8 @@ type ListByWorkspaceOperationResponse struct {
 }
 
 type ListByWorkspaceCompleteResult struct {
-	Items []IotConnector
+	LatestHttpResponse *http.Response
+	Items              []IotConnector
 }
 
 // ListByWorkspace ...
@@ -83,7 +84,8 @@ func (c IotConnectorsClient) ListByWorkspaceCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

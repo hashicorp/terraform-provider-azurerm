@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = FactoryId{}
+var _ resourceids.ResourceId = &FactoryId{}
 
 // FactoryId is a struct representing the Resource ID for a Factory
 type FactoryId struct {
@@ -30,7 +30,7 @@ func NewFactoryID(subscriptionId string, resourceGroupName string, factoryName s
 
 // ParseFactoryID parses 'input' into a FactoryId
 func ParseFactoryID(input string) (*FactoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FactoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&FactoryId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseFactoryID(input string) (*FactoryId, error) {
 // ParseFactoryIDInsensitively parses 'input' case-insensitively into a FactoryId
 // note: this method should only be used for API response data and not user input
 func ParseFactoryIDInsensitively(input string) (*FactoryId, error) {
-	parser := resourceids.NewParserFromResourceIdType(FactoryId{})
+	parser := resourceids.NewParserFromResourceIdType(&FactoryId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

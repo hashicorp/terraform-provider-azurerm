@@ -19,7 +19,8 @@ type ListBySearchServiceOperationResponse struct {
 }
 
 type ListBySearchServiceCompleteResult struct {
-	Items []QueryKey
+	LatestHttpResponse *http.Response
+	Items              []QueryKey
 }
 
 type ListBySearchServiceOperationOptions struct {
@@ -111,7 +112,8 @@ func (c QueryKeysClient) ListBySearchServiceCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListBySearchServiceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

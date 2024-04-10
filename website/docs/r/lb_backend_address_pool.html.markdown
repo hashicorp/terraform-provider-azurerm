@@ -60,13 +60,13 @@ The following arguments are supported:
 
 The `tunnel_interface` block supports the following:
 
-* `identifier` - (Required) The unique identifier of this Gateway Lodbalancer Tunnel Interface.
+* `identifier` - (Required) The unique identifier of this Gateway Load Balancer Tunnel Interface.
 
-* `type` - (Required) The traffic type of this Gateway Lodbalancer Tunnel Interface. Possible values are `None`, `Internal` and `External`.
+* `type` - (Required) The traffic type of this Gateway Load Balancer Tunnel Interface. Possible values are `None`, `Internal` and `External`.
 
-* `protocol` - (Required) The protocol used for this Gateway Lodbalancer Tunnel Interface. Possible values are `None`, `Native` and `VXLAN`.
+* `protocol` - (Required) The protocol used for this Gateway Load Balancer Tunnel Interface. Possible values are `None`, `Native` and `VXLAN`.
 
-* `port` - (Required) The port number that this Gateway Lodbalancer Tunnel Interface listens to.
+* `port` - (Required) The port number that this Gateway Load Balancer Tunnel Interface listens to.
 
 ## Attributes Reference
 

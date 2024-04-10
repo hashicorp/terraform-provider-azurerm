@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []BatchAccount
+	LatestHttpResponse *http.Response
+	Items              []BatchAccount
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c BatchAccountClient) ListByResourceGroupCompleteMatchingPredicate(ctx con
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -111,7 +111,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Datadog Monitor.
 
--> You can access the Principal ID via `${azurerm_datadog_monitor.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_datadog_monitor.example.identity.0.tenant_id}`
+-> You can access the Principal ID via `${azurerm_datadog_monitor.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_datadog_monitor.example.identity[0].tenant_id}`
 
 ## Role Assignment
 
@@ -129,7 +129,7 @@ data "azurerm_role_definition" "monitoring_reader" {
 resource "azurerm_role_assignment" "example" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = data.azurerm_role_definition.monitoring_reader.role_definition_id
-  principal_id       = azurerm_datadog_monitor.example.identity.0.principal_id
+  principal_id       = azurerm_datadog_monitor.example.identity[0].principal_id
 }
 ```
 

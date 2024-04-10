@@ -176,8 +176,8 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			var payload loadtests.LoadTestResourcePatchRequestBody
-			if err := r.mapLoadTestResourceSchemaToLoadTestResourcePatchRequestBody(config, &payload); err != nil {
+			var payload loadtests.LoadTestResourceUpdate
+			if err := r.mapLoadTestResourceSchemaToLoadTestResourceUpdate(config, &payload); err != nil {
 				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 			}
 
@@ -244,7 +244,7 @@ func (r LoadTestResource) mapLoadTestResourceToLoadTestResourceSchema(input load
 	return nil
 }
 
-func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourcePatchRequestBody(input LoadTestResourceSchema, output *loadtests.LoadTestResourcePatchRequestBody) error {
+func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(input LoadTestResourceSchema, output *loadtests.LoadTestResourceUpdate) error {
 
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
@@ -256,7 +256,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourcePatchReques
 	return nil
 }
 
-func (r LoadTestResource) mapLoadTestResourcePatchRequestBodyToLoadTestResourceSchema(input loadtests.LoadTestResourcePatchRequestBody, output *LoadTestResourceSchema) error {
+func (r LoadTestResource) mapLoadTestResourceUpdateToLoadTestResourceSchema(input loadtests.LoadTestResourceUpdate, output *LoadTestResourceSchema) error {
 
 	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
 	if err != nil {

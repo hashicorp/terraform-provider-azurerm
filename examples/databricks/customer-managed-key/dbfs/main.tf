@@ -82,6 +82,8 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Recover",
     "Update",
     "Purge",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
   ]
 }
 
@@ -93,8 +95,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
 
   key_permissions = [
-    "get",
-    "unwrapKey",
-    "wrapKey",
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }

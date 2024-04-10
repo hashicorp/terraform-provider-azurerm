@@ -546,7 +546,7 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []interface{} {
 		if item.Args != nil {
 			args = *item.Args
 			// new behavior if you do not pass args the RP sets the args to "PARTITIONS AUTO" by default
-			// (for RediSearch) which causes the the database to be force new on every plan after creation
+			// (for RediSearch) which causes the database to be force new on every plan after creation
 			// feels like an RP bug, but I added this workaround...
 			// NOTE: You also cannot set the args to PARTITIONS AUTO by default else you will get an error on create:
 			// Code="InvalidRequestBody" Message="The value of the parameter 'properties.modules' is invalid."

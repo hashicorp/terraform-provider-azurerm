@@ -573,7 +573,7 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": commonschema.ZonesMultipleOptional(),
 
 		"gateway_url": {
 			Type:     pluginsdk.TypeString,
@@ -986,6 +986,8 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	defer cancel()
 
 	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
+	virtualNetworkType := d.Get("virtual_network_type").(string)
+	virtualNetworkConfiguration := expandAzureRmApiManagementVirtualNetworkConfigurations(d)
 
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
@@ -1024,15 +1026,21 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("virtual_network_type") {
-		virtualNetworkType := d.Get("virtual_network_type").(string)
 		props.VirtualNetworkType = pointer.To(apimanagementservice.VirtualNetworkType(virtualNetworkType))
-
 		if virtualNetworkType != string(apimanagementservice.VirtualNetworkTypeNone) {
-			virtualNetworkConfiguration := expandAzureRmApiManagementVirtualNetworkConfigurations(d)
 			if virtualNetworkConfiguration == nil {
 				return fmt.Errorf("You must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
 			}
 			props.VirtualNetworkConfiguration = virtualNetworkConfiguration
+		}
+	}
+
+	if d.HasChange("virtual_network_configuration") {
+		props.VirtualNetworkConfiguration = virtualNetworkConfiguration
+		if virtualNetworkType == string(apimanagementservice.VirtualNetworkTypeNone) {
+			if virtualNetworkConfiguration != nil {
+				return fmt.Errorf("You must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
+			}
 		}
 	}
 

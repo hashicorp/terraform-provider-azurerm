@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `min_api_version` - (Optional) The version which the control plane API calls to API Management service are limited with version equal to or newer than.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located. Changing this forces a new API Management service to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located.
 
 ~> **NOTE:** Availability zones are only supported in the Premium tier.
 

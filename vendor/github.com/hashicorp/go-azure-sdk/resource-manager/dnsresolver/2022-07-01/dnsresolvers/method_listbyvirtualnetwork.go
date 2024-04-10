@@ -20,7 +20,8 @@ type ListByVirtualNetworkOperationResponse struct {
 }
 
 type ListByVirtualNetworkCompleteResult struct {
-	Items []SubResource
+	LatestHttpResponse *http.Response
+	Items              []SubResource
 }
 
 type ListByVirtualNetworkOperationOptions struct {
@@ -112,7 +113,8 @@ func (c DnsResolversClient) ListByVirtualNetworkCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListByVirtualNetworkCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

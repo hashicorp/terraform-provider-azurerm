@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []CapacityReservationGroup
+	LatestHttpResponse *http.Response
+	Items              []CapacityReservationGroup
 }
 
 type ListBySubscriptionOperationOptions struct {
@@ -112,7 +113,8 @@ func (c CapacityReservationGroupsClient) ListBySubscriptionCompleteMatchingPredi
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
