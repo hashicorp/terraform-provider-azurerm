@@ -169,7 +169,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherUserData(t *testing.T) {
 			"user_data",
 		),
 		{
-			Config: r.otherUserData(data, "Goodbye Wolrd"),
+			Config: r.otherUserData(data, "Goodbye World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

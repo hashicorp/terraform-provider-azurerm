@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -250,7 +251,9 @@ func (OrchestratedVirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Co
 		return err
 	}
 
-	resp, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	resp, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx2, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		return err
 	}

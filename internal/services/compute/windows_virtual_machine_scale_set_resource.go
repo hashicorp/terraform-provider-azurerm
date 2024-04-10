@@ -1095,7 +1095,9 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 				d.Set("vtpm_enabled", vtpmEnabled)
 				d.Set("secure_boot_enabled", secureBootEnabled)
-				d.Set("user_data", profile.UserData)
+
+				// userData is not returned by the API
+				d.Set("user_data", d.Get("user_data").(string))
 			}
 		}
 		return tags.FlattenAndSet(d, model.Tags)

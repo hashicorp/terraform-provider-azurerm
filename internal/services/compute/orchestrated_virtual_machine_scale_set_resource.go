@@ -1271,7 +1271,9 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 					encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
 				}
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-				d.Set("user_data_base64", profile.UserData)
+
+				// userData is not returned by the API
+				d.Set("user_data_base64", d.Get("user_data_base64").(string))
 			}
 
 			if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {
