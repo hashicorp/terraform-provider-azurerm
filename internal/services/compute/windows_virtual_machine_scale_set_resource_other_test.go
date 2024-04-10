@@ -956,7 +956,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 						Properties: &updateProps,
 					}
 
-					if err := client.UpdateThenPoll(ctx, *id, update, virtualmachinescalesets.DefaultUpdateOperationOptions()); err != nil {
+					if err := client.UpdateThenPoll(ctx2, *id, update, virtualmachinescalesets.DefaultUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("updating %s: %+v", *id, err)
 					}
 
