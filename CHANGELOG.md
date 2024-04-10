@@ -2,9 +2,12 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.25.5` of `github.com/tombuildsstuff/giovanni` [GH-25525]
+* dependencies: updating to `v0.26.1` of `github.com/tombuildsstuff/giovanni` [GH-25551]
 * `azurerm_snapshot` - add support for `network_access_policy` and `public_network_access` properties [GH-25421]
 * `azurerm_storage_account` - extend the support level of `(blob|queue|share)_properties` for Storage kind [GH-25427]
+* `azurerm_storage_blob` - support for the `encryption_scope` property [GH-25551]
+* `azurerm_storage_container` - support for the `default_encryption_scope` and `encryption_scope_override_enabled` properties [GH-25551]
+* `azurerm_storage_data_lake_gen2_filesystem` - support for the `default_encryption_scope` property [GH-25551]
 
 BUG FIXES:
 
