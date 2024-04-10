@@ -1008,7 +1008,7 @@ resource "azurerm_subnet" "test" {
       name = "%s"
 
       actions = [
-		"Microsoft.Network/networkinterfaces/*",
+        "Microsoft.Network/networkinterfaces/*",
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
     }
