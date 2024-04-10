@@ -306,7 +306,7 @@ func flattenMonitorSmartDetectorAlertRuleActionGroup(input *smartdetectoralertru
 		CustomWebhookPayload = *input.CustomWebhookPayload
 	}
 
-	var groupIds []string
+	groupIds := make([]string, 0)
 	for _, idRaw := range input.GroupIds {
 		id, err := parse.ActionGroupIDInsensitively(idRaw)
 		if err != nil {
