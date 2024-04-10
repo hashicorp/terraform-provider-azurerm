@@ -10,6 +10,9 @@ import (
 )
 
 type CreateInput struct {
+	// The encryption scope to set as the default on the filesystem.
+	DefaultEncryptionScope string
+
 	// A map of base64-encoded strings to store as user-defined properties with the File System
 	// Note that items may only contain ASCII characters in the ISO-8859-1 character set.
 	// This automatically gets converted to a comma-separated list of name and
@@ -35,7 +38,7 @@ func (c Client) Create(ctx context.Context, fileSystemName string, input CreateI
 		},
 		HttpMethod: http.MethodPut,
 		OptionsObject: createOptions{
-			properties: input.Properties,
+			input: input,
 		},
 
 		Path: fmt.Sprintf("/%s", fileSystemName),
@@ -61,12 +64,17 @@ func (c Client) Create(ctx context.Context, fileSystemName string, input CreateI
 }
 
 type createOptions struct {
-	properties map[string]string
+	input CreateInput
 }
 
 func (o createOptions) ToHeaders() *client.Headers {
 	headers := &client.Headers{}
-	props := buildProperties(o.properties)
+
+	if o.input.DefaultEncryptionScope != "" {
+		headers.Append("x-ms-default-encryption-scope", o.input.DefaultEncryptionScope)
+	}
+
+	props := buildProperties(o.input.Properties)
 	if props != "" {
 		headers.Append("x-ms-properties", props)
 	}
