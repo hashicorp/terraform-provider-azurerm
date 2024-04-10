@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * `azurerm_storage_blob` - support for the `encryption_scope` property [GH-25551]
 * `azurerm_storage_container` - support for the `default_encryption_scope` and `encryption_scope_override_enabled` properties [GH-25551]
 * `azurerm_storage_data_lake_gen2_filesystem` - support for the `default_encryption_scope` property [GH-25551]
+* `azurerm_subnet` - `delegation.x.service_delegation.x.name` now supports `Oracle.Database/networkAttachments`  [GH-25571]
 
 BUG FIXES:
 
