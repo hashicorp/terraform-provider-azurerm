@@ -57,10 +57,13 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 			"deployment_mode": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(resources.DeploymentModeComplete),
-					string(resources.DeploymentModeIncremental),
-				}, false),
+				ValidateFunc: validation.All(
+					validation.StringInSlice([]string{
+						string(resources.DeploymentModeComplete),
+						string(resources.DeploymentModeIncremental),
+					}, false),
+					validate.ResourceGroupTemplateDeploymentMode,
+				),
 			},
 
 			"template_content": {
