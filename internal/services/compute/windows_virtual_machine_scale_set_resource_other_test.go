@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
@@ -195,6 +196,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
+			"user_data",
 		),
 		{
 			Config: r.otherUserData(data, "Goodbye World"),
@@ -204,6 +206,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
+			"user_data",
 		),
 		{
 			// removed
@@ -925,7 +928,9 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 						return err
 					}
 
-					existing, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+					ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					defer cancel()
+					existing, err := client.Get(ctx2, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", *id, err)
 					}

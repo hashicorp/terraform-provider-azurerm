@@ -1058,7 +1058,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("vtpm_enabled", vtpmEnabled)
 			d.Set("secure_boot_enabled", secureBootEnabled)
 
-			d.Set("user_data", props.UserData)
+			// userData is not returned by the API
+			d.Set("user_data", d.Get("user_data").(string))
 
 			connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
 			d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)

@@ -352,14 +352,14 @@ func TestAccLinuxVirtualMachine_otherUserData(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("user_data"),
 		{
 			Config: r.otherUserData(data, "Goodbye World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("user_data"),
 	})
 }
 

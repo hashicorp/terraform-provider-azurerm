@@ -538,7 +538,9 @@ func (OrchestratedVirtualMachineScaleSetResource) hasApplicationGateway(ctx cont
 		return err
 	}
 
-	resp, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	resp, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx2, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		return err
 	}
