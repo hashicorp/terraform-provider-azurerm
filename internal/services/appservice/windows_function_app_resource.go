@@ -50,7 +50,7 @@ type WindowsFunctionAppModel struct {
 	AuthSettings                     []helpers.AuthSettings                 `tfschema:"auth_settings"`
 	AuthV2Settings                   []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
 	Backup                           []helpers.Backup                       `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	PushSetting                 []helpers.PushSetting                  `tfschema:"push_settings"`
+	PushSetting                      []helpers.PushSetting                  `tfschema:"push_settings"`
 	BuiltinLogging                   bool                                   `tfschema:"builtin_logging_enabled"`
 	ClientCertEnabled                bool                                   `tfschema:"client_certificate_enabled"`
 	ClientCertMode                   string                                 `tfschema:"client_certificate_mode"`
@@ -648,7 +648,7 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			// need to connect to notification hub before trying to enabled push
-			isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+			isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, baseId)
 			if err != nil {
 				return fmt.Errorf("checking required notification hub key error: %+v", err)
 			}
@@ -657,8 +657,8 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
 			}
 
-			if pushSettings.PushSettingsProperties != nil {
-				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, pushSettings); err != nil {
+			if pushSettings.Properties != nil {
+				if _, err := client.UpdateSitePushSettings(ctx, baseId, pushSettings); err != nil {
 					return fmt.Errorf("updating push setting error: %+v", err)
 				}
 			}
@@ -731,7 +731,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			pushSetting, err := client.ListSitePushSettings(ctx, id.ResourceGroup, id.SiteName)
+			pushSetting, err := client.ListSitePushSettings(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading push setting for Windows %s: %+v", id, err)
 			}
@@ -833,14 +833,12 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 				state.AuthV2Settings = helpers.FlattenAuthV2Settings(authV2)
 
+				pushes, err := helpers.FlattenPushSetting(pushSetting.Model, metadata)
+				if err != nil {
+					return fmt.Errorf("reading push setting error: %+v", err)
+				}
+				state.PushSetting = pushes
 
-			pushes, err := helpers.FlattenPushSetting(pushSetting, metadata)
-			if err != nil {
-				return fmt.Errorf("reading push setting error: %+v", err)
-			}
-			state.PushSetting = pushes
-
-			state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs)
 				state.Backup = helpers.FlattenBackupConfig(backup.Model)
 
 				state.SiteConfig[0].AppServiceLogs = helpers.FlattenFunctionAppAppServiceLogs(logs.Model)
@@ -1220,7 +1218,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("push_settings") {
 				// need to connect to notification hub before trying to enabled push
-				isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+				isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, *id)
 				if err != nil {
 					return fmt.Errorf("checking required notification hub key error: %+v", err)
 				}
@@ -1228,7 +1226,7 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
 				}
-				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, pushSettings); err != nil {
+				if _, err := client.UpdateSitePushSettings(ctx, *id, pushSettings); err != nil {
 					return fmt.Errorf("updating push setting error: %+v", err)
 				}
 			}

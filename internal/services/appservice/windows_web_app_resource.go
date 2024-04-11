@@ -51,7 +51,7 @@ type WindowsWebAppModel struct {
 	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
 	LogsConfig                       []helpers.LogsConfig                       `tfschema:"logs"`
 	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
-	PushSetting                   []helpers.PushSetting       `tfschema:"push_settings"`
+	PushSetting                      []helpers.PushSetting                      `tfschema:"push_settings"`
 	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
 	SiteConfig                       []helpers.SiteConfigWindows                `tfschema:"site_config"`
@@ -522,7 +522,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			}
 
 			// need to connect to notification hub before trying to enabled push
-			isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+			isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, baseId)
 			if err != nil {
 				return fmt.Errorf("checking required notification hub key error: %+v", err)
 			}
@@ -531,8 +531,8 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("expanding push setting for windows web app error: %+v", err)
 			}
-			if pushSettings.PushSettingsProperties != nil {
-				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, pushSettings); err != nil {
+			if pushSettings.Properties != nil {
+				if _, err := client.UpdateSitePushSettings(ctx, baseId, pushSettings); err != nil {
 					return fmt.Errorf("updating push setting error: %+v", err)
 				}
 			}
@@ -587,7 +587,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			pushSetting, err := client.ListSitePushSettings(ctx, id.ResourceGroup, id.SiteName)
+			pushSetting, err := client.ListSitePushSettings(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading push setting for Windows %s: %+v", id, err)
 			}
@@ -641,6 +641,11 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				basicAuthWebDeploy = csmProps.Allow
 			}
 
+			pushes, err := helpers.FlattenPushSetting(pushSetting.Model, metadata)
+			if err != nil {
+				return fmt.Errorf("reading push setting error: %+v", err)
+			}
+
 			state := WindowsWebAppModel{
 				Name:              id.SiteName,
 				ResourceGroup:     id.ResourceGroupName,
@@ -652,6 +657,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 				StickySettings:    helpers.FlattenStickySettings(stickySettings.Model.Properties),
 				SiteCredentials:   helpers.FlattenSiteCredentials(siteCredentials),
 				StorageAccounts:   helpers.FlattenStorageAccounts(storageAccounts.Model),
+				PushSetting:       pushes,
 			}
 
 			if model := webApp.Model; model != nil {
@@ -678,13 +684,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return fmt.Errorf("parsing Service Plan ID for %s: %+v", id, err)
 					}
-
-					pushes, err := helpers.FlattenPushSetting(pushSetting, metadata)
-					if err != nil {
-						return fmt.Errorf("reading push setting error: %+v", err)
-					}
-					state.PushSetting = pushes
-
 
 					state.ServicePlanId = serverFarmId.ID()
 
@@ -960,7 +959,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("push_settings") {
 				// need to connect to notification hub before trying to enabled push
-				isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, id.ResourceGroup, id.SiteName)
+				isNotificationHubConnected, err := helpers.IsNotificationHubConnectedForAppService(ctx, client, *id)
 				if err != nil {
 					return fmt.Errorf("checking required notification hub key error: %+v", err)
 				}
@@ -969,7 +968,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding push setting for windows web app error: %+v", err)
 				}
 
-				if _, err := client.UpdateSitePushSettings(ctx, id.ResourceGroup, id.SiteName, pushSettings); err != nil {
+				if _, err := client.UpdateSitePushSettings(ctx, *id, pushSettings); err != nil {
 					return fmt.Errorf("updating push setting error: %+v", err)
 				}
 			}

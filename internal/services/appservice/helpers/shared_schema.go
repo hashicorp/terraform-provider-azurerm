@@ -1718,9 +1718,9 @@ func PushSettingSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (web.PushSettings, error) {
-	result := web.PushSettings{
-		PushSettingsProperties: &web.PushSettingsProperties{},
+func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (webapps.PushSettings, error) {
+	result := webapps.PushSettings{
+		Properties: &webapps.PushSettingsProperties{},
 	}
 	if len(input) == 0 {
 		return result, nil
@@ -1732,8 +1732,8 @@ func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (we
 	var whitelistTags, whitelistDynamicsTags, tagsRequiringAuth []string
 
 	pushSettingData := input[0]
-	result.PushSettingsProperties = &web.PushSettingsProperties{
-		IsPushEnabled: pointer.To(pushSettingData.IsPushEnabled),
+	result.Properties = &webapps.PushSettingsProperties{
+		IsPushEnabled: pushSettingData.IsPushEnabled,
 	}
 
 	whitelistTags = append(whitelistTags, pushSettingData.TagsToWhitelist...)
@@ -1742,45 +1742,46 @@ func ExpandPushSetting(input []PushSetting, isNotificationHubConnected bool) (we
 	if err != nil {
 		return result, fmt.Errorf("serializing the tags to JSON: %+v", err)
 	}
-	result.PushSettingsProperties.TagWhitelistJSON = pointer.To(string(tagsInJson))
+	result.Properties.TagWhitelistJson = pointer.To(string(tagsInJson))
 
 	whitelistDynamicsTags = append(whitelistDynamicsTags, pushSettingData.DynamicTagsToWhitelist...)
 	dTagsInJson, err := json.Marshal(whitelistDynamicsTags)
 	if err != nil {
 		return result, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
 	}
-	result.PushSettingsProperties.DynamicTagsJSON = pointer.To(string(dTagsInJson))
+	result.Properties.DynamicTagsJson = pointer.To(string(dTagsInJson))
 
 	tagsRequiringAuth = append(tagsRequiringAuth, pushSettingData.RequiredAuthTags...)
 	tagsRequiringAuthInJson, err := json.Marshal(tagsRequiringAuth)
 	if err != nil {
 		return result, fmt.Errorf("serializing the dynamic tags to JSON: %+v", err)
 	}
-	result.PushSettingsProperties.TagsRequiringAuth = pointer.To(string(tagsRequiringAuthInJson))
+	result.Properties.TagsRequiringAuth = pointer.To(string(tagsRequiringAuthInJson))
 
 	return result, nil
 }
 
-func FlattenPushSetting(pushSettingData web.PushSettings, metaData sdk.ResourceMetaData) ([]PushSetting, error) {
+func FlattenPushSetting(pushSettingData *webapps.PushSettings, metaData sdk.ResourceMetaData) ([]PushSetting, error) {
 	result := make([]PushSetting, 0)
-
-	// if user removes the push setting from config, api turns the enabled switch off but won't reset the whole block back to nil.
-	if pushSettingData.PushSettingsProperties == nil ||
-		!*pushSettingData.PushSettingsProperties.IsPushEnabled && len(metaData.ResourceData.Get("push_settings").([]interface{})) == 0 {
+	if pushSettingData == nil || pushSettingData.Properties == nil {
 		return result, nil
 	}
 
-	pushProps := *pushSettingData.PushSettingsProperties
-	push := PushSetting{}
-
-	if pushProps.IsPushEnabled != nil {
-		push.IsPushEnabled = pointer.From(pushProps.IsPushEnabled)
+	// if user removes the push setting from config, api turns the enabled switch off but won't reset the whole block back to nil.
+	if pushSettingData.Properties == nil ||
+		!pushSettingData.Properties.IsPushEnabled && len(metaData.ResourceData.Get("push_settings").([]interface{})) == 0 {
+		return result, nil
 	}
 
-	if pushProps.TagWhitelistJSON != nil {
+	pushProps := *pushSettingData.Properties
+	push := PushSetting{}
+
+	push.IsPushEnabled = pushProps.IsPushEnabled
+
+	if pushProps.TagWhitelistJson != nil {
 		var tagsToWhitelist interface{}
 		var whitelistTags []string
-		err := json.Unmarshal([]byte(*pushProps.TagWhitelistJSON), &tagsToWhitelist)
+		err := json.Unmarshal([]byte(*pushProps.TagWhitelistJson), &tagsToWhitelist)
 		if err != nil {
 			return nil, err
 		}
@@ -1790,10 +1791,10 @@ func FlattenPushSetting(pushSettingData web.PushSettings, metaData sdk.ResourceM
 		push.TagsToWhitelist = whitelistTags
 	}
 
-	if pushProps.DynamicTagsJSON != nil {
+	if pushProps.DynamicTagsJson != nil {
 		var dTagsToWhitelist interface{}
 		var whitelistDtags []string
-		err := json.Unmarshal([]byte(*pushProps.DynamicTagsJSON), &dTagsToWhitelist)
+		err := json.Unmarshal([]byte(*pushProps.DynamicTagsJson), &dTagsToWhitelist)
 		if err != nil {
 			return nil, err
 		}
@@ -1821,28 +1822,28 @@ func FlattenPushSetting(pushSettingData web.PushSettings, metaData sdk.ResourceM
 	return result, nil
 }
 
-func IsNotificationHubConnectedForAppService(ctx context.Context, client *web.AppsClient, rg string, siteName string) (bool, error) {
+func IsNotificationHubConnectedForAppService(ctx context.Context, client *webapps.WebAppsClient, id commonids.AppServiceId) (bool, error) {
 	isNotificationHubConnected := false
-	getAppSettings, err := client.ListApplicationSettings(ctx, rg, siteName)
+	getAppSettings, err := client.ListApplicationSettings(ctx, id)
 	if err != nil {
-		return isNotificationHubConnected, fmt.Errorf("reading App Settings for Windows %s: %+v", siteName, err)
+		return isNotificationHubConnected, fmt.Errorf("reading App Settings for Windows %s: %+v", id, err)
 	}
-	getConnectionStrings, err := client.ListConnectionStrings(ctx, rg, siteName)
+	getConnectionStrings, err := client.ListConnectionStrings(ctx, id)
 	if err != nil {
-		return isNotificationHubConnected, fmt.Errorf("reading Connection Strings for windows %s: %+v", siteName, err)
+		return isNotificationHubConnected, fmt.Errorf("reading Connection Strings for windows %s: %+v", id, err)
 	}
 
-	if getConnectionStrings.Properties != nil {
-		for i, v := range getConnectionStrings.Properties {
-			if i == "MS_NotificationHubConnectionString" && v != nil && v.Value != nil {
+	if model := getConnectionStrings.Model; model != nil && model.Properties != nil {
+		for i, v := range *model.Properties {
+			if i == "MS_NotificationHubConnectionString" && v.Value != "" {
 				isNotificationHubConnected = true
 				break
 			}
 		}
 	}
-	if getAppSettings.Properties != nil {
-		for i, v := range getAppSettings.Properties {
-			if isNotificationHubConnected && (i == "MS_NotificationHubId" && v != nil) || (i == "MS_NotificationHubName" && v != nil) {
+	if model := getAppSettings.Model; model != nil {
+		for i, v := range *model.Properties {
+			if isNotificationHubConnected && (i == "MS_NotificationHubId" && v != "") || (i == "MS_NotificationHubName" && v != "") {
 				isNotificationHubConnected = true
 				break
 			} else {
