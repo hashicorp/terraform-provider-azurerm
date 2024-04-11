@@ -218,7 +218,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "As the `contact` property requires reaching out to the dataplane to better support private endpoints and keyvaults with public network access disabled, `contact` will be removed in favour of the `azurerm_key_vault_certificate_contacts` resource in version 4.0 of the AzureRM Provider.",
+			Deprecated: "As the `contact` property requires reaching out to the dataplane, to better support private endpoints and keyvaults with public network access disabled, `contact` will be removed in favour of the `azurerm_key_vault_certificate_contacts` resource in version 4.0 of the AzureRM Provider.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
