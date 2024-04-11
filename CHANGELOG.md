@@ -24,6 +24,7 @@ BUG FIXES:
 * `azurerm_linux_function_app` - will not taint the resource when partially created [GH-24520]
 * `azurerm_managed_disk` - filtering the Resource SKUs response to reduce the memory overhead, when determining whether a Managed Disk can be online resized or not [GH-25549]
 * `azurerm_monitor_alert_prometheus_rule_group` - the `severity` property is now set correctly when `0` [GH-25408]
+* `azurerm_monitor_smart_detector_alert_rule` - normalising the value for `id` within the `action_group` block [GH-25559]
 * `azurerm_redis_cache_access_policy_assignment` - the `object_id_alias` property now allows usernames [GH-25523]
 * `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
 * `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
