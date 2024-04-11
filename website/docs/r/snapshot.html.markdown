@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `network_access_policy` - (Optional) Policy for accessing the disk via network. Possible values are `AllowAll`, `AllowPrivate`, or `DenyAll`. Defaults to `AllowAll`.
 
-* `public_network_access` - (Optional) Policy for controlling export on the disk. Possible values are `Enabled` or `Disabled`. Defaults to `Enabled`.
+* `public_network_access_enabled` - (Optional) Policy for controlling export on the disk. Possible values are `true` or `false`. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
