@@ -279,7 +279,7 @@ resource "azurerm_snapshot" "test" {
   create_option         = "Copy"
   source_uri            = azurerm_managed_disk.test.id
   network_access_policy = "AllowAll"
-  public_network_access = "Enabled"
+  public_network_access = true
 
   tags = {
     Hello = "World"
@@ -782,7 +782,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   create_option         = "Copy"
   source_uri            = azurerm_managed_disk.test.id
-  public_network_access = "Disabled"
+  public_network_access = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
