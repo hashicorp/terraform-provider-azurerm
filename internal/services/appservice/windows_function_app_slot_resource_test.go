@@ -2835,6 +2835,16 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
+
+  app_settings = {
+    "MS_NotificationHubName" = "${azurerm_notification_hub.test.name}"
+  }
+
+  connection_string {
+    name  = "MS_NotificationHubConnectionString"
+    value = azurerm_notification_hub.test.default_primary_connection_string
+    type  = "NotificationHub"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, planSku, additionalConfig)
 }

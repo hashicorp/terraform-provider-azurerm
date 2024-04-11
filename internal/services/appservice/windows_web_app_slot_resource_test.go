@@ -2415,6 +2415,16 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
+
+  app_settings = {
+    "MS_NotificationHubName" = "${azurerm_notification_hub.test.name}"
+  }
+
+  connection_string {
+    name  = "MS_NotificationHubConnectionString"
+    value = azurerm_notification_hub.test.default_primary_connection_string
+    type  = "NotificationHub"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
