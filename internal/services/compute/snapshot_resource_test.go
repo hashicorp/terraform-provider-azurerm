@@ -507,7 +507,7 @@ resource "azurerm_snapshot" "test" {
   create_option                 = "Copy"
   source_uri                    = azurerm_managed_disk.test.id
   disk_size_gb                  = "20"
-	public_network_access_enabled = false
+  public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
