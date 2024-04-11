@@ -91,11 +91,10 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Default:      string(snapshots.NetworkAccessPolicyAllowAll),
 			},
 
-			"public_network_access": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForPublicNetworkAccess(), false),
-				Default:      string(snapshots.PublicNetworkAccessEnabled),
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"source_resource_id": {
@@ -189,8 +188,9 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		properties.Properties.NetworkAccessPolicy = pointer.To(snapshots.NetworkAccessPolicy(v.(string)))
 	}
 
-	if v, ok := d.GetOk("public_network_access"); ok {
-		properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccess(v.(string)))
+	properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccessEnabled)
+	if !d.Get("public_network_access_enabled").(bool) {
+		properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccessDisabled)
 	}
 
 	diskSizeGB := d.Get("disk_size_gb").(int)
@@ -257,11 +257,11 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 			d.Set("network_access_policy", string(networkAccessPolicy))
 
-			publicNetworkAccess := snapshots.PublicNetworkAccessEnabled
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess
+			publicNetworkAccessEnabled := true
+			if v := props.PublicNetworkAccess; v != pointer.To(snapshots.PublicNetworkAccessEnabled) {
+				publicNetworkAccessEnabled = false
 			}
-			d.Set("public_network_access", string(publicNetworkAccess))
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 			incrementalEnabled := false
 			if props.Incremental != nil {
