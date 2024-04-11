@@ -3,12 +3,14 @@
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.26.1` of `github.com/tombuildsstuff/giovanni` [GH-25551]
+* `azurerm_signalr_service` - support for setting `sku` to `Premium_P2` [GH-25578]
 * `azurerm_snapshot` - add support for `network_access_policy` and `public_network_access` properties [GH-25421]
 * `azurerm_storage_account` - extend the support level of `(blob|queue|share)_properties` for Storage kind [GH-25427]
 * `azurerm_storage_blob` - support for the `encryption_scope` property [GH-25551]
 * `azurerm_storage_container` - support for the `default_encryption_scope` and `encryption_scope_override_enabled` properties [GH-25551]
 * `azurerm_storage_data_lake_gen2_filesystem` - support for the `default_encryption_scope` property [GH-25551]
 * `azurerm_subnet` - `delegation.x.service_delegation.x.name` now supports `Oracle.Database/networkAttachments`  [GH-25571]
+* `azurerm_web_pubsub` - support for setting `sku` to `Premium_P2` [GH-25578]
 
 BUG FIXES:
 
