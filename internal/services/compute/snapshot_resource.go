@@ -261,7 +261,6 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if v := props.PublicNetworkAccess; v != nil && *v != snapshots.PublicNetworkAccessEnabled {
 				publicNetworkAccessEnabled = false
 			}
-			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 			incrementalEnabled := false
