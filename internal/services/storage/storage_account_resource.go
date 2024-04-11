@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1304,7 +1303,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 }
 
 func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	envName := meta.(*clients.Client).Account.Environment.Name
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	storageClient := meta.(*clients.Client).Storage
@@ -1353,44 +1351,32 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	parameters := storage.AccountCreateParameters{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Kind:             accountKind,
 		Location:         &location,
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
 		Tags: tags.Expand(t),
-		Kind: accountKind,
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			PublicNetworkAccess:          publicNetworkAccess,
-			EnableHTTPSTrafficOnly:       &enableHTTPSTrafficOnly,
-			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
-			IsHnsEnabled:                 &isHnsEnabled,
-			EnableNfsV3:                  &nfsV3Enabled,
-			AllowSharedKeyAccess:         &allowSharedKeyAccess,
-			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
+			AllowBlobPublicAccess:        &allowBlobPublicAccess,
 			AllowCrossTenantReplication:  &crossTenantReplication,
-			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
-			IsSftpEnabled:                &isSftpEnabled,
-			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
+			AllowSharedKeyAccess:         &allowSharedKeyAccess,
 			DNSEndpointType:              storage.DNSEndpointType(dnsEndpointType),
+			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
+			EnableHTTPSTrafficOnly:       &enableHTTPSTrafficOnly,
+			EnableNfsV3:                  &nfsV3Enabled,
+			IsHnsEnabled:                 &isHnsEnabled,
+			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
+			IsSftpEnabled:                &isSftpEnabled,
+			MinimumTLSVersion:            storage.MinimumTLSVersion(minimumTLSVersion),
+			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
+			PublicNetworkAccess:          publicNetworkAccess,
+			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 		},
 	}
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
 		parameters.AccountPropertiesCreateParameters.AllowedCopyScope = storage.AllowedCopyScope(v)
-	}
-
-	// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-	if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
-		if allowBlobPublicAccess || minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
-			return fmt.Errorf(`"allow_nested_items_to_be_public" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
-		}
-	} else {
-		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
-		parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
 	}
 
 	storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
@@ -1681,7 +1667,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	envName := meta.(*clients.Client).Account.Environment.Name
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultClient := meta.(*clients.Client).KeyVault
@@ -1826,35 +1811,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("min_tls_version") {
-		minimumTLSVersion := d.Get("min_tls_version").(string)
-
-		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "min_tls_version" in request body.
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
-			if minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
-				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
-			}
-		} else {
-			props.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
-		}
+		props.MinimumTLSVersion = storage.MinimumTLSVersion(d.Get("min_tls_version").(string))
 	}
 
 	if d.HasChange("allow_nested_items_to_be_public") {
-		allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
-
-		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" in request body.
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-		// USGovernmentCloud "allow_blob_public_access" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
-			if allowBlobPublicAccess {
-				return fmt.Errorf("allow_nested_items_to_be_public is not supported for a Storage Account located in %q", envName)
-			}
-		} else {
-			props.AllowBlobPublicAccess = pointer.To(allowBlobPublicAccess)
-		}
+		props.AllowBlobPublicAccess = pointer.To(d.Get("allow_nested_items_to_be_public").(bool))
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -2142,22 +2103,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		// lintignore:R001
 		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
-		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		envName := meta.(*clients.Client).Account.Environment.Name
-		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
-			d.Set("min_tls_version", string(storage.MinimumTLSVersionTLS10))
-		} else {
-			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
-			minTlsVersion := string(storage.MinimumTLSVersionTLS10)
-			if props.MinimumTLSVersion != "" {
-				minTlsVersion = string(props.MinimumTLSVersion)
-			}
-			d.Set("min_tls_version", minTlsVersion)
+		// For storage account created using old API, the response of GET call will not return "min_tls_version"
+		minTlsVersion := string(storage.MinimumTLSVersionTLS10)
+		if props.MinimumTLSVersion != "" {
+			minTlsVersion = string(props.MinimumTLSVersion)
 		}
+		d.Set("min_tls_version", minTlsVersion)
 
 		if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(props.CustomDomain)); err != nil {
 			return fmt.Errorf("setting `custom_domain`: %+v", err)
