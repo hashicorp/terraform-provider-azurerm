@@ -1589,6 +1589,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
+		// TODO: This is a temporary limitation on Storage service. Remove this check once the API supports this scenario.
+		// See https://github.com/hashicorp/terraform-provider-azurerm/pull/25450#discussion_r1542471667 for the context.
 		if dnsEndpointType == string(storage.DNSEndpointTypeAzureDNSZone) {
 			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
 				// Otherwise, API returns: "Required feature Global Dns is disabled"
