@@ -779,12 +779,12 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_snapshot" "test" {
-  name                  = "acctestss_%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  create_option         = "Copy"
-  source_uri            = azurerm_managed_disk.test.id
-  public_network_access = false
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
