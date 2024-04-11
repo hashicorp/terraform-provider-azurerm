@@ -1,5 +1,7 @@
 ## 3.99.0 (Unreleased)
 
+BREAKING CHANGE: `azurerm_linux_web_app` - `site_config.0.application_stack.0.java_version` must be specified with `java_server` and `java_server_version` [GH-25553]
+
 ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240411.1104331` of `github.com/hashicorp/go-azure-sdk/resourcemanager` and `github.com/hashicorp/go-azure-sdk/sdk` [GH-25546]
