@@ -267,8 +267,8 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 			}
 
 			state := SystemCenterVirtualMachineManagerVirtualMachineInstanceModel{}
+			state.ScopedResourceId = id.Scope
 			if model := resp.Model; model != nil {
-				state.ScopedResourceId = id.Scope
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
 				state.HardwareProfile = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(model.Properties.HardwareProfile)
 				state.OSProfile = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.Properties.OsProfile)
@@ -355,9 +355,9 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 		return nil
 	}
 
-	hardwareProfile := &input[0]
+	hardwareProfile := input[0]
 
-	result := &virtualmachineinstances.HardwareProfile{
+	return &virtualmachineinstances.HardwareProfile{
 		CpuCount:             pointer.To(int64(hardwareProfile.CpuCount)),
 		DynamicMemoryEnabled: pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(hardwareProfile.DynamicMemoryEnabled))),
 		DynamicMemoryMaxMB:   pointer.To(int64(hardwareProfile.DynamicMemoryMaxInMb)),
@@ -365,8 +365,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 		LimitCPUForMigration: pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))),
 		MemoryMB:             pointer.To(int64(hardwareProfile.MemoryInMb)),
 	}
-
-	return result
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []HardwareProfile) *virtualmachineinstances.HardwareProfileUpdate {
@@ -374,9 +372,9 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 		return nil
 	}
 
-	hardwareProfile := &input[0]
+	hardwareProfile := input[0]
 
-	result := &virtualmachineinstances.HardwareProfileUpdate{
+	return &virtualmachineinstances.HardwareProfileUpdate{
 		CpuCount:             pointer.To(int64(hardwareProfile.CpuCount)),
 		DynamicMemoryEnabled: pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(hardwareProfile.DynamicMemoryEnabled))),
 		DynamicMemoryMaxMB:   pointer.To(int64(hardwareProfile.DynamicMemoryMaxInMb)),
@@ -384,43 +382,6 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 		LimitCPUForMigration: pointer.To(virtualmachineinstances.LimitCPUForMigration(strconv.FormatBool(hardwareProfile.LimitCpuForMigrationEnabled))),
 		MemoryMB:             pointer.To(int64(hardwareProfile.MemoryInMb)),
 	}
-
-	return result
-}
-
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances.HardwareProfile) []HardwareProfile {
-	result := make([]HardwareProfile, 0)
-	if input == nil {
-		return result
-	}
-
-	hardwareProfile := HardwareProfile{}
-
-	if v := input.CpuCount; v != nil {
-		hardwareProfile.CpuCount = int(*v)
-	}
-
-	if v := input.DynamicMemoryEnabled; v != nil {
-		hardwareProfile.DynamicMemoryEnabled = *v == virtualmachineinstances.DynamicMemoryEnabledTrue
-	}
-
-	if v := input.DynamicMemoryMaxMB; v != nil {
-		hardwareProfile.DynamicMemoryMaxInMb = int(*v)
-	}
-
-	if v := input.DynamicMemoryMinMB; v != nil {
-		hardwareProfile.DynamicMemoryMinInMb = int(*v)
-	}
-
-	if v := input.LimitCPUForMigration; v != nil {
-		hardwareProfile.LimitCpuForMigrationEnabled = *v == virtualmachineinstances.LimitCPUForMigrationTrue
-	}
-
-	if v := input.MemoryMB; v != nil {
-		hardwareProfile.MemoryInMb = int(*v)
-	}
-
-	return append(result, hardwareProfile)
 }
 
 func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterface {
@@ -469,6 +430,50 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfa
 	return &result
 }
 
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OSProfile) *virtualmachineinstances.OsProfileForVMInstance {
+	if len(input) == 0 {
+		return nil
+	}
+
+	osProfile := input[0]
+
+	return &virtualmachineinstances.OsProfileForVMInstance{
+		ComputerName:  pointer.To(osProfile.ComputerName),
+		AdminPassword: pointer.To(osProfile.AdminPassword),
+	}
+}
+
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input []string) *[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined {
+	result := make([]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined, 0)
+	if len(input) == 0 {
+		return &result
+	}
+
+	for _, v := range input {
+		result = append(result, virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined{
+			Id: pointer.To(v),
+		})
+	}
+
+	return &result
+}
+
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances.HardwareProfile) []HardwareProfile {
+	result := make([]HardwareProfile, 0)
+	if input == nil {
+		return result
+	}
+
+	return append(result, HardwareProfile{
+		CpuCount:                    int(pointer.From(input.CpuCount)),
+		DynamicMemoryEnabled:        pointer.From(input.DynamicMemoryEnabled) == virtualmachineinstances.DynamicMemoryEnabledTrue,
+		DynamicMemoryMaxInMb:        int(pointer.From(input.DynamicMemoryMaxMB)),
+		DynamicMemoryMinInMb:        int(pointer.From(input.DynamicMemoryMinMB)),
+		LimitCpuForMigrationEnabled: pointer.From(input.LimitCPUForMigration) == virtualmachineinstances.LimitCPUForMigrationTrue,
+		MemoryInMb:                  int(pointer.From(input.MemoryMB)),
+	})
+}
+
 func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfaces(input *[]virtualmachineinstances.NetworkInterface) []NetworkInterface {
 	result := make([]NetworkInterface, 0)
 	if input == nil {
@@ -476,41 +481,15 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterf
 	}
 
 	for _, item := range *input {
-		networkInterface := NetworkInterface{
+		result = append(result, NetworkInterface{
 			id:               pointer.From(item.NicId),
 			name:             pointer.From(item.Name),
 			VirtualNetworkId: pointer.From(item.VirtualNetworkId),
 			MacAddress:       pointer.From(item.MacAddress),
-		}
-
-		if v := item.IPv4AddressType; v != nil {
-			networkInterface.Ipv4AddressType = string(*v)
-		}
-
-		if v := item.IPv6AddressType; v != nil {
-			networkInterface.Ipv6AddressType = string(*v)
-		}
-
-		if v := item.MacAddressType; v != nil {
-			networkInterface.MacAddressType = string(*v)
-		}
-
-		result = append(result, networkInterface)
-	}
-
-	return result
-}
-
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OSProfile) *virtualmachineinstances.OsProfileForVMInstance {
-	if len(input) == 0 {
-		return nil
-	}
-
-	osProfile := &input[0]
-
-	result := &virtualmachineinstances.OsProfileForVMInstance{
-		ComputerName:  pointer.To(osProfile.ComputerName),
-		AdminPassword: pointer.To(osProfile.AdminPassword),
+			Ipv4AddressType:  string(pointer.From(item.IPv4AddressType)),
+			Ipv6AddressType:  string(pointer.From(item.IPv6AddressType)),
+			MacAddressType:   string(pointer.From(item.MacAddressType)),
+		})
 	}
 
 	return result
@@ -522,28 +501,10 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(inp
 		return result
 	}
 
-	osProfile := OSProfile{
+	return append(result, OSProfile{
 		ComputerName:  pointer.From(input.ComputerName),
 		AdminPassword: pointer.From(input.AdminPassword),
-	}
-
-	return append(result, osProfile)
-}
-
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input []string) *[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined {
-	result := make([]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined, 0)
-	if len(input) == 0 {
-		return &result
-	}
-
-	for _, v := range input {
-		availabilitySet := virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined{
-			Id: pointer.To(v),
-		}
-		result = append(result, availabilitySet)
-	}
-
-	return &result
+	})
 }
 
 func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input *[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined) []string {
@@ -553,9 +514,7 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilityS
 	}
 
 	for _, v := range *input {
-		if avsId := v.Id; avsId != nil {
-			result = append(result, *avsId)
-		}
+		result = append(result, pointer.From(v.Id))
 	}
 
 	return result
