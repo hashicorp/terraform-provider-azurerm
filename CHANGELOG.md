@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20240411.1104331` of `github.com/hashicorp/go-azure-sdk/resourcemanager` and `github.com/hashicorp/go-azure-sdk/sdk` [GH-25546]
 * dependencies: updating to `v0.26.1` of `github.com/tombuildsstuff/giovanni` [GH-25551]
 * `azurerm_signalr_service` - support for setting `sku` to `Premium_P2` [GH-25578]
 * `azurerm_snapshot` - add support for `network_access_policy` and `public_network_access` properties [GH-25421]
@@ -14,6 +15,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: fix an issue where the provider was not correctly configured when using a custom metadata host [GH-25546]
 * storage: fix a number of potential crashes during plan/apply with resources using the Storage data plane API [GH-25525]
 * `azurerm_application_insights` - fix issue where the wrong Application ID was set into the property `app_id` [GH-25520]
 * `azurerm_application_insights_api_key` - add state migration to re-case statis segments of the resource ID  [GH-25567]
