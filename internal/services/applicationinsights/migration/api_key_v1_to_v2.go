@@ -21,17 +21,15 @@ func (ApiKeyUpgradeV1ToV2) Schema() map[string]*pluginsdk.Schema {
 
 func (ApiKeyUpgradeV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-		// old:
-		// 	/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/components/component1/apikeys/key1
-		// new:
-		// 	/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/components/component1/apiKeys/key1
+		// This state migration is identical to v0 -> v1, however we need to apply it again because the resource
+		// previously only normalised the `apiKeys` segment instead of all the static segments, so IDs with incorrect
+		// casing were still present and being created in a user's state
 		oldIdRaw := rawState["id"].(string)
-		oldId, err := apikeys.ParseApiKeyIDInsensitively(oldIdRaw)
+		id, err := apikeys.ParseApiKeyIDInsensitively(oldIdRaw)
 		if err != nil {
 			return rawState, err
 		}
 
-		id := apikeys.NewApiKeyID(oldId.SubscriptionId, oldId.ResourceGroupName, oldId.ComponentName, oldId.KeyId)
 		newId := id.ID()
 		log.Printf("[DEBUG] Updating ID from %q to %q", oldIdRaw, newId)
 		rawState["id"] = newId
