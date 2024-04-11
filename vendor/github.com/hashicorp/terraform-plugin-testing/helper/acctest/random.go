@@ -20,10 +20,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
-}
-
 // Helpers for generating random tidbits for use in identifiers to prevent
 // collisions in acceptance tests.
 
