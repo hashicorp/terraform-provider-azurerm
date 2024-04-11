@@ -1,6 +1,8 @@
 ## 3.99.0 (Unreleased)
 
-BREAKING CHANGE: `azurerm_linux_web_app` - `site_config.0.application_stack.0.java_version` must be specified with `java_server` and `java_server_version` [GH-25553]
+BREAKING CHANGE: 
+
+* `azurerm_linux_web_app` - `site_config.0.application_stack.0.java_version` must be specified with `java_server` and `java_server_version` [GH-25553]
 
 ENHANCEMENTS:
 
