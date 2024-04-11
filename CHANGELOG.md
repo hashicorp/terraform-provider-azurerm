@@ -14,6 +14,7 @@ BUG FIXES:
 
 * storage: fix a number of potential crashes during plan/apply with resources using the Storage data plane API [GH-25525]
 * `azurerm_application_insights` - fix issue where the wrong Application ID was set into the property `app_id` [GH-25520]
+* `azurerm_application_insights_api_key` - add state migration to re-case statis segments of the resource ID  [GH-25567]
 * `azurerm_container_app_environment_certificate` - the `subject_name` attribute is now correctly populated [GH-25516]
 * `azurerm_function_app_slot` - will not taint the resource when partially created [GH-24520]
 * `azurerm_linux_function_app` - will not taint the resource when partially created [GH-24520]
