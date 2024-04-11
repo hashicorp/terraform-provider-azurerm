@@ -258,8 +258,9 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("network_access_policy", string(networkAccessPolicy))
 
 			publicNetworkAccessEnabled := true
-			if v := props.PublicNetworkAccess; v != pointer.To(snapshots.PublicNetworkAccessEnabled) {
+			if v := props.PublicNetworkAccess; v != nil && *v != snapshots.PublicNetworkAccessEnabled {
 				publicNetworkAccessEnabled = false
+			}
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
