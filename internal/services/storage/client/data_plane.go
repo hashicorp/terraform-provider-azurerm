@@ -45,9 +45,9 @@ func (Client) DataPlaneOperationSupportingOnlySharedKeyAuth() DataPlaneOperation
 }
 
 func (c Client) configureDataPlane(ctx context.Context, clientName, resourceIdentifier string, baseClient client.BaseClient, account accountDetails, operation DataPlaneOperation) error {
-	if operation.SupportsAadAuthentication && c.authConfig != nil {
-		api := c.authConfig.Environment.Storage.WithResourceIdentifier(resourceIdentifier)
-		storageAuth, err := auth.NewAuthorizerFromCredentials(ctx, *c.authConfig, api)
+	if operation.SupportsAadAuthentication && c.authConfigForAzureAD != nil {
+		api := c.authConfigForAzureAD.Environment.Storage.WithResourceIdentifier(resourceIdentifier)
+		storageAuth, err := auth.NewAuthorizerFromCredentials(ctx, *c.authConfigForAzureAD, api)
 		if err != nil {
 			return fmt.Errorf("unable to build authorizer for Storage API: %+v", err)
 		}
