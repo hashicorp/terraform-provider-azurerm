@@ -65,17 +65,25 @@ type storageAccountServiceSupportLevel struct {
 	supportStaticWebsite bool
 }
 
-func resolveStorageAccountServiceSupportLevel(kind storage.Kind, tier storage.SkuTier) storageAccountServiceSupportLevel {
+func resolveStorageAccountServiceSupportLevel(kind storage.Kind, tier storage.SkuTier, replicationType string) storageAccountServiceSupportLevel {
 	// FileStorage doesn't support blob
 	supportBlob := kind != storage.KindFileStorage
 
 	// Queue is only supported for Storage and StorageV2, in Standard sku tier.
-	supportQueue := tier == storage.SkuTierStandard && slices.Contains([]storage.Kind{storage.KindStorage, storage.KindStorageV2}, kind)
+	supportQueue := tier == storage.SkuTierStandard && (kind == storage.KindStorageV2 ||
+		(kind == storage.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support queue endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no queue endpoint.
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
 
 	// File share is only supported for StorageV2 and FileStorage.
 	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
 	// Per test, the StorageV2 with Premium sku tier also doesn't support file share.
-	supportShare := kind == storage.KindFileStorage || (slices.Contains([]storage.Kind{storage.KindStorage, storage.KindStorageV2}, kind) && tier != storage.SkuTierPremium)
+	supportShare := kind == storage.KindFileStorage || (tier != storage.SkuTierPremium && (kind == storage.KindStorageV2 ||
+		(kind == storage.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support file endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no file endpoint.
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType))))
 
 	// Static Website is only supported for StorageV2 (not for Storage(v1)) and BlockBlobStorage
 	supportStaticWebSite := kind == storage.KindStorageV2 || kind == storage.KindBlockBlobStorage
@@ -1558,7 +1566,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
-	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		if !supportLevel.supportBlob {
@@ -1935,7 +1943,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// Followings are updates to the sub-services
-	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
 
 	if d.HasChange("blob_properties") {
 		if !supportLevel.supportBlob {
@@ -2306,7 +2314,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if resp.Sku != nil {
 		tier = resp.Sku.Tier
 	}
-	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier, d.Get("account_replication_type").(string))
 
 	if supportLevel.supportBlob {
 		blobClient := storageClient.BlobServicesClient
