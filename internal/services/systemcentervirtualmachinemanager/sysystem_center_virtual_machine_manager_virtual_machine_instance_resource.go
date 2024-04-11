@@ -8,6 +8,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachineinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/parse"
@@ -18,7 +21,7 @@ import (
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceModel struct {
-	ScopeId                                             string             `tfschema:"scope_id"`
+	ScopedResourceId                                    string             `tfschema:"scoped_resource_id"`
 	CustomLocationId                                    string             `tfschema:"custom_location_id"`
 	SystemCenterVirtualMachineManagerAvailabilitySetIds []string           `tfschema:"system_center_virtual_machine_manager_availability_set_id"`
 	HardwareProfile                                     []HardwareProfile  `tfschema:"hardware_profile"`
@@ -69,19 +72,14 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Resourc
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"scope_id": {
+		"scoped_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"custom_location_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
+		"custom_location_id": commonschema.ResourceIDReferenceRequiredForceNew(&customlocations.CustomLocationId{}),
 
 		"hardware_profile ": {
 			Type:     pluginsdk.TypeList,
@@ -212,9 +210,9 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewSystemCenterVirtualMachineManagerVirtualMachineInstanceID(model.ScopeId)
+			id := parse.NewSystemCenterVirtualMachineManagerVirtualMachineInstanceID(model.ScopedResourceId)
 
-			existing, err := client.Get(ctx, id.ScopeId)
+			existing, err := client.Get(ctx, commonids.NewScopeID(id.Scope))
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
@@ -230,16 +228,16 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Create(
 					Name: utils.String(model.CustomLocationId),
 				},
 				Properties: virtualmachineinstances.VirtualMachineInstanceProperties{
-					AvailabilitySets: expandVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds),
-					HardwareProfile:  expandVirtualMachineInstanceHardwareProfileForCreate(model.HardwareProfile),
+					AvailabilitySets: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds),
+					HardwareProfile:  expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(model.HardwareProfile),
 					NetworkProfile: &virtualmachineinstances.NetworkProfile{
-						NetworkInterfaces: expandVirtualMachineInstanceNetworkInterfacesForCreate(model.NetworkInterfaces),
+						NetworkInterfaces: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(model.NetworkInterfaces),
 					},
-					OsProfile: expandVirtualMachineInstanceOSProfile(model.OSProfile),
+					OsProfile: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.OSProfile),
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id.ScopeId, parameters); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -260,7 +258,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ScopeId)
+			resp, err := client.Get(ctx, commonids.NewScopeID(id.Scope))
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -270,14 +268,14 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Read() 
 
 			state := SystemCenterVirtualMachineManagerVirtualMachineInstanceModel{}
 			if model := resp.Model; model != nil {
-				state.ScopeId = id.ScopeId.Scope
+				state.ScopedResourceId = id.Scope
 				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
-				state.HardwareProfile = flattenVirtualMachineInstanceHardwareProfile(model.Properties.HardwareProfile)
-				state.OSProfile = flattenVirtualMachineInstanceOSProfile(model.Properties.OsProfile)
-				state.SystemCenterVirtualMachineManagerAvailabilitySetIds = flattenVirtualMachineInstanceAvailabilitySets(model.Properties.AvailabilitySets)
+				state.HardwareProfile = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(model.Properties.HardwareProfile)
+				state.OSProfile = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(model.Properties.OsProfile)
+				state.SystemCenterVirtualMachineManagerAvailabilitySetIds = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.Properties.AvailabilitySets)
 
 				if v := model.Properties.NetworkProfile; v != nil {
-					state.NetworkInterfaces = flattenVirtualMachineInstanceNetworkInterfaces(v.NetworkInterfaces)
+					state.NetworkInterfaces = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfaces(v.NetworkInterfaces)
 				}
 			}
 
@@ -302,25 +300,25 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Update(
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &virtualmachineinstances.VirtualMachineInstanceUpdate{
+			parameters := virtualmachineinstances.VirtualMachineInstanceUpdate{
 				Properties: &virtualmachineinstances.VirtualMachineInstanceUpdateProperties{},
 			}
 
 			if metadata.ResourceData.HasChange("system_center_virtual_machine_manager_availability_set_ids") {
-				parameters.Properties.AvailabilitySets = expandVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds)
+				parameters.Properties.AvailabilitySets = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(model.SystemCenterVirtualMachineManagerAvailabilitySetIds)
 			}
 
 			if metadata.ResourceData.HasChange("hardware_profile") {
-				parameters.Properties.HardwareProfile = expandVirtualMachineInstanceHardwareProfileForUpdate(model.HardwareProfile)
+				parameters.Properties.HardwareProfile = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(model.HardwareProfile)
 			}
 
 			if metadata.ResourceData.HasChange("network_interface") {
 				parameters.Properties.NetworkProfile = &virtualmachineinstances.NetworkProfileUpdate{
-					NetworkInterfaces: expandVirtualMachineInstanceNetworkInterfacesForUpdate(model.NetworkInterfaces),
+					NetworkInterfaces: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForUpdate(model.NetworkInterfaces),
 				}
 			}
 
-			if err := client.UpdateThenPoll(ctx, id.ScopeId, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -340,7 +338,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Delete(
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, id.ScopeId, virtualmachineinstances.DeleteOperationOptions{
+			if err := client.DeleteThenPoll(ctx, commonids.NewScopeID(id.Scope), virtualmachineinstances.DeleteOperationOptions{
 				DeleteFromHost: pointer.To(virtualmachineinstances.DeleteFromHostTrue),
 				Force:          pointer.To(virtualmachineinstances.ForceTrue),
 			}); err != nil {
@@ -352,7 +350,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Delete(
 	}
 }
 
-func expandVirtualMachineInstanceHardwareProfileForCreate(input []HardwareProfile) *virtualmachineinstances.HardwareProfile {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForCreate(input []HardwareProfile) *virtualmachineinstances.HardwareProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -371,7 +369,7 @@ func expandVirtualMachineInstanceHardwareProfileForCreate(input []HardwareProfil
 	return result
 }
 
-func expandVirtualMachineInstanceHardwareProfileForUpdate(input []HardwareProfile) *virtualmachineinstances.HardwareProfileUpdate {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfileForUpdate(input []HardwareProfile) *virtualmachineinstances.HardwareProfileUpdate {
 	if len(input) == 0 {
 		return nil
 	}
@@ -390,7 +388,7 @@ func expandVirtualMachineInstanceHardwareProfileForUpdate(input []HardwareProfil
 	return result
 }
 
-func flattenVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances.HardwareProfile) []HardwareProfile {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances.HardwareProfile) []HardwareProfile {
 	result := make([]HardwareProfile, 0)
 	if input == nil {
 		return result
@@ -425,7 +423,7 @@ func flattenVirtualMachineInstanceHardwareProfile(input *virtualmachineinstances
 	return append(result, hardwareProfile)
 }
 
-func expandVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterface {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterface {
 	result := make([]virtualmachineinstances.NetworkInterface, 0)
 	if len(input) == 0 {
 		return &result
@@ -448,7 +446,7 @@ func expandVirtualMachineInstanceNetworkInterfacesForCreate(input []NetworkInter
 	return &result
 }
 
-func expandVirtualMachineInstanceNetworkInterfacesForUpdate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterfaceUpdate {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfacesForUpdate(input []NetworkInterface) *[]virtualmachineinstances.NetworkInterfaceUpdate {
 	result := make([]virtualmachineinstances.NetworkInterfaceUpdate, 0)
 	if len(input) == 0 {
 		return &result
@@ -471,7 +469,7 @@ func expandVirtualMachineInstanceNetworkInterfacesForUpdate(input []NetworkInter
 	return &result
 }
 
-func flattenVirtualMachineInstanceNetworkInterfaces(input *[]virtualmachineinstances.NetworkInterface) []NetworkInterface {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceNetworkInterfaces(input *[]virtualmachineinstances.NetworkInterface) []NetworkInterface {
 	result := make([]NetworkInterface, 0)
 	if input == nil {
 		return result
@@ -503,7 +501,7 @@ func flattenVirtualMachineInstanceNetworkInterfaces(input *[]virtualmachineinsta
 	return result
 }
 
-func expandVirtualMachineInstanceOSProfile(input []OSProfile) *virtualmachineinstances.OsProfileForVMInstance {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input []OSProfile) *virtualmachineinstances.OsProfileForVMInstance {
 	if len(input) == 0 {
 		return nil
 	}
@@ -518,7 +516,7 @@ func expandVirtualMachineInstanceOSProfile(input []OSProfile) *virtualmachineins
 	return result
 }
 
-func flattenVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance) []OSProfile {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsProfileForVMInstance) []OSProfile {
 	result := make([]OSProfile, 0)
 	if input == nil {
 		return result
@@ -532,7 +530,7 @@ func flattenVirtualMachineInstanceOSProfile(input *virtualmachineinstances.OsPro
 	return append(result, osProfile)
 }
 
-func expandVirtualMachineInstanceAvailabilitySets(input []string) *[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input []string) *[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined {
 	result := make([]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined, 0)
 	if len(input) == 0 {
 		return &result
@@ -548,7 +546,7 @@ func expandVirtualMachineInstanceAvailabilitySets(input []string) *[]virtualmach
 	return &result
 }
 
-func flattenVirtualMachineInstanceAvailabilitySets(input *[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined) []string {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceAvailabilitySets(input *[]virtualmachineinstances.AvailabilitySetListAvailabilitySetsInlined) []string {
 	result := make([]string, 0)
 	if input == nil {
 		return result

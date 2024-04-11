@@ -3,13 +3,12 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 var _ resourceids.Id = SystemCenterVirtualMachineManagerVirtualMachineInstanceId{}
 
-func TestVirtualMachineInstanceIDFormatter(t *testing.T) {
+func TestSystemCenterVirtualMachineManagerVirtualMachineInstanceIDFormatter(t *testing.T) {
 	actual := NewSystemCenterVirtualMachineManagerVirtualMachineInstanceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default"
 	if actual != expected {
@@ -17,7 +16,7 @@ func TestVirtualMachineInstanceIDFormatter(t *testing.T) {
 	}
 }
 
-func TestVirtualMachineInstanceID(t *testing.T) {
+func TestSystemCenterVirtualMachineManagerVirtualMachineInstanceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
@@ -29,10 +28,16 @@ func TestVirtualMachineInstanceID(t *testing.T) {
 		},
 		{
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
+			Error: true,
+		},
+		{
+			Input: "/providers/Microsoft.ScVmm/virtualMachineInstances/default",
+			Error: true,
+		},
+		{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default",
 			Expected: &SystemCenterVirtualMachineManagerVirtualMachineInstanceId{
-				ScopeId: commonids.ScopeId{
-					Scope: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
-				},
+				Scope: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
 			},
 		},
 		{
@@ -56,8 +61,8 @@ func TestVirtualMachineInstanceID(t *testing.T) {
 			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.ScopeId != v.Expected.ScopeId {
-			t.Fatalf("Expected %q but got %q for ScopeId", v.Expected.ScopeId, actual.ScopeId)
+		if actual.Scope != v.Expected.Scope {
+			t.Fatalf("Expected %q but got %q for ScopeId", v.Expected.Scope, actual.Scope)
 		}
 	}
 }
