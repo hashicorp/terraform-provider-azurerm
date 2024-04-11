@@ -601,7 +601,7 @@ A `headers` block supports the following:
 
 A `http_logs` block supports the following:
 
-* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined above.
+* `azure_blob_storage` - (Optional) A `azure_blob_storage_http` block as defined below.
 
 * `file_system` - (Optional) A `file_system` block as defined above.
 

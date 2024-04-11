@@ -1,4 +1,4 @@
-package loadtest
+package loadtests
 
 import (
 	"context"
@@ -24,7 +24,7 @@ type ListOutboundNetworkDependenciesEndpointsCompleteResult struct {
 }
 
 // ListOutboundNetworkDependenciesEndpoints ...
-func (c LoadTestClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, id LoadTestId) (result ListOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
+func (c LoadTestsClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Context, id LoadTestId) (result ListOutboundNetworkDependenciesEndpointsOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -62,12 +62,12 @@ func (c LoadTestClient) ListOutboundNetworkDependenciesEndpoints(ctx context.Con
 }
 
 // ListOutboundNetworkDependenciesEndpointsComplete retrieves all the results into a single object
-func (c LoadTestClient) ListOutboundNetworkDependenciesEndpointsComplete(ctx context.Context, id LoadTestId) (ListOutboundNetworkDependenciesEndpointsCompleteResult, error) {
+func (c LoadTestsClient) ListOutboundNetworkDependenciesEndpointsComplete(ctx context.Context, id LoadTestId) (ListOutboundNetworkDependenciesEndpointsCompleteResult, error) {
 	return c.ListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx, id, OutboundEnvironmentEndpointOperationPredicate{})
 }
 
 // ListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c LoadTestClient) ListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx context.Context, id LoadTestId, predicate OutboundEnvironmentEndpointOperationPredicate) (result ListOutboundNetworkDependenciesEndpointsCompleteResult, err error) {
+func (c LoadTestsClient) ListOutboundNetworkDependenciesEndpointsCompleteMatchingPredicate(ctx context.Context, id LoadTestId, predicate OutboundEnvironmentEndpointOperationPredicate) (result ListOutboundNetworkDependenciesEndpointsCompleteResult, err error) {
 	items := make([]OutboundEnvironmentEndpoint, 0)
 
 	resp, err := c.ListOutboundNetworkDependenciesEndpoints(ctx, id)

@@ -17,8 +17,8 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.4.0
 	github.com/hashicorp/go-azure-helpers v0.67.0
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240402.1085733
-	github.com/hashicorp/go-azure-sdk/sdk v0.20240402.1085733
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20240409.1113035
+	github.com/hashicorp/go-azure-sdk/sdk v0.20240409.1113035
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
@@ -29,7 +29,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.2.0
-	github.com/tombuildsstuff/giovanni v0.25.5
+	github.com/tombuildsstuff/giovanni v0.26.1
 	github.com/tombuildsstuff/kermit v0.20240122.1123108
 	golang.org/x/crypto v0.18.0
 	golang.org/x/tools v0.13.0
