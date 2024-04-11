@@ -44,7 +44,10 @@ func (c ServerBasedPerformanceTierClient) List(ctx context.Context, id ServerId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PerformanceTierListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

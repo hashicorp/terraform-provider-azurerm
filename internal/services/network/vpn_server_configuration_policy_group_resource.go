@@ -10,9 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -111,6 +112,9 @@ func resourceVPNServerConfigurationPolicyGroupCreateUpdate(d *pluginsdk.Resource
 		return err
 	}
 
+	locks.ByID(vpnServerConfigurationId.ID())
+	defer locks.UnlockByID(vpnServerConfigurationId.ID())
+
 	id := virtualwans.NewConfigurationPolicyGroupID(subscriptionId, vpnServerConfigurationId.ResourceGroupName, vpnServerConfigurationId.VpnServerConfigurationName, d.Get("name").(string))
 
 	if d.IsNewResource() {
@@ -189,6 +193,11 @@ func resourceVPNServerConfigurationPolicyGroupDelete(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return err
 	}
+
+	vpnServerConfigurationId := virtualwans.NewVpnServerConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VpnServerConfigurationName)
+
+	locks.ByID(vpnServerConfigurationId.ID())
+	defer locks.UnlockByID(vpnServerConfigurationId.ID())
 
 	if err := client.ConfigurationPolicyGroupsDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)

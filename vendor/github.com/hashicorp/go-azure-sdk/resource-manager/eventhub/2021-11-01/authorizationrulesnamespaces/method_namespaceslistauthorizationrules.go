@@ -19,7 +19,8 @@ type NamespacesListAuthorizationRulesOperationResponse struct {
 }
 
 type NamespacesListAuthorizationRulesCompleteResult struct {
-	Items []AuthorizationRule
+	LatestHttpResponse *http.Response
+	Items              []AuthorizationRule
 }
 
 // NamespacesListAuthorizationRules ...
@@ -83,7 +84,8 @@ func (c AuthorizationRulesNamespacesClient) NamespacesListAuthorizationRulesComp
 	}
 
 	result = NamespacesListAuthorizationRulesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

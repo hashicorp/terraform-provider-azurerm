@@ -48,7 +48,10 @@ func (c BudgetsClient) CreateOrUpdate(ctx context.Context, id ScopedBudgetId, in
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Budget
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -16,7 +16,12 @@ import (
 type ListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PartnerConfigurationsListResult
+	Model        *[]PartnerConfiguration
+}
+
+type ListByResourceGroupCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []PartnerConfiguration
 }
 
 // ListByResourceGroup ...
@@ -36,7 +41,7 @@ func (c PartnerConfigurationsClient) ListByResourceGroup(ctx context.Context, id
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -45,9 +50,43 @@ func (c PartnerConfigurationsClient) ListByResourceGroup(ctx context.Context, id
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]PartnerConfiguration `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByResourceGroupComplete retrieves all the results into a single object
+func (c PartnerConfigurationsClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, PartnerConfigurationOperationPredicate{})
+}
+
+// ListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c PartnerConfigurationsClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate PartnerConfigurationOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
+	items := make([]PartnerConfiguration, 0)
+
+	resp, err := c.ListByResourceGroup(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByResourceGroupCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

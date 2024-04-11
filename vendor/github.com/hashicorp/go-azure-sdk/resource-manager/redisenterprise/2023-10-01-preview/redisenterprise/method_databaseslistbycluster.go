@@ -19,7 +19,8 @@ type DatabasesListByClusterOperationResponse struct {
 }
 
 type DatabasesListByClusterCompleteResult struct {
-	Items []Database
+	LatestHttpResponse *http.Response
+	Items              []Database
 }
 
 // DatabasesListByCluster ...
@@ -83,7 +84,8 @@ func (c RedisEnterpriseClient) DatabasesListByClusterCompleteMatchingPredicate(c
 	}
 
 	result = DatabasesListByClusterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

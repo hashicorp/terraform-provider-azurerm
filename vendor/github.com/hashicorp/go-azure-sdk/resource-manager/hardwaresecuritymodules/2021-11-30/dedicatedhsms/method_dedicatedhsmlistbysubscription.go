@@ -20,7 +20,8 @@ type DedicatedHsmListBySubscriptionOperationResponse struct {
 }
 
 type DedicatedHsmListBySubscriptionCompleteResult struct {
-	Items []DedicatedHsm
+	LatestHttpResponse *http.Response
+	Items              []DedicatedHsm
 }
 
 type DedicatedHsmListBySubscriptionOperationOptions struct {
@@ -112,7 +113,8 @@ func (c DedicatedHsmsClient) DedicatedHsmListBySubscriptionCompleteMatchingPredi
 	}
 
 	result = DedicatedHsmListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

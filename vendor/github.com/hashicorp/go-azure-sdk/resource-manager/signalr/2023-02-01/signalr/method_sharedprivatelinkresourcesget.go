@@ -43,7 +43,10 @@ func (c SignalRClient) SharedPrivateLinkResourcesGet(ctx context.Context, id Sha
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SharedPrivateLinkResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

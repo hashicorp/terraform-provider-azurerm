@@ -306,6 +306,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("storage.0.size_gb", func(ctx context.Context, old, new, meta interface{}) bool {
+				return new.(int) < old.(int)
+			}),
+		),
 	}
 }
 

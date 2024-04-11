@@ -77,7 +77,10 @@ func (c ApiPolicyClient) CreateOrUpdate(ctx context.Context, id ApiId, input Pol
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PolicyContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

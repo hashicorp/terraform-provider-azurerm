@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = MongodbDatabaseCollectionId{}
+var _ resourceids.ResourceId = &MongodbDatabaseCollectionId{}
 
 // MongodbDatabaseCollectionId is a struct representing the Resource ID for a Mongodb Database Collection
 type MongodbDatabaseCollectionId struct {
@@ -34,7 +34,7 @@ func NewMongodbDatabaseCollectionID(subscriptionId string, resourceGroupName str
 
 // ParseMongodbDatabaseCollectionID parses 'input' into a MongodbDatabaseCollectionId
 func ParseMongodbDatabaseCollectionID(input string) (*MongodbDatabaseCollectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MongodbDatabaseCollectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&MongodbDatabaseCollectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseMongodbDatabaseCollectionID(input string) (*MongodbDatabaseCollectionI
 // ParseMongodbDatabaseCollectionIDInsensitively parses 'input' case-insensitively into a MongodbDatabaseCollectionId
 // note: this method should only be used for API response data and not user input
 func ParseMongodbDatabaseCollectionIDInsensitively(input string) (*MongodbDatabaseCollectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MongodbDatabaseCollectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&MongodbDatabaseCollectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

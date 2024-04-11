@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RecipientEmailId{}
+var _ resourceids.ResourceId = &RecipientEmailId{}
 
 // RecipientEmailId is a struct representing the Resource ID for a Recipient Email
 type RecipientEmailId struct {
@@ -34,7 +34,7 @@ func NewRecipientEmailID(subscriptionId string, resourceGroupName string, servic
 
 // ParseRecipientEmailID parses 'input' into a RecipientEmailId
 func ParseRecipientEmailID(input string) (*RecipientEmailId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RecipientEmailId{})
+	parser := resourceids.NewParserFromResourceIdType(&RecipientEmailId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +51,7 @@ func ParseRecipientEmailID(input string) (*RecipientEmailId, error) {
 // ParseRecipientEmailIDInsensitively parses 'input' case-insensitively into a RecipientEmailId
 // note: this method should only be used for API response data and not user input
 func ParseRecipientEmailIDInsensitively(input string) (*RecipientEmailId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RecipientEmailId{})
+	parser := resourceids.NewParserFromResourceIdType(&RecipientEmailId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

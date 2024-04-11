@@ -21,7 +21,11 @@ type SegmentNotSpecifiedError struct {
 // NewSegmentNotSpecifiedError returns a SegmentNotSpecifiedError for the provided Resource ID, segment and parseResult combination
 func NewSegmentNotSpecifiedError(id ResourceId, segmentName string, parseResult ParseResult) SegmentNotSpecifiedError {
 	// Resource ID types must be in the format {Name}Id
-	resourceIdName := strings.TrimSuffix(reflect.ValueOf(id).Type().Name(), "Id")
+	resourceIdTypeName := reflect.ValueOf(id).Type().Name()
+	if resourceIdTypeName == "" {
+		resourceIdTypeName = reflect.ValueOf(id).Elem().Type().Name()
+	}
+	resourceIdName := strings.TrimSuffix(resourceIdTypeName, "Id")
 	return SegmentNotSpecifiedError{
 		resourceIdName: resourceIdName,
 		resourceId:     id,

@@ -76,7 +76,10 @@ func (c ManagedVirtualNetworksClient) CreateOrUpdate(ctx context.Context, id Man
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ManagedVirtualNetworkResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

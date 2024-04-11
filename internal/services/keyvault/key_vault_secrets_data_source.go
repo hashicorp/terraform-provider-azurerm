@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -28,7 +29,7 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 
 			"names": {
 				Type:     pluginsdk.TypeList,
@@ -57,6 +58,8 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
+
+						"tags": tags.SchemaDataSource(),
 					},
 				},
 			},
@@ -132,8 +135,14 @@ func expandSecrets(name string, item keyvault.SecretItem) map[string]interface{}
 		"id":   *item.ID,
 		"name": name,
 	}
+
 	if item.Attributes != nil && item.Attributes.Enabled != nil {
 		res["enabled"] = *item.Attributes.Enabled
 	}
+
+	if item.Tags != nil {
+		res["tags"] = tags.Flatten(item.Tags)
+	}
+
 	return res
 }

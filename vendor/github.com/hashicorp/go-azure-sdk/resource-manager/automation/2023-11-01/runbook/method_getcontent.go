@@ -44,7 +44,10 @@ func (c RunbookClient) GetContent(ctx context.Context, id RunbookId) (result Get
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model []byte
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

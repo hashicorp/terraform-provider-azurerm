@@ -18,6 +18,7 @@ type BackupOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *ApiManagementServiceResource
 }
 
 // Backup ...

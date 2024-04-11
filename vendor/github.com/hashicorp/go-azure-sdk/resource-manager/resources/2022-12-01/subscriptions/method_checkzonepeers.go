@@ -49,7 +49,10 @@ func (c SubscriptionsClient) CheckZonePeers(ctx context.Context, id commonids.Su
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CheckZonePeersResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

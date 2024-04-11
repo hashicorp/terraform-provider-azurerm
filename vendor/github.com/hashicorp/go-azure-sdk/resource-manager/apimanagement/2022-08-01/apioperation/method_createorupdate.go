@@ -77,7 +77,10 @@ func (c ApiOperationClient) CreateOrUpdate(ctx context.Context, id OperationId, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model OperationContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

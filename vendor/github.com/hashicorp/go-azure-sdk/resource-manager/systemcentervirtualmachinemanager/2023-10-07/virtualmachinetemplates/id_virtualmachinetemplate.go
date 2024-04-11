@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualMachineTemplateId{}
+var _ resourceids.ResourceId = &VirtualMachineTemplateId{}
 
 // VirtualMachineTemplateId is a struct representing the Resource ID for a Virtual Machine Template
 type VirtualMachineTemplateId struct {
@@ -30,7 +30,7 @@ func NewVirtualMachineTemplateID(subscriptionId string, resourceGroupName string
 
 // ParseVirtualMachineTemplateID parses 'input' into a VirtualMachineTemplateId
 func ParseVirtualMachineTemplateID(input string) (*VirtualMachineTemplateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineTemplateId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineTemplateId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +47,7 @@ func ParseVirtualMachineTemplateID(input string) (*VirtualMachineTemplateId, err
 // ParseVirtualMachineTemplateIDInsensitively parses 'input' case-insensitively into a VirtualMachineTemplateId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualMachineTemplateIDInsensitively(input string) (*VirtualMachineTemplateId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualMachineTemplateId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualMachineTemplateId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

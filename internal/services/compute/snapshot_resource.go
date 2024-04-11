@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -81,6 +82,20 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"network_access_policy": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForNetworkAccessPolicy(), false),
+				Default:      string(snapshots.NetworkAccessPolicyAllowAll),
+			},
+
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(snapshots.PossibleValuesForPublicNetworkAccess(), false),
+				Default:      string(snapshots.PublicNetworkAccessEnabled),
 			},
 
 			"source_resource_id": {
@@ -170,6 +185,14 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		properties.Properties.CreationData.StorageAccountId = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("network_access_policy"); ok {
+		properties.Properties.NetworkAccessPolicy = pointer.To(snapshots.NetworkAccessPolicy(v.(string)))
+	}
+
+	if v, ok := d.GetOk("public_network_access"); ok {
+		properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccess(v.(string)))
+	}
+
 	diskSizeGB := d.Get("disk_size_gb").(int)
 	if diskSizeGB > 0 {
 		properties.Properties.DiskSizeGB = utils.Int64(int64(diskSizeGB))
@@ -227,6 +250,18 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if err := d.Set("encryption_settings", flattenSnapshotDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 				return fmt.Errorf("setting `encryption_settings`: %+v", err)
 			}
+
+			networkAccessPolicy := snapshots.NetworkAccessPolicyAllowAll
+			if props.NetworkAccessPolicy != nil {
+				networkAccessPolicy = *props.NetworkAccessPolicy
+			}
+			d.Set("network_access_policy", string(networkAccessPolicy))
+
+			publicNetworkAccess := snapshots.PublicNetworkAccessEnabled
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccess = *props.PublicNetworkAccess
+			}
+			d.Set("public_network_access", string(publicNetworkAccess))
 
 			incrementalEnabled := false
 			if props.Incremental != nil {

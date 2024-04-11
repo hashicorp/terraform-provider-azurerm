@@ -43,7 +43,10 @@ func (c IntegrationAccountPartnersClient) Get(ctx context.Context, id PartnerId)
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IntegrationAccountPartner
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

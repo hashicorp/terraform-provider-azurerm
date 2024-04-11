@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-05-01-preview/diagnosticsettings"
-	kustoClusters "github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -506,7 +505,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("name", id.DiagnosticSettingName)
 	resourceUri := id.ResourceUri
-	if v, err := kustoClusters.ParseClusterIDInsensitively(resourceUri); err == nil {
+	if v, err := commonids.ParseKustoClusterIDInsensitively(resourceUri); err == nil {
 		resourceUri = v.ID()
 	}
 	d.Set("target_resource_id", resourceUri)

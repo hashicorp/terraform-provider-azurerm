@@ -12,6 +12,14 @@ func TestVirtualMachineInstanceGuestAgentID(t *testing.T) {
 			Valid: false,
 		},
 		{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
+			Valid: false,
+		},
+		{
+			Input: "/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default",
+			Valid: false,
+		},
+		{
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default",
 			Valid: true,
 		},

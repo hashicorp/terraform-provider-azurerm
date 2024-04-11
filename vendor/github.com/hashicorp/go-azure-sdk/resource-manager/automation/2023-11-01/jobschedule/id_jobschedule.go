@@ -10,7 +10,7 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = JobScheduleId{}
+var _ resourceids.ResourceId = &JobScheduleId{}
 
 // JobScheduleId is a struct representing the Resource ID for a Job Schedule
 type JobScheduleId struct {
@@ -32,7 +32,7 @@ func NewJobScheduleID(subscriptionId string, resourceGroupName string, automatio
 
 // ParseJobScheduleID parses 'input' into a JobScheduleId
 func ParseJobScheduleID(input string) (*JobScheduleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(JobScheduleId{})
+	parser := resourceids.NewParserFromResourceIdType(&JobScheduleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +49,7 @@ func ParseJobScheduleID(input string) (*JobScheduleId, error) {
 // ParseJobScheduleIDInsensitively parses 'input' case-insensitively into a JobScheduleId
 // note: this method should only be used for API response data and not user input
 func ParseJobScheduleIDInsensitively(input string) (*JobScheduleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(JobScheduleId{})
+	parser := resourceids.NewParserFromResourceIdType(&JobScheduleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

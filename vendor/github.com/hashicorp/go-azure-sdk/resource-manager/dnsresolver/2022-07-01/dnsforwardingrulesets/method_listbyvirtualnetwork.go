@@ -20,7 +20,8 @@ type ListByVirtualNetworkOperationResponse struct {
 }
 
 type ListByVirtualNetworkCompleteResult struct {
-	Items []VirtualNetworkDnsForwardingRuleset
+	LatestHttpResponse *http.Response
+	Items              []VirtualNetworkDnsForwardingRuleset
 }
 
 type ListByVirtualNetworkOperationOptions struct {
@@ -112,7 +113,8 @@ func (c DnsForwardingRulesetsClient) ListByVirtualNetworkCompleteMatchingPredica
 	}
 
 	result = ListByVirtualNetworkCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

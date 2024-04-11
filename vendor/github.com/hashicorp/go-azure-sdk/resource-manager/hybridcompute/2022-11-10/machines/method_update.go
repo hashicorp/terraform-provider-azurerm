@@ -47,7 +47,10 @@ func (c MachinesClient) Update(ctx context.Context, id MachineId, input MachineU
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Machine
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

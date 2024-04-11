@@ -15,7 +15,12 @@ import (
 type ListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PrivateEndpointConnectionListResult
+	Model        *[]PrivateEndpointConnection
+}
+
+type ListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []PrivateEndpointConnection
 }
 
 // List ...
@@ -35,7 +40,7 @@ func (c PrivateEndpointConnectionsClient) List(ctx context.Context, id ElasticSa
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c PrivateEndpointConnectionsClient) List(ctx context.Context, id ElasticSa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]PrivateEndpointConnection `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListComplete retrieves all the results into a single object
+func (c PrivateEndpointConnectionsClient) ListComplete(ctx context.Context, id ElasticSanId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, PrivateEndpointConnectionOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c PrivateEndpointConnectionsClient) ListCompleteMatchingPredicate(ctx context.Context, id ElasticSanId, predicate PrivateEndpointConnectionOperationPredicate) (result ListCompleteResult, err error) {
+	items := make([]PrivateEndpointConnection, 0)
+
+	resp, err := c.List(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

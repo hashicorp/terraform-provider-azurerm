@@ -19,7 +19,7 @@ import (
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentModel struct {
-	Scope              string       `tfschema:"scope"`
+	ScopedResourceId   string       `tfschema:"scoped_resource_id"`
 	Credential         []Credential `tfschema:"credential"`
 	HttpsProxy         string       `tfschema:"https_proxy"`
 	ProvisioningAction string       `tfschema:"provisioning_action"`
@@ -48,7 +48,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"scope": {
+		"scoped_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -108,7 +108,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID(model.Scope, "default", "default")
+			id := parse.NewSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID(model.ScopedResourceId)
 
 			existing, err := client.Get(ctx, commonids.NewScopeID(id.Scope))
 			if err != nil {
@@ -122,14 +122,13 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 
 			parameters := vminstanceguestagents.GuestAgent{
 				Properties: vminstanceguestagents.GuestAgentProperties{
-					Credentials: expandVirtualMachineInstanceGuestAgentCredential(model.Credential),
+					Credentials:     expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(model.Credential),
+					HTTPProxyConfig: &vminstanceguestagents.HTTPProxyConfiguration{},
 				},
 			}
 
 			if v := model.HttpsProxy; v != "" {
-				parameters.Properties.HTTPProxyConfig = &vminstanceguestagents.HTTPProxyConfiguration{
-					HTTPSProxy: utils.String(v),
-				}
+				parameters.Properties.HTTPProxyConfig.HTTPSProxy = utils.String(v)
 			}
 
 			if v := model.ProvisioningAction; v != "" {
@@ -166,16 +165,13 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 			}
 
 			state := SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentModel{}
+			state.ScopedResourceId = id.Scope
 			if model := resp.Model; model != nil {
-				state.Scope = id.Scope
-				state.Credential = flattenVirtualMachineInstanceGuestAgentCredential(model.Properties.Credentials)
+				state.Credential = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(model.Properties.Credentials)
+				state.ProvisioningAction = string(pointer.From(model.Properties.ProvisioningAction))
 
 				if v := model.Properties.HTTPProxyConfig; v != nil {
 					state.HttpsProxy = pointer.From(v.HTTPSProxy)
-				}
-
-				if v := model.Properties.ProvisioningAction; v != nil {
-					state.ProvisioningAction = string(*v)
 				}
 			}
 
@@ -210,16 +206,10 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			parameters.Properties.Credentials = expandVirtualMachineInstanceGuestAgentCredential(model.Credential)
-
-			if metadata.ResourceData.HasChange("https_proxy") {
-				parameters.Properties.HTTPProxyConfig = &vminstanceguestagents.HTTPProxyConfiguration{
-					HTTPSProxy: utils.String(model.HttpsProxy),
-				}
-			}
-
-			if metadata.ResourceData.HasChange("provisioning_action") {
-				parameters.Properties.ProvisioningAction = pointer.To(vminstanceguestagents.ProvisioningAction(model.ProvisioningAction))
+			parameters.Properties.Credentials = expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(model.Credential)
+			parameters.Properties.ProvisioningAction = pointer.To(vminstanceguestagents.ProvisioningAction(model.ProvisioningAction))
+			parameters.Properties.HTTPProxyConfig = &vminstanceguestagents.HTTPProxyConfiguration{
+				HTTPSProxy: utils.String(model.HttpsProxy),
 			}
 
 			if err := client.CreateThenPoll(ctx, commonids.NewScopeID(id.Scope), *parameters); err != nil {
@@ -251,31 +241,27 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 	}
 }
 
-func expandVirtualMachineInstanceGuestAgentCredential(input []Credential) *vminstanceguestagents.GuestCredential {
+func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input []Credential) *vminstanceguestagents.GuestCredential {
 	if len(input) == 0 {
 		return nil
 	}
 
-	credential := &input[0]
+	credential := input[0]
 
-	result := &vminstanceguestagents.GuestCredential{
+	return &vminstanceguestagents.GuestCredential{
 		Username: credential.Username,
 		Password: credential.Password,
 	}
-
-	return result
 }
 
-func flattenVirtualMachineInstanceGuestAgentCredential(input *vminstanceguestagents.GuestCredential) []Credential {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input *vminstanceguestagents.GuestCredential) []Credential {
 	result := make([]Credential, 0)
 	if input == nil {
 		return result
 	}
 
-	credential := Credential{
+	return append(result, Credential{
 		Username: input.Username,
 		Password: input.Password,
-	}
-
-	return append(result, credential)
+	})
 }

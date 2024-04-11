@@ -148,6 +148,10 @@ resource "azurerm_lab_service_lab" "test" {
       capacity = 1
     }
   }
+
+  connection_setting {
+    client_ssh_access = "Public"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -183,6 +187,10 @@ resource "azurerm_lab_service_lab" "import" {
       name     = "Classic_Fsv2_2_4GB_128_S_SSD"
       capacity = 1
     }
+  }
+
+  connection_setting {
+    client_ssh_access = "Public"
   }
 }
 `, r.basic(data))

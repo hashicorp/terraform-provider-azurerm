@@ -23,6 +23,7 @@ func DetermineWhichRequiredResourceProvidersRequireRegistration(requiredResource
 		if _, isUnregistered := (*unregisteredResourceProviders)[providerName]; !isUnregistered {
 			// some RPs may not exist in some non-public clouds, so we'll log a warning here instead of raising an error
 			log.Printf("[WARN] The required Resource Provider %q wasn't returned from the Azure API", providerName)
+			continue
 		}
 
 		requiringRegistration = append(requiringRegistration, providerName)

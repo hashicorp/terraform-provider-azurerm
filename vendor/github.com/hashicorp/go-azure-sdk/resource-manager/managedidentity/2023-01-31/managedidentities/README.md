@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities"
 ```
 
@@ -77,7 +78,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
+id := commonids.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 // alternatively `client.FederatedIdentityCredentialsList(ctx, id, managedidentities.DefaultFederatedIdentityCredentialsListOperationOptions())` can be used to do batched pagination
 items, err := client.FederatedIdentityCredentialsListComplete(ctx, id, managedidentities.DefaultFederatedIdentityCredentialsListOperationOptions())
@@ -94,7 +95,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
+id := commonids.NewScopeID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group")
 
 read, err := client.SystemAssignedIdentitiesGetByScope(ctx, id)
 if err != nil {
@@ -110,7 +111,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
+id := commonids.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 payload := managedidentities.Identity{
 	// ...
@@ -131,7 +132,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
+id := commonids.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 read, err := client.UserAssignedIdentitiesDelete(ctx, id)
 if err != nil {
@@ -147,7 +148,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
+id := commonids.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 read, err := client.UserAssignedIdentitiesGet(ctx, id)
 if err != nil {
@@ -163,7 +164,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.UserAssignedIdentitiesListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.UserAssignedIdentitiesListByResourceGroupComplete(ctx, id)
@@ -180,7 +181,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.UserAssignedIdentitiesListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.UserAssignedIdentitiesListBySubscriptionComplete(ctx, id)
@@ -197,7 +198,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := managedidentities.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
+id := commonids.NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "example-resource-group", "userAssignedIdentityValue")
 
 payload := managedidentities.IdentityUpdate{
 	// ...

@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules"
@@ -28,27 +30,42 @@ type Client struct {
 	MetadataClient           *metadata.MetadataClient
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	alertRulesClient := alertrules.NewAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&alertRulesClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	alertRulesClient, err := alertrules.NewAlertRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Alert Rules Client: %+v", err)
+	}
+	o.Configure(alertRulesClient.Client, o.Authorizers.ResourceManager)
 
 	alertRuleTemplatesClient := alertruletemplates.NewAlertRuleTemplatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&alertRuleTemplatesClient.Client, o.ResourceManagerAuthorizer)
 
-	automationRulesClient := automationrules.NewAutomationRulesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&automationRulesClient.Client, o.ResourceManagerAuthorizer)
+	automationRulesClient, err := automationrules.NewAutomationRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Automation Rules Client: %+v", err)
+	}
+	o.Configure(automationRulesClient.Client, o.Authorizers.ResourceManager)
 
 	dataConnectorsClient := securityinsight.NewDataConnectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dataConnectorsClient.Client, o.ResourceManagerAuthorizer)
 
-	watchListsClient := watchlists.NewWatchlistsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&watchListsClient.Client, o.ResourceManagerAuthorizer)
+	watchListsClient, err := watchlists.NewWatchlistsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Watch Lists Client: %+v", err)
+	}
+	o.Configure(watchListsClient.Client, o.Authorizers.ResourceManager)
 
-	watchListItemsClient := watchlistitems.NewWatchlistItemsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&watchListItemsClient.Client, o.ResourceManagerAuthorizer)
+	watchListItemsClient, err := watchlistitems.NewWatchlistItemsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Watch Lists Items Client: %+v", err)
+	}
+	o.Configure(watchListItemsClient.Client, o.Authorizers.ResourceManager)
 
-	onboardingStatesClient := sentinelonboardingstates.NewSentinelOnboardingStatesClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&onboardingStatesClient.Client, o.ResourceManagerAuthorizer)
+	onboardingStatesClient, err := sentinelonboardingstates.NewSentinelOnboardingStatesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Onboarding States Client: %+v", err)
+	}
+	o.Configure(onboardingStatesClient.Client, o.Authorizers.ResourceManager)
 
 	analyticsSettingsClient := securityinsight.NewSecurityMLAnalyticsSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&analyticsSettingsClient.Client, o.ResourceManagerAuthorizer)
@@ -56,19 +73,22 @@ func NewClient(o *common.ClientOptions) *Client {
 	threatIntelligenceClient := securityinsight.NewThreatIntelligenceIndicatorClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&threatIntelligenceClient.Client, o.ResourceManagerAuthorizer)
 
-	metadataClient := metadata.NewMetadataClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&metadataClient.Client, o.ResourceManagerAuthorizer)
+	metadataClient, err := metadata.NewMetadataClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Metadata Client: %+v", err)
+	}
+	o.Configure(metadataClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		AlertRulesClient:         &alertRulesClient,
+		AlertRulesClient:         alertRulesClient,
 		AlertRuleTemplatesClient: &alertRuleTemplatesClient,
-		AutomationRulesClient:    &automationRulesClient,
+		AutomationRulesClient:    automationRulesClient,
 		DataConnectorsClient:     &dataConnectorsClient,
-		WatchlistsClient:         &watchListsClient,
-		WatchlistItemsClient:     &watchListItemsClient,
-		OnboardingStatesClient:   &onboardingStatesClient,
+		WatchlistsClient:         watchListsClient,
+		WatchlistItemsClient:     watchListItemsClient,
+		OnboardingStatesClient:   onboardingStatesClient,
 		AnalyticsSettingsClient:  &analyticsSettingsClient,
 		ThreatIntelligenceClient: &threatIntelligenceClient,
-		MetadataClient:           &metadataClient,
-	}
+		MetadataClient:           metadataClient,
+	}, nil
 }

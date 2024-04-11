@@ -129,11 +129,15 @@ The following arguments are supported:
 
 * `value` - (Optional) The value of the App Configuration Key. This should only be set when type is set to `kv`.
 
+~> **NOTE:** `value` and `vault_key_reference` are mutually exclusive.
+
 * `locked` - (Optional) Should this App Configuration Key be Locked to prevent changes?
 
 * `type` - (Optional) The type of the App Configuration Key. It can either be `kv` (simple [key/value](https://docs.microsoft.com/azure/azure-app-configuration/concept-key-value)) or `vault` (where the value is a reference to a [Key Vault Secret](https://azure.microsoft.com/en-gb/services/key-vault/). Defaults to `kv`.
 
-* `vault_key_reference` - (Optional) The ID of the vault secret this App Configuration Key refers to, when `type` is set to `vault`.
+* `vault_key_reference` - (Optional) The ID of the vault secret this App Configuration Key refers to. This should only be set when `type` is set to `vault`.
+
+~> **NOTE:** `vault_key_reference` and `value` are mutually exclusive.
 
 ~> **NOTE:** When setting the `vault_key_reference` using the `id` will pin the value to specific version of the secret, to reference latest secret value use `versionless_id`
 

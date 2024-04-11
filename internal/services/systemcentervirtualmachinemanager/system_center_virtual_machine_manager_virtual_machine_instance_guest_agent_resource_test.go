@@ -136,7 +136,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 %s
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
-  scope = "%s"
+  scoped_resource_id = "%s"
 
   credential {
     username = "%s"
@@ -151,7 +151,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 %s
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "import" {
-  scope = azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.test.scope
+  scoped_resource_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.test.scope
 
   credential {
     username = "%s"
@@ -166,7 +166,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 %s
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
-  scope               = "%s"
+  scoped_resource_id  = "%s"
   https_proxy         = ""
   provisioning_action = "install"
 

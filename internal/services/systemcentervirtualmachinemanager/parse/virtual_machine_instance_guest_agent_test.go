@@ -9,7 +9,7 @@ import (
 var _ resourceids.Id = SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{}
 
 func TestVirtualMachineInstanceGuestAgentIDFormatter(t *testing.T) {
-	actual := NewSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1", "default", "default").ID()
+	actual := NewSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -27,11 +27,17 @@ func TestVirtualMachineInstanceGuestAgentID(t *testing.T) {
 			Error: true,
 		},
 		{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
+			Error: true,
+		},
+		{
+			Input: "/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default",
+			Error: true,
+		},
+		{
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default",
 			Expected: &SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentId{
-				Scope:                      "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
-				VirtualMachineInstanceName: "default",
-				GuestAgentName:             "default",
+				Scope: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HybridCompute/machines/machine1",
 			},
 		},
 		{

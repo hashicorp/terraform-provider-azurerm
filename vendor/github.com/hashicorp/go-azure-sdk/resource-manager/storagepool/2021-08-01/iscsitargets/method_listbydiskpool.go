@@ -19,7 +19,8 @@ type ListByDiskPoolOperationResponse struct {
 }
 
 type ListByDiskPoolCompleteResult struct {
-	Items []IscsiTarget
+	LatestHttpResponse *http.Response
+	Items              []IscsiTarget
 }
 
 // ListByDiskPool ...
@@ -83,7 +84,8 @@ func (c IscsiTargetsClient) ListByDiskPoolCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListByDiskPoolCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
