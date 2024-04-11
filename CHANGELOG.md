@@ -8,8 +8,8 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240411.1104331` of `github.com/hashicorp/go-azure-sdk/resourcemanager` and `github.com/hashicorp/go-azure-sdk/sdk` [GH-25546]
 * dependencies: updating to `v0.26.1` of `github.com/tombuildsstuff/giovanni` [GH-25551]
-* azurerm_key_vault - deprecate the contact field from v3.x provider and update properties to Computed Optional [GH-25552]
-* azurerm_key_vault_certificate_contacts - in v4.0 make the contact field optional to allow for deletion of contacts from the key vault [GH-25552]
+* `azurerm_key_vault` - deprecate the `contact` field from v3.x provider and update properties to Computed Optional [GH-25552]
+* `azurerm_key_vault_certificate_contacts` - in v4.0 make the `contact` field optional to allow for deletion of contacts from the key vault [GH-25552]
 * `azurerm_signalr_service` - support for setting `sku` to `Premium_P2` [GH-25578]
 * `azurerm_snapshot` - add support for `network_access_policy` and `public_network_access` properties [GH-25421]
 * `azurerm_storage_account` - extend the support level of `(blob|queue|share)_properties` for Storage kind [GH-25427]
