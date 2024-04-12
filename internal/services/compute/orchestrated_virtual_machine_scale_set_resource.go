@@ -155,6 +155,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
+			// whilst the Swagger defines multiple at this time only UAI is supported
 			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			"license_type": {
