@@ -96,6 +96,8 @@ The following arguments are supported:
 
 * `enable_internet_security` - (Optional) Is Internet security enabled for this Express Route Connection?
 
+* `enable_private_link_fast_path` - (Optional) Bypass the ExpressRoute gateway when accessing private-links. ExpressRoute FastPath (`express_route_gateway_bypass_enabled`) must be enabled.
+
 * `express_route_gateway_bypass_enabled` - (Optional) Specified whether Fast Path is enabled for Virtual Wan Firewall Hub. Defaults to `false`.
 
 * `routing` - (Optional) A `routing` block as defined below.
