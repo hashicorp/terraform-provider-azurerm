@@ -71,6 +71,12 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"enable_private_link_fast_path": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"express_route_gateway_bypass_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -180,6 +186,7 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 				ID: utils.String(d.Get("express_route_circuit_peering_id").(string)),
 			},
 			EnableInternetSecurity:    utils.Bool(d.Get("enable_internet_security").(bool)),
+			EnablePrivateLinkFastPath: utils.Bool(d.Get("enable_private_link_fast_path").(bool)),
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             utils.Int32(int32(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: utils.Bool(d.Get("express_route_gateway_bypass_enabled").(bool)),
@@ -230,6 +237,10 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("routing_weight", props.RoutingWeight)
 		d.Set("authorization_key", props.AuthorizationKey)
 		d.Set("enable_internet_security", props.EnableInternetSecurity)
+
+		if props.EnablePrivateLinkFastPath != nil {
+			d.Set("enable_private_link_fast_path", props.EnablePrivateLinkFastPath)
+		}
 
 		if props.ExpressRouteGatewayBypass != nil {
 			d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
