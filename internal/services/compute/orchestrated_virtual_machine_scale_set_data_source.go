@@ -133,7 +133,7 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Attributes() map[string]*p
 			},
 		},
 
-		"identity": commonschema.SystemAssignedIdentityComputed(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 	}
 }
 
@@ -151,7 +151,9 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Read() sdk.ResourceFunc {
 
 			id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, orchestratedVMSS.ResourceGroup, orchestratedVMSS.Name)
 
-			existing, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
+			options := virtualmachinescalesets.DefaultGetOperationOptions()
+			options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+			existing, err := client.Get(ctx, id, options)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("%s not found", id)

@@ -155,7 +155,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: validate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
-			// whilst the Swagger defines multiple at this time only UAI is supported
 			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			"license_type": {
@@ -668,9 +667,9 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 	isHotpatchEnabledImage := false
 	linuxAutomaticVMGuestPatchingEnabled := false
 
-	// retrieve
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	existing, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	options := virtualmachinescalesets.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	existing, err := client.Get(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("retrieving Orchestrated %s: %+v", id, err)
 	}
@@ -1105,8 +1104,9 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	options := virtualmachinescalesets.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, *id, options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Orchestrated %s was not found - removing from state!", id)
@@ -1271,9 +1271,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 					encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
 				}
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-
-				// userData is not returned by the API
-				d.Set("user_data_base64", d.Get("user_data_base64").(string))
+				d.Set("user_data_base64", profile.UserData)
 			}
 
 			if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {

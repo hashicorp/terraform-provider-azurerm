@@ -909,7 +909,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		// Shutdown
 		if shouldShutDown {
 			log.Printf("[DEBUG] Shutting Down %s", virtualMachineId)
-			options := virtualmachines.PowerOffOperationOptions{SkipShutdown: pointer.To(false)}
+			options := virtualmachines.DefaultPowerOffOperationOptions()
+			options.SkipShutdown = pointer.To(false)
 			if err := virtualMachinesClient.PowerOffThenPoll(ctx, *virtualMachineId, options); err != nil {
 				return fmt.Errorf("sending Power Off to %s: %+v", virtualMachineId, err)
 

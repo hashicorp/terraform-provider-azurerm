@@ -706,8 +706,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		// TODO nil check this?
-		if *params.Properties.Priority != virtualmachines.VirtualMachinePriorityTypesSpot {
+		if params.Properties.Priority != nil && *params.Properties.Priority != virtualmachines.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
@@ -786,7 +785,9 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
+	options := virtualmachines.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
+	resp, err := client.Get(ctx, *id, options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Linux %s was not found - removing from state!", id)
@@ -1020,9 +1021,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("vtpm_enabled", vtpmEnabled)
 			d.Set("secure_boot_enabled", secureBootEnabled)
 			d.Set("virtual_machine_id", props.VMId)
-
-			// userData is not returned by the API
-			d.Set("user_data", d.Get("user_data").(string))
+			d.Set("user_data", props.UserData)
 
 			connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
 			d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
@@ -1051,7 +1050,9 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Linux %s", id)
-	existing, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
+	options := virtualmachines.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
+	existing, err := client.Get(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
@@ -1655,7 +1656,9 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Linux %s", id)
-	existing, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
+	options := virtualmachines.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
+	existing, err := client.Get(ctx, *id, options)
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			return nil
@@ -1696,10 +1699,9 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
 		forceDeletion = pointer.To(true)
 	}
-	options := virtualmachines.DeleteOperationOptions{
-		ForceDeletion: forceDeletion,
-	}
-	if err := client.DeleteThenPoll(ctx, *id, options); err != nil {
+	deleteOptions := virtualmachines.DefaultDeleteOperationOptions()
+	deleteOptions.ForceDeletion = forceDeletion
+	if err := client.DeleteThenPoll(ctx, *id, deleteOptions); err != nil {
 		return fmt.Errorf("deleting Linux %s: %+v", id, err)
 	}
 

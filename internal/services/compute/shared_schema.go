@@ -37,7 +37,6 @@ func additionalUnattendContentSchema() *pluginsdk.Schema {
 					Required: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						// TODO review questions
 						string(virtualmachines.SettingNamesAutoLogon),
 						string(virtualmachines.SettingNamesFirstLogonCommands),
 					}, false),

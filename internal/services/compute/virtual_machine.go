@@ -553,13 +553,14 @@ func expandVirtualMachineGalleryApplication(input []interface{}) *[]virtualmachi
 	}
 
 	for _, v := range input {
+		config := v.(map[string]interface{})
 		app := &virtualmachines.VMGalleryApplication{
-			PackageReferenceId:              v.(map[string]interface{})["version_id"].(string),
-			ConfigurationReference:          pointer.To(v.(map[string]interface{})["configuration_blob_uri"].(string)),
-			Order:                           pointer.To(int64(v.(map[string]interface{})["order"].(int))),
-			Tags:                            pointer.To(v.(map[string]interface{})["tag"].(string)),
-			EnableAutomaticUpgrade:          pointer.To(v.(map[string]interface{})["automatic_upgrade_enabled"].(bool)),
-			TreatFailureAsDeploymentFailure: pointer.To(v.(map[string]interface{})["treat_failure_as_deployment_failure_enabled"].(bool)),
+			PackageReferenceId:              config["version_id"].(string),
+			ConfigurationReference:          pointer.To(config["configuration_blob_uri"].(string)),
+			Order:                           pointer.To(int64(config["order"].(int))),
+			Tags:                            pointer.To(config["tag"].(string)),
+			EnableAutomaticUpgrade:          pointer.To(config["automatic_upgrade_enabled"].(bool)),
+			TreatFailureAsDeploymentFailure: pointer.To(config["treat_failure_as_deployment_failure_enabled"].(bool)),
 		}
 
 		out = append(out, *app)

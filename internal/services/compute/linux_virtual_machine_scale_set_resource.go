@@ -468,10 +468,9 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	updateInstances := false
-
-	// retrieve
-	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	existing, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	options := virtualmachinescalesets.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	existing, err := client.Get(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
@@ -812,8 +811,9 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
-	resp, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	options := virtualmachinescalesets.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, *id, options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Linux %s - removing from state!", id)
@@ -1045,9 +1045,7 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 				d.Set("vtpm_enabled", vtpmEnabled)
 				d.Set("secure_boot_enabled", secureBootEnabled)
-
-				// userData is not returned by the API
-				d.Set("user_data", d.Get("user_data").(string))
+				d.Set("user_data", profile.UserData)
 			}
 
 			if policy := props.UpgradePolicy; policy != nil {

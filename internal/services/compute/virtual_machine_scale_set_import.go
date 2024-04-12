@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,8 +20,9 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 	}
 
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	_, err = client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	options := virtualmachinescalesets.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	_, err = client.Get(ctx, *id, options)
 	if err != nil {
 		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -36,8 +38,9 @@ func importVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystem
 		}
 
 		client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
-		// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-		vm, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+		options := virtualmachinescalesets.DefaultGetOperationOptions()
+		options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+		vm, err := client.Get(ctx, *id, options)
 		if err != nil {
 			return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 		}

@@ -474,7 +474,9 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 	updateInstances := false
 
-	existing, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	options := virtualmachinescalesets.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	existing, err := client.Get(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
@@ -833,7 +835,9 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+	options := virtualmachinescalesets.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := client.Get(ctx, *id, options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Windows %s was not found - removing from state!", id)
@@ -1095,9 +1099,7 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 				d.Set("vtpm_enabled", vtpmEnabled)
 				d.Set("secure_boot_enabled", secureBootEnabled)
-
-				// userData is not returned by the API
-				d.Set("user_data", d.Get("user_data").(string))
+				d.Set("user_data", profile.UserData)
 			}
 		}
 		return tags.FlattenAndSet(d, model.Tags)

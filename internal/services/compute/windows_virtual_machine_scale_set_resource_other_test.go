@@ -196,7 +196,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 		{
 			Config: r.otherUserData(data, "Goodbye World"),
@@ -206,7 +205,6 @@ func TestAccWindowsVirtualMachineScaleSet_otherUserData(t *testing.T) {
 		},
 		data.ImportStep(
 			"admin_password",
-			"user_data",
 		),
 		{
 			// removed
@@ -930,7 +928,9 @@ func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.
 
 					ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
 					defer cancel()
-					existing, err := client.Get(ctx2, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+					options := virtualmachinescalesets.DefaultGetOperationOptions()
+					options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
+					existing, err := client.Get(ctx2, *id, options)
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", *id, err)
 					}

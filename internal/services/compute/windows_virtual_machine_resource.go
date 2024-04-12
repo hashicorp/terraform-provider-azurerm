@@ -493,7 +493,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
 
-	priority := pointer.To(virtualmachines.VirtualMachinePriorityTypes(d.Get("priority").(string)))
+	priority := virtualmachines.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
 	patchMode := d.Get("patch_mode").(string)
 	assessmentMode := d.Get("patch_assessment_mode").(string)
@@ -552,7 +552,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			NetworkProfile: &virtualmachines.NetworkProfile{
 				NetworkInterfaces: &networkInterfaceIds,
 			},
-			Priority: priority,
+			Priority: pointer.To(priority),
 			StorageProfile: &virtualmachines.StorageProfile{
 				ImageReference: sourceImageReference,
 				OsDisk:         osDisk,
@@ -736,12 +736,12 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if *params.Properties.Priority != virtualmachines.VirtualMachinePriorityTypesSpot {
+		if params.Properties.Priority != nil && *params.Properties.Priority != virtualmachines.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 
 		params.Properties.EvictionPolicy = pointer.To(virtualmachines.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string)))
-	} else if *priority == virtualmachines.VirtualMachinePriorityTypesSpot {
+	} else if priority == virtualmachines.VirtualMachinePriorityTypesSpot {
 		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
@@ -750,7 +750,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if *priority != virtualmachines.VirtualMachinePriorityTypesSpot {
+		if priority != virtualmachines.VirtualMachinePriorityTypesSpot {
 			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
@@ -829,7 +829,9 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
+	options := virtualmachines.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
+	resp, err := client.Get(ctx, *id, options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] Windows %s was not found - removing from state!", id)
@@ -842,7 +844,6 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.VirtualMachineName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("virtual_machine_id", id.ID())
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
@@ -869,6 +870,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if props := model.Properties; props != nil {
+			d.Set("virtual_machine_id", props.VMId)
 			if err := d.Set("additional_capabilities", flattenVirtualMachineAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
 				return fmt.Errorf("setting `additional_capabilities`: %+v", err)
 			}
@@ -1057,9 +1059,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 			d.Set("vtpm_enabled", vtpmEnabled)
 			d.Set("secure_boot_enabled", secureBootEnabled)
-
-			// userData is not returned by the API
-			d.Set("user_data", d.Get("user_data").(string))
+			d.Set("user_data", props.UserData)
 
 			connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
 			d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
@@ -1088,7 +1088,9 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)
 
 	log.Printf("[DEBUG] Retrieving Windows %s", id)
-	existing, err := client.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
+	options := virtualmachines.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachines.InstanceViewTypesUserData)
+	existing, err := client.Get(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
@@ -1752,8 +1754,11 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
 	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
 	// conditionally set this if required
-
-	if err := client.DeleteThenPoll(ctx, *id, virtualmachines.DefaultDeleteOperationOptions()); err != nil {
+	options := virtualmachines.DefaultDeleteOperationOptions()
+	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
+		options.ForceDeletion = pointer.To(true)
+	}
+	if err := client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
 	log.Printf("[DEBUG] Deleted Windows %s", id)

@@ -89,7 +89,7 @@ func flattenProtectedSettingsFromKeyVaultOld(input *compute.KeyVaultSecretRefere
 
 func flattenProtectedSettingsFromKeyVault(input *virtualmachinescalesets.KeyVaultSecretReference) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	sourceVaultId := ""

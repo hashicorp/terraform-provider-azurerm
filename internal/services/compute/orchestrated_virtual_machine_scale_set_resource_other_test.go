@@ -289,14 +289,14 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherUserData(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "user_data_base64"),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.otherUserData(data, "Goodbye World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "user_data_base64"),
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 

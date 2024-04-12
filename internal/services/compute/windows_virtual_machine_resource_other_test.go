@@ -483,14 +483,14 @@ func TestAccWindowsVirtualMachine_otherUserData(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_data"),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.otherUserData(data, "Goodbye World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_data"),
+		data.ImportStep("admin_password"),
 	})
 }
 
