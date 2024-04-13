@@ -47,10 +47,10 @@ var _ sdk.Resource = MaintenanceDynamicScopeResource{}
 func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			ValidateFunc:     validation.StringIsNotEmpty,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"maintenance_configuration_id": {
@@ -171,9 +171,9 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := configurationassignments.NewScopedConfigurationAssignmentID(subscriptionId.ID(), model.Name)
+			id := configurationassignments.NewConfigurationAssignmentID(subscriptionId.SubscriptionId, model.Name)
 
-			resp, err := client.Get(ctx, id)
+			resp, err := client.ForSubscriptionsGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -188,11 +188,10 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 				Name: pointer.To(model.Name),
 				Properties: &configurationassignments.ConfigurationAssignmentProperties{
 					MaintenanceConfigurationId: pointer.To(maintenanceConfigurationId.ID()),
-					ResourceId:                 pointer.To(subscriptionId.ID()),
 				},
 			}
 
-			if len(model.Filter) > 1 {
+			if len(model.Filter) > 0 {
 				filter := model.Filter[0]
 				filterProperties := configurationassignments.ConfigurationAssignmentFilterProperties{}
 
@@ -227,7 +226,7 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 				configurationAssignment.Properties.Filter = pointer.To(filterProperties)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, configurationAssignment); err != nil {
+			if _, err = client.ForSubscriptionsCreateOrUpdate(ctx, id, configurationAssignment); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
@@ -244,12 +243,12 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
 
 			var state MaintenanceDynamicScopeModel
-			id, err := configurationassignments.ParseScopedConfigurationAssignmentID(metadata.ResourceData.Id())
+			id, err := configurationassignments.ParseConfigurationAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.ForSubscriptionsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -317,7 +316,7 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
 
-			id, err := configurationassignments.ParseScopedConfigurationAssignmentID(metadata.ResourceData.Id())
+			id, err := configurationassignments.ParseConfigurationAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -327,7 +326,7 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.ForSubscriptionsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
@@ -347,7 +346,7 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("filter") {
-				if len(model.Filter) > 1 {
+				if len(model.Filter) > 0 {
 					filter := model.Filter[0]
 					filterProperties := configurationassignments.ConfigurationAssignmentFilterProperties{}
 
@@ -385,7 +384,7 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, pointer.From(id), *existing); err != nil {
+			if _, err = client.ForSubscriptionsCreateOrUpdate(ctx, pointer.From(id), *existing); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 			return nil
@@ -399,12 +398,12 @@ func (MaintenanceDynamicScopeResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Maintenance.ConfigurationAssignmentsClient
 
-			id, err := configurationassignments.ParseScopedConfigurationAssignmentID(metadata.ResourceData.Id())
+			id, err := configurationassignments.ParseConfigurationAssignmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, *id); err != nil {
+			if _, err := client.ForSubscriptionsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
