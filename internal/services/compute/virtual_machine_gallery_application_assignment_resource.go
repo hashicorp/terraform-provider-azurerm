@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -154,7 +154,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Create() sdk.Resourc
 				},
 			}
 
-			if err = client.UpdateThenPoll(ctx, *virtualMachineID, pointer.From(virtualMachineUpdate)); err != nil {
+			if err = client.UpdateThenPoll(ctx, *virtualMachineID, pointer.From(virtualMachineUpdate), virtualmachines.DefaultUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating Gallery Application Assignment %q: %+v", virtualMachineID, err)
 			}
 
@@ -258,7 +258,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Update() sdk.Resourc
 						},
 					}
 
-					if err = client.UpdateThenPoll(ctx, id.VirtualMachineId, *virtualMachineUpdate); err != nil {
+					if err = client.UpdateThenPoll(ctx, id.VirtualMachineId, *virtualMachineUpdate, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("updating Gallery Application Assignment %q: %+v", id, err)
 					}
 
@@ -315,7 +315,7 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Delete() sdk.Resourc
 					},
 				}
 
-				if err = client.UpdateThenPoll(ctx, id.VirtualMachineId, *virtualMachineUpdate); err != nil {
+				if err = client.UpdateThenPoll(ctx, id.VirtualMachineId, *virtualMachineUpdate, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
 					return fmt.Errorf("deleting Gallery Application Assignment %q: %+v", id, err)
 				}
 			}

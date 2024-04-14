@@ -6,8 +6,8 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 )
 
 func TestVirtualMachineGalleryApplicationAssignmentId(t *testing.T) {
