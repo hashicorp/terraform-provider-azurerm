@@ -9,11 +9,13 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
@@ -32,7 +34,7 @@ func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 					Required:         true,
 					ForceNew:         isVirtualMachine,
 					ValidateFunc:     validate.SSHKey,
-					DiffSuppressFunc: SSHKeyDiffSuppress,
+					DiffSuppressFunc: suppress.SSHKey,
 				},
 
 				"username": {
@@ -46,23 +48,64 @@ func SSHKeysSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	}
 }
 
-func ExpandSSHKeys(input []interface{}) []compute.SSHPublicKey {
-	output := make([]compute.SSHPublicKey, 0)
+func expandSSHKeys(input []interface{}) []virtualmachines.SshPublicKey {
+	output := make([]virtualmachines.SshPublicKey, 0)
 
 	for _, v := range input {
 		raw := v.(map[string]interface{})
 
 		username := raw["username"].(string)
-		output = append(output, compute.SSHPublicKey{
-			KeyData: utils.String(raw["public_key"].(string)),
-			Path:    utils.String(formatUsernameForAuthorizedKeysPath(username)),
+		output = append(output, virtualmachines.SshPublicKey{
+			KeyData: pointer.To(raw["public_key"].(string)),
+			Path:    pointer.To(formatUsernameForAuthorizedKeysPath(username)),
 		})
 	}
 
 	return output
 }
 
-func FlattenSSHKeys(input *compute.SSHConfiguration) (*[]interface{}, error) {
+func expandSSHKeysVMSS(input []interface{}) []virtualmachinescalesets.SshPublicKey {
+	output := make([]virtualmachinescalesets.SshPublicKey, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		username := raw["username"].(string)
+		output = append(output, virtualmachinescalesets.SshPublicKey{
+			KeyData: pointer.To(raw["public_key"].(string)),
+			Path:    pointer.To(formatUsernameForAuthorizedKeysPath(username)),
+		})
+	}
+
+	return output
+}
+
+func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, error) {
+	if input == nil || input.PublicKeys == nil {
+		return &[]interface{}{}, nil
+	}
+
+	output := make([]interface{}, 0)
+	for _, v := range *input.PublicKeys {
+		if v.KeyData == nil || v.Path == nil {
+			continue
+		}
+
+		username := parseUsernameFromAuthorizedKeysPath(*v.Path)
+		if username == nil {
+			return nil, fmt.Errorf("parsing username from %q", *v.Path)
+		}
+
+		output = append(output, map[string]interface{}{
+			"public_key": *v.KeyData,
+			"username":   *username,
+		})
+	}
+
+	return &output, nil
+}
+
+func flattenSSHKeysVMSS(input *virtualmachinescalesets.SshConfiguration) (*[]interface{}, error) {
 	if input == nil || input.PublicKeys == nil {
 		return &[]interface{}{}, nil
 	}
@@ -117,31 +160,11 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 	return nil
 }
 
-func SSHKeyDiffSuppress(_, old, new string, _ *pluginsdk.ResourceData) bool {
-	oldNormalized, err := NormalizeSSHKey(old)
-	if err != nil {
-		log.Printf("[DEBUG] error normalising ssh key %q: %+v", old, err)
-		return false
-	}
-
-	newNormalized, err := NormalizeSSHKey(new)
-	if err != nil {
-		log.Printf("[DEBUG] error normalising ssh key %q: %+v", new, err)
-		return false
-	}
-
-	if *oldNormalized == *newNormalized {
-		return true
-	}
-
-	return false
-}
-
 func SSHKeySchemaHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		normalisedKey, err := NormalizeSSHKey(m["public_key"].(string))
+		normalisedKey, err := suppress.NormalizeSSHKey(m["public_key"].(string))
 		if err != nil {
 			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
 		}

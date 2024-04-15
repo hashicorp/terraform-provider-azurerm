@@ -173,7 +173,7 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 			TypeHandlerVersion:            &typeHandlerVersion,
 			AutoUpgradeMinorVersion:       &autoUpgradeMinor,
 			EnableAutomaticUpgrade:        &enableAutomaticUpgrade,
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOld(d.Get("protected_settings_from_key_vault").([]interface{})),
 			SuppressFailures:              &suppressFailure,
 		},
 		Tags: tags.Expand(t),
@@ -252,7 +252,7 @@ func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("type_handler_version", props.TypeHandlerVersion)
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
 		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
-		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
+		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOld(props.ProtectedSettingsFromKeyVault))
 		d.Set("provision_after_extensions", pointer.From(props.ProvisionAfterExtensions))
 
 		suppressFailure := false
