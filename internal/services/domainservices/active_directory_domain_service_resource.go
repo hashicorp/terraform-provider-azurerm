@@ -360,7 +360,7 @@ func resourceActiveDirectoryDomainServiceCreateUpdate(d *pluginsdk.ResourceData,
 	loc := location.Normalize(d.Get("location").(string))
 	filteredSync := domainservices.FilteredSyncDisabled
 	if d.Get("filtered_sync_enabled").(bool) {
-		filteredSync = domainservices.FilteredSyncDisabled
+		filteredSync = domainservices.FilteredSyncEnabled
 	}
 
 	domainService := domainservices.DomainService{

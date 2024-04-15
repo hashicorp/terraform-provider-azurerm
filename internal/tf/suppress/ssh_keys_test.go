@@ -1,9 +1,8 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
+package suppress
 
-package compute
-
-import "testing"
+import (
+	"testing"
+)
 
 func TestNormalizeSSHKey(t *testing.T) {
 	cases := []struct {
