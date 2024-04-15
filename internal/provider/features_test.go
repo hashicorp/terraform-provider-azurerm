@@ -75,6 +75,9 @@ func TestExpandFeatures(t *testing.T) {
 				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
 					RestartServerOnConfigurationValueChange: true,
 				},
+				MachineLearning: features.MachineLearningFeatures{
+					PurgeSoftDeletedWorkspaceOnDestroy: false,
+				},
 			},
 		},
 		{
@@ -161,6 +164,11 @@ func TestExpandFeatures(t *testing.T) {
 							"scale_to_zero_before_deletion": true,
 						},
 					},
+					"machine_learning": []interface{}{
+						map[string]interface{}{
+							"purge_soft_deleted_workspace_on_destroy": true,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -217,6 +225,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
 					RestartServerOnConfigurationValueChange: true,
+				},
+				MachineLearning: features.MachineLearningFeatures{
+					PurgeSoftDeletedWorkspaceOnDestroy: true,
 				},
 			},
 		},
@@ -304,6 +315,11 @@ func TestExpandFeatures(t *testing.T) {
 							"scale_to_zero_before_deletion": false,
 						},
 					},
+					"machine_learning": []interface{}{
+						map[string]interface{}{
+							"purge_soft_deleted_workspace_on_destroy": false,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -360,6 +376,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
 					RestartServerOnConfigurationValueChange: false,
+				},
+				MachineLearning: features.MachineLearningFeatures{
+					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
 			},
 		},
@@ -1345,6 +1364,71 @@ func TestExpandFeaturesPosgresqlFlexibleServer(t *testing.T) {
 			Expected: features.UserFeatures{
 				PostgresqlFlexibleServer: features.PostgresqlFlexibleServerFeatures{
 					RestartServerOnConfigurationValueChange: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
+			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesMachineLearning(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"machine_learning": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				MachineLearning: features.MachineLearningFeatures{
+					PurgeSoftDeletedWorkspaceOnDestroy: false,
+				},
+			},
+		},
+		{
+			Name: "MachineLearning Workspace purge soft delete on destroy",
+			Input: []interface{}{
+				map[string]interface{}{
+					"machine_learning": []interface{}{
+						map[string]interface{}{
+							"purge_soft_deleted_workspace_on_destroy": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				MachineLearning: features.MachineLearningFeatures{
+					PurgeSoftDeletedWorkspaceOnDestroy: true,
+				},
+			},
+		},
+		{
+			Name: "MachineLearning Workspace does not purge soft delete on destroy",
+			Input: []interface{}{
+				map[string]interface{}{
+					"machine_learning": []interface{}{
+						map[string]interface{}{
+							"purge_soft_deleted_workspace_on_destroy": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				MachineLearning: features.MachineLearningFeatures{
+					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
 			},
 		},

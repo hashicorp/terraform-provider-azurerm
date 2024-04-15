@@ -60,5 +60,8 @@ func Default() UserFeatures {
 		PostgresqlFlexibleServer: PostgresqlFlexibleServerFeatures{
 			RestartServerOnConfigurationValueChange: true,
 		},
+		MachineLearning: MachineLearningFeatures{
+			PurgeSoftDeletedWorkspaceOnDestroy: false,
+		},
 	}
 }
