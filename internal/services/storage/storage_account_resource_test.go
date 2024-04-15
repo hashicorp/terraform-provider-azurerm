@@ -1626,13 +1626,13 @@ func TestAccStorageAccount_StorageV1_blobProperties(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_StorageV1_queueProperties(t *testing.T) {
+func TestAccStorageAccount_StorageV1_queuePropertiesLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageV1QueueProperties(data),
+			Config: r.storageV1QueueProperties(data, "LRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1641,13 +1641,13 @@ func TestAccStorageAccount_StorageV1_queueProperties(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_StorageV1_shareProperties(t *testing.T) {
+func TestAccStorageAccount_StorageV1_queuePropertiesGRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageV1ShareProperties(data),
+			Config: r.storageV1QueueProperties(data, "GRS"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1655,6 +1655,67 @@ func TestAccStorageAccount_StorageV1_shareProperties(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
+func TestAccStorageAccount_StorageV1_queuePropertiesRAGRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1QueueProperties(data, "RAGRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_sharePropertiesLRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1ShareProperties(data, "LRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_sharePropertiesGRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1ShareProperties(data, "GRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_sharePropertiesRAGRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1ShareProperties(data, "RAGRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
@@ -4788,7 +4849,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) storageV1QueueProperties(data acceptance.TestData) string {
+func (r StorageAccountResource) storageV1QueueProperties(data acceptance.TestData, repl string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4806,7 +4867,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_kind             = "Storage"
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "%s"
 
   queue_properties {
     cors_rule {
@@ -4838,10 +4899,10 @@ resource "azurerm_storage_account" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, repl)
 }
 
-func (r StorageAccountResource) storageV1ShareProperties(data acceptance.TestData) string {
+func (r StorageAccountResource) storageV1ShareProperties(data acceptance.TestData, repl string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4859,7 +4920,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_kind             = "Storage"
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = "%s"
 
   share_properties {
     cors_rule {
@@ -4881,5 +4942,5 @@ resource "azurerm_storage_account" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, repl)
 }
