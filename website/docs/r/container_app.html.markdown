@@ -413,7 +413,7 @@ A `ip_security_restriction` block supports the following:
 
 * `description` - (Optional) Describe the IP restriction rule that is being sent to the container-app.
 
-* `ip_address_range` - (Required) CIDR notation to match incoming IP address.
+* `ip_address_range` - (Required) The incoming IP address or range of IP addresses (in CIDR notation).
 
 * `name` - (Required) Name for the IP restriction rule.
 
