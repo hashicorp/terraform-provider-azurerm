@@ -151,7 +151,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240402.1085733
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240411.1104331
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -329,6 +329,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/restorepoints
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands
@@ -337,7 +339,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabili
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms
 github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger
 github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/certificates
@@ -580,7 +586,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/labpla
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/schedule
 github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/user
 github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01
-github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtest
 github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests
 github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/quotas
 github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountagreements
@@ -1077,7 +1082,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplands
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240402.1085733
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240411.1104331
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1276,7 +1281,7 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.2.0
 ## explicit; go 1.12
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/tombuildsstuff/giovanni v0.25.4
+# github.com/tombuildsstuff/giovanni v0.26.1
 ## explicit; go 1.21
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs

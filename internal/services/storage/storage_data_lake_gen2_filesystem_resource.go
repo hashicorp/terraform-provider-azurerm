@@ -83,6 +83,14 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 
 			"properties": MetaDataSchema(),
 
+			"default_encryption_scope": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // needed because a dummy value is returned when unspecified
+				ForceNew:     true,
+				ValidateFunc: validate.StorageEncryptionScopeName,
+			},
+
 			"owner": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -207,6 +215,10 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *pluginsdk.ResourceData, meta
 	input := filesystems.CreateInput{
 		Properties: properties,
 	}
+	if encryptionScope := d.Get("default_encryption_scope"); encryptionScope.(string) != "" {
+		input.DefaultEncryptionScope = encryptionScope.(string)
+	}
+
 	if _, err = dataPlaneFilesystemsClient.Create(ctx, id.FileSystemName, input); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
@@ -368,6 +380,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.Set("name", id.FileSystemName)
+	d.Set("default_encryption_scope", resp.DefaultEncryptionScope)
 
 	if err = d.Set("properties", resp.Properties); err != nil {
 		return fmt.Errorf("setting `properties`: %v", err)

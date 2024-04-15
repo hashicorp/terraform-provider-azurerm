@@ -152,6 +152,41 @@ func TestAccContainerGroup_multipleAssignedIdentities(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_AssignedIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.SystemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("0"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+			),
+		},
+		{
+			Config: r.UserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").HasValue(""),
+			),
+		},
+		{
+			Config: r.MultipleAssignedIdentities(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+			),
+		},
+	})
+}
+
 func TestAccContainerGroup_imageRegistryCredentials(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}

@@ -63,5 +63,9 @@ func Default() UserFeatures {
 		MachineLearning: MachineLearningFeatures{
 			PurgeSoftDeletedWorkspaceOnDestroy: false,
 		},
+		RecoveryService: RecoveryServiceFeatures{
+			VMBackupStopProtectionAndRetainDataOnDestroy: false,
+			PurgeProtectedItemsFromVaultOnDestroy:        false,
+		},
 	}
 }

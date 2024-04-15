@@ -20,8 +20,8 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 
 	originalRequestUri := response.Request.URL.String()
 
-	// If this is a LRO we should either have a 201/202 with a Polling URI header
-	isLroStatus := response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted
+	// If this is a LRO we should either have a 200/201/202 with a Polling URI header
+	isLroStatus := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted
 	methodIsDelete := strings.EqualFold(response.Request.Method, "DELETE")
 	lroPollingUri := pollingUriForLongRunningOperation(response)
 	lroIsSelfReference := isLROSelfReference(lroPollingUri, originalRequestUri)

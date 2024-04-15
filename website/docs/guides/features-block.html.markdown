@@ -66,6 +66,11 @@ provider "azurerm" {
       restart_server_on_configuration_value_change = true
     }
 
+    recovery_service {
+      retain_data_and_stop_protection_on_back_vm_destroy = true
+      purge_protected_items_from_vault_on_destroy        = true
+    }
+
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
@@ -112,6 +117,8 @@ The `features` block supports the following:
 * `machine_learning` - (Optional) A `machine_learning` block as defined below.
 
 * `managed_disk` - (Optional) A `managed_disk` block as defined below.
+
+* `recovery_service` - (Optional) A `recovery_service` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
 
@@ -202,6 +209,14 @@ The `managed_disk` block supports the following:
 The `postgresql_flexible_server` block supports the following:
 
 * `restart_server_on_configuration_value_change` - (Optional) Should the `postgresql_flexible_server` restart after static server parameter change or removal? Defaults to `true`.
+
+---
+
+The `recovery_service` block supports the following:
+
+* `vm_backup_stop_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and stop protection instead of destroying the backup protected vm? Defaults to `false`.
+
+* `purge_protected_items_from_vault_on_destroy` - (Optional) Should we purge all protected items when destroying the vault. Defaults to `false`.
 
 ---
 

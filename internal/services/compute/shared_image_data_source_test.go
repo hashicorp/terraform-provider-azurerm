@@ -13,7 +13,7 @@ import (
 
 type SharedImageDataSource struct{}
 
-func TestAccDataSourceAzureRMSharedImage_basic(t *testing.T) {
+func TestAccDataSourceSharedImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
 	r := SharedImageDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -26,7 +26,7 @@ func TestAccDataSourceAzureRMSharedImage_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
+func TestAccDataSourceSharedImage_basicHyperVGenerationV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
 	r := SharedImageDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -40,7 +40,7 @@ func TestAccDataSourceAzureRMSharedImage_basic_hyperVGeneration_V2(t *testing.T)
 	})
 }
 
-func TestAccDataSourceAzureRMSharedImage_complete(t *testing.T) {
+func TestAccDataSourceSharedImage_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
 	r := SharedImageDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{

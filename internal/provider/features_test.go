@@ -78,6 +78,10 @@ func TestExpandFeatures(t *testing.T) {
 				MachineLearning: features.MachineLearningFeatures{
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
+				RecoveryService: features.RecoveryServiceFeatures{
+					VMBackupStopProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:        false,
+				},
 			},
 		},
 		{
@@ -169,6 +173,12 @@ func TestExpandFeatures(t *testing.T) {
 							"purge_soft_deleted_workspace_on_destroy": true,
 						},
 					},
+					"recovery_service": []interface{}{
+						map[string]interface{}{
+							"vm_backup_stop_protection_and_retain_data_on_destroy": true,
+							"purge_protected_items_from_vault_on_destroy":          true,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -228,6 +238,10 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				MachineLearning: features.MachineLearningFeatures{
 					PurgeSoftDeletedWorkspaceOnDestroy: true,
+				},
+				RecoveryService: features.RecoveryServiceFeatures{
+					VMBackupStopProtectionAndRetainDataOnDestroy: true,
+					PurgeProtectedItemsFromVaultOnDestroy:        true,
 				},
 			},
 		},
@@ -320,6 +334,12 @@ func TestExpandFeatures(t *testing.T) {
 							"purge_soft_deleted_workspace_on_destroy": false,
 						},
 					},
+					"recovery_service": []interface{}{
+						map[string]interface{}{
+							"vm_backup_stop_protection_and_retain_data_on_destroy": false,
+							"purge_protected_items_from_vault_on_destroy":          false,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -379,6 +399,10 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				MachineLearning: features.MachineLearningFeatures{
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
+				},
+				RecoveryService: features.RecoveryServiceFeatures{
+					VMBackupStopProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:        false,
 				},
 			},
 		},
@@ -1429,6 +1453,76 @@ func TestExpandFeaturesMachineLearning(t *testing.T) {
 			Expected: features.UserFeatures{
 				MachineLearning: features.MachineLearningFeatures{
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
+			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesRecoveryService(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_service": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryService: features.RecoveryServiceFeatures{
+					VMBackupStopProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:        false,
+				},
+			},
+		},
+		{
+			Name: "Recovery Service Features Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_service": []interface{}{
+						map[string]interface{}{
+							"vm_backup_stop_protection_and_retain_data_on_destroy": true,
+							"purge_protected_items_from_vault_on_destroy":          true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryService: features.RecoveryServiceFeatures{
+					VMBackupStopProtectionAndRetainDataOnDestroy: true,
+					PurgeProtectedItemsFromVaultOnDestroy:        true,
+				},
+			},
+		},
+		{
+			Name: "Recovery Service Features Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_service": []interface{}{
+						map[string]interface{}{
+							"vm_backup_stop_protection_and_retain_data_on_destroy": false,
+							"purge_protected_items_from_vault_on_destroy":          false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryService: features.RecoveryServiceFeatures{
+					VMBackupStopProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:        false,
 				},
 			},
 		},

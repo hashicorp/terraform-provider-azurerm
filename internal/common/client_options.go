@@ -35,6 +35,7 @@ type ApiAuthorizerFunc func(api environments.Api) (auth.Authorizer, error)
 
 type ClientOptions struct {
 	Authorizers *Authorizers
+	AuthConfig  *auth.Credentials
 	Environment environments.Environment
 	Features    features.UserFeatures
 

@@ -18,6 +18,7 @@ type UserFeatures struct {
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
 	MachineLearning          MachineLearningFeatures
+	RecoveryService          RecoveryServiceFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -89,4 +90,9 @@ type PostgresqlFlexibleServerFeatures struct {
 
 type MachineLearningFeatures struct {
 	PurgeSoftDeletedWorkspaceOnDestroy bool
+}
+
+type RecoveryServiceFeatures struct {
+	VMBackupStopProtectionAndRetainDataOnDestroy bool
+	PurgeProtectedItemsFromVaultOnDestroy        bool
 }

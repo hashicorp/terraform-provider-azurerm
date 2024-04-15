@@ -135,6 +135,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 			AuthorizerFunc:  authorizerFunc,
 		},
 
+		AuthConfig:  builder.AuthConfig,
 		Environment: builder.AuthConfig.Environment,
 		Features:    builder.Features,
 
