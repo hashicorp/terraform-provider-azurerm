@@ -208,10 +208,15 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"node_public_ip_prefix_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			RequiredWith: []string{"enable_node_public_ip"},
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			RequiredWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{"enable_node_public_ip"}
+				}
+				return []string{"node_public_ip_enabled"}
+			}(),
 		},
 
 		// Node Taints control the behaviour of the Node Pool, as such they should not be computed and

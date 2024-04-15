@@ -93,6 +93,9 @@ func (c Client) GetFile(ctx context.Context, shareName, path, fileName string, i
 		copy(output[v.startBytes:v.endBytes], *v.bytes)
 	}
 
+	if result.OutputBytes == nil {
+		result.OutputBytes = &[]byte{}
+	}
 	*result.OutputBytes = output
 	return
 }

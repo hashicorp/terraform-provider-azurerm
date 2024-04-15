@@ -62,7 +62,7 @@ func (c Client) GetProperties(ctx context.Context, fileSystemName string, path s
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
 		if resp.Header != nil {

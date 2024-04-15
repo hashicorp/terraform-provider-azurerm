@@ -1,8 +1,10 @@
 package blobs
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -78,15 +80,14 @@ func (c Client) PutBlockBlob(ctx context.Context, containerName, blobName string
 		return
 	}
 
-	err = req.Marshal(input.Content)
-	if err != nil {
-		err = fmt.Errorf("marshalling request: %+v", err)
-		return
+	if input.Content != nil {
+		req.ContentLength = int64(len(*input.Content))
+		req.Body = io.NopCloser(bytes.NewReader(*input.Content))
 	}
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {

@@ -20,19 +20,21 @@ import (
 var StorageDomainSuffix *string
 
 type Client struct {
-	AccountsClient           *storage.AccountsClient
-	BlobServicesClient       *storage.BlobServicesClient
-	EncryptionScopesClient   *storage.EncryptionScopesClient
-	FileServicesClient       *storage.FileServicesClient
+	StorageDomainSuffix string
+
+	// NOTE: These SDK clients use `hashicorp/go-azure-sdk` and should be used going forwards
+	ResourceManager          *storage_v2023_01_01.Client
 	SyncCloudEndpointsClient *cloudendpointresource.CloudEndpointResourceClient
 	SyncGroupsClient         *syncgroupresource.SyncGroupResourceClient
 	SyncServiceClient        *storagesyncservicesresource.StorageSyncServicesResourceClient
 
-	ResourceManager *storage_v2023_01_01.Client
+	// NOTE: these SDK clients use the legacy `Azure/azure-sdk-for-go` and should no longer be used
+	// for new functionality - please instead use the `hashicorp/go-azure-sdk` clients above.
+	AccountsClient     *storage.AccountsClient
+	BlobServicesClient *storage.BlobServicesClient
+	FileServicesClient *storage.FileServicesClient
 
-	StorageDomainSuffix string
-
-	authorizerForAad auth.Authorizer
+	authConfigForAzureAD *auth.Credentials
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -49,9 +51,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&blobServicesClient.Client, o.ResourceManagerAuthorizer)
-
-	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&encryptionScopesClient.Client, o.ResourceManagerAuthorizer)
 
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&fileServicesClient.Client, o.ResourceManagerAuthorizer)
@@ -86,7 +85,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	client := Client{
 		AccountsClient:           &accountsClient,
 		BlobServicesClient:       &blobServicesClient,
-		EncryptionScopesClient:   &encryptionScopesClient,
 		FileServicesClient:       &fileServicesClient,
 		ResourceManager:          resourceManager,
 		SyncCloudEndpointsClient: syncCloudEndpointsClient,
@@ -97,7 +95,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	if o.StorageUseAzureAD {
-		client.authorizerForAad = o.Authorizers.Storage
+		client.authConfigForAzureAD = o.AuthConfig
 	}
 
 	return &client, nil

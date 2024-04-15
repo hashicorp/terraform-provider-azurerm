@@ -91,6 +91,7 @@ var subnetDelegationServiceNames = []string{
 	"NGINX.NGINXPLUS/nginxDeployments",
 	"PaloAltoNetworks.Cloudngfw/firewalls",
 	"Qumulo.Storage/fileSystems",
+	"Oracle.Database/networkAttachments",
 }
 
 func resourceSubnet() *pluginsdk.Resource {
@@ -212,7 +213,7 @@ func resourceSubnet() *pluginsdk.Resource {
 					return !features.FourPointOh()
 				}(),
 				ConflictsWith: func() []string {
-					if !features.FourPointOh() {
+					if !features.FourPointOhBeta() {
 						return []string{"enforce_private_link_endpoint_network_policies"}
 					}
 					return []string{}

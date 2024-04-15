@@ -15,7 +15,7 @@ import (
 type CredentialOperationsCreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ManagedIdentityCredentialResource
+	Model        *CredentialResource
 }
 
 type CredentialOperationsCreateOrUpdateOperationOptions struct {
@@ -46,7 +46,7 @@ func (o CredentialOperationsCreateOrUpdateOperationOptions) ToQuery() *client.Qu
 }
 
 // CredentialOperationsCreateOrUpdate ...
-func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Context, id CredentialId, input ManagedIdentityCredentialResource, options CredentialOperationsCreateOrUpdateOperationOptions) (result CredentialOperationsCreateOrUpdateOperationResponse, err error) {
+func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Context, id CredentialId, input CredentialResource, options CredentialOperationsCreateOrUpdateOperationOptions) (result CredentialOperationsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -76,7 +76,7 @@ func (c CredentialsClient) CredentialOperationsCreateOrUpdate(ctx context.Contex
 		return
 	}
 
-	var model ManagedIdentityCredentialResource
+	var model CredentialResource
 	result.Model = &model
 
 	if err = resp.Unmarshal(result.Model); err != nil {

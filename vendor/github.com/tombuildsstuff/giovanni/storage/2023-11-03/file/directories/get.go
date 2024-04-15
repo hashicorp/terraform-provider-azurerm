@@ -57,7 +57,7 @@ func (c Client) Get(ctx context.Context, shareName, path string) (result GetResp
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
 		if resp.Header != nil {

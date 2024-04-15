@@ -5,7 +5,7 @@ package environments
 
 import "github.com/hashicorp/go-azure-helpers/lang/pointer"
 
-func applicationIdOnly(name, applicationId string) Api {
+func applicationIdOnly(name, applicationId string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       nil,
 		endpoint:           nil,
@@ -15,7 +15,7 @@ func applicationIdOnly(name, applicationId string) Api {
 	}
 }
 
-func ApiManagementAPI(domainSuffix string) Api {
+func ApiManagementAPI(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           nil,
@@ -25,7 +25,7 @@ func ApiManagementAPI(domainSuffix string) Api {
 	}
 }
 
-func AppConfigurationAPI(domainSuffix string) Api {
+func AppConfigurationAPI(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           nil,
@@ -35,27 +35,29 @@ func AppConfigurationAPI(domainSuffix string) Api {
 	}
 }
 
-func AttestationAPI(endpoint string) Api {
+func AttestationAPI(endpoint, domainSuffix string) *ApiEndpoint {
+	// endpoint and resource ID are the same, only the resource ID is returned in metadata
 	return &ApiEndpoint{
-		domainSuffix:       nil,
+		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           pointer.To(endpoint),
 		appId:              pointer.To(attestationServiceAppId),
 		name:               "AttestationService",
-		resourceIdentifier: nil,
-	}
-}
-
-func BatchAPI(endpoint string) *ApiEndpoint {
-	return &ApiEndpoint{
-		domainSuffix:       nil,
-		endpoint:           pointer.To(endpoint),
-		appId:              pointer.To(batchAppId),
-		name:               "Batch",
 		resourceIdentifier: pointer.To(endpoint),
 	}
 }
 
-func CDNFrontDoorAPI(domainSuffix string) Api {
+func BatchAPI(resourceId string) *ApiEndpoint {
+	// endpoint and resource ID are the same, only the resource ID is returned in metadata
+	return &ApiEndpoint{
+		domainSuffix:       nil,
+		endpoint:           pointer.To(resourceId),
+		appId:              pointer.To(batchAppId),
+		name:               "Batch",
+		resourceIdentifier: pointer.To(resourceId),
+	}
+}
+
+func CDNFrontDoorAPI(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           nil,
@@ -65,7 +67,7 @@ func CDNFrontDoorAPI(domainSuffix string) Api {
 	}
 }
 
-func ContainerRegistryAPI(domainSuffix string) Api {
+func ContainerRegistryAPI(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           nil,
@@ -75,33 +77,33 @@ func ContainerRegistryAPI(domainSuffix string) Api {
 	}
 }
 
-func CosmosDBAPI(domainSuffix string) Api {
+func CosmosDBAPI(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           nil,
 		appId:              pointer.To(cosmosDBAppId),
 		name:               "AzureCosmosDb",
-		resourceIdentifier: pointer.To("https://cosmos.azure.com"),
+		resourceIdentifier: nil,
 	}
 }
 
-func DataLakeAPI(domainSuffix string) Api {
+func DataLakeAPI(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           nil,
 		appId:              pointer.To(dataLakeAppId),
 		name:               "DataLake",
-		resourceIdentifier: pointer.To("https://datalake.azure.net"),
+		resourceIdentifier: nil,
 	}
 }
 
-func IoTCentral(domainSuffix string) Api {
+func IoTCentral(domainSuffix string) *ApiEndpoint {
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           nil,
 		appId:              pointer.To(iotCentralAppId),
 		name:               "IoTCentral",
-		resourceIdentifier: pointer.To("https://apps.azureiotcentral.com"),
+		resourceIdentifier: nil,
 	}
 }
 
@@ -111,11 +113,12 @@ func KeyVaultAPI(domainSuffix string) *ApiEndpoint {
 		endpoint:           nil,
 		appId:              pointer.To(keyVaultAppId),
 		name:               "AzureKeyVault",
-		resourceIdentifier: pointer.To("https://vault.azure.net"),
+		resourceIdentifier: nil,
 	}
 }
 
-func ManagedHSMAPI(endpoint, domainSuffix string) Api {
+func ManagedHSMAPI(endpoint, domainSuffix string) *ApiEndpoint {
+	// endpoint and resource ID are the same, only the domainSuffix is returned in metadata
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           pointer.To(endpoint),
@@ -131,17 +134,17 @@ func MariaDBAPI(domainSuffix string) *ApiEndpoint {
 		endpoint:           nil,
 		appId:              pointer.To(ossRDBMSAppId),
 		name:               "OssRdbms",
-		resourceIdentifier: pointer.To("https://ossrdbms-aad.database.windows.net"),
+		resourceIdentifier: nil,
 	}
 }
 
-func MicrosoftGraphAPI(endpoint string) *ApiEndpoint {
+func MicrosoftGraphAPI(resourceId string) *ApiEndpoint {
+	// endpoint and resource ID are the same, only the resource ID is returned in metadata
 	return &ApiEndpoint{
-		domainSuffix:       nil,
-		endpoint:           pointer.To(endpoint),
+		endpoint:           pointer.To(resourceId),
 		appId:              pointer.To(microsoftGraphAppId),
 		name:               "MicrosoftGraph",
-		resourceIdentifier: pointer.To(endpoint),
+		resourceIdentifier: pointer.To(resourceId),
 	}
 }
 
@@ -151,7 +154,7 @@ func MySqlAPI(domainSuffix string) *ApiEndpoint {
 		endpoint:           nil,
 		appId:              pointer.To(ossRDBMSAppId),
 		name:               "OssRdbms",
-		resourceIdentifier: pointer.To("https://ossrdbms-aad.database.windows.net"),
+		resourceIdentifier: nil,
 	}
 }
 
@@ -161,7 +164,7 @@ func OperationalInsightsAPI() *ApiEndpoint {
 		endpoint:           nil,
 		appId:              pointer.To(logAnalyticsAppId),
 		name:               "OperationalInsights",
-		resourceIdentifier: pointer.To("https://api.loganalytics.io"),
+		resourceIdentifier: nil,
 	}
 }
 
@@ -171,11 +174,12 @@ func PostgresqlAPI(domainSuffix string) *ApiEndpoint {
 		endpoint:           nil,
 		appId:              pointer.To(ossRDBMSAppId),
 		name:               "OssRdbms",
-		resourceIdentifier: pointer.To("https://ossrdbms-aad.database.windows.net"),
+		resourceIdentifier: nil,
 	}
 }
 
 func ResourceManagerAPI(endpoint string) *ApiEndpoint {
+	// endpoint and resource ID are the same, only the endpoint is returned in metadata
 	return &ApiEndpoint{
 		domainSuffix:       nil,
 		endpoint:           pointer.To(endpoint),
@@ -191,7 +195,7 @@ func ServiceBusAPI(endpoint, domainSuffix string) Api {
 		endpoint:           pointer.To(endpoint),
 		appId:              pointer.To(serviceBusAppId),
 		name:               "ServiceBus",
-		resourceIdentifier: pointer.To(endpoint),
+		resourceIdentifier: nil,
 	}
 }
 
@@ -201,11 +205,14 @@ func SqlAPI(domainSuffix string) *ApiEndpoint {
 		endpoint:           nil,
 		appId:              pointer.To(sqlDatabaseAppId),
 		name:               "AzureSqlDatabase",
-		resourceIdentifier: pointer.To("https://database.windows.net"),
+		resourceIdentifier: nil,
 	}
 }
 
 func StorageAPI(domainSuffix string) *ApiEndpoint {
+	// The default resource identifier for Azure Storage is the same for all public and sovereign clouds. This can be
+	// changed to scope the token for authorizing against a single storage account.
+	// https://learn.microsoft.com/en-us/azure/storage/blobs/authorize-access-azure-active-directory#microsoft-authentication-library-msal
 	return &ApiEndpoint{
 		domainSuffix:       pointer.To(domainSuffix),
 		endpoint:           nil,
@@ -231,7 +238,7 @@ func SynapseAPI(domainSuffix string) *ApiEndpoint {
 		endpoint:           nil,
 		appId:              pointer.To(synapseAppId),
 		name:               "Synapse",
-		resourceIdentifier: pointer.To("https://dev.azuresynapse.net"),
+		resourceIdentifier: nil,
 	}
 }
 
