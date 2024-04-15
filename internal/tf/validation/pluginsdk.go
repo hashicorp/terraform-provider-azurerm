@@ -143,21 +143,6 @@ func IsIPv6Address(i interface{}, k string) ([]string, []error) {
 	return validation.IsIPv6Address(i, k)
 }
 
-// IsIPAddressOrCIDR validates if the input is either a valid IP address or a CIDR notation
-func IsIPAddressOrCIDR(i interface{}, k string) ([]string, []error) {
-	warningsIP, errorsIP := IsIPAddress(i, k)
-	if len(errorsIP) == 0 {
-		return warningsIP, nil
-	}
-
-	warningsCIDR, errorsCIDR := IsCIDR(i, k)
-	if len(errorsCIDR) == 0 {
-		return warningsCIDR, nil
-	}
-
-	return append(warningsIP, warningsCIDR...), append(errorsIP, errorsCIDR...)
-}
-
 // IsMonth id a SchemaValidateFunc which tests if the provided value is of type string and a valid english month
 func IsMonth(ignoreCase bool) func(interface{}, string) ([]string, []error) {
 	return validation.IsMonth(ignoreCase)
