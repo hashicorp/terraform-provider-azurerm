@@ -53,7 +53,7 @@ provider "azurerm" {
     log_analytics_workspace {
       permanently_delete_on_destroy = true
     }
-    
+
     machine_learning {
       purge_soft_deleted_workspace_on_destroy = true
     }
