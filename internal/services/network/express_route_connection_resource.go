@@ -180,6 +180,10 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 		return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
 	}
 
+	if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
+		return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
+	}
+
 	parameters := network.ExpressRouteConnection{
 		Name: utils.String(id.Name),
 		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
@@ -276,6 +280,9 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
+	if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
+		return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
+	}
 	parameters := network.ExpressRouteConnection{
 		Name: utils.String(id.Name),
 		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
