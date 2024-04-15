@@ -44,7 +44,7 @@ func resourceLogzSubAccount() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: `Logz REST API is now Deprecated - as such the 'azurerm_logz_sub_account' resource is deprecated and will be removed in v4.0 of the AzureRM Provider`,
+		DeprecationMessage: `Logz REST API is being deprecated and new resources won't be allowed to create - as such the 'azurerm_logz_sub_account' resource is deprecated and will be removed in v4.0 of the AzureRM Provider`,
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
