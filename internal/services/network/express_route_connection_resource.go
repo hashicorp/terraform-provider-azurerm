@@ -293,6 +293,7 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             utils.Int32(int32(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: utils.Bool(d.Get("express_route_gateway_bypass_enabled").(bool)),
+			PrivateLinkFastPath:       utils.Bool(d.Get("private_link_fast_path_enabled").(bool)),
 		},
 	}
 
