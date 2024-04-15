@@ -194,7 +194,7 @@ The `log_analytics_workspace` block supports the following:
 
 The `machine_learning` block supports the following:
 
-* `purge_soft_deleted_workspace_on_destroy` - (Optional) Should the `azurerm_machine_learning_workspace` resource be permanently deleted (e.g. purged) when destoryed? Defaults to `false`.
+* `purge_soft_deleted_workspace_on_destroy` - (Optional) Should the `azurerm_machine_learning_workspace` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 
