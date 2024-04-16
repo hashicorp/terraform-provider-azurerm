@@ -1,3 +1,27 @@
+## 3.100.0 (Unreleased)
+
+FEATURES:
+
+* `compute` - update Virtual Machine and Virtual Machine Scale Set resources and data sources to use `hashicorp/go-azure-sdk` [GH-25533]
+* `azurerm_container_group` - the `identity` block can now be updated [GH-25543]
+
+BUG FIXES:
+
+* `azurerm_active_directory_domain_service` - fix issue where `filtered_sync_enabled` was not being updated [GH-25594]
+* `azurerm_application_insights` - add a state migration to fix the resource ID casing of Application Insights resources [GH-25628]
+* `azurerm_container_app` - `ingress.ip_security_restriction.ip_address_range` will now accept an IP address as valid input [GH-25609]
+* `azurerm_express_route_connection` - add support for the property `private_link_fast_path_enabled` [GH-25596]
+* `azurerm_function_app_hybrid_connection` - can now use relay resources created in a different resource group [GH-25541]
+* `monitor_activity_log_alert` - add support for the `location` property [GH-25389]
+* `azurerm_storage_account` - check replication type when evaluating support level for shares and queues for V1 storage accounts [GH-25581]
+* `azurerm_storage_account` - added a sanity check for `dns_endpoint_type` and `blob_properties.restore_policy` [GH-25450]
+* `azurerm_web_app_hybrid_connection` - can now use relay resources created in a different resource group [GH-25541]
+
+DEPRECATIONS:
+
+* `logz` - the Logz resources are deprecated and will be removed in v4.0 of the AzureRM Provider since the API no longer allows new instances to be created [GH-25405]
+* `azurerm_kubernetes_cluster` - the following properties have been deprecated since the API no longer supports cluster creation with legacy Azure Entra integration: `client_app_id`, `server_app_id`, `server_app_secret` and `managed` [GH-25200]
+
 ## 3.99.0 (April 11, 2024)
 
 BREAKING CHANGE: 
