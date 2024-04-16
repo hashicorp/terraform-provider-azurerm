@@ -58,7 +58,19 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": commonschema.LocationOptional(),
+			"location": func() *pluginsdk.Schema {
+				if !features.FourPointOhBeta() {
+					return &pluginsdk.Schema{
+						Type:             schema.TypeString,
+						Optional:         true,
+						Default:          "global",
+						ForceNew:         true,
+						StateFunc:        location.StateFunc,
+						DiffSuppressFunc: location.DiffSuppressFunc,
+					}
+				}
+				return commonschema.Location()
+			}(),
 
 			"scopes": {
 				Type:     pluginsdk.TypeSet,
@@ -399,7 +411,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActivityLogAlertsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	location := location.Normalize(d.Get("location").(string))
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -426,7 +437,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	t := d.Get("tags").(map[string]interface{})
 	parameters := activitylogalertsapis.ActivityLogAlertResource{
-		Location: &location,
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &activitylogalertsapis.AlertRuleProperties{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
@@ -470,9 +481,7 @@ func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-
-		d.Set("location", location.Normalize(*model.Location))
-
+		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("description", props.Description)

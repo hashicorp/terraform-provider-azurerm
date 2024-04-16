@@ -316,7 +316,7 @@ func TestAccMonitorActivityLogAlert_ServiceHealth_basicAndDelete(t *testing.T) {
 }
 
 func TestAccMonitorActivityLogAlert_location(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
