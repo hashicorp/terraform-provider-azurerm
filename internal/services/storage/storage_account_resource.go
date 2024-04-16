@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -30,6 +31,7 @@ import (
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
@@ -2014,6 +2016,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
+	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2217,7 +2220,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("table_encryption_key_type", tableEncryptionKeyType)
 		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 
-		customerManagedKey, err := flattenStorageAccountCustomerManagedKey(id, props.Encryption)
+		customerManagedKey, err := flattenStorageAccountCustomerManagedKey(id, props.Encryption, env)
 		if err != nil {
 			return err
 		}
@@ -2547,7 +2550,7 @@ func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAcc
 	}
 }
 
-func flattenStorageAccountCustomerManagedKey(storageAccountId *commonids.StorageAccountId, input *storage.Encryption) ([]interface{}, error) {
+func flattenStorageAccountCustomerManagedKey(storageAccountId *commonids.StorageAccountId, input *storage.Encryption, env environments.Environment) ([]interface{}, error) {
 	if input == nil || input.KeySource == storage.KeySourceMicrosoftStorage {
 		return make([]interface{}, 0), nil
 	}
@@ -2579,19 +2582,13 @@ func flattenStorageAccountCustomerManagedKey(storageAccountId *commonids.Storage
 		return nil, fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", *storageAccountId)
 	}
 
-	url, err := url.Parse(keyVaultURI)
-	if err != nil {
-		return nil, fmt.Errorf("Error parsing %s as URI: %+v", keyVaultURI, err)
-	}
-
-	instanceName, domainSuffix, found := strings.Cut(url.Hostname(), ".")
-	if !found {
-		return nil, fmt.Errorf("Key vault URI hostname does not have the right number of components: %s", url.Hostname())
-	}
-	isHSMURI := strings.Contains(domainSuffix, "managedhsm") // todo
-
 	ret := map[string]interface{}{
 		"user_assigned_identity_id": userAssignedIdentityId,
+	}
+
+	isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+	if err != nil {
+		return nil, err
 	}
 
 	switch {

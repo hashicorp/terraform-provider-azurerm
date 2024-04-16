@@ -6,8 +6,6 @@ package storage
 import (
 	"fmt"
 	"log"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -238,6 +237,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -282,16 +282,10 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 					userAssignedIdentity = pointer.From(identityProps.UserAssignedIdentity)
 				}
 
-				url, err := url.Parse(keyVaultURI)
+				isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 				if err != nil {
-					return fmt.Errorf("Error parsing %s as URI: %+v", keyVaultURI, err)
+					return err
 				}
-
-				instanceName, domainSuffix, found := strings.Cut(url.Hostname(), ".")
-				if !found {
-					return fmt.Errorf("Key vault URI hostname does not have the right number of components: %s", url.Hostname())
-				}
-				isHSMURI := strings.Contains(domainSuffix, "managedhsm") // todo
 
 				switch {
 				case isHSMURI && keyVersion == "":
