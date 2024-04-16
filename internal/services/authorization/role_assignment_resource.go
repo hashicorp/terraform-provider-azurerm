@@ -136,7 +136,6 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				RequiredWith: []string{"condition_version"},
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -144,7 +143,6 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				RequiredWith: []string{"condition"},
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.0",
 					"2.0",
