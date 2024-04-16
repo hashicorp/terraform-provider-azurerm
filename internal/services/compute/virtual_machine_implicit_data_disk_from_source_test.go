@@ -300,6 +300,9 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "import" {
 }
 
 func (VirtualMachineImplicitDataDiskFromSourceResource) managedServiceIdentity(data acceptance.TestData) string {
+	// currently only supported in "eastus2" and "westus2".
+	location := "westus2"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -392,7 +395,7 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   disk_size_gb       = 20
   source_resource_id = azurerm_managed_disk.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r VirtualMachineImplicitDataDiskFromSourceResource) multipleDisks(data acceptance.TestData) string {
@@ -474,6 +477,9 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
 }
 
 func (VirtualMachineImplicitDataDiskFromSourceResource) writeAccelerator(data acceptance.TestData, enabled bool) string {
+	// currently only supported in "eastus2" and "westus2".
+	location := "westus2"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -571,7 +577,7 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   source_resource_id        = azurerm_snapshot.test.id
   write_accelerator_enabled = %t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
+`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (VirtualMachineImplicitDataDiskFromSourceResource) template(data acceptance.TestData) string {
@@ -668,6 +674,9 @@ resource "azurerm_snapshot" "test" {
 }
 
 func (VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineExtensionPrep(data acceptance.TestData) string {
+	// currently only supported in "eastus2" and "westus2".
+	location := "westus2"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -768,7 +777,7 @@ SETTINGS
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineExtensionComplete(data acceptance.TestData) string {
@@ -806,6 +815,9 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
 }
 
 func (VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineApplicationPrep(data acceptance.TestData) string {
+	// currently only supported in "eastus2" and "westus2".
+	location := "westus2"
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -942,7 +954,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, location)
 }
 
 func (r VirtualMachineImplicitDataDiskFromSourceResource) virtualMachineApplicationComplete(data acceptance.TestData) string {
