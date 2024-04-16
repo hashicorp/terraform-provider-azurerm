@@ -22,6 +22,10 @@ DEPRECATIONS:
 * `logz` - the Logz resources are deprecated and will be removed in v4.0 of the AzureRM Provider since the API no longer allows new instances to be created [GH-25405]
 * `azurerm_kubernetes_cluster` - the following properties have been deprecated since the API no longer supports cluster creation with legacy Azure Entra integration: `client_app_id`, `server_app_id`, `server_app_secret` and `managed` [GH-25200]
 
+ENHANCEMENTS:
+
+* `dependencies`: updating `hashicorp/go-azure-sdk` to `v0.20240412.1150433` [GH-25599]
+
 ## 3.99.0 (April 11, 2024)
 
 BREAKING CHANGE: 
