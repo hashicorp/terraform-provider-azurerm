@@ -793,7 +793,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    hadoop = "3.1"
+    kafka = "2.1"
   }
 
   network {
@@ -835,10 +835,11 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D4_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      vm_size                  = "Standard_D4_V2"
+      username                 = "acctestusrvm"
+      password                 = "AccTestvdSC4daf986!"
+      target_instance_count    = 3
+      number_of_disks_per_node = 2
 
       subnet_id          = azurerm_subnet.test.id
       virtual_network_id = azurerm_virtual_network.test.id
