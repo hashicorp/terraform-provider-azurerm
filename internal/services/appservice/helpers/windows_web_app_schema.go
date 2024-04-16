@@ -47,6 +47,7 @@ type SiteConfigWindows struct {
 	HealthCheckEvictionTime       int64                     `tfschema:"health_check_eviction_time_in_min"`
 	WorkerCount                   int64                     `tfschema:"worker_count"`
 	ApplicationStack              []ApplicationStackWindows `tfschema:"application_stack"`
+	HandlerMapping                []HandlerMappings         `tfschema:"handler_mapping"`
 	VirtualApplications           []VirtualApplication      `tfschema:"virtual_application"`
 	MinTlsVersion                 string                    `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                    `tfschema:"scm_minimum_tls_version"`
@@ -264,6 +265,8 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchema(),
 
+				"handler_mapping": HandlerMappingSchema(),
+
 				"virtual_application": virtualApplicationsSchema(),
 
 				"vnet_route_all_enabled": {
@@ -441,6 +444,8 @@ func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
 
 				"cors": CorsSettingsSchemaComputed(),
 
+				"handler_mapping": HandlerMappingSchemaComputed(),
+
 				"virtual_application": virtualApplicationsSchemaComputed(),
 
 				"detailed_error_logging_enabled": {
@@ -479,6 +484,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
 	expanded.Use32BitWorkerProcess = pointer.To(s.Use32BitWorker)
 	expanded.WebSocketsEnabled = pointer.To(s.WebSockets)
+	expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
 	expanded.VirtualApplications = expandVirtualApplications(s.VirtualApplications)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
@@ -718,6 +724,10 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 
 	expanded.AppSettings = ExpandAppSettingsForCreate(appSettings)
 
+	if metadata.ResourceData.HasChange("site_config.0.handler_mapping") {
+		expanded.HandlerMappings = expandHandlerMapping(s.HandlerMapping)
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.virtual_application") {
 		expanded.VirtualApplications = expandVirtualApplicationsForUpdate(s.VirtualApplications)
 	} else {
@@ -835,6 +845,7 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.ScmUseMainIpRestriction = pointer.From(appSiteConfig.ScmIPSecurityRestrictionsUseMain)
 		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
 		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
+		s.HandlerMapping = flattenHandlerMapping(appSiteConfig.HandlerMappings)
 		s.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
