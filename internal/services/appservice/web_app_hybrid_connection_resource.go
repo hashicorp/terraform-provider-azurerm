@@ -8,19 +8,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type WebAppHybridConnectionResource struct{}
@@ -29,7 +28,7 @@ type WebAppHybridConnectionModel struct {
 	WebAppId            string `tfschema:"web_app_id"`
 	RelayId             string `tfschema:"relay_id"`
 	HostName            string `tfschema:"hostname"`
-	HostPort            int    `tfschema:"port"`
+	HostPort            int64  `tfschema:"port"`
 	SendKeyName         string `tfschema:"send_key_name"`
 	NamespaceName       string `tfschema:"namespace_name"`
 	RelayName           string `tfschema:"relay_name"`
@@ -51,7 +50,7 @@ func (r WebAppHybridConnectionResource) ResourceType() string {
 }
 
 func (r WebAppHybridConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppHybridConnectionID
+	return webapps.ValidateRelayID
 }
 
 func (r WebAppHybridConnectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -60,7 +59,7 @@ func (r WebAppHybridConnectionResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.WebAppID,
+			ValidateFunc: commonids.ValidateWebAppID,
 			Description:  "The ID of the Web App for this Hybrid Connection.",
 		},
 
@@ -142,7 +141,7 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&appHybridConn); err != nil {
 				return err
 			}
-			appId, err := parse.WebAppID(appHybridConn.WebAppId)
+			appId, err := commonids.ParseWebAppID(appHybridConn.WebAppId)
 			if err != nil {
 				return err
 			}
@@ -151,29 +150,34 @@ func (r WebAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := parse.NewAppHybridConnectionID(appId.SubscriptionId, appId.ResourceGroup, appId.SiteName, relayId.NamespaceName, relayId.HybridConnectionName)
+			id := webapps.NewRelayID(appId.SubscriptionId, appId.ResourceGroupName, appId.SiteName, relayId.NamespaceName, relayId.HybridConnectionName)
 
-			existing, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
+			existing, err := client.GetHybridConnection(ctx, id)
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 				}
 			}
-			if existing.ID != nil && *existing.ID != "" {
-				return tf.ImportAsExistsError(r.ResourceType(), *existing.ID)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
-			envelope := web.HybridConnection{
-				HybridConnectionProperties: &web.HybridConnectionProperties{
-					RelayArmURI:  utils.String(relayId.ID()),
-					Hostname:     utils.String(appHybridConn.HostName),
-					Port:         utils.Int32(int32(appHybridConn.HostPort)),
-					SendKeyName:  utils.String(appHybridConn.SendKeyName),
-					SendKeyValue: utils.String(""),
+			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
+			if err != nil {
+				return err
+			}
+
+			envelope := webapps.HybridConnection{
+				Properties: &webapps.HybridConnectionProperties{
+					RelayArmUri:  pointer.To(relayId.ID()),
+					Hostname:     pointer.To(appHybridConn.HostName),
+					Port:         pointer.To(appHybridConn.HostPort),
+					SendKeyName:  pointer.To(appHybridConn.SendKeyName),
+					SendKeyValue: sendKeyValue,
 				},
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName, envelope)
+			_, err = client.CreateOrUpdateHybridConnection(ctx, id, envelope)
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -191,14 +195,14 @@ func (r WebAppHybridConnectionResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.AppHybridConnectionID(metadata.ResourceData.Id())
+			id, err := webapps.ParseRelayID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
+			existing, err := client.GetHybridConnection(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -206,38 +210,40 @@ func (r WebAppHybridConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			appHybridConn := WebAppHybridConnectionModel{
-				WebAppId:      parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName).ID(),
+				WebAppId:      commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName).ID(),
 				RelayName:     id.RelayName,
 				NamespaceName: id.HybridConnectionNamespaceName,
 			}
 
-			if props := existing.HybridConnectionProperties; props != nil {
-				appHybridConn.RelayId = utils.NormalizeNilableString(props.RelayArmURI)
-				appHybridConn.HostName = utils.NormalizeNilableString(props.Hostname)
-				appHybridConn.HostPort = int(utils.NormaliseNilableInt32(props.Port))
-				appHybridConn.SendKeyName = utils.NormalizeNilableString(existing.SendKeyName)
-				appHybridConn.ServiceBusNamespace = utils.NormalizeNilableString(props.ServiceBusNamespace)
-				appHybridConn.ServiceBusSuffix = utils.NormalizeNilableString(props.ServiceBusSuffix)
-				appHybridConn.SendKeyValue = utils.NormalizeNilableString(props.SendKeyValue)
-			}
-
-			if appHybridConn.ServiceBusNamespace != "" && appHybridConn.SendKeyName != "" {
-				relayNamespaceClient := metadata.Client.Relay.NamespacesClient
-				relayId, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
-				if err != nil {
-					return err
+			if model := existing.Model; model != nil {
+				if props := model.Properties; props != nil {
+					appHybridConn.RelayId = pointer.From(props.RelayArmUri)
+					appHybridConn.HostName = pointer.From(props.Hostname)
+					appHybridConn.HostPort = pointer.From(props.Port)
+					appHybridConn.SendKeyName = pointer.From(props.SendKeyName)
+					appHybridConn.ServiceBusNamespace = pointer.From(props.ServiceBusNamespace)
+					appHybridConn.ServiceBusSuffix = pointer.From(props.ServiceBusSuffix)
+					appHybridConn.SendKeyValue = pointer.From(props.SendKeyValue)
 				}
 
-				if keys, err := relayNamespaceClient.ListKeys(ctx, namespaces.NewAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, appHybridConn.SendKeyName)); err != nil && keys.Model != nil {
-					appHybridConn.SendKeyValue = utils.NormalizeNilableString(keys.Model.PrimaryKey)
-					return metadata.Encode(&appHybridConn)
-				}
+				if appHybridConn.ServiceBusNamespace != "" && appHybridConn.SendKeyName != "" {
+					relayNamespaceClient := metadata.Client.Relay.NamespacesClient
+					relayId, err := hybridconnections.ParseHybridConnectionIDInsensitively(appHybridConn.RelayId)
+					if err != nil {
+						return err
+					}
 
-				hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
-				ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, *existing.Name, appHybridConn.SendKeyName)
-				keys, err := hybridConnectionsClient.ListKeys(ctx, ruleID)
-				if err != nil && keys.Model != nil {
-					appHybridConn.SendKeyValue = utils.NormalizeNilableString(keys.Model.PrimaryKey)
+					if keys, err := relayNamespaceClient.ListKeys(ctx, namespaces.NewAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, appHybridConn.SendKeyName)); err != nil && keys.Model != nil {
+						appHybridConn.SendKeyValue = pointer.From(keys.Model.PrimaryKey)
+						return metadata.Encode(&appHybridConn)
+					}
+
+					hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
+					ruleID := hybridconnections.NewHybridConnectionAuthorizationRuleID(relayId.SubscriptionId, relayId.ResourceGroupName, appHybridConn.ServiceBusNamespace, pointer.From(model.Name), appHybridConn.SendKeyName)
+					keys, err := hybridConnectionsClient.ListKeys(ctx, ruleID)
+					if err != nil && keys.Model != nil {
+						appHybridConn.SendKeyValue = pointer.From(keys.Model.PrimaryKey)
+					}
 				}
 			}
 
@@ -252,14 +258,14 @@ func (r WebAppHybridConnectionResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.AppHybridConnectionID(metadata.ResourceData.Id())
+			id, err := webapps.ParseRelayID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.DeleteHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
+			resp, err := client.DeleteHybridConnection(ctx, *id)
 			if err != nil {
-				if !response.WasNotFound(resp.Response) {
+				if !response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", id, err)
 				}
 			}
@@ -275,7 +281,7 @@ func (r WebAppHybridConnectionResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.AppHybridConnectionID(metadata.ResourceData.Id())
+			id, err := webapps.ParseRelayID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -285,32 +291,39 @@ func (r WebAppHybridConnectionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
-			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+			existing, err := client.GetHybridConnection(ctx, *id)
+			if err != nil || existing.Model == nil {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
+			model := *existing.Model
+
 			if metadata.ResourceData.HasChange("hostname") {
-				existing.HybridConnectionProperties.Hostname = utils.String(appHybridConn.HostName)
+				model.Properties.Hostname = pointer.To(appHybridConn.HostName)
 			}
 
 			if metadata.ResourceData.HasChange("port") {
-				existing.HybridConnectionProperties.Port = utils.Int32(int32(appHybridConn.HostPort))
+				model.Properties.Port = pointer.To(appHybridConn.HostPort)
 			}
 
 			if metadata.ResourceData.HasChange("send_key_name") {
-				key, err := helpers.GetSendKeyValue(ctx, metadata, *id, appHybridConn.SendKeyName)
+				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
 				if err != nil {
 					return err
 				}
-				existing.HybridConnectionProperties.SendKeyValue = key
+
+				sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
+				if err != nil {
+					return err
+				}
+				model.Properties.SendKeyValue = sendKeyValue
 			}
 
-			_, err = client.CreateOrUpdateHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName, existing)
+			_, err = client.CreateOrUpdateHybridConnection(ctx, *id, model)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -322,11 +335,11 @@ func (r WebAppHybridConnectionResource) Update() sdk.ResourceFunc {
 
 func (r WebAppHybridConnectionResource) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		id, err := parse.AppHybridConnectionID(metadata.ResourceData.Id())
+		id, err := webapps.ParseRelayID(metadata.ResourceData.Id())
 		if err != nil {
 			return err
 		}
-		appId := parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName)
+		appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 
 		_, sku, err := helpers.ServicePlanInfoForApp(ctx, metadata, appId)
 		if err != nil {

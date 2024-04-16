@@ -58,6 +58,15 @@ provider "azurerm" {
       expand_without_downtime = true
     }
 
+    postgresql_flexible_server {
+      restart_server_on_configuration_value_change = true
+    }
+
+    recovery_service {
+      retain_data_and_stop_protection_on_back_vm_destroy = true
+      purge_protected_items_from_vault_on_destroy        = true
+    }
+
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
@@ -102,6 +111,8 @@ The `features` block supports the following:
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
 
 * `managed_disk` - (Optional) A `managed_disk` block as defined below.
+
+* `recovery_service` - (Optional) A `recovery_service` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
 
@@ -183,6 +194,20 @@ The `managed_disk` block supports the following:
 
 ---
 
+The `postgresql_flexible_server` block supports the following:
+
+* `restart_server_on_configuration_value_change` - (Optional) Should the `postgresql_flexible_server` restart after static server parameter change or removal? Defaults to `true`.
+
+---
+
+The `recovery_service` block supports the following:
+
+* `vm_backup_stop_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and stop protection instead of destroying the backup protected vm? Defaults to `false`.
+
+* `purge_protected_items_from_vault_on_destroy` - (Optional) Should we purge all protected items when destroying the vault. Defaults to `false`.
+
+---
+
 The `resource_group` block supports the following:
 
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
@@ -222,6 +247,8 @@ The `virtual_machine_scale_set` block supports the following:
 * `force_delete` - Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
 
 ~> **Note:** Support for Force Delete is in an opt-in Preview.
+
+* `reimage_on_manual_upgrade` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically reimage during the update the instances in the Scale Set when `upgrade_mode` is `Manual`. Defaults to `true`.
 
 * `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.
 

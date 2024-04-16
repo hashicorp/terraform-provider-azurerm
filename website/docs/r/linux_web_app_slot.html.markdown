@@ -144,7 +144,7 @@ An `application_logs` block supports the following:
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 
-* `file_system_level` - (Required) Log level. Possible values include `Verbose`, `Information`, `Warning`, and `Error`.
+* `file_system_level` - (Required) Log level. Possible values include `Off`, `Verbose`, `Information`, `Warning`, and `Error`.
 
 ---
 
@@ -184,7 +184,7 @@ An `application_stack` block supports the following:
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10`, `3.11` and `3.12`.
 
-* `ruby_version` - (Optional) Te version of Ruby to run. Possible values include `2.6` and `2.7`.
+* `ruby_version` - (Optional) The version of Ruby to run. Possible values include `2.6` and `2.7`.
 
 ---
 
@@ -604,6 +604,7 @@ An `ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
 ---
 
 A `logs` block supports the following:
@@ -672,6 +673,7 @@ A `scm_ip_restriction` block supports the following:
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
+* `description` - (Optional) The Description of this IP Restriction.
 ---
 
 A `site_config` block supports the following:
@@ -714,6 +716,8 @@ A `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined above.
 
+* `ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
+
 * `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.
 
 * `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.
@@ -727,6 +731,8 @@ A `site_config` block supports the following:
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017` and `VS2019`
 
 * `scm_ip_restriction` - (Optional) One or more `scm_ip_restriction` blocks as defined above.
+
+* `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
 * `scm_minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
@@ -840,7 +846,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_linux_web_app.example.identity.0.principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_linux_web_app.example.identity[0].principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity[0].tenant_id`
 
 ---
 

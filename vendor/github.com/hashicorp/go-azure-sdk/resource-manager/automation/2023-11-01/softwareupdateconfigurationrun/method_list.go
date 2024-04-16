@@ -15,7 +15,12 @@ import (
 type ListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SoftwareUpdateConfigurationRunListResult
+	Model        *[]SoftwareUpdateConfigurationRun
+}
+
+type ListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []SoftwareUpdateConfigurationRun
 }
 
 type ListOperationOptions struct {
@@ -74,7 +79,7 @@ func (c SoftwareUpdateConfigurationRunClient) List(ctx context.Context, id Autom
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -83,9 +88,43 @@ func (c SoftwareUpdateConfigurationRunClient) List(ctx context.Context, id Autom
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]SoftwareUpdateConfigurationRun `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListComplete retrieves all the results into a single object
+func (c SoftwareUpdateConfigurationRunClient) ListComplete(ctx context.Context, id AutomationAccountId, options ListOperationOptions) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, options, SoftwareUpdateConfigurationRunOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c SoftwareUpdateConfigurationRunClient) ListCompleteMatchingPredicate(ctx context.Context, id AutomationAccountId, options ListOperationOptions, predicate SoftwareUpdateConfigurationRunOperationPredicate) (result ListCompleteResult, err error) {
+	items := make([]SoftwareUpdateConfigurationRun, 0)
+
+	resp, err := c.List(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

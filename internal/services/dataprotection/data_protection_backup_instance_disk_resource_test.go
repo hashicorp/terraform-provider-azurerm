@@ -130,6 +130,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
 
   identity {
     type = "SystemAssigned"

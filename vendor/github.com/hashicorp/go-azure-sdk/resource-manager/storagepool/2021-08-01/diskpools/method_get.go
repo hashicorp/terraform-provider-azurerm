@@ -43,7 +43,10 @@ func (c DiskPoolsClient) Get(ctx context.Context, id DiskPoolId) (result GetOper
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DiskPool
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

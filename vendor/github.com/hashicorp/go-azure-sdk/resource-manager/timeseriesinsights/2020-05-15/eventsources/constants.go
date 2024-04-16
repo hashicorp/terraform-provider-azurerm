@@ -1,6 +1,10 @@
 package eventsources
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForEventSourceKind() []string {
 		string(EventSourceKindMicrosoftPointEventHub),
 		string(EventSourceKindMicrosoftPointIoTHub),
 	}
+}
+
+func (s *EventSourceKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEventSourceKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEventSourceKind(input string) (*EventSourceKind, error) {
@@ -49,6 +66,19 @@ func PossibleValuesForIngressStartAtType() []string {
 	}
 }
 
+func (s *IngressStartAtType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIngressStartAtType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseIngressStartAtType(input string) (*IngressStartAtType, error) {
 	vals := map[string]IngressStartAtType{
 		"customenqueuedtime":      IngressStartAtTypeCustomEnqueuedTime,
@@ -78,6 +108,19 @@ func PossibleValuesForKind() []string {
 	}
 }
 
+func (s *Kind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseKind(input string) (*Kind, error) {
 	vals := map[string]Kind{
 		"microsoft.eventhub": KindMicrosoftPointEventHub,
@@ -102,6 +145,19 @@ func PossibleValuesForLocalTimestampFormat() []string {
 	return []string{
 		string(LocalTimestampFormatEmbedded),
 	}
+}
+
+func (s *LocalTimestampFormat) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLocalTimestampFormat(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseLocalTimestampFormat(input string) (*LocalTimestampFormat, error) {
@@ -137,6 +193,19 @@ func PossibleValuesForProvisioningState() []string {
 		string(ProvisioningStateSucceeded),
 		string(ProvisioningStateUpdating),
 	}
+}
+
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {

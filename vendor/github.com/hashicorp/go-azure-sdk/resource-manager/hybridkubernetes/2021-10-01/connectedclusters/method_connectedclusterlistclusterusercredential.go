@@ -48,7 +48,10 @@ func (c ConnectedClustersClient) ConnectedClusterListClusterUserCredential(ctx c
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CredentialResults
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

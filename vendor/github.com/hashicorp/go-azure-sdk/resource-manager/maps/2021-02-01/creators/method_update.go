@@ -47,7 +47,10 @@ func (c CreatorsClient) Update(ctx context.Context, id CreatorId, input CreatorU
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Creator
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

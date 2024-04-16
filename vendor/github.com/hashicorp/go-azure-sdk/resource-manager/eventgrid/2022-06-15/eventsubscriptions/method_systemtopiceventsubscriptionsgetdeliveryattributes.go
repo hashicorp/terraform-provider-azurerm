@@ -44,7 +44,10 @@ func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsGetDeliveryAttrib
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DeliveryAttributeListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -44,7 +44,10 @@ func (c ServersClient) ListGatewayStatus(ctx context.Context, id ServerId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GatewayListStatusLive
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

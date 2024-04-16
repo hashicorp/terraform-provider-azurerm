@@ -10,6 +10,8 @@ description: |-
 
 Manages a logz Sub Account.
 
+!> **Note:** Logz REST API is being deprecated by Azure and new resources cannot be created. This resource will be removed in version 4.0 of the provider.
+
 ## Example Usage
 
 ```hcl

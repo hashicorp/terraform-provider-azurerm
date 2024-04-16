@@ -44,7 +44,10 @@ func (c AccountsClient) ListKeys(ctx context.Context, id AccountId) (result List
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model MapsAccountKeys
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

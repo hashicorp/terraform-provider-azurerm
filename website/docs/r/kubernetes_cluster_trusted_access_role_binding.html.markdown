@@ -47,6 +47,9 @@ resource "azurerm_kubernetes_cluster" "example" {
     name       = "example-value"
     node_count = "example-value"
     vm_size    = "example-value"
+    upgrade_settings {
+      max_surge = "example-value"
+    }
   }
   identity {
     type = "example-value"

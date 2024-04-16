@@ -72,7 +72,10 @@ func (c DeploymentScriptsClient) GetLogsDefault(ctx context.Context, id Deployme
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ScriptLog
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

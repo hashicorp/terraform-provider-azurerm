@@ -43,7 +43,10 @@ func (c TokensClient) Get(ctx context.Context, id TokenId) (result GetOperationR
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Token
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -1,6 +1,10 @@
 package sqlvirtualmachines
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -27,6 +31,19 @@ func PossibleValuesForAssessmentDayOfWeek() []string {
 		string(AssessmentDayOfWeekTuesday),
 		string(AssessmentDayOfWeekWednesday),
 	}
+}
+
+func (s *AssessmentDayOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAssessmentDayOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseAssessmentDayOfWeek(input string) (*AssessmentDayOfWeek, error) {
@@ -72,6 +89,19 @@ func PossibleValuesForAutoBackupDaysOfWeek() []string {
 	}
 }
 
+func (s *AutoBackupDaysOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAutoBackupDaysOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseAutoBackupDaysOfWeek(input string) (*AutoBackupDaysOfWeek, error) {
 	vals := map[string]AutoBackupDaysOfWeek{
 		"friday":    AutoBackupDaysOfWeekFriday,
@@ -105,6 +135,19 @@ func PossibleValuesForBackupScheduleType() []string {
 	}
 }
 
+func (s *BackupScheduleType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBackupScheduleType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseBackupScheduleType(input string) (*BackupScheduleType, error) {
 	vals := map[string]BackupScheduleType{
 		"automated": BackupScheduleTypeAutomated,
@@ -133,6 +176,19 @@ func PossibleValuesForConnectivityType() []string {
 		string(ConnectivityTypePRIVATE),
 		string(ConnectivityTypePUBLIC),
 	}
+}
+
+func (s *ConnectivityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseConnectivityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseConnectivityType(input string) (*ConnectivityType, error) {
@@ -176,6 +232,19 @@ func PossibleValuesForDayOfWeek() []string {
 	}
 }
 
+func (s *DayOfWeek) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDayOfWeek(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDayOfWeek(input string) (*DayOfWeek, error) {
 	vals := map[string]DayOfWeek{
 		"everyday":  DayOfWeekEveryday,
@@ -212,6 +281,19 @@ func PossibleValuesForDiskConfigurationType() []string {
 	}
 }
 
+func (s *DiskConfigurationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDiskConfigurationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDiskConfigurationType(input string) (*DiskConfigurationType, error) {
 	vals := map[string]DiskConfigurationType{
 		"add":    DiskConfigurationTypeADD,
@@ -239,6 +321,19 @@ func PossibleValuesForFullBackupFrequencyType() []string {
 		string(FullBackupFrequencyTypeDaily),
 		string(FullBackupFrequencyTypeWeekly),
 	}
+}
+
+func (s *FullBackupFrequencyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFullBackupFrequencyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseFullBackupFrequencyType(input string) (*FullBackupFrequencyType, error) {
@@ -275,6 +370,19 @@ func PossibleValuesForSqlImageSku() []string {
 	}
 }
 
+func (s *SqlImageSku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSqlImageSku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSqlImageSku(input string) (*SqlImageSku, error) {
 	vals := map[string]SqlImageSku{
 		"developer":  SqlImageSkuDeveloper,
@@ -308,6 +416,19 @@ func PossibleValuesForSqlManagementMode() []string {
 	}
 }
 
+func (s *SqlManagementMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSqlManagementMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSqlManagementMode(input string) (*SqlManagementMode, error) {
 	vals := map[string]SqlManagementMode{
 		"full":        SqlManagementModeFull,
@@ -337,6 +458,19 @@ func PossibleValuesForSqlServerLicenseType() []string {
 		string(SqlServerLicenseTypeDR),
 		string(SqlServerLicenseTypePAYG),
 	}
+}
+
+func (s *SqlServerLicenseType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSqlServerLicenseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSqlServerLicenseType(input string) (*SqlServerLicenseType, error) {
@@ -370,6 +504,19 @@ func PossibleValuesForSqlWorkloadType() []string {
 	}
 }
 
+func (s *SqlWorkloadType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSqlWorkloadType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseSqlWorkloadType(input string) (*SqlWorkloadType, error) {
 	vals := map[string]SqlWorkloadType{
 		"dw":      SqlWorkloadTypeDW,
@@ -399,6 +546,19 @@ func PossibleValuesForStorageWorkloadType() []string {
 		string(StorageWorkloadTypeGENERAL),
 		string(StorageWorkloadTypeOLTP),
 	}
+}
+
+func (s *StorageWorkloadType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseStorageWorkloadType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseStorageWorkloadType(input string) (*StorageWorkloadType, error) {

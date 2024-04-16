@@ -76,7 +76,10 @@ func (c DelegationSettingsClient) CreateOrUpdate(ctx context.Context, id Service
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PortalDelegationSettings
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

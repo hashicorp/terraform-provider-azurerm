@@ -15,7 +15,12 @@ import (
 type ProviderResourceTypesListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ProviderResourceTypeListResult
+	Model        *[]ProviderResourceType
+}
+
+type ProviderResourceTypesListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []ProviderResourceType
 }
 
 type ProviderResourceTypesListOperationOptions struct {
@@ -63,7 +68,7 @@ func (c ProvidersClient) ProviderResourceTypesList(ctx context.Context, id Subsc
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -72,9 +77,43 @@ func (c ProvidersClient) ProviderResourceTypesList(ctx context.Context, id Subsc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]ProviderResourceType `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ProviderResourceTypesListComplete retrieves all the results into a single object
+func (c ProvidersClient) ProviderResourceTypesListComplete(ctx context.Context, id SubscriptionProviderId, options ProviderResourceTypesListOperationOptions) (ProviderResourceTypesListCompleteResult, error) {
+	return c.ProviderResourceTypesListCompleteMatchingPredicate(ctx, id, options, ProviderResourceTypeOperationPredicate{})
+}
+
+// ProviderResourceTypesListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ProvidersClient) ProviderResourceTypesListCompleteMatchingPredicate(ctx context.Context, id SubscriptionProviderId, options ProviderResourceTypesListOperationOptions, predicate ProviderResourceTypeOperationPredicate) (result ProviderResourceTypesListCompleteResult, err error) {
+	items := make([]ProviderResourceType, 0)
+
+	resp, err := c.ProviderResourceTypesList(ctx, id, options)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ProviderResourceTypesListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

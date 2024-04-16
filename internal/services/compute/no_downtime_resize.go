@@ -11,9 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-11-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 )
 
 // The logic on this file is based on:
@@ -81,16 +82,24 @@ func determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx context.Context, v
 		return nil, fmt.Errorf("retrieving %s: %+v", *virtualMachineId, err)
 	}
 
+	vmLocation := ""
 	vmSku := ""
-	if model := virtualMachine.Model; model != nil && model.Properties != nil && model.Properties.HardwareProfile != nil && model.Properties.HardwareProfile.VMSize != nil {
-		vmSku = string(*model.Properties.HardwareProfile.VMSize)
+	if model := virtualMachine.Model; model != nil {
+		vmLocation = location.Normalize(model.Location)
+		if model.Properties != nil && model.Properties.HardwareProfile != nil && model.Properties.HardwareProfile.VMSize != nil {
+			vmSku = string(*model.Properties.HardwareProfile.VMSize)
+		}
 	}
-	if vmSku == "" {
+	if vmLocation == "" || vmSku == "" {
 		return pointer.To(false), nil
 	}
 
 	subscriptionId := commonids.NewSubscriptionID(virtualMachineId.SubscriptionId)
-	skusResponse, err := skusClient.ResourceSkusListComplete(ctx, subscriptionId, skus.DefaultResourceSkusListOperationOptions())
+	opts := skus.DefaultResourceSkusListOperationOptions()
+	// @tombuildsstuff: by default this API returns EVERY SKU in EVERY LOCATION meaning this will get
+	// progressively larger each time - instead we filter to the current Location only.
+	opts.Filter = pointer.To(fmt.Sprintf("location eq '%s'", vmLocation))
+	skusResponse, err := skusClient.ResourceSkusListComplete(ctx, subscriptionId, opts)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving information about the Resource SKUs to check if the Virtual Machine/Disk combination supports no-downtime-resizing: %+v", err)
 	}

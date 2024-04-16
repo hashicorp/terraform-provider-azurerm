@@ -76,6 +76,7 @@ var services = mapOf(
         "machinelearning" to "Machine Learning",
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
+        "managedhsm" to "Managed HSM",
         "managedidentity" to "ManagedIdentity",
         "managementgroup" to "Management Group",
         "maps" to "Maps",
@@ -125,10 +126,12 @@ var services = mapOf(
         "streamanalytics" to "Stream Analytics",
         "subscription" to "Subscription",
         "synapse" to "Synapse",
+        "systemcentervirtualmachinemanager" to "System Center Virtual Machine Manager",
         "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
         "vmware" to "VMware",
         "videoanalyzer" to "Video Analyzer",
         "voiceservices" to "Voice Services",
-        "web" to "Web"
+        "web" to "Web",
+        "workloads" to "Workloads"
 )

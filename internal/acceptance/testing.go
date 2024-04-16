@@ -68,7 +68,7 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 	)
 
 	if metadataHost != "" {
-		if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+		if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
 			t.Fatalf("building test client: %+v", err)
 			return nil
 		}

@@ -43,7 +43,10 @@ func (c TagRulesClient) Get(ctx context.Context, id TagRuleId) (result GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model TagRule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -37,7 +37,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
-        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "northeurope", "eastus2", true)),
+        "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
 
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
@@ -51,6 +51,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // CDN is only available in certain locations
         "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true)),
 
+        // Chaosstudio is only available in certain locations
+        "chaosstudio" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
+
         // "cognitive" is expensive - Monday, Wednesday, Friday
         // cognitive is only available in certain locations
         "cognitive" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus", "southcentralus", true)),
@@ -62,7 +65,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "confidentialledger" to testConfiguration(locationOverride = LocationConfiguration("eastus","southcentralus","westeurope", false)),
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
-        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("westeurope","eastus","canadacentral", false)),
+        // Enable rotation test to mitigate resource burden in a single region
+        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
@@ -133,8 +137,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // network has increased timeout to accommodate the custom_ip_prefix resource
         "network" to testConfiguration(timeout = 24),
 
-        // New Relic is only available in East US region
-        "newrelic" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus", "eastus", false)),
+        // Run New Relic testcases in Canary Region to avoid generating pollution test data in Production Region, which will cause side effect in Service Partner's Database
+        "newrelic" to testConfiguration(locationOverride = LocationConfiguration("centraluseuap", "eastus", "eastus", false)),
 
         // Network Function is only available in certain locations
         "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
@@ -189,5 +193,8 @@ var serviceTestConfigurationOverrides = mapOf(
         "voiceservices" to testConfiguration(parallelism = 3, locationOverride = LocationConfiguration("westcentralus", "westcentralus", "westcentralus", false)),
 
         // Offset start hour to avoid collision with new App Service, reduce frequency of testing days
-        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true))
+        "web" to testConfiguration(startHour = 3, daysOfWeek = "1,3,5", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", true)),
+
+        // Workloads has quota available in certain locations
+        "workloads" to testConfiguration(parallelism = 1, locationOverride = LocationConfiguration("eastus", "westeurope", "francecentral", false))
 )

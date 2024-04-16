@@ -43,7 +43,10 @@ func (c SystemTopicsClient) Get(ctx context.Context, id SystemTopicId) (result G
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SystemTopic
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

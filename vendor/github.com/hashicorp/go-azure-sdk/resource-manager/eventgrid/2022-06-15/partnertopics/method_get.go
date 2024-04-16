@@ -43,7 +43,10 @@ func (c PartnerTopicsClient) Get(ctx context.Context, id PartnerTopicId) (result
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model PartnerTopic
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

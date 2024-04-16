@@ -136,7 +136,7 @@ The following arguments are supported:
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
-~> **NOTE:** `queue_properties` cannot be set when the `account_kind` is set to `BlobStorage`
+~> **NOTE:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
@@ -144,9 +144,13 @@ The following arguments are supported:
 
 * `share_properties` - (Optional) A `share_properties` block as defined below.
 
+~> **NOTE:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
+
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
+
+* `local_user_enabled` - (Optional) Is Local User Enabled? Defaults to `true`.
 
 * `azure_files_authentication` - (Optional) A `azure_files_authentication` block as defined below.
 
@@ -171,6 +175,10 @@ The following arguments are supported:
 
 -> **NOTE:** SFTP support requires `is_hns_enabled` set to `true`. [More information on SFTP support can be found here](https://learn.microsoft.com/azure/storage/blobs/secure-file-transfer-protocol-support). Defaults to `false`
 
+* `dns_endpoint_type` - (Optional) Specifies which DNS endpoint type to use. Possible values are `Standard` and `AzureDnsZone`. Defaults to `Standard`. Changing this forces a new resource to be created.
+
+-> **NOTE:** Azure DNS zone support requires `PartitionedDns` feature to be enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace "Microsoft.Storage" --name "PartitionedDns"`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -184,6 +192,8 @@ A `blob_properties` block supports the following:
 * `restore_policy` - (Optional) A `restore_policy` block as defined below. This must be used together with `delete_retention_policy` set, `versioning_enabled` and `change_feed_enabled` set to `true`.
 
 -> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+
+-> **NOTE:** `restore_policy` can not be configured when `dns_endpoint_type` is `AzureDnsZone`.
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
@@ -602,7 +612,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
 
--> You can access the Principal ID via `${azurerm_storage_account.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity.0.tenant_id}`
+-> You can access the Principal ID via `${azurerm_storage_account.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity[0].tenant_id}`
 
 ## Timeouts
 

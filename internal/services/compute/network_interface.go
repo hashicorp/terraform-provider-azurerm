@@ -6,9 +6,9 @@ package compute
 import (
 	"context"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
@@ -29,7 +29,7 @@ type connectionInfo struct {
 
 // retrieveConnectionInformation retrieves all of the Public and Private IP Addresses assigned to a Virtual Machine
 // nolint: deadcode unused
-func retrieveConnectionInformation(ctx context.Context, nicsClient *network.InterfacesClient, pipsClient *network.PublicIPAddressesClient, input *compute.VirtualMachineProperties) connectionInfo {
+func retrieveConnectionInformation(ctx context.Context, nicsClient *network.InterfacesClient, pipsClient *network.PublicIPAddressesClient, input *virtualmachines.VirtualMachineProperties) connectionInfo {
 	if input == nil || input.NetworkProfile == nil || input.NetworkProfile.NetworkInterfaces == nil {
 		return connectionInfo{}
 	}
@@ -39,11 +39,11 @@ func retrieveConnectionInformation(ctx context.Context, nicsClient *network.Inte
 
 	if input != nil && input.NetworkProfile != nil && input.NetworkProfile.NetworkInterfaces != nil {
 		for _, v := range *input.NetworkProfile.NetworkInterfaces {
-			if v.ID == nil {
+			if v.Id == nil {
 				continue
 			}
 
-			nic := retrieveIPAddressesForNIC(ctx, nicsClient, pipsClient, *v.ID)
+			nic := retrieveIPAddressesForNIC(ctx, nicsClient, pipsClient, *v.Id)
 			if nic == nil {
 				continue
 			}

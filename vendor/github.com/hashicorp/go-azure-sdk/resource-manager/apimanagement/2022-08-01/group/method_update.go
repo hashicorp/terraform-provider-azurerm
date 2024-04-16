@@ -76,7 +76,10 @@ func (c GroupClient) Update(ctx context.Context, id GroupId, input GroupUpdatePa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model GroupContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

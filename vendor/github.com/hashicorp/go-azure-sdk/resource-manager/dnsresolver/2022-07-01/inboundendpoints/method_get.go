@@ -43,7 +43,10 @@ func (c InboundEndpointsClient) Get(ctx context.Context, id InboundEndpointId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model InboundEndpoint
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

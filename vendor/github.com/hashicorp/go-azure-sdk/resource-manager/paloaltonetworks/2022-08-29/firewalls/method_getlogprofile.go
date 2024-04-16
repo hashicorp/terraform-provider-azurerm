@@ -44,7 +44,10 @@ func (c FirewallsClient) GetLogProfile(ctx context.Context, id FirewallId) (resu
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LogSettings
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

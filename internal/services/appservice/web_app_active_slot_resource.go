@@ -8,13 +8,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type WebAppActiveSlotResource struct{}
@@ -36,7 +38,7 @@ func (r WebAppActiveSlotResource) ResourceType() string {
 }
 
 func (r WebAppActiveSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.WebAppID
+	return commonids.ValidateAppServiceID
 }
 
 func (r WebAppActiveSlotResource) Arguments() map[string]*pluginsdk.Schema {
@@ -45,7 +47,7 @@ func (r WebAppActiveSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Description:  "The ID of the Slot to swap with `Production`.",
-			ValidateFunc: validate.WebAppSlotID,
+			ValidateFunc: webapps.ValidateSlotID,
 		},
 
 		"overwrite_network_config": {
@@ -79,35 +81,36 @@ func (r WebAppActiveSlotResource) Create() sdk.ResourceFunc {
 			}
 
 			client := metadata.Client.AppService.WebAppsClient
-			id, err := parse.WebAppSlotID(activeSlot.SlotID)
-			appId := parse.NewWebAppID(id.SubscriptionId, id.ResourceGroup, id.SiteName)
+			id, err := webapps.ParseSlotID(activeSlot.SlotID)
+			appId := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroupName, id.SiteName)
 			if err != nil {
 				return fmt.Errorf("parsing App ID: %+v", err)
 			}
 
-			app, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			app, err := client.Get(ctx, appId)
 			if err != nil {
-				if utils.ResponseWasNotFound(app.Response) {
+				if response.WasNotFound(app.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
 
-			csmSlotEntity := web.CsmSlotEntity{
-				TargetSlot:   &id.SlotName,
-				PreserveVnet: &activeSlot.OverwriteNetworking,
+			csmSlotEntity := webapps.CsmSlotEntity{
+				TargetSlot:   id.SlotName,
+				PreserveVnet: activeSlot.OverwriteNetworking,
 			}
 
 			locks.ByID(appId.ID())
 			defer locks.UnlockByID(appId.ID())
 
-			future, err := client.SwapSlotWithProduction(ctx, id.ResourceGroup, id.SiteName, csmSlotEntity)
-			if err != nil {
+			if _, err := client.SwapSlotWithProduction(ctx, appId, csmSlotEntity); err != nil {
 				return fmt.Errorf("making %s the active slot: %+v", id.SlotName, err)
 			}
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for slot swap to complete: %+v", err)
+			pollerType := custompollers.NewAppServiceActiveSlotPoller(client, appId, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			metadata.SetID(appId)
@@ -123,29 +126,29 @@ func (r WebAppActiveSlotResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.WebAppsClient
 
-			id, err := parse.WebAppID(metadata.ResourceData.Id())
+			id, err := commonids.ParseWebAppID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			app, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+			app, err := client.Get(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(app.Response) {
+				if response.WasNotFound(app.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("reading active slot for %s: %+v", id.SiteName, err)
 			}
 
-			if app.SiteProperties == nil || app.SiteProperties.SlotSwapStatus == nil {
+			if app.Model == nil || app.Model.Properties == nil || app.Model.Properties.SlotSwapStatus == nil {
 				return fmt.Errorf("reading site properties to determine active slot status: %+v", err)
 			}
 
 			activeSlot := WebAppActiveSlotModel{
-				LastSwap: app.SiteProperties.SlotSwapStatus.TimestampUtc.String(),
+				LastSwap: pointer.From(app.Model.Properties.SlotSwapStatus.TimestampUtc),
 			}
 
-			if slotName := app.SiteProperties.SlotSwapStatus.SourceSlotName; slotName != nil {
-				activeSlot.SlotID = parse.NewWebAppSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, *slotName).ID()
+			if slotName := app.Model.Properties.SlotSwapStatus.SourceSlotName; slotName != nil {
+				activeSlot.SlotID = webapps.NewSlotID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, *slotName).ID()
 			}
 
 			// Default value here for imports as this cannot be read from service as it's part of the swap request only and not stored

@@ -86,8 +86,8 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile(`^[\da-zA-Z]{1,10}$`),
-								`The smb server name can not be longer than 10 characters in length.`,
+								regexp.MustCompile(`^[\da-zA-Z\-]{1,10}$`),
+								`smb_server_name can contain a mix of numbers, upper/lowercase letters, dashes, and be no longer than 10 characters.`,
 							),
 						},
 						"username": {
@@ -102,8 +102,59 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"organizational_unit": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
+							Default:     "CN=Computers",
+							Description: "The Organizational Unit (OU) within the Windows Active Directory where machines will be created. If blank, defaults to 'CN=Computers'",
+						},
+						"site_name": {
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
+							Default:     "Default-First-Site-Name",
+							Description: "The Active Directory site the service will limit Domain Controller discovery to. If blank, defaults to 'Default-First-Site-Name'",
+						},
+						"kerberos_ad_name": {
+							Type:        pluginsdk.TypeString,
+							Optional:    true,
+							Description: "Name of the active directory machine. This optional parameter is used only while creating kerberos volume.",
+						},
+						"kerberos_kdc_ip": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPv4Address,
+							Description:  "IP address of the KDC server (usually same the DC). This optional parameter is used only while creating kerberos volume.",
+						},
+						"aes_encryption_enabled": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "If enabled, AES encryption will be enabled for SMB communication.",
+						},
+						"local_nfs_users_with_ldap_allowed": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "If enabled, NFS client local users can also (in addition to LDAP users) access the NFS volumes.",
+						},
+						"ldap_over_tls_enabled": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							Default:      false,
+							RequiredWith: []string{"active_directory.0.server_root_ca_certificate"},
+							Description:  "Specifies whether or not the LDAP traffic needs to be secured via TLS.",
+						},
+						"server_root_ca_certificate": {
+							Type:         pluginsdk.TypeString,
+							Sensitive:    true,
+							Optional:     true,
+							RequiredWith: []string{"active_directory.0.ldap_over_tls_enabled"},
+							Description:  "When LDAP over SSL/TLS is enabled, the LDAP client is required to have base64 encoded Active Directory Certificate Service's self-signed root CA certificate, this optional parameter is used only for dual protocol with LDAP user-mapping volumes.",
+						},
+						"ldap_signing_enabled": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Specifies whether or not the LDAP traffic needs to be signed.",
 						},
 					},
 				},
@@ -263,6 +314,20 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
+		if model.Properties.ActiveDirectories != nil {
+			adProps := *model.Properties.ActiveDirectories
+			// response returns an array, but only 1 NetApp AD connection is allowed per the Azure platform currently
+			if len(adProps) > 0 {
+				// the API returns opaque('***') values for password and server_root_ca_certificate, so we pass through current state values so change detection works
+				prevPassword := d.Get("active_directory.0.password").(string)
+				prevCaCert := d.Get("active_directory.0.server_root_ca_certificate").(string)
+
+				if err = d.Set("active_directory", flattenNetAppActiveDirectories(&adProps[0], &prevPassword, &prevCaCert)); err != nil {
+					return fmt.Errorf("setting `active_directory`: %+v", err)
+				}
+			}
+		}
+
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 
@@ -300,15 +365,48 @@ func expandNetAppActiveDirectories(input []interface{}) *[]netappaccounts.Active
 		dns := strings.Join(*utils.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
 
 		result := netappaccounts.ActiveDirectory{
-			Dns:                utils.String(dns),
-			Domain:             utils.String(v["domain"].(string)),
-			OrganizationalUnit: utils.String(v["organizational_unit"].(string)),
-			Password:           utils.String(v["password"].(string)),
-			SmbServerName:      utils.String(v["smb_server_name"].(string)),
-			Username:           utils.String(v["username"].(string)),
+			Dns:                        utils.String(dns),
+			Domain:                     utils.String(v["domain"].(string)),
+			OrganizationalUnit:         utils.String(v["organizational_unit"].(string)),
+			Password:                   utils.String(v["password"].(string)),
+			SmbServerName:              utils.String(v["smb_server_name"].(string)),
+			Username:                   utils.String(v["username"].(string)),
+			Site:                       utils.String(v["site_name"].(string)),
+			AdName:                     utils.String(v["kerberos_ad_name"].(string)),
+			KdcIP:                      utils.String(v["kerberos_kdc_ip"].(string)),
+			AesEncryption:              utils.Bool(v["aes_encryption_enabled"].(bool)),
+			AllowLocalNfsUsersWithLdap: utils.Bool(v["local_nfs_users_with_ldap_allowed"].(bool)),
+			LdapOverTLS:                utils.Bool(v["ldap_over_tls_enabled"].(bool)),
+			ServerRootCACertificate:    utils.String(v["server_root_ca_certificate"].(string)),
+			LdapSigning:                utils.Bool(v["ldap_signing_enabled"].(bool)),
 		}
 
 		results = append(results, result)
 	}
 	return &results
+}
+
+func flattenNetAppActiveDirectories(input *netappaccounts.ActiveDirectory, prevPassword *string, prevCaCert *string) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"dns_servers":                       utils.FlattenStringSliceWithDelimiter(input.Dns, ","),
+			"domain":                            input.Domain,
+			"organizational_unit":               input.OrganizationalUnit,
+			"password":                          prevPassword,
+			"smb_server_name":                   input.SmbServerName,
+			"username":                          input.Username,
+			"site_name":                         input.Site,
+			"kerberos_ad_name":                  input.AdName,
+			"kerberos_kdc_ip":                   input.KdcIP,
+			"aes_encryption_enabled":            input.AesEncryption,
+			"local_nfs_users_with_ldap_allowed": input.AllowLocalNfsUsersWithLdap,
+			"ldap_over_tls_enabled":             input.LdapOverTLS,
+			"server_root_ca_certificate":        prevCaCert,
+			"ldap_signing_enabled":              input.LdapSigning,
+		},
+	}
 }

@@ -1,8 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import "testing"
 
-func TestElasticSanVolumeGroupName(t *testing.T) {
+func TestElasticSanVolumeName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -53,7 +56,7 @@ func TestElasticSanVolumeGroupName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// can end with an underscore
+			// cannot end with an underscore
 			input:    "hello_",
 			expected: false,
 		},

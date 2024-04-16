@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions"
 ```
 
@@ -75,12 +76,13 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 
 
-read, err := client.AliasList(ctx)
+// alternatively `client.AliasList(ctx)` can be used to do batched pagination
+items, err := client.AliasListComplete(ctx)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -138,7 +140,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.SubscriptionCancel(ctx, id)
 if err != nil {
@@ -154,7 +156,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 read, err := client.SubscriptionEnable(ctx, id)
 if err != nil {
@@ -239,7 +241,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 payload := subscriptions.SubscriptionName{
 	// ...

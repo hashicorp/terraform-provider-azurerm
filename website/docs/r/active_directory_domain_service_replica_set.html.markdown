@@ -260,7 +260,7 @@ resource "azurerm_virtual_network_peering" "replica_primary" {
 
 resource "azurerm_virtual_network_dns_servers" "replica" {
   virtual_network_id = azurerm_virtual_network.replica.id
-  dns_servers        = azurerm_active_directory_domain_service.example.initial_replica_set.0.domain_controller_ip_addresses
+  dns_servers        = azurerm_active_directory_domain_service.example.initial_replica_set[0].domain_controller_ip_addresses
 }
 
 resource "azurerm_active_directory_domain_service_replica_set" "replica" {

@@ -43,7 +43,10 @@ func (c RegistriesClient) Get(ctx context.Context, id RegistryId) (result GetOpe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Registry
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

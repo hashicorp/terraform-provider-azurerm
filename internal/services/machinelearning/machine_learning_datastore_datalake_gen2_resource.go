@@ -178,6 +178,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 
 			props := &datastore.AzureDataLakeGen2Datastore{
 				AccountName:                   containerId.StorageAccountName,
+				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
 				Filesystem:                    containerId.ContainerName,
 				Description:                   utils.String(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
@@ -312,14 +313,14 @@ func (r MachineLearningDataStoreDataLakeGen2) Read() sdk.ResourceFunc {
 			}
 			model.ServiceDataIdentity = serviceDataIdentity
 
-			storageAccount, err := storageClient.FindAccount(ctx, data.AccountName)
+			storageAccount, err := storageClient.FindAccount(ctx, subscriptionId, data.AccountName)
 			if err != nil {
 				return fmt.Errorf("retrieving Account %q for Data Lake Gen2 File System %q: %s", data.AccountName, data.Filesystem, err)
 			}
 			if storageAccount == nil {
 				return fmt.Errorf("Unable to locate Storage Account %q!", data.AccountName)
 			}
-			containerId := commonids.NewStorageContainerID(subscriptionId, storageAccount.ResourceGroup, data.AccountName, data.Filesystem)
+			containerId := commonids.NewStorageContainerID(storageAccount.StorageAccountId.SubscriptionId, storageAccount.StorageAccountId.ResourceGroupName, data.AccountName, data.Filesystem)
 			model.StorageContainerID = containerId.ID()
 
 			model.IsDefault = *data.IsDefault

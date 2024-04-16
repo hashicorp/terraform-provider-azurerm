@@ -188,6 +188,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
     network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
     public_ip_address_ids        = [azurerm_public_ip.test.id]
     egress_nat_ip_address_ids    = [azurerm_public_ip.egress.id]
+    trusted_address_ranges       = ["20.22.92.11"]
   }
 
   dns_settings {
@@ -240,6 +241,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
     virtual_hub_id               = azurerm_virtual_hub.test.id
     network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
     public_ip_address_ids        = [azurerm_public_ip.test.id]
+    trusted_address_ranges       = ["20.22.92.11", "20.23.92.11"]
   }
 
   dns_settings {
