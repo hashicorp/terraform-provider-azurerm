@@ -144,6 +144,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"1.0",
 					"2.0",
 				}, false),
 			},
