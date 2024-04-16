@@ -595,7 +595,7 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = data.azurerm_client_config.test.object_id
   description          = "Monitoring Reader except "
   condition            = "@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase 'foo_storage_container'"
-  condition_version    = "1.0"
+  condition_version    = "2.0"
 }
 `, groupId)
 }
