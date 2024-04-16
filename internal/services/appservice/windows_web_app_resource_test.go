@@ -1671,12 +1671,6 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
-
-  lifecycle {
-    ignore_changes = [
-      webdeploy_publish_basic_authentication_enabled, ftp_publish_basic_authentication_enabled
-    ]
-  }
 }
 `, r.baseTemplate(data), data.RandomInteger)
 }
