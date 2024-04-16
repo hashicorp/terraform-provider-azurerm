@@ -7,14 +7,14 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type OrchestratedVirtualMachineScaleSetResource struct{}
@@ -502,74 +502,74 @@ func TestAccOrchestratedVirtualMachineScaleSet_updatePriorityMixPolicy(t *testin
 // }
 
 func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := clients.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
+	resp, err := clients.Compute.VirtualMachineScaleSetsClient.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Virtual Machine Scale Set %q", id)
+		return nil, fmt.Errorf("retrieving Orchestrated %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// this is a preview feature we don't want to use right now
-	var forceDelete *bool = nil
-	future, err := client.Compute.VMScaleSetClient.Delete(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, forceDelete)
-	if err != nil {
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	if err := client.Compute.VirtualMachineScaleSetsClient.DeleteThenPoll(ctx2, *id, virtualmachinescalesets.DefaultDeleteOperationOptions()); err != nil {
 		return nil, fmt.Errorf("Bad: deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Compute.VMScaleSetClient.Client); err != nil {
-		return nil, fmt.Errorf("Bad: waiting for deletion of %s: %+v", *id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) hasApplicationGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	resp, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx2, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		return err
 	}
 
-	if props := read.VirtualMachineScaleSetProperties; props != nil {
-		if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
-			if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
-				if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
-					for _, nic := range *nics {
-						if nic.IPConfigurations == nil {
-							continue
-						}
-
-						for _, config := range *nic.IPConfigurations {
-							if config.ApplicationGatewayBackendAddressPools == nil {
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
+				if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
+					if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
+						for _, nic := range *nics {
+							if nic.Properties == nil || nic.Properties.IPConfigurations == nil {
 								continue
 							}
 
-							if len(*config.ApplicationGatewayBackendAddressPools) > 0 {
-								return nil
+							for _, config := range nic.Properties.IPConfigurations {
+								if config.Properties == nil || config.Properties.ApplicationGatewayBackendAddressPools == nil {
+									continue
+								}
+
+								if len(*config.Properties.ApplicationGatewayBackendAddressPools) > 0 {
+									return nil
+								}
 							}
 						}
 					}
 				}
 			}
 		}
+
 	}
 
 	return fmt.Errorf("application gateway configuration was missing")

@@ -1,34 +1,46 @@
-## 3.99.0 (Unreleased)
+## 3.99.0 (April 11, 2024)
+
+BREAKING CHANGE: 
+
+* `azurerm_linux_web_app` - `site_config.0.application_stack.0.java_version` must be specified with `java_server` and `java_server_version` ([#25553](https://github.com/hashicorp/terraform-provider-azurerm/issues/25553))
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v0.26.1` of `github.com/tombuildsstuff/giovanni` [GH-25551]
-* `azurerm_snapshot` - add support for `network_access_policy` and `public_network_access` properties [GH-25421]
-* `azurerm_storage_account` - extend the support level of `(blob|queue|share)_properties` for Storage kind [GH-25427]
-* `azurerm_storage_blob` - support for the `encryption_scope` property [GH-25551]
-* `azurerm_storage_container` - support for the `default_encryption_scope` and `encryption_scope_override_enabled` properties [GH-25551]
-* `azurerm_storage_data_lake_gen2_filesystem` - support for the `default_encryption_scope` property [GH-25551]
-* `azurerm_subnet` - `delegation.x.service_delegation.x.name` now supports `Oracle.Database/networkAttachments`  [GH-25571]
+* dependencies: updating to `v0.20240411.1104331` of `github.com/hashicorp/go-azure-sdk/resourcemanager` and `github.com/hashicorp/go-azure-sdk/sdk` ([#25546](https://github.com/hashicorp/terraform-provider-azurerm/issues/25546))
+* dependencies: updating to `v0.26.1` of `github.com/tombuildsstuff/giovanni` ([#25551](https://github.com/hashicorp/terraform-provider-azurerm/issues/25551))
+* `azurerm_key_vault` - deprecate the `contact` property from v3.x provider and update properties to Computed & Optional ([#25552](https://github.com/hashicorp/terraform-provider-azurerm/issues/25552))
+* `azurerm_key_vault_certificate_contacts` - in v4.0 make the `contact` property optional to allow for deletion of contacts from the key vault ([#25552](https://github.com/hashicorp/terraform-provider-azurerm/issues/25552))
+* `azurerm_signalr_service` - support for setting the `sku` property to `Premium_P2` ([#25578](https://github.com/hashicorp/terraform-provider-azurerm/issues/25578))
+* `azurerm_snapshot` - support for the `network_access_policy` and `public_network_access_enabled` properties ([#25421](https://github.com/hashicorp/terraform-provider-azurerm/issues/25421))
+* `azurerm_storage_account` - extend the support level of `(blob|queue|share)_properties` for Storage kind ([#25427](https://github.com/hashicorp/terraform-provider-azurerm/issues/25427))
+* `azurerm_storage_blob` - support for the `encryption_scope` property ([#25551](https://github.com/hashicorp/terraform-provider-azurerm/issues/25551))
+* `azurerm_storage_container` - support for the `default_encryption_scope` and `encryption_scope_override_enabled` properties ([#25551](https://github.com/hashicorp/terraform-provider-azurerm/issues/25551))
+* `azurerm_storage_data_lake_gen2_filesystem` - support for the `default_encryption_scope` property ([#25551](https://github.com/hashicorp/terraform-provider-azurerm/issues/25551))
+* `azurerm_subnet` - the `delegation.x.service_delegation.x.name` property now supports `Oracle.Database/networkAttachments` ([#25571](https://github.com/hashicorp/terraform-provider-azurerm/issues/25571))
+* `azurerm_web_pubsub` - support setting the `sku` property to `Premium_P2` ([#25578](https://github.com/hashicorp/terraform-provider-azurerm/issues/25578))
 
 BUG FIXES:
 
-* storage: fix a number of potential crashes during plan/apply with resources using the Storage data plane API [GH-25525]
-* `azurerm_application_insights` - fix issue where the wrong Application ID was set into the property `app_id` [GH-25520]
-* `azurerm_container_app_environment_certificate` - the `subject_name` attribute is now correctly populated [GH-25516]
-* `azurerm_function_app_slot` - will not taint the resource when partially created [GH-24520]
-* `azurerm_linux_function_app` - will not taint the resource when partially created [GH-24520]
-* `azurerm_managed_disk` - filtering the Resource SKUs response to reduce the memory overhead, when determining whether a Managed Disk can be online resized or not [GH-25549]
-* `azurerm_monitor_alert_prometheus_rule_group` - the `severity` property is now set correctly when `0` [GH-25408]
-* `azurerm_redis_cache_access_policy_assignment` - the `object_id_alias` property now allows usernames [GH-25523]
-* `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
-* `azurerm_windows_function_app` - will not taint the resource when partially created [GH-24520]
+* provider: fix an issue where the provider was not correctly configured when using a custom metadata host ([#25546](https://github.com/hashicorp/terraform-provider-azurerm/issues/25546))
+* storage: fix a number of potential crashes during plan/apply with resources using the Storage data plane API ([#25525](https://github.com/hashicorp/terraform-provider-azurerm/issues/25525))
+* `azurerm_application_insights` - fix issue where the wrong Application ID was set into the property `app_id` ([#25520](https://github.com/hashicorp/terraform-provider-azurerm/issues/25520))
+* `azurerm_application_insights_api_key` - add a state migration to re-case static segments of the resource ID  ([#25567](https://github.com/hashicorp/terraform-provider-azurerm/issues/25567))
+* `azurerm_container_app_environment_certificate` - the `subject_name` attribute is now correctly populated ([#25516](https://github.com/hashicorp/terraform-provider-azurerm/issues/25516))
+* `azurerm_function_app_slot` - will now taint the resource when partially created ([#24520](https://github.com/hashicorp/terraform-provider-azurerm/issues/24520))
+* `azurerm_linux_function_app` - will now taint the resource when partially created ([#24520](https://github.com/hashicorp/terraform-provider-azurerm/issues/24520))
+* `azurerm_managed_disk` - filtering the Resource SKUs response to reduce the memory overhead, when determining whether a Managed Disk can be online resized or not ([#25549](https://github.com/hashicorp/terraform-provider-azurerm/issues/25549))
+* `azurerm_monitor_alert_prometheus_rule_group` - the `severity` property is now set correctly when `0` ([#25408](https://github.com/hashicorp/terraform-provider-azurerm/issues/25408))
+* `azurerm_monitor_smart_detector_alert_rule` - normalising the value for `id` within the `action_group` block ([#25559](https://github.com/hashicorp/terraform-provider-azurerm/issues/25559))
+* `azurerm_redis_cache_access_policy_assignment` - the `object_id_alias` property now allows usernames ([#25523](https://github.com/hashicorp/terraform-provider-azurerm/issues/25523))
+* `azurerm_windows_function_app` - will not taint the resource when partially created ([#24520](https://github.com/hashicorp/terraform-provider-azurerm/issues/24520))
+* `azurerm_windows_function_app` - will not taint the resource when partially created ([#24520](https://github.com/hashicorp/terraform-provider-azurerm/issues/24520))
 
 DEPRECATIONS:
 
-* `azurerm_cosmosdb_account` - the `connection_strings` property has been superseded by the primary and secondary connection strings for sql, mongodb and readonly [GH-25510]
-* `azurerm_cosmosdb_account` - the `enable_free_tier` property has been superseded by `free_tier_enabled` [GH-25510]
-* `azurerm_cosmosdb_account` - the `enable_multiple_write_locations` property  has been superseded by `multiple_write_locations_enabled` [GH-25510]
-* `azurerm_cosmosdb_account` - the `enable_automatic_failover` property has been superseded by `automatic_failover_enabled` [GH-25510]
+* `azurerm_cosmosdb_account` - the `connection_strings` property has been superseded by the primary and secondary connection strings for sql, mongodb and readonly ([#25510](https://github.com/hashicorp/terraform-provider-azurerm/issues/25510))
+* `azurerm_cosmosdb_account` - the `enable_free_tier` property has been superseded by `free_tier_enabled` ([#25510](https://github.com/hashicorp/terraform-provider-azurerm/issues/25510))
+* `azurerm_cosmosdb_account` - the `enable_multiple_write_locations` property  has been superseded by `multiple_write_locations_enabled` ([#25510](https://github.com/hashicorp/terraform-provider-azurerm/issues/25510))
+* `azurerm_cosmosdb_account` - the `enable_automatic_failover` property has been superseded by `automatic_failover_enabled` ([#25510](https://github.com/hashicorp/terraform-provider-azurerm/issues/25510))
 
 ## 3.98.0 (April 04, 2024)
 

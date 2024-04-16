@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -65,17 +64,25 @@ type storageAccountServiceSupportLevel struct {
 	supportStaticWebsite bool
 }
 
-func resolveStorageAccountServiceSupportLevel(kind storage.Kind, tier storage.SkuTier) storageAccountServiceSupportLevel {
+func resolveStorageAccountServiceSupportLevel(kind storage.Kind, tier storage.SkuTier, replicationType string) storageAccountServiceSupportLevel {
 	// FileStorage doesn't support blob
 	supportBlob := kind != storage.KindFileStorage
 
 	// Queue is only supported for Storage and StorageV2, in Standard sku tier.
-	supportQueue := tier == storage.SkuTierStandard && slices.Contains([]storage.Kind{storage.KindStorage, storage.KindStorageV2}, kind)
+	supportQueue := tier == storage.SkuTierStandard && (kind == storage.KindStorageV2 ||
+		(kind == storage.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support queue endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no queue endpoint.
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
 
 	// File share is only supported for StorageV2 and FileStorage.
 	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
 	// Per test, the StorageV2 with Premium sku tier also doesn't support file share.
-	supportShare := kind == storage.KindFileStorage || (slices.Contains([]storage.Kind{storage.KindStorage, storage.KindStorageV2}, kind) && tier != storage.SkuTierPremium)
+	supportShare := kind == storage.KindFileStorage || (tier != storage.SkuTierPremium && (kind == storage.KindStorageV2 ||
+		(kind == storage.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support file endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no file endpoint.
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType))))
 
 	// Static Website is only supported for StorageV2 (not for Storage(v1)) and BlockBlobStorage
 	supportStaticWebSite := kind == storage.KindStorageV2 || kind == storage.KindBlockBlobStorage
@@ -1304,7 +1311,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 }
 
 func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	envName := meta.(*clients.Client).Account.Environment.Name
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	storageClient := meta.(*clients.Client).Storage
@@ -1353,44 +1359,32 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	parameters := storage.AccountCreateParameters{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Kind:             accountKind,
 		Location:         &location,
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
 		Tags: tags.Expand(t),
-		Kind: accountKind,
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			PublicNetworkAccess:          publicNetworkAccess,
-			EnableHTTPSTrafficOnly:       &enableHTTPSTrafficOnly,
-			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
-			IsHnsEnabled:                 &isHnsEnabled,
-			EnableNfsV3:                  &nfsV3Enabled,
-			AllowSharedKeyAccess:         &allowSharedKeyAccess,
-			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
+			AllowBlobPublicAccess:        &allowBlobPublicAccess,
 			AllowCrossTenantReplication:  &crossTenantReplication,
-			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
-			IsSftpEnabled:                &isSftpEnabled,
-			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
+			AllowSharedKeyAccess:         &allowSharedKeyAccess,
 			DNSEndpointType:              storage.DNSEndpointType(dnsEndpointType),
+			DefaultToOAuthAuthentication: &defaultToOAuthAuthentication,
+			EnableHTTPSTrafficOnly:       &enableHTTPSTrafficOnly,
+			EnableNfsV3:                  &nfsV3Enabled,
+			IsHnsEnabled:                 &isHnsEnabled,
+			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
+			IsSftpEnabled:                &isSftpEnabled,
+			MinimumTLSVersion:            storage.MinimumTLSVersion(minimumTLSVersion),
+			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
+			PublicNetworkAccess:          publicNetworkAccess,
+			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 		},
 	}
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
 		parameters.AccountPropertiesCreateParameters.AllowedCopyScope = storage.AllowedCopyScope(v)
-	}
-
-	// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
-	// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-	if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
-		if allowBlobPublicAccess || minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
-			return fmt.Errorf(`"allow_nested_items_to_be_public" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
-		}
-	} else {
-		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
-		parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
 	}
 
 	storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
@@ -1558,7 +1552,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
-	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		if !supportLevel.supportBlob {
@@ -1589,6 +1583,17 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
 				// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
 				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
+			}
+		}
+
+		// TODO: This is a temporary limitation on Storage service. Remove this check once the API supports this scenario.
+		// See https://github.com/hashicorp/terraform-provider-azurerm/pull/25450#discussion_r1542471667 for the context.
+		if dnsEndpointType == string(storage.DNSEndpointTypeAzureDNSZone) {
+			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+				// Otherwise, API returns: "Required feature Global Dns is disabled"
+				// This is confirmed with the SRP team, where they said:
+				// > restorePolicy feature is incompatible with partitioned DNS
+				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storage.DNSEndpointTypeAzureDNSZone)
 			}
 		}
 
@@ -1681,7 +1686,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	envName := meta.(*clients.Client).Account.Environment.Name
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.AccountsClient
 	keyVaultClient := meta.(*clients.Client).KeyVault
@@ -1826,35 +1830,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("min_tls_version") {
-		minimumTLSVersion := d.Get("min_tls_version").(string)
-
-		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "min_tls_version" in request body.
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
-			if minimumTLSVersion != string(storage.MinimumTLSVersionTLS10) {
-				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
-			}
-		} else {
-			props.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
-		}
+		props.MinimumTLSVersion = storage.MinimumTLSVersion(d.Get("min_tls_version").(string))
 	}
 
 	if d.HasChange("allow_nested_items_to_be_public") {
-		allowBlobPublicAccess := d.Get("allow_nested_items_to_be_public").(bool)
-
-		// For all Clouds except Public, China, and USGovernmentCloud, don't specify "allow_blob_public_access" in request body.
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-		// USGovernmentCloud "allow_blob_public_access" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
-			if allowBlobPublicAccess {
-				return fmt.Errorf("allow_nested_items_to_be_public is not supported for a Storage Account located in %q", envName)
-			}
-		} else {
-			props.AllowBlobPublicAccess = pointer.To(allowBlobPublicAccess)
-		}
+		props.AllowBlobPublicAccess = pointer.To(d.Get("allow_nested_items_to_be_public").(bool))
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -1935,7 +1915,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// Followings are updates to the sub-services
-	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
 
 	if d.HasChange("blob_properties") {
 		if !supportLevel.supportBlob {
@@ -1950,6 +1930,15 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+		}
+
+		if d.Get("dns_endpoint_type").(string) == string(storage.DNSEndpointTypeAzureDNSZone) {
+			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+				// Otherwise, API returns: "Required feature Global Dns is disabled"
+				// This is confirmed with the SRP team, where they said:
+				// > restorePolicy feature is incompatible with partitioned DNS
+				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storage.DNSEndpointTypeAzureDNSZone)
+			}
 		}
 
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
@@ -2142,22 +2131,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		// lintignore:R001
 		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
-		// For all Clouds except Public, China, and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/7812
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/8083
-		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/9128
-		envName := meta.(*clients.Client).Account.Environment.Name
-		if envName != environments.AzurePublicCloud && envName != environments.AzureUSGovernmentCloud && envName != environments.AzureChinaCloud {
-			d.Set("min_tls_version", string(storage.MinimumTLSVersionTLS10))
-		} else {
-			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
-			minTlsVersion := string(storage.MinimumTLSVersionTLS10)
-			if props.MinimumTLSVersion != "" {
-				minTlsVersion = string(props.MinimumTLSVersion)
-			}
-			d.Set("min_tls_version", minTlsVersion)
+		// For storage account created using old API, the response of GET call will not return "min_tls_version"
+		minTlsVersion := string(storage.MinimumTLSVersionTLS10)
+		if props.MinimumTLSVersion != "" {
+			minTlsVersion = string(props.MinimumTLSVersion)
 		}
+		d.Set("min_tls_version", minTlsVersion)
 
 		if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(props.CustomDomain)); err != nil {
 			return fmt.Errorf("setting `custom_domain`: %+v", err)
@@ -2306,7 +2285,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if resp.Sku != nil {
 		tier = resp.Sku.Tier
 	}
-	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier, d.Get("account_replication_type").(string))
 
 	if supportLevel.supportBlob {
 		blobClient := storageClient.BlobServicesClient

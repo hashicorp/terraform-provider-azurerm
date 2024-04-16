@@ -34,7 +34,7 @@ type Client struct {
 	BlobServicesClient *storage.BlobServicesClient
 	FileServicesClient *storage.FileServicesClient
 
-	authorizerForAad auth.Authorizer
+	authConfigForAzureAD *auth.Credentials
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -95,7 +95,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	if o.StorageUseAzureAD {
-		client.authorizerForAad = o.Authorizers.Storage
+		client.authConfigForAzureAD = o.AuthConfig
 	}
 
 	return &client, nil
