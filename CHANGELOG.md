@@ -3,6 +3,7 @@
 FEATURES:
 
 * `compute` - update Virtual Machine and Virtual Machine Scale Set resources and data sources to use `hashicorp/go-azure-sdk` [GH-25533]
+* `machine_learning` - Add new `machine_learning` block that supports `purge_soft_deleted_workspace_on_destroy` [GH-25624]
 * `azurerm_container_group` - the `identity` block can now be updated [GH-25543]
 
 BUG FIXES:
