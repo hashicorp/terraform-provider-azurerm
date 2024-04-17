@@ -189,12 +189,14 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 	}
 }
 
+// nolint unparam
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
 
 	output.Description = &input.Description
 	return nil
 }
 
+// nolint unparam
 func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input loadtests.LoadTestProperties, output *LoadTestResourceSchema) error {
 	output.DataPlaneURI = pointer.From(input.DataPlaneURI)
 	output.Description = pointer.From(input.Description)
@@ -255,6 +257,7 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(inpu
 	return nil
 }
 
+// nolint: unused
 func (r LoadTestResource) mapLoadTestResourceUpdateToLoadTestResourceSchema(input loadtests.LoadTestResourceUpdate, output *LoadTestResourceSchema) error {
 
 	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
