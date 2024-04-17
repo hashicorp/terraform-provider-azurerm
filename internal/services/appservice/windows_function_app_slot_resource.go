@@ -548,8 +548,6 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 			if functionAppSlot.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppSlot.VirtualNetworkSubnetID)
-				// (@apokalypt) Azure requires this property to be set when VirtualNetworkSubnetId is set
-				// https://github.com/hashicorp/terraform-provider-azurerm/issues/24618#issuecomment-2058710360
 				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
 			}
 
