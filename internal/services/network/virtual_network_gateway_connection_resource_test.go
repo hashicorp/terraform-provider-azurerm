@@ -522,10 +522,10 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type       = "ExpressRoute"
-  sku        = "UltraPerformance"
-  vpn_type   = "PolicyBased"
-  enable_bgp = false
+  type                        = "ExpressRoute"
+  sku                         = "UltraPerformance"
+  vpn_type                    = "PolicyBased"
+  enable_bgp                  = false
   remote_vnet_traffic_enabled = true
   virtual_wan_traffic_enabled = true
 
@@ -554,7 +554,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type                       = "ExpressRoute"
+  type = "ExpressRoute"
 
   virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
   express_route_circuit_id   = azurerm_express_route_circuit.test.id
@@ -628,10 +628,10 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type       = "ExpressRoute"
-  sku        = "UltraPerformance"
-  vpn_type   = "PolicyBased"
-  enable_bgp = false
+  type                        = "ExpressRoute"
+  sku                         = "UltraPerformance"
+  vpn_type                    = "PolicyBased"
+  enable_bgp                  = false
   remote_vnet_traffic_enabled = true
   virtual_wan_traffic_enabled = true
 
@@ -660,12 +660,12 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type                       = "ExpressRoute"
+  type = "ExpressRoute"
 
-  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
-  express_route_circuit_id   = azurerm_express_route_circuit.test.id
-  authorization_key          = azurerm_express_route_circuit_authorization.test.authorization_key
-  routing_weight             = "0"
+  virtual_network_gateway_id     = azurerm_virtual_network_gateway.test.id
+  express_route_circuit_id       = azurerm_express_route_circuit.test.id
+  authorization_key              = azurerm_express_route_circuit_authorization.test.authorization_key
+  routing_weight                 = "0"
   express_route_gateway_bypass   = true
   private_link_fast_path_enabled = true
 }
