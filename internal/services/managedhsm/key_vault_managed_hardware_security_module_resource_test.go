@@ -22,14 +22,25 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being able provision against one instance at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"resource": {
+		"dataSource": {
 			"data_source": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
-			"basic":       testAccKeyVaultManagedHardwareSecurityModule_basic,
-			"update":      testAccKeyVaultManagedHardwareSecurityModule_updateAndRequiresImport,
-			"complete":    testAccKeyVaultManagedHardwareSecurityModule_complete,
-			"download":    testAccKeyVaultManagedHardwareSecurityModule_download,
+		},
+		"resource": {
+			"basic":    testAccKeyVaultManagedHardwareSecurityModule_basic,
+			"update":   testAccKeyVaultManagedHardwareSecurityModule_updateAndRequiresImport,
+			"complete": testAccKeyVaultManagedHardwareSecurityModule_complete,
+			"download": testAccKeyVaultManagedHardwareSecurityModule_download,
+		},
+		"roleAssignments": {
+			"builtInRole": testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_builtInRole,
+			"customRole":  testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_customRole,
+
+			// TODO: these 2 can be removed in 4.0
+			"legacyBuiltInRole": testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyBuiltInRole,
+			"legacyCustomRole":  testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyCustomRole,
+		},
+		"roleDefinitions": {
 			"role_define": testAccKeyVaultManagedHardwareSecurityModule_roleDefinition,
-			"role_assign": testAccKeyVaultManagedHardwareSecurityModule_roleAssignment,
 		},
 	})
 }
@@ -92,28 +103,6 @@ func testAccKeyVaultManagedHardwareSecurityModule_roleDefinition(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withRoleDefinitionUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccKeyVaultManagedHardwareSecurityModule_roleAssignment(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultManagedHSMRoleAssignmentResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withRoleAssignment(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withBuiltInRoleAssignment(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
