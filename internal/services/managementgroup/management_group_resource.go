@@ -216,6 +216,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
+	accountClient := meta.(*clients.Client)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -223,6 +224,10 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return err
 	}
+
+	tenantID := accountClient.Account.TenantId
+	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(tenantID, id.Name)
+	d.Set("management_group_id", idForSystemTopic)
 
 	recurse := utils.Bool(true)
 	resp, err := client.Get(ctx, id.Name, "children", recurse, "", managementGroupCacheControl)
