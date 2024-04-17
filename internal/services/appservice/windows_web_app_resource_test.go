@@ -2767,7 +2767,7 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   app_settings = {
-	"foo" = "bar"
+    "foo" = "bar"
   }
 
   site_config {
