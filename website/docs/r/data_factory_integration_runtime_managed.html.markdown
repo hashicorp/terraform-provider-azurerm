@@ -49,13 +49,15 @@ The following arguments are supported:
 
 * `number_of_nodes` - (Optional) Number of nodes for the Managed Integration Runtime. Max is `10`. Defaults to `1`.
 
-* `max_parallel_executions_per_node` - (Optional) Defines the maximum parallel executions per node. Defaults to `1`. Max is `16`.
+* `max_parallel_executions_per_node` - (Optional) Defines the maximum parallel executions per node. Defaults to `1`. Max is `1`.
 
 * `edition` - (Optional) The Managed Integration Runtime edition. Valid values are `Standard` and `Enterprise`. Defaults to `Standard`.
 
 * `license_type` - (Optional) The type of the license that is used. Valid values are `LicenseIncluded` and `BasePrice`. Defaults to `LicenseIncluded`.
 
 * `catalog_info` - (Optional) A `catalog_info` block as defined below.
+
+* `credential_name` - (Optional) The name of the credential to use for the Managed Integration Runtime.
 
 * `custom_setup_script` - (Optional) A `custom_setup_script` block as defined below.
 
@@ -73,7 +75,7 @@ A `catalog_info` block supports the following:
 
 * `administrator_password` - (Optional) Administrator login password for the SQL Server.
 
-* `pricing_tier` - (Optional) Pricing tier for the database that will be created for the SSIS catalog. Valid values are: `Basic`, `Standard`, `Premium` and `PremiumRS`.
+* `pricing_tier` - (Optional) Pricing tier for the database that will be created for the SSIS catalog. Valid values are: `Basic`, `Standard`, `Premium` and `PremiumRS`. Defaults to `Basic`.
 
 ---
 

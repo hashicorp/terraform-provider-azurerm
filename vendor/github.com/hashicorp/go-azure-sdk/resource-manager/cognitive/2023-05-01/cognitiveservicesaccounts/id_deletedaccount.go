@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeletedAccountId{}
+func init() {
+	recaser.RegisterResourceId(&DeletedAccountId{})
+}
+
+var _ resourceids.ResourceId = &DeletedAccountId{}
 
 // DeletedAccountId is a struct representing the Resource ID for a Deleted Account
 type DeletedAccountId struct {
@@ -32,29 +37,15 @@ func NewDeletedAccountID(subscriptionId string, locationName string, resourceGro
 
 // ParseDeletedAccountID parses 'input' into a DeletedAccountId
 func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DeletedAccountName, ok = parsed.Parsed["deletedAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedAccountName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseDeletedAccountID(input string) (*DeletedAccountId, error) {
 // ParseDeletedAccountIDInsensitively parses 'input' case-insensitively into a DeletedAccountId
 // note: this method should only be used for API response data and not user input
 func ParseDeletedAccountIDInsensitively(input string) (*DeletedAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedAccountId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.DeletedAccountName, ok = parsed.Parsed["deletedAccountName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedAccountName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeletedAccountId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LocationName, ok = input.Parsed["locationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "locationName", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.DeletedAccountName, ok = input.Parsed["deletedAccountName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deletedAccountName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeletedAccountID checks that 'input' can be parsed as a Deleted Account ID

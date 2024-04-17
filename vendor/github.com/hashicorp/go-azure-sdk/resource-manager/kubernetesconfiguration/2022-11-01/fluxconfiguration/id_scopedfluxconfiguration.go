@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedFluxConfigurationId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedFluxConfigurationId{})
+}
+
+var _ resourceids.ResourceId = &ScopedFluxConfigurationId{}
 
 // ScopedFluxConfigurationId is a struct representing the Resource ID for a Scoped Flux Configuration
 type ScopedFluxConfigurationId struct {
@@ -28,21 +33,15 @@ func NewScopedFluxConfigurationID(scope string, fluxConfigurationName string) Sc
 
 // ParseScopedFluxConfigurationID parses 'input' into a ScopedFluxConfigurationId
 func ParseScopedFluxConfigurationID(input string) (*ScopedFluxConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedFluxConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedFluxConfigurationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedFluxConfigurationId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.FluxConfigurationName, ok = parsed.Parsed["fluxConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluxConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseScopedFluxConfigurationID(input string) (*ScopedFluxConfigurationId, e
 // ParseScopedFluxConfigurationIDInsensitively parses 'input' case-insensitively into a ScopedFluxConfigurationId
 // note: this method should only be used for API response data and not user input
 func ParseScopedFluxConfigurationIDInsensitively(input string) (*ScopedFluxConfigurationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedFluxConfigurationId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedFluxConfigurationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopedFluxConfigurationId{}
-
-	if id.Scope, ok = parsed.Parsed["scope"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scope", *parsed)
-	}
-
-	if id.FluxConfigurationName, ok = parsed.Parsed["fluxConfigurationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "fluxConfigurationName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopedFluxConfigurationId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.Scope, ok = input.Parsed["scope"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scope", input)
+	}
+
+	if id.FluxConfigurationName, ok = input.Parsed["fluxConfigurationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "fluxConfigurationName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopedFluxConfigurationID checks that 'input' can be parsed as a Scoped Flux Configuration ID

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1124,7 +1124,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 												"components": {
 													Type:     pluginsdk.TypeString,
 													Optional: true,
-													Computed: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														"path_only",
 														"query_string_only",
@@ -1987,8 +1986,12 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("firewall_policy_id") {
-		applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
-			ID: utils.String(d.Get("firewall_policy_id").(string)),
+		if d.Get("firewall_policy_id").(string) != "" {
+			applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
+				ID: utils.String(d.Get("firewall_policy_id").(string)),
+			}
+		} else {
+			applicationGateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = nil
 		}
 	}
 
@@ -3845,6 +3848,7 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 						if actionSet.URLConfiguration != nil {
 							config := *actionSet.URLConfiguration
 							components := ""
+
 							path := ""
 							if config.ModifiedPath != nil {
 								path = *config.ModifiedPath
@@ -3855,12 +3859,17 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 								queryString = *config.ModifiedQueryString
 							}
 
-							if path != queryString {
-								if path != "" && queryString == "" {
-									components = "path_only"
-								} else if queryString != "" && path == "" {
-									components = "query_string_only"
-								}
+							// `components` doesn't exist in the API - it appears to be purely a UI state in the Portal
+							// as such we should consider removing this field in the future.
+							if path == queryString {
+								// used to represent `both`
+								components = ""
+							}
+							if config.ModifiedQueryString != nil && config.ModifiedPath == nil {
+								components = "query_string_only"
+							}
+							if config.ModifiedQueryString == nil && config.ModifiedPath != nil {
+								components = "path_only"
 							}
 
 							reroute := false

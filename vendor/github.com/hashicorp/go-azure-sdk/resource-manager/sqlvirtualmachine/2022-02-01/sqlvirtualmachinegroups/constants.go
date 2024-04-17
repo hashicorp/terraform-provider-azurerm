@@ -1,6 +1,10 @@
 package sqlvirtualmachinegroups
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -15,6 +19,19 @@ func PossibleValuesForClusterConfiguration() []string {
 	return []string{
 		string(ClusterConfigurationDomainful),
 	}
+}
+
+func (s *ClusterConfiguration) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterConfiguration(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseClusterConfiguration(input string) (*ClusterConfiguration, error) {
@@ -40,6 +57,19 @@ func PossibleValuesForClusterManagerType() []string {
 	return []string{
 		string(ClusterManagerTypeWSFC),
 	}
+}
+
+func (s *ClusterManagerType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterManagerType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseClusterManagerType(input string) (*ClusterManagerType, error) {
@@ -69,6 +99,19 @@ func PossibleValuesForClusterSubnetType() []string {
 	}
 }
 
+func (s *ClusterSubnetType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseClusterSubnetType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseClusterSubnetType(input string) (*ClusterSubnetType, error) {
 	vals := map[string]ClusterSubnetType{
 		"multisubnet":  ClusterSubnetTypeMultiSubnet,
@@ -93,6 +136,19 @@ func PossibleValuesForScaleType() []string {
 	return []string{
 		string(ScaleTypeHA),
 	}
+}
+
+func (s *ScaleType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScaleType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseScaleType(input string) (*ScaleType, error) {
@@ -120,6 +176,19 @@ func PossibleValuesForSqlVMGroupImageSku() []string {
 		string(SqlVMGroupImageSkuDeveloper),
 		string(SqlVMGroupImageSkuEnterprise),
 	}
+}
+
+func (s *SqlVMGroupImageSku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSqlVMGroupImageSku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseSqlVMGroupImageSku(input string) (*SqlVMGroupImageSku, error) {

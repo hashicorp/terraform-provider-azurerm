@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -62,7 +63,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				ValidateFunc: keyVaultValidate.NestedItemName,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"certificate": {
 				Type:     pluginsdk.TypeList,
@@ -620,7 +621,28 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			d.SetId(certificateId.ID())
 		}
 	}
-	if d.HasChange("certificate_policy") {
+
+	// update lifetime_action only should not recreate a certificate
+	var lifeTimeOld, lifeTimeNew interface{}
+	var policyOld, policyNew map[string]interface{}
+
+	policyOldRaw, policyNewRaw := d.GetChange("certificate_policy")
+	policyOldList, policyNewList := policyOldRaw.([]interface{}), policyNewRaw.([]interface{})
+
+	if len(policyOldList) > 0 {
+		policyOld = policyOldList[0].(map[string]interface{})
+		lifeTimeOld = policyOld["lifetime_action"]
+		delete(policyOld, "lifetime_action")
+	}
+	if len(policyNewList) > 0 {
+		policyNew = policyNewList[0].(map[string]interface{})
+		lifeTimeNew = policyNew["lifetime_action"]
+		delete(policyNew, "lifetime_action")
+	}
+
+	// do not recreate cerfiticate when only lifetime_action changes
+	if !cmp.Equal(policyNewList, policyOldList) {
+		policyNew["lifetime_action"] = lifeTimeNew
 		newCert, err := createCertificate(d, meta)
 		if err != nil {
 			return err
@@ -632,10 +654,18 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 		d.SetId(certificateId.ID())
 	}
 
-	if d.HasChange("tags") {
+	if updateLifetime := !cmp.Equal(lifeTimeOld, lifeTimeNew); d.HasChange("tags") || updateLifetime {
 		patch := keyvault.CertificateUpdateParameters{}
-		if t, ok := d.GetOk("tags"); ok {
-			patch.Tags = tags.Expand(t.(map[string]interface{}))
+		if d.HasChange("tags") {
+			if t, ok := d.GetOk("tags"); ok {
+				patch.Tags = tags.Expand(t.(map[string]interface{}))
+			}
+		}
+
+		if updateLifetime {
+			patch.CertificatePolicy = &keyvault.CertificatePolicy{
+				LifetimeActions: expandKeyVaultCertificatePolicyLifetimeAction(lifeTimeNew),
+			}
 		}
 
 		if _, err = client.UpdateCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "", patch); err != nil {
@@ -676,7 +706,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -685,7 +715,8 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -777,7 +808,7 @@ func resourceKeyVaultCertificateRead(d *pluginsdk.ResourceData, meta interface{}
 func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.ManagementClient
-	resourcesClient := meta.(*clients.Client).Resource
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -786,7 +817,8 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, resourcesClient, id.KeyVaultBaseUrl)
+	subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+	keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, id.KeyVaultBaseUrl)
 	if err != nil {
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
@@ -906,41 +938,7 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 		ReuseKey:   utils.Bool(props["reuse_key"].(bool)),
 	}
 
-	lifetimeActions := make([]keyvault.LifetimeAction, 0)
-	actions := policyRaw["lifetime_action"].([]interface{})
-	for _, v := range actions {
-		action := v.(map[string]interface{})
-		lifetimeAction := keyvault.LifetimeAction{}
-
-		if v, ok := action["action"]; ok {
-			as := v.([]interface{})
-			a := as[0].(map[string]interface{})
-			lifetimeAction.Action = &keyvault.Action{
-				ActionType: keyvault.CertificatePolicyAction(a["action_type"].(string)),
-			}
-		}
-
-		if v, ok := action["trigger"]; ok {
-			triggers := v.([]interface{})
-			if triggers[0] != nil {
-				trigger := triggers[0].(map[string]interface{})
-				lifetimeAction.Trigger = &keyvault.Trigger{}
-
-				d := trigger["days_before_expiry"].(int)
-				if d > 0 {
-					lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
-				}
-
-				p := trigger["lifetime_percentage"].(int)
-				if p > 0 {
-					lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
-				}
-			}
-		}
-
-		lifetimeActions = append(lifetimeActions, lifetimeAction)
-	}
-	policy.LifetimeActions = &lifetimeActions
+	policy.LifetimeActions = expandKeyVaultCertificatePolicyLifetimeAction(policyRaw["lifetime_action"])
 
 	secrets := policyRaw["secret_properties"].([]interface{})
 	secret := secrets[0].(map[string]interface{})
@@ -995,6 +993,47 @@ func expandKeyVaultCertificatePolicy(d *pluginsdk.ResourceData) (*keyvault.Certi
 	}
 
 	return &policy, nil
+}
+
+func expandKeyVaultCertificatePolicyLifetimeAction(actions interface{}) *[]keyvault.LifetimeAction {
+	lifetimeActions := make([]keyvault.LifetimeAction, 0)
+	if actions == nil {
+		return &lifetimeActions
+	}
+
+	for _, v := range actions.([]interface{}) {
+		action := v.(map[string]interface{})
+		lifetimeAction := keyvault.LifetimeAction{}
+
+		if v, ok := action["action"]; ok {
+			as := v.([]interface{})
+			a := as[0].(map[string]interface{})
+			lifetimeAction.Action = &keyvault.Action{
+				ActionType: keyvault.CertificatePolicyAction(a["action_type"].(string)),
+			}
+		}
+
+		if v, ok := action["trigger"]; ok {
+			triggers := v.([]interface{})
+			if triggers[0] != nil {
+				trigger := triggers[0].(map[string]interface{})
+				lifetimeAction.Trigger = &keyvault.Trigger{}
+
+				d := trigger["days_before_expiry"].(int)
+				if d > 0 {
+					lifetimeAction.Trigger.DaysBeforeExpiry = utils.Int32(int32(d))
+				}
+
+				p := trigger["lifetime_percentage"].(int)
+				if p > 0 {
+					lifetimeAction.Trigger.LifetimePercentage = utils.Int32(int32(p))
+				}
+			}
+		}
+
+		lifetimeActions = append(lifetimeActions, lifetimeAction)
+	}
+	return &lifetimeActions
 }
 
 func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certData *[]byte) []interface{} {

@@ -20,7 +20,7 @@ data "azurerm_eventgrid_domain" "example" {
 }
 
 output "eventgrid_domain_mapping_topic" {
-  value = data.azurerm_eventgrid_domain.example.input_mapping_fields.0.topic
+  value = data.azurerm_eventgrid_domain.example.input_mapping_fields[0].topic
 }
 ```
 

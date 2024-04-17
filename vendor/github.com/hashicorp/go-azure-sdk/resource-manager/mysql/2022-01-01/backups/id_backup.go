@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = BackupId{}
+func init() {
+	recaser.RegisterResourceId(&BackupId{})
+}
+
+var _ resourceids.ResourceId = &BackupId{}
 
 // BackupId is a struct representing the Resource ID for a Backup
 type BackupId struct {
@@ -32,29 +37,15 @@ func NewBackupID(subscriptionId string, resourceGroupName string, flexibleServer
 
 // ParseBackupID parses 'input' into a BackupId
 func ParseBackupID(input string) (*BackupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackupId{})
+	parser := resourceids.NewParserFromResourceIdType(&BackupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BackupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FlexibleServerName, ok = parsed.Parsed["flexibleServerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "flexibleServerName", *parsed)
-	}
-
-	if id.BackupName, ok = parsed.Parsed["backupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "backupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseBackupID(input string) (*BackupId, error) {
 // ParseBackupIDInsensitively parses 'input' case-insensitively into a BackupId
 // note: this method should only be used for API response data and not user input
 func ParseBackupIDInsensitively(input string) (*BackupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(BackupId{})
+	parser := resourceids.NewParserFromResourceIdType(&BackupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := BackupId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.FlexibleServerName, ok = parsed.Parsed["flexibleServerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "flexibleServerName", *parsed)
-	}
-
-	if id.BackupName, ok = parsed.Parsed["backupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "backupName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *BackupId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.FlexibleServerName, ok = input.Parsed["flexibleServerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "flexibleServerName", input)
+	}
+
+	if id.BackupName, ok = input.Parsed["backupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "backupName", input)
+	}
+
+	return nil
 }
 
 // ValidateBackupID checks that 'input' can be parsed as a Backup ID

@@ -77,7 +77,7 @@ resource "azurerm_private_link_service" "example" {
   }
 
   load_balancer_frontend_ip_configuration_ids = [
-    azurerm_lb.example.frontend_ip_configuration.0.id,
+    azurerm_lb.example.frontend_ip_configuration[0].id,
   ]
 }
 
@@ -238,7 +238,9 @@ A `private_service_connection` block supports the following:
 
 -> **NOTE:** Some resource types (such as Storage Account) only support 1 subresource per private endpoint.
 
-* `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
+* `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The provider allows a maximum request message length of `140` characters, however the request message maximum length is dependent on the service the private endpoint is connected to. Only valid if `is_manual_connection` is set to `true`.
+
+-> **NOTE:** When connected to an SQL resource the `request_message` maximum length is `128`.
 
 ---
 
@@ -267,8 +269,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
-
-* `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
 
 ---
 
@@ -321,12 +321,6 @@ An `ip_configuration` block exports:
 * `private_ip_address` - (Required) The static IP address set by this configuration. It is recommended to use the private IP address exported in the `private_service_connection` block to obtain the address associated with the private endpoint.
 
 * `subresource_name` - (Required) The subresource this IP address applies to, which corresponds to the `group_id`.
-
----
-
-A `private_dns_zone_configs` block exports:
-
-* `record_sets` - A `record_sets` block as defined below.
 
 ---
 

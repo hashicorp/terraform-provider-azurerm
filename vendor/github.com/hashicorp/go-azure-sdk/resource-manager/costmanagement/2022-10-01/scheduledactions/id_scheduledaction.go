@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScheduledActionId{}
+func init() {
+	recaser.RegisterResourceId(&ScheduledActionId{})
+}
+
+var _ resourceids.ResourceId = &ScheduledActionId{}
 
 // ScheduledActionId is a struct representing the Resource ID for a Scheduled Action
 type ScheduledActionId struct {
@@ -26,17 +31,15 @@ func NewScheduledActionID(scheduledActionName string) ScheduledActionId {
 
 // ParseScheduledActionID parses 'input' into a ScheduledActionId
 func ParseScheduledActionID(input string) (*ScheduledActionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScheduledActionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScheduledActionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScheduledActionId{}
-
-	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +48,28 @@ func ParseScheduledActionID(input string) (*ScheduledActionId, error) {
 // ParseScheduledActionIDInsensitively parses 'input' case-insensitively into a ScheduledActionId
 // note: this method should only be used for API response data and not user input
 func ParseScheduledActionIDInsensitively(input string) (*ScheduledActionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScheduledActionId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScheduledActionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScheduledActionId{}
-
-	if id.ScheduledActionName, ok = parsed.Parsed["scheduledActionName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScheduledActionId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ScheduledActionName, ok = input.Parsed["scheduledActionName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scheduledActionName", input)
+	}
+
+	return nil
 }
 
 // ValidateScheduledActionID checks that 'input' can be parsed as a Scheduled Action ID

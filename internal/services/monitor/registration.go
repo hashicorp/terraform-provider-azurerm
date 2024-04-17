@@ -23,6 +23,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		DataCollectionEndpointDataSource{},
 		DataCollectionRuleDataSource{},
+		WorkspaceDataSource{},
 	}
 }
 

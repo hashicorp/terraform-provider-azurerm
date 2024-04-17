@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AssessmentMetadataId{}
+func init() {
+	recaser.RegisterResourceId(&AssessmentMetadataId{})
+}
+
+var _ resourceids.ResourceId = &AssessmentMetadataId{}
 
 // AssessmentMetadataId is a struct representing the Resource ID for a Assessment Metadata
 type AssessmentMetadataId struct {
@@ -26,17 +31,15 @@ func NewAssessmentMetadataID(assessmentMetadataName string) AssessmentMetadataId
 
 // ParseAssessmentMetadataID parses 'input' into a AssessmentMetadataId
 func ParseAssessmentMetadataID(input string) (*AssessmentMetadataId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AssessmentMetadataId{})
+	parser := resourceids.NewParserFromResourceIdType(&AssessmentMetadataId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AssessmentMetadataId{}
-
-	if id.AssessmentMetadataName, ok = parsed.Parsed["assessmentMetadataName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +48,28 @@ func ParseAssessmentMetadataID(input string) (*AssessmentMetadataId, error) {
 // ParseAssessmentMetadataIDInsensitively parses 'input' case-insensitively into a AssessmentMetadataId
 // note: this method should only be used for API response data and not user input
 func ParseAssessmentMetadataIDInsensitively(input string) (*AssessmentMetadataId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AssessmentMetadataId{})
+	parser := resourceids.NewParserFromResourceIdType(&AssessmentMetadataId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AssessmentMetadataId{}
-
-	if id.AssessmentMetadataName, ok = parsed.Parsed["assessmentMetadataName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AssessmentMetadataId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.AssessmentMetadataName, ok = input.Parsed["assessmentMetadataName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", input)
+	}
+
+	return nil
 }
 
 // ValidateAssessmentMetadataID checks that 'input' can be parsed as a Assessment Metadata ID

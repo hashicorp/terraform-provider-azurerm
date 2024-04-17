@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -117,6 +117,12 @@ func firewallDataSource() *pluginsdk.Resource {
 				},
 			},
 
+			"dns_proxy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"virtual_hub": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -153,7 +159,7 @@ func firewallDataSource() *pluginsdk.Resource {
 }
 
 func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.AzureFirewalls
+	client := meta.(*clients.Client).Network.AzureFirewalls
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,7 +198,11 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			d.Set("threat_intel_mode", string(pointer.From(props.ThreatIntelMode)))
 
-			if err := d.Set("dns_servers", flattenFirewallDNSServers(props.AdditionalProperties)); err != nil {
+			dnsProxyEnabeld, dnsServers := flattenFirewallAdditionalProperty(props.AdditionalProperties)
+			if err := d.Set("dns_proxy_enabled", dnsProxyEnabeld); err != nil {
+				return fmt.Errorf("setting `dns_proxy_enabled`: %+v", err)
+			}
+			if err := d.Set("dns_servers", dnsServers); err != nil {
 				return fmt.Errorf("setting `dns_servers`: %+v", err)
 			}
 

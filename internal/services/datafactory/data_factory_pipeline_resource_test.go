@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -69,6 +70,20 @@ func TestAccDataFactoryPipeline_activities(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.webActivityHeaders(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.webActivityHeaders(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.activities(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -104,7 +119,10 @@ func (t PipelineResource) Exists(ctx context.Context, clients *clients.Client, s
 		return nil, err
 	}
 
-	resp, err := clients.DataFactory.PipelinesClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	hackClient := azuresdkhacks.PipelinesClient{
+		OriginalClient: clients.DataFactory.PipelinesClient,
+	}
+	resp, err := hackClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -270,6 +288,59 @@ resource "azurerm_data_factory_pipeline" "test" {
 JSON
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader bool) string {
+	headerBlock := `
+      "headers": {
+        "authorization": {
+          "value": "foo",
+          "type": "Expression"
+        },
+        "content_type": "application/x-www-form-urlencoded"
+      }
+  `
+	if !withHeader {
+		headerBlock = ``
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfv2%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_pipeline" "test" {
+  name            = "acctest%d"
+  data_factory_id = azurerm_data_factory.test.id
+  variables = {
+    "bob" = "item1"
+  }
+  activities_json = <<JSON
+[
+  {
+    "name": "test webactivity",
+    "type": "WebActivity",
+    "dependsOn": [],
+    "userProperties": [],
+    "typeProperties": {
+    %s
+    }
+  }
+]
+JSON
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, headerBlock)
 }
 
 func (PipelineResource) activitiesUpdated(data acceptance.TestData) string {

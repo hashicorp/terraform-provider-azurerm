@@ -83,10 +83,6 @@ func SchemaValue(sch *pluginsdk.Schema) Dict {
 		out[Id("Computed")] = True()
 	}
 
-	if sch.ForceNew {
-		out[Id("ForceNew")] = True()
-	}
-
 	switch sch.ConfigMode {
 	case pluginsdk.SchemaConfigModeAttr:
 		out[Id("ConfigMode")] = Qual(SchemaPath, "SchemaConfigModeAttr")

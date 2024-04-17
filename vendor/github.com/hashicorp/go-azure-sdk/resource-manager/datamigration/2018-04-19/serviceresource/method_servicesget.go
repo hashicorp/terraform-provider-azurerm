@@ -43,7 +43,10 @@ func (c ServiceResourceClient) ServicesGet(ctx context.Context, id ServiceId) (r
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DataMigrationService
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

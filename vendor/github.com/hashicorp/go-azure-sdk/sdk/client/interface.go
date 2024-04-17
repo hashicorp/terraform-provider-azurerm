@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
 
@@ -19,6 +20,27 @@ type BaseClient interface {
 
 	// NewRequest constructs a *Request that can be passed to Execute or ExecutePaged
 	NewRequest(ctx context.Context, input RequestOptions) (*Request, error)
+
+	// SetAuthorizer configures the request authorizer for the client
+	SetAuthorizer(auth.Authorizer)
+
+	// SetUserAgent configures the user agent to be included in requests
+	SetUserAgent(string)
+
+	// GetUserAgent retrieves the configured user agent for the client
+	GetUserAgent() string
+
+	// AppendRequestMiddleware appends a request middleware function for the client
+	AppendRequestMiddleware(RequestMiddleware)
+
+	// ClearRequestMiddlewares removes all request middleware functions for the client
+	ClearRequestMiddlewares()
+
+	// AppendResponseMiddleware appends a response middleware function for the client
+	AppendResponseMiddleware(ResponseMiddleware)
+
+	// ClearResponseMiddlewares removes all response middleware functions for the client
+	ClearResponseMiddlewares()
 }
 
 // RequestRetryFunc is a function that determines whether an HTTP request has failed due to eventual consistency and should be retried

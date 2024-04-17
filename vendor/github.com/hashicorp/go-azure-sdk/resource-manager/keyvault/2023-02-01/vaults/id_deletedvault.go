@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeletedVaultId{}
+func init() {
+	recaser.RegisterResourceId(&DeletedVaultId{})
+}
+
+var _ resourceids.ResourceId = &DeletedVaultId{}
 
 // DeletedVaultId is a struct representing the Resource ID for a Deleted Vault
 type DeletedVaultId struct {
@@ -30,25 +35,15 @@ func NewDeletedVaultID(subscriptionId string, locationName string, deletedVaultN
 
 // ParseDeletedVaultID parses 'input' into a DeletedVaultId
 func ParseDeletedVaultID(input string) (*DeletedVaultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedVaultId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedVaultId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedVaultId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.DeletedVaultName, ok = parsed.Parsed["deletedVaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedVaultName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseDeletedVaultID(input string) (*DeletedVaultId, error) {
 // ParseDeletedVaultIDInsensitively parses 'input' case-insensitively into a DeletedVaultId
 // note: this method should only be used for API response data and not user input
 func ParseDeletedVaultIDInsensitively(input string) (*DeletedVaultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedVaultId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedVaultId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := DeletedVaultId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.LocationName, ok = parsed.Parsed["locationName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "locationName", *parsed)
-	}
-
-	if id.DeletedVaultName, ok = parsed.Parsed["deletedVaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "deletedVaultName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *DeletedVaultId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.LocationName, ok = input.Parsed["locationName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "locationName", input)
+	}
+
+	if id.DeletedVaultName, ok = input.Parsed["deletedVaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "deletedVaultName", input)
+	}
+
+	return nil
 }
 
 // ValidateDeletedVaultID checks that 'input' can be parsed as a Deleted Vault ID

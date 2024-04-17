@@ -19,7 +19,8 @@ type DedicatedHsmListOutboundNetworkDependenciesEndpointsOperationResponse struc
 }
 
 type DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult struct {
-	Items []OutboundEnvironmentEndpoint
+	LatestHttpResponse *http.Response
+	Items              []OutboundEnvironmentEndpoint
 }
 
 // DedicatedHsmListOutboundNetworkDependenciesEndpoints ...
@@ -83,7 +84,8 @@ func (c DedicatedHsmsClient) DedicatedHsmListOutboundNetworkDependenciesEndpoint
 	}
 
 	result = DedicatedHsmListOutboundNetworkDependenciesEndpointsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

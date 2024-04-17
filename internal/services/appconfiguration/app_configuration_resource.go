@@ -792,11 +792,11 @@ func expandAppConfigurationReplicas(input []interface{}, configurationStoreName,
 		replicaName := replica["name"].(string)
 		replicaLocation := location.Normalize(replica["location"].(string))
 		if strings.EqualFold(replicaLocation, configurationStoreLocation) {
-			return nil, fmt.Errorf("location (%q) of replica %q is duplicated with original configuration store %q", replicaName, replicaLocation, configurationStoreName)
+			return nil, fmt.Errorf("location (%q) of replica %q is duplicated with original configuration store %q", replicaLocation, replicaName, configurationStoreName)
 		}
 
 		if name, ok := locationSet[replicaLocation]; ok {
-			return nil, fmt.Errorf("location (%q) of replica %q is duplicated with replica %q", replicaName, replicaLocation, name)
+			return nil, fmt.Errorf("location (%q) of replica %q is duplicated with replica %q", replicaLocation, replicaName, name)
 		}
 		locationSet[replicaLocation] = replicaName
 
@@ -807,7 +807,7 @@ func expandAppConfigurationReplicas(input []interface{}, configurationStoreName,
 		replicaNameSet[normalizedReplicaName] = struct{}{}
 
 		if len(replicaName)+len(configurationStoreName) > 60 {
-			return nil, fmt.Errorf("replica name %q is too long, the total length of replica name and configuration store name should be greater than 60", replicaName)
+			return nil, fmt.Errorf("replica name %q is too long, the total length of replica name and configuration store name should be less or equal than 60", replicaName)
 		}
 
 		result = append(result, replicas.Replica{
@@ -902,7 +902,7 @@ An existing soft-deleted App Configuration exists with the Name %q in the locati
 the credentials Terraform is using has insufficient permissions to check for an existing soft-deleted App Configuration.
 You can opt out of this behaviour by using the "features" block (located within the "provider" block) - more information
 can be found here:
-https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#features
+https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 `, name, location)
 }
 

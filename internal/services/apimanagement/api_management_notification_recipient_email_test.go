@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2021-08-01/notificationrecipientemail"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientemail"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -56,17 +56,15 @@ func (ApiManagementNotificationRecipientEmailResource) Exists(ctx context.Contex
 	}
 
 	notificationId := notificationrecipientemail.NewNotificationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.NotificationName)
-	emails, err := client.ApiManagement.NotificationRecipientEmailClient.ListByNotification(ctx, notificationId)
+	emails, err := client.ApiManagement.NotificationRecipientEmailClient.ListByNotificationComplete(ctx, notificationId)
 	if err != nil {
-		if !response.WasNotFound(emails.HttpResponse) {
+		if !response.WasNotFound(emails.LatestHttpResponse) {
 			return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 	}
-	if model := emails.Model; model != nil && model.Value != nil {
-		for _, existing := range *model.Value {
-			if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == id.RecipientEmailName {
-				return pointer.To(true), nil
-			}
+	for _, existing := range emails.Items {
+		if existing.Properties != nil && existing.Properties.Email != nil && *existing.Properties.Email == id.RecipientEmailName {
+			return pointer.To(true), nil
 		}
 	}
 	return pointer.To(false), nil

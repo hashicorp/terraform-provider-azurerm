@@ -77,7 +77,14 @@ func TestAccGalleryApplicationVersion_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -379,9 +386,11 @@ resource "azurerm_gallery_application_version" "test" {
   gallery_application_id = azurerm_gallery_application.test.id
   location               = azurerm_gallery_application.test.location
 
+  config_file         = "config"
   enable_health_check = true
   end_of_life_date    = "%s"
   exclude_from_latest = true
+  package_file        = "package"
 
   manage_action {
     install = "[install command]"
@@ -396,6 +405,7 @@ resource "azurerm_gallery_application_version" "test" {
 
   target_region {
     name                   = azurerm_gallery_application.test.location
+    exclude_from_latest    = true
     regional_replica_count = 1
     storage_account_type   = "Premium_LRS"
   }
@@ -405,6 +415,41 @@ resource "azurerm_gallery_application_version" "test" {
   }
 }
 `, template, time.Now().Add(time.Hour*10).Format(time.RFC3339))
+}
+
+func (r GalleryApplicationVersionResource) update(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_gallery_application_version" "test" {
+  name                   = "0.0.1"
+  gallery_application_id = azurerm_gallery_application.test.id
+  location               = azurerm_gallery_application.test.location
+
+  enable_health_check = true
+  exclude_from_latest = true
+
+  manage_action {
+    install = "[install command]"
+    remove  = "[remove command]"
+  }
+
+  source {
+    media_link = azurerm_storage_blob.test.id
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test.location
+    exclude_from_latest    = true
+    regional_replica_count = 1
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template)
 }
 
 func (r GalleryApplicationVersionResource) enableHealthCheck(data acceptance.TestData) string {

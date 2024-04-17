@@ -2,6 +2,7 @@ package deploymentscripts
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -20,7 +21,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []DeploymentScript
+	LatestHttpResponse *http.Response
+	Items              []DeploymentScript
 }
 
 // ListBySubscription ...
@@ -50,13 +52,24 @@ func (c DeploymentScriptsClient) ListBySubscription(ctx context.Context, id comm
 	}
 
 	var values struct {
-		Values *[]DeploymentScript `json:"value"`
+		Values *[]json.RawMessage `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
-	result.Model = values.Values
+	temp := make([]DeploymentScript, 0)
+	if values.Values != nil {
+		for i, v := range *values.Values {
+			val, err := unmarshalDeploymentScriptImplementation(v)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling item %d for DeploymentScript (%q): %+v", i, v, err)
+				return result, err
+			}
+			temp = append(temp, val)
+		}
+	}
+	result.Model = &temp
 
 	return
 }
@@ -84,7 +97,8 @@ func (c DeploymentScriptsClient) ListBySubscriptionCompleteMatchingPredicate(ctx
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

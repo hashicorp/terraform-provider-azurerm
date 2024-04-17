@@ -43,7 +43,10 @@ func (c MonitorsResourceClient) MonitorsGet(ctx context.Context, id MonitorId) (
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatadogMonitorResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

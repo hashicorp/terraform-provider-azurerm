@@ -20,7 +20,8 @@ type ListKeysOperationResponse struct {
 }
 
 type ListKeysCompleteResult struct {
-	Items []SharedAccessSignatureAuthorizationRuleAccessRightsDescription
+	LatestHttpResponse *http.Response
+	Items              []SharedAccessSignatureAuthorizationRuleAccessRightsDescription
 }
 
 // ListKeys ...
@@ -31,7 +32,7 @@ func (c IotDpsResourceClient) ListKeys(ctx context.Context, id commonids.Provisi
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
-		Path:       fmt.Sprintf("%s/listkeys", id.ID()),
+		Path:       fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -84,7 +85,8 @@ func (c IotDpsResourceClient) ListKeysCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListKeysCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

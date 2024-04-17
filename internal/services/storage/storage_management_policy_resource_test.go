@@ -891,18 +891,21 @@ resource "azurerm_storage_management_policy" "test" {
         tier_to_cool_after_days_since_modification_greater_than        = 10
         tier_to_archive_after_days_since_modification_greater_than     = 50
         tier_to_archive_after_days_since_last_tier_change_greater_than = 10
+        tier_to_cold_after_days_since_modification_greater_than        = 11
         delete_after_days_since_modification_greater_than              = 100
       }
       snapshot {
         change_tier_to_archive_after_days_since_creation               = 90
         tier_to_archive_after_days_since_last_tier_change_greater_than = 10
         change_tier_to_cool_after_days_since_creation                  = 23
+        tier_to_cold_after_days_since_creation_greater_than            = 24
         delete_after_days_since_creation_greater_than                  = 30
       }
       version {
         change_tier_to_archive_after_days_since_creation               = 9
         tier_to_archive_after_days_since_last_tier_change_greater_than = 10
         change_tier_to_cool_after_days_since_creation                  = 90
+        tier_to_cold_after_days_since_creation_greater_than            = 91
         delete_after_days_since_creation                               = 3
       }
     }
@@ -947,18 +950,21 @@ resource "azurerm_storage_management_policy" "test" {
         tier_to_cool_after_days_since_modification_greater_than        = 11
         tier_to_archive_after_days_since_modification_greater_than     = 51
         tier_to_archive_after_days_since_last_tier_change_greater_than = 20
+        tier_to_cold_after_days_since_modification_greater_than        = 12
         delete_after_days_since_modification_greater_than              = 101
       }
       snapshot {
         change_tier_to_archive_after_days_since_creation               = 91
         tier_to_archive_after_days_since_last_tier_change_greater_than = 20
         change_tier_to_cool_after_days_since_creation                  = 24
+        tier_to_cold_after_days_since_creation_greater_than            = 25
         delete_after_days_since_creation_greater_than                  = 31
       }
       version {
         change_tier_to_archive_after_days_since_creation               = 10
         tier_to_archive_after_days_since_last_tier_change_greater_than = 20
         change_tier_to_cool_after_days_since_creation                  = 91
+        tier_to_cold_after_days_since_creation_greater_than            = 92
         delete_after_days_since_creation                               = 4
       }
     }
@@ -1038,6 +1044,7 @@ resource "azurerm_storage_management_policy" "test" {
       base_blob {
         tier_to_cool_after_days_since_modification_greater_than    = 10
         tier_to_archive_after_days_since_modification_greater_than = 50
+        tier_to_cold_after_days_since_modification_greater_than    = 60
         delete_after_days_since_modification_greater_than          = 100
       }
     }
@@ -1064,6 +1071,7 @@ resource "azurerm_storage_management_policy" "test" {
       base_blob {
         tier_to_cool_after_days_since_creation_greater_than    = 10
         tier_to_archive_after_days_since_creation_greater_than = 50
+        tier_to_cold_after_days_since_creation_greater_than    = 60
         delete_after_days_since_creation_greater_than          = 100
       }
     }
@@ -1091,6 +1099,7 @@ resource "azurerm_storage_management_policy" "test" {
         auto_tier_to_hot_from_cool_enabled                             = %t
         tier_to_cool_after_days_since_last_access_time_greater_than    = 10
         tier_to_archive_after_days_since_last_access_time_greater_than = 50
+        tier_to_cold_after_days_since_last_access_time_greater_than    = 60
         delete_after_days_since_last_access_time_greater_than          = 100
       }
     }
@@ -1117,6 +1126,7 @@ resource "azurerm_storage_management_policy" "test" {
       base_blob {
         tier_to_cool_after_days_since_last_access_time_greater_than    = 0
         tier_to_archive_after_days_since_last_access_time_greater_than = 0
+        tier_to_cold_after_days_since_last_access_time_greater_than    = 0
         delete_after_days_since_last_access_time_greater_than          = 0
       }
     }

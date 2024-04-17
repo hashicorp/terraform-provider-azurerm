@@ -4,8 +4,10 @@
 package compute
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -31,13 +33,13 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 					ValidateFunc: keyVaultValidate.NestedItemId,
 				},
 
-				"source_vault_id": commonschema.ResourceIDReferenceRequired(commonids.KeyVaultId{}),
+				"source_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
 			},
 		},
 	}
 }
 
-func expandProtectedSettingsFromKeyVault(input []interface{}) *compute.KeyVaultSecretReference {
+func expandProtectedSettingsFromKeyVaultOld(input []interface{}) *compute.KeyVaultSecretReference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -45,31 +47,59 @@ func expandProtectedSettingsFromKeyVault(input []interface{}) *compute.KeyVaultS
 	v := input[0].(map[string]interface{})
 
 	return &compute.KeyVaultSecretReference{
-		SecretURL: utils.String(v["secret_url"].(string)),
+		SecretURL: pointer.To(v["secret_url"].(string)),
 		SourceVault: &compute.SubResource{
 			ID: utils.String(v["source_vault_id"].(string)),
 		},
 	}
 }
 
-func flattenProtectedSettingsFromKeyVault(input *compute.KeyVaultSecretReference) []interface{} {
+func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachinescalesets.KeyVaultSecretReference {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &virtualmachinescalesets.KeyVaultSecretReference{
+		SecretUrl: v["secret_url"].(string),
+		SourceVault: virtualmachinescalesets.SubResource{
+			Id: utils.String(v["source_vault_id"].(string)),
+		},
+	}
+}
+
+func flattenProtectedSettingsFromKeyVaultOld(input *compute.KeyVaultSecretReference) []interface{} {
 	if input == nil {
 		return nil
 	}
 
-	secretUrl := ""
-	if input.SecretURL != nil {
-		secretUrl = *input.SecretURL
-	}
-
 	sourceVaultId := ""
-	if input.SourceVault != nil && input.SourceVault.ID != nil {
+	if input.SourceVault.ID != nil {
 		sourceVaultId = *input.SourceVault.ID
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      secretUrl,
+			"secret_url":      input.SecretURL,
+			"source_vault_id": sourceVaultId,
+		},
+	}
+}
+
+func flattenProtectedSettingsFromKeyVault(input *virtualmachinescalesets.KeyVaultSecretReference) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	sourceVaultId := ""
+	if input.SourceVault.Id != nil {
+		sourceVaultId = *input.SourceVault.Id
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"secret_url":      input.SecretUrl,
 			"source_vault_id": sourceVaultId,
 		},
 	}

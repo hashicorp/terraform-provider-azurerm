@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopeMapId{}
+func init() {
+	recaser.RegisterResourceId(&ScopeMapId{})
+}
+
+var _ resourceids.ResourceId = &ScopeMapId{}
 
 // ScopeMapId is a struct representing the Resource ID for a Scope Map
 type ScopeMapId struct {
@@ -32,29 +37,15 @@ func NewScopeMapID(subscriptionId string, resourceGroupName string, registryName
 
 // ParseScopeMapID parses 'input' into a ScopeMapId
 func ParseScopeMapID(input string) (*ScopeMapId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopeMapId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopeMapId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeMapId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
-	}
-
-	if id.ScopeMapName, ok = parsed.Parsed["scopeMapName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeMapName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseScopeMapID(input string) (*ScopeMapId, error) {
 // ParseScopeMapIDInsensitively parses 'input' case-insensitively into a ScopeMapId
 // note: this method should only be used for API response data and not user input
 func ParseScopeMapIDInsensitively(input string) (*ScopeMapId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopeMapId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopeMapId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ScopeMapId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.RegistryName, ok = parsed.Parsed["registryName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "registryName", *parsed)
-	}
-
-	if id.ScopeMapName, ok = parsed.Parsed["scopeMapName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "scopeMapName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ScopeMapId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.RegistryName, ok = input.Parsed["registryName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "registryName", input)
+	}
+
+	if id.ScopeMapName, ok = input.Parsed["scopeMapName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "scopeMapName", input)
+	}
+
+	return nil
 }
 
 // ValidateScopeMapID checks that 'input' can be parsed as a Scope Map ID

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/lab"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/labservices/2022-08-01/schedule"
@@ -176,8 +177,8 @@ func (r LabServiceScheduleResource) Create() sdk.ResourceFunc {
 
 			properties := &schedule.Schedule{
 				Properties: schedule.ScheduleProperties{
-					StopAt:            model.StopTime,
-					TimeZoneId:        model.TimeZone,
+					StopAt:            pointer.To(model.StopTime),
+					TimeZoneId:        pointer.To(model.TimeZone),
 					RecurrencePattern: expandRecurrencePattern(model.Recurrence),
 				},
 			}
@@ -243,11 +244,11 @@ func (r LabServiceScheduleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("stop_time") {
-				properties.Properties.StopAt = model.StopTime
+				properties.Properties.StopAt = pointer.To(model.StopTime)
 			}
 
 			if metadata.ResourceData.HasChange("time_zone") {
-				properties.Properties.TimeZoneId = model.TimeZone
+				properties.Properties.TimeZoneId = pointer.To(model.TimeZone)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
@@ -291,8 +292,8 @@ func (r LabServiceScheduleResource) Read() sdk.ResourceFunc {
 
 			properties := &model.Properties
 
-			state.StopTime = properties.StopAt
-			state.TimeZone = properties.TimeZoneId
+			state.StopTime = pointer.From(properties.StopAt)
+			state.TimeZone = pointer.From(properties.TimeZoneId)
 			state.Recurrence = flattenRecurrencePattern(properties.RecurrencePattern)
 
 			if properties.Notes != nil {

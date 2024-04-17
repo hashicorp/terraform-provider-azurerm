@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VideoAnalyzerId{}
+func init() {
+	recaser.RegisterResourceId(&VideoAnalyzerId{})
+}
+
+var _ resourceids.ResourceId = &VideoAnalyzerId{}
 
 // VideoAnalyzerId is a struct representing the Resource ID for a Video Analyzer
 type VideoAnalyzerId struct {
@@ -30,25 +35,15 @@ func NewVideoAnalyzerID(subscriptionId string, resourceGroupName string, videoAn
 
 // ParseVideoAnalyzerID parses 'input' into a VideoAnalyzerId
 func ParseVideoAnalyzerID(input string) (*VideoAnalyzerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VideoAnalyzerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VideoAnalyzerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VideoAnalyzerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VideoAnalyzerName, ok = parsed.Parsed["videoAnalyzerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "videoAnalyzerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseVideoAnalyzerID(input string) (*VideoAnalyzerId, error) {
 // ParseVideoAnalyzerIDInsensitively parses 'input' case-insensitively into a VideoAnalyzerId
 // note: this method should only be used for API response data and not user input
 func ParseVideoAnalyzerIDInsensitively(input string) (*VideoAnalyzerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VideoAnalyzerId{})
+	parser := resourceids.NewParserFromResourceIdType(&VideoAnalyzerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := VideoAnalyzerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VideoAnalyzerName, ok = parsed.Parsed["videoAnalyzerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "videoAnalyzerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *VideoAnalyzerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VideoAnalyzerName, ok = input.Parsed["videoAnalyzerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "videoAnalyzerName", input)
+	}
+
+	return nil
 }
 
 // ValidateVideoAnalyzerID checks that 'input' can be parsed as a Video Analyzer ID

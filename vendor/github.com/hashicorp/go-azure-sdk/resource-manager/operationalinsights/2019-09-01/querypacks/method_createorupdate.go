@@ -22,6 +22,7 @@ func (c QueryPacksClient) CreateOrUpdate(ctx context.Context, id QueryPackId, in
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPut,
@@ -47,7 +48,10 @@ func (c QueryPacksClient) CreateOrUpdate(ctx context.Context, id QueryPackId, in
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model LogAnalyticsQueryPack
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

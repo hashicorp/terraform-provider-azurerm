@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 var _ types.TestResourceVerifyingRemoved = BackendAddressPoolAddressResourceTests{}
@@ -130,26 +130,31 @@ func (BackendAddressPoolAddressResourceTests) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	pool, err := client.LoadBalancers.LoadBalancerBackendAddressPoolsClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+	poolId := loadbalancers.NewLoadBalancerBackendAddressPoolID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+	pool, err := client.LoadBalancers.LoadBalancersClient.LoadBalancerBackendAddressPoolsGet(ctx, poolId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if pool.BackendAddressPoolPropertiesFormat == nil {
+	if pool.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	if pool.Model.Properties == nil {
 		return nil, fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
-	if pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses != nil {
-		for _, address := range *pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses {
+	if backendAddress := pool.Model.Properties.LoadBalancerBackendAddresses; backendAddress != nil {
+		for _, address := range *backendAddress {
 			if address.Name == nil {
 				continue
 			}
 
 			if *address.Name == id.AddressName {
-				return utils.Bool(true), nil
+				return pointer.To(true), nil
 			}
 		}
 	}
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -158,19 +163,23 @@ func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, clien
 		return nil, err
 	}
 
-	pool, err := client.LoadBalancers.LoadBalancerBackendAddressPoolsClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+	poolId := loadbalancers.NewLoadBalancerBackendAddressPoolID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+	pool, err := client.LoadBalancers.LoadBalancersClient.LoadBalancerBackendAddressPoolsGet(ctx, poolId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if pool.BackendAddressPoolPropertiesFormat == nil {
+	if pool.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if pool.Model.Properties == nil {
 		return nil, fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
-	addresses := make([]network.LoadBalancerBackendAddress, 0)
-	if pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses != nil {
-		addresses = *pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses
+	addresses := make([]loadbalancers.LoadBalancerBackendAddress, 0)
+	if pool.Model.Properties.LoadBalancerBackendAddresses != nil {
+		addresses = *pool.Model.Properties.LoadBalancerBackendAddresses
 	}
-	newAddresses := make([]network.LoadBalancerBackendAddress, 0)
+	newAddresses := make([]loadbalancers.LoadBalancerBackendAddress, 0)
 	for _, address := range addresses {
 		if address.Name == nil {
 			continue
@@ -180,39 +189,43 @@ func (BackendAddressPoolAddressResourceTests) Destroy(ctx context.Context, clien
 			newAddresses = append(newAddresses, address)
 		}
 	}
-	pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses = &newAddresses
 
-	future, err := client.LoadBalancers.LoadBalancerBackendAddressPoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName, pool)
+	backendAddressPool := loadbalancers.BackendAddressPool{
+		Properties: &loadbalancers.BackendAddressPoolPropertiesFormat{
+			LoadBalancerBackendAddresses: &newAddresses,
+		},
+	}
+	err = client.LoadBalancers.LoadBalancersClient.LoadBalancerBackendAddressPoolsCreateOrUpdateThenPoll(ctx, poolId, backendAddressPool)
 	if err != nil {
 		return nil, fmt.Errorf("updating %s: %+v", *id, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, client.LoadBalancers.LoadBalancerBackendAddressPoolsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for update of %s: %+v", *id, err)
-	}
-	return utils.Bool(true), nil
+
+	return pointer.To(true), nil
 }
 
 // nolint unused - for future use
 func (BackendAddressPoolAddressResourceTests) backendAddressPoolHasAddresses(expected int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := parse.LoadBalancerBackendAddressPoolID(state.ID)
+		id, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		client := clients.LoadBalancers.LoadBalancerBackendAddressPoolsClient
-		pool, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+		pool, err := clients.LoadBalancers.LoadBalancersClient.LoadBalancerBackendAddressPoolsGet(ctx, *id)
 		if err != nil {
 			return err
 		}
-		if pool.BackendAddressPoolPropertiesFormat == nil {
+		if pool.Model == nil {
+			return fmt.Errorf("`model` is nil")
+		}
+		if pool.Model.Properties == nil {
 			return fmt.Errorf("`properties` is nil")
 		}
-		if pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses == nil {
+		if pool.Model.Properties.LoadBalancerBackendAddresses == nil {
 			return fmt.Errorf("`properties.loadBalancerBackendAddresses` is nil")
 		}
 
-		actual := len(*pool.BackendAddressPoolPropertiesFormat.LoadBalancerBackendAddresses)
+		actual := len(*pool.Model.Properties.LoadBalancerBackendAddresses)
 		if actual != expected {
 			return fmt.Errorf("expected %d but got %d addresses", expected, actual)
 		}
@@ -373,6 +386,7 @@ resource "azurerm_public_ip" "backend-ip-cr" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  sku_tier            = "Global"
 }
 
 resource "azurerm_lb" "backend-lb-R1" {

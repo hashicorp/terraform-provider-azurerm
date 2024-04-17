@@ -142,6 +142,43 @@ func TestAccRoleDefinitionDataSource_builtIn_virtualMachineContributor(t *testin
 	})
 }
 
+func TestAccRoleDefinitionDataSource_builtIn_event_grid_publisher(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.builtIn("EventGrid TopicSpaces Publisher"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/a12b0b94-b317-4dcd-84a8-502ce99884c6"),
+				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("0"),
+				check.That(data.ResourceName).Key("permissions.0.data_actions.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccRoleDefinitionDataSource_builtIn_key_vault_data_access_admin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.builtIn("Key Vault Data Access Administrator"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/8b54135c-b56d-4d72-a534-26097cfdc8d8"),
+				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("0"),
+				check.That(data.ResourceName).Key("permissions.0.condition").Exists(),
+				check.That(data.ResourceName).Key("permissions.0.condition_version").Exists(),
+			),
+		},
+	})
+}
+
 func (d RoleDefinitionDataSource) builtIn(name string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -20,7 +20,8 @@ type ListTemplatesOperationResponse struct {
 }
 
 type ListTemplatesCompleteResult struct {
-	Items []AppTemplate
+	LatestHttpResponse *http.Response
+	Items              []AppTemplate
 }
 
 // ListTemplates ...
@@ -84,7 +85,8 @@ func (c AppsClient) ListTemplatesCompleteMatchingPredicate(ctx context.Context, 
 	}
 
 	result = ListTemplatesCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -19,7 +19,8 @@ type ListByEventHubOperationResponse struct {
 }
 
 type ListByEventHubCompleteResult struct {
-	Items []ConsumerGroup
+	LatestHttpResponse *http.Response
+	Items              []ConsumerGroup
 }
 
 type ListByEventHubOperationOptions struct {
@@ -115,7 +116,8 @@ func (c ConsumerGroupsClient) ListByEventHubCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByEventHubCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

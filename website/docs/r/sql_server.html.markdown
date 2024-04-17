@@ -81,7 +81,7 @@ An `identity` block supports the following:
 
 The `threat_detection_policy` block supports the following:
 
-* `state` - (Optional) The State of the Policy. Possible values are `Disabled`, `Enabled` and `New`.
+* `state` - (Optional) The State of the Policy. Possible values are `Disabled`, `Enabled` and `New`. Defaults to `Disabled`.
 * `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Data_Exfiltration`, `Sql_Injection`, `Sql_Injection_Vulnerability` and `Unsafe_Action"`,.
 * `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
 * `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
@@ -104,7 +104,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
--> You can access the Principal ID via `${azurerm_mssql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_mssql_server.example.identity.0.tenant_id}`
+-> You can access the Principal ID via `${azurerm_mssql_server.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_mssql_server.example.identity[0].tenant_id}`
 
 ### Timeouts
 

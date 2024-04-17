@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ResourceManagementPrivateLinkId{}
+func init() {
+	recaser.RegisterResourceId(&ResourceManagementPrivateLinkId{})
+}
+
+var _ resourceids.ResourceId = &ResourceManagementPrivateLinkId{}
 
 // ResourceManagementPrivateLinkId is a struct representing the Resource ID for a Resource Management Private Link
 type ResourceManagementPrivateLinkId struct {
@@ -30,25 +35,15 @@ func NewResourceManagementPrivateLinkID(subscriptionId string, resourceGroupName
 
 // ParseResourceManagementPrivateLinkID parses 'input' into a ResourceManagementPrivateLinkId
 func ParseResourceManagementPrivateLinkID(input string) (*ResourceManagementPrivateLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ResourceManagementPrivateLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&ResourceManagementPrivateLinkId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ResourceManagementPrivateLinkId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ResourceManagementPrivateLinkName, ok = parsed.Parsed["resourceManagementPrivateLinkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceManagementPrivateLinkName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseResourceManagementPrivateLinkID(input string) (*ResourceManagementPriv
 // ParseResourceManagementPrivateLinkIDInsensitively parses 'input' case-insensitively into a ResourceManagementPrivateLinkId
 // note: this method should only be used for API response data and not user input
 func ParseResourceManagementPrivateLinkIDInsensitively(input string) (*ResourceManagementPrivateLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ResourceManagementPrivateLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&ResourceManagementPrivateLinkId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ResourceManagementPrivateLinkId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ResourceManagementPrivateLinkName, ok = parsed.Parsed["resourceManagementPrivateLinkName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceManagementPrivateLinkName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ResourceManagementPrivateLinkId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ResourceManagementPrivateLinkName, ok = input.Parsed["resourceManagementPrivateLinkName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceManagementPrivateLinkName", input)
+	}
+
+	return nil
 }
 
 // ValidateResourceManagementPrivateLinkID checks that 'input' can be parsed as a Resource Management Private Link ID

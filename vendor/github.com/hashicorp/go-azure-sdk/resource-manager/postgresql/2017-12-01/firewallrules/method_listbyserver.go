@@ -44,7 +44,10 @@ func (c FirewallRulesClient) ListByServer(ctx context.Context, id ServerId) (res
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model FirewallRuleListResult
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

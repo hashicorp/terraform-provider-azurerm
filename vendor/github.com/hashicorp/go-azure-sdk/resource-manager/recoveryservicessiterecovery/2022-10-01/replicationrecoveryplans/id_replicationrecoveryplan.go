@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReplicationRecoveryPlanId{}
+func init() {
+	recaser.RegisterResourceId(&ReplicationRecoveryPlanId{})
+}
+
+var _ resourceids.ResourceId = &ReplicationRecoveryPlanId{}
 
 // ReplicationRecoveryPlanId is a struct representing the Resource ID for a Replication Recovery Plan
 type ReplicationRecoveryPlanId struct {
@@ -32,29 +37,15 @@ func NewReplicationRecoveryPlanID(subscriptionId string, resourceGroupName strin
 
 // ParseReplicationRecoveryPlanID parses 'input' into a ReplicationRecoveryPlanId
 func ParseReplicationRecoveryPlanID(input string) (*ReplicationRecoveryPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationRecoveryPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationRecoveryPlanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReplicationRecoveryPlanId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.ReplicationRecoveryPlanName, ok = parsed.Parsed["replicationRecoveryPlanName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationRecoveryPlanName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseReplicationRecoveryPlanID(input string) (*ReplicationRecoveryPlanId, e
 // ParseReplicationRecoveryPlanIDInsensitively parses 'input' case-insensitively into a ReplicationRecoveryPlanId
 // note: this method should only be used for API response data and not user input
 func ParseReplicationRecoveryPlanIDInsensitively(input string) (*ReplicationRecoveryPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReplicationRecoveryPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReplicationRecoveryPlanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReplicationRecoveryPlanId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.VaultName, ok = parsed.Parsed["vaultName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "vaultName", *parsed)
-	}
-
-	if id.ReplicationRecoveryPlanName, ok = parsed.Parsed["replicationRecoveryPlanName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "replicationRecoveryPlanName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ReplicationRecoveryPlanId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.VaultName, ok = input.Parsed["vaultName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "vaultName", input)
+	}
+
+	if id.ReplicationRecoveryPlanName, ok = input.Parsed["replicationRecoveryPlanName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "replicationRecoveryPlanName", input)
+	}
+
+	return nil
 }
 
 // ValidateReplicationRecoveryPlanID checks that 'input' can be parsed as a Replication Recovery Plan ID

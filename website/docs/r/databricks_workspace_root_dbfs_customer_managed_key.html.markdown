@@ -3,12 +3,12 @@ subcategory: "Databricks"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_databricks_workspace_root_dbfs_customer_managed_key"
 description: |-
-  Manages a Customer Managed Key for the Databricks Workspaces root Databricks File System(DBFS)
+  Manages a Customer Managed Key for the Databricks Workspaces Root Databricks File System(DBFS)
 ---
 
 # azurerm_databricks_workspace_root_dbfs_customer_managed_key
 
-Manages a Customer Managed Key for the Databricks Workspaces root Databricks File System(DBFS)
+Manages a Customer Managed Key for the Databricks Workspaces Root Databricks File System(DBFS)
 
 ## Example Usage
 
@@ -92,8 +92,8 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   depends_on = [azurerm_databricks_workspace.example]
 
   key_vault_id = azurerm_key_vault.example.id
-  tenant_id    = azurerm_databricks_workspace.example.storage_account_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.example.storage_account_identity.0.principal_id
+  tenant_id    = azurerm_databricks_workspace.example.storage_account_identity[0].tenant_id
+  object_id    = azurerm_databricks_workspace.example.storage_account_identity[0].principal_id
 
   key_permissions = [
     "Create",
@@ -112,7 +112,7 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 ## Example HCL Configurations
 
 * [Databricks Workspace with Root Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs)
-* [Databricks Workspace with Customer Managed Keys for Managed Services](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/managed-services)
+* [Databricks Workspace with Root Databricks File System Customer Managed Keys in a Different Subscription](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/databricks/customer-managed-key/dbfs-cross-subscription)
 * [Databricks Workspace with Private Endpoint, Customer Managed Keys for Managed Services and Root Databricks File System Customer Managed Keys](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/managed-services)
 
 ## Argument Reference
@@ -122,6 +122,12 @@ The following arguments are supported:
 * `workspace_id` - (Required) The resource ID of the Databricks Workspace.
 
 * `key_vault_key_id` - (Required) The resource ID of the Key Vault Key to be used.
+
+* `key_vault_id` - (Optional) Specifies the Resource ID of the Key Vault which contains the `key_vault_key_id`.
+
+-> **Note:** The `key_vault_id` field only needs to be specified if the Key Vault which contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `key_vault_id` field is not specified it is assumed that the `key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
+
+-> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
 
 ## Attributes Reference
 

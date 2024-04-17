@@ -11,12 +11,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2022-07-01-preview/publicmaintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
@@ -32,6 +33,7 @@ type MsSqlManagedInstanceModel struct {
 	AdministratorLoginPassword   string                              `tfschema:"administrator_login_password"`
 	Collation                    string                              `tfschema:"collation"`
 	DnsZonePartnerId             string                              `tfschema:"dns_zone_partner_id"`
+	DnsZone                      string                              `tfschema:"dns_zone"`
 	Fqdn                         string                              `tfschema:"fqdn"`
 	Identity                     []identity.SystemOrUserAssignedList `tfschema:"identity"`
 	LicenseType                  string                              `tfschema:"license_type"`
@@ -46,9 +48,10 @@ type MsSqlManagedInstanceModel struct {
 	StorageAccountType           string                              `tfschema:"storage_account_type"`
 	StorageSizeInGb              int                                 `tfschema:"storage_size_in_gb"`
 	SubnetId                     string                              `tfschema:"subnet_id"`
-	Tags                         map[string]string                   `tfschema:"tags"`
 	TimezoneId                   string                              `tfschema:"timezone_id"`
 	VCores                       int                                 `tfschema:"vcores"`
+	ZoneRedundantEnabled         bool                                `tfschema:"zone_redundant_enabled"`
+	Tags                         map[string]string                   `tfschema:"tags"`
 }
 
 var _ sdk.Resource = MsSqlManagedInstanceResource{}
@@ -138,13 +141,21 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ValidateFunc: validation.IntInSlice([]int{
 				4,
+				6,
 				8,
+				10,
+				12,
 				16,
+				20,
 				24,
 				32,
 				40,
+				48,
+				56,
 				64,
 				80,
+				96,
+				128,
 			}),
 		},
 
@@ -216,8 +227,6 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"tags": tags.Schema(),
-
 		"timezone_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
@@ -225,11 +234,23 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 			ForceNew:     true,
 		},
+
+		"zone_redundant_enabled": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"tags": tags.Schema(),
 	}
 }
 
 func (r MsSqlManagedInstanceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"dns_zone": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"fqdn": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -296,29 +317,30 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			parameters := sql.ManagedInstance{
 				Sku:      sku,
 				Identity: r.expandIdentity(model.Identity),
-				Location: utils.String(location.Normalize(model.Location)),
+				Location: pointer.To(location.Normalize(model.Location)),
 				ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-					AdministratorLogin:         utils.String(model.AdministratorLogin),
-					AdministratorLoginPassword: utils.String(model.AdministratorLoginPassword),
-					Collation:                  utils.String(model.Collation),
-					DNSZonePartner:             utils.String(model.DnsZonePartnerId),
+					AdministratorLogin:         pointer.To(model.AdministratorLogin),
+					AdministratorLoginPassword: pointer.To(model.AdministratorLoginPassword),
+					Collation:                  pointer.To(model.Collation),
+					DNSZonePartner:             pointer.To(model.DnsZonePartnerId),
 					LicenseType:                sql.ManagedInstanceLicenseType(model.LicenseType),
-					MaintenanceConfigurationID: utils.String(maintenanceConfigId.ID()),
-					MinimalTLSVersion:          utils.String(model.MinimumTlsVersion),
+					MaintenanceConfigurationID: pointer.To(maintenanceConfigId.ID()),
+					MinimalTLSVersion:          pointer.To(model.MinimumTlsVersion),
 					ProxyOverride:              sql.ManagedInstanceProxyOverride(model.ProxyOverride),
-					PublicDataEndpointEnabled:  utils.Bool(model.PublicDataEndpointEnabled),
+					PublicDataEndpointEnabled:  pointer.To(model.PublicDataEndpointEnabled),
 					StorageAccountType:         sql.StorageAccountType(model.StorageAccountType),
-					StorageSizeInGB:            utils.Int32(int32(model.StorageSizeInGb)),
-					SubnetID:                   utils.String(model.SubnetId),
-					TimezoneID:                 utils.String(model.TimezoneId),
-					VCores:                     utils.Int32(int32(model.VCores)),
+					StorageSizeInGB:            pointer.To(int32(model.StorageSizeInGb)),
+					SubnetID:                   pointer.To(model.SubnetId),
+					TimezoneID:                 pointer.To(model.TimezoneId),
+					VCores:                     pointer.To(int32(model.VCores)),
+					ZoneRedundant:              pointer.To(model.ZoneRedundantEnabled),
 				},
 				Tags: tags.FromTypedObject(model.Tags),
 			}
 
 			if parameters.Identity != nil && len(parameters.Identity.UserAssignedIdentities) > 0 {
 				for k := range parameters.Identity.UserAssignedIdentities {
-					parameters.ManagedInstanceProperties.PrimaryUserAssignedIdentityID = utils.String(k)
+					parameters.ManagedInstanceProperties.PrimaryUserAssignedIdentityID = pointer.To(k)
 					break
 				}
 			}
@@ -371,33 +393,34 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			properties := sql.ManagedInstance{
 				Sku:      sku,
 				Identity: r.expandIdentity(state.Identity),
-				Location: utils.String(location.Normalize(state.Location)),
+				Location: pointer.To(location.Normalize(state.Location)),
 				ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-					DNSZonePartner:            utils.String(state.DnsZonePartnerId),
+					DNSZonePartner:            pointer.To(state.DnsZonePartnerId),
 					LicenseType:               sql.ManagedInstanceLicenseType(state.LicenseType),
-					MinimalTLSVersion:         utils.String(state.MinimumTlsVersion),
+					MinimalTLSVersion:         pointer.To(state.MinimumTlsVersion),
 					ProxyOverride:             sql.ManagedInstanceProxyOverride(state.ProxyOverride),
-					PublicDataEndpointEnabled: utils.Bool(state.PublicDataEndpointEnabled),
-					StorageSizeInGB:           utils.Int32(int32(state.StorageSizeInGb)),
-					VCores:                    utils.Int32(int32(state.VCores)),
+					PublicDataEndpointEnabled: pointer.To(state.PublicDataEndpointEnabled),
+					StorageSizeInGB:           pointer.To(int32(state.StorageSizeInGb)),
+					VCores:                    pointer.To(int32(state.VCores)),
+					ZoneRedundant:             pointer.To(state.ZoneRedundantEnabled),
 				},
 				Tags: tags.FromTypedObject(state.Tags),
 			}
 
 			if properties.Identity != nil && len(properties.Identity.UserAssignedIdentities) > 0 {
 				for k := range properties.Identity.UserAssignedIdentities {
-					properties.ManagedInstanceProperties.PrimaryUserAssignedIdentityID = utils.String(k)
+					properties.ManagedInstanceProperties.PrimaryUserAssignedIdentityID = pointer.To(k)
 					break
 				}
 			}
 
 			if metadata.ResourceData.HasChange("maintenance_configuration_name") {
 				maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(id.SubscriptionId, state.MaintenanceConfigurationName)
-				properties.MaintenanceConfigurationID = utils.String(maintenanceConfigId.ID())
+				properties.MaintenanceConfigurationID = pointer.To(maintenanceConfigId.ID())
 			}
 
 			if metadata.ResourceData.HasChange("administrator_login_password") {
-				properties.AdministratorLoginPassword = utils.String(state.AdministratorLoginPassword)
+				properties.AdministratorLoginPassword = pointer.To(state.AdministratorLoginPassword)
 			}
 
 			metadata.Logger.Infof("Updating %s", id)
@@ -469,6 +492,9 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				if props.Collation != nil {
 					model.Collation = *props.Collation
 				}
+				if props.DNSZone != nil {
+					model.DnsZone = *props.DNSZone
+				}
 				if props.FullyQualifiedDomainName != nil {
 					model.Fqdn = *props.FullyQualifiedDomainName
 				}
@@ -496,6 +522,10 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				}
 				if props.VCores != nil {
 					model.VCores = int(*props.VCores)
+				}
+
+				if props.ZoneRedundant != nil {
+					model.ZoneRedundantEnabled = *props.ZoneRedundant
 				}
 			}
 
@@ -602,9 +632,9 @@ func (r MsSqlManagedInstanceResource) expandSkuName(skuName string) (*sql.Sku, e
 	}
 
 	return &sql.Sku{
-		Name:   utils.String(skuName),
-		Tier:   utils.String(tier),
-		Family: utils.String(parts[1]),
+		Name:   pointer.To(skuName),
+		Tier:   pointer.To(tier),
+		Family: pointer.To(parts[1]),
 	}, nil
 }
 

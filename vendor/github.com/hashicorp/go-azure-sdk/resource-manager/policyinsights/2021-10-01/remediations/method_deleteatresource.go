@@ -44,7 +44,10 @@ func (c RemediationsClient) DeleteAtResource(ctx context.Context, id ScopedRemed
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Remediation
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

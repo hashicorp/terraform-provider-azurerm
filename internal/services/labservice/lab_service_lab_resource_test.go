@@ -148,6 +148,10 @@ resource "azurerm_lab_service_lab" "test" {
       capacity = 1
     }
   }
+
+  connection_setting {
+    client_ssh_access = "Public"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -183,6 +187,10 @@ resource "azurerm_lab_service_lab" "import" {
       name     = "Classic_Fsv2_2_4GB_128_S_SSD"
       capacity = 1
     }
+  }
+
+  connection_setting {
+    client_ssh_access = "Public"
   }
 }
 `, r.basic(data))
@@ -289,8 +297,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -477,8 +485,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }

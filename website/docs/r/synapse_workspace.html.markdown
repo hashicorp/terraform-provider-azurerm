@@ -183,9 +183,11 @@ The following arguments are supported:
 
 * `sql_administrator_login_password` - (Optional) The Password associated with the `sql_administrator_login` for the SQL administrator. If this is not provided `aad_admin` or `customer_managed_key` must be provided.
 
+* `azuread_authentication_only` - (Optional) Is Azure Active Directory Authentication the only way to authenticate with resources inside this synapse Workspace. Defaults to `false`.
+
 ---
 
-* `aad_admin` - (Optional) An `aad_admin` block as defined below. Conflicts with `customer_managed_key`.
+* `aad_admin` - (Optional) An `aad_admin` block as defined below.
 
 * `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace Changing this forces a new resource to be created.
 
@@ -193,7 +195,7 @@ The following arguments are supported:
 
 * `data_exfiltration_protection_enabled` - (Optional) Is data exfiltration protection enabled in this workspace? If set to `true`, `managed_virtual_network_enabled` must also be set to `true`. Changing this forces a new resource to be created.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Conflicts with `aad_admin`.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
 * `github_repo` - (Optional) A `github_repo` block as defined below.
 
@@ -248,6 +250,8 @@ A `customer_managed_key` block supports the following:
 * `key_versionless_id` - (Required) The Azure Key Vault Key Versionless ID to be used as the Customer Managed Key (CMK) for double encryption (e.g. `https://example-keyvault.vault.azure.net/type/cmk/`).
 
 * `key_name` - (Optional) An identifier for the key. Name needs to match the name of the key used with the `azurerm_synapse_workspace_key` resource. Defaults to "cmk" if not specified.
+
+* `user_assigned_identity_id` - (Optional) The User Assigned Identity ID to be used for accessing the Customer Managed Key for encryption.
 
 ---
 

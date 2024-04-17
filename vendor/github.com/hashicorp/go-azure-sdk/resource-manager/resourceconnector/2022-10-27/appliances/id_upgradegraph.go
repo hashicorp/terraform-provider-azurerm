@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = UpgradeGraphId{}
+func init() {
+	recaser.RegisterResourceId(&UpgradeGraphId{})
+}
+
+var _ resourceids.ResourceId = &UpgradeGraphId{}
 
 // UpgradeGraphId is a struct representing the Resource ID for a Upgrade Graph
 type UpgradeGraphId struct {
@@ -32,29 +37,15 @@ func NewUpgradeGraphID(subscriptionId string, resourceGroupName string, applianc
 
 // ParseUpgradeGraphID parses 'input' into a UpgradeGraphId
 func ParseUpgradeGraphID(input string) (*UpgradeGraphId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UpgradeGraphId{})
+	parser := resourceids.NewParserFromResourceIdType(&UpgradeGraphId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := UpgradeGraphId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplianceName, ok = parsed.Parsed["applianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applianceName", *parsed)
-	}
-
-	if id.UpgradeGraphName, ok = parsed.Parsed["upgradeGraphName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "upgradeGraphName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseUpgradeGraphID(input string) (*UpgradeGraphId, error) {
 // ParseUpgradeGraphIDInsensitively parses 'input' case-insensitively into a UpgradeGraphId
 // note: this method should only be used for API response data and not user input
 func ParseUpgradeGraphIDInsensitively(input string) (*UpgradeGraphId, error) {
-	parser := resourceids.NewParserFromResourceIdType(UpgradeGraphId{})
+	parser := resourceids.NewParserFromResourceIdType(&UpgradeGraphId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := UpgradeGraphId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ApplianceName, ok = parsed.Parsed["applianceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "applianceName", *parsed)
-	}
-
-	if id.UpgradeGraphName, ok = parsed.Parsed["upgradeGraphName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "upgradeGraphName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *UpgradeGraphId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ApplianceName, ok = input.Parsed["applianceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "applianceName", input)
+	}
+
+	if id.UpgradeGraphName, ok = input.Parsed["upgradeGraphName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "upgradeGraphName", input)
+	}
+
+	return nil
 }
 
 // ValidateUpgradeGraphID checks that 'input' can be parsed as a Upgrade Graph ID

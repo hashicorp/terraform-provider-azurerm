@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Get Artifact
         id: get_artifact
-        uses: dawidd6/action-download-artifact@246dbf436b23d7c49e21a7ab8204ca9ecd1fe615 # v2.27.0
+        uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe # v3.1.4
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           run_id: ${{ github.event.workflow_run.id }}
@@ -28,7 +28,7 @@ jobs:
           echo "ghowner=$(cat artifact/ghowner.txt)" >>${GITHUB_OUTPUT}
           echo "prnumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
       - name: Add waiting-response on fail
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
             github.rest.issues.addLabels({

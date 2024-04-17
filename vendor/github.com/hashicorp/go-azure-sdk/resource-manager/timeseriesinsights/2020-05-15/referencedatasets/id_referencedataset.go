@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReferenceDataSetId{}
+func init() {
+	recaser.RegisterResourceId(&ReferenceDataSetId{})
+}
+
+var _ resourceids.ResourceId = &ReferenceDataSetId{}
 
 // ReferenceDataSetId is a struct representing the Resource ID for a Reference Data Set
 type ReferenceDataSetId struct {
@@ -32,29 +37,15 @@ func NewReferenceDataSetID(subscriptionId string, resourceGroupName string, envi
 
 // ParseReferenceDataSetID parses 'input' into a ReferenceDataSetId
 func ParseReferenceDataSetID(input string) (*ReferenceDataSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReferenceDataSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReferenceDataSetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReferenceDataSetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentName", *parsed)
-	}
-
-	if id.ReferenceDataSetName, ok = parsed.Parsed["referenceDataSetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "referenceDataSetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseReferenceDataSetID(input string) (*ReferenceDataSetId, error) {
 // ParseReferenceDataSetIDInsensitively parses 'input' case-insensitively into a ReferenceDataSetId
 // note: this method should only be used for API response data and not user input
 func ParseReferenceDataSetIDInsensitively(input string) (*ReferenceDataSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReferenceDataSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReferenceDataSetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ReferenceDataSetId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.EnvironmentName, ok = parsed.Parsed["environmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "environmentName", *parsed)
-	}
-
-	if id.ReferenceDataSetName, ok = parsed.Parsed["referenceDataSetName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "referenceDataSetName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ReferenceDataSetId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.EnvironmentName, ok = input.Parsed["environmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "environmentName", input)
+	}
+
+	if id.ReferenceDataSetName, ok = input.Parsed["referenceDataSetName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "referenceDataSetName", input)
+	}
+
+	return nil
 }
 
 // ValidateReferenceDataSetID checks that 'input' can be parsed as a Reference Data Set ID

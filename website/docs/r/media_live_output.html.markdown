@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `output_snap_time_in_seconds` - (Optional) The initial timestamp that the live output will start at, any content before this value will not be archived. Changing this forces a new Live Output to be created.
 
-* `rewind_windown_duration` - (Optional) `ISO 8601` time between 1 minute to the duration of `archive_window_duration` to control seek-able window length during Live. The service won't use this property once LiveOutput stops. The archived VOD will have full content with original ArchiveWindowLength. For example, use `PT1H30M` to indicate 1 hour and 30 minutes of rewind window length. Service will use implicit default value 30m only if Live Event enables LL. Changing this forces a new Live Output to be created.
+* `rewind_window_duration` - (Optional) `ISO 8601` time between 1 minute to the duration of `archive_window_duration` to control seek-able window length during Live. The service won't use this property once LiveOutput stops. The archived VOD will have full content with original ArchiveWindowLength. For example, use `PT1H30M` to indicate 1 hour and 30 minutes of rewind window length. Service will use implicit default value 30m only if Live Event enables LL. Changing this forces a new Live Output to be created.
 
 ## Attributes Reference
 
@@ -110,7 +110,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Live Output.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Live Output.
-* `update` - (Defaults to 30 minutes) Used when updating the Live Output.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Live Output.
 
 ## Import

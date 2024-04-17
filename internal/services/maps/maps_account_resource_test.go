@@ -30,7 +30,7 @@ func TestAccMapsAccount_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("x_ms_client_id").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
-				check.That(data.ResourceName).Key("sku_name").HasValue("S0"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("G2"),
 			),
 		},
 		data.ImportStep(),
@@ -43,13 +43,13 @@ func TestAccMapsAccount_sku(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sku(data, "S1"),
+			Config: r.sku(data, "G2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("x_ms_client_id").Exists(),
 				check.That(data.ResourceName).Key("primary_access_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
-				check.That(data.ResourceName).Key("sku_name").HasValue("S1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("G2"),
 			),
 		},
 		data.ImportStep(),
@@ -152,7 +152,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "S0"
+  sku_name            = "G2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -190,7 +190,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "S0"
+  sku_name            = "G2"
 
   tags = {
     environment = "testing"
@@ -213,7 +213,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                         = "accMapsAccount-%d"
   resource_group_name          = azurerm_resource_group.test.name
-  sku_name                     = "S0"
+  sku_name                     = "G2"
   local_authentication_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -233,7 +233,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                         = "accMapsAccount-%d"
   resource_group_name          = azurerm_resource_group.test.name
-  sku_name                     = "S0"
+  sku_name                     = "G2"
   local_authentication_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

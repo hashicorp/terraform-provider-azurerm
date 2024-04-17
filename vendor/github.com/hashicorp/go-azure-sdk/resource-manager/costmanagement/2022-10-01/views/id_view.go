@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ViewId{}
+func init() {
+	recaser.RegisterResourceId(&ViewId{})
+}
+
+var _ resourceids.ResourceId = &ViewId{}
 
 // ViewId is a struct representing the Resource ID for a View
 type ViewId struct {
@@ -26,17 +31,15 @@ func NewViewID(viewName string) ViewId {
 
 // ParseViewID parses 'input' into a ViewId
 func ParseViewID(input string) (*ViewId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ViewId{})
+	parser := resourceids.NewParserFromResourceIdType(&ViewId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ViewId{}
-
-	if id.ViewName, ok = parsed.Parsed["viewName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "viewName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -45,20 +48,28 @@ func ParseViewID(input string) (*ViewId, error) {
 // ParseViewIDInsensitively parses 'input' case-insensitively into a ViewId
 // note: this method should only be used for API response data and not user input
 func ParseViewIDInsensitively(input string) (*ViewId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ViewId{})
+	parser := resourceids.NewParserFromResourceIdType(&ViewId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ViewId{}
-
-	if id.ViewName, ok = parsed.Parsed["viewName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "viewName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ViewId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.ViewName, ok = input.Parsed["viewName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "viewName", input)
+	}
+
+	return nil
 }
 
 // ValidateViewID checks that 'input' can be parsed as a View ID

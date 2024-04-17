@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -64,13 +65,10 @@ func (s *SharedKeyAuthorizer) AuxiliaryTokens(_ context.Context, _ *http.Request
 	return []*oauth2.Token{}, nil
 }
 
-// ---
-
 const (
 	storageEmulatorAccountName string = "devstoreaccount1"
 
 	headerContentEncoding   = "Content-Encoding"
-	headerContentLength     = "Content-Length"
 	headerContentMD5        = "Content-MD5"
 	headerContentLanguage   = "Content-Language"
 	headerContentType       = "Content-Type"
@@ -98,7 +96,7 @@ func buildSharedKey(accName string, accKey []byte, req *http.Request, keyType Sh
 		date := time.Now().UTC().Format(http.TimeFormat)
 		req.Header.Set(headerXMSDate, date)
 	}
-	canString, err := buildCanonicalizedString(req.Method, req.Header, canRes, keyType)
+	canString, err := buildCanonicalizedString(req.Method, req.ContentLength, req.Header, canRes, keyType)
 	if err != nil {
 		return "", err
 	}
@@ -170,10 +168,10 @@ func getCanonicalizedAccountName(accountName string) string {
 	return strings.TrimSuffix(accountName, "-secondary")
 }
 
-func buildCanonicalizedString(verb string, headers http.Header, canonicalizedResource string, keyType SharedKeyType) (string, error) {
-	contentLength := headers.Get(headerContentLength)
-	if contentLength == "0" {
-		contentLength = ""
+func buildCanonicalizedString(verb string, contentLength int64, headers http.Header, canonicalizedResource string, keyType SharedKeyType) (string, error) {
+	var contentLengthString string
+	if contentLength > 0 {
+		contentLengthString = strconv.Itoa(int(contentLength))
 	}
 	date := headers.Get(headerDate)
 	if v := headers.Get(headerXMSDate); v != "" {
@@ -190,7 +188,7 @@ func buildCanonicalizedString(verb string, headers http.Header, canonicalizedRes
 			verb,
 			headers.Get(headerContentEncoding),
 			headers.Get(headerContentLanguage),
-			contentLength,
+			contentLengthString,
 			headers.Get(headerContentMD5),
 			headers.Get(headerContentType),
 			date,

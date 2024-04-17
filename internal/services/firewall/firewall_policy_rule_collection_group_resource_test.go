@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicyrulecollectiongroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -142,7 +142,7 @@ func (FirewallPolicyRuleCollectionGroupResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.Firewall.Client.FirewallPolicyRuleCollectionGroups.Get(ctx, *id)
+	resp, err := clients.Network.FirewallPolicyRuleCollectionGroups.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
@@ -519,6 +519,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       terminate_tls         = true
       web_categories        = ["News"]
+      http_headers {
+        name  = "head_foo"
+        value = "value_bar"
+      }
+      http_headers {
+        name  = "head_bar"
+        value = "value2"
+      }
     }
     rule {
       name        = "app_rule_collection1_rule2"
@@ -794,6 +802,14 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       destination_urls      = ["www.google.com/en"]
       terminate_tls         = true
       web_categories        = ["News"]
+      http_headers {
+        name  = "head_foo"
+        value = "value_bar2"
+      }
+      http_headers {
+        name  = "head_bar2"
+        value = "value_bar2"
+      }
     }
     rule {
       name        = "app_rule_collection1_rule2"

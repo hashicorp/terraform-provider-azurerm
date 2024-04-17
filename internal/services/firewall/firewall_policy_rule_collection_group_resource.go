@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-04-01/firewallpolicyrulecollectiongroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -122,6 +122,24 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 													Type:         pluginsdk.TypeInt,
 													Required:     true,
 													ValidateFunc: validation.IntBetween(0, 64000),
+												},
+											},
+										},
+									},
+									"http_headers": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+												"value": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 										},
@@ -437,7 +455,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 }
 
 func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicyRuleCollectionGroups
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -491,8 +509,7 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 }
 
 func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicyRuleCollectionGroups
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -513,7 +530,7 @@ func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, me
 	}
 
 	d.Set("name", id.RuleCollectionGroupName)
-	d.Set("firewall_policy_id", firewallpolicies.NewFirewallPolicyID(subscriptionId, id.ResourceGroupName, id.FirewallPolicyName).ID())
+	d.Set("firewall_policy_id", firewallpolicies.NewFirewallPolicyID(id.SubscriptionId, id.ResourceGroupName, id.FirewallPolicyName).ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -540,7 +557,7 @@ func resourceFirewallPolicyRuleCollectionGroupRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Firewall.Client.FirewallPolicyRuleCollectionGroups
+	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -616,10 +633,21 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]firewallpolicyr
 				Port:         utils.Int64(int64(proto["port"].(int))),
 			})
 		}
+
+		var httpHeader []firewallpolicyrulecollectiongroups.FirewallPolicyHTTPHeaderToInsert
+		for _, h := range condition["http_headers"].([]interface{}) {
+			header := h.(map[string]interface{})
+			httpHeader = append(httpHeader, firewallpolicyrulecollectiongroups.FirewallPolicyHTTPHeaderToInsert{
+				HeaderName:  pointer.To(header["name"].(string)),
+				HeaderValue: pointer.To(header["value"].(string)),
+			})
+		}
+
 		output := &firewallpolicyrulecollectiongroups.ApplicationRule{
 			Name:                 utils.String(condition["name"].(string)),
 			Description:          utils.String(condition["description"].(string)),
 			Protocols:            &protocols,
+			HTTPHeadersToInsert:  &httpHeader,
 			SourceAddresses:      utils.ExpandStringSlice(condition["source_addresses"].([]interface{})),
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
 			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
@@ -839,10 +867,19 @@ func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiong
 			}
 		}
 
+		httpHeaders := make([]interface{}, 0)
+		for _, header := range pointer.From(rule.HTTPHeadersToInsert) {
+			httpHeaders = append(httpHeaders, map[string]interface{}{
+				"name":  pointer.From(header.HeaderName),
+				"value": pointer.From(header.HeaderValue),
+			})
+		}
+
 		output = append(output, map[string]interface{}{
 			"name":                  name,
 			"description":           description,
 			"protocols":             protocols,
+			"http_headers":          httpHeaders,
 			"source_addresses":      utils.FlattenStringSlice(rule.SourceAddresses),
 			"source_ip_groups":      utils.FlattenStringSlice(rule.SourceIPGroups),
 			"destination_addresses": utils.FlattenStringSlice(rule.DestinationAddresses),

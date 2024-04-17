@@ -133,6 +133,8 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	if v, ok := rw.resource.(ResourceWithCustomizeDiff); ok {
 		resource.CustomizeDiff = func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 			client := meta.(*clients.Client)
+			ctx, cancel := context.WithTimeout(ctx, v.CustomizeDiff().Timeout)
+			defer cancel()
 			metaData := ResourceMetaData{
 				Client:                   client,
 				Logger:                   rw.logger,

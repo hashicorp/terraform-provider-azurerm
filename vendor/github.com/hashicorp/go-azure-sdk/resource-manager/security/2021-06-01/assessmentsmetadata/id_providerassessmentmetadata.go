@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProviderAssessmentMetadataId{}
+func init() {
+	recaser.RegisterResourceId(&ProviderAssessmentMetadataId{})
+}
+
+var _ resourceids.ResourceId = &ProviderAssessmentMetadataId{}
 
 // ProviderAssessmentMetadataId is a struct representing the Resource ID for a Provider Assessment Metadata
 type ProviderAssessmentMetadataId struct {
@@ -28,21 +33,15 @@ func NewProviderAssessmentMetadataID(subscriptionId string, assessmentMetadataNa
 
 // ParseProviderAssessmentMetadataID parses 'input' into a ProviderAssessmentMetadataId
 func ParseProviderAssessmentMetadataID(input string) (*ProviderAssessmentMetadataId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderAssessmentMetadataId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderAssessmentMetadataId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProviderAssessmentMetadataId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.AssessmentMetadataName, ok = parsed.Parsed["assessmentMetadataName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -51,24 +50,32 @@ func ParseProviderAssessmentMetadataID(input string) (*ProviderAssessmentMetadat
 // ParseProviderAssessmentMetadataIDInsensitively parses 'input' case-insensitively into a ProviderAssessmentMetadataId
 // note: this method should only be used for API response data and not user input
 func ParseProviderAssessmentMetadataIDInsensitively(input string) (*ProviderAssessmentMetadataId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderAssessmentMetadataId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderAssessmentMetadataId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ProviderAssessmentMetadataId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.AssessmentMetadataName, ok = parsed.Parsed["assessmentMetadataName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ProviderAssessmentMetadataId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.AssessmentMetadataName, ok = input.Parsed["assessmentMetadataName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "assessmentMetadataName", input)
+	}
+
+	return nil
 }
 
 // ValidateProviderAssessmentMetadataID checks that 'input' can be parsed as a Provider Assessment Metadata ID

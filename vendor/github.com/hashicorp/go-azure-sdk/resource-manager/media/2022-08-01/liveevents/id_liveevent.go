@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LiveEventId{}
+func init() {
+	recaser.RegisterResourceId(&LiveEventId{})
+}
+
+var _ resourceids.ResourceId = &LiveEventId{}
 
 // LiveEventId is a struct representing the Resource ID for a Live Event
 type LiveEventId struct {
@@ -32,29 +37,15 @@ func NewLiveEventID(subscriptionId string, resourceGroupName string, mediaServic
 
 // ParseLiveEventID parses 'input' into a LiveEventId
 func ParseLiveEventID(input string) (*LiveEventId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LiveEventId{})
+	parser := resourceids.NewParserFromResourceIdType(&LiveEventId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LiveEventId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
-	}
-
-	if id.LiveEventName, ok = parsed.Parsed["liveEventName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "liveEventName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseLiveEventID(input string) (*LiveEventId, error) {
 // ParseLiveEventIDInsensitively parses 'input' case-insensitively into a LiveEventId
 // note: this method should only be used for API response data and not user input
 func ParseLiveEventIDInsensitively(input string) (*LiveEventId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LiveEventId{})
+	parser := resourceids.NewParserFromResourceIdType(&LiveEventId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := LiveEventId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.MediaServiceName, ok = parsed.Parsed["mediaServiceName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", *parsed)
-	}
-
-	if id.LiveEventName, ok = parsed.Parsed["liveEventName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "liveEventName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *LiveEventId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.MediaServiceName, ok = input.Parsed["mediaServiceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "mediaServiceName", input)
+	}
+
+	if id.LiveEventName, ok = input.Parsed["liveEventName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "liveEventName", input)
+	}
+
+	return nil
 }
 
 // ValidateLiveEventID checks that 'input' can be parsed as a Live Event ID

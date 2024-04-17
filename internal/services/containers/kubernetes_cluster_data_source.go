@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-04-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -791,7 +791,7 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile.CustomCATrustCertificates)
+			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
 			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
 				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
 			}
@@ -1481,14 +1481,14 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 	}
 }
 
-func flattenCustomCaTrustCerts(input *[]string) []interface{} {
-	if input == nil {
+func flattenCustomCaTrustCerts(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
+	if input == nil || input.CustomCATrustCertificates == nil {
 		return make([]interface{}, 0)
 	}
 
-	customCaTrustCertInterface := make([]interface{}, len(*input))
+	customCaTrustCertInterface := make([]interface{}, len(*input.CustomCATrustCertificates))
 
-	for index, value := range *input {
+	for index, value := range *input.CustomCATrustCertificates {
 		customCaTrustCertInterface[index] = value
 	}
 

@@ -22,7 +22,22 @@ func TestAccLinuxWebAppSlot_withAuthV2AzureActiveDirectory(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withAuthV2AzureActiveDirectoryNoSecretName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authV2AzureActiveDirectoryNoSecretName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -37,7 +52,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Apple(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -52,7 +67,7 @@ func TestAccLinuxWebAppSlot_withAuthV2CustomOIDC(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -67,7 +82,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Facebook(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -82,7 +97,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Github(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -97,7 +112,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Google(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -112,7 +127,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Microsoft(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -127,7 +142,7 @@ func TestAccLinuxWebAppSlot_withAuthV2Twitter(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -142,7 +157,7 @@ func TestAccLinuxWebAppSlot_withAuthV2MultipleAuths(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -181,6 +196,36 @@ resource "azurerm_linux_web_app_slot" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue, data.Client().TenantID)
+}
+
+func (r LinuxWebAppSlotResource) authV2AzureActiveDirectoryNoSecretName(data acceptance.TestData) string {
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "Return401"
+    active_directory_v2 {
+      client_id            = data.azurerm_client_config.current.client_id
+      tenant_auth_endpoint = "https://sts.windows.net/%[3]s/v2.0"
+    }
+    login {}
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, data.Client().TenantID)
 }
 
 func (r LinuxWebAppSlotResource) authV2Apple(data acceptance.TestData) string {

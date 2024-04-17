@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/softwareupdateconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2022-08-08/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	validate4 "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -63,7 +63,7 @@ type Linux struct {
 	ExcludedPackages []string `tfschema:"excluded_packages"`
 	IncludedPackages []string `tfschema:"included_packages"`
 
-	Classification string `tfschema:"classification_included"` // Deprecated use Classifications instead
+	Classification string `tfschema:"classification_included,removedInNextMajorVersion"`
 }
 
 type MonthlyOccurrence struct {
@@ -111,8 +111,7 @@ type Windows struct {
 	IncludedKbs     []string `tfschema:"included_knowledge_base_numbers"`
 	RebootSetting   string   `tfschema:"reboot"`
 
-	Classification string `tfschema:"classification_included"` // Deprecated use Classifications instead
-
+	Classification string `tfschema:"classification_included,removedInNextMajorVersion"`
 }
 
 type SoftwareUpdateConfigurationModel struct {

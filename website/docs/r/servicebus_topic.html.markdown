@@ -45,8 +45,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the ServiceBus Topic resource. Changing this forces a new resource to be created.
 
-* `namespace_id` - (Required) The ID of the ServiceBus Namespace to create Changing this forces a new resource to be created.
-    this topic in. Changing this forces a new resource to be created.
+* `namespace_id` - (Required) The ID of the ServiceBus Namespace to create this topic in. Changing this forces a new resource to be created.
 
 * `status` - (Optional) The Status of the Service Bus Topic. Acceptable values are `Active` or `Disabled`. Defaults to `Active`.
 
@@ -60,7 +59,7 @@ The following arguments are supported:
 
 * `enable_express` - (Optional) Boolean flag which controls whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.
 
-* `enable_partitioning` - (Optional) Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers. Defaults to false. Changing this forces a new resource to be created.
+* `enable_partitioning` - (Optional) Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers. Changing this forces a new resource to be created.
 
 -> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-partitioning) for more information.
 
@@ -68,9 +67,7 @@ The following arguments are supported:
 
 * `max_size_in_megabytes` - (Optional) Integer value which controls the size of memory allocated for the topic. For supported values see the "Queue/topic size" section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
-* `requires_duplicate_detection` - (Optional) Boolean flag which controls whether Changing this forces a new resource to be created.
-    the Topic requires duplicate detection. Defaults to false. Changing this forces
-    a new resource to be created.
+* `requires_duplicate_detection` - (Optional) Boolean flag which controls whether the Topic requires duplicate detection. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `support_ordering` - (Optional) Boolean flag which controls whether the Topic supports ordering.
 

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectedClusterId{}
+func init() {
+	recaser.RegisterResourceId(&ConnectedClusterId{})
+}
+
+var _ resourceids.ResourceId = &ConnectedClusterId{}
 
 // ConnectedClusterId is a struct representing the Resource ID for a Connected Cluster
 type ConnectedClusterId struct {
@@ -30,25 +35,15 @@ func NewConnectedClusterID(subscriptionId string, resourceGroupName string, conn
 
 // ParseConnectedClusterID parses 'input' into a ConnectedClusterId
 func ParseConnectedClusterID(input string) (*ConnectedClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedClusterId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedClusterId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConnectedClusterId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConnectedClusterName, ok = parsed.Parsed["connectedClusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectedClusterName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -57,28 +52,36 @@ func ParseConnectedClusterID(input string) (*ConnectedClusterId, error) {
 // ParseConnectedClusterIDInsensitively parses 'input' case-insensitively into a ConnectedClusterId
 // note: this method should only be used for API response data and not user input
 func ParseConnectedClusterIDInsensitively(input string) (*ConnectedClusterId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedClusterId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedClusterId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConnectedClusterId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConnectedClusterName, ok = parsed.Parsed["connectedClusterName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectedClusterName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ConnectedClusterId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ConnectedClusterName, ok = input.Parsed["connectedClusterName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "connectedClusterName", input)
+	}
+
+	return nil
 }
 
 // ValidateConnectedClusterID checks that 'input' can be parsed as a Connected Cluster ID

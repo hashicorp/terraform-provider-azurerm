@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectedEnvironmentDaprComponentId{}
+func init() {
+	recaser.RegisterResourceId(&ConnectedEnvironmentDaprComponentId{})
+}
+
+var _ resourceids.ResourceId = &ConnectedEnvironmentDaprComponentId{}
 
 // ConnectedEnvironmentDaprComponentId is a struct representing the Resource ID for a Connected Environment Dapr Component
 type ConnectedEnvironmentDaprComponentId struct {
@@ -32,29 +37,15 @@ func NewConnectedEnvironmentDaprComponentID(subscriptionId string, resourceGroup
 
 // ParseConnectedEnvironmentDaprComponentID parses 'input' into a ConnectedEnvironmentDaprComponentId
 func ParseConnectedEnvironmentDaprComponentID(input string) (*ConnectedEnvironmentDaprComponentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedEnvironmentDaprComponentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedEnvironmentDaprComponentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConnectedEnvironmentDaprComponentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConnectedEnvironmentName, ok = parsed.Parsed["connectedEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectedEnvironmentName", *parsed)
-	}
-
-	if id.DaprComponentName, ok = parsed.Parsed["daprComponentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "daprComponentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseConnectedEnvironmentDaprComponentID(input string) (*ConnectedEnvironme
 // ParseConnectedEnvironmentDaprComponentIDInsensitively parses 'input' case-insensitively into a ConnectedEnvironmentDaprComponentId
 // note: this method should only be used for API response data and not user input
 func ParseConnectedEnvironmentDaprComponentIDInsensitively(input string) (*ConnectedEnvironmentDaprComponentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedEnvironmentDaprComponentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedEnvironmentDaprComponentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := ConnectedEnvironmentDaprComponentId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.ConnectedEnvironmentName, ok = parsed.Parsed["connectedEnvironmentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "connectedEnvironmentName", *parsed)
-	}
-
-	if id.DaprComponentName, ok = parsed.Parsed["daprComponentName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "daprComponentName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *ConnectedEnvironmentDaprComponentId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.ConnectedEnvironmentName, ok = input.Parsed["connectedEnvironmentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "connectedEnvironmentName", input)
+	}
+
+	if id.DaprComponentName, ok = input.Parsed["daprComponentName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "daprComponentName", input)
+	}
+
+	return nil
 }
 
 // ValidateConnectedEnvironmentDaprComponentID checks that 'input' can be parsed as a Connected Environment Dapr Component ID

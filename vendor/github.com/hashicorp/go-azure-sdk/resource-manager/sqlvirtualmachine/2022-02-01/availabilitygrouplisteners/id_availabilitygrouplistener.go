@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AvailabilityGroupListenerId{}
+func init() {
+	recaser.RegisterResourceId(&AvailabilityGroupListenerId{})
+}
+
+var _ resourceids.ResourceId = &AvailabilityGroupListenerId{}
 
 // AvailabilityGroupListenerId is a struct representing the Resource ID for a Availability Group Listener
 type AvailabilityGroupListenerId struct {
@@ -32,29 +37,15 @@ func NewAvailabilityGroupListenerID(subscriptionId string, resourceGroupName str
 
 // ParseAvailabilityGroupListenerID parses 'input' into a AvailabilityGroupListenerId
 func ParseAvailabilityGroupListenerID(input string) (*AvailabilityGroupListenerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AvailabilityGroupListenerId{})
+	parser := resourceids.NewParserFromResourceIdType(&AvailabilityGroupListenerId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AvailabilityGroupListenerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SqlVirtualMachineGroupName, ok = parsed.Parsed["sqlVirtualMachineGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", *parsed)
-	}
-
-	if id.AvailabilityGroupListenerName, ok = parsed.Parsed["availabilityGroupListenerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "availabilityGroupListenerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -63,32 +54,40 @@ func ParseAvailabilityGroupListenerID(input string) (*AvailabilityGroupListenerI
 // ParseAvailabilityGroupListenerIDInsensitively parses 'input' case-insensitively into a AvailabilityGroupListenerId
 // note: this method should only be used for API response data and not user input
 func ParseAvailabilityGroupListenerIDInsensitively(input string) (*AvailabilityGroupListenerId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AvailabilityGroupListenerId{})
+	parser := resourceids.NewParserFromResourceIdType(&AvailabilityGroupListenerId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := AvailabilityGroupListenerId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.SqlVirtualMachineGroupName, ok = parsed.Parsed["sqlVirtualMachineGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", *parsed)
-	}
-
-	if id.AvailabilityGroupListenerName, ok = parsed.Parsed["availabilityGroupListenerName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "availabilityGroupListenerName", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
+}
+
+func (id *AvailabilityGroupListenerId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
+	}
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
+	}
+
+	if id.SqlVirtualMachineGroupName, ok = input.Parsed["sqlVirtualMachineGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "sqlVirtualMachineGroupName", input)
+	}
+
+	if id.AvailabilityGroupListenerName, ok = input.Parsed["availabilityGroupListenerName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "availabilityGroupListenerName", input)
+	}
+
+	return nil
 }
 
 // ValidateAvailabilityGroupListenerID checks that 'input' can be parsed as a Availability Group Listener ID

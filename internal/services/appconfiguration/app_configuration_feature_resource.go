@@ -13,6 +13,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -333,8 +335,13 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			resourceClient := metadata.Client.Resource
-			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, resourceClient, nestedItemId.ConfigurationStoreEndpoint)
+			domainSuffix, ok := metadata.Client.Account.Environment.AppConfiguration.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine AppConfiguration domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
+			configurationStoreIdRaw, err := metadata.Client.AppConfiguration.ConfigurationStoreIDFromEndpoint(ctx, subscriptionId, nestedItemId.ConfigurationStoreEndpoint, *domainSuffix)
 			if err != nil {
 				return fmt.Errorf("while retrieving the Resource ID of Configuration Store at Endpoint: %q: %s", nestedItemId.ConfigurationStoreEndpoint, err)
 			}
@@ -349,11 +356,11 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			ok, err := metadata.Client.AppConfiguration.Exists(ctx, *configurationStoreId)
+			exists, err := metadata.Client.AppConfiguration.Exists(ctx, *configurationStoreId)
 			if err != nil {
 				return fmt.Errorf("while checking Configuration Store %q for feature %q existence: %v", *configurationStoreId, *nestedItemId, err)
 			}
-			if !ok {
+			if !exists {
 				log.Printf("[DEBUG] Configuration Store %q for feature %q was not found - removing from state", *configurationStoreId, *nestedItemId)
 				return metadata.MarkAsGone(nestedItemId)
 			}
@@ -366,7 +373,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			kv, err := client.GetKeyValue(ctx, nestedItemId.Key, nestedItemId.Label, "", "", "", []appconfiguration.KeyValueFields{})
 			if err != nil {
 				if v, ok := err.(autorest.DetailedError); ok {
-					if utils.ResponseWasNotFound(autorest.Response{Response: v.Response}) {
+					if response.WasNotFound(v.Response) {
 						return metadata.MarkAsGone(nestedItemId)
 					}
 				}

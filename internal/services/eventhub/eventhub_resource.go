@@ -63,7 +63,6 @@ func resourceEventHub() *pluginsdk.Resource {
 			"partition_count": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ValidateEventHubPartitionCount,
 			},
 
@@ -222,6 +221,12 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 
 	if d.HasChange("partition_count") {
+
+		o, n := d.GetChange("partition_count")
+		if o.(int) > n.(int) {
+			return fmt.Errorf("`partition_count` cannot be decreased")
+		}
+
 		client := meta.(*clients.Client).Eventhub.NamespacesClient
 		namespaceId := namespaces.NewNamespaceID(subscriptionId, id.ResourceGroupName, id.NamespaceName)
 		resp, err := client.Get(ctx, namespaceId)

@@ -80,7 +80,10 @@ func (c CertificateClient) Create(ctx context.Context, id CertificateId, input C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Certificate
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

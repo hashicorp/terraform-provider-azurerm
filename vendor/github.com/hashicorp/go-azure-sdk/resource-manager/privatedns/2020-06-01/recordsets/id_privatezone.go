@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateZoneId{}
+func init() {
+	recaser.RegisterResourceId(&PrivateZoneId{})
+}
+
+var _ resourceids.ResourceId = &PrivateZoneId{}
 
 // PrivateZoneId is a struct representing the Resource ID for a Private Zone
 type PrivateZoneId struct {
@@ -32,37 +37,15 @@ func NewPrivateZoneID(subscriptionId string, resourceGroupName string, privateDn
 
 // ParsePrivateZoneID parses 'input' into a PrivateZoneId
 func ParsePrivateZoneID(input string) (*PrivateZoneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateZoneId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateZoneId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateZoneId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
-	}
-
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
-	}
-
-	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", *parsed)
-	}
-
-	if v, ok := parsed.Parsed["recordType"]; true {
-		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "recordType", *parsed)
-		}
-
-		recordType, err := parseRecordType(v)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
-		}
-		id.RecordType = *recordType
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
 	return &id, nil
@@ -71,40 +54,48 @@ func ParsePrivateZoneID(input string) (*PrivateZoneId, error) {
 // ParsePrivateZoneIDInsensitively parses 'input' case-insensitively into a PrivateZoneId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateZoneIDInsensitively(input string) (*PrivateZoneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateZoneId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateZoneId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	var ok bool
 	id := PrivateZoneId{}
-
-	if id.SubscriptionId, ok = parsed.Parsed["subscriptionId"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", *parsed)
+	if err := id.FromParseResult(*parsed); err != nil {
+		return nil, err
 	}
 
-	if id.ResourceGroupName, ok = parsed.Parsed["resourceGroupName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", *parsed)
+	return &id, nil
+}
+
+func (id *PrivateZoneId) FromParseResult(input resourceids.ParseResult) error {
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
 	}
 
-	if id.PrivateDnsZoneName, ok = parsed.Parsed["privateDnsZoneName"]; !ok {
-		return nil, resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", *parsed)
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
 	}
 
-	if v, ok := parsed.Parsed["recordType"]; true {
+	if id.PrivateDnsZoneName, ok = input.Parsed["privateDnsZoneName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "privateDnsZoneName", input)
+	}
+
+	if v, ok := input.Parsed["recordType"]; true {
 		if !ok {
-			return nil, resourceids.NewSegmentNotSpecifiedError(id, "recordType", *parsed)
+			return resourceids.NewSegmentNotSpecifiedError(id, "recordType", input)
 		}
 
 		recordType, err := parseRecordType(v)
 		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %+v", v, err)
+			return fmt.Errorf("parsing %q: %+v", v, err)
 		}
 		id.RecordType = *recordType
 	}
 
-	return &id, nil
+	return nil
 }
 
 // ValidatePrivateZoneID checks that 'input' can be parsed as a Private Zone ID

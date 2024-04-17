@@ -68,7 +68,8 @@ func RequestRetryAll(retryFuncs ...RequestRetryFunc) func(resp *http.Response, o
 	}
 }
 
-// RetryableErrorHandler simply returns the resp and err, this is needed to makes the retryablehttp client's Do() return early with the response body not drained.
+// RetryableErrorHandler simply returns the resp and err, this is needed to make the Do() method
+// of retryablehttp client return early with the response body not drained.
 func RetryableErrorHandler(resp *http.Response, err error, _ int) (*http.Response, error) {
 	return resp, err
 }
@@ -90,39 +91,48 @@ type Request struct {
 func (r *Request) Marshal(payload interface{}) error {
 	contentType := strings.ToLower(r.Header.Get("Content-Type"))
 
-	if strings.Contains(contentType, "application/json") {
+	switch {
+	case strings.Contains(contentType, "application/json"):
 		body, err := json.Marshal(payload)
 		if err == nil {
 			r.ContentLength = int64(len(body))
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
+		return nil
+
+	case strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml"):
 		body, err := xml.Marshal(payload)
 		if err == nil {
+			// Prepend the xml doctype declaration if not detected
+			if !strings.HasPrefix(strings.TrimSpace(strings.ToLower(string(body[0:5]))), "<?xml") {
+				body = append([]byte(xml.Header), body...)
+			}
+
 			r.ContentLength = int64(len(body))
 			r.Body = io.NopCloser(bytes.NewReader(body))
 		}
+
 		return nil
 	}
 
-	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		switch v := payload.(type) {
-		case *[]byte:
+	switch v := payload.(type) {
+	case *[]byte:
+		if v == nil {
+			r.ContentLength = int64(len([]byte{}))
+			r.Body = io.NopCloser(bytes.NewReader([]byte{}))
+		} else {
 			r.ContentLength = int64(len(*v))
 			r.Body = io.NopCloser(bytes.NewReader(*v))
-		case []byte:
-			r.ContentLength = int64(len(v))
-			r.Body = io.NopCloser(bytes.NewReader(v))
-		default:
-			return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 		}
-		return nil
+	case []byte:
+		r.ContentLength = int64(len(v))
+		r.Body = io.NopCloser(bytes.NewReader(v))
+	default:
+		return fmt.Errorf("internal-error: `payload` must be []byte or *[]byte but got type %T", payload)
 	}
 
-	return fmt.Errorf("internal-error: unimplemented marshal function for content type %q", contentType)
+	return nil
 }
 
 // Execute invokes the Execute method for the Request's Client
@@ -157,27 +167,40 @@ func (r *Response) Unmarshal(model interface{}) error {
 	if model == nil {
 		return fmt.Errorf("model was nil")
 	}
+	if r.Response == nil {
+		return fmt.Errorf("could not unmarshal as the HTTP response was nil")
+	}
 
-	contentType := strings.ToLower(r.Header.Get("Content-Type"))
-	if contentType == "" {
-		// some APIs (e.g. Storage Data Plane) don't return a content type... so we'll assume from the Accept header
-		acc, err := accept.FromString(r.Request.Header.Get("Accept"))
-		if err != nil {
-			if preferred := acc.FirstChoice(); preferred != nil {
-				contentType = preferred.ContentType
+	var contentType string
+	if r.Response.Header != nil {
+		contentType = strings.ToLower(r.Response.Header.Get("Content-Type"))
+
+		if contentType == "" {
+			// some APIs (e.g. Storage Data Plane) don't return a content type... so we'll assume from the Accept header
+			acc, err := accept.FromString(r.Request.Header.Get("Accept"))
+			if err != nil {
+				if preferred := acc.FirstChoice(); preferred != nil {
+					contentType = preferred.ContentType
+				}
+			}
+			if contentType == "" {
+				// fall back on request media type
+				contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
 			}
 		}
-		if contentType == "" {
-			// fall back on request media type
-			contentType = strings.ToLower(r.Request.Header.Get("Content-Type"))
-		}
 	}
-	// the maintenance API returns a 200 for a delete with no content-type and no content length so we should skip
-	// trying to unmarshal this
+
+	if contentType == "" {
+		return fmt.Errorf("could not determine Content-Type for response")
+	}
+
+	// Some APIs (e.g. Maintenance) return 200 without a body, don't unmarshal these
 	if r.ContentLength == 0 && (r.Body == nil || r.Body == http.NoBody) {
 		return nil
 	}
-	if strings.Contains(contentType, "application/json") {
+
+	switch {
+	case strings.Contains(contentType, "application/json"):
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -188,6 +211,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
 
+		// In some cases the respBody is empty, but not nil, so don't attempt to unmarshal this
+		if len(respBody) == 0 {
+			return nil
+		}
+
 		// Unmarshal into provided model
 		if err := json.Unmarshal(respBody, model); err != nil {
 			return fmt.Errorf("unmarshaling response body: %+v", err)
@@ -195,10 +223,10 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml") {
+		return nil
+
+	case strings.Contains(contentType, "application/xml") || strings.Contains(contentType, "text/xml"):
 		// Read the response body and close it
 		respBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -208,6 +236,11 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Trim away a BOM if present
 		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+
+		// In some cases the respBody is empty, but not nil, so don't attempt to unmarshal this
+		if len(respBody) == 0 {
+			return nil
+		}
 
 		// Unmarshal into provided model
 		if err := xml.Unmarshal(respBody, model); err != nil {
@@ -216,13 +249,13 @@ func (r *Response) Unmarshal(model interface{}) error {
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
-		return nil
-	}
 
-	if strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell") {
-		ptr, ok := model.(**[]byte)
+		return nil
+
+	case strings.Contains(contentType, "application/octet-stream") || strings.Contains(contentType, "text/powershell"):
+		ptr, ok := model.(*[]byte)
 		if !ok || ptr == nil {
-			return fmt.Errorf("internal-error: `model` must be a non-nil `**[]byte` but got %+v", model)
+			return fmt.Errorf("internal-error: `model` must be a non-nil `*[]byte` but got %[1]T: %+[1]v", model)
 		}
 
 		// Read the response body and close it
@@ -232,14 +265,17 @@ func (r *Response) Unmarshal(model interface{}) error {
 		}
 		r.Body.Close()
 
-		// Trim away a BOM if present
-		respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+		if strings.HasPrefix(contentType, "text/") {
+			// Trim away a BOM if present
+			respBody = bytes.TrimPrefix(respBody, []byte("\xef\xbb\xbf"))
+		}
 
 		// copy the byte stream across
-		*ptr = &respBody
+		*ptr = respBody
 
 		// Reassign the response body as downstream code may expect it
 		r.Body = io.NopCloser(bytes.NewBuffer(respBody))
+
 		return nil
 	}
 
@@ -259,6 +295,11 @@ type Client struct {
 
 	// Authorizer is anything that can provide an access token with which to authorize requests.
 	Authorizer auth.Authorizer
+
+	// AuthorizeRequest is an optional function to decorate a Request for authorization prior to being sent.
+	// When nil, a standard Authorization header will be added using a bearer token as returned by the Token method
+	// of the configured Authorizer. Define this function in order to customize the request authorization.
+	AuthorizeRequest func(context.Context, *http.Request, auth.Authorizer) error
 
 	// DisableRetries prevents the client from reattempting failed requests (which it does to work around eventual consistency issues).
 	// This does not impact handling of retries related to rate limiting, which are always performed.
@@ -281,6 +322,49 @@ func NewClient(baseUri string, serviceName, apiVersion string) *Client {
 		BaseUri:   baseUri,
 		UserAgent: fmt.Sprintf("HashiCorp/go-azure-sdk (%s)", strings.Join(segments, " ")),
 	}
+}
+
+// SetAuthorizer configures the request authorizer for the client
+func (c *Client) SetAuthorizer(authorizer auth.Authorizer) {
+	c.Authorizer = authorizer
+}
+
+// SetUserAgent configures the user agent to be included in requests
+func (c *Client) SetUserAgent(userAgent string) {
+	c.UserAgent = userAgent
+}
+
+// GetUserAgent retrieves the configured user agent for the client
+func (c *Client) GetUserAgent() string {
+	return c.UserAgent
+}
+
+// AppendRequestMiddleware appends a request middleware function for the client
+func (c *Client) AppendRequestMiddleware(f RequestMiddleware) {
+	if c.RequestMiddlewares == nil {
+		m := make([]RequestMiddleware, 0)
+		c.RequestMiddlewares = &m
+	}
+	*c.RequestMiddlewares = append(*c.RequestMiddlewares, f)
+}
+
+// ClearRequestMiddlewares removes all request middleware functions for the client
+func (c *Client) ClearRequestMiddlewares() {
+	c.RequestMiddlewares = nil
+}
+
+// AppendResponseMiddleware appends a response middleware function for the client
+func (c *Client) AppendResponseMiddleware(f ResponseMiddleware) {
+	if c.ResponseMiddlewares == nil {
+		m := make([]ResponseMiddleware, 0)
+		c.ResponseMiddlewares = &m
+	}
+	*c.ResponseMiddlewares = append(*c.ResponseMiddlewares, f)
+}
+
+// ClearResponseMiddlewares removes all response middleware functions for the client
+func (c *Client) ClearResponseMiddlewares() {
+	c.ResponseMiddlewares = nil
 }
 
 // NewRequest configures a new *Request
@@ -315,6 +399,7 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 		Client:           c,
 		Request:          req,
 		Pager:            input.Pager,
+		RetryFunc:        input.RetryFunc,
 		ValidStatusCodes: input.ExpectedStatusCodes,
 	}
 
@@ -327,14 +412,15 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		return nil, fmt.Errorf("req.Request was nil")
 	}
 
-	// at this point we're ready to send the HTTP Request, as such let's get the Authorization token
-	// and add that to the request
-	if c.Authorizer != nil {
-		token, err := c.Authorizer.Token(ctx, req.Request)
-		if err != nil {
-			return nil, err
+	// Authorize the request
+	if c.AuthorizeRequest != nil {
+		if err := c.AuthorizeRequest(ctx, req.Request, c.Authorizer); err != nil {
+			return nil, fmt.Errorf("authorizing request: %+v", err)
 		}
-		token.SetAuthHeader(req.Request)
+	} else if c.Authorizer != nil {
+		if err := auth.SetAuthHeader(ctx, req.Request, c.Authorizer); err != nil {
+			return nil, fmt.Errorf("authorizing request: %+v", err)
+		}
 	}
 
 	var err error
@@ -350,7 +436,7 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 	}
 
 	// Instantiate a RetryableHttp client and configure its CheckRetry func
-	r := c.retryableClient(func(ctx context.Context, r *http.Response, err error) (bool, error) {
+	r := c.retryableClient(ctx, func(ctx context.Context, r *http.Response, err error) (bool, error) {
 		// First check for badly malformed responses
 		if r == nil {
 			if req.IsIdempotent() {
@@ -362,6 +448,11 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		// Eventual consistency checks
 		if !c.DisableRetries {
 			if r.StatusCode == http.StatusFailedDependency {
+				return true, nil
+			}
+
+			// Some APIs don't return a response in time
+			if r.StatusCode == http.StatusRequestTimeout {
 				return true, nil
 			}
 
@@ -422,10 +513,21 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 	// Determine whether response status is valid
 	if !containsStatusCode(req.ValidStatusCodes, resp.StatusCode) {
-		// The status code didn't match, but we also need to check the ValidStatusFUnc, if provided
+		// The status code didn't match, but we also need to check the ValidStatusFunc, if provided
 		// Note that the odata argument here is a best-effort and may be nil
 		if f := req.ValidStatusFunc; f != nil && f(resp.Response, resp.OData) {
 			return resp, nil
+		}
+
+		status := fmt.Sprintf("%d", resp.StatusCode)
+
+		// Prefer the status text returned in the response, but fall back to predefined status if absent
+		statusText := resp.Status
+		if statusText == "" {
+			statusText = http.StatusText(resp.StatusCode)
+		}
+		if statusText != "" {
+			status = fmt.Sprintf("%s (%s)", status, statusText)
 		}
 
 		// Determine suitable error text
@@ -439,16 +541,16 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 			respBody, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return resp, fmt.Errorf("unexpected status %d, could not read response body", resp.StatusCode)
+				return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
 			}
 			if len(respBody) == 0 {
-				return resp, fmt.Errorf("unexpected status %d received with no body", resp.StatusCode)
+				return resp, fmt.Errorf("unexpected status %s received with no body", status)
 			}
 
 			errText = fmt.Sprintf("response: %s", respBody)
 		}
 
-		return resp, fmt.Errorf("unexpected status %d with %s", resp.StatusCode, errText)
+		return resp, fmt.Errorf("unexpected status %s with %s", status, errText)
 	}
 
 	return resp, nil
@@ -545,7 +647,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 }
 
 // retryableClient instantiates a new *retryablehttp.Client having the provided checkRetry func
-func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retryablehttp.Client) {
+func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.CheckRetry) (r *retryablehttp.Client) {
 	r = retryablehttp.NewClient()
 
 	r.Backoff = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
@@ -570,6 +672,18 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 	r.CheckRetry = checkRetry
 	r.ErrorHandler = RetryableErrorHandler
 	r.Logger = log.Default()
+	r.RetryWaitMin = 1 * time.Second
+	r.RetryWaitMax = 61 * time.Second
+
+	// Default RetryMax of 16 takes approx 10 minutes to iterate
+	r.RetryMax = 16
+
+	// Extend the RetryMax if the context timeout exceeds 10 minutes
+	if deadline, ok := ctx.Deadline(); ok {
+		if timeout := deadline.Sub(time.Now()); timeout > 10*time.Minute {
+			r.RetryMax = int(math.Round(timeout.Minutes())) + 6
+		}
+	}
 
 	tlsConfig := tls.Config{
 		MinVersion: tls.VersionTLS12,
