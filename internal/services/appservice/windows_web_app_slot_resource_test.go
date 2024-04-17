@@ -784,6 +784,15 @@ func TestAccWindowsWebAppSlot_withNode12(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.nodeWithAppSettings(data, "~12"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~12"),
+			),
+			ExpectNonEmptyPlan: true, // should only indicate that the app settings have changed
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -797,6 +806,15 @@ func TestAccWindowsWebAppSlot_withNode14(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.nodeWithAppSettings(data, "~14"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~14"),
+			),
+			ExpectNonEmptyPlan: true, // should only indicate that the app settings have changed
 		},
 		data.ImportStep("site_credential.0.password"),
 	})
@@ -814,6 +832,15 @@ func TestAccWindowsWebAppSlot_withNode18(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.nodeWithAppSettings(data, "~18"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~18"),
+			),
+			ExpectNonEmptyPlan: true, // should only indicate that the app settings have changed
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -827,6 +854,15 @@ func TestAccWindowsWebAppSlot_withNode20(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.nodeWithAppSettings(data, "~20"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~20"),
+			),
+			ExpectNonEmptyPlan: true, // should only indicate that the app settings have changed
 		},
 		data.ImportStep("site_credential.0.password"),
 	})
@@ -2027,6 +2063,32 @@ provider "azurerm" {
 resource "azurerm_windows_web_app_slot" "test" {
   name           = "acctestWAS-%d"
   app_service_id = azurerm_windows_web_app.test.id
+
+  site_config {
+    application_stack {
+      node_version = "%s"
+    }
+  }
+}
+
+`, r.baseTemplate(data), data.RandomInteger, nodeVersion)
+}
+
+func (r WindowsWebAppSlotResource) nodeWithAppSettings(data acceptance.TestData, nodeVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  app_settings = {
+	"foo" = "bar"
+  }
 
   site_config {
     application_stack {
