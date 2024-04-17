@@ -116,6 +116,8 @@ func resourceHDInsightKafkaCluster() *pluginsdk.Resource {
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
+			"private_link_configuration": SchemaHDInsightPrivateLinkConfigurations(),
+
 			"compute_isolation": SchemaHDInsightsComputeIsolation(),
 
 			"encryption_in_transit_enabled": {
@@ -270,6 +272,9 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
+	privateLinkConfigurationsRaw := d.Get("private_link_configuration").([]interface{})
+	privateLinkConfigurations := ExpandHDInsightPrivateLinkConfigurations(privateLinkConfigurationsRaw)
+
 	kafkaRoles := hdInsightRoleDefinition{
 		HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
 		WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
@@ -301,11 +306,12 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	payload := clusters.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &clusters.ClusterCreateProperties{
-			Tier:                   pointer.To(tier),
-			OsType:                 pointer.To(clusters.OSTypeLinux),
-			ClusterVersion:         utils.String(clusterVersion),
-			MinSupportedTlsVersion: utils.String(tls),
-			NetworkProperties:      networkProperties,
+			Tier:                      pointer.To(tier),
+			OsType:                    pointer.To(clusters.OSTypeLinux),
+			ClusterVersion:            utils.String(clusterVersion),
+			MinSupportedTlsVersion:    utils.String(tls),
+			NetworkProperties:         networkProperties,
+			PrivateLinkConfigurations: privateLinkConfigurations,
 			ClusterDefinition: &clusters.ClusterDefinition{
 				Kind:             pointer.To(clusters.ClusterKindKafka),
 				ComponentVersion: pointer.To(componentVersions),
@@ -471,6 +477,9 @@ func resourceHDInsightKafkaClusterRead(d *pluginsdk.ResourceData, meta interface
 
 			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
 				return fmt.Errorf("flatten `network`: %+v", err)
+			}
+			if err := d.Set("private_link_configuration", flattenHDInsightPrivateLinkConfigurations(props.PrivateLinkConfigurations)); err != nil {
+				return fmt.Errorf("flattening `private_link_configuration`: %+v", err)
 			}
 			if err := d.Set("compute_isolation", flattenHDInsightComputeIsolationProperties(props.ComputeIsolationProperties)); err != nil {
 				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
