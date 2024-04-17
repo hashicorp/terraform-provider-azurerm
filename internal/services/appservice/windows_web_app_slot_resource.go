@@ -895,6 +895,19 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("setting Site Metadata for Current Stack on Windows %s: %+v", *id, err)
 			}
 
+			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
+			if metadata.ResourceData.HasChanges("app_settings", "site_config") || metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(model.Properties.SiteConfig.AppSettings)
+				appSettingsProps := *appSettingsUpdate.Properties
+				if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
+					appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(state.SiteConfig[0].HealthCheckEvictionTime))
+				}
+				appSettingsUpdate.Properties = &appSettingsProps
+				if _, err := client.UpdateApplicationSettingsSlot(ctx, *id, *appSettingsUpdate); err != nil {
+					return fmt.Errorf("updating App Settings for Windows %s: %+v", *id, err)
+				}
+			}
+
 			if metadata.ResourceData.HasChange("connection_string") {
 				connectionStringUpdate := helpers.ExpandConnectionStrings(state.ConnectionStrings)
 				if connectionStringUpdate.Properties == nil {
