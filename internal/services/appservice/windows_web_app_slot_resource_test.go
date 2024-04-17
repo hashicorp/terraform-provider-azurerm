@@ -2083,7 +2083,7 @@ resource "azurerm_windows_web_app_slot" "test" {
   app_service_id = azurerm_windows_web_app.test.id
 
   app_settings = {
-	"foo" = "bar"
+    "foo" = "bar"
   }
 
   site_config {
@@ -2092,6 +2092,7 @@ resource "azurerm_windows_web_app_slot" "test" {
     }
   }
 }
+
 
 `, r.baseTemplate(data), data.RandomInteger, nodeVersion)
 }
