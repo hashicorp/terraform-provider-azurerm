@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
