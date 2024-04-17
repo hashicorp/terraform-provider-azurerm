@@ -88,5 +88,18 @@ func TestRoleAssignmentV0Parser(t *testing.T) {
 		if actual == nil {
 			t.Fatalf("expected %+v but got nil", test.expected)
 		}
+
+		if test.expected.managedHSMName != actual.managedHSMName {
+			t.Fatalf("expected managedHSMName to be %q but got %q", test.expected.managedHSMName, actual.managedHSMName)
+		}
+		if test.expected.domainSuffix != actual.domainSuffix {
+			t.Fatalf("expected domainSuffix to be %q but got %q", test.expected.domainSuffix, actual.domainSuffix)
+		}
+		if test.expected.scope != actual.scope {
+			t.Fatalf("expected scope to be %q but got %q", test.expected.scope, actual.scope)
+		}
+		if test.expected.roleAssignmentName != actual.roleAssignmentName {
+			t.Fatalf("expected roleAssignmentName to be %q but got %q", test.expected.roleAssignmentName, actual.roleAssignmentName)
+		}
 	}
 }

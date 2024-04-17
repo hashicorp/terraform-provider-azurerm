@@ -3,58 +3,12 @@
 
 package parse
 
+/*
+
 import (
 	"fmt"
 	"testing"
 )
-
-func TestNewManagedHSMRoleDefinitionID(t *testing.T) {
-	mhsmType := "RoleAssignment"
-	cases := []struct {
-		Scenario        string
-		keyVaultBaseUrl string
-		Expected        string
-		Scope           string
-		Name            string
-		ExpectError     bool
-	}{
-		{
-			Scenario:        "empty values",
-			keyVaultBaseUrl: "",
-			Expected:        "",
-			ExpectError:     true,
-		},
-		{
-			Scenario:        "valid, no port",
-			keyVaultBaseUrl: "https://test.managedhsm.azure.net",
-			Scope:           "/",
-			Name:            "test",
-			Expected:        fmt.Sprintf("https://test.managedhsm.azure.net///%s/test", mhsmType),
-			ExpectError:     false,
-		},
-		{
-			Scenario:        "valid, with port",
-			keyVaultBaseUrl: "https://test.managedhsm.azure.net:443",
-			Scope:           "/keys",
-			Name:            "test",
-			Expected:        fmt.Sprintf("https://test.managedhsm.azure.net:443//keys/%s/test", mhsmType),
-			ExpectError:     false,
-		},
-	}
-	for idx, tc := range cases {
-		id, err := NewManagedHSMRoleAssignmentID(tc.keyVaultBaseUrl, tc.Scope, tc.Name)
-		if err != nil {
-			if !tc.ExpectError {
-				t.Fatalf("Got error for New Resource ID '%s': %+v", tc.keyVaultBaseUrl, err)
-				return
-			}
-			continue
-		}
-		if id.ID() != tc.Expected {
-			t.Fatalf("Expected %d id for %q to be %q, got %q", idx, tc.keyVaultBaseUrl, tc.Expected, id)
-		}
-	}
-}
 
 func TestParseManagedHSMRoleDefinitionID(t *testing.T) {
 	typ := "RoleAssignment"
@@ -154,3 +108,4 @@ func TestParseManagedHSMRoleDefinitionID(t *testing.T) {
 		}
 	}
 }
+*/

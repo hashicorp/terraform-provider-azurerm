@@ -53,7 +53,12 @@ func ManagedHSMDataPlaneRoleAssignmentID(input string, domainSuffix *string) (*M
 	}
 
 	// and then the Scope and RoleAssignmentName from the URI
-	path, err := parseManagedHSMRoleAssignmentFromPath(uri.Path)
+	if !strings.HasPrefix(uri.Path, "/") {
+		// sanity-checking, but we're expecting at least a `//` on the front
+		return nil, fmt.Errorf("expected the path to start with `//` but got %q", uri.Path)
+	}
+	pathRaw := strings.TrimPrefix(uri.Path, "/")
+	path, err := parseManagedHSMRoleAssignmentFromPath(pathRaw)
 	if err != nil {
 		return nil, err
 	}
