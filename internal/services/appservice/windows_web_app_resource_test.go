@@ -1093,7 +1093,6 @@ func TestAccWindowsWebApp_withNode14(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~14"),
 			),
-			ExpectNonEmptyPlan: true, // should only indicate that the app settings have changed
 		},
 		data.ImportStep("site_credential.0.password"),
 	})
@@ -1117,7 +1116,6 @@ func TestAccWindowsWebApp_withNode18(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~18"),
 			),
-			ExpectNonEmptyPlan: true, // should only indicate that the app settings have changed
 		},
 		data.ImportStep("site_credential.0.password"),
 	})
@@ -1141,7 +1139,6 @@ func TestAccWindowsWebApp_withNode20(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.application_stack.0.node_version").HasValue("~20"),
 			),
-			ExpectNonEmptyPlan: true, // should only indicate that the app settings have changed
 		},
 		data.ImportStep("site_credential.0.password"),
 	})
