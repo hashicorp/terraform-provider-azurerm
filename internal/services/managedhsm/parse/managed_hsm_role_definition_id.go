@@ -13,13 +13,6 @@ import (
 
 var _ resourceids.Id = ManagedHSMRoleDefinitionId{}
 
-const (
-// TODO: this should be extended to support the other types of Nested Items available for a Managed HSM
-
-// RoleDefinitionType MHSMResourceType = "RoleDefinition"
-// RoleAssignmentType MHSMResourceType = "RoleAssignment"
-)
-
 type ManagedHSMRoleDefinitionId struct {
 	VaultBaseUrl string
 	Scope        string
