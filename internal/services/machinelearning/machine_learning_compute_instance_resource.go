@@ -169,6 +169,12 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
 	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
 
+	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
+	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
+	if err != nil {
+		return err
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.ComputeGet(ctx, id)
 		if err != nil {
@@ -214,15 +220,10 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		computeInstance.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
 	}
 
-	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
-	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
-	if err != nil {
-		return err
-	}
-
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: computeInstance,
 		Identity:   identity,
+		// NOTE: Location should point to the parents location, which is the workspace location.
 		Location:   workspace.Model.Location,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
