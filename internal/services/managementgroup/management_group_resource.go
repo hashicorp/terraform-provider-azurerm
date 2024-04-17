@@ -59,6 +59,11 @@ func resourceManagementGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"management_group_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"parent_management_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -83,6 +88,7 @@ func resourceManagementGroup() *pluginsdk.Resource {
 func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	subscriptionsClient := meta.(*clients.Client).ManagementGroups.SubscriptionClient
+	accountClient := meta.(*clients.Client)
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	armTenantID := meta.(*clients.Client).Account.TenantId
@@ -97,6 +103,10 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	id := parse.NewManagementGroupId(groupName)
+
+	tenantID := accountClient.Account.TenantId
+	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(tenantID, groupName)
+	d.Set("management_group_id", idForSystemTopic)
 
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
 	if parentManagementGroupId == "" {
