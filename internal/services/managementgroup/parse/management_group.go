@@ -10,7 +10,8 @@ import (
 )
 
 type ManagementGroupId struct {
-	Name string
+	Name     string
+	TenantID string
 }
 
 func ManagementGroupID(input string) (*ManagementGroupId, error) {
@@ -62,6 +63,7 @@ func ManagementGroupIDForSystemTopic(input string) (*ManagementGroupId, error) {
 
 	id := ManagementGroupId{
 		Name: groupID,
+		// TODO: Add in the TenantID
 	}
 
 	return &id, nil
@@ -73,7 +75,20 @@ func NewManagementGroupId(managementGroupName string) ManagementGroupId {
 	}
 }
 
+func NewManagementGroupIDForSystemTopic(groupName string, tenantID string) *ManagementGroupId {
+	return &ManagementGroupId{
+		Name:     groupName,
+		TenantID: tenantID,
+	}
+}
+
 func (r ManagementGroupId) ID() string {
 	managementGroupIdFmt := "/providers/Microsoft.Management/managementGroups/%s"
 	return fmt.Sprintf(managementGroupIdFmt, r.Name)
+}
+
+func (r ManagementGroupId) IDForSystemTopic() string {
+	managementGroupIDForSystemTopicFormat := "/tenants/%s/providers/Microsoft.Management/managementGroups/%s"
+
+	return fmt.Sprintf(managementGroupIDForSystemTopicFormat, r.TenantID, r.Name)
 }
