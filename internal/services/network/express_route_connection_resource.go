@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -69,6 +70,12 @@ func resourceExpressRouteConnection() *pluginsdk.Resource {
 			"enable_internet_security": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+			},
+
+			"private_link_fast_path_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"express_route_gateway_bypass_enabled": {
@@ -173,6 +180,10 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 		return tf.ImportAsExistsError("azurerm_express_route_connection", id.ID())
 	}
 
+	if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
+		return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
+	}
+
 	parameters := network.ExpressRouteConnection{
 		Name: utils.String(id.Name),
 		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
@@ -183,6 +194,7 @@ func resourceExpressRouteConnectionCreate(d *pluginsdk.ResourceData, meta interf
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             utils.Int32(int32(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: utils.Bool(d.Get("express_route_gateway_bypass_enabled").(bool)),
+			EnablePrivateLinkFastPath: utils.Bool(d.Get("private_link_fast_path_enabled").(bool)),
 		},
 	}
 
@@ -230,6 +242,7 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("routing_weight", props.RoutingWeight)
 		d.Set("authorization_key", props.AuthorizationKey)
 		d.Set("enable_internet_security", props.EnableInternetSecurity)
+		d.Set("private_link_fast_path_enabled", pointer.From(props.EnablePrivateLinkFastPath))
 
 		if props.ExpressRouteGatewayBypass != nil {
 			d.Set("express_route_gateway_bypass_enabled", props.ExpressRouteGatewayBypass)
@@ -267,6 +280,9 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
+	if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
+		return fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
+	}
 	parameters := network.ExpressRouteConnection{
 		Name: utils.String(id.Name),
 		ExpressRouteConnectionProperties: &network.ExpressRouteConnectionProperties{
@@ -277,6 +293,7 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 			RoutingConfiguration:      expandExpressRouteConnectionRouting(d.Get("routing").([]interface{})),
 			RoutingWeight:             utils.Int32(int32(d.Get("routing_weight").(int))),
 			ExpressRouteGatewayBypass: utils.Bool(d.Get("express_route_gateway_bypass_enabled").(bool)),
+			EnablePrivateLinkFastPath: utils.Bool(d.Get("private_link_fast_path_enabled").(bool)),
 		},
 	}
 
