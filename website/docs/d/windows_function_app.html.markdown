@@ -279,7 +279,7 @@ A `custom_oidc_v2` block supports the following:
 
 * `client_id` - The ID of the Client to use to authenticate with the Custom OIDC.
 
-* `openid_configuration_endpoint` - The Discovery Endpoint in OAuth 2.0 and OpenID Connect. A standardized URL, typically found at `.well-known/openid-configuration`, that returns a JSON document with configuration details such as endpoint locations and server capabilities to facilitate the automatic setup of client applications.
+* (Required) Specifies the endpoint used for OpenID Connect Discovery. For example `https://example.com/.well-known/openid-configuration`.
 
 * `name_claim_type` - The name of the claim that contains the users name.
 
