@@ -644,19 +644,10 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		expanded.AppCommandLine = pointer.To(s.AppCommandLine)
 	}
 
-	if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-		if appSettings == nil {
-			appSettings = make(map[string]string)
-		}
-		appSettings["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(s.HealthCheckEvictionTime))
-	}
-
 	if len(s.ApplicationStack) == 1 {
 		winAppStack := s.ApplicationStack[0]
 
-		// (@apokalypt) If we are using node we need to always set the version since we remove it when we are parsing the web app
-		// https://github.com/hashicorp/terraform-provider-azurerm/issues/25452
-		if winAppStack.NodeVersion != "" {
+		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.node_version") || winAppStack.NodeVersion != "" {
 			if appSettings == nil {
 				appSettings = make(map[string]string)
 			}
