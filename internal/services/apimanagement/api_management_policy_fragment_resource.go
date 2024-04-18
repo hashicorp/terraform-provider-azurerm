@@ -44,10 +44,10 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 			})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return nil, fmt.Errorf("Api Management Policy Fragment %q was not found in Api Management instance %q in Resource Group %q", id.PolicyFragmentName, id.ServiceName, id.ResourceGroupName)
+					return nil, fmt.Errorf("%s was not found in Api Management instance %q in Resource Group %q", id, id.PolicyFragmentName, id.ServiceName, id.ResourceGroupName)
 				}
 
-				return nil, fmt.Errorf("retrieving Api Management Policy Fragment %q (Api Management: %q, Resource Group %q): %+v", id.PolicyFragmentName, id.ServiceName, id.ResourceGroupName, err)
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			d.Set("format", string(policyfragment.PolicyFragmentContentFormatXml))
@@ -103,20 +103,20 @@ func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta i
 	}
 	id := policyfragment.NewPolicyFragmentID(apiManagementId.SubscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, d.Get("name").(string))
 	format := policyfragment.PolicyFragmentContentFormat(d.Get("format").(string))
-	if d.IsNewResource() {
-		opts := policyfragment.DefaultGetOperationOptions()
-		opts.Format = &format
-		existing, err := client.Get(ctx, id, opts)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
 
+	opts := policyfragment.DefaultGetOperationOptions()
+	opts.Format = &format
+	existing, err := client.Get(ctx, id, opts)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_policy_fragment", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_policy_fragment", id.ID())
+	}
+
 
 	description := d.Get("description").(string)
 	value := d.Get("value").(string)
@@ -130,7 +130,7 @@ func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, policyfragment.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -162,7 +162,7 @@ func resourceApiManagementPolicyFragmentUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, pointer.From(id), parameters, policyfragment.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

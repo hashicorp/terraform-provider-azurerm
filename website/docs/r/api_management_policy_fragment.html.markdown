@@ -3,12 +3,12 @@ subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_policy_fragment"
 description: |-
-  Manages a Api Management Policy Fragment.
+  Manages an Api Management Policy Fragment.
 ---
 
 # azurerm_api_management_policy_fragment
 
-Manages a Api Management Policy Fragment.
+Manages an Api Management Policy Fragment.
 
 ## Example Usage
 
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `value` - (Required) The value of the Policy Fragment.
 
-~> **NOTE:** Be aware of the two format possibilities. If the `value` is not applied / continuous to have changes the format could be wrong.
+~> **NOTE:** Be aware of the two format possibilities. If the `value` is not applied and continues to cause a diff the format could be wrong.
 
 ---
 
