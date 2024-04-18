@@ -2,9 +2,10 @@
 
 ENHANCEMENTS:
 
-* `dependencies`: updating `hashicorp/go-azure-sdk` to `v0.20240417.1084633` [GH-25659]
+* dependencies: updating `hashicorp/go-azure-sdk` to `v0.20240417.1084633` [GH-25659]
 * `compute` - update Virtual Machine and Virtual Machine Scale Set resources and data sources to use `hashicorp/go-azure-sdk` [GH-25533]
 * `machine_learning` - Add new `machine_learning` block that supports `purge_soft_deleted_workspace_on_destroy` [GH-25624]
+* `loganalytics` - update cluster resource to use `hashicorp/go-azure-sdk` [GH-23373]
 * `azurerm_container_app` - `ingress.ip_security_restriction.ip_address_range` will now accept an IP address as valid input [GH-25609]
 * `azurerm_container_group` - the `identity` block can now be updated [GH-25543]
 * `azurerm_express_route_connection` - add support for the `private_link_fast_path_enabled` property [GH-25596]
