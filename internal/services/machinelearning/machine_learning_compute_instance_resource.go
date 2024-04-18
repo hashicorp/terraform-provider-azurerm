@@ -162,18 +162,13 @@ func resourceComputeInstance() *pluginsdk.Resource {
 
 func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
+	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	workspaceID, _ := workspaces.ParseWorkspaceID(d.Get("machine_learning_workspace_id").(string))
 	id := machinelearningcomputes.NewComputeID(subscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
-
-	mlWorkspacesClient := meta.(*clients.Client).MachineLearning.Workspaces
-	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
-	if err != nil {
-		return err
-	}
 
 	if d.IsNewResource() {
 		existing, err := client.ComputeGet(ctx, id)
@@ -203,6 +198,8 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
 	}
 
+	// NOTE: 'ComputeInstance' 'ComputeLocation' field should always point
+	// to configuration files 'location' field...
 	computeInstance := &machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
 			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
@@ -215,25 +212,41 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Description:      utils.String(d.Get("description").(string)),
 		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
+
 	authType := d.Get("authorization_type").(string)
 	if authType != "" {
 		computeInstance.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
 	}
 
+	// NOTE: 'ComputeResource' 'Location' should point to the
+	// machine learning workspace's location...
+	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
+	if err != nil {
+		return err
+	}
+
+	model := workspace.Model
+	if model == nil {
+		return fmt.Errorf("machine learning %s Workspace: model is nil", id)
+	}
+
+	if model.Location == nil {
+		return fmt.Errorf("machine learning %s Workspace: model `Location` is nil", id)
+	}
+
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: computeInstance,
 		Identity:   identity,
-		// NOTE: Location should point to the parents location, which is the workspace location.
-		Location:   workspace.Model.Location,
+		Location:   pointer.To(azure.NormalizeLocation(*model.Location)),
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Machine Learning Compute (%q): %+v", id, err)
+		return fmt.Errorf("creating Machine Learning %s: %+v", id, err)
 	}
 	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of Machine Learning Compute (%q): %+v", id, err)
+		return fmt.Errorf("waiting for creation of Machine Learning %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -259,14 +272,20 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Machine Learning Compute (%q): %+v", id, err)
+		return fmt.Errorf("retrieving Machine Learning %s: %+v", id, err)
+	}
+
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("machine learning %s: model is nil", id)
 	}
 
 	d.Set("name", id.ComputeName)
+
 	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	if location := resp.Model.Location; location != nil {
+	if location := model.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
@@ -274,6 +293,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
+
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
