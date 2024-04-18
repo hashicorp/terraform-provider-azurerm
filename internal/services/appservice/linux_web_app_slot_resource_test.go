@@ -566,6 +566,17 @@ func TestAccLinuxWebAppSlot_appSettings(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appSettingsExtended(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+				check.That(data.ResourceName).Key("app_settings.secret").HasValue("sauce"),
+				check.That(data.ResourceName).Key("app_settings.fizz").HasValue("buzz"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_HEALTHCHECK_MAXPINGFAILURES").DoesNotExist(),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1536,6 +1547,29 @@ resource "azurerm_linux_web_app_slot" "test" {
   app_settings = {
     foo    = "bar"
     secret = "sauce"
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) appSettingsExtended(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  app_settings = {
+    foo    = "bar"
+    secret = "sauce"
+    fizz   = "buzz"
   }
 }
 `, r.baseTemplate(data), data.RandomInteger)
