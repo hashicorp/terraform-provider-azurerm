@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
+	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -230,6 +231,26 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"serverless_compute": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"custom_subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: networkValidate.SubnetID,
+						},
+						"no_public_ip_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"discovery_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -305,13 +326,14 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 		Identity: expandedIdentity,
 		Properties: &workspaces.WorkspaceProperties{
-			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
-			Encryption:          expandedEncryption,
-			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
-			ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
-			PublicNetworkAccess: pointer.To(workspaces.PublicNetworkAccessDisabled),
-			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
-			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
+			ApplicationInsights:       pointer.To(d.Get("application_insights_id").(string)),
+			Encryption:                expandedEncryption,
+			KeyVault:                  pointer.To(d.Get("key_vault_id").(string)),
+			ManagedNetwork:            expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
+			PublicNetworkAccess:       pointer.To(workspaces.PublicNetworkAccessDisabled),
+			StorageAccount:            pointer.To(d.Get("storage_account_id").(string)),
+			V1LegacyMode:              pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
+			ServerlessComputeSettings: expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]interface{})),
 		},
 	}
 
@@ -414,6 +436,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 		d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 		d.Set("workspace_id", props.WorkspaceId)
 		d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork))
+		d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
 
 		kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
 		if err != nil {
@@ -659,6 +682,42 @@ func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkS
 
 	if i.IsolationMode != nil {
 		out["isolation_mode"] = *i.IsolationMode
+	}
+
+	return &[]interface{}{out}
+}
+
+func expandMachineLearningWorkspaceServerlessCompute(i []interface{}) *workspaces.ServerlessComputeSettings {
+	if len(i) == 0 || i[0] == nil {
+		return nil
+	}
+
+	v := i[0].(map[string]interface{})
+
+	serverlessCompute := workspaces.ServerlessComputeSettings{
+		ServerlessComputeNoPublicIP: pointer.To(v["no_public_ip_enabled"].(bool)),
+	}
+
+	if subnetId, ok := v["custom_subnet_id"].(string); ok && subnetId != "" {
+		serverlessCompute.ServerlessComputeCustomSubnet = pointer.To(subnetId)
+	}
+
+	return &serverlessCompute
+}
+
+func flattenMachineLearningWorkspaceServerlessCompute(i *workspaces.ServerlessComputeSettings) *[]interface{} {
+	if i == nil {
+		return &[]interface{}{}
+	}
+
+	out := map[string]interface{}{}
+
+	if i.ServerlessComputeCustomSubnet != nil {
+		out["custom_subnet_id"] = *i.ServerlessComputeCustomSubnet
+	}
+
+	if i.ServerlessComputeNoPublicIP != nil {
+		out["no_public_ip_enabled"] = *i.ServerlessComputeNoPublicIP
 	}
 
 	return &[]interface{}{out}

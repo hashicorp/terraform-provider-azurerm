@@ -390,6 +390,8 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) SKU/edition of the Machine Learning Workspace, possible values are `Free`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
+* `serverless_compute` - (Optional) A `serverless_compute` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -419,6 +421,14 @@ An `encryption` block supports the following:
 An `managed_network` block supports the following:
 
 * `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`
+
+---
+
+An `serverless_compute` block supports the following:
+
+* `custom_subnet_id` - (Optional) The ID of an existing virtual network subnet in which serverless compute nodes should be deployed.
+
+* `no_public_ip_enabled` - (Optional) Is serverless compute nodes deployed in custom vNet would have no public IP addresses enabled for a workspace with private endpoint? Defaults to `false`.
 
 ---
 
