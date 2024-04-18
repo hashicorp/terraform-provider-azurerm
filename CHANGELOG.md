@@ -25,6 +25,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* storage: fix a bug causing the second storage account key to be used for authentication instead of the first [GH-25652]
 * `azurerm_active_directory_domain_service` - fix issue where `filtered_sync_enabled` was not being updated [GH-25594]
 * `azurerm_application_insights` - add a state migration to fix the resource ID casing of Application Insights resources [GH-25628]
 * `azurerm_function_app_hybrid_connection` - can now use relay resources created in a different resource group [GH-25541]
