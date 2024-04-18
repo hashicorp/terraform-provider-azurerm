@@ -174,6 +174,26 @@ func TestAccPostgresqlFlexibleServer_updateSku(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_geoRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoRestoreSource(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			PreConfig: func() { time.Sleep(30 * time.Minute) },
+			Config:    r.geoRestore(data),
+			Check:     acceptance.ComposeTestCheckFunc(),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func TestAccPostgresqlFlexibleServer_pointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -546,6 +566,47 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-postgresql-%[1]d"
+  location = "eastus"
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                         = "acctest-fs-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  storage_mb                   = 32768
+  version                      = "12"
+  sku_name                     = "GP_Standard_D2s_v3"
+  zone                         = "1"
+  geo_redundant_backup_enabled = true
+}
+`, data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "geo_restore" {
+  name                              = "acctest-fs-restore-%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = "westus"
+  create_mode                       = "GeoRestore"
+  source_server_id                  = azurerm_postgresql_flexible_server.test.id
+  point_in_time_restore_time_in_utc = "%s"
+}
+`, r.geoRestoreSource(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
 
 func (r PostgresqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
