@@ -2110,9 +2110,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_type               = "Windows"
-  windows_profile {
-    outbound_nat_enabled = true
-  }
   tags = {
     Os = "Windows"
   }
@@ -2135,9 +2132,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2019"
-  windows_profile {
-    outbound_nat_enabled = true
-  }
   tags = {
     Os = "Windows"
   }
@@ -2160,9 +2154,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2022"
-  windows_profile {
-    outbound_nat_enabled = true
-  }
   tags = {
     Os = "Windows"
   }
@@ -2191,9 +2182,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_type               = "Windows"
-  windows_profile {
-    outbound_nat_enabled = true
-  }
 }
 `, r.templateWindowsConfig(data))
 }

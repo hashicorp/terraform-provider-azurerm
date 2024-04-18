@@ -17,6 +17,7 @@ type UserFeatures struct {
 	ManagedDisk              ManagedDiskFeatures
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
+	MachineLearning          MachineLearningFeatures
 	RecoveryService          RecoveryServiceFeatures
 }
 
@@ -85,6 +86,10 @@ type SubscriptionFeatures struct {
 
 type PostgresqlFlexibleServerFeatures struct {
 	RestartServerOnConfigurationValueChange bool
+}
+
+type MachineLearningFeatures struct {
+	PurgeSoftDeletedWorkspaceOnDestroy bool
 }
 
 type RecoveryServiceFeatures struct {
