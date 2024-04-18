@@ -60,6 +60,9 @@ func Default() UserFeatures {
 		PostgresqlFlexibleServer: PostgresqlFlexibleServerFeatures{
 			RestartServerOnConfigurationValueChange: true,
 		},
+		MachineLearning: MachineLearningFeatures{
+			PurgeSoftDeletedWorkspaceOnDestroy: false,
+		},
 		RecoveryService: RecoveryServiceFeatures{
 			VMBackupStopProtectionAndRetainDataOnDestroy: false,
 			PurgeProtectedItemsFromVaultOnDestroy:        false,
