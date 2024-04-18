@@ -44,7 +44,7 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 			})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return nil, fmt.Errorf("%s was not found in Api Management instance %q in Resource Group %q", id, id.PolicyFragmentName, id.ServiceName, id.ResourceGroupName)
+					return nil, fmt.Errorf("%q was not found in Api Management instance %q in Resource Group %q", id.PolicyFragmentName, id.ServiceName, id.ResourceGroupName)
 				}
 
 				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -116,7 +116,6 @@ func resourceApiManagementPolicyFragmentCreate(d *pluginsdk.ResourceData, meta i
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_api_management_policy_fragment", id.ID())
 	}
-
 
 	description := d.Get("description").(string)
 	value := d.Get("value").(string)
