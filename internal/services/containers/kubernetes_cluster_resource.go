@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
@@ -1452,14 +1452,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
-						"vertical_pod_autoscaler_update_mode": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"vertical_pod_autoscaler_controlled_values": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -1627,6 +1619,35 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							"azure_active_directory_role_based_access_control.0.server_app_secret", "azure_active_directory_role_based_access_control.0.tenant_id",
 							"azure_active_directory_role_based_access_control.0.managed", "azure_active_directory_role_based_access_control.0.admin_group_object_ids",
 						},
+					},
+				},
+			},
+		}
+		resource.Schema["workload_autoscaler_profile"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"keda_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"vertical_pod_autoscaler_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"vertical_pod_autoscaler_update_mode": {
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "The AKS API has removed support for this field on 2023-07-02-preview and is no longer possible to export this value.",
+					},
+					"vertical_pod_autoscaler_controlled_values": {
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "The AKS API has removed support for this field on 2023-07-02-preview and is no longer possible to export this value.",
 					},
 				},
 			},
@@ -3300,20 +3321,14 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 	}
 
 	vpaEnabled := false
-	controlledValues := ""
-	updateMode := ""
 	if v := profile.VerticalPodAutoscaler; v != nil && v.Enabled {
 		vpaEnabled = v.Enabled
-		controlledValues = string(v.ControlledValues)
-		updateMode = string(v.UpdateMode)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"keda_enabled":                              kedaEnabled,
-			"vertical_pod_autoscaler_enabled":           vpaEnabled,
-			"vertical_pod_autoscaler_update_mode":       updateMode,
-			"vertical_pod_autoscaler_controlled_values": controlledValues,
+			"keda_enabled":                    kedaEnabled,
+			"vertical_pod_autoscaler_enabled": vpaEnabled,
 		},
 	}
 }
@@ -4656,7 +4671,7 @@ func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []in
 		config := input[0].(map[string]interface{})
 		dnsZoneResourceId := config["dns_zone_id"].(string)
 		if dnsZoneResourceId != "" {
-			out.WebAppRouting.DnsZoneResourceId = utils.String(dnsZoneResourceId)
+			out.WebAppRouting.DnsZoneResourceIds = pointer.To([]string{dnsZoneResourceId})
 		}
 	}
 	return &out
@@ -4668,8 +4683,8 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 	}
 
 	dnsZoneId := ""
-	if v := input.WebAppRouting.DnsZoneResourceId; v != nil {
-		dnsZoneId = *v
+	if v := input.WebAppRouting.DnsZoneResourceIds; v != nil && len(*v) != 0 {
+		dnsZoneId = (*v)[0]
 	}
 
 	webAppRoutingIdentity := []interface{}{}
