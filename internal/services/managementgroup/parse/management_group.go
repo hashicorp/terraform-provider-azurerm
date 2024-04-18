@@ -42,28 +42,29 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 }
 
 func ManagementGroupIDForSystemTopic(input string) (*ManagementGroupId, error) {
-	regex := regexp.MustCompile(`^/tenants/.+/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
+	regex := regexp.MustCompile(`^/tenants/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
 	if !regex.MatchString(input) {
 		return nil, fmt.Errorf("Unable to parse Management Group ID for System Topic %q, format should look like '/tenants/<tenantID>/providers/Microsoft.Management/managementGroups/<management_group_name>'", input)
 	}
 
-	// Split the input ID by the regex
-	segments := regex.Split(input, -1)
-	if len(segments) != 2 {
-		return nil, fmt.Errorf("Unable to parse Management Group ID %q: expected id to have two segments after splitting", input)
+	segments := strings.Split(input, "/")
+	if len(segments) != 7 {
+		return nil, fmt.Errorf("Unable to parse Management Group ID %q: expected id to have seven segments after splitting", input)
 	}
 
-	groupID := segments[1]
+	groupID := segments[len(segments)-1]
 	if groupID == "" {
 		return nil, fmt.Errorf("unable to parse Management Group ID %q: management group name is empty", input)
 	}
-	if segments := strings.Split(groupID, "/"); len(segments) != 1 {
-		return nil, fmt.Errorf("unable to parse Management Group ID %q: ID has extra segments", input)
+
+	tenantID := segments[2]
+	if tenantID == "" {
+		return nil, fmt.Errorf("unable to parse Management Group ID %q: tenant id is empty", input)
 	}
 
 	id := ManagementGroupId{
-		Name: groupID,
-		// TODO: Add in the TenantID
+		Name:     groupID,
+		TenantID: tenantID,
 	}
 
 	return &id, nil
@@ -75,8 +76,8 @@ func NewManagementGroupId(managementGroupName string) ManagementGroupId {
 	}
 }
 
-func NewManagementGroupIDForSystemTopic(groupName string, tenantID string) *ManagementGroupId {
-	return &ManagementGroupId{
+func NewManagementGroupIDForSystemTopic(groupName string, tenantID string) ManagementGroupId {
+	return ManagementGroupId{
 		Name:     groupName,
 		TenantID: tenantID,
 	}
