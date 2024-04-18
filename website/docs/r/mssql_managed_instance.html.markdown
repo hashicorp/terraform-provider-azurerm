@@ -12,7 +12,7 @@ Manages a Microsoft SQL Azure Managed Instance.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-~> **Note:** SQL Managed Instance needs permission to read Microsoft Entra ID when configuring the Microsoft Entra admin. [Read more about provision Microsoft Entra admin](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure?view=azuresql&tabs=azure-powershell#provision-azure-ad-admin-sql-managed-instance).
+~> **Note:** SQL Managed Instance needs permission to read Azure Active Directory when configuring the AAD administrator. [Read more about provisioning AAD administrators](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure?view=azuresql#provision-azure-ad-admin-sql-managed-instance).
 
 ## Example Usage
 
@@ -261,9 +261,9 @@ An `azure_active_directory_administrator` block supports the following:
 
 * `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Managed Instance.
 
-* `azuread_authentication_only_enalbed` - (Optional) Specifies whether only Microsoft Entra authentication and administrator (e.g. `azure_active_directory_administrator.0.login_username`), or Managed Instance administrator (e.g. `administrator_login`) can be used to log in to this SQL Managed Instance. When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted. Defaults to `false`.
+* `azuread_authentication_only_enabled` - (Optional) Specifies whether only Azure AD authentication can be used to log in to this SQL Managed Instance. When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted. Defaults to `false`.
 
-* `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Managed Instance.
+* `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Managed Instance. Should be specified if the Azure AD Administrator is homed in a different tenant to the SQL Managed Instance.
 
 ---
 
