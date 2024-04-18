@@ -1531,7 +1531,7 @@ func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWin
 }
 
 func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
-	if input == nil {
+	if input == nil || input.DisableOutboundNat == nil {
 		return []interface{}{}
 	}
 
