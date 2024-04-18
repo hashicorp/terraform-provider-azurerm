@@ -227,7 +227,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	computeClusterParameters := machinelearningcomputes.ComputeResource{
 		Properties: computeClusterProperties,
 		Identity:   identity,
-		Location:   computeClusterProperties.ComputeLocation,
+		Location:   workspace.Model.Location,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningcomputes.Sku{
 			Name: workspace.Model.Sku.Name,
