@@ -68,6 +68,42 @@ func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) template(data 
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  # changing azure_active_directory_administrator is ignored since the value of azure_active_directory_administrator is returned 
+  # when applying a terraform refresh after step 2/5 of testcase TestAccMsSqlManagedInstanceActiveDirectoryAdministrator_basic 
+  # this is expected since the azuread_authentication_only is set to true in step 2/5
+  lifecycle {
+    ignore_changes = [azure_active_directory_administrator]
+  }
+}
+
 data "azuread_client_config" "test" {}
 
 resource "azuread_application" "test" {
@@ -87,7 +123,7 @@ resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.reader.object_id
   member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
 }
-`, MsSqlManagedInstanceResource{}.identity(data), data.RandomInteger)
+`, MsSqlManagedInstanceResource{}.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MsSqlManagedInstanceActiveDirectoryAdministratorResource) basic(data acceptance.TestData, aadOnly bool) string {

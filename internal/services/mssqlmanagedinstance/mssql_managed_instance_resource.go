@@ -68,7 +68,7 @@ type MsSqlManagedInstanceModel struct {
 type AzureActiveDirectoryAdministrator struct {
 	LoginUserName                    string `tfschema:"login_username"`
 	ObjectID                         string `tfschema:"object_id"`
-	AzureADAuthenticationOnlyEnabled bool   `tfschema:"azuread_authentication_only_enalbed"`
+	AzureADAuthenticationOnlyEnabled bool   `tfschema:"azuread_authentication_only_enabled"`
 	TenantID                         string `tfschema:"tenant_id"`
 }
 
@@ -199,7 +199,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IsUUID,
 					},
 
-					"azuread_authentication_only_enalbed": {
+					"azuread_authentication_only_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -341,6 +341,14 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			_, aadAdminOk := rd.GetOk("azure_active_directory_administrator")
+			authOnlyEnabled := rd.Get("azure_active_directory_administrator.0.azuread_authentication_only_enabled").(bool)
+			_, loginOk := rd.GetOk("administrator_login")
+			_, pwsOk := rd.GetOk("administrator_login_password")
+			if aadAdminOk && !authOnlyEnabled && (!loginOk || !pwsOk) {
+				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
+			}
+
 			return nil
 		},
 	}
@@ -403,6 +411,11 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
+			administrators, err := expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator)
+			if err != nil {
+				return fmt.Errorf("expanding `azure_active_directory_administrator` for SQL Managed Instance Server %q: %v", id.ID(), err)
+			}
+			parameters.ManagedInstanceProperties.Administrators = administrators
 			if parameters.Identity != nil && len(parameters.Identity.IdentityIds) > 0 {
 				for k := range parameters.Identity.IdentityIds {
 					parameters.Properties.PrimaryUserAssignedIdentityId = pointer.To(k)
@@ -435,7 +448,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MSSQLManagedInstance.ManagedInstancesClient
 			adminClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAdministratorsClient
-			microsoftEntraAuthenticationOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
+			azureADAuthenticationOnlyClient := metadata.Client.MSSQLManagedInstance.ManagedInstanceAzureADOnlyAuthenticationsClient
 
 			id, err := commonids.ParseSqlManagedInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -499,71 +512,75 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("azure_active_directory_administrator") {
-				// Need to check if Microsoft Entra authentication only is enabled or not before calling delete, else you will get the following error:
+				// Need to check if Microsoft AAD authentication only is enabled or not before calling delete, else you will get the following error:
 				// InvalidManagedServerAADOnlyAuthNoAADAdminPropertyName: AAD Admin is not configured,
-				// Microsfot Entra Admin must be set before enabling/disabling Microsfot Entra Authentication Only.
-				log.Printf("[INFO] Checking if Microsoft Entra Administrator exist")
-				meAdminExists := false
-				resp, err := adminClient.Get(ctx, *id)
+				// AAD Admin must be set before enabling/disabling AAD Authentication Only.
+				log.Printf("[INFO] Checking if AAD Administrator exists")
+				aadAdminExists := false
+				resp, err := adminClient.Get(ctx, id.ResourceGroup, id.Name)
 				if err != nil {
 					if !utils.ResponseWasNotFound(resp.Response) {
 						return fmt.Errorf("retrieving the Administrators of %s: %+v", *id, err)
 					}
 				} else {
-					meAdminExists = true
+					aadAdminExists = true
 				}
 
-				if meAdminExists {
-					future, err := microsoftEntraAuthenticationOnlyClient.Delete(ctx, id.ResourceGroup, id.Name)
+				if aadAdminExists {
+					future, err := azureADAuthenticationOnlyClient.Delete(ctx, id.ResourceGroup, id.Name)
 					if err != nil {
-						log.Printf("[INFO] Deletion of Microsoft Entra Authentication Only failed for %s: %+v", *id, err)
-						return fmt.Errorf("deleting Microsoft Entra Authentication Only for %s: %+v", *id, err)
+						log.Printf("[INFO] Deletion of AAD Authentication Only failed for %s: %+v", *id, err)
+						return fmt.Errorf("disabling AAD Authentication Only for %s: %+v", *id, err)
 					}
 
 					if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting for the Microsoft Entra Authentication Only deletion of %s: %+v", *id, err)
+						return fmt.Errorf("waiting to disable AAD Authentication Only for %s: %+v", *id, err)
 					}
 
 					resp, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
 					if err != nil {
-						return fmt.Errorf("deleting the Microsoft Entra Administrator of %s: %+v", *id, err)
+						return fmt.Errorf("removing the AAD Administrator for %s: %+v", *id, err)
 					}
 					if err = resp.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting for the Microsoft Entra Administrators deletion of %s: %+v", *id, err)
+						return fmt.Errorf("waiting for removal of AAD Administrator for %s: %+v", *id, err)
 					}
 				}
 
-				meAdminProps, err := expandMsSqlManagedInstanceAdministrators(state.AzureActiveDirectoryAdministrator)
+				aadAdminProps, err := expandMsSqlManagedInstanceAdministrators(state.AzureActiveDirectoryAdministrator)
 				if err != nil {
 					return err
 				}
-				if meAdminProps != nil {
-					future, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *meAdminProps)
+				if aadAdminProps != nil {
+					future, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdminProps)
 					if err != nil {
-						return fmt.Errorf("creating Microsoft Entra Administrator of %s: %+v", *id, err)
+						return fmt.Errorf("creating AAD Administrator for %s: %+v", *id, err)
 					}
 					if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting for creating Microsoft Entra Administrator of %s: %+v", *id, err)
+						return fmt.Errorf("waiting for creation of AAD Administrator for %s: %+v", *id, err)
 					}
 				}
 
-				if meOnlyAuthentictionsEnabled := expandMsSqlManagedInstanceMeAuthentictionOnly(state.AzureActiveDirectoryAdministrator); meOnlyAuthentictionsEnabled {
-					meOnlyAuthentictionsProps := sql.ManagedInstanceAzureADOnlyAuthentication{
+				if aadOnlyAuthenticationsEnabled := expandMsSqlManagedInstanceAadAuthenticationOnly(state.AzureActiveDirectoryAdministrator); aadOnlyAuthenticationsEnabled {
+					aadOnlyAuthenticationsProps := sql.ManagedInstanceAzureADOnlyAuthentication{
 						ManagedInstanceAzureADOnlyAuthProperties: &sql.ManagedInstanceAzureADOnlyAuthProperties{
 							AzureADOnlyAuthentication: pointer.To(true),
 						},
 					}
 
-					future, err := microsoftEntraAuthenticationOnlyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, meOnlyAuthentictionsProps)
+					future, err := azureADAuthenticationOnlyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthenticationsProps)
 					if err != nil {
-						return fmt.Errorf("setting `azuread_authentication_only_enalbed` for %s: %+v", *id, err)
+						return fmt.Errorf("setting `azuread_authentication_only_enabled` for %s: %+v", *id, err)
 					}
 					if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting to set `azuread_authentication_only_enalbed` for  %s: %+v", *id, err)
+						return fmt.Errorf("waiting to set `azuread_authentication_only_enabled` for  %s: %+v", *id, err)
 					}
 				}
 
-				properties.Administrators = expandMsSqlManagedInstanceExternalAdministrators(state.AzureActiveDirectoryAdministrator)
+				administrators := expandMsSqlManagedInstanceExternalAdministrators(state.AzureActiveDirectoryAdministrator)
+				if err != nil {
+					return fmt.Errorf("expanding `azure_active_directory_administrator` for SQL Managed Instance Server %q: %v", id.ID(), err)
+				}
+				properties.ManagedInstanceProperties.Administrators = administrators
 			}
 
 			metadata.Logger.Infof("Updating %s", *id)
@@ -797,7 +814,7 @@ func backupStorageRedundancyToStorageAccType(backupStorageRedundancy managedinst
 	return StorageAccountTypeGRS
 }
 
-func expandMsSqlManagedInstanceMeAuthentictionOnly(input []AzureActiveDirectoryAdministrator) bool {
+func expandMsSqlManagedInstanceAadAuthenticationOnly(input []AzureActiveDirectoryAdministrator) bool {
 	if len(input) == 0 {
 		return false
 	}
