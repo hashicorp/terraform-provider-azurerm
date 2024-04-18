@@ -42,7 +42,7 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 }
 
 func ManagementGroupIDForSystemTopic(input string) (*ManagementGroupId, error) {
-	regex := regexp.MustCompile(`^/tenants/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
+	regex := regexp.MustCompile(`^/tenants/.*-.*-.*-.*-.*/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
 	if !regex.MatchString(input) {
 		return nil, fmt.Errorf("Unable to parse Management Group ID for System Topic %q, format should look like '/tenants/<tenantID>/providers/Microsoft.Management/managementGroups/<management_group_name>'", input)
 	}
