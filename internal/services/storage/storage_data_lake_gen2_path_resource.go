@@ -35,6 +35,10 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 			_, err := paths.ParsePathID(id, storageDomainSuffix)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			ctx, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
+			defer cancel()
+
 			storageClient := meta.(*clients.Client).Storage
 
 			id, err := paths.ParsePathID(d.Id(), storageClient.StorageDomainSuffix)
@@ -43,7 +47,7 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 			}
 
 			// Retrieve the storage account
-			account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+			account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 			if err != nil {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving Account %q for Data Lake Gen2 Path %q in File System %q: %s", id.AccountId.AccountName, id.Path, id.FileSystemName, err)
 			}
@@ -61,7 +65,7 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 				return []*pluginsdk.ResourceData{d}, fmt.Errorf("retrieving File System %q for Data Lake Gen2 Path %q in Account %q: %s", id.FileSystemName, id.Path, id.AccountId.AccountName, err)
 			}
 
-			d.Set("storage_account_id", account.ID)
+			d.Set("storage_account_id", account.StorageAccountId.ID())
 			d.Set("filesystem_name", id.FileSystemName)
 
 			return []*pluginsdk.ResourceData{d}, nil
@@ -152,6 +156,7 @@ func resourceStorageDataLakeGen2Path() *pluginsdk.Resource {
 
 func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -165,7 +170,7 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// Confirm the storage account exists and retrieve its properties
-	account, err := storageClient.FindAccount(ctx, accountResourceManagerId.StorageAccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountResourceManagerId.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", accountResourceManagerId.StorageAccountName, filesystemName, err)
 	}
@@ -260,6 +265,7 @@ func resourceStorageDataLakeGen2PathCreate(d *pluginsdk.ResourceData, meta inter
 
 func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -269,7 +275,7 @@ func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// Retrieve the storage account properties
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", id.AccountId.AccountName, id.FileSystemName, err)
 	}
@@ -323,6 +329,7 @@ func resourceStorageDataLakeGen2PathUpdate(d *pluginsdk.ResourceData, meta inter
 
 func resourceStorageDataLakeGen2PathRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -332,7 +339,7 @@ func resourceStorageDataLakeGen2PathRead(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	// Retrieve the storage account properties
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", id.AccountId.AccountName, id.FileSystemName, err)
 	}
@@ -386,6 +393,7 @@ func resourceStorageDataLakeGen2PathRead(d *pluginsdk.ResourceData, meta interfa
 
 func resourceStorageDataLakeGen2PathDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -395,7 +403,7 @@ func resourceStorageDataLakeGen2PathDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	// Retrieve the storage account properties
-	account, err := storageClient.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Data Lake Gen2 Filesystem %q: %v", id.AccountId.AccountName, id.FileSystemName, err)
 	}

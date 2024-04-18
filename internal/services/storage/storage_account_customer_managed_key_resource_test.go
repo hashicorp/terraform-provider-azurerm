@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -158,36 +160,41 @@ func TestAccStorageAccountCustomerManagedKey_userAssignedIdentityWithFederatedId
 }
 
 func (r StorageAccountCustomerManagedKeyResource) accountHasDefaultSettings(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
 	accountId, err := commonids.ParseStorageAccountID(state.Attributes["id"])
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroupName, accountId.StorageAccountName, "")
+	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *accountId, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 	}
 
-	if utils.ResponseWasNotFound(resp.Response) {
+	if response.WasNotFound(resp.HttpResponse) {
 		return fmt.Errorf("Bad: %s does not exist", accountId)
 	}
 
-	if props := resp.AccountProperties; props != nil {
-		if encryption := props.Encryption; encryption != nil {
-			if services := encryption.Services; services != nil {
-				if !*services.Blob.Enabled {
-					return fmt.Errorf("enable_blob_encryption not set to default")
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if encryption := props.Encryption; encryption != nil {
+				if services := encryption.Services; services != nil {
+					if !*services.Blob.Enabled {
+						return fmt.Errorf("enable_blob_encryption not set to default")
+					}
+					if !*services.File.Enabled {
+						return fmt.Errorf("enable_file_encryption not set to default")
+					}
 				}
-				if !*services.File.Enabled {
-					return fmt.Errorf("enable_file_encryption not set to default")
-				}
-			}
 
-			if encryption.KeySource != storage.KeySourceMicrosoftStorage {
-				return fmt.Errorf("%q should be %q", encryption.KeySource, string(storage.KeySourceMicrosoftStorage))
+				if encryption.KeySource != nil && *encryption.KeySource != storageaccounts.KeySourceMicrosoftPointStorage {
+					return fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointStorage))
+				}
+			} else {
+				return fmt.Errorf("storage account encryption properties not found")
 			}
-		} else {
-			return fmt.Errorf("storage account encryption properties not found")
 		}
 	}
 
@@ -200,25 +207,25 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 		return nil, err
 	}
 
-	resp, err := client.Storage.AccountsClient.GetProperties(ctx, accountId.ResourceGroupName, accountId.StorageAccountName, "")
+	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *accountId, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return utils.Bool(false), nil
+		}
+
 		return nil, fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 	}
 
-	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
-	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if encryption := props.Encryption; encryption != nil {
+				if encryption.KeySource != nil && *encryption.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
+					return utils.Bool(true), nil
+				}
 
-	if resp.AccountProperties == nil {
-		return nil, fmt.Errorf("storage account encryption properties not found")
-	}
-	props := *resp.AccountProperties
-	if encryption := props.Encryption; encryption != nil {
-		if encryption.KeySource == storage.KeySourceMicrosoftKeyvault {
-			return utils.Bool(true), nil
+				return nil, fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointKeyvault))
+			}
 		}
-
-		return nil, fmt.Errorf("%q should be %q", encryption.KeySource, string(storage.KeySourceMicrosoftKeyvault))
 	}
 
 	return utils.Bool(false), nil

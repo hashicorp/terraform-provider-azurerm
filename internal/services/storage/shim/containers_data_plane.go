@@ -60,10 +60,12 @@ func (w DataPlaneStorageContainerWrapper) Get(ctx context.Context, containerName
 	}
 
 	return &StorageContainerProperties{
-		AccessLevel:           props.AccessLevel,
-		MetaData:              props.MetaData,
-		HasImmutabilityPolicy: props.HasImmutabilityPolicy,
-		HasLegalHold:          props.HasLegalHold,
+		AccessLevel:                     props.AccessLevel,
+		DefaultEncryptionScope:          props.DefaultEncryptionScope,
+		EncryptionScopeOverrideDisabled: props.EncryptionScopeOverrideDisabled,
+		MetaData:                        props.MetaData,
+		HasImmutabilityPolicy:           props.HasImmutabilityPolicy,
+		HasLegalHold:                    props.HasLegalHold,
 	}, nil
 }
 

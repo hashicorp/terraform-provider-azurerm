@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
@@ -62,6 +63,11 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -74,6 +80,7 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 
 func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -81,7 +88,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
 	}
@@ -94,7 +101,12 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("building Blobs Client: %v", err)
 	}
 
-	accountId, err := accounts.ParseAccountID(accountName, storageClient.StorageDomainSuffix)
+	blobEndpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+	if err != nil {
+		return fmt.Errorf("retrieving the blob data plane endpoint: %v", err)
+	}
+
+	accountId, err := accounts.ParseAccountID(*blobEndpoint, storageClient.StorageDomainSuffix)
 	if err != nil {
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
@@ -128,6 +140,8 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 	d.Set("content_md5", contentMD5)
+
+	d.Set("encryption_scope", props.EncryptionScope)
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 

@@ -34,6 +34,21 @@ func TestAccContainerAppEnvironment_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_consumptionWorkloadProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id", "workload_profile"),
+	})
+}
+
 func TestAccContainerAppEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
@@ -178,6 +193,18 @@ resource "azurerm_container_app_environment" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppEnvironmentResource) basicNoProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppEnvironmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -220,6 +247,28 @@ resource "azurerm_container_app_environment" "test" {
   tags = {
     Foo    = "Bar"
     secret = "sauce"
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) consumptionWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
@@ -281,6 +330,13 @@ resource "azurerm_container_app_environment" "test" {
     maximum_count         = 2
     minimum_count         = 0
     name                  = "E4-01"
+    workload_profile_type = "E4"
+  }
+
+  workload_profile {
+    maximum_count         = 2
+    minimum_count         = 0
+    name                  = "D4-02"
     workload_profile_type = "E4"
   }
 

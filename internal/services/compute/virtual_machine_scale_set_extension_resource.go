@@ -171,7 +171,7 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 			AutoUpgradeMinorVersion:       utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
 			EnableAutomaticUpgrade:        utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
 			SuppressFailures:              utils.Bool(d.Get("failure_suppression_enabled").(bool)),
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOld(d.Get("protected_settings_from_key_vault").([]interface{})),
 			ProvisionAfterExtensions:      provisionAfterExtensions,
 			Settings:                      settings,
 		},
@@ -240,7 +240,7 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("protected_settings_from_key_vault") {
-		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{}))
+		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVaultOld(d.Get("protected_settings_from_key_vault").([]interface{}))
 	}
 
 	if d.HasChange("provision_after_extensions") {
@@ -331,7 +331,7 @@ func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
 		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
 		d.Set("force_update_tag", props.ForceUpdateTag)
-		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
+		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOld(props.ProtectedSettingsFromKeyVault))
 		d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
 		d.Set("publisher", props.Publisher)
 		d.Set("type", props.Type)

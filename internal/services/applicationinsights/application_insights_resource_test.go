@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppInsightsResource struct{}
@@ -172,17 +172,17 @@ func TestAccApplicationInsights_basicWorkspaceMode(t *testing.T) {
 }
 
 func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ComponentID(state.ID)
+	id, err := components.ParseComponentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppInsights.ComponentsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.AppInsights.ComponentsClient.ComponentsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ApplicationInsightsComponentProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAccApplicationInsights_complete(t *testing.T) {

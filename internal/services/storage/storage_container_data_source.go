@@ -40,6 +40,16 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"default_encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"encryption_scope_override_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"metadata": MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
@@ -63,13 +73,14 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 
 func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	containerName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Account %q for Container %q: %v", accountName, containerName, err)
 	}
@@ -110,6 +121,9 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("storage_account_name", accountName)
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
+	d.Set("default_encryption_scope", props.DefaultEncryptionScope)
+	d.Set("encryption_scope_override_enabled", !props.EncryptionScopeOverrideDisabled)
+
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %v", err)
 	}
@@ -117,7 +131,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := commonids.NewStorageContainerID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
+	resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, containerName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil

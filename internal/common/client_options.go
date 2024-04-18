@@ -35,6 +35,7 @@ type ApiAuthorizerFunc func(api environments.Api) (auth.Authorizer, error)
 
 type ClientOptions struct {
 	Authorizers *Authorizers
+	AuthConfig  *auth.Credentials
 	Environment environments.Environment
 	Features    features.UserFeatures
 
@@ -55,12 +56,10 @@ type ClientOptions struct {
 	ResourceManagerEndpoint string
 
 	// Legacy authorizers for go-autorest
-	AttestationAuthorizer     autorest.Authorizer
 	BatchManagementAuthorizer autorest.Authorizer
 	KeyVaultAuthorizer        autorest.Authorizer
 	ManagedHSMAuthorizer      autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
-	StorageAuthorizer         autorest.Authorizer
 	SynapseAuthorizer         autorest.Authorizer
 }
 

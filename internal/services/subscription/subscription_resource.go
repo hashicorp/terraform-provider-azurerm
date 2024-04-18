@@ -503,10 +503,6 @@ func checkExistingAliases(ctx context.Context, client subscriptionAlias.Subscrip
 		return nil, 0, fmt.Errorf("could not List existing Subscription Aliases")
 	}
 
-	if len(aliasList.Items) == 0 {
-		return nil, 0, fmt.Errorf("failed reading Subscription Alias list: no aliases were returned")
-	}
-
 	for _, v := range aliasList.Items {
 		if v.Properties != nil && v.Properties.SubscriptionId != nil && subscriptionId == *v.Properties.SubscriptionId {
 			return v.Name, len(aliasList.Items), nil

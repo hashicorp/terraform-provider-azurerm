@@ -65,6 +65,10 @@ The following arguments are supported:
 
 * `incremental_enabled` - (Optional) Specifies if the Snapshot is incremental. Changing this forces a new resource to be created.
 
+* `network_access_policy` - (Optional) Policy for accessing the disk via network. Possible values are `AllowAll`, `AllowPrivate`, or `DenyAll`. Defaults to `AllowAll`.
+
+* `public_network_access_enabled` - (Optional) Policy for controlling export on the disk. Possible values are `true` or `false`. Defaults to `true`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

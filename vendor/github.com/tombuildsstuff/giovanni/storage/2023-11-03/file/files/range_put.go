@@ -65,7 +65,7 @@ func (c Client) PutByteRange(ctx context.Context, shareName, path, fileName stri
 	}
 
 	if path != "" {
-		path = fmt.Sprintf("/%s/", path)
+		path = fmt.Sprintf("%s/", path)
 	}
 
 	opts := client.RequestOptions{
@@ -90,7 +90,7 @@ func (c Client) PutByteRange(ctx context.Context, shareName, path, fileName stri
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {

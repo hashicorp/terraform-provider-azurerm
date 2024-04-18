@@ -1,13 +1,30 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package provider
 
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+// logEntry avoids log entries showing up in test output
+func logEntry(f string, v ...interface{}) {
+	if os.Getenv("TF_LOG") == "" {
+		return
+	}
+
+	if os.Getenv("TF_ACC") != "" {
+		return
+	}
+
+	log.Printf(f, v...)
+}
 
 func decodeCertificate(clientCertificate string) ([]byte, error) {
 	var pfx []byte
@@ -22,7 +39,7 @@ func decodeCertificate(clientCertificate string) ([]byte, error) {
 	return pfx, nil
 }
 
-func getOidcToken(d *schema.ResourceData) (*string, error) {
+func getOidcToken(d *pluginsdk.ResourceData) (*string, error) {
 	idToken := strings.TrimSpace(d.Get("oidc_token").(string))
 
 	if path := d.Get("oidc_token_file_path").(string); path != "" {
@@ -61,7 +78,7 @@ func getOidcToken(d *schema.ResourceData) (*string, error) {
 	return &idToken, nil
 }
 
-func getClientId(d *schema.ResourceData) (*string, error) {
+func getClientId(d *pluginsdk.ResourceData) (*string, error) {
 	clientId := strings.TrimSpace(d.Get("client_id").(string))
 
 	if path := d.Get("client_id_file_path").(string); path != "" {
@@ -91,7 +108,7 @@ func getClientId(d *schema.ResourceData) (*string, error) {
 	return &clientId, nil
 }
 
-func getClientSecret(d *schema.ResourceData) (*string, error) {
+func getClientSecret(d *pluginsdk.ResourceData) (*string, error) {
 	clientSecret := strings.TrimSpace(d.Get("client_secret").(string))
 
 	if path := d.Get("client_secret_file_path").(string); path != "" {
@@ -113,7 +130,7 @@ func getClientSecret(d *schema.ResourceData) (*string, error) {
 	return &clientSecret, nil
 }
 
-func getTenantId(d *schema.ResourceData) (*string, error) {
+func getTenantId(d *pluginsdk.ResourceData) (*string, error) {
 	tenantId := strings.TrimSpace(d.Get("tenant_id").(string))
 
 	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_TENANT_ID") != "" {

@@ -7,12 +7,12 @@ import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 
 var _ sdk.TypedServiceRegistration = Registration{}
 
-type Registration struct {
-}
+type Registration struct{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/elasticsan"
 }
+
 func (Registration) Name() string {
 	return "ElasticSan"
 }
@@ -25,6 +25,7 @@ func (Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ElasticSANResource{},
 		ElasticSANVolumeGroupResource{},
+		ElasticSANVolumeResource{},
 	}
 }
 

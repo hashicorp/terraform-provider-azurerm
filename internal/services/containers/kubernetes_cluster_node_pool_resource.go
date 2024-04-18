@@ -208,10 +208,15 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"node_public_ip_prefix_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			RequiredWith: []string{"enable_node_public_ip"},
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			RequiredWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{"enable_node_public_ip"}
+				}
+				return []string{"node_public_ip_enabled"}
+			}(),
 		},
 
 		// Node Taints control the behaviour of the Node Pool, as such they should not be computed and
@@ -1068,6 +1073,21 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 }
 
 func upgradeSettingsSchema() *pluginsdk.Schema {
+	if !features.FourPointOhBeta() {
+		return &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"max_surge": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		}
+	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1076,7 +1096,8 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
 					Type:     pluginsdk.TypeString,
-					Required: true,
+					Optional: true,
+					Default:  "10%",
 				},
 			},
 		},
@@ -1510,7 +1531,7 @@ func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWin
 }
 
 func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
-	if input == nil {
+	if input == nil || input.DisableOutboundNat == nil {
 		return []interface{}{}
 	}
 
