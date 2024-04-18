@@ -59,12 +59,12 @@ func resourceManagementGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"management_group_id": {
+			"tenant_scoped_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
-			"parent_management_group_id": {
+			"parent_tenant_scoped_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -105,10 +105,10 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	id := parse.NewManagementGroupId(groupName)
 
 	tenantID := accountClient.Account.TenantId
-	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(id.Name, tenantID)
-	d.Set("management_group_id", idForSystemTopic.IDForSystemTopic())
+	tenantScopedID := parse.NewTenantScopedManagementGroupID(tenantID, id.Name)
+	d.Set("tenant_scoped_id", tenantScopedID.TenantScopedID())
 
-	parentManagementGroupId := d.Get("parent_management_group_id").(string)
+	parentManagementGroupId := d.Get("parent_tenant_scoped_id").(string)
 	if parentManagementGroupId == "" {
 		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
 	}
@@ -226,8 +226,8 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	tenantID := accountClient.Account.TenantId
-	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(id.Name, tenantID)
-	d.Set("management_group_id", idForSystemTopic.IDForSystemTopic())
+	tenantScopedID := parse.NewTenantScopedManagementGroupID(tenantID, id.Name)
+	d.Set("tenant_scoped_id", tenantScopedID.TenantScopedID())
 
 	recurse := utils.Bool(true)
 	resp, err := client.Get(ctx, id.Name, "children", recurse, "", managementGroupCacheControl)
@@ -260,7 +260,7 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 			}
 		}
-		d.Set("parent_management_group_id", parentId)
+		d.Set("parent_tenant_scoped_id", parentId)
 	}
 
 	return nil

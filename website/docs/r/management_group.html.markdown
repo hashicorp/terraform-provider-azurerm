@@ -57,7 +57,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Management Group.
 
-* `management_group_id` - The Management Group ID with the Tenant ID prefix.
+* `tenant_scoped_id` - The Management Group ID with the Tenant ID prefix.
 
 ## Timeouts
 

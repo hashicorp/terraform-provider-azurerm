@@ -41,8 +41,8 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 	return &id, nil
 }
 
-func ManagementGroupIDForSystemTopic(input string) (*ManagementGroupId, error) {
-	regex := regexp.MustCompile(`^/tenants/.*-.*-.*-.*-.*/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
+func TenantScopedManagementGroupID(input string) (*ManagementGroupId, error) {
+	regex := regexp.MustCompile(`^/tenants/.*-.*-.*-.*-.*/providers/Microsoft\.Management/managementGroups/`)
 	if !regex.MatchString(input) {
 		return nil, fmt.Errorf("Unable to parse Management Group ID for System Topic %q, format should look like '/tenants/<tenantID>/providers/Microsoft.Management/managementGroups/<management_group_name>'", input)
 	}
@@ -76,7 +76,7 @@ func NewManagementGroupId(managementGroupName string) ManagementGroupId {
 	}
 }
 
-func NewManagementGroupIDForSystemTopic(groupName string, tenantID string) ManagementGroupId {
+func NewTenantScopedManagementGroupID(tenantID, groupName string) ManagementGroupId {
 	return ManagementGroupId{
 		Name:     groupName,
 		TenantID: tenantID,
@@ -88,7 +88,7 @@ func (r ManagementGroupId) ID() string {
 	return fmt.Sprintf(managementGroupIdFmt, r.Name)
 }
 
-func (r ManagementGroupId) IDForSystemTopic() string {
+func (r ManagementGroupId) TenantScopedID() string {
 	managementGroupIDForSystemTopicFormat := "/tenants/%s/providers/Microsoft.Management/managementGroups/%s"
 
 	return fmt.Sprintf(managementGroupIDForSystemTopicFormat, r.TenantID, r.Name)

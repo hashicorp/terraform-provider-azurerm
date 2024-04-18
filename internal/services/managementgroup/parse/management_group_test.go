@@ -119,7 +119,7 @@ func TestManagementGroupIDForSystemTopic(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ManagementGroupIDForSystemTopic(v.Input)
+		actual, err := TenantScopedManagementGroupID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

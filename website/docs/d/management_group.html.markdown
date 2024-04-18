@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Management Group.
 
-* `management_group_id` - The Management Group ID with the Tenant ID prefix.
+* `tenant_scoped_id` - The Management Group ID with the Tenant ID prefix.
 
 * `parent_management_group_id` - The ID of any Parent Management Group.
 

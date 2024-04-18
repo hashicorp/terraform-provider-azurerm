@@ -41,7 +41,7 @@ func dataSourceManagementGroup() *pluginsdk.Resource {
 				ExactlyOneOf: []string{"name", "display_name"},
 			},
 
-			"management_group_id": {
+			"tenant_scoped_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -114,8 +114,8 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", groupName)
 
 	tenantID := accountClient.Account.TenantId
-	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(id.Name, tenantID)
-	d.Set("management_group_id", idForSystemTopic.IDForSystemTopic())
+	tenantScopedID := parse.NewTenantScopedManagementGroupID(tenantID, id.Name)
+	d.Set("tenant_scoped_id", tenantScopedID.TenantScopedID())
 
 	if props := resp.Properties; props != nil {
 		d.Set("display_name", props.DisplayName)
