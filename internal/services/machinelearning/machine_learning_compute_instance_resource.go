@@ -285,9 +285,11 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	if location := model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	// NOTE: Due to a bug in Azure returning the incorrect location
+	// of the instance we need to get the location from the
+	// config file instead of using the location returned
+	// from the GET call...
+	d.Set("location", azure.NormalizeLocation(d.Get("location").(string)))
 
 	identity, err := flattenIdentity(resp.Model.Identity)
 	if err != nil {
