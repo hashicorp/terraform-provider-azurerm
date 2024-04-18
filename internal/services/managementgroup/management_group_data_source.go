@@ -114,7 +114,7 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", groupName)
 
 	tenantID := accountClient.Account.TenantId
-	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(tenantID, id.Name)
+	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(id.Name, tenantID)
 	d.Set("management_group_id", idForSystemTopic.IDForSystemTopic())
 
 	if props := resp.Properties; props != nil {

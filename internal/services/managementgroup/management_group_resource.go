@@ -105,7 +105,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	id := parse.NewManagementGroupId(groupName)
 
 	tenantID := accountClient.Account.TenantId
-	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(tenantID, groupName)
+	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(id.Name, tenantID)
 	d.Set("management_group_id", idForSystemTopic.IDForSystemTopic())
 
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
@@ -226,7 +226,7 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	tenantID := accountClient.Account.TenantId
-	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(tenantID, id.Name)
+	idForSystemTopic := parse.NewManagementGroupIDForSystemTopic(id.Name, tenantID)
 	d.Set("management_group_id", idForSystemTopic.IDForSystemTopic())
 
 	recurse := utils.Bool(true)
