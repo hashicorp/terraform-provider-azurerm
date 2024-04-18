@@ -838,7 +838,7 @@ A `handler_mapping` block supports the following:
 
 * `extension` - (Required) Specify which extension to be handled by the specified FastCGI application.
 
-* `script_processor` - (Required) Specify the absolute path to the FastCGI application.
+* `script_processor_path` - (Required) Specify the absolute path to the FastCGI application.
 
 * `arguments` - (Optional) Specify the command-line arguments to be passed to the script processor.
 

@@ -14,9 +14,9 @@ import (
 )
 
 type HandlerMappings struct {
-	Extension       string `tfschema:"extension"`
-	ScriptProcessor string `tfschema:"script_processor"`
-	Arguments       string `tfschema:"arguments"`
+	Extension           string `tfschema:"extension"`
+	ScriptProcessorPath string `tfschema:"script_processor_path"`
+	Arguments           string `tfschema:"arguments"`
 }
 
 func HandlerMappingSchema() *pluginsdk.Schema {
@@ -30,7 +30,7 @@ func HandlerMappingSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"script_processor": {
+				"script_processor_path": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -54,7 +54,7 @@ func HandlerMappingSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
-				"script_processor": {
+				"script_processor_path": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -988,6 +988,30 @@ func ExpandConnectionStrings(connectionStringsConfig []ConnectionString) *webapp
 }
 
 func expandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
+	if len(handlerMapping) == 0 {
+		return nil
+	}
+
+	result := make([]webapps.HandlerMapping, 0)
+
+	for _, v := range handlerMapping {
+		if v.Arguments != "" {
+			result = append(result, webapps.HandlerMapping{
+				Extension:       pointer.To(v.Extension),
+				ScriptProcessor: pointer.To(v.ScriptProcessorPath),
+				Arguments:       pointer.To(v.Arguments),
+			})
+		} else {
+			result = append(result, webapps.HandlerMapping{
+				Extension:       pointer.To(v.Extension),
+				ScriptProcessor: pointer.To(v.ScriptProcessorPath),
+			})
+		}
+	}
+	return &result
+}
+
+func expandHandlerMappingForUpdate(handlerMapping []HandlerMappings) *[]webapps.HandlerMapping {
 	result := make([]webapps.HandlerMapping, 0)
 	if len(handlerMapping) == 0 {
 		return &result
@@ -997,13 +1021,13 @@ func expandHandlerMapping(handlerMapping []HandlerMappings) *[]webapps.HandlerMa
 		if v.Arguments != "" {
 			result = append(result, webapps.HandlerMapping{
 				Extension:       pointer.To(v.Extension),
-				ScriptProcessor: pointer.To(v.ScriptProcessor),
+				ScriptProcessor: pointer.To(v.ScriptProcessorPath),
 				Arguments:       pointer.To(v.Arguments),
 			})
 		} else {
 			result = append(result, webapps.HandlerMapping{
 				Extension:       pointer.To(v.Extension),
-				ScriptProcessor: pointer.To(v.ScriptProcessor),
+				ScriptProcessor: pointer.To(v.ScriptProcessorPath),
 			})
 		}
 	}
@@ -1365,12 +1389,10 @@ func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []Handl
 	var handlerMappings []HandlerMappings
 	for _, v := range *appHandlerMappings {
 		handlerMapping := HandlerMappings{
-			Extension:       pointer.From(v.Extension),
-			ScriptProcessor: pointer.From(v.ScriptProcessor),
+			Extension:           pointer.From(v.Extension),
+			ScriptProcessorPath: pointer.From(v.ScriptProcessor),
 		}
-		if v.Arguments != nil {
-			handlerMapping.Arguments = pointer.From(v.Arguments)
-		}
+		handlerMapping.Arguments = pointer.From(v.Arguments)
 		handlerMappings = append(handlerMappings, handlerMapping)
 	}
 

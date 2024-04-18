@@ -1846,12 +1846,12 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     handler_mapping {
-      extension        = "htm"
-      script_processor = "C:\\Program Files (x86)\\Common Files\\Microsoft Shared\\Phone Tools\\11.0\\WebResources\\Microsoft.Web.Deployment\\3.6.0\\msdeploy.axd"
+      extension             = "htm"
+      script_processor_path = "C:\\Program Files (x86)\\Common Files\\Microsoft Shared\\Phone Tools\\11.0\\WebResources\\Microsoft.Web.Deployment\\3.6.0\\msdeploy.axd"
     }
     handler_mapping {
-      extension        = "*.php"
-      script_processor = "C:\\Program Files (x86)\\PHP\\v7.3\\php-cgi.exe"
+      extension             = "*.php"
+      script_processor_path = "C:\\Program Files (x86)\\PHP\\v7.3\\php-cgi.exe"
     }
   }
 }
@@ -1874,13 +1874,13 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {
     handler_mapping {
-      extension        = "htm"
-      script_processor = "C:\\Program Files (x86)\\Common Files\\Microsoft Shared\\Phone Tools\\11.0\\WebResources\\Microsoft.Web.Deployment\\3.6.0\\msdeploy.axd"
+      extension             = "htm"
+      script_processor_path = "C:\\Program Files (x86)\\Common Files\\Microsoft Shared\\Phone Tools\\11.0\\WebResources\\Microsoft.Web.Deployment\\3.6.0\\msdeploy.axd"
     }
     handler_mapping {
-      extension        = "*.php"
-      script_processor = "C:\\Program Files (x86)\\PHP\\v7.3\\php-cgi.exe"
-      arguments        = "var1,var2"
+      extension             = "*.php"
+      script_processor_path = "C:\\Program Files (x86)\\PHP\\v7.3\\php-cgi.exe"
+      arguments             = "var1,var2"
     }
   }
 }
