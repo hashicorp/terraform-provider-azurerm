@@ -86,6 +86,25 @@ func TestAccCognitiveAccount_speechServices(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAccount_AIServices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.AIServices(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("AIServices"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCognitiveAccount_speechServicesWithStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
@@ -530,6 +549,27 @@ resource "azurerm_cognitive_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "SpeechServices"
+  sku_name            = "S0"
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+}
+
+func (CognitiveAccountResource) AIServices(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "AIServices"
   sku_name            = "S0"
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
