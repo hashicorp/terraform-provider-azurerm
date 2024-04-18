@@ -64,7 +64,7 @@ func resourceManagementGroup() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"parent_tenant_scoped_id": {
+			"parent_management_group_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -108,7 +108,7 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	tenantScopedID := parse.NewTenantScopedManagementGroupID(tenantID, id.Name)
 	d.Set("tenant_scoped_id", tenantScopedID.TenantScopedID())
 
-	parentManagementGroupId := d.Get("parent_tenant_scoped_id").(string)
+	parentManagementGroupId := d.Get("parent_management_group_id").(string)
 	if parentManagementGroupId == "" {
 		parentManagementGroupId = fmt.Sprintf("/providers/Microsoft.Management/managementGroups/%s", armTenantID)
 	}
@@ -260,7 +260,7 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 			}
 		}
-		d.Set("parent_tenant_scoped_id", parentId)
+		d.Set("parent_management_group_id", parentId)
 	}
 
 	return nil
