@@ -625,6 +625,8 @@ A `site_config` block exports the following:
 
 * `use_32_bit_worker` - Does the Windows Web App use a 32-bit worker.
 
+* `handler_mapping` - A `handler_mapping` block as defined below.
+
 * `virtual_application` - A `virtual_application` block as defined below.
 
 * `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
@@ -716,6 +718,16 @@ A `twitter` block exports the following:
 * `consumer_secret` - The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
 * `consumer_secret_setting_name` - The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+---
+
+A `handler_mapping` block supports the following:
+
+* `extension` - The extension to be handled by the specified FastCGI application.
+
+* `script_processor_path` - The absolute path to the FastCGI application.
+
+* `arguments` - The command-line arguments to be passed to the script processor.
 
 ---
 

@@ -760,6 +760,8 @@ A `site_config` block supports the following:
 
 * `use_32_bit_worker` - (Optional) Should the Windows Web App use a 32-bit worker. Defaults to `true`.
 
+* `handler_mapping` - (Optional) One or more `handler_mapping` blocks as defined below.
+
 * `virtual_application` - (Optional) One or more `virtual_application` blocks as defined below.
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
@@ -841,6 +843,16 @@ A `twitter` block supports the following:
 * `consumer_secret` - (Optional) The OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret_setting_name`.
   
 * `consumer_secret_setting_name` - (Optional) The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in. Cannot be specified with `consumer_secret`.
+
+---
+
+A `handler_mapping` block supports the following:
+
+* `extension` - (Required) Specifies which extension to be handled by the specified FastCGI application.
+
+* `script_processor_path` - (Required) Specifies the absolute path to the FastCGI application.
+
+* `arguments` - (Optional) Specifies the command-line arguments to be passed to the script processor.
 
 ---
 
