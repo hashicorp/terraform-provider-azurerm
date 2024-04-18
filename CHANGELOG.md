@@ -16,6 +16,10 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_spark_cluster` - add support for the `private_link_configuration` block [GH-25629]
 * `azurerm_monitor_activity_log_alert` - add support for the `location` property [GH-25389]
 * `azurerm_mysql_flexible_server` - update validating regex for `sku_name` [GH-25642]
+* `azurerm_postgresql_flexible_server` - add support for the `GeoRestore` `create_mode` [GH-25664]
+* `azurerm_virtual_network_gateway_connection` - add support for the `private_link_fast_path_enabled` property [GH-25650]
+* `azurerm_windows_web_app` - add support for the `handler_mapping` block [GH-25631]
+* `azurerm_windows_web_app_slot` - add support for the `handler_mapping` block [GH-25631]
 
 BUG FIXES:
 
