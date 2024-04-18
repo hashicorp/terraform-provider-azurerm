@@ -710,8 +710,8 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 		if props.Peer == nil || props.Peer.ID == nil {
 			return nil, fmt.Errorf("`express_route_circuit_id` must be specified when `type` is set to `ExpressRoute`")
 		}
-		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass_enabled").(bool) {
-			return nil, fmt.Errorf("`express_route_gateway_bypass_enabled` must be enabled when `private_link_fast_path_enabled` is set to `true`")
+		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass").(bool) {
+			return nil, fmt.Errorf("`express_route_gateway_bypass` must be enabled when `private_link_fast_path_enabled` is set to `true`")
 		}
 	}
 
