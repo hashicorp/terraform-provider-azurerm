@@ -1,48 +1,48 @@
-## 3.100.0 (Unreleased)
+## 3.100.0 (April 18, 2024)
 
 ENHANCEMENTS:
 
-* dependencies: updating `hashicorp/go-azure-sdk` to `v0.20240417.1084633` [GH-25659]
-* `compute` - update Virtual Machine and Virtual Machine Scale Set resources and data sources to use `hashicorp/go-azure-sdk` [GH-25533]
-* `machine_learning` - Add new `machine_learning` block that supports `purge_soft_deleted_workspace_on_destroy` [GH-25624]
-* `loganalytics` - update cluster resource to use `hashicorp/go-azure-sdk` [GH-23373]
-* Data Source: `azurerm_management_group` - now exports the `tenant_scoped_id` attribute [GH-25555]
-* `azurerm_container_app` - the `ingress.ip_security_restriction.ip_address_range` property will now accept an IP address as valid input [GH-25609]
-* `azurerm_container_group` - the `identity` block can now be updated [GH-25543]
-* `azurerm_express_route_connection` - support for the `private_link_fast_path_enabled` property [GH-25596]
-* `azurerm_hdinsight_hadoop_cluster` - support for the `private_link_configuration` block [GH-25629]
-* `azurerm_hdinsight_hbase_cluster` - support for the `private_link_configuration` block [GH-25629]
-* `azurerm_hdinsight_interactive_query_cluster` - support for the `private_link_configuration` block [GH-25629]
-* `azurerm_hdinsight_kafka_cluster` - support for the `private_link_configuration` block [GH-25629]
-* `azurerm_hdinsight_spark_cluster` - support for the `private_link_configuration` block [GH-25629]
-* `azurerm_management_group` - now exports the `tenant_scoped_id` attribute [GH-25555]
-* `azurerm_monitor_activity_log_alert` - support for the `location` property [GH-25389]
-* `azurerm_mysql_flexible_server` - update validating regex for `sku_name` [GH-25642]
-* `azurerm_postgresql_flexible_server` - support for the `GeoRestore` `create_mode` [GH-25664]
-* `azurerm_virtual_network_gateway_connection` - support for the `private_link_fast_path_enabled` property [GH-25650]
-* `azurerm_windows_web_app` - support for the `handler_mapping` block [GH-25631]
-* `azurerm_windows_web_app_slot` - support for the `handler_mapping` block [GH-25631]
+* dependencies: updating `hashicorp/go-azure-sdk` to `v0.20240417.1084633` ([#25659](https://github.com/hashicorp/terraform-provider-azurerm/issues/25659))
+* `compute` - update Virtual Machine and Virtual Machine Scale Set resources and data sources to use `hashicorp/go-azure-sdk` ([#25533](https://github.com/hashicorp/terraform-provider-azurerm/issues/25533))
+* `machine_learning` - Add new `machine_learning` block that supports `purge_soft_deleted_workspace_on_destroy` ([#25624](https://github.com/hashicorp/terraform-provider-azurerm/issues/25624))
+* `loganalytics` - update cluster resource to use `hashicorp/go-azure-sdk` ([#23373](https://github.com/hashicorp/terraform-provider-azurerm/issues/23373))
+* Data Source: `azurerm_management_group` - now exports the `tenant_scoped_id` attribute ([#25555](https://github.com/hashicorp/terraform-provider-azurerm/issues/25555))
+* `azurerm_container_app` - the `ingress.ip_security_restriction.ip_address_range` property will now accept an IP address as valid input ([#25609](https://github.com/hashicorp/terraform-provider-azurerm/issues/25609))
+* `azurerm_container_group` - the `identity` block can now be updated ([#25543](https://github.com/hashicorp/terraform-provider-azurerm/issues/25543))
+* `azurerm_express_route_connection` - support for the `private_link_fast_path_enabled` property ([#25596](https://github.com/hashicorp/terraform-provider-azurerm/issues/25596))
+* `azurerm_hdinsight_hadoop_cluster` - support for the `private_link_configuration` block ([#25629](https://github.com/hashicorp/terraform-provider-azurerm/issues/25629))
+* `azurerm_hdinsight_hbase_cluster` - support for the `private_link_configuration` block ([#25629](https://github.com/hashicorp/terraform-provider-azurerm/issues/25629))
+* `azurerm_hdinsight_interactive_query_cluster` - support for the `private_link_configuration` block ([#25629](https://github.com/hashicorp/terraform-provider-azurerm/issues/25629))
+* `azurerm_hdinsight_kafka_cluster` - support for the `private_link_configuration` block ([#25629](https://github.com/hashicorp/terraform-provider-azurerm/issues/25629))
+* `azurerm_hdinsight_spark_cluster` - support for the `private_link_configuration` block ([#25629](https://github.com/hashicorp/terraform-provider-azurerm/issues/25629))
+* `azurerm_management_group` - now exports the `tenant_scoped_id` attribute ([#25555](https://github.com/hashicorp/terraform-provider-azurerm/issues/25555))
+* `azurerm_monitor_activity_log_alert` - support for the `location` property ([#25389](https://github.com/hashicorp/terraform-provider-azurerm/issues/25389))
+* `azurerm_mysql_flexible_server` - update validating regex for `sku_name` ([#25642](https://github.com/hashicorp/terraform-provider-azurerm/issues/25642))
+* `azurerm_postgresql_flexible_server` - support for the `GeoRestore` `create_mode` ([#25664](https://github.com/hashicorp/terraform-provider-azurerm/issues/25664))
+* `azurerm_virtual_network_gateway_connection` - support for the `private_link_fast_path_enabled` property ([#25650](https://github.com/hashicorp/terraform-provider-azurerm/issues/25650))
+* `azurerm_windows_web_app` - support for the `handler_mapping` block ([#25631](https://github.com/hashicorp/terraform-provider-azurerm/issues/25631))
+* `azurerm_windows_web_app_slot` - support for the `handler_mapping` block ([#25631](https://github.com/hashicorp/terraform-provider-azurerm/issues/25631))
 
 BUG FIXES:
 
-* storage: prevent a bug causing the second storage account key to be used for authentication instead of the first [GH-25652]
-* `azurerm_active_directory_domain_service` - prevent an issue where `filtered_sync_enabled` was not being updated [GH-25594]
-* `azurerm_application_insights` - add a state migration to fix the resource ID casing of Application Insights resources [GH-25628]
-* `azurerm_function_app_hybrid_connection` - can now use relay resources created in a different resource group [GH-25541]
-* `azurerm_kubernetes_cluster_node_pool` - prevent plan diff when the `windows_profile.outbound_nat_enabled` property is unset [GH-25644]
-* `azurerm_machine_learning_compute_cluster` - fix location to point to parent resource for computes [GH-25643]
-* `azurerm_machine_learning_compute_instance` - fix location to point to parent resource for computes [GH-25643]
-* `azurerm_storage_account` - check replication type when evaluating support level for shares and queues for V1 storage accounts [GH-25581]
-* `azurerm_storage_account` - added a sanity check for `dns_endpoint_type` and `blob_properties.restore_policy` [GH-25450]
-* `azurerm_web_app_hybrid_connection` - can now use relay resources created in a different resource group [GH-25541]
-* `azurerm_windows_web_app` - prevent removal of `site_config.application_stack.node_version` when `app_settings` are updated [GH-25488]
-* `azurerm_windows_web_app_slot` - prevent removal of `site_config.application_stack.node_version` when `app_settings` are updated [GH-25489]
+* storage: prevent a bug causing the second storage account key to be used for authentication instead of the first ([#25652](https://github.com/hashicorp/terraform-provider-azurerm/issues/25652))
+* `azurerm_active_directory_domain_service` - prevent an issue where `filtered_sync_enabled` was not being updated ([#25594](https://github.com/hashicorp/terraform-provider-azurerm/issues/25594))
+* `azurerm_application_insights` - add a state migration to fix the resource ID casing of Application Insights resources ([#25628](https://github.com/hashicorp/terraform-provider-azurerm/issues/25628))
+* `azurerm_function_app_hybrid_connection` - can now use relay resources created in a different resource group ([#25541](https://github.com/hashicorp/terraform-provider-azurerm/issues/25541))
+* `azurerm_kubernetes_cluster_node_pool` - prevent plan diff when the `windows_profile.outbound_nat_enabled` property is unset ([#25644](https://github.com/hashicorp/terraform-provider-azurerm/issues/25644))
+* `azurerm_machine_learning_compute_cluster` - fix location to point to parent resource for computes ([#25643](https://github.com/hashicorp/terraform-provider-azurerm/issues/25643))
+* `azurerm_machine_learning_compute_instance` - fix location to point to parent resource for computes ([#25643](https://github.com/hashicorp/terraform-provider-azurerm/issues/25643))
+* `azurerm_storage_account` - check replication type when evaluating support level for shares and queues for V1 storage accounts ([#25581](https://github.com/hashicorp/terraform-provider-azurerm/issues/25581))
+* `azurerm_storage_account` - added a sanity check for `dns_endpoint_type` and `blob_properties.restore_policy` ([#25450](https://github.com/hashicorp/terraform-provider-azurerm/issues/25450))
+* `azurerm_web_app_hybrid_connection` - can now use relay resources created in a different resource group ([#25541](https://github.com/hashicorp/terraform-provider-azurerm/issues/25541))
+* `azurerm_windows_web_app` - prevent removal of `site_config.application_stack.node_version` when `app_settings` are updated ([#25488](https://github.com/hashicorp/terraform-provider-azurerm/issues/25488))
+* `azurerm_windows_web_app_slot` - prevent removal of `site_config.application_stack.node_version` when `app_settings` are updated ([#25489](https://github.com/hashicorp/terraform-provider-azurerm/issues/25489))
 
 DEPRECATIONS:
 
-* `logz` - the Logz resources are deprecated and will be removed in v4.0 of the AzureRM Provider since the API no longer allows new instances to be created [GH-25405]
-* `azurerm_machine_learning_compute_instance` - marked the `location` field as deprecated in v4.0 of the provider [GH-25643]
-* `azurerm_kubernetes_cluster` - the following properties have been deprecated since the API no longer supports cluster creation with legacy Azure Entra integration: `client_app_id`, `server_app_id`, `server_app_secret` and `managed` [GH-25200]
+* `logz` - the Logz resources are deprecated and will be removed in v4.0 of the AzureRM Provider since the API no longer allows new instances to be created ([#25405](https://github.com/hashicorp/terraform-provider-azurerm/issues/25405))
+* `azurerm_machine_learning_compute_instance` - marked the `location` field as deprecated in v4.0 of the provider ([#25643](https://github.com/hashicorp/terraform-provider-azurerm/issues/25643))
+* `azurerm_kubernetes_cluster` - the following properties have been deprecated since the API no longer supports cluster creation with legacy Azure Entra integration: `client_app_id`, `server_app_id`, `server_app_secret` and `managed` ([#25200](https://github.com/hashicorp/terraform-provider-azurerm/issues/25200))
 
 ## 3.99.0 (April 11, 2024)
 
