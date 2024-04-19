@@ -22,7 +22,7 @@ func ManagedHSMDataPlaneRoleAssignmentID(i interface{}, k string) (warnings []st
 	}
 
 	if _, err := parse.ManagedHSMDataPlaneRoleAssignmentID(v, nil); err != nil {
-		errors = append(errors, fmt.Errorf("parsing %q: %s", v, err))
+		errors = append(errors, fmt.Errorf("parsing %q: %+v", v, err))
 		return warnings, errors
 	}
 

@@ -40,7 +40,10 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"legacyCustomRole":  testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyCustomRole,
 		},
 		"roleDefinitions": {
-			"role_define": testAccKeyVaultManagedHardwareSecurityModule_roleDefinition,
+			"basic": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
+
+			// TODO: this can be removed in 4.0
+			"legacyWithUpdate": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacyWithUpdate,
 		},
 	})
 }
@@ -86,28 +89,6 @@ func testAccKeyVaultManagedHardwareSecurityModule_download(t *testing.T) {
 			),
 		},
 		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids", "security_domain_encrypted_data"),
-	})
-}
-
-func testAccKeyVaultManagedHardwareSecurityModule_roleDefinition(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_definition", "test")
-	r := KeyVaultMHSMRoleDefinitionResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withRoleDefinition(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withRoleDefinitionUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 

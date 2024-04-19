@@ -46,7 +46,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 	s := map[string]*pluginsdk.Schema{
 		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: managedhsms.ValidateManagedHSMID,
 		},
@@ -275,10 +275,10 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
 			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI())
 			if err != nil {
-				return fmt.Errorf("TODO", err)
+				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
 			if managedHsmId == nil {
-				return fmt.Errorf("TODO", err)
+				return fmt.Errorf("unable to determine the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
 
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")

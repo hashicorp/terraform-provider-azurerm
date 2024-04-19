@@ -115,7 +115,7 @@ locals {
 }
 
 data "azurerm_key_vault_managed_hardware_security_module_role_definition" "officer" {
-  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
   name           = "515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
 }
 
