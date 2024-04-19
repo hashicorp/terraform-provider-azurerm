@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
@@ -21,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +30,7 @@ import (
 )
 
 func resourceComputeInstance() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := pluginsdk.Resource{
 		Create: resourceComputeInstanceCreate,
 		Read:   resourceComputeInstanceRead,
 		Delete: resourceComputeInstanceDelete,
@@ -60,8 +62,6 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
-
-			"location": commonschema.Location(),
 
 			"virtual_machine_size": {
 				Type:             pluginsdk.TypeString,
@@ -158,6 +158,20 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["location"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Required:         true,
+			ForceNew:         true,
+			Deprecated:       "`location` will be removed in version 4.0 of the AzureRM Provider.",
+			ValidateFunc:     location.EnhancedValidate,
+			StateFunc:        location.StateFunc,
+			DiffSuppressFunc: location.DiffSuppressFunc,
+		}
+	}
+
+	return &resource
 }
 
 func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -198,26 +212,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
 	}
 
-	// NOTE: 'ComputeInstance' 'ComputeLocation' field should always point
-	// to configuration files 'location' field...
-	computeInstance := &machinelearningcomputes.ComputeInstance{
-		Properties: &machinelearningcomputes.ComputeInstanceProperties{
-			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
-			Subnet:                          subnet,
-			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
-			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
-			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
-		},
-		ComputeLocation:  utils.String(d.Get("location").(string)),
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
-	}
-
-	authType := d.Get("authorization_type").(string)
-	if authType != "" {
-		computeInstance.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(authType))
-	}
-
 	// NOTE: 'ComputeResource' 'Location' should point to the
 	// machine learning workspace's location...
 	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
@@ -235,11 +229,35 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{
-		Properties: computeInstance,
-		Identity:   identity,
-		Location:   pointer.To(azure.NormalizeLocation(*model.Location)),
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: identity,
+		Location: pointer.To(azure.NormalizeLocation(*model.Location)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	// NOTE: In 4.0 the 'location' field will be deprecated...
+	props := machinelearningcomputes.ComputeInstance{
+		Properties: &machinelearningcomputes.ComputeInstanceProperties{
+			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
+			Subnet:                          subnet,
+			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
+			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
+			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
+		},
+		Description:      utils.String(d.Get("description").(string)),
+		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+	}
+
+	if !features.FourPointOhBeta() {
+		// NOTE: 'ComputeInstance' 'ComputeLocation' field should always point
+		// to configuration files 'location' field...
+		props.ComputeLocation = utils.String(d.Get("location").(string))
+	}
+
+	if v, ok := d.GetOk("authorization_type"); ok {
+		props.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
+	}
+
+	parameters.Properties = props
 
 	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
 	if err != nil {
@@ -275,23 +293,25 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving Machine Learning %s: %+v", id, err)
 	}
 
+	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
+
 	model := resp.Model
 	if model == nil {
 		return fmt.Errorf("machine learning %s: model is nil", id)
 	}
 
-	d.Set("name", id.ComputeName)
+	props := model.Properties.(machinelearningcomputes.ComputeInstance)
 
-	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
+	d.Set("name", id.ComputeName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	// NOTE: Due to a bug in Azure returning the incorrect location
-	// of the instance we need to get the location from the
-	// config file instead of using the location returned
-	// from the GET call...
-	d.Set("location", azure.NormalizeLocation(d.Get("location").(string)))
+	if !features.FourPointOhBeta() {
+		if props.ComputeLocation != nil {
+			d.Set("location", azure.NormalizeLocation(*props.ComputeLocation))
+		}
+	}
 
-	identity, err := flattenIdentity(resp.Model.Identity)
+	identity, err := flattenIdentity(model.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening `identity`: %+v", err)
 	}
@@ -300,24 +320,27 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
-	props := resp.Model.Properties.(machinelearningcomputes.ComputeInstance)
-
 	if props.DisableLocalAuth != nil {
 		d.Set("local_auth_enabled", !*props.DisableLocalAuth)
 	}
+
 	d.Set("description", props.Description)
+
 	if props.Properties != nil {
 		d.Set("virtual_machine_size", props.Properties.VMSize)
-		if props.Properties.Subnet != nil {
-			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
-		}
 		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
+
+		if props.Properties.Subnet != nil {
+			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+		}
+
 		enableNodePublicIP := true
 		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
 			enableNodePublicIP = false
 		}
+
 		d.Set("node_public_ip_enabled", enableNodePublicIP)
 	}
 
