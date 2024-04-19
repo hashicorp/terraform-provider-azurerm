@@ -44,7 +44,7 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 			})
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return nil, fmt.Errorf("%q was not found in Api Management instance %q in Resource Group %q", id.PolicyFragmentName, id.ServiceName, id.ResourceGroupName)
+					return nil, fmt.Errorf("%s was not found in Api Management instance %q in Resource Group %q", id, id.ServiceName, id.ResourceGroupName)
 				}
 
 				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
