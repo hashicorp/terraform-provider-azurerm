@@ -207,7 +207,7 @@ The `resource_group` block supports the following:
 
 The `recovery_services_vault` block supports the following:
 
-* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `true`.
+* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
 
 ---
 

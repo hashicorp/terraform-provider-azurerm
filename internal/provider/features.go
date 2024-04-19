@@ -269,7 +269,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"recover_soft_deleted_backup_protected_vm": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  true,
+						Default:  false,
 					},
 				},
 			},
