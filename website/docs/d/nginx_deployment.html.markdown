@@ -83,7 +83,7 @@ A `frontend_private` block exports the following:
 
 A `frontend_public` block exports the following:
 
-* `ip_address` - Specifies a list of Public IP Resource IDs for this NGINX Deployment.
+* `ip_address` - The list of Public IP Resource IDs for this NGINX Deployment.
 
 ---
 

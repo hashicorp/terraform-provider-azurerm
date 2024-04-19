@@ -92,7 +92,7 @@ var services = mapOf(
         "network" to "Network",
         "networkfunction" to "Network Function",
         "newrelic" to "New Relic",
-        "nginx" to "NGINX",
+        "nginx" to "Nginx",
         "notificationhub" to "Notification Hub",
         "orbital" to "Orbital",
         "paloalto" to "Palo Alto",
