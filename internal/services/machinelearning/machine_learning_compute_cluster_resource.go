@@ -221,16 +221,16 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	model := workspace.Model
-	if model == nil {
+	workspaceModel := workspace.Model
+	if workspaceModel == nil {
 		return fmt.Errorf("machine learning %s Workspace: model was nil", id)
 	}
 
-	if model.Sku == nil || model.Sku.Tier == nil || model.Sku.Name == "" {
+	if workspaceModel.Sku == nil || workspaceModel.Sku.Tier == nil || workspaceModel.Sku.Name == "" {
 		return fmt.Errorf("machine learning %s Workspace: `SKU` was nil or empty", id)
 	}
 
-	if model.Location == nil {
+	if workspaceModel.Location == nil {
 		return fmt.Errorf("machine learning %s Workspace: `Location` was nil", id)
 	}
 
@@ -244,11 +244,11 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	computeClusterParameters := machinelearningcomputes.ComputeResource{
 		Properties: computeClusterProperties,
 		Identity:   identity,
-		Location:   model.Location,
+		Location:   workspaceModel.Location,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningcomputes.Sku{
-			Name: model.Sku.Name,
-			Tier: pointer.To(machinelearningcomputes.SkuTier(*model.Sku.Tier)),
+			Name: workspaceModel.Sku.Name,
+			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
 		},
 	}
 

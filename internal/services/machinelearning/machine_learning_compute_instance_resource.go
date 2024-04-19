@@ -256,9 +256,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// clusters, not compute instances"
 	//
 	// https://learn.microsoft.com/azure/machine-learning/how-to-create-attach-compute-cluster?view=azureml-api-2&tabs=python#limitations
-	if !features.FourPointOhBeta() {
-		props.ComputeLocation = utils.String(d.Get("location").(string))
-	}
 
 	if v, ok := d.GetOk("authorization_type"); ok {
 		props.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
@@ -311,12 +308,6 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 	d.Set("name", id.ComputeName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
-
-	if !features.FourPointOhBeta() {
-		if props.ComputeLocation != nil {
-			d.Set("location", azure.NormalizeLocation(*props.ComputeLocation))
-		}
-	}
 
 	identity, err := flattenIdentity(model.Identity)
 	if err != nil {
