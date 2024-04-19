@@ -13,7 +13,7 @@ import (
 
 type VirtualDesktopHostPoolDataSource struct{}
 
-func TestAccDataShareAccountDataSource_basic(t *testing.T) {
+func TestAccVirtualDesktopHostPoolDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_desktop_host_pool", "test")
 	r := VirtualDesktopHostPoolDataSource{}
 

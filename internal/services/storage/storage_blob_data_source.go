@@ -63,6 +63,11 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -75,6 +80,7 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 
 func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -82,7 +88,7 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
-	account, err := storageClient.FindAccount(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
 	if err != nil {
 		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
 	}
@@ -134,6 +140,8 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 	d.Set("content_md5", contentMD5)
+
+	d.Set("encryption_scope", props.EncryptionScope)
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 

@@ -840,13 +840,29 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	t := d.Get("tags").(map[string]interface{})
-
-	parameters := containerinstance.Resource{
-		Tags: tags.Expand(t),
+	existing, err := client.ContainerGroupsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("reading %s: %v", id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("reading %s: `model` was nil", id)
 	}
 
-	if _, err := client.ContainerGroupsUpdate(ctx, *id, parameters); err != nil {
+	model := *existing.Model
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		model.Identity = expandedIdentity
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -1583,6 +1599,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				scheme := x["scheme"].(string)
 
 				httpGetScheme := containerinstance.Scheme(scheme)
+
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.FromString(path),
 					Port:        int64(port),

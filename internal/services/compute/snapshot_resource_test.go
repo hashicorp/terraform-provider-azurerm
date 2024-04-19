@@ -33,6 +33,34 @@ func TestAccSnapshot_fromManagedDisk(t *testing.T) {
 	})
 }
 
+func TestAccSnapshot_networkAccessPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkAccessPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccSnapshot_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
+	r := SnapshotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccSnapshot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 	r := SnapshotResource{}
@@ -201,11 +229,12 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_snapshot" "test" {
-  name                = "acctestss_%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  create_option       = "Copy"
-  source_uri          = azurerm_managed_disk.test.id
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  public_network_access_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -245,11 +274,13 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_snapshot" "test" {
-  name                = "acctestss_%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  create_option       = "Copy"
-  source_uri          = azurerm_managed_disk.test.id
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  network_access_policy         = "AllowAll"
+  public_network_access_enabled = true
 
   tags = {
     Hello = "World"
@@ -470,12 +501,13 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_snapshot" "test" {
-  name                = "acctestss_%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  create_option       = "Copy"
-  source_uri          = azurerm_managed_disk.test.id
-  disk_size_gb        = "20"
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  disk_size_gb                  = "20"
+  public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -693,4 +725,66 @@ resource "azurerm_snapshot" "test" {
   source_uri          = azurerm_managed_disk.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (SnapshotResource) networkAccessPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestmd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "10"
+}
+
+resource "azurerm_snapshot" "test" {
+  name                  = "acctestss_%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  create_option         = "Copy"
+  source_uri            = azurerm_managed_disk.test.id
+  network_access_policy = "AllowAll"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (SnapshotResource) publicNetworkAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestmd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "10"
+}
+
+resource "azurerm_snapshot" "test" {
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  public_network_access_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

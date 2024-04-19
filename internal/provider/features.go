@@ -319,6 +319,40 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+		"machine_learning": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"purge_soft_deleted_workspace_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"recovery_service": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"vm_backup_stop_protection_and_retain_data_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"purge_protected_items_from_vault_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -535,6 +569,29 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			subscriptionRaw := items[0].(map[string]interface{})
 			if v, ok := subscriptionRaw["restart_server_on_configuration_value_change"]; ok {
 				featuresMap.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["machine_learning"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			subscriptionRaw := items[0].(map[string]interface{})
+			if v, ok := subscriptionRaw["purge_soft_deleted_workspace_on_destroy"]; ok {
+				featuresMap.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["recovery_service"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			recoveryServicesRaw := items[0].(map[string]interface{})
+			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
+			}
+			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
+				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
 			}
 		}
 	}

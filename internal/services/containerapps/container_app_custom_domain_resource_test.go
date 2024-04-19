@@ -250,6 +250,11 @@ resource "azurerm_container_app" "test" {
     }
   }
 
+  secret {
+    name  = "rick"
+    value = "morty"
+  }
+
   ingress {
     allow_insecure_connections = false
     external_enabled           = true

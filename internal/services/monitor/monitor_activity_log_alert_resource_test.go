@@ -315,6 +315,21 @@ func TestAccMonitorActivityLogAlert_ServiceHealth_basicAndDelete(t *testing.T) {
 	})
 }
 
+func TestAccMonitorActivityLogAlert_location(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.location(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MonitorActivityLogAlertResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1141,6 +1156,30 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   }
 }
 	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) location(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "westeurope"
+  scopes              = [azurerm_resource_group.test.id]
+
+  criteria {
+    category = "Recommendation"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (t MonitorActivityLogAlertResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

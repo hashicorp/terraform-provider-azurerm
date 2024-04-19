@@ -483,6 +483,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -519,6 +522,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count             = 1
     vm_size                = "Standard_DS2_v2"
     enable_host_encryption = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -554,6 +560,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_D2ads_v5"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -590,6 +599,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     temporary_name_for_rotation = "temp"
     node_count                  = 1
     vm_size                     = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -627,6 +639,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count                  = 1
     vm_size                     = "%s"
     enable_host_encryption      = false
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -677,6 +692,9 @@ resource "azurerm_kubernetes_cluster" "test" {
         vm_swappiness = 40
       }
     }
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -726,6 +744,10 @@ resource "azurerm_kubernetes_cluster" "test" {
         vm_swappiness = 45
       }
     }
+
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -762,6 +784,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name         = "default"
     node_count   = 1
     vm_size      = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -800,6 +825,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     os_disk_type                = "%s"
     os_disk_size_gb             = %d
     vm_size                     = "Standard_D2ads_v5"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -847,6 +875,9 @@ resource "azurerm_kubernetes_cluster" "test" {
         vm_swappiness = 40
       }
     }
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -882,6 +913,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = %d
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -917,6 +951,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -957,6 +994,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     tags = {
       Hello = "World"
     }
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -995,6 +1035,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count           = 2
     max_count           = 4
     vm_size             = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1027,6 +1070,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     max_count           = 2
     enable_auto_scaling = true
     vm_size             = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1061,6 +1107,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     enable_auto_scaling = true
     vm_size             = "Standard_DS2_v2"
     zones               = ["1", "2"]
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -1098,6 +1147,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count           = 2
     max_count           = 4
     vm_size             = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   auto_scaler_profile {
@@ -1135,6 +1187,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count           = 2
     max_count           = 4
     vm_size             = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   auto_scaler_profile {

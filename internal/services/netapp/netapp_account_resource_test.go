@@ -103,7 +103,7 @@ func testAccNetAppAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 			),
 		},
-		data.ImportStep("active_directory"),
+		data.ImportStep("active_directory.0.password", "active_directory.0.server_root_ca_certificate"),
 	})
 }
 
