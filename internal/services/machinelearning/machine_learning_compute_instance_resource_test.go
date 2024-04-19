@@ -134,7 +134,7 @@ func (r ComputeInstanceResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
+  name = "acctest%d"
   %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
@@ -222,7 +222,7 @@ resource "azurerm_private_endpoint" "test" {
 }
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
+  name = "acctest%d"
   %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
@@ -257,7 +257,7 @@ func (r ComputeInstanceResource) requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_machine_learning_compute_instance" "import" {
-  name                          = azurerm_machine_learning_compute_instance.test.name
+  name = azurerm_machine_learning_compute_instance.test.name
   %s
   machine_learning_workspace_id = azurerm_machine_learning_compute_instance.test.machine_learning_workspace_id
   virtual_machine_size          = "STANDARD_DS2_V2"
@@ -275,7 +275,7 @@ func (r ComputeInstanceResource) identitySystemAssigned(data acceptance.TestData
 %s
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
+  name = "acctest%d"
   %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
@@ -302,7 +302,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
+  name = "acctest%d"
   %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
@@ -333,7 +333,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
+  name = "acctest%d"
   %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
