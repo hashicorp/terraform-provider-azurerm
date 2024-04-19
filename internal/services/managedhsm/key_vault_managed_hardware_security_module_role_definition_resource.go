@@ -25,8 +25,6 @@ import (
 	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
-const roleDefinitionScope = "/"
-
 type KeyVaultMHSMRoleDefinitionModel struct {
 	ManagedHSMID      string       `tfschema:"managed_hsm_id"`
 	Name              string       `tfschema:"name"`
@@ -63,12 +61,20 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"managed_hsm_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: managedhsms.ValidateManagedHSMID,
-		},
+		"managed_hsm_id": func() *pluginsdk.Schema {
+			s := &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
+				ValidateFunc: managedhsms.ValidateManagedHSMID,
+			}
+			if features.FourPointOhBeta() {
+				s.Required = true
+			} else {
+				s.Optional = true
+				s.Computed = true
+			}
+			return s
+		}(),
 
 		"role_name": {
 			Type:         pluginsdk.TypeString,
@@ -142,7 +148,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Arguments() map[string]*pluginsdk.Sc
 	if !features.FourPointOhBeta() {
 		s["vault_base_url"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		}
@@ -173,6 +180,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) StateUpgraders() sdk.StateUpgradeDat
 		},
 	}
 }
+
 func (r KeyVaultMHSMRoleDefinitionResource) ModelObject() interface{} {
 	return &KeyVaultMHSMRoleDefinitionModel{}
 }
@@ -184,7 +192,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) ResourceType() string {
 func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) (err error) {
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
 			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
 			if !ok {
@@ -192,12 +200,13 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			var config KeyVaultMHSMRoleDefinitionModel
-			if err = metadata.Decode(&config); err != nil {
+			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
 
 			var managedHsmId *managedhsms.ManagedHSMId
 			var endpoint *parse.ManagedHSMDataPlaneEndpoint
+			var err error
 			if config.ManagedHSMID != "" {
 				managedHsmId, err = managedhsms.ParseManagedHSMID(config.ManagedHSMID)
 				if err != nil {
@@ -236,10 +245,8 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
-			// ---
-
-			scope := string(keyvault.RoleScopeGlobal)
-			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, scope, config.Name)
+			scope := keyvault.RoleScopeGlobal
+			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, string(scope), config.Name)
 			existing, err := client.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
 			if !utils.ResponseWasNotFound(existing.Response) {
 				if err != nil {
@@ -255,7 +262,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 					RoleType:    keyvault.RoleTypeCustomRole,
 					Permissions: expandKeyVaultMHSMRolePermissions(config.Permission),
 					AssignableScopes: pointer.To([]keyvault.RoleScope{
-						keyvault.RoleScopeGlobal,
+						scope,
 					}),
 				},
 			}

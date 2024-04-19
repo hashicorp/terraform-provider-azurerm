@@ -44,12 +44,20 @@ type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 	s := map[string]*pluginsdk.Schema{
-		"managed_hsm_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: managedhsms.ValidateManagedHSMID,
-		},
+		"managed_hsm_id": func() *pluginsdk.Schema {
+			s := &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ForceNew:     true,
+				ValidateFunc: managedhsms.ValidateManagedHSMID,
+			}
+			if features.FourPointOhBeta() {
+				s.Required = true
+			} else {
+				s.Optional = true
+				s.Computed = true
+			}
+			return s
+		}(),
 
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -121,7 +129,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) ResourceType() string {
 func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) (err error) {
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
 			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
 			if !ok {
@@ -135,6 +143,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 
 			var managedHsmId *managedhsms.ManagedHSMId
 			var endpoint *parse.ManagedHSMDataPlaneEndpoint
+			var err error
 			if config.ManagedHSMID != "" {
 				managedHsmId, err = managedhsms.ParseManagedHSMID(config.ManagedHSMID)
 				if err != nil {
