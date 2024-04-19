@@ -430,6 +430,10 @@ An `serverless_compute` block supports the following:
 
 * `no_public_ip_enabled` - (Optional) Is serverless compute nodes deployed in custom vNet would have no public IP addresses enabled for a workspace with private endpoint? Defaults to `false`.
 
+~> **Note:** Not supported to set `public_ip_enabled` to `false` without `subnet_id` when `public_network_access_enabled` is `false`.
+
+~> **Note:** Not supported to update `public_ip_enabled` from `true` to `false` when `subnet_id` is null or empty
+
 ---
 
 An `feature_store` block supports the following:

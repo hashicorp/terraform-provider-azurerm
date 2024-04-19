@@ -363,8 +363,8 @@ func TestAccMachineLearningWorkspace_serverlessCompute(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("serverless_compute.#").HasValue("1"),
-				check.That(data.ResourceName).Key("serverless_compute.0.custom_subnet_id").Exists(),
-				check.That(data.ResourceName).Key("serverless_compute.0.no_public_ip_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("serverless_compute.0.subnet_id").Exists(),
+				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1212,7 +1212,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   storage_account_id      = azurerm_storage_account.test.id
 
   serverless_compute {
-    custom_subnet_id = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   identity {
