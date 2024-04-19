@@ -162,9 +162,9 @@ func resourceComputeInstance() *pluginsdk.Resource {
 	if !features.FourPointOhBeta() {
 		resource.Schema["location"] = &pluginsdk.Schema{
 			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ForceNew:         true,
-			Deprecated:       "`location` will be removed in version 4.0 of the AzureRM Provider.",
+			Optional:         true,
+			Computed:         true,
+			Deprecated:       "The `azurerm_machine_learning_compute_instance` must be deployed to the same `location` as the associated `azurerm_machine_learning_workspace` resource, as the `location` fields must be the same the `location` field will be removed in version 4.0 of the AzureRM Provider.",
 			ValidateFunc:     location.EnhancedValidate,
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
@@ -212,8 +212,12 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
 	}
 
-	// NOTE: 'ComputeResource' 'Location' should point to the
-	// machine learning workspace's location...
+	// NOTE: The 'ComputeResource' struct contains the information
+	// which is related to the parent resource of the instance that is
+	// to be deployed (e.g., the workspace), which is why we need to
+	// GET the workspace to discover the location it has been deployed to.
+	// If we do not set the correct location, the identity will be created
+	// and then orphaned in the incorrect region.
 	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
 	if err != nil {
 		return err
@@ -247,9 +251,12 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
 
+	// NOTE: The 'location' field is not supported for instances, "Compute clusters can be created in
+	// a different region than your workspace. This functionality is only available for compute
+	// clusters, not compute instances"
+	//
+	// https://learn.microsoft.com/azure/machine-learning/how-to-create-attach-compute-cluster?view=azureml-api-2&tabs=python#limitations
 	if !features.FourPointOhBeta() {
-		// NOTE: 'ComputeInstance' 'ComputeLocation' field should always point
-		// to configuration files 'location' field...
 		props.ComputeLocation = utils.String(d.Get("location").(string))
 	}
 
