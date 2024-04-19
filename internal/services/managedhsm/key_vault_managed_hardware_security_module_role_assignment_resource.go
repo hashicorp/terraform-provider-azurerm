@@ -168,7 +168,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
 				}
 				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI())
+				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
 				if err != nil {
 					return fmt.Errorf("determining the Managed HSM ID for %q: %+v", endpoint.BaseURI(), err)
 				}
@@ -221,7 +221,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 			}
 
 			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			resourceManagerId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI())
+			resourceManagerId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
 			}
@@ -282,7 +282,7 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			}
 
 			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI())
+			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}

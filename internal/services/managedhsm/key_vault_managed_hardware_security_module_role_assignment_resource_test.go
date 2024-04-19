@@ -189,5 +189,5 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) template(data acceptance.TestData) string {
-	return KeyVaultMHSMRoleDefinitionResource{}.withRoleDefinition(data)
+	return KeyVaultMHSMRoleDefinitionResource{}.basic(data)
 }

@@ -231,7 +231,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
 				}
 				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI())
+				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
 				if err != nil {
 					return fmt.Errorf("determining the Managed HSM ID for %q: %+v", endpoint.BaseURI(), err)
 				}
@@ -293,7 +293,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 			}
 
 			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI())
+			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
@@ -357,7 +357,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 			}
 
 			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI())
+			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}
@@ -417,7 +417,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 			}
 
 			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI())
+			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
 				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
 			}

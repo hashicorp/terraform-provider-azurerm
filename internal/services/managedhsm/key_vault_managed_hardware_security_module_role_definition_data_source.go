@@ -196,7 +196,7 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
 				}
 				subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI())
+				managedHsmId, err = metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, endpoint.BaseURI(), domainSuffix)
 				if err != nil {
 					return fmt.Errorf("determining the Managed HSM ID for %q: %+v", endpoint.BaseURI(), err)
 				}
