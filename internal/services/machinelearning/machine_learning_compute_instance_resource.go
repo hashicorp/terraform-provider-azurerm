@@ -164,7 +164,7 @@ func resourceComputeInstance() *pluginsdk.Resource {
 			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			Computed:         true,
-			Deprecated:       "The `azurerm_machine_learning_compute_instance` must be deployed to the same `location` as the associated `azurerm_machine_learning_workspace` resource, as the `location` fields must be the same the `location` field will be removed in version 4.0 of the AzureRM Provider.",
+			Deprecated:       "The `azurerm_machine_learning_compute_instance` must be deployed to the same location as the associated `azurerm_machine_learning_workspace` resource, as the `location` fields must be the same the `location` field no longer has any effect and will be removed in version 4.0 of the AzureRM Provider",
 			ValidateFunc:     location.EnhancedValidate,
 			StateFunc:        location.StateFunc,
 			DiffSuppressFunc: location.DiffSuppressFunc,
