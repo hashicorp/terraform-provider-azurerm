@@ -23,8 +23,6 @@ type managedHSMDetail struct {
 	dataPlaneBaseUri string
 }
 
-// TODO: hook up the addtocache/purge
-
 func (c *Client) AddToCache(managedHsmId managedhsms.ManagedHSMId, dataPlaneUri string) {
 	cacheKey := c.cacheKeyForManagedHSM(managedHsmId.ManagedHSMName)
 	keysmith.Lock()
