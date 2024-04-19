@@ -30,6 +30,9 @@ BUG FIXES:
 * `azurerm_application_insights` - add a state migration to fix the resource ID casing of Application Insights resources [GH-25628]
 * `azurerm_function_app_hybrid_connection` - can now use relay resources created in a different resource group [GH-25541]
 * `azurerm_kubernetes_cluster_node_pool` - prevent plan diff when `windows_profile.outbound_nat_enabled` is unset [GH-25644]
+* `azurerm_machine_learning_compute_cluster` - fix location to point to parent resource for computes [GH-25643]
+* `azurerm_machine_learning_compute_instance` - fix location to point to parent resource for computes [GH-25643]
+
 * `azurerm_storage_account` - check replication type when evaluating support level for shares and queues for V1 storage accounts [GH-25581]
 * `azurerm_storage_account` - added a sanity check for `dns_endpoint_type` and `blob_properties.restore_policy` [GH-25450]
 * `azurerm_web_app_hybrid_connection` - can now use relay resources created in a different resource group [GH-25541]
@@ -39,6 +42,7 @@ BUG FIXES:
 DEPRECATIONS:
 
 * `logz` - the Logz resources are deprecated and will be removed in v4.0 of the AzureRM Provider since the API no longer allows new instances to be created [GH-25405]
+* `azurerm_machine_learning_compute_instance` - marked `location` field as deprecated in v4.0 of the provider [GH-25643]
 * `azurerm_kubernetes_cluster` - the following properties have been deprecated since the API no longer supports cluster creation with legacy Azure Entra integration: `client_app_id`, `server_app_id`, `server_app_secret` and `managed` [GH-25200]
 
 ## 3.99.0 (April 11, 2024)
