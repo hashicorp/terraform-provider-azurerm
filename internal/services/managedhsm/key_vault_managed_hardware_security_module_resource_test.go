@@ -45,6 +45,9 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			// TODO: this can be removed in 4.0
 			"legacyWithUpdate": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacyWithUpdate,
 		},
+		"roleDefinitionDataSource": {
+			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
+		},
 	})
 }
 
