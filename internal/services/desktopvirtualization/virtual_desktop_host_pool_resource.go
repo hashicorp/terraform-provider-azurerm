@@ -116,15 +116,10 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			},
 
 			"public_network_access": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.HostpoolPublicNetworkAccessEnabled),
-					string(hostpool.HostpoolPublicNetworkAccessDisabled),
-					string(hostpool.HostpoolPublicNetworkAccessEnabledForClientsOnly),
-					string(hostpool.HostpoolPublicNetworkAccessEnabledForSessionHostsOnly),
-				}, false),
-				Default: string(hostpool.HostpoolPublicNetworkAccessEnabled),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostpoolPublicNetworkAccess(), false),
+				Default:      string(hostpool.HostpoolPublicNetworkAccessEnabled),
 			},
 
 			"maximum_sessions_allowed": {
