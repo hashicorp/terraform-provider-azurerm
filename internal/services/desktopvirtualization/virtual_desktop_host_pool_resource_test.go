@@ -28,7 +28,6 @@ func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -95,7 +94,6 @@ func TestAccVirtualDesktopHostPool_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -111,7 +109,6 @@ func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
 			),
 		},
 		{
@@ -119,7 +116,6 @@ func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
 			),
 		},
 		{
@@ -127,7 +123,49 @@ func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
-				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccVirtualDesktopHostPool_publicNetworkAccessUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+			),
+		},
+		{
+			Config: r.publicNetworkAccessDisabledUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+			),
+		},
+		{
+			Config: r.publicNetworkAccessClientOnlyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("EnabledForClientsOnly"),
+			),
+		},
+		{
+			Config: r.publicNetworkAccessSessionHostOnlyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("EnabledForSessionHostsOnly"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
 			),
 		},
 	})
@@ -337,7 +375,105 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   maximum_sessions_allowed      = 100
   preferred_app_group_type      = "Desktop"
   custom_rdp_properties         = "audiocapturemode:i:1;audiomode:i:0;"
-  public_network_access_enabled = false
+
+  tags = {
+    Purpose = "Acceptance-Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+}
+
+func (VirtualDesktopHostPoolResource) publicNetworkAccessClientOnlyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktophp-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                          = "acctestHP%s"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  type                          = "Pooled"
+  friendly_name                 = "A Friendly Name!"
+  description                   = "A Description!"
+  validate_environment          = true
+  start_vm_on_connect           = true
+  load_balancer_type            = "BreadthFirst"
+  maximum_sessions_allowed      = 100
+  preferred_app_group_type      = "Desktop"
+  custom_rdp_properties         = "audiocapturemode:i:1;audiomode:i:0;"
+  public_network_access = "EnabledForClientsOnly"
+
+  tags = {
+    Purpose = "Acceptance-Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+}
+
+func (VirtualDesktopHostPoolResource) publicNetworkAccessSessionHostOnlyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktophp-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                          = "acctestHP%s"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  type                          = "Pooled"
+  friendly_name                 = "A Friendly Name!"
+  description                   = "A Description!"
+  validate_environment          = true
+  start_vm_on_connect           = true
+  load_balancer_type            = "BreadthFirst"
+  maximum_sessions_allowed      = 100
+  preferred_app_group_type      = "Desktop"
+  custom_rdp_properties         = "audiocapturemode:i:1;audiomode:i:0;"
+  public_network_access = "EnabledForSessionHostsOnly"
+
+  tags = {
+    Purpose = "Acceptance-Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
+}
+
+func (VirtualDesktopHostPoolResource) publicNetworkAccessDisabledUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktophp-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                          = "acctestHP%s"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  type                          = "Pooled"
+  friendly_name                 = "A Friendly Name!"
+  description                   = "A Description!"
+  validate_environment          = true
+  start_vm_on_connect           = true
+  load_balancer_type            = "BreadthFirst"
+  maximum_sessions_allowed      = 100
+  preferred_app_group_type      = "Desktop"
+  custom_rdp_properties         = "audiocapturemode:i:1;audiomode:i:0;"
+  public_network_access = "Disabled"
 
   tags = {
     Purpose = "Acceptance-Testing"

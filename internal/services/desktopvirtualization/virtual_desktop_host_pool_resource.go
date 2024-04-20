@@ -115,10 +115,16 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(hostpool.HostpoolPublicNetworkAccessEnabled),
+					string(hostpool.HostpoolPublicNetworkAccessDisabled),
+					string(hostpool.HostpoolPublicNetworkAccessEnabledForClientsOnly),
+					string(hostpool.HostpoolPublicNetworkAccessEnabledForSessionHostsOnly),
+				}, false),
+				Default: string(hostpool.HostpoolPublicNetworkAccessEnabled),
 			},
 
 			"maximum_sessions_allowed": {
@@ -257,18 +263,11 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 			LoadBalancerType:              hostpool.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
 			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
+			PublicNetworkAccess:           pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string))),
 			AgentUpdate:                   expandAgentUpdateCreate(d.Get("scheduled_agent_updates").([]interface{})),
 			VMTemplate:                    &vmTemplate,
 		},
 	}
-
-	publicNetworkAccess := hostpool.HostpoolPublicNetworkAccessEnabled
-
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = hostpool.HostpoolPublicNetworkAccessDisabled
-	}
-
-	payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -297,7 +296,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access_enabled", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
@@ -326,12 +325,8 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 			payload.Properties.PreferredAppGroupType = &preferredAppGroupType
 		}
 
-		if d.HasChange("public_network_access_enabled") {
-			publicNetworkAccess := hostpool.HostpoolPublicNetworkAccessEnabled
-			if payload.Properties.PublicNetworkAccess != nil && *payload.Properties.PublicNetworkAccess != hostpool.HostpoolPublicNetworkAccessEnabled {
-				publicNetworkAccess = hostpool.HostpoolPublicNetworkAccessDisabled
-			}
-			payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		if d.HasChange("public_network_access") {
+			payload.Properties.PublicNetworkAccess = pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string)))
 		}
 
 		if d.HasChange("start_vm_on_connect") {
@@ -405,13 +400,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		}
 		d.Set("personal_desktop_assignment_type", personalDesktopAssignmentType)
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
-
-		publicNetworkAccess := true
-		if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess != hostpool.HostpoolPublicNetworkAccessEnabled {
-			publicNetworkAccess = false
-		}
-		d.Set("public_network_access_enabled", publicNetworkAccess)
-
+		d.Set("public_network_access", props.PublicNetworkAccess)
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
