@@ -395,7 +395,7 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		}
 		d.Set("personal_desktop_assignment_type", personalDesktopAssignmentType)
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
-		d.Set("public_network_access", props.PublicNetworkAccess)
+		d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
