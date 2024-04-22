@@ -540,6 +540,10 @@ A `rolling_upgrade_policy` block supports the following:
 
 * `prioritize_unhealthy_instances_enabled` - (Optional) Upgrade all unhealthy instances in a scale set before any healthy instances. Possible values are `true` or `false`.
 
+* `maximum_surge_instances` - (Optional) Create new virtual machines to upgrade the scale set, rather than updating the existing virtual machines. Existing virtual machines will be deleted once the new virtual machines are created for each batch. Possible values are `true` or `false`.
+
+-> **NOTE:** `overprovision` must be set to `false` when `maximum_surge_instances` is specified.
+
 ---
 
 A `secret` block supports the following:
