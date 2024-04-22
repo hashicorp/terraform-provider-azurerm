@@ -49,6 +49,14 @@ This deprecated resource has been removed from the Azure Provider.
 
 This deprecated resource has been superseded by `azurerm_portal_dashboard` and has been removed from the Azure provider.
 
+### Resource: `azurerm_databox_edge_order`
+
+Creation of DataBox Edge Orders are not supported by the Azure API, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_data_factory_integration_runtime_managed`
+
+This deprecated resource has been superseded by `azurerm_data_factory_integration_runtime_azure_ssis` and has been removed from the Azure provider.
+
 ### Resource: `azurerm_disk_pool_iscsi_target_lun`
 
 This deprecated resource has been removed from the Azure provider.
@@ -65,67 +73,99 @@ This deprecated resource has been removed from the Azure provider.
 
 This deprecated resource has been removed from the Azure provider.
 
-### Resource: `azurerm_databox_edge_order`
-
-Creation of DataBox Edge Orders are not supported by the Azure API, as a result this deprecated resource has been removed from the Azure provider.
-
-### Resource: `azurerm_data_factory_integration_runtime_managed` - (TODO add removal in 4.0 to deprecation message)
-
-This deprecated resource has been superseded by `azurerm_data_factory_integration_runtime_azure_ssis` and has been removed from the Azure provider.
-
 ### Resource: `azurerm_graph_account`
 
 This deprecated resource has been superseded by `azurerm_graph_services_account` and has been removed from the Azure provider.
+
+### Resource: `azurerm_iot_time_series_insights_access_policy`
+
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_iot_time_series_insights_event_source_eventhub`
+
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_iot_time_series_insights_event_source_iothub`
+
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_iot_time_series_insights_gen2_environment`
+
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_iot_time_series_insights_reference_data_set`
+
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_iot_time_series_insights_standard_environment`
+
+This Azure Services will be retired on 2025-03-31, as a result this deprecated resource has been removed from the Azure provider.
 
 ### Resource: `azurerm_integrated_service_environment`
 
 This Azure Service is being retired on 2024-08-31 and the provisioning of new instances has been blocked since 2022-11-01, as a result this deprecated resource has been removed from the Azure provider.
 
-### Resource: `azurerm_media_asset_filter` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_logz_monitor`
+
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_logz_sub_account`
+
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_logz_sub_account_tag_rule`
+
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_logz_tag_rule`
+
+This Azure Service is being retired and the provisioning of new instances has been blocked, as a result this deprecated resource has been removed from the Azure provider.
+
+### Resource: `azurerm_media_asset_filter`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_asset` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_asset`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_content_key_policy` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_content_key_policy`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_job` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_job`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_live_output` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_live_output`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_services_account_filter` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_services_account_filter`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_services_account` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_services_account`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_streaming_endpoint` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_streaming_endpoint`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_streaming_live_event` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_streaming_live_event`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_streaming_ locator` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_streaming_ locator`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_streaming_policy` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_streaming_policy`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
-### Resource: `azurerm_media_transform` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_media_transform`
 
 [Azure Media Services will be retired June 30th, 2024](https://learn.microsoft.com/en-us/azure/media-services/latest/azure-media-services-retirement), as a result this deprecated resource has been removed from the provider.
 
@@ -173,7 +213,7 @@ The Azure Database for MySQL Single Server will be retired on 2024-09-16 and wil
 
 This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure provider.
 
-### Resource: `azurerm_template_deployment` - (TODO add removal in 4.0 to deprecation message)
+### Resource: `azurerm_template_deployment`
 
 This deprecated resource has been superseded by `azurerm_resource_group_template_deployment` and has been removed from the Azure provider.
 
@@ -237,9 +277,6 @@ The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this
 
 The Azure Service Video Analyzer will be retired on 2022-11-30, as a result this deprecated resource has been removed from the Azure provider.
 
-### Resource: `azurerm_virtual_machine_scale_set` - (TODO add removal in 4.0 to deprecation message)
-
-This deprecated resource has been superseded by `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` and has been removed from the Azure provider.
 
 ## Removal of Data Sources
 
