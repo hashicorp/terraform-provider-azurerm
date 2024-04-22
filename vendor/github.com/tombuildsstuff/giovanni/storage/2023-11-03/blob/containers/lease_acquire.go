@@ -60,8 +60,10 @@ func (c Client) AcquireLease(ctx context.Context, containerName string, input Ac
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.LeaseID = resp.Header.Get("x-ms-lease-id")
+		if err == nil {
+			if resp.Header != nil {
+				result.LeaseID = resp.Header.Get("x-ms-lease-id")
+			}
 		}
 	}
 	if err != nil {
