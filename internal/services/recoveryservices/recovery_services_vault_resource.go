@@ -627,6 +627,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
 			softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
 		}
+
 		d.Set("soft_delete_enabled", softDeleteEnabled)
 
 		flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
