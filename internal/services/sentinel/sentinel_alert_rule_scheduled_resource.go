@@ -73,7 +73,6 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			"alert_rule_template_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"description": {
