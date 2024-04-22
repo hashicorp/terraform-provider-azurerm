@@ -5,6 +5,7 @@ package clusters
 
 type KeyVaultProperties struct {
 	KeyName     *string `json:"keyName,omitempty"`
+	KeyRsaSize  *int64  `json:"keyRsaSize,omitempty"`
 	KeyVaultUri *string `json:"keyVaultUri,omitempty"`
 	KeyVersion  *string `json:"keyVersion,omitempty"`
 }
