@@ -141,6 +141,9 @@ service/event-grid:
 service/event-hubs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventhub((.|\n)*)###'
 
+service/extendedlocation:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_custom_location((.|\n)*)###'
+
 service/firewall:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_firewall((.|\n)*)###'
 

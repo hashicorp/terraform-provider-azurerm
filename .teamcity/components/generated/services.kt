@@ -53,6 +53,7 @@ var services = mapOf(
         "elasticsan" to "ElasticSan",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
+        "extendedlocation" to "ExtendedLocation",
         "firewall" to "Firewall",
         "fluidrelay" to "Fluid Relay",
         "frontdoor" to "FrontDoor",
