@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/configurationassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/maintenanceconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -38,7 +37,6 @@ type Filter struct {
 type MaintenanceDynamicScopeModel struct {
 	Name                       string   `tfschema:"name"`
 	MaintenanceConfigurationId string   `tfschema:"maintenance_configuration_id"`
-	Scope                      string   `tfschema:"subscription_id"`
 	Filter                     []Filter `tfschema:"filter"`
 }
 
@@ -59,13 +57,6 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 			ForceNew:         true,
 			ValidateFunc:     maintenanceconfigurations.ValidateMaintenanceConfigurationID,
 			DiffSuppressFunc: suppress.CaseDifference,
-		},
-
-		"subscription_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubscriptionID,
 		},
 
 		"filter": {
@@ -108,15 +99,15 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"tag": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 								"values": {
 									Type:     pluginsdk.TypeList,
 									Required: true,
 									Elem: &pluginsdk.Schema{
-										Type:         pluginsdk.TypeString,
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type: pluginsdk.TypeString,
 									},
 								},
 							},
@@ -161,17 +152,12 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId, err := commonids.ParseSubscriptionID(model.Scope)
-			if err != nil {
-				return err
-			}
-
 			maintenanceConfigurationId, err := maintenanceconfigurations.ParseMaintenanceConfigurationID(model.MaintenanceConfigurationId)
 			if err != nil {
 				return err
 			}
 
-			id := configurationassignments.NewConfigurationAssignmentID(subscriptionId.SubscriptionId, model.Name)
+			id := configurationassignments.NewConfigurationAssignmentID(metadata.Client.Account.SubscriptionId, model.Name)
 
 			resp, err := client.ForSubscriptionsGet(ctx, id)
 			if err != nil {
@@ -185,7 +171,6 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 			}
 
 			configurationAssignment := configurationassignments.ConfigurationAssignment{
-				Name: pointer.To(model.Name),
 				Properties: &configurationassignments.ConfigurationAssignmentProperties{
 					MaintenanceConfigurationId: pointer.To(maintenanceConfigurationId.ID()),
 				},
@@ -248,19 +233,17 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.ForSubscriptionsGet(ctx, *id)
+			existing, err := client.ForSubscriptionsGet(ctx, *id)
 			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return err
 			}
 
-			if model := resp.Model; model != nil {
+			if model := existing.Model; model != nil {
 
-				if model.Name != nil {
-					state.Name = pointer.From(model.Name)
-				}
+				state.Name = id.ConfigurationAssignmentName
 
 				if properties := model.Properties; properties != nil {
 
@@ -270,14 +253,6 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 							return fmt.Errorf("parsing %q: %+v", pointer.From(properties.MaintenanceConfigurationId), err)
 						}
 						state.MaintenanceConfigurationId = maintenanceConfigurationId.ID()
-					}
-
-					if properties.ResourceId != nil {
-						subscriptionId, err := commonids.ParseSubscriptionIDInsensitively(pointer.From(properties.ResourceId))
-						if err != nil {
-							return fmt.Errorf("parsing %q: %+v", pointer.From(properties.ResourceId), err)
-						}
-						state.Scope = subscriptionId.ID()
 					}
 
 					if filter := properties.Filter; filter != nil {
@@ -332,18 +307,6 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 			}
 
 			existing := resp.Model
-
-			if metadata.ResourceData.HasChange("name") {
-				existing.Name = pointer.To(model.Name)
-			}
-
-			if metadata.ResourceData.HasChange("maintenance_configuration_id") {
-				existing.Properties.MaintenanceConfigurationId = pointer.To(model.MaintenanceConfigurationId)
-			}
-
-			if metadata.ResourceData.HasChange("subscription_id") {
-				existing.Properties.ResourceId = pointer.To(model.Scope)
-			}
 
 			if metadata.ResourceData.HasChange("filter") {
 				if len(model.Filter) > 0 {

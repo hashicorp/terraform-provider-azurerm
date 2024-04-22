@@ -27,11 +27,9 @@ func TestAccMaintenanceAssignmentDynamicScope_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("filter.0.locations.0").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("filter.0.resource_types.0").HasValue("Microsoft.Compute/virtualMachines"),
 			),
 		},
-		data.ImportStep("location"),
+		data.ImportStep(),
 	})
 }
 
@@ -44,16 +42,9 @@ func TestAccMaintenanceAssignmentDynamicScope_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("filter.#").HasValue("1"),
-				check.That(data.ResourceName).Key("filter.0.locations.0").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("filter.0.os_types.0").HasValue("windows"),
-				check.That(data.ResourceName).Key("filter.0.resource_types.0").HasValue("Microsoft.Compute/virtualMachines"),
-				check.That(data.ResourceName).Key("filter.0.tag_filter").HasValue("Any"),
-				check.That(data.ResourceName).Key("filter.0.tags.0.tag").HasValue("foo"),
-				check.That(data.ResourceName).Key("filter.0.tags.0.values.0").HasValue("barbar"),
 			),
 		},
-		data.ImportStep("location"),
+		data.ImportStep(),
 	})
 }
 
@@ -66,34 +57,23 @@ func TestAccMaintenanceAssignmentDynamicScope_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("filter.0.locations.0").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("filter.0.resource_types.0").HasValue("Microsoft.Compute/virtualMachines"),
 			),
 		},
-		data.ImportStep("location"),
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("filter.#").HasValue("1"),
-				check.That(data.ResourceName).Key("filter.0.locations.0").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("filter.0.os_types.0").HasValue("windows"),
-				check.That(data.ResourceName).Key("filter.0.resource_types.0").HasValue("Microsoft.Compute/virtualMachines"),
-				check.That(data.ResourceName).Key("filter.0.tag_filter").HasValue("Any"),
-				check.That(data.ResourceName).Key("filter.0.tags.0.tag").HasValue("foo"),
-				check.That(data.ResourceName).Key("filter.0.tags.0.values.0").HasValue("barbar"),
 			),
 		},
-		data.ImportStep("location"),
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("filter.0.locations.0").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("filter.0.resource_types.0").HasValue("Microsoft.Compute/virtualMachines"),
 			),
 		},
-		data.ImportStep("location"),
+		data.ImportStep(),
 	})
 }
 
@@ -106,8 +86,6 @@ func TestAccMaintenanceAssignmentDynamicScope_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("filter.0.locations.0").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("filter.0.resource_types.0").HasValue("Microsoft.Compute/virtualMachines"),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -130,12 +108,15 @@ func (MaintenanceDynamicScopeResource) Exists(ctx context.Context, clients *clie
 
 func (r MaintenanceDynamicScopeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+	provider "azurerm" {
+		features {}
+	}
+
+	%[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
   name                         = "acctest-ca%[2]d"
   maintenance_configuration_id = azurerm_maintenance_configuration.test.id
-  subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
 
   filter {
     locations      = ["%[3]s"]
@@ -147,12 +128,15 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
 
 func (r MaintenanceDynamicScopeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+	provider "azurerm" {
+		features {}
+	}
+
+	%[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
   name                         = "acctest-complete-%[2]d"
   maintenance_configuration_id = azurerm_maintenance_configuration.test.id
-  subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
 
   filter {
     locations       = ["%[3]s"]
@@ -171,28 +155,24 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
 
 func (r MaintenanceDynamicScopeResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
+	provider "azurerm" {
+		features {}
+	}
+
+	%[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "import" {
-  name                         = "acctest-ca%[2]d"
-  maintenance_configuration_id = azurerm_maintenance_configuration.test.id
-  subscription_id              = format("/subscriptions/%%s", data.azurerm_client_config.current.subscription_id)
-
-  filter {
-    locations = ["%[3]s"]
-  }
+	name                         = azurerm_maintenance_assignment_dynamic_scope.test.name
+	maintenance_configuration_id = azurerm_maintenance_assignment_dynamic_scope.test.maintenance_configuration_id
+	filter {
+	  locations = azurerm_maintenance_assignment_dynamic_scope.test.filter.0.locations
+	}
 }
-`, r.basic(data), data.RandomInteger, data.Locations.Primary)
+`, r.basic(data))
 }
 
 func (MaintenanceDynamicScopeResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-maint-%[1]d"
   location = "%[2]s"

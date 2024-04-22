@@ -52,7 +52,6 @@ resource "azurerm_maintenance_configuration" "example" {
 resource "azurerm_maintenance_assignment_dynamic_scope" "example" {
   name                         = "example"
   maintenance_configuration_id = azurerm_maintenance_configuration.example.id
-  subscription_id              = "/subscription/00000000-0000-0000-0000-000000000000"
 
   filter {
     locations       = ["West Europe"]
@@ -76,13 +75,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Dynamic Maintenance Assignment. Changing this forces a new Dynamic Maintenance Assignment to be created.
 
-~> **Note:** As a result of how this resource is assigned at the subscription, the name should be unique for each assignment, otherwise you may receive an existing resource error.
-
-* `subscription_id` - (Required) The ID of the subscription to scope the dynamic scope to. Changing this forces a new Dynamic Maintenance Assignment to be created.
+~> **Note:** The `name` must be unique per subscription.
 
 * `filter` - (Required) A `filter` block as defined below.
-
-~> **Note:** You must specify at least one filter otherwise ARM returns a `internal server error`.
 
 ---
 
