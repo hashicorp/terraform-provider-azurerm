@@ -73,6 +73,7 @@ import (
 	elasticsan "github.com/hashicorp/terraform-provider-azurerm/internal/services/elasticsan/client"
 	eventgrid "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/client"
+	extendedlocation "github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation/client"
 	fluidrelay "github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/client"
 	frontdoor "github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/client"
 	graph "github.com/hashicorp/terraform-provider-azurerm/internal/services/graphservices/client"
@@ -210,6 +211,7 @@ type Client struct {
 	ElasticSan                        *elasticsan.Client
 	EventGrid                         *eventgrid_v2022_06_15.Client
 	Eventhub                          *eventhub.Client
+	ExtendedLocation				  *extendedlocation.Client
 	FluidRelay                        *fluidrelay_2022_05_26.Client
 	Frontdoor                         *frontdoor.Client
 	Graph                             *graph.Client
@@ -446,6 +448,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Eventhub, err = eventhub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Eventhub: %+v", err)
+	}
+	if client.ExtendedLocation, err = extendedlocation.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ExtendedLocation: %+v", err)
 	}
 	if client.FluidRelay, err = fluidrelay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for FluidRelay: %+v", err)
