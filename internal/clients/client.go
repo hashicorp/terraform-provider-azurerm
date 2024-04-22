@@ -211,7 +211,7 @@ type Client struct {
 	ElasticSan                        *elasticsan.Client
 	EventGrid                         *eventgrid_v2022_06_15.Client
 	Eventhub                          *eventhub.Client
-	ExtendedLocation				  *extendedlocation.Client
+	ExtendedLocation                  *extendedlocation.Client
 	FluidRelay                        *fluidrelay_2022_05_26.Client
 	Frontdoor                         *frontdoor.Client
 	Graph                             *graph.Client
