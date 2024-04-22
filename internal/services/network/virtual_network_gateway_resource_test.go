@@ -1792,6 +1792,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1801,21 +1803,22 @@ resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1823,13 +1826,19 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type     = "Vpn"
-  vpn_type = "RouteBased"
-  sku      = "Basic"
+  type                       = "Vpn"
+  vpn_type                   = "RouteBased"
+  enable_bgp                 = false
+  active_active              = false
+  private_ip_address_enabled = false
+  sku                        = "VpnGw2"
+  generation                 = "Generation2"
 
   ip_configuration {
-    public_ip_address_id = azurerm_public_ip.test.id
-    subnet_id            = azurerm_subnet.test.id
+    name                          = "default"
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
   }
 
   tags = {
@@ -1845,10 +1854,10 @@ data "azurerm_virtual_network_gateway" "test" {
 resource "azurerm_virtual_network_gateway_nat_rule" "test" {
   name                       = "acctestvngnatrule-%d"
   resource_group_name        = azurerm_resource_group.test.name
-  virtual_network_gateway_id = data.azurerm_virtual_network_gateway.test.id
+  virtual_network_gateway_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${acctestRG- % d}/providers/Microsoft.Network/virtualNetworkGateways/${acctestvng- % d}"
   mode                       = "EgressSnat"
   type                       = "Dynamic"
-  ip_configuration_id        = data.azurerm_virtual_network_gateway.test.ip_configuration.0.id
+  ip_configuration_id        = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${acctestRG- % d}/providers/Microsoft.Network/virtualNetworkGateways/${acctestvng- % d}/ipConfigurations/default"
 
   external_mapping {
     address_space = "10.1.0.0/26"
@@ -1857,6 +1866,8 @@ resource "azurerm_virtual_network_gateway_nat_rule" "test" {
   internal_mapping {
     address_space = "10.2.0.0/26"
   }
+
+  depends_on = [data.azurerm_virtual_network_gateway.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tag, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tag, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
