@@ -646,15 +646,8 @@ func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	locks.ByName(id.SubnetName, SubnetResourceName)
 	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
 
-	future, err := client.Delete(ctx, *id)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(ctx); err != nil {
-		if !response.WasNotFound(future.HttpResponse) {
-			return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
-		}
 	}
 
 	return nil

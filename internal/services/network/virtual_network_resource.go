@@ -559,7 +559,7 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 		}
 	}
 
-	// Return empty object when the Subnet isn't found
+	// TODO 4.0: Return empty object when the Subnet isn't found
 	return pointer.To(network.Subnet{}), nil
 }
 
