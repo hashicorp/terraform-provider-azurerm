@@ -7,13 +7,13 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func TestAccOrchestratedVirtualMachineScaleSet_multipleNetworkProfiles(t *testing.T) {
@@ -246,33 +246,36 @@ func TestAccOrchestratedVirtualMachineScaleSet_networkPublicIPVersion(t *testing
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	read, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, compute.ExpandTypesForGetVMScaleSetsUserData)
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	resp, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx2, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		return err
 	}
 
-	if props := read.VirtualMachineScaleSetProperties; props != nil {
-		if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
-			if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
-				if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
-					for _, nic := range *nics {
-						if nic.IPConfigurations == nil {
-							continue
-						}
-
-						for _, config := range *nic.IPConfigurations {
-							if config.LoadBalancerBackendAddressPools == nil {
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if vmProfile := props.VirtualMachineProfile; vmProfile != nil {
+				if nwProfile := vmProfile.NetworkProfile; nwProfile != nil {
+					if nics := nwProfile.NetworkInterfaceConfigurations; nics != nil {
+						for _, nic := range *nics {
+							if nic.Properties == nil || nic.Properties.IPConfigurations == nil {
 								continue
 							}
 
-							if len(*config.LoadBalancerBackendAddressPools) > 0 {
-								return nil
+							for _, config := range nic.Properties.IPConfigurations {
+								if config.Properties == nil || config.Properties.LoadBalancerBackendAddressPools == nil {
+									continue
+								}
+
+								if len(*config.Properties.LoadBalancerBackendAddressPools) > 0 {
+									return nil
+								}
 							}
 						}
 					}

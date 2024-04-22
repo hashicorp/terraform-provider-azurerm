@@ -72,6 +72,22 @@ func resourceStorageContainer() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"default_encryption_scope": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // needed because a dummy value is returned when unspecified
+				ForceNew:     true,
+				ValidateFunc: validate.StorageEncryptionScopeName,
+			},
+
+			"encryption_scope_override_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				Default:      true, // defaulting to false would be preferable here, but the API defaults this to true when unspecified
+				ForceNew:     true,
+				RequiredWith: []string{"default_encryption_scope"},
+			},
+
 			"metadata": MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
@@ -146,6 +162,15 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 	input := containers.CreateInput{
 		AccessLevel: accessLevel,
 		MetaData:    metaData,
+	}
+
+	if encryptionScope := d.Get("default_encryption_scope"); encryptionScope.(string) != "" {
+		input.DefaultEncryptionScope = encryptionScope.(string)
+		input.EncryptionScopeOverrideDisabled = false
+
+		if encryptionScopeOverrideEnabled := d.Get("encryption_scope_override_enabled"); !encryptionScopeOverrideEnabled.(bool) {
+			input.EncryptionScopeOverrideDisabled = true
+		}
 	}
 
 	if err = containersDataPlaneClient.Create(ctx, containerName, input); err != nil {
@@ -256,6 +281,9 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.Set("storage_account_name", id.AccountId.AccountName)
 
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
+
+	d.Set("default_encryption_scope", props.DefaultEncryptionScope)
+	d.Set("encryption_scope_override_enabled", !props.EncryptionScopeOverrideDisabled)
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %v", err)

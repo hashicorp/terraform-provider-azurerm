@@ -229,11 +229,12 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_snapshot" "test" {
-  name                = "acctestss_%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  create_option       = "Copy"
-  source_uri          = azurerm_managed_disk.test.id
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  public_network_access_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -273,13 +274,13 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_snapshot" "test" {
-  name                  = "acctestss_%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  create_option         = "Copy"
-  source_uri            = azurerm_managed_disk.test.id
-  network_access_policy = "AllowAll"
-  public_network_access = "Enabled"
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  network_access_policy         = "AllowAll"
+  public_network_access_enabled = true
 
   tags = {
     Hello = "World"
@@ -500,12 +501,13 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_snapshot" "test" {
-  name                = "acctestss_%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  create_option       = "Copy"
-  source_uri          = azurerm_managed_disk.test.id
-  disk_size_gb        = "20"
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  disk_size_gb                  = "20"
+  public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -777,12 +779,12 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_snapshot" "test" {
-  name                  = "acctestss_%d"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  create_option         = "Copy"
-  source_uri            = azurerm_managed_disk.test.id
-  public_network_access = "Disabled"
+  name                          = "acctestss_%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  create_option                 = "Copy"
+  source_uri                    = azurerm_managed_disk.test.id
+  public_network_access_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -484,8 +484,8 @@ func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 				"ip_address_range": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.IsCIDR,
-					Description:  "CIDR notation to match incoming IP address.",
+					ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPAddress),
+					Description:  "The incoming IP address or range of IP addresses (in CIDR notation).",
 				},
 
 				"name": {

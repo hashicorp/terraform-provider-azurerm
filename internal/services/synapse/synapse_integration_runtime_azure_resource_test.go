@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IntegrationRuntimeAzureResource struct{}
+type SynapseIntegrationRuntimeAzureResource struct{}
 
 func TestAccSynapseIntegrationRuntimeAzure_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := SynapseIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccSynapseIntegrationRuntimeAzure_basic(t *testing.T) {
 
 func TestAccSynapseIntegrationRuntimeAzure_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := SynapseIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccSynapseIntegrationRuntimeAzure_requiresImport(t *testing.T) {
 
 func TestAccSynapseIntegrationRuntimeAzure_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := SynapseIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccSynapseIntegrationRuntimeAzure_complete(t *testing.T) {
 
 func TestAccSynapseIntegrationRuntimeAzure_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := SynapseIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func TestAccSynapseIntegrationRuntimeAzure_update(t *testing.T) {
 
 func TestAccSynapseIntegrationRuntimeAzure_autoResolve(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_integration_runtime_azure", "test")
-	r := IntegrationRuntimeAzureResource{}
+	r := SynapseIntegrationRuntimeAzureResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func TestAccSynapseIntegrationRuntimeAzure_autoResolve(t *testing.T) {
 	})
 }
 
-func (r IntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SynapseIntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.IntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (r IntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func (r IntegrationRuntimeAzureResource) basic(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeAzureResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -130,7 +130,7 @@ resource "azurerm_synapse_integration_runtime_azure" "test" {
 `, r.template(data))
 }
 
-func (r IntegrationRuntimeAzureResource) autoResolve(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeAzureResource) autoResolve(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -142,7 +142,7 @@ resource "azurerm_synapse_integration_runtime_azure" "test" {
 `, r.template(data))
 }
 
-func (r IntegrationRuntimeAzureResource) requiresImport(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeAzureResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -154,7 +154,7 @@ resource "azurerm_synapse_integration_runtime_azure" "import" {
 `, r.basic(data))
 }
 
-func (r IntegrationRuntimeAzureResource) complete(data acceptance.TestData) string {
+func (r SynapseIntegrationRuntimeAzureResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -171,7 +171,7 @@ resource "azurerm_synapse_integration_runtime_azure" "test" {
 `, r.template(data))
 }
 
-func (IntegrationRuntimeAzureResource) template(data acceptance.TestData) string {
+func (SynapseIntegrationRuntimeAzureResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

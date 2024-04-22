@@ -40,6 +40,16 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"default_encryption_scope": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"encryption_scope_override_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"metadata": MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
@@ -110,6 +120,9 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 	d.Set("name", containerName)
 	d.Set("storage_account_name", accountName)
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
+
+	d.Set("default_encryption_scope", props.DefaultEncryptionScope)
+	d.Set("encryption_scope_override_enabled", !props.EncryptionScopeOverrideDisabled)
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %v", err)

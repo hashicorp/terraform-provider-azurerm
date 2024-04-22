@@ -96,8 +96,6 @@ The following arguments are supported:
 
 * `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for this Azure Bot Service. Defaults to `false`.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to this Azure Bot Service.
 
 ## Attributes Reference

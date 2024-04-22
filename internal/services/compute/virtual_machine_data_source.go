@@ -8,14 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVirtualMachine() *pluginsdk.Resource {
@@ -74,7 +75,7 @@ func dataSourceVirtualMachine() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
 	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPsClient
@@ -82,58 +83,58 @@ func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := commonids.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "InstanceView")
+	resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
 
-	if prop := resp.VirtualMachineProperties; prop != nil {
-		if instance := prop.InstanceView; instance != nil {
-			if statues := instance.Statuses; statues != nil {
-				for _, status := range *statues {
-					if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
-						d.Set("power_state", strings.SplitN(*status.Code, "/", 2)[1])
+		identityFlattened, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", identityFlattened); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			if instance := props.InstanceView; instance != nil {
+				if statues := instance.Statuses; statues != nil {
+					for _, status := range *statues {
+						if status.Code != nil && strings.HasPrefix(strings.ToLower(*status.Code), "powerstate/") {
+							d.Set("power_state", strings.SplitN(*status.Code, "/", 2)[1])
+						}
 					}
 				}
 			}
+			connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
+			err = d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
+			if err != nil {
+				return err
+			}
+			err = d.Set("private_ip_addresses", connectionInfo.privateAddresses)
+			if err != nil {
+				return err
+			}
+			err = d.Set("public_ip_address", connectionInfo.primaryPublicAddress)
+			if err != nil {
+				return err
+			}
+			err = d.Set("public_ip_addresses", connectionInfo.publicAddresses)
+			if err != nil {
+				return err
+			}
 		}
 	}
-
-	connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, resp.VirtualMachineProperties)
-	err = d.Set("private_ip_address", connectionInfo.primaryPrivateAddress)
-	if err != nil {
-		return err
-	}
-	err = d.Set("private_ip_addresses", connectionInfo.privateAddresses)
-	if err != nil {
-		return err
-	}
-	err = d.Set("public_ip_address", connectionInfo.primaryPublicAddress)
-	if err != nil {
-		return err
-	}
-	err = d.Set("public_ip_addresses", connectionInfo.publicAddresses)
-	if err != nil {
-		return err
-	}
-
-	identity, err := flattenVirtualMachineIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
 	return nil
 }
