@@ -1,3 +1,9 @@
+## 3.101.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: Updated `golang.org/x/net` to `0.23.0`
+
 ## 3.100.0 (April 18, 2024)
 
 ENHANCEMENTS:
