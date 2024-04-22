@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceSharedImage() *pluginsdk.Resource {
@@ -92,8 +92,8 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.DiskStorageAccountTypesStandardLRS),
-						string(compute.DiskStorageAccountTypesPremiumLRS),
+						string(galleryimageversions.StorageAccountTypeStandardLRS),
+						string(galleryimageversions.StorageAccountTypePremiumLRS),
 					}, false),
 				},
 			},

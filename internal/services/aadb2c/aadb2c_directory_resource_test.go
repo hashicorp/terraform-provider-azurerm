@@ -144,6 +144,7 @@ resource "azurerm_aadb2c_directory" "test" {
   domain_name             = "acctest%[2]d.onmicrosoft.com"
   resource_group_name     = azurerm_resource_group.test.name
   sku_name                = "PremiumP1"
+  test                    = "test"
 }
 `, r.template(data), data.RandomInteger)
 }

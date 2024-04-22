@@ -699,7 +699,7 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// however it existed in the legacy migration so even though this is
 		//  essentially a noop there's no reason this shouldn't be the same I guess
 
-		client := meta.(*clients.Client).Compute.VMScaleSetClient
+		client := meta.(*clients.Client).Legacy.VMScaleSetClient
 
 		resGroup := rawState["resource_group_name"].(string)
 		name := rawState["name"].(string)
