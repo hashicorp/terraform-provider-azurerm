@@ -304,7 +304,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 							AtLeastOneOf: []string{
 								"azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed",
 								"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
 							},
 						},
@@ -323,7 +322,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							},
 							AtLeastOneOf: []string{
 								"azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed",
 								"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
 							},
 						},
