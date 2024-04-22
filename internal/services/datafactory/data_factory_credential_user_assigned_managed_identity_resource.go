@@ -162,7 +162,7 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.R
 			}
 
 			props := credentials.ManagedIdentityCredential{
-				TypeProperties: credentials.ManagedIdentityTypeProperties{
+				TypeProperties: &credentials.ManagedIdentityTypeProperties{
 					ResourceId: &data.IdentityId,
 				},
 			}
