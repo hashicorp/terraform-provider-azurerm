@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ManagerDataSource struct{}
+type CustomLocationDataSource struct{}
 
 const (
 	customLocationName              = "ARM_TEST_CUSTOM_LOCATION_NAME"
@@ -18,7 +18,7 @@ const (
 
 func TestAccCustomLocationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_custom_location", "test")
-	d := ManagerDataSource{}
+	d := CustomLocationDataSource{}
 
 	if os.Getenv(customLocationName) == "" || os.Getenv(customLocationResourceGroupName) == "" {
 		t.Skipf("Skipping test due to missing environment variables: %s, %s", customLocationName, customLocationResourceGroupName)
@@ -38,7 +38,7 @@ func TestAccCustomLocationDataSource_basic(t *testing.T) {
 	})
 }
 
-func (d ManagerDataSource) basic() string {
+func (d CustomLocationDataSource) basic() string {
 	return fmt.Sprintf(`
 provider azurerm {
   features {}
