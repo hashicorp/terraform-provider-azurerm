@@ -46,7 +46,8 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"legacyWithUpdate": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacyWithUpdate,
 		},
 		"roleDefinitionDataSource": {
-			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
+			"basic":  testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
+			"legacy": testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacy,
 		},
 	})
 }

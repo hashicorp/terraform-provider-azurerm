@@ -42,7 +42,7 @@ func testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacy
 
 	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.legacy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("managed_hsm_id").Exists(),
