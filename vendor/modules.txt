@@ -1306,7 +1306,6 @@ github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform
 github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation
 github.com/tombuildsstuff/kermit/sdk/batch/2022-01.15.0/batch
 github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice
-github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute
 github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory
 github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
 github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub
