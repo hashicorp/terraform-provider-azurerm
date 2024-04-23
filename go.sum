@@ -97,8 +97,8 @@ github.com/hashicorp/go-azure-helpers v0.67.0 h1:0RY6mY3W3Ym2I+jExLtyLx96fh6p5n9
 github.com/hashicorp/go-azure-helpers v0.67.0/go.mod h1:S4Bu66vyJvHA0trqHQB0YVGsISuF7HMH9tyEsMVlx8A=
 github.com/hashicorp/go-azure-sdk/resource-manager v0.20240417.1084633 h1:gnSitHO7XjVdqOCLeifIwx4m6oRj/hbl4BKdCcvRHSk=
 github.com/hashicorp/go-azure-sdk/resource-manager v0.20240417.1084633/go.mod h1:ddn6gE/zxtwsQK6b/40FF3zRpC8QbM/rbufJc36U01k=
-github.com/hashicorp/go-azure-sdk/sdk v0.20240417.1084633 h1:PP+147mt/G4sizC3hQPqeTWF2nIOm9Qi2JDkWYR8uNs=
-github.com/hashicorp/go-azure-sdk/sdk v0.20240417.1084633/go.mod h1:POOjeoqNp+mvlLBuibJTziUAkBZ7FxXGeGestwemL/w=
+github.com/hashicorp/go-azure-sdk/sdk v0.20240422.1112441 h1:BGDyjzyjD+NhcL9cd+WhMIgAzY+/wKB30nD4h34sEPg=
+github.com/hashicorp/go-azure-sdk/sdk v0.20240422.1112441/go.mod h1:Ts5vRL3KPw8iLit+4WSi1hOWlRCx++wJrCkMGj69xBY=
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
@@ -225,8 +225,8 @@ github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/tombuildsstuff/giovanni v0.26.1 h1:RZgnpyIHtgw0GXYpw3xttNk35obJNoI1hztCZsh/Djo=
-github.com/tombuildsstuff/giovanni v0.26.1/go.mod h1:s7xbU2lN5Iz9MBglmDDv9p2QPbn6x3UkJBtpCfUerLs=
+github.com/tombuildsstuff/giovanni v0.27.0 h1:3CDNjauK78FIhvvCp0SAHlvNcPTcofR6zQXvxwhk4zY=
+github.com/tombuildsstuff/giovanni v0.27.0/go.mod h1:SviBdlwdVn2HyArdRABBqMUODBJ2adQHi+RFEVaO05I=
 github.com/tombuildsstuff/kermit v0.20240122.1123108 h1:icQaxsv/ANv/KC4Sr0V1trrWA/XIL+3QAVBDpiSTgj8=
 github.com/tombuildsstuff/kermit v0.20240122.1123108/go.mod h1:T3YBVFhRV4qA7SbnRaNE6eapIMpKDA9rG/V7Ocsjlno=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
