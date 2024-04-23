@@ -20,7 +20,7 @@ type KeyVaultManagedHardwareSecurityModuleResource struct{}
 
 func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being able provision against one instance at a time
+	// Azure only being able to provision against one instance at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"dataSource": {
 			"data_source": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
@@ -35,14 +35,14 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"builtInRole": testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_builtInRole,
 			"customRole":  testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_customRole,
 
-			// TODO: these 2 can be removed in 4.0
+			// TODO: uses `vault_base_url`, these 2 can be removed in 4.0
 			"legacyBuiltInRole": testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyBuiltInRole,
 			"legacyCustomRole":  testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyCustomRole,
 		},
 		"roleDefinitions": {
 			"basic": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
 
-			// TODO: this can be removed in 4.0
+			// TODO: uses `vault_base_url`, this can be removed in 4.0
 			"legacyWithUpdate": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacyWithUpdate,
 		},
 		"roleDefinitionDataSource": {

@@ -95,21 +95,12 @@ func TestManagedHSMDataPlaneRoleAssignmentID(t *testing.T) {
 		t.Logf("Testing %q..", test.input)
 		actual, err := ManagedHSMDataPlaneRoleAssignmentID(test.input, nil)
 		if err != nil {
-			if test.expected != nil {
-				t.Fatalf("expected %+v but got nil", err)
-			}
-
-			continue
-		}
-
-		if err != nil {
 			if test.expected == nil {
 				continue
 			}
 
 			t.Fatalf("unexpected error: %+v", err)
 		}
-
 		if test.expected == nil {
 			if actual == nil {
 				continue
@@ -120,7 +111,6 @@ func TestManagedHSMDataPlaneRoleAssignmentID(t *testing.T) {
 		if actual == nil {
 			t.Fatalf("expected %+v but got nil", test.expected)
 		}
-
 		if test.expected.ManagedHSMName != actual.ManagedHSMName {
 			t.Fatalf("expected ManagedHSMName to be %q but got %q", test.expected.ManagedHSMName, actual.ManagedHSMName)
 		}

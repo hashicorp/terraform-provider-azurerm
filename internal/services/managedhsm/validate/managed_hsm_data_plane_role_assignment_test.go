@@ -48,19 +48,15 @@ func TestManagedHSMDataPlaneRoleAssignmentID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("Testing %q..", tc.Input)
-		warnings, err := ManagedHSMDataPlaneRoleAssignmentID(tc.Input, "example")
-		if err != nil {
-			if !tc.ExpectError {
-				t.Fatalf("Got error for input %q: %+v", tc.Input, err)
-			}
+		warnings, errors := ManagedHSMDataPlaneRoleAssignmentID(tc.Input, "example")
 
-			continue
-		}
-
-		if tc.ExpectError && len(warnings) == 0 {
+		if tc.ExpectError && len(errors) == 0 {
 			t.Fatalf("Got no errors for input %q but expected some", tc.Input)
-		} else if !tc.ExpectError && len(warnings) > 0 {
-			t.Fatalf("Got %d errors for input %q when didn't expect any", len(warnings), tc.Input)
+		} else if !tc.ExpectError && len(errors) > 0 {
+			t.Fatalf("Got %d errors for input %q when didn't expect any", len(errors), tc.Input)
+		}
+		if len(warnings) > 0 {
+			t.Fatalf("Got %d warnings for input %q when didn't expect any", len(warnings), tc.Input)
 		}
 	}
 }
