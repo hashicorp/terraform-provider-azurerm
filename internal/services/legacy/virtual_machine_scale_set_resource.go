@@ -1490,7 +1490,7 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *virtualmachin
 				if err != nil {
 					return nil, fmt.Errorf("unmarshaling `settings`: %+v", err)
 				}
-				e["settings"] = result
+				e["settings"] = string(result)
 			}
 		}
 

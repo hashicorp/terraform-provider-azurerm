@@ -146,7 +146,9 @@ func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool
 			return err
 		}
 
-		disk, err := clients.Compute.DisksClient.Get(ctx, *id)
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		disk, err := clients.Compute.DisksClient.Get(ctx2, *id)
 		if err != nil {
 			if response.WasNotFound(disk.HttpResponse) {
 				if !shouldExist {
@@ -173,7 +175,9 @@ func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *str
 			return err
 		}
 
-		virtualMachine, err := clients.Compute.VirtualMachinesClient.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		virtualMachine, err := clients.Compute.VirtualMachinesClient.Get(ctx2, *id, virtualmachines.DefaultGetOperationOptions())
 		if err != nil {
 			return err
 		}
@@ -221,7 +225,9 @@ func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Cl
 		return err
 	}
 
-	if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
+	ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
+	if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx2, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
 		return fmt.Errorf("failed stopping %s: %+v", id, err)
 	}
 

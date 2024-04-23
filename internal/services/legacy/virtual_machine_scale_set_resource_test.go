@@ -818,9 +818,12 @@ func (VirtualMachineScaleSetResource) hasLoadBalancer(ctx context.Context, clien
 		return err
 	}
 
+	ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
 	opts := virtualmachinescalesets.DefaultGetOperationOptions()
 	opts.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
-	read, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx, *id, opts)
+	read, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx2, *id, opts)
 	if err != nil {
 		return err
 	}
