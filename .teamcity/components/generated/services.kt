@@ -69,7 +69,6 @@ var services = mapOf(
         "legacy" to "Legacy",
         "lighthouse" to "Lighthouse",
         "loadbalancer" to "Load Balancer",
-        "loadtestservice" to "LoadTestService",
         "loganalytics" to "Log Analytics",
         "logic" to "Logic",
         "logz" to "Logz",
