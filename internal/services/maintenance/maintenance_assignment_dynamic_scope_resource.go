@@ -60,9 +60,9 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"filter": {
-			Type:         pluginsdk.TypeList,
-			Required:     true,
-			MaxItems:     1,
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"locations": {
