@@ -2,7 +2,8 @@
 
 ENHANCEMENTS:
 
-* dependencies: Updated `golang.org/x/net` to `0.23.0`
+* dependencies: updating to `v0.27.0` of `github.com/tombuildsstuff/giovanni` [GH-25702]
+* dependencies: updating `golang.org/x/net` to `0.23.0`
 
 BUG FIXES:
 
