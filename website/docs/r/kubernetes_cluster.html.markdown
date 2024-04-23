@@ -338,7 +338,9 @@ An `auto_scaler_profile` block supports the following:
 
 An `azure_active_directory_role_based_access_control` block supports the following:
 
-* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
+* `managed` - (Optional) Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration. Defaults to `false`.
+
+-> **Note:** The property `managed` is deprecated and will be defaulted to `true` in v4.0 of the AzureRM provider. Until the property is removed it must be specified with `true` for AKS-managed Entra Integration.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
@@ -347,14 +349,6 @@ When `managed` is set to `true` the following properties can be specified:
 * `admin_group_object_ids` - (Optional) A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
 * `azure_rbac_enabled` - (Optional) Is Role Based Access Control based on Azure AD enabled?
-
-When `managed` is set to `false` the following properties can be specified:
-
-* `client_app_id` - (Optional) The Client ID of an Azure Active Directory Application.
-
-* `server_app_id` - (Optional) The Server ID of an Azure Active Directory Application.
-
-* `server_app_secret` - (Optional) The Server Secret of an Azure Active Directory Application.
 
 ---
 
