@@ -9,7 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
@@ -98,14 +97,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return authorizer, nil
 	})
 
-	// TODO: remove these when autorest clients are no longer used
-	azureEnvironment, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.MetadataHost, builder.AuthConfig.Environment.Name)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find environment %q from endpoint %q: %+v", builder.AuthConfig.Environment.Name, builder.MetadataHost, err)
-	}
-	resourceManagerEndpoint, _ := builder.AuthConfig.Environment.ResourceManager.Endpoint()
-
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration, *azureEnvironment)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration)
 	if err != nil {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
@@ -118,6 +110,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		}
 	} else {
 		log.Printf("[DEBUG] Skipping building the Managed HSM Authorizer since this is not supported in the current Azure Environment")
+	}
+
+	resourceManagerEndpoint, ok := builder.AuthConfig.Environment.ResourceManager.Endpoint()
+	if !ok {
+		return nil, fmt.Errorf("unable to determine resource manager endpoint for the current environment")
 	}
 
 	client := Client{
@@ -156,8 +153,6 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
-		// TODO: remove when `Azure/go-autorest` is no longer used
-		AzureEnvironment:        *azureEnvironment,
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
 	}
 
