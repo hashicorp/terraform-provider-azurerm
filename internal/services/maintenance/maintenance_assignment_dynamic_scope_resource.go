@@ -81,7 +81,7 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 							ValidateFunc: validation.StringInSlice([]string{
 								"Linux",
 								"Windows",
-							}, false),
+							}, true),
 						},
 						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
@@ -101,7 +101,7 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 							ValidateFunc: validation.StringInSlice([]string{
 								"Microsoft.Compute/virtualMachines",
 								"Microsoft.HybridCompute/machines",
-							}, false),
+							}, true),
 						},
 						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
@@ -134,7 +134,7 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 						ValidateFunc: validation.StringInSlice([]string{
 							string(configurationassignments.TagOperatorsAny),
 							string(configurationassignments.TagOperatorsAll),
-						}, false),
+						}, true),
 						RequiredWith: []string{
 							"filter.0.tags",
 						},

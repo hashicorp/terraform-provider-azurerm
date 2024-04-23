@@ -108,11 +108,10 @@ func (MaintenanceDynamicScopeResource) Exists(ctx context.Context, clients *clie
 
 func (r MaintenanceDynamicScopeResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	}
-
-	%[1]s
+provider "azurerm" {
+  features {}
+}
+%[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
   name                         = "acctest-ca%[2]d"
@@ -128,11 +127,11 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
 
 func (r MaintenanceDynamicScopeResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	}
+provider "azurerm" {
+  features {}
+}
 
-	%[1]s
+%[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
   name                         = "acctest-complete-%[2]d"
@@ -140,7 +139,7 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
 
   filter {
     locations       = ["%[3]s"]
-    os_types        = ["windows"]
+    os_types        = ["Windows"]
     resource_groups = [azurerm_resource_group.test.name]
     resource_types  = ["Microsoft.Compute/virtualMachines"]
     tag_filter      = "Any"
@@ -155,18 +154,14 @@ resource "azurerm_maintenance_assignment_dynamic_scope" "test" {
 
 func (r MaintenanceDynamicScopeResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	}
-
-	%[1]s
+%[1]s
 
 resource "azurerm_maintenance_assignment_dynamic_scope" "import" {
-	name                         = azurerm_maintenance_assignment_dynamic_scope.test.name
-	maintenance_configuration_id = azurerm_maintenance_assignment_dynamic_scope.test.maintenance_configuration_id
-	filter {
-	  locations = azurerm_maintenance_assignment_dynamic_scope.test.filter.0.locations
-	}
+  name                         = azurerm_maintenance_assignment_dynamic_scope.test.name
+  maintenance_configuration_id = azurerm_maintenance_assignment_dynamic_scope.test.maintenance_configuration_id
+  filter {
+    locations = azurerm_maintenance_assignment_dynamic_scope.test.filter.0.locations
+  }
 }
 `, r.basic(data))
 }
