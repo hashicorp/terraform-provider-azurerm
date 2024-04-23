@@ -2141,7 +2141,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			extensionProps.Settings = pointer.To(result)
 		}
 
-		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVault(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
 		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
@@ -2257,7 +2257,7 @@ func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.Virt
 			"force_update_tag":                  forceUpdateTag,
 			"provision_after_extensions":        provisionAfterExtension,
 			"protected_settings":                protectedSettings,
-			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVault(protectedSettingsFromKeyVault),
+			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVaultVMSS(protectedSettingsFromKeyVault),
 			"publisher":                         extPublisher,
 			"settings":                          extSettings,
 			"type":                              extType,

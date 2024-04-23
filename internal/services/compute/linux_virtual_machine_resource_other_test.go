@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.T) {
@@ -824,7 +824,7 @@ func TestAccLinuxVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -839,21 +839,21 @@ func TestAccLinuxVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeImageDefault)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeImageDefault)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
