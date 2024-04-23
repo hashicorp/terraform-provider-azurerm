@@ -152,25 +152,25 @@ func resourceNotificationHub() *pluginsdk.Resource {
 				},
 			},
 
-			"default_primary_connection_string": {
+			"primary_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"default_primary_key": {
+			"primary_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"default_secondary_connection_string": {
+			"secondary_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"default_secondary_key": {
+			"secondary_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -313,10 +313,10 @@ func resourceNotificationHubRead(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if model := keys.Model; model != nil {
-		d.Set("default_primary_connection_string", model.PrimaryConnectionString)
-		d.Set("default_secondary_connection_string", model.SecondaryConnectionString)
-		d.Set("default_primary_key", model.PrimaryKey)
-		d.Set("default_secondary_key", model.SecondaryKey)
+		d.Set("primary_connection_string", model.PrimaryConnectionString)
+		d.Set("secondary_connection_string", model.SecondaryConnectionString)
+		d.Set("primary_key", model.PrimaryKey)
+		d.Set("secondary_key", model.SecondaryKey)
 	}
 
 	return nil

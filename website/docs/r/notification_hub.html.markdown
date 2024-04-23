@@ -87,13 +87,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The following attributes are exported only if there is an authorization rule named
 `DefaultFullSharedAccessSignature` which is created automatically by Azure.
 
-* `default_primary_connection_string` - The primary connection string for the authorization rule `DefaultFullSharedAccessSignature`.
+* `primary_connection_string` - The primary connection string for the authorization rule `DefaultFullSharedAccessSignature`.
 
-* `default_primary_key` - The primary access key for the authorization rule `DefaultFullSharedAccessSignature`.
+* `primary_key` - The primary access key for the authorization rule `DefaultFullSharedAccessSignature`.
 
-* `default_secondary_connection_string` - The secondary connection string for the authorization rule `DefaultFullSharedAccessSignature`.
+* `secondary_connection_string` - The secondary connection string for the authorization rule `DefaultFullSharedAccessSignature`.
 
-* `default_secondary_key` - The secondary access key for the authorization rule `DefaultFullSharedAccessSignature`.
+* `secondary_key` - The secondary access key for the authorization rule `DefaultFullSharedAccessSignature`.
 
 ## Timeouts
 

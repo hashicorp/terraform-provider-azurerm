@@ -1741,20 +1741,10 @@ resource "azurerm_windows_web_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  push_settings {
-    is_push_enabled           = true
+  push_setting {
     tags_to_whitelist         = ["tftest1", "tftest2"]
     dynamic_tags_to_whitelist = ["dtags1", "dtags2"]
     tags_requiring_auth       = ["dtags1"]
-  }
-  app_settings = {
-    "MS_NotificationHubName" = "${azurerm_notification_hub.test.name}"
-  }
-
-  connection_string {
-    name  = "MS_NotificationHubConnectionString"
-    value = azurerm_notification_hub.test.default_primary_connection_string
-    type  = "NotificationHub"
   }
 
   site_config {}

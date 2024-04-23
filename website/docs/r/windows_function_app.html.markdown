@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `backup` - (Optional) A `backup` block as defined below.
 
-* `push` - (Optional) A `push` block as defined below.
+* `push_setting` - (Optional) A `push_setting` block as defined below.
 
 * `builtin_logging_enabled` - (Optional) Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting. Defaults to `true`.
 
@@ -471,11 +471,9 @@ A `backup` block supports the following:
 
 ---
 
-A `push` block supports the following:
+A `push_setting` block supports the following:
 
-~> **NOTE:** Please ensure notification hub is connected by setting both the connection string key `MS_NotificationHubConnectionString` and app setting key `MS_NotificationHubId` or `MS_NotificationHubName` before enable push.
-
-* `is_push_enabled` - (Optional) Whether to enable push endpoint for the Function App.
+~> **NOTE:** Please refer to https://github.com/MicrosoftDocs/azure-docs/blob/main/articles/azure-functions/functions-bindings-notification-hubs.md#configurationto to configure the required environment variables, such as `hubName`.
 
 * `tags_to_whitelist` - (Optional) A list of tags that are in the allowed list for use by the push registration endpoint.
 
