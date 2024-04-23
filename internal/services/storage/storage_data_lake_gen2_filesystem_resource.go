@@ -39,6 +39,8 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			storageClient := meta.(*clients.Client).Storage
 			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			ctx, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
+			defer cancel()
 
 			id, err := filesystems.ParseFileSystemID(d.Id(), storageClient.StorageDomainSuffix)
 			if err != nil {

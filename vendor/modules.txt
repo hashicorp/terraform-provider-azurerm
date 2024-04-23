@@ -340,8 +340,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabili
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines
+github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms
@@ -1282,7 +1284,7 @@ github.com/rickb777/plural
 # github.com/sergi/go-diff v1.2.0
 ## explicit; go 1.12
 github.com/sergi/go-diff/diffmatchpatch
-# github.com/tombuildsstuff/giovanni v0.26.1
+# github.com/tombuildsstuff/giovanni v0.27.0
 ## explicit; go 1.21
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs

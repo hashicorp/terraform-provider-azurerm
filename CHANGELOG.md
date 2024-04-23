@@ -2,11 +2,14 @@
 
 ENHANCEMENTS:
 
-* dependencies: Updated `golang.org/x/net` to `0.23.0`
+* dependencies: updating to `v0.27.0` of `github.com/tombuildsstuff/giovanni` [GH-25702]
+* dependencies: updating `golang.org/x/net` to `0.23.0`
 
 BUG FIXES:
 
 * Data Source: `azurerm_application_insights` - set correct AppID in data source [GH-25687]
+* `azurerm_virtual_network` - suppress diff in ordering for `address_space` due to inconsistent API response [GH-23793]
+* `azurerm_storage_data_lake_gen2_filesystem` - add context deadline for import [GH-25712]
 
 ## 3.100.0 (April 18, 2024)
 

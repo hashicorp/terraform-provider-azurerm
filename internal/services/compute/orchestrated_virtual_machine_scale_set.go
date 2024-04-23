@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func OrchestratedVirtualMachineScaleSetOSProfileSchema() *pluginsdk.Schema {
@@ -93,21 +92,21 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 				"patch_assessment_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.WindowsPatchAssessmentModeImageDefault),
+					Default:  string(virtualmachinescalesets.WindowsPatchAssessmentModeImageDefault),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.WindowsPatchAssessmentModeAutomaticByPlatform),
-						string(compute.WindowsPatchAssessmentModeImageDefault),
+						string(virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform),
+						string(virtualmachinescalesets.WindowsPatchAssessmentModeImageDefault),
 					}, false),
 				},
 
 				"patch_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.WindowsVMGuestPatchModeAutomaticByOS),
+					Default:  string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByOS),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.WindowsVMGuestPatchModeAutomaticByOS),
-						string(compute.WindowsVMGuestPatchModeAutomaticByPlatform),
-						string(compute.WindowsVMGuestPatchModeManual),
+						string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByOS),
+						string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform),
+						string(virtualmachinescalesets.WindowsVMGuestPatchModeManual),
 					}, false),
 				},
 
@@ -167,20 +166,20 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 				"patch_assessment_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.LinuxPatchAssessmentModeImageDefault),
+					Default:  string(virtualmachinescalesets.LinuxPatchAssessmentModeImageDefault),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.LinuxPatchAssessmentModeAutomaticByPlatform),
-						string(compute.LinuxPatchAssessmentModeImageDefault),
+						string(virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform),
+						string(virtualmachinescalesets.LinuxPatchAssessmentModeImageDefault),
 					}, false),
 				},
 
 				"patch_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.LinuxVMGuestPatchModeImageDefault),
+					Default:  string(virtualmachinescalesets.LinuxVMGuestPatchModeImageDefault),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.LinuxVMGuestPatchModeImageDefault),
-						string(compute.LinuxVMGuestPatchModeAutomaticByPlatform),
+						string(virtualmachinescalesets.LinuxVMGuestPatchModeImageDefault),
+						string(virtualmachinescalesets.LinuxVMGuestPatchModeAutomaticByPlatform),
 					}, false),
 				},
 
@@ -377,10 +376,10 @@ func orchestratedVirtualMachineScaleSetIPConfigurationSchema() *pluginsdk.Schema
 				"version": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Default:  string(compute.IPVersionIPv4),
+					Default:  string(virtualmachinescalesets.IPVersionIPvFour),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.IPVersionIPv4),
-						string(compute.IPVersionIPv6),
+						string(virtualmachinescalesets.IPVersionIPvFour),
+						string(virtualmachinescalesets.IPVersionIPvSix),
 					}, false),
 				},
 			},
@@ -454,10 +453,10 @@ func orchestratedVirtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
-					Default:  string(compute.IPVersionIPv4),
+					Default:  string(virtualmachinescalesets.IPVersionIPvFour),
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.IPVersionIPv4),
-						string(compute.IPVersionIPv6),
+						string(virtualmachinescalesets.IPVersionIPvFour),
+						string(virtualmachinescalesets.IPVersionIPvSix),
 					}, false),
 				},
 			},
@@ -499,9 +498,9 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.CachingTypesNone),
-						string(compute.CachingTypesReadOnly),
-						string(compute.CachingTypesReadWrite),
+						string(virtualmachinescalesets.CachingTypesNone),
+						string(virtualmachinescalesets.CachingTypesReadOnly),
+						string(virtualmachinescalesets.CachingTypesReadWrite),
 					}, false),
 				},
 
@@ -509,10 +508,10 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.DiskCreateOptionTypesEmpty),
-						string(compute.DiskCreateOptionTypesFromImage),
+						string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
+						string(virtualmachinescalesets.DiskCreateOptionTypesFromImage),
 					}, false),
-					Default: string(compute.DiskCreateOptionTypesEmpty),
+					Default: string(virtualmachinescalesets.DiskCreateOptionTypesEmpty),
 				},
 
 				"disk_encryption_set_id": {
@@ -543,13 +542,13 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.StorageAccountTypesPremiumLRS),
-						string(compute.StorageAccountTypesPremiumV2LRS),
-						string(compute.StorageAccountTypesPremiumZRS),
-						string(compute.StorageAccountTypesStandardLRS),
-						string(compute.StorageAccountTypesStandardSSDLRS),
-						string(compute.StorageAccountTypesStandardSSDZRS),
-						string(compute.StorageAccountTypesUltraSSDLRS),
+						string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
+						string(virtualmachinescalesets.StorageAccountTypesPremiumVTwoLRS),
+						string(virtualmachinescalesets.StorageAccountTypesPremiumZRS),
+						string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
+						string(virtualmachinescalesets.StorageAccountTypesStandardSSDLRS),
+						string(virtualmachinescalesets.StorageAccountTypesStandardSSDZRS),
+						string(virtualmachinescalesets.StorageAccountTypesUltraSSDLRS),
 					}, false),
 				},
 
@@ -608,9 +607,9 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.CachingTypesNone),
-						string(compute.CachingTypesReadOnly),
-						string(compute.CachingTypesReadWrite),
+						string(virtualmachinescalesets.CachingTypesNone),
+						string(virtualmachinescalesets.CachingTypesReadOnly),
+						string(virtualmachinescalesets.CachingTypesReadWrite),
 					}, false),
 				},
 				"storage_account_type": {
@@ -621,11 +620,11 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// NOTE: OS Disks don't support Ultra SSDs or PremiumV2_LRS
-						string(compute.StorageAccountTypesPremiumLRS),
-						string(compute.StorageAccountTypesPremiumZRS),
-						string(compute.StorageAccountTypesStandardLRS),
-						string(compute.StorageAccountTypesStandardSSDLRS),
-						string(compute.StorageAccountTypesStandardSSDZRS),
+						string(virtualmachinescalesets.StorageAccountTypesPremiumLRS),
+						string(virtualmachinescalesets.StorageAccountTypesPremiumZRS),
+						string(virtualmachinescalesets.StorageAccountTypesStandardLRS),
+						string(virtualmachinescalesets.StorageAccountTypesStandardSSDLRS),
+						string(virtualmachinescalesets.StorageAccountTypesStandardSSDZRS),
 					}, false),
 				},
 
@@ -641,17 +640,17 @@ func OrchestratedVirtualMachineScaleSetOSDiskSchema() *pluginsdk.Schema {
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.DiffDiskOptionsLocal),
+									string(virtualmachinescalesets.DiffDiskOptionsLocal),
 								}, false),
 							},
 							"placement": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
 								ForceNew: true,
-								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								Default:  string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.DiffDiskPlacementCacheDisk),
-									string(compute.DiffDiskPlacementResourceDisk),
+									string(virtualmachinescalesets.DiffDiskPlacementCacheDisk),
+									string(virtualmachinescalesets.DiffDiskPlacementResourceDisk),
 								}, false),
 							}},
 					},
@@ -1450,7 +1449,7 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 			extensionProps.Settings = pointer.To(result)
 		}
 
-		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVault(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
 		extensionProps.ProtectedSettingsFromKeyVault = (protectedSettingsFromKeyVault)
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
@@ -1580,7 +1579,7 @@ func flattenOrchestratedVirtualMachineScaleSetExtensions(input *virtualmachinesc
 			"failure_suppression_enabled":               suppressFailures,
 			"extensions_to_provision_after_vm_creation": provisionAfterExtension,
 			"protected_settings":                        protectedSettings,
-			"protected_settings_from_key_vault":         flattenProtectedSettingsFromKeyVault(protectedSettingsFromKeyVault),
+			"protected_settings_from_key_vault":         flattenProtectedSettingsFromKeyVaultVMSS(protectedSettingsFromKeyVault),
 			"publisher":                                 extPublisher,
 			"settings":                                  extSettings,
 			"type":                                      extType,
@@ -1736,8 +1735,8 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *virtua
 		output["timezone"] = v
 	}
 
-	output["patch_mode"] = string(compute.WindowsVMGuestPatchModeAutomaticByOS)
-	output["patch_assessment_mode"] = string(compute.WindowsPatchAssessmentModeAutomaticByPlatform)
+	output["patch_mode"] = string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByOS)
+	output["patch_assessment_mode"] = string(virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform)
 	output["hotpatching_enabled"] = false
 
 	if patchSettings != nil {

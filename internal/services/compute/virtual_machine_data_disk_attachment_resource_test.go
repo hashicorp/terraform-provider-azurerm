@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -239,7 +240,7 @@ func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, cl
 		}
 	}
 
-	return utils.Bool(disk != nil), nil
+	return pointer.To(disk != nil), nil
 }
 
 func (VirtualMachineDataDiskAttachmentResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
