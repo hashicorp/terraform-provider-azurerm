@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -33,7 +34,7 @@ import (
 )
 
 func resourceContainerGroup() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceContainerGroupCreate,
 		Read:   resourceContainerGroupRead,
 		Delete: resourceContainerGroupDelete,
@@ -190,12 +191,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"exposed_port": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true, // change to 'Required' in 3.0 of the provider
-				ForceNew:   true,
-				Computed:   true,                           // remove in 3.0 of the provider
-				ConfigMode: pluginsdk.SchemaConfigModeAttr, // remove in 3.0 of the provider
-				Set:        resourceContainerGroupPortsHash,
+				Type:     pluginsdk.TypeSet,
+				Required: true,
+				ForceNew: true,
+				Set:      resourceContainerGroupPortsHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"port": {
@@ -577,6 +576,40 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			return nil
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["exposed_port"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			ForceNew:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Set:        resourceContainerGroupPortsHash,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.PortNumber,
+					},
+
+					"protocol": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(containerinstance.ContainerGroupNetworkProtocolTCP),
+							string(containerinstance.ContainerGroupNetworkProtocolUDP),
+						}, false),
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func containerVolumeSchema() *pluginsdk.Schema {

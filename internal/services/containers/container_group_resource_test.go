@@ -6,6 +6,7 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
@@ -349,6 +350,10 @@ func TestAccContainerGroup_linuxBasicUpdate(t *testing.T) {
 }
 
 func TestAccContainerGroup_exposedPortUpdate(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		t.Skipf("Skipping in 4.0 since `exposed_port` is `ForceNew` and has had `Computed` removed, Terraform should sucessfully be recreating the resource")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
 
@@ -751,14 +756,14 @@ func TestAccContainerGroup_securityContext(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.securityContextPriviledged(data, false),
+			Config: r.securityContextPrivileged(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.securityContextPriviledged(data, true),
+			Config: r.securityContextPrivileged(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -806,6 +811,11 @@ resource "azurerm_container_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Public"
   os_type             = "Linux"
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
 
   container {
     name   = "hw"
@@ -869,6 +879,11 @@ resource "azurerm_container_group" "test" {
     }
   }
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -912,6 +927,11 @@ resource "azurerm_container_group" "test" {
     }
   }
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -948,6 +968,11 @@ resource "azurerm_container_group" "test" {
     memory = "0.5"
   }
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -982,6 +1007,11 @@ resource "azurerm_container_group" "test" {
     image  = "ubuntu:20.04"
     cpu    = "0.5"
     memory = "0.5"
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   identity {
@@ -1031,6 +1061,11 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "TCP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   identity {
@@ -1091,6 +1126,7 @@ resource "azurerm_container_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
   ip_address_type     = "Private"
   os_type             = "Linux"
+
   container {
     name   = "hw"
     image  = "ubuntu:20.04"
@@ -1100,6 +1136,11 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "TCP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   subnet_ids = [azurerm_subnet.test.id]
@@ -1152,6 +1193,11 @@ resource "azurerm_container_group" "test" {
     }
   }
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   identity {
     type = "SystemAssigned, UserAssigned"
     identity_ids = [
@@ -1193,6 +1239,11 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "TCP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   tags = {
@@ -1276,6 +1327,11 @@ resource "azurerm_container_group" "test" {
     }
   }
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   tags = {
     environment = "Testing"
     OS          = "Linux"
@@ -1304,6 +1360,11 @@ resource "azurerm_container_group" "import" {
       port     = 80
       protocol = "TCP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   tags = {
@@ -1340,6 +1401,11 @@ resource "azurerm_container_group" "test" {
       port     = 5443
       protocol = "UDP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   image_registry_credential {
@@ -1397,6 +1463,11 @@ resource "azurerm_container_group" "test" {
     }
   }
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   image_registry_credential {
     server   = "hub.docker.com"
     username = "updatedusername"
@@ -1452,6 +1523,11 @@ resource "azurerm_container_group" "test" {
     }
   }
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   diagnostics {
     log_analytics {
       workspace_id  = azurerm_log_analytics_workspace.test.workspace_id
@@ -1498,6 +1574,11 @@ resource "azurerm_container_group" "test" {
       port     = 5443
       protocol = "UDP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   container {
@@ -1614,6 +1695,12 @@ resource "azurerm_container_group" "test" {
       port = 80
     }
   }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   dns_config {
     nameservers    = ["reddog.microsoft.com", "somecompany.somedomain"]
     options        = ["one:option", "two:option", "red:option", "blue:option"]
@@ -1682,6 +1769,11 @@ resource "azurerm_container_group" "test" {
       port = 80
     }
   }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, count, data.RandomInteger)
 }
@@ -1737,6 +1829,11 @@ resource "azurerm_container_group" "test" {
     }
   }
 
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   subnet_ids = [azurerm_subnet.test.id]
 
   dns_config {
@@ -1787,6 +1884,11 @@ resource "azurerm_container_group" "test" {
       port     = 443
       protocol = "TCP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   tags = {
@@ -1864,6 +1966,11 @@ resource "azurerm_container_group" "test" {
       failure_threshold     = 1
       success_threshold     = 1
       timeout_seconds       = 1
+    }
+
+    exposed_port {
+      port     = 80
+      protocol = "TCP"
     }
 
     liveness_probe {
@@ -1987,7 +2094,6 @@ resource "azurerm_container_group" "test" {
       sku   = "K80"
     }
 
-
     volume {
       name       = "logs"
       mount_path = "/aci/logs"
@@ -2036,6 +2142,11 @@ resource "azurerm_container_group" "test" {
     }
 
     commands = ["/bin/bash", "-c", "ls"]
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   diagnostics {
@@ -2130,6 +2241,11 @@ resource "azurerm_container_group" "test" {
 
     commands = ["/bin/bash", "-c", "ls"]
   }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -2202,6 +2318,11 @@ resource "azurerm_container_group" "test" {
 
     commands = ["/bin/bash", "-c", "ls"]
   }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -2252,6 +2373,11 @@ resource "azurerm_container_group" "test" {
     }
 
     commands = ["/bin/bash", "-c", "timeout 30 watch --interval 1 --errexit \"! cat /sharedempty/file.txt\""]
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -2306,6 +2432,11 @@ resource "azurerm_container_group" "test" {
 
     commands = ["/bin/bash", "-c", "timeout 30 watch --interval 1 --errexit \"! cat /sharedempty/file.txt\""]
   }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2349,6 +2480,11 @@ resource "azurerm_container_group" "test" {
       PASSWORD = "something_very_secure"
     }
   }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -2390,6 +2526,11 @@ resource "azurerm_container_group" "test" {
         mysecret2 = "TXkgc2Vjb25kIHNlY3JldCBCQVIK"
       }
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   tags = {
@@ -2456,6 +2597,11 @@ resource "azurerm_container_group" "test" {
       PUBLIC_EMPTY = ""
       PUBLIC_VALUE = "test"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -2554,6 +2700,11 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "TCP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
   key_vault_key_id = azurerm_key_vault_key.test.id
   depends_on       = [azurerm_key_vault_access_policy.test]
@@ -2656,6 +2807,12 @@ resource "azurerm_container_group" "test" {
       protocol = "TCP"
     }
   }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
+  }
+
   key_vault_key_id                    = azurerm_key_vault_key.test.id
   key_vault_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   identity {
@@ -2667,7 +2824,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerGroupResource) securityContextPriviledged(data acceptance.TestData, v bool) string {
+func (ContainerGroupResource) securityContextPrivileged(data acceptance.TestData, v bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2698,6 +2855,11 @@ resource "azurerm_container_group" "test" {
     security {
       privilege_enabled = %[3]t
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, v)
@@ -2730,6 +2892,11 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "TCP"
     }
+  }
+
+  exposed_port {
+    port     = 80
+    protocol = "TCP"
   }
 
   priority = "%s"
