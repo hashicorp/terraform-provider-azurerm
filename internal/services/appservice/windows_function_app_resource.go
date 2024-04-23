@@ -649,12 +649,12 @@ func (r WindowsFunctionAppResource) Create() sdk.ResourceFunc {
 
 			pushSettings, err := helpers.ExpandPushSetting(functionApp.PushSetting)
 			if err != nil {
-				return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
+				return fmt.Errorf("expanding `push_setting`: %+v", err)
 			}
 
 			if pushSettings.Properties != nil {
 				if _, err := client.UpdateSitePushSettings(ctx, baseId, pushSettings); err != nil {
-					return fmt.Errorf("updating push setting error: %+v", err)
+					return fmt.Errorf("updating `push_setting`: %+v", err)
 				}
 			}
 
@@ -728,7 +728,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 			pushSetting, err := client.ListSitePushSettings(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading push setting for Windows %s: %+v", id, err)
+				return fmt.Errorf("flattening `push_settings`: %+v", err)
 			}
 
 			logs, err := client.GetDiagnosticLogsConfiguration(ctx, *id)
@@ -830,7 +830,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 
 				pushes, err := helpers.FlattenPushSetting(pushSetting.Model, metadata)
 				if err != nil {
-					return fmt.Errorf("reading push setting error: %+v", err)
+					return fmt.Errorf("flattening `push_settings`: %+v", err)
 				}
 				state.PushSetting = pushes
 
@@ -1214,10 +1214,10 @@ func (r WindowsFunctionAppResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("push_setting") {
 				pushSettings, err := helpers.ExpandPushSetting(state.PushSetting)
 				if err != nil {
-					return fmt.Errorf("expanding push setting for windows function app error: %+v", err)
+					return fmt.Errorf("expanding `push_setting`: %+v", err)
 				}
 				if _, err := client.UpdateSitePushSettings(ctx, *id, pushSettings); err != nil {
-					return fmt.Errorf("updating push setting error: %+v", err)
+					return fmt.Errorf("updating `push_setting`: %+v", err)
 				}
 			}
 
