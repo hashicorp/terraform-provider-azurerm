@@ -1600,7 +1600,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					},
 
 					"managed": {
-						Deprecated: "Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated and clusters can no longer be created with the Azure AD integration (legacy) enabled. This field will be removed in v4.0 of the AzureRM Provider.",
+						Deprecated: "Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated and clusters can no longer be created with the Azure AD integration (legacy) enabled. This field must be supplied with the value `true` for AKS-managed Entra Integration, but will be removed and defaulted to `true` for the user in v4.0 of the AzureRM Provider.",
 						Type:       pluginsdk.TypeBool,
 						Optional:   true,
 						AtLeastOneOf: []string{
