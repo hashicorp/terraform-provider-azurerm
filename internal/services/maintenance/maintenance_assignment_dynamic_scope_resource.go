@@ -60,9 +60,9 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"filter": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MaxItems: 1,
+			Type:         pluginsdk.TypeList,
+			Required:     true,
+			MaxItems:     1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"locations": {
@@ -71,13 +71,19 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 					"os_types": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Linux",
+								"Windows",
+							}, false),
 						},
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 					"resource_groups": {
 						Type:     pluginsdk.TypeList,
@@ -85,13 +91,19 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 					"resource_types": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Microsoft.Compute/virtualMachines",
+								"Microsoft.HybridCompute/machines",
+							}, false),
 						},
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 					"tags": {
 						Type:     pluginsdk.TypeList,
@@ -112,16 +124,20 @@ func (MaintenanceDynamicScopeResource) Arguments() map[string]*pluginsdk.Schema 
 								},
 							},
 						},
+						AtLeastOneOf: []string{"filter.0.locations", "filter.0.os_types", "filter.0.resource_groups", "filter.0.resource_types", "filter.0.tags"},
 					},
 
 					"tag_filter": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Default:  configurationassignments.TagOperatorsAny,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(configurationassignments.TagOperatorsAny),
 							string(configurationassignments.TagOperatorsAll),
 						}, false),
+						RequiredWith: []string{
+							"filter.0.tags",
+						},
 					},
 				},
 			},
@@ -159,14 +175,14 @@ func (r MaintenanceDynamicScopeResource) Create() sdk.ResourceFunc {
 
 			id := configurationassignments.NewConfigurationAssignmentID(metadata.Client.Account.SubscriptionId, model.Name)
 
-			resp, err := client.ForSubscriptionsGet(ctx, id)
+			existing, err := client.ForSubscriptionsGet(ctx, id)
 			if err != nil {
-				if !response.WasNotFound(resp.HttpResponse) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !response.WasNotFound(resp.HttpResponse) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -233,15 +249,15 @@ func (MaintenanceDynamicScopeResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.ForSubscriptionsGet(ctx, *id)
+			resp, err := client.ForSubscriptionsGet(ctx, *id)
 			if err != nil {
-				if response.WasNotFound(existing.HttpResponse) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return err
 			}
 
-			if model := existing.Model; model != nil {
+			if model := resp.Model; model != nil {
 
 				state.Name = id.ConfigurationAssignmentName
 
@@ -341,6 +357,7 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 						}
 						filterProperties.TagSettings = tagProperties
 					}
+
 					existing.Properties.Filter = pointer.To(filterProperties)
 				} else {
 					existing.Properties.Filter = &configurationassignments.ConfigurationAssignmentFilterProperties{}
