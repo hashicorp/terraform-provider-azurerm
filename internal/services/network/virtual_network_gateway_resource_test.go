@@ -1663,7 +1663,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  sku      = "Basic"
+  sku      = "VpnGw2"
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id
