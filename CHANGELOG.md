@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_application_insights` - set correct AppID in data source [GH-25687]
+* `azurerm_virtual_network` - suppress diff in ordering for `address_space` due to inconsistent API response [GH-23793]
 
 ## 3.100.0 (April 18, 2024)
 
