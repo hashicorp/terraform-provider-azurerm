@@ -91,7 +91,7 @@ A `filter` block supports the following:
 
 * `resource_types` - (Optional) Specifies a list of allowed resources.
 
-* `tag_filter` - (Optional) Filter VMs by `Any` or `All` specified tags.
+* `tag_filter` - (Optional) Filter VMs by `Any` or `All` specified tags. Defaults to `Any`.
 
 * `tags` - (Optional) A mapping of tags for the VM
 
