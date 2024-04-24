@@ -70,6 +70,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Academic",
+					"AIServices",
 					"AnomalyDetector",
 					"Bing.Autosuggest",
 					"Bing.Autosuggest.v7",
