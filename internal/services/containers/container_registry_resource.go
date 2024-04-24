@@ -89,7 +89,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
-			// this validation needs to be disabled temporarily until the old `retention_policy` is remove and `retention_policy_in_days` is no longer computed
+			// This validation needs to be disabled until 4.0 when the old `retention_policy` is remove and `retention_policy_in_days` is no longer computed
 			// until then this check always fails and users won't be able to downgrade the sku
 			if features.FourPointOh() {
 				retentionPolicyEnabled, ok := d.GetOk("retention_policy_in_days")

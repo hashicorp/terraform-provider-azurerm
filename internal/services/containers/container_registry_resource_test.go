@@ -280,7 +280,7 @@ func TestAccContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 
 func TestAccContainerRegistry_policies(t *testing.T) {
 	if features.FourPointOhBeta() {
-		t.Skip("This test can be removed in 4.0, policy updates are tested in the update test using the new properties")
+		t.Skip("Skipping in 4.0 since policy updates are tested in the update test using the new properties")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
