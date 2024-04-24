@@ -664,7 +664,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 			var model DeploymentModel
 			if err := meta.Decode(&model); err != nil {
-				return fmt.Errorf("Decode NginxDeploymentModel %s: %v", id, err)
+				return fmt.Errorf("decoding NginxDeploymentModel %s: %v", id, err)
 			}
 
 			var req nginxdeployment.NginxDeploymentUpdateParameters

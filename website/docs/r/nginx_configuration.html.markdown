@@ -1,5 +1,5 @@
 ---
-subcategory: "Nginx"
+subcategory: "NGINX"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nginx_configuration"
 description: |-
@@ -116,13 +116,13 @@ The following arguments are supported:
 
 * `nginx_deployment_id` - (Required) The ID of the Nginx Deployment. Changing this forces a new Nginx Configuration to be created.
 
-* `root_file` - (Required) Specify the root file path of this Nginx Configuration.
+* `root_file` - (Required) Specifies the root file path of this Nginx Configuration.
 
 ---
 
 -> **NOTE:** Either `package_data` or `config_file` must be specified - but not both.
 
-* `package_data` - (Optional) Specify the package data for this configuration.
+* `package_data` - (Optional) Specifies the package data for this configuration.
 
 * `config_file` - (Optional) One or more `config_file` blocks as defined below.
 
@@ -134,7 +134,7 @@ A `config_file` block supports the following:
 
 * `content` - (Required) Specifies the base-64 encoded contents of this config file.
 
-* `virtual_path` - (Required) Specify the path of this config file.
+* `virtual_path` - (Required) Specifies the path of this config file.
 
 ---
 
@@ -142,7 +142,7 @@ A `protected_file` (Protected File) block supports the following:
 
 * `content` - (Required) Specifies the base-64 encoded contents of this config file (Sensitive).
 
-* `virtual_path` - (Required) Specify the path of this config file.
+* `virtual_path` - (Required) Specifies the path of this config file.
 
 ## Attributes Reference
 
