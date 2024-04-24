@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.20240422.1195251` of `github.com/hashicorp/go-azure-sdk` [GH-25708]
 * dependencies: updating to `v0.27.0` of `github.com/tombuildsstuff/giovanni` [GH-25702]
 * dependencies: updating `golang.org/x/net` to `0.23.0`
+* `azurerm_cognitive_account` - the `kind` property now supports `ConversationalLanguageUnderstanding` [GH-25735]
 
 BUG FIXES:
 
