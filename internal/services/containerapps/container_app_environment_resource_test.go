@@ -255,11 +255,7 @@ resource "azurerm_container_app_environment" "test" {
 func (r ContainerAppEnvironmentResource) completeWithoutWorkloadProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 %[1]s
