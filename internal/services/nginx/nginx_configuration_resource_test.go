@@ -45,6 +45,19 @@ func TestAccConfiguration_basic(t *testing.T) {
 	})
 }
 
+func TestAccConfiguration_basicHTTPS(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.ConfigurationResource{}.ResourceType(), "test")
+	r := ConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicHTTPS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.ConfigurationResource{}.ResourceType(), "test")
 	r := ConfigurationResource{}
@@ -101,6 +114,31 @@ resource "azurerm_nginx_configuration" "test" {
   }
 }
 `, a.template(data))
+}
+
+func (a ConfigurationResource) basicHTTPS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_nginx_certificate" "test" {
+  name                     = "acctest"
+  nginx_deployment_id      = azurerm_nginx_deployment.test.id
+  key_virtual_path         = "/etc/nginx/ssl/test.key"
+  certificate_virtual_path = "/etc/nginx/ssl/test.crt"
+  key_vault_secret_id      = azurerm_key_vault_certificate.test.secret_id
+}
+
+resource "azurerm_nginx_configuration" "test" {
+  nginx_deployment_id = azurerm_nginx_deployment.test.id
+  root_file           = "/etc/nginx/nginx.conf"
+
+  config_file {
+    content      = local.config_content
+    virtual_path = "/etc/nginx/nginx.conf"
+  }
+}
+`, a.httpsTemplate(data))
 }
 
 func (a ConfigurationResource) requiresImport(data acceptance.TestData) string {
@@ -254,4 +292,199 @@ resource "azurerm_nginx_deployment" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (a ConfigurationResource) httpsTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
+}
+
+locals {
+  config_content = base64encode(<<-EOT
+http {
+    server {
+      listen 443 ssl;
+      ssl_certificate /etc/nginx/ssl/test.crt;
+      ssl_certificate_key /etc/nginx/ssl/test.key;
+      location / {
+        return 200 "Hello World";
+      }
+    }
+}
+EOT
+  )
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "accsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name = "NGINX.NGINXPLUS/nginxDeployments"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+
+resource "azurerm_nginx_deployment" "test" {
+  name                     = "acctest-%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  sku                      = "standard_Monthly"
+  location                 = azurerm_resource_group.test.location
+  diagnose_support_enabled = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+    ]
+
+    certificate_permissions = [
+      "Get",
+      "List",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "List",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get",
+    ]
+
+    certificate_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "List",
+      "ManageContacts",
+      "Purge",
+      "Recover",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "Delete",
+      "List",
+      "Purge",
+      "Recover",
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pem-file"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyEncipherment",
+        "keyCertSign",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
