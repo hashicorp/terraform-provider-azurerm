@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -35,6 +37,20 @@ type LoggingStorageAccount struct {
 
 type NetworkInterface struct {
 	SubnetId string `tfschema:"subnet_id"`
+}
+
+// Deprecated: remove in next major version
+type ConfigureFile struct {
+	Content     string `tfschema:"content"`
+	VirtualPath string `tfschema:"virtual_path"`
+}
+
+// Deprecated: remove in next major version
+type Configuration struct {
+	ConfigureFile []ConfigureFile `tfschema:"config_file"`
+	ProtectedFile []ConfigureFile `tfschema:"protected_file"`
+	PackageData   string          `tfschema:"package_data"`
+	RootFile      string          `tfschema:"root_file"`
 }
 
 type AutoScaleProfile struct {
@@ -61,7 +77,9 @@ type DeploymentModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
-	Tags                   map[string]string                          `tfschema:"tags"`
+	// Deprecated: remove in next major version
+	Configuration []Configuration   `tfschema:"configuration,removedInNextMajorVersion"`
+	Tags          map[string]string `tfschema:"tags"`
 }
 
 type DeploymentResource struct{}
@@ -69,7 +87,7 @@ type DeploymentResource struct{}
 var _ sdk.ResourceWithUpdate = (*DeploymentResource)(nil)
 
 func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"name": {
@@ -237,8 +255,82 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				}, false),
 		},
 
+		"configuration": {},
+
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FourPointOhBeta() {
+		resource["configuration"] = &pluginsdk.Schema{
+			Deprecated: "Use azurerm_nginx_configuration resource instead. This attribute will be removed in the next major version of the provider.",
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   !features.FourPointOh(),
+			MaxItems:   1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"config_file": {
+						Type:         pluginsdk.TypeSet,
+						Optional:     true,
+						AtLeastOneOf: []string{"configuration.0.config_file", "configuration.0.package_data"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"content": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsBase64,
+								},
+
+								"virtual_path": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+
+					"protected_file": {
+						Type:         pluginsdk.TypeSet,
+						Optional:     true,
+						RequiredWith: []string{"configuration.0.config_file"},
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"content": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									Sensitive:    true,
+									ValidateFunc: validation.StringIsBase64,
+								},
+
+								"virtual_path": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+
+					"package_data": {
+						Type:          pluginsdk.TypeString,
+						Optional:      true,
+						ValidateFunc:  validation.StringIsNotEmpty,
+						AtLeastOneOf:  []string{"configuration.0.config_file", "configuration.0.package_data"},
+						ConflictsWith: []string{"configuration.0.protected_file", "configuration.0.config_file"},
+					},
+
+					"root_file": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func (m DeploymentResource) Attributes() map[string]*pluginsdk.Schema {
@@ -388,6 +480,18 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 
+			if !features.FourPointOhBeta() {
+				if len(model.Configuration) > 0 {
+					// update configuration
+					configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
+
+					configProp := expandConfiguration(model.Configuration[0])
+					if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
+						return fmt.Errorf("update default configuration of %q: %v", configID, err)
+					}
+				}
+			}
+
 			meta.SetID(id)
 			return nil
 		},
@@ -503,6 +607,46 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if !features.FourPointOhBeta() {
+				// read configuration
+				configResp, err := meta.Client.Nginx.NginxConfiguration.ConfigurationsGet(ctx, nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName))
+				if err != nil && !response.WasNotFound(configResp.HttpResponse) {
+					return fmt.Errorf("retrieving default configuration of %q: %v", id, err)
+				}
+				if model := configResp.Model; model != nil {
+					if prop := model.Properties; prop != nil {
+						var files []ConfigureFile
+						if prop.Files != nil {
+							for _, file := range *prop.Files {
+								files = append(files, ConfigureFile{
+									Content:     pointer.From(file.Content),
+									VirtualPath: pointer.From(file.VirtualPath),
+								})
+							}
+						}
+
+						var protectedFiles []ConfigureFile
+						if prop.ProtectedFiles != nil {
+							for _, file := range *prop.ProtectedFiles {
+								protectedFiles = append(protectedFiles, ConfigureFile{
+									Content:     pointer.From(file.Content),
+									VirtualPath: pointer.From(file.VirtualPath),
+								})
+							}
+						}
+
+						output.Configuration = []Configuration{
+							{
+								ConfigureFile: files,
+								ProtectedFile: protectedFiles,
+								PackageData:   pointer.From(pointer.From(prop.Package).Data),
+								RootFile:      pointer.From(prop.RootFile),
+							},
+						}
+					}
+				}
+			}
+
 			return meta.Encode(&output)
 		},
 	}
@@ -592,6 +736,17 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
+			if !features.FourPointOhBeta() {
+				if meta.ResourceData.HasChange("configuration") {
+					configID := nginxconfiguration.NewConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName, defaultConfigurationName)
+
+					configProp := expandConfiguration(model.Configuration[0])
+					if err := meta.Client.Nginx.NginxConfiguration.ConfigurationsCreateOrUpdateThenPoll(ctx, configID, configProp); err != nil {
+						return fmt.Errorf("update default configuration of %q: %v", configID, err)
+					}
+				}
+			}
+
 			return nil
 		},
 	}
@@ -619,4 +774,44 @@ func (m DeploymentResource) Delete() sdk.ResourceFunc {
 
 func (m DeploymentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return nginxdeployment.ValidateNginxDeploymentID
+}
+
+func expandConfiguration(model Configuration) nginxconfiguration.NginxConfiguration {
+	result := nginxconfiguration.NginxConfiguration{
+		Properties: &nginxconfiguration.NginxConfigurationProperties{},
+	}
+
+	if len(model.ConfigureFile) > 0 {
+		var files []nginxconfiguration.NginxConfigurationFile
+		for _, file := range model.ConfigureFile {
+			files = append(files, nginxconfiguration.NginxConfigurationFile{
+				Content:     pointer.To(file.Content),
+				VirtualPath: pointer.To(file.VirtualPath),
+			})
+		}
+		result.Properties.Files = &files
+	}
+
+	if len(model.ProtectedFile) > 0 {
+		var files []nginxconfiguration.NginxConfigurationFile
+		for _, file := range model.ProtectedFile {
+			files = append(files, nginxconfiguration.NginxConfigurationFile{
+				Content:     pointer.To(file.Content),
+				VirtualPath: pointer.To(file.VirtualPath),
+			})
+		}
+		result.Properties.ProtectedFiles = &files
+	}
+
+	if model.PackageData != "" {
+		result.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
+			Data: pointer.To(model.PackageData),
+		}
+	}
+
+	if model.RootFile != "" {
+		result.Properties.RootFile = pointer.To(model.RootFile)
+	}
+
+	return result
 }
