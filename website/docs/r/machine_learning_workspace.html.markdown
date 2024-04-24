@@ -358,7 +358,7 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below.
 
-* `kind` - (Optional) The type of the Workspace. Possible values are `Default`, `FeatureStore`. Defaults to `Default`
+* `kind` - (Optional) The type of the Workspace. Possible values are `Default`, `FeatureStore`, `Hub`, `Project`. Defaults to `Default`
 
 * `container_registry_id` - (Optional) The ID of the container registry associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
