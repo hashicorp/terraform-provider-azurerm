@@ -100,8 +100,6 @@ func (a DeploymentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
-
-
 %s
 
 resource "azurerm_nginx_deployment" "test" {
