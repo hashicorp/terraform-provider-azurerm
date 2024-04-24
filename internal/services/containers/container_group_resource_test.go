@@ -6,13 +6,13 @@ package containers_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -351,7 +351,7 @@ func TestAccContainerGroup_linuxBasicUpdate(t *testing.T) {
 
 func TestAccContainerGroup_exposedPortUpdate(t *testing.T) {
 	if !features.FourPointOhBeta() {
-		t.Skipf("Skipping in 4.0 since `exposed_port` is `ForceNew` and has had `Computed` removed, Terraform should sucessfully be recreating the resource")
+		t.Skipf("Skipping in 4.0 since `exposed_port` is `ForceNew` and has had `Computed` removed, Terraform should successfully be recreating the resource")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")

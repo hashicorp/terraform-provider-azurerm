@@ -6,10 +6,10 @@ package helper
 import (
 	"bytes"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 
 	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"

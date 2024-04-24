@@ -89,14 +89,25 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
-			retentionPolicyEnabled, ok := d.GetOk("retention_policy.0.enabled")
-			if ok && retentionPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set retention_policy {}")
+			// this validation needs to be disabled temporarily until the old `retention_policy` is remove and `retention_policy_in_days` is no longer computed
+			// until then this check always fails and users won't be able to downgrade the sku
+			if features.FourPointOh() {
+				retentionPolicyEnabled, ok := d.GetOk("retention_policy_in_days")
+				if ok && retentionPolicyEnabled.(int) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+					return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
+				}
 			}
 
-			trustPolicyEnabled, ok := d.GetOk("trust_policy.0.enabled")
-			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set trust_policy {}")
+			if !features.FourPointOhBeta() {
+				trustPolicyEnabled, ok := d.GetOk("trust_policy.0.enabled")
+				if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+					return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set trust_policy {}")
+				}
+			} else {
+				trustPolicyEnabled, ok := d.GetOk("trust_policy_enabled")
+				if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+					return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
+				}
 			}
 
 			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
@@ -109,9 +120,16 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				}
 			}
 
-			encryptionEnabled, ok := d.GetOk("encryption.0.enabled")
-			if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
+			if !features.FourPointOhBeta() {
+				encryptionEnabled, ok := d.GetOk("encryption.0.enabled")
+				if ok && encryptionEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+					return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
+				}
+			} else {
+				encryptionEnabled, ok := d.GetOk("encryption")
+				if ok && len(encryptionEnabled.([]interface{})) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+					return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
+				}
 			}
 
 			// zone redundancy is only available for Premium Sku.
@@ -205,6 +223,23 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		zoneRedundancy = registries.ZoneRedundancyEnabled
 	}
 
+	retentionPolicy := &registries.RetentionPolicy{}
+	if !features.FourPointOhBeta() {
+		retentionPolicy = expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
+	}
+	if v, ok := d.GetOk("retention_policy_in_days"); ok && v.(int) > 0 {
+		retentionPolicy.Days = pointer.To(int64(v.(int)))
+		retentionPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
+	}
+
+	trustPolicy := &registries.TrustPolicy{}
+	if !features.FourPointOhBeta() {
+		trustPolicy = expandTrustPolicy(d.Get("trust_policy").([]interface{}))
+	}
+	if v, ok := d.GetOk("trust_policy_enabled"); ok && v.(bool) {
+		trustPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
+	}
+
 	parameters := registries.Registry{
 		Location: location.Normalize(d.Get("location").(string)),
 		Sku: registries.Sku{
@@ -213,19 +248,19 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		},
 		Identity: identity,
 		Properties: &registries.RegistryProperties{
-			AdminUserEnabled: utils.Bool(d.Get("admin_enabled").(bool)),
+			AdminUserEnabled: pointer.To(d.Get("admin_enabled").(bool)),
 			Encryption:       expandEncryption(d.Get("encryption").([]interface{})),
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &registries.Policies{
 				QuarantinePolicy: expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool)),
-				RetentionPolicy:  expandRetentionPolicy(d.Get("retention_policy").([]interface{})),
-				TrustPolicy:      expandTrustPolicy(d.Get("trust_policy").([]interface{})),
+				RetentionPolicy:  retentionPolicy,
+				TrustPolicy:      trustPolicy,
 				ExportPolicy:     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
 			},
 			PublicNetworkAccess:      &publicNetworkAccess,
 			ZoneRedundancy:           &zoneRedundancy,
-			AnonymousPullEnabled:     utils.Bool(d.Get("anonymous_pull_enabled").(bool)),
-			DataEndpointEnabled:      utils.Bool(d.Get("data_endpoint_enabled").(bool)),
+			AnonymousPullEnabled:     pointer.To(d.Get("anonymous_pull_enabled").(bool)),
+			DataEndpointEnabled:      pointer.To(d.Get("data_endpoint_enabled").(bool)),
 			NetworkRuleBypassOptions: pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
 		},
 
@@ -256,7 +291,6 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for  Container Registry update.")
 
 	id, err := registries.ParseRegistryID(d.Id())
 	if err != nil {
@@ -281,39 +315,135 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
-	if networkRuleSet != nil && isBasicSku {
-		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
+	payload := &registries.RegistryUpdateParameters{
+		Properties: &registries.RegistryPropertiesUpdateParameters{},
 	}
 
-	publicNetworkAccess := registries.PublicNetworkAccessEnabled
-	if !d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = registries.PublicNetworkAccessDisabled
+	if d.HasChange("network_rule_set") {
+		networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
+		if networkRuleSet != nil && isBasicSku {
+			return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
+		}
+
+		payload.Properties.NetworkRuleSet = networkRuleSet
 	}
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := registries.PublicNetworkAccessEnabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = registries.PublicNetworkAccessDisabled
+		}
+
+		payload.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
-	parameters := registries.RegistryUpdateParameters{
-		Properties: &registries.RegistryPropertiesUpdateParameters{
-			AdminUserEnabled: utils.Bool(d.Get("admin_enabled").(bool)),
-			NetworkRuleSet:   networkRuleSet,
-			Policies: &registries.Policies{
-				QuarantinePolicy: expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool)),
-				RetentionPolicy:  expandRetentionPolicy(d.Get("retention_policy").([]interface{})),
-				TrustPolicy:      expandTrustPolicy(d.Get("trust_policy").([]interface{})),
-				ExportPolicy:     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
-			},
-			PublicNetworkAccess:      &publicNetworkAccess,
-			Encryption:               expandEncryption(d.Get("encryption").([]interface{})),
-			AnonymousPullEnabled:     utils.Bool(d.Get("anonymous_pull_enabled").(bool)),
-			DataEndpointEnabled:      utils.Bool(d.Get("data_endpoint_enabled").(bool)),
-			NetworkRuleBypassOptions: pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
-		},
-		Identity: identity,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	if d.HasChange("identity") {
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		payload.Identity = identity
+	}
+
+	policyKeys := []string{
+		"retention_policy_in_days",
+		"trust_policy_enabled",
+		"quarantine_policy_enabled",
+		"export_policy_enabled",
+	}
+
+	if !features.FourPointOh() {
+		policyKeys = append(policyKeys, []string{"retention_policy", "trust_policy"}...)
+	}
+
+	if d.HasChanges(policyKeys...) {
+		payload.Properties.Policies = &registries.Policies{}
+	}
+
+	if !features.FourPointOhBeta() {
+		if d.HasChange("retention_policy") {
+			retentionPolicy := expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
+			payload.Properties.Policies.RetentionPolicy = retentionPolicy
+		}
+
+		if d.HasChange("trust_policy") {
+			trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
+			payload.Properties.Policies.TrustPolicy = trustPolicy
+		}
+	}
+
+	if d.HasChange("retention_policy_in_days") {
+		payload.Properties.Policies.RetentionPolicy = &registries.RetentionPolicy{
+			Status: pointer.To(registries.PolicyStatusDisabled),
+		}
+
+		if v := d.Get("retention_policy_in_days").(int); v != 0 {
+			payload.Properties.Policies.RetentionPolicy = &registries.RetentionPolicy{
+				Status: pointer.To(registries.PolicyStatusEnabled),
+				Days:   pointer.To(int64(v)),
+			}
+		}
+	}
+
+	if d.HasChange("trust_policy_enabled") {
+		payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
+			Status: pointer.To(registries.PolicyStatusDisabled),
+		}
+
+		if v := d.Get("trust_policy_enabled").(bool); v {
+			payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
+				Status: pointer.To(registries.PolicyStatusEnabled),
+			}
+		}
+	}
+
+	if d.HasChange("quarantine_policy_enabled") {
+		payload.Properties.Policies.QuarantinePolicy = &registries.QuarantinePolicy{
+			Status: pointer.To(registries.PolicyStatusDisabled),
+		}
+
+		if v := d.Get("quarantine_policy_enabled").(bool); v {
+			payload.Properties.Policies.QuarantinePolicy = &registries.QuarantinePolicy{
+				Status: pointer.To(registries.PolicyStatusEnabled),
+			}
+		}
+	}
+
+	if d.HasChange("export_policy_enabled") {
+		payload.Properties.Policies.ExportPolicy = &registries.ExportPolicy{
+			Status: pointer.To(registries.ExportPolicyStatusDisabled),
+		}
+
+		if v := d.Get("export_policy_enabled").(bool); v {
+			payload.Properties.Policies.ExportPolicy = &registries.ExportPolicy{
+				Status: pointer.To(registries.ExportPolicyStatusEnabled),
+			}
+		}
+	}
+
+	if d.HasChange("admin_enabled") {
+		payload.Properties.AdminUserEnabled = pointer.To(d.Get("admin_enabled").(bool))
+	}
+
+	if d.HasChange("encryption") {
+		payload.Properties.Encryption = expandEncryption(d.Get("encryption").([]interface{}))
+	}
+
+	if d.HasChange("anonymous_pull_enabled") {
+		payload.Properties.AnonymousPullEnabled = pointer.To(d.Get("anonymous_pull_enabled").(bool))
+	}
+
+	if d.HasChange("data_endpoint_enabled") {
+		payload.Properties.DataEndpointEnabled = pointer.To(d.Get("data_endpoint_enabled").(bool))
+	}
+
+	if d.HasChange("network_rule_bypass_option") {
+		payload.Properties.NetworkRuleBypassOptions = pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	// geo replication is only supported by Premium Sku
@@ -328,7 +458,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+	if err := client.UpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -520,8 +650,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	loc := ""
 
 	if model := resp.Model; model != nil {
-		loc = location.Normalize(model.Location)
-		d.Set("location", loc)
+		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
@@ -543,14 +672,6 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `network_rule_set`: %+v", err)
 			}
 
-			d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
-			if err := d.Set("retention_policy", flattenRetentionPolicy(props.Policies)); err != nil {
-				return fmt.Errorf("setting `retention_policy`: %+v", err)
-			}
-			if err := d.Set("trust_policy", flattenTrustPolicy(props.Policies)); err != nil {
-				return fmt.Errorf("setting `trust_policy`: %+v", err)
-			}
-			d.Set("export_policy_enabled", flattenExportPolicy(props.Policies))
 			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
@@ -558,6 +679,32 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
+
+			if policies := props.Policies; policies != nil {
+				var retentionInDays int64
+				if policies.RetentionPolicy != nil && policies.RetentionPolicy.Status != nil && *policies.RetentionPolicy.Status == registries.PolicyStatusEnabled {
+					retentionInDays = pointer.From(policies.RetentionPolicy.Days)
+				}
+				d.Set("retention_policy_in_days", retentionInDays)
+
+				if policies.TrustPolicy != nil && policies.TrustPolicy.Status != nil {
+					policyEnabled := *policies.TrustPolicy.Status == registries.PolicyStatusEnabled
+					d.Set("trust_policy_enabled", policyEnabled)
+				}
+
+				d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
+				d.Set("export_policy_enabled", flattenExportPolicy(props.Policies))
+
+			}
+
+			if !features.FourPointOhBeta() {
+				if err := d.Set("retention_policy", flattenRetentionPolicy(props.Policies)); err != nil {
+					return fmt.Errorf("setting `retention_policy`: %+v", err)
+				}
+				if err := d.Set("trust_policy", flattenTrustPolicy(props.Policies)); err != nil {
+					return fmt.Errorf("setting `trust_policy`: %+v", err)
+				}
+			}
 
 			if *props.AdminUserEnabled {
 				credsResp, errList := client.ListCredentials(ctx, *id)
@@ -652,23 +799,29 @@ func expandNetworkRuleSet(profiles []interface{}) *registries.NetworkRuleSet {
 		ipRules = append(ipRules, newIpRule)
 	}
 
-	networkRuleConfigs := profile["virtual_network"].(*pluginsdk.Set).List()
-	virtualNetworkRules := make([]registries.VirtualNetworkRule, 0)
-	for _, networkRuleInterface := range networkRuleConfigs {
-		config := networkRuleInterface.(map[string]interface{})
-		newVirtualNetworkRule := registries.VirtualNetworkRule{
-			Action: pointer.To(registries.Action(config["action"].(string))),
-			Id:     config["subnet_id"].(string),
+	if !features.FourPointOhBeta() {
+		networkRuleConfigs := profile["virtual_network"].(*pluginsdk.Set).List()
+		virtualNetworkRules := make([]registries.VirtualNetworkRule, 0)
+		for _, networkRuleInterface := range networkRuleConfigs {
+			config := networkRuleInterface.(map[string]interface{})
+			newVirtualNetworkRule := registries.VirtualNetworkRule{
+				Action: pointer.To(registries.Action(config["action"].(string))),
+				Id:     config["subnet_id"].(string),
+			}
+			virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
 		}
-		virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
+
+		return &registries.NetworkRuleSet{
+			DefaultAction:       registries.DefaultAction(profile["default_action"].(string)),
+			IPRules:             &ipRules,
+			VirtualNetworkRules: &virtualNetworkRules,
+		}
 	}
 
-	networkRuleSet := registries.NetworkRuleSet{
-		DefaultAction:       registries.DefaultAction(profile["default_action"].(string)),
-		IPRules:             &ipRules,
-		VirtualNetworkRules: &virtualNetworkRules,
+	return &registries.NetworkRuleSet{
+		DefaultAction: registries.DefaultAction(profile["default_action"].(string)),
+		IPRules:       &ipRules,
 	}
-	return &networkRuleSet
 }
 
 func expandQuarantinePolicy(enabled bool) *registries.QuarantinePolicy {
@@ -749,46 +902,71 @@ func expandReplications(p []interface{}) []replications.Replication {
 			Tags:     tags,
 			Properties: &replications.ReplicationProperties{
 				ZoneRedundancy:        &zoneRedundancy,
-				RegionEndpointEnabled: utils.Bool(value["regional_endpoint_enabled"].(bool)),
+				RegionEndpointEnabled: pointer.To(value["regional_endpoint_enabled"].(bool)),
 			},
 		})
 	}
 	return reps
 }
 
-func expandEncryption(e []interface{}) *registries.EncryptionProperty {
-	encryptionProperty := registries.EncryptionProperty{
-		Status: pointer.To(registries.EncryptionStatusDisabled),
-	}
-	if len(e) > 0 {
-		v := e[0].(map[string]interface{})
-		enabled := v["enabled"].(bool)
-		if enabled {
-			encryptionProperty.Status = pointer.To(registries.EncryptionStatusEnabled)
-			keyId := v["key_vault_key_id"].(string)
-			identityClientId := v["identity_client_id"].(string)
-			encryptionProperty.KeyVaultProperties = &registries.KeyVaultProperties{
-				KeyIdentifier: &keyId,
-				Identity:      &identityClientId,
+func expandEncryption(input []interface{}) *registries.EncryptionProperty {
+	if !features.FourPointOhBeta() {
+		encryptionProperty := registries.EncryptionProperty{
+			Status: pointer.To(registries.EncryptionStatusDisabled),
+		}
+		if len(input) > 0 {
+			v := input[0].(map[string]interface{})
+			enabled := v["enabled"].(bool)
+			if enabled {
+				encryptionProperty.Status = pointer.To(registries.EncryptionStatusEnabled)
+				keyId := v["key_vault_key_id"].(string)
+				identityClientId := v["identity_client_id"].(string)
+				encryptionProperty.KeyVaultProperties = &registries.KeyVaultProperties{
+					KeyIdentifier: &keyId,
+					Identity:      &identityClientId,
+				}
 			}
 		}
+		return &encryptionProperty
 	}
 
-	return &encryptionProperty
-}
-
-func flattenEncryption(encryptionProperty *registries.EncryptionProperty) []interface{} {
-	if encryptionProperty == nil {
+	if len(input) == 0 {
 		return nil
 	}
-	encryption := make(map[string]interface{})
-	encryption["enabled"] = strings.EqualFold(string(*encryptionProperty.Status), string(registries.EncryptionStatusEnabled))
-	if encryptionProperty.KeyVaultProperties != nil {
-		encryption["key_vault_key_id"] = encryptionProperty.KeyVaultProperties.KeyIdentifier
-		encryption["identity_client_id"] = encryptionProperty.KeyVaultProperties.Identity
+	v := input[0].(map[string]interface{})
+	return &registries.EncryptionProperty{
+		KeyVaultProperties: &registries.KeyVaultProperties{
+			Identity:      pointer.To(v["identity_client_id"].(string)),
+			KeyIdentifier: pointer.To(v["key_vault_key_id"].(string)),
+		},
+		Status: pointer.To(registries.EncryptionStatusEnabled),
+	}
+}
+
+func flattenEncryption(input *registries.EncryptionProperty) []interface{} {
+	if !features.FourPointOhBeta() {
+		if input == nil {
+			return nil
+		}
+		encryption := make(map[string]interface{})
+		encryption["enabled"] = strings.EqualFold(string(*input.Status), string(registries.EncryptionStatusEnabled))
+		if input.KeyVaultProperties != nil {
+			encryption["key_vault_key_id"] = input.KeyVaultProperties.KeyIdentifier
+			encryption["identity_client_id"] = input.KeyVaultProperties.Identity
+		}
+		return []interface{}{encryption}
 	}
 
-	return []interface{}{encryption}
+	if input == nil || input.KeyVaultProperties == nil || input.Status != nil || *input.Status == registries.EncryptionStatusDisabled {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id":   pointer.From(input.KeyVaultProperties.KeyIdentifier),
+			"identity_client_id": pointer.From(input.KeyVaultProperties.Identity),
+		},
+	}
 }
 
 func flattenNetworkRuleSet(networkRuleSet *registries.NetworkRuleSet) []interface{} {
@@ -816,25 +994,25 @@ func flattenNetworkRuleSet(networkRuleSet *registries.NetworkRuleSet) []interfac
 
 	values["ip_rule"] = ipRules
 
-	virtualNetworkRules := make([]interface{}, 0)
+	if !features.FourPointOhBeta() {
+		virtualNetworkRules := make([]interface{}, 0)
+		if networkRuleSet.VirtualNetworkRules != nil {
+			for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
+				value := make(map[string]interface{})
+				value["action"] = string(*virtualNetworkRule.Action)
 
-	if networkRuleSet.VirtualNetworkRules != nil {
-		for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
-			value := make(map[string]interface{})
-			value["action"] = string(*virtualNetworkRule.Action)
-
-			value["subnet_id"] = virtualNetworkRule.Id
-			virtualNetworkRules = append(virtualNetworkRules, value)
+				value["subnet_id"] = virtualNetworkRule.Id
+				virtualNetworkRules = append(virtualNetworkRules, value)
+			}
 		}
+		values["virtual_network"] = virtualNetworkRules
 	}
-
-	values["virtual_network"] = virtualNetworkRules
 
 	return []interface{}{values}
 }
 
 func flattenQuarantinePolicy(p *registries.Policies) bool {
-	if p == nil || p.QuarantinePolicy == nil {
+	if p.QuarantinePolicy == nil {
 		return false
 	}
 
@@ -843,14 +1021,14 @@ func flattenQuarantinePolicy(p *registries.Policies) bool {
 
 func flattenRetentionPolicy(p *registries.Policies) []interface{} {
 	if p == nil || p.RetentionPolicy == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	r := *p.RetentionPolicy
 	retentionPolicy := make(map[string]interface{})
 	retentionPolicy["days"] = r.Days
 	enabled := strings.EqualFold(string(*r.Status), string(registries.PolicyStatusEnabled))
-	retentionPolicy["enabled"] = utils.Bool(enabled)
+	retentionPolicy["enabled"] = pointer.To(enabled)
 	return []interface{}{retentionPolicy}
 }
 
@@ -862,12 +1040,12 @@ func flattenTrustPolicy(p *registries.Policies) []interface{} {
 	t := *p.TrustPolicy
 	trustPolicy := make(map[string]interface{})
 	enabled := strings.EqualFold(string(*t.Status), string(registries.PolicyStatusEnabled))
-	trustPolicy["enabled"] = utils.Bool(enabled)
+	trustPolicy["enabled"] = pointer.To(enabled)
 	return []interface{}{trustPolicy}
 }
 
 func flattenExportPolicy(p *registries.Policies) bool {
-	if p == nil || p.ExportPolicy == nil {
+	if p.ExportPolicy == nil {
 		return false
 	}
 
@@ -954,18 +1132,11 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"encryption": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
 					"identity_client_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -981,6 +1152,190 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"network_rule_set": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			// this instance of ConfigModeAttr should remain to make sure we can set this to an empty array for Premium -> Basic
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"default_action": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  registries.DefaultActionAllow,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(registries.DefaultActionAllow),
+							string(registries.DefaultActionDeny),
+						}, false),
+					},
+
+					"ip_rule": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						// this needs to remain ConfigModeAttr since it's nested in a block that has it set
+						ConfigMode: pluginsdk.SchemaConfigModeAttr,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"action": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(registries.ActionAllow),
+									}, false),
+								},
+								"ip_range": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validate.CIDR,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"quarantine_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"retention_policy_in_days": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Computed: !features.FourPointOhBeta(),
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{"retention_policy"}
+				}
+				return []string{}
+			}(),
+		},
+
+		"trust_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: !features.FourPointOhBeta(),
+			Default: func() interface{} {
+				if !features.FourPointOhBeta() {
+					return nil
+				}
+				return false
+			}(),
+			ConflictsWith: func() []string {
+				if !features.FourPointOhBeta() {
+					return []string{"trust_policy"}
+				}
+				return []string{}
+			}(),
+		},
+
+		"export_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
+		"zone_redundancy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			ForceNew: true,
+			Optional: true,
+			Default:  false,
+		},
+
+		"anonymous_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"data_endpoint_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"network_rule_bypass_option": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(registries.NetworkRuleBypassOptionsAzureServices),
+				string(registries.NetworkRuleBypassOptionsNone),
+			}, false),
+			Default: string(registries.NetworkRuleBypassOptionsAzureServices),
+		},
+
+		"tags": commonschema.Tags(),
+	}
+
+	if !features.FourPointOhBeta() {
+		schema["encryption"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Deprecated: "The property `enabled` is deprecated and will be removed in v4.0 of the AzureRM provider.",
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Default:    false,
+					},
+					"identity_client_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					},
+				},
+			},
+		}
+		schema["retention_policy"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			MaxItems:      1,
+			Optional:      true,
+			Computed:      true,
+			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+			ConflictsWith: []string{"retention_policy_in_days"},
+			Deprecated:    "The block `retention_policy` has been superseded by `retention_policy_in_days` and will be removed in v4.0 of the AzureRM provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"days": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  7,
+					},
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		}
+		schema["trust_policy"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			MaxItems:      1,
+			Optional:      true,
+			Computed:      true,
+			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+			ConflictsWith: []string{"trust_policy_enabled"},
+			Deprecated:    "The block `trust_policy` has been superseded by `trust_policy_enabled` and will be removed in v4.0 of the AzureRM provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		}
+		schema["network_rule_set"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			Computed:   true,
@@ -1021,7 +1376,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 					},
 
 					"virtual_network": {
-						Deprecated: " This is only used exclusively for service endpoints (which is a feature being deprecated). Users are expected to use Private Endpoints instead",
+						Deprecated: "The property `virtual_network` is deprecated since this is used exclusively for service endpoints which are being deprecated. Users are expected to use Private Endpoints instead. This property will be removed in v4.0 of the AzureRM Provider.",
 						Type:       pluginsdk.TypeSet,
 						Optional:   true,
 						ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -1044,91 +1399,7 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-		},
-
-		"quarantine_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"retention_policy": {
-			Type:       pluginsdk.TypeList,
-			MaxItems:   1,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"days": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Default:  7,
-					},
-
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
-			},
-		},
-
-		"trust_policy": {
-			Type:       pluginsdk.TypeList,
-			MaxItems:   1,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
-			},
-		},
-
-		"export_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"zone_redundancy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
-			Optional: true,
-			Default:  false,
-		},
-
-		"anonymous_pull_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"data_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"network_rule_bypass_option": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registries.NetworkRuleBypassOptionsAzureServices),
-				string(registries.NetworkRuleBypassOptionsNone),
-			}, false),
-			Default: string(registries.NetworkRuleBypassOptionsAzureServices),
-		},
-
-		"tags": commonschema.Tags(),
-	}
-
-	if features.FourPointOhBeta() {
-		delete(schema["network_rule_set"].Elem.(*pluginsdk.Resource).Schema, "virtual_network")
+		}
 	}
 
 	return schema
