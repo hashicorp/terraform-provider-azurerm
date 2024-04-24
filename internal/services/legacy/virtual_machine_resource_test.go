@@ -123,7 +123,9 @@ func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.Clien
 			return err
 		}
 
-		disk, err := clients.Compute.DisksClient.Get(ctx, *id)
+		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+		disk, err := clients.Compute.DisksClient.Get(ctx2, *id)
 		if err != nil {
 			if response.WasNotFound(disk.HttpResponse) {
 				return fmt.Errorf("disk %s does not exist", *id)
@@ -131,7 +133,7 @@ func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.Clien
 			return err
 		}
 
-		if err := clients.Compute.DisksClient.DeleteThenPoll(ctx, *id); err != nil {
+		if err := clients.Compute.DisksClient.DeleteThenPoll(ctx2, *id); err != nil {
 			return fmt.Errorf("deleting disk %s: %+v", id, err)
 		}
 
