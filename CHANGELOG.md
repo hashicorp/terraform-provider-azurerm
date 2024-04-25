@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * dependencies: updating to `v0.27.0` of `github.com/tombuildsstuff/giovanni` [GH-25702]
 * dependencies: updating `golang.org/x/net` to `0.23.0`
 * `azurerm_cognitive_account` - the `kind` property now supports `ConversationalLanguageUnderstanding` [GH-25735]
+* `azurerm_container_app_custom_domain` - support the ability to use Azure Managed Certificates [GH-25356]
 
 BUG FIXES:
 
