@@ -21,12 +21,28 @@ type ElasticSANDataSource struct{}
 
 var _ sdk.DataSource = ElasticSANDataSource{}
 
+type ElasticSANDataSourceModel struct {
+	BaseSizeInTiB        int                          `tfschema:"base_size_in_tib"`
+	ExtendedSizeInTiB    int                          `tfschema:"extended_size_in_tib"`
+	Location             string                       `tfschema:"location"`
+	Name                 string                       `tfschema:"name"`
+	ResourceGroupName    string                       `tfschema:"resource_group_name"`
+	Sku                  []ElasticSANResourceSkuModel `tfschema:"sku"`
+	Tags                 map[string]interface{}       `tfschema:"tags"`
+	TotalIops            int                          `tfschema:"total_iops"`
+	TotalMBps            int                          `tfschema:"total_mbps"`
+	TotalSizeInTiB       int                          `tfschema:"total_size_in_tib"`
+	TotalVolumeSizeInGiB int                          `tfschema:"total_volume_size_in_gib"`
+	VolumeGroupCount     int                          `tfschema:"volume_group_count"`
+	Zones                []string                     `tfschema:"zones"`
+}
+
 func (r ElasticSANDataSource) ResourceType() string {
 	return "azurerm_elastic_san"
 }
 
 func (r ElasticSANDataSource) ModelObject() interface{} {
-	return &ElasticSANResourceModel{}
+	return &ElasticSANDataSourceModel{}
 }
 
 func (r ElasticSANDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -111,7 +127,7 @@ func (r ElasticSANDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ElasticSan.ElasticSans
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model ElasticSANResourceModel
+			var model ElasticSANDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -127,7 +143,7 @@ func (r ElasticSANDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ElasticSANResourceModel{
+			state := ElasticSANDataSourceModel{
 				Name:              model.Name,
 				ResourceGroupName: model.ResourceGroupName,
 			}
