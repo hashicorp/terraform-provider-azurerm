@@ -2136,7 +2136,7 @@ resource "azurerm_container_group" "test" {
       timeout_seconds       = 1
     }
 
-    commands = ["/bin/bash", "-c", "ls"]
+    commands = ["/bin/sh", "-c", "ls"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2208,7 +2208,7 @@ resource "azurerm_container_group" "test" {
       timeout_seconds       = 1
     }
 
-    commands = ["/bin/bash", "-c", "ls"]
+    commands = ["/bin/sh", "-c", "ls"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
