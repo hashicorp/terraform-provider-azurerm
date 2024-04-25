@@ -281,8 +281,8 @@ func testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *
 }
 
 func testAccNetworkConnectionMonitor_azureArcVM(t *testing.T) {
-	if os.Getenv("CLIENT_SECRET") == "" {
-		t.Skip("Skipping as CLIENT_SECRET is not specified")
+	if os.Getenv("ARM_TEST_CLIENT_SECRET") == "" {
+		t.Skip("Skipping as ARM_TEST_CLIENT_SECRET is not specified")
 		return
 	}
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
@@ -1198,5 +1198,5 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_arc_machine_extension.test]
 }
-`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, password, password, os.Getenv("CLIENT_SECRET"), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, password, password, os.Getenv("ARM_TEST_CLIENT_SECRET"), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
