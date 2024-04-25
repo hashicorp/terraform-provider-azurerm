@@ -236,6 +236,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"RHEL_BYOS",
+					"RHEL_BASE",
 					"SLES_BYOS",
 				}, false),
 			},
