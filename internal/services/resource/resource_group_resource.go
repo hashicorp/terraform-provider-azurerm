@@ -93,6 +93,26 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("creating Resource Group %q: %+v", name, err)
 	}
 
+	// TODO: remove this once ARM team confirms the issue is fixed on their end
+	//
+	// @favoretti: Working around a race condition in ARM eventually consistent backend data storage
+	// Sporadically, the ARM api will return successful creation response, following by a 404 to a
+	// subsequent `Get()`. Usually, seconds later, the storage is reconciled and following terraform
+	// run fails with `RequiresImport`.
+	//
+	// Snippet from MSFT support:
+	// The issue is related to replication of ARM data among regions. For example, another customer
+	// has some requests going to East US and other requests to East US 2, and during the time it takes
+	// to replicate between the two, they get 404's. The database account is a multi-master account with
+	// session consistency - so, write operations will be replicated across regions asynchronously.
+	// Session consistency only guarantees read-you-write guarantees within the scope of a session which
+	// is either defined by the application (ARM) or by the SDK (in which case the session spans only
+	// a single CosmosClient instance) - and given that several of the reads returning 404 after the
+	// creation of the resource group were done not only from a different ARM FD machine but even from
+	// a different region, they were made outside of the session scope - so, effectively eventually
+	// consistent. ARM team has worked in the past to make the multi-master model work transparently,
+	// and I assume they will continue this work as will our other teams working on the problem.
+
 	stateConf := &pluginsdk.StateChangeConf{ //nolint:staticcheck
 		Pending:                   []string{"Waiting"},
 		Target:                    []string{"Done"},
@@ -116,6 +136,8 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Resource Group %s to become available: %+v", name, err)
 	}
+
+	// @favoretti kludge end
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
