@@ -53,6 +53,7 @@ func TestAccNetworkWatcher(t *testing.T) {
 			"icmpConfiguration":              testAccNetworkConnectionMonitor_icmpConfiguration,
 			"bothAddressAndVirtualMachineId": testAccNetworkConnectionMonitor_withAddressAndVirtualMachineId,
 			"updateEndpoint":                 testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel,
+			"azureArcVM":                     testAccNetworkConnectionMonitor_azureArcVM,
 		},
 		"PacketCapture": {
 			"localDisk":                  testAccNetworkPacketCapture_localDisk,
