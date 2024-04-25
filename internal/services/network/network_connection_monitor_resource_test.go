@@ -1169,14 +1169,14 @@ resource "azurerm_network_connection_monitor" "test" {
   location           = azurerm_network_watcher.test.location
 
   endpoint {
-    name                 = "source"
-    target_resource_type = "AzureArcVM"
-    target_resource_id   = data.azurerm_arc_machine.test.id
+    name    = "destination"
+    address = "pluginsdk.io"
   }
 
   endpoint {
-    address = "pluginsdk.io"
-    name    = "destination"
+    name                 = "source"
+    target_resource_type = "AzureArcVM"
+    target_resource_id   = data.azurerm_arc_machine.test.id
   }
 
   test_configuration {
