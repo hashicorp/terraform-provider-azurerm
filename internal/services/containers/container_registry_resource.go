@@ -647,10 +647,12 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("name", id.RegistryName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
+	// this must be set to filter out the georeplication for the container registry's current location
 	loc := ""
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
+		loc = location.Normalize(model.Location)
+		d.Set("location", loc)
 
 		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {

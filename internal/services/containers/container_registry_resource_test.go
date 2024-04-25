@@ -195,7 +195,7 @@ func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
 		data.ImportStep(),
 		// updates the SKU to basic.
 		{
-			Config: r.geoReplicationUpdateWithNoLocation_basic(data),
+			Config: r.geoReplicationUpdateWithNoLocationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -554,7 +554,6 @@ resource "azurerm_container_registry" "test" {
   retention_policy_in_days      = 10
   trust_policy_enabled          = true
   export_policy_enabled         = false
-  zone_redundancy_enabled       = true
   anonymous_pull_enabled        = true
   data_endpoint_enabled         = true
 
@@ -610,7 +609,6 @@ resource "azurerm_container_registry" "test" {
   retention_policy_in_days      = 15
   trust_policy_enabled          = false
   export_policy_enabled         = true
-  zone_redundancy_enabled       = false
   anonymous_pull_enabled        = false
   data_endpoint_enabled         = false
 
@@ -731,11 +729,6 @@ resource "azurerm_container_registry" "test" {
   georeplications {
     location = "%s"
   }
-  lifecycle {
-    ignore_changes = [
-      network_rule_set
-    ]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
 	}
@@ -759,6 +752,11 @@ resource "azurerm_container_registry" "test" {
   }
   georeplications {
     location = "%s"
+  }
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
@@ -830,7 +828,7 @@ resource "azurerm_container_registry" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
 }
 
-func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation_basic(data acceptance.TestData) string {
+func (ContainerRegistryResource) geoReplicationUpdateWithNoLocationBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

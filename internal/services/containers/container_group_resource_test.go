@@ -432,7 +432,7 @@ func TestAccContainerGroup_linuxComplete(t *testing.T) {
 				check.That(data.ResourceName).Key("container.0.secure_environment_variables.secureFoo1").HasValue("secureBar1"),
 				check.That(data.ResourceName).Key("container.0.gpu.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.gpu.0.count").HasValue("1"),
-				check.That(data.ResourceName).Key("container.0.gpu.0.sku").HasValue("K80"),
+				check.That(data.ResourceName).Key("container.0.gpu.0.sku").HasValue("V100"),
 				check.That(data.ResourceName).Key("container.0.volume.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container.0.volume.0.mount_path").HasValue("/aci/logs"),
 				check.That(data.ResourceName).Key("container.0.volume.0.name").HasValue("logs"),
