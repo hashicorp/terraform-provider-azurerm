@@ -9,13 +9,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = LoadTestResource{}
@@ -30,11 +33,22 @@ func (r LoadTestResource) ModelObject() interface{} {
 type LoadTestResourceSchema struct {
 	DataPlaneURI      string                                     `tfschema:"data_plane_uri"`
 	Description       string                                     `tfschema:"description"`
+	Encryption        []LoadTestEncryption                       `tfschema:"encryption"`
 	Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	Location          string                                     `tfschema:"location"`
 	Name              string                                     `tfschema:"name"`
 	ResourceGroupName string                                     `tfschema:"resource_group_name"`
 	Tags              map[string]interface{}                     `tfschema:"tags"`
+}
+
+type LoadTestEncryption struct {
+	KeyURL   string                       `tfschema:"key_url"`
+	Identity []LoadTestEncryptionIdentity `tfschema:"identity"`
+}
+
+type LoadTestEncryptionIdentity struct {
+	IdentityID string `tfschema:"identity_id"`
+	Type       string `tfschema:"type"`
 }
 
 func (r LoadTestResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -58,7 +72,45 @@ func (r LoadTestResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-		"tags":     commonschema.Tags(),
+		"encryption": {
+			ForceNew: true,
+			MaxItems: 1,
+			Optional: true,
+			Type:     pluginsdk.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"key_url": {
+						ForceNew:     true,
+						Required:     true,
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"identity": {
+						ForceNew: true,
+						MaxItems: 1,
+						Required: true,
+						Type:     pluginsdk.TypeList,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"type": {
+									ForceNew:     true,
+									Required:     true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.StringInSlice(loadtests.PossibleValuesForType(), false),
+								},
+								"identity_id": {
+									ForceNew:     true,
+									Required:     true,
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"tags": commonschema.Tags(),
 	}
 }
 func (r LoadTestResource) Attributes() map[string]*pluginsdk.Schema {
@@ -79,7 +131,6 @@ func (r LoadTestResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := loadtests.NewLoadTestID(subscriptionId, config.ResourceGroupName, config.Name)
@@ -193,13 +244,52 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
 
 	output.Description = &input.Description
+	output.Encryption = r.mapLoadTestResourceSchemaToLoadTestEncryption(input.Encryption)
+
 	return nil
+}
+
+func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []LoadTestEncryption) *loadtests.EncryptionProperties {
+	if len(input) > 0 && input[0].KeyURL == "" {
+		return nil
+	}
+
+	attr := input[0]
+
+	encryptionIdentity := &loadtests.EncryptionPropertiesIdentity{}
+	if attrIdentity := input[0].Identity; len(attrIdentity) > 0 {
+		encryptionIdentity.ResourceId = pointer.To(attrIdentity[0].IdentityID)
+		encryptionIdentity.Type = pointer.To(loadtests.Type(attrIdentity[0].Type))
+	}
+
+	return &loadtests.EncryptionProperties{
+		KeyUrl:   pointer.To(attr.KeyURL),
+		Identity: encryptionIdentity,
+	}
 }
 
 // nolint unparam
 func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input loadtests.LoadTestProperties, output *LoadTestResourceSchema) error {
 	output.DataPlaneURI = pointer.From(input.DataPlaneURI)
 	output.Description = pointer.From(input.Description)
+
+	if encryption := input.Encryption; encryption != nil {
+		outputEncryption := make([]LoadTestEncryption, 0)
+		outputEncryptionIdentity := make([]LoadTestEncryptionIdentity, 0)
+		output.Encryption = append(outputEncryption, LoadTestEncryption{
+			KeyURL:   pointer.From(encryption.KeyUrl),
+			Identity: outputEncryptionIdentity,
+		})
+		if encryptionIdentity := encryption.Identity; encryptionIdentity != nil {
+			output.Encryption[0].Identity = append(output.Encryption[0].Identity, LoadTestEncryptionIdentity{
+				IdentityID: pointer.From(encryptionIdentity.ResourceId),
+			})
+
+			if encryptionIdentity.Type != nil {
+				output.Encryption[0].Identity[0].Type = string(pointer.From(encryptionIdentity.Type))
+			}
+		}
+	}
 	return nil
 }
 
