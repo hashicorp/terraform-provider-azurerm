@@ -17,12 +17,23 @@ type ManagerConnectivityConfigurationDataSource struct{}
 
 var _ sdk.DataSource = ManagerConnectivityConfigurationDataSource{}
 
+type ManagerConnectivityConfigurationDataSourceModel struct {
+	Name                         string                                          `tfschema:"name"`
+	NetworkManagerId             string                                          `tfschema:"network_manager_id"`
+	AppliesToGroups              []ConnectivityGroupItemModel                    `tfschema:"applies_to_group"`
+	ConnectivityTopology         connectivityconfigurations.ConnectivityTopology `tfschema:"connectivity_topology"`
+	DeleteExistingPeeringEnabled bool                                            `tfschema:"delete_existing_peering_enabled"`
+	Description                  string                                          `tfschema:"description"`
+	Hub                          []HubModel                                      `tfschema:"hub"`
+	GlobalMeshEnabled            bool                                            `tfschema:"global_mesh_enabled"`
+}
+
 func (r ManagerConnectivityConfigurationDataSource) ResourceType() string {
 	return "azurerm_network_manager_connectivity_configuration"
 }
 
 func (r ManagerConnectivityConfigurationDataSource) ModelObject() interface{} {
-	return &ManagerConnectivityConfigurationModel{}
+	return &ManagerConnectivityConfigurationDataSourceModel{}
 }
 
 func (r ManagerConnectivityConfigurationDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -117,7 +128,7 @@ func (r ManagerConnectivityConfigurationDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.ConnectivityConfigurations
 
-			var model ManagerConnectivityConfigurationModel
+			var model ManagerConnectivityConfigurationDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -138,7 +149,7 @@ func (r ManagerConnectivityConfigurationDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ManagerConnectivityConfigurationModel{
+			state := ManagerConnectivityConfigurationDataSourceModel{
 				Name:             model.Name,
 				NetworkManagerId: networkManagerId.ID(),
 			}
