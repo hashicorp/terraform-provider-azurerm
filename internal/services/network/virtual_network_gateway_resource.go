@@ -657,8 +657,9 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	id := parse.NewVirtualNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	var existingVNetGateway network.VirtualNetworkGateway
 	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -668,12 +669,18 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_virtual_network_gateway", id.ID())
 		}
+	} else {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return err
+		}
+		existingVNetGateway = existing
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	properties, err := getVirtualNetworkGatewayProperties(id, d, existing)
+	properties, err := getVirtualNetworkGatewayProperties(id, d, existingVNetGateway)
 	if err != nil {
 		return err
 	}
