@@ -480,6 +480,7 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 		"azurerm_managed_disk":           {},
 		"azurerm_media_services_account": {},
 		"azurerm_snapshot":               {},
+		"azurerm_load_test":              {},
 	}
 	if features.FourPointOhBeta() {
 		resourcesWhichNeedToBeAddressed = map[string]struct{}{}

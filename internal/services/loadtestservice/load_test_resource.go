@@ -250,14 +250,14 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input Lo
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestEncryption(input []LoadTestEncryption) *loadtests.EncryptionProperties {
-	if len(input) > 0 && input[0].KeyURL == "" {
+	if len(input) == 0 || input[0].KeyURL == "" {
 		return nil
 	}
 
 	attr := input[0]
 
 	encryptionIdentity := &loadtests.EncryptionPropertiesIdentity{}
-	if attrIdentity := input[0].Identity; len(attrIdentity) > 0 {
+	if attrIdentity := attr.Identity; len(attrIdentity) > 0 {
 		encryptionIdentity.ResourceId = pointer.To(attrIdentity[0].IdentityID)
 		encryptionIdentity.Type = pointer.To(loadtests.Type(attrIdentity[0].Type))
 	}
