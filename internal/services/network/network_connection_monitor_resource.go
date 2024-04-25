@@ -182,6 +182,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
+							string(connectionmonitors.EndpointTypeAzureArcVM),
 							string(connectionmonitors.EndpointTypeAzureSubnet),
 							string(connectionmonitors.EndpointTypeAzureVM),
 							string(connectionmonitors.EndpointTypeAzureVNet),
