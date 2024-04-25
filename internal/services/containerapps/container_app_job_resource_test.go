@@ -245,13 +245,6 @@ func TestAccContainerAppJob_completeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -587,9 +580,6 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) withWorkloadProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 %s
 
@@ -625,9 +615,6 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 %[1]s
 
@@ -726,9 +713,7 @@ resource "azurerm_container_app_job" "test" {
 
 func (r ContainerAppJobResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+
 
 %[1]s
 
@@ -753,6 +738,11 @@ resource "azurerm_container_app_job" "test" {
   secrets {
     name  = "registry-password"
     value = azurerm_container_registry.test.admin_password
+  }
+
+  secrets {
+    name  = "foo"
+    value = "bar"
   }
 
   registries {

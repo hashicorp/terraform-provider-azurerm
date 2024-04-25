@@ -655,6 +655,19 @@ func expandContainerAppJobStartupProbe(input ContainerAppStartupProbe) jobs.Cont
 	return result
 }
 
+func UnpackContainerJobSecretsCollection(input *jobs.JobSecretsCollection) *[]jobs.Secret {
+	if input == nil || len(input.Value) == 0 {
+		return nil
+	}
+
+	result := make([]jobs.Secret, 0)
+	for _, v := range input.Value {
+		result = append(result, v)
+	}
+
+	return &result
+}
+
 func flattenContainerJobEnvVar(input *[]jobs.EnvironmentVar) []ContainerEnvVar {
 	if input == nil || len(*input) == 0 {
 		return []ContainerEnvVar{}

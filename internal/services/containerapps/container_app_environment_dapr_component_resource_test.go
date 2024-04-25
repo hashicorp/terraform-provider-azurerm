@@ -270,6 +270,10 @@ func (r ContainerAppEnvironmentDaprComponentResource) template(data acceptance.T
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-CAEnv-%[1]d"
   location = "%[2]s"
+
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }
 
 resource "azurerm_log_analytics_workspace" "test" {

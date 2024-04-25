@@ -102,6 +102,7 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 		"event_trigger_config": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			ForceNew: true,
 			MaxItems: 1,
 			ExactlyOneOf: []string{
 				"event_trigger_config",
@@ -132,6 +133,7 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 		"schedule_trigger_config": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			ForceNew: true,
 			MaxItems: 1,
 			ExactlyOneOf: []string{
 				"event_trigger_config",
@@ -166,6 +168,7 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 		"manual_trigger_config": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			ForceNew: true,
 			MaxItems: 1,
 			ExactlyOneOf: []string{
 				"event_trigger_config",
@@ -275,11 +278,11 @@ func (r ContainerAppJobResource) Create() sdk.ResourceFunc {
 			}
 			job.Properties.Configuration.TriggerType = triggerType
 
-			ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
-			job.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
+			job.Identity = ident
 
 			if model.WorkloadProfileName != "" {
 				job.Properties.WorkloadProfileName = pointer.To(model.WorkloadProfileName)
@@ -324,11 +327,13 @@ func (r ContainerAppJobResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
 				if model.Identity != nil {
-					ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
-					if err != nil {
-						return err
+					if model.Identity != nil {
+						ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(*model.Identity)))
+						if err != nil {
+							return err
+						}
+						state.Identity = pointer.From(ident)
 					}
-					state.Identity = pointer.From(ident)
 				}
 
 				if props := model.Properties; props != nil {
@@ -406,9 +411,13 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving secrets for update for %s: %+v", *id, err)
 				}
 			}
-			model.Properties.Configuration.Secrets = pointer.To(secretsResp.Model.Value)
+			model.Properties.Configuration.Secrets = helpers.UnpackContainerJobSecretsCollection(secretsResp.Model)
 
 			d := metadata.ResourceData
+
+			if metadata.ResourceData.HasChange("secrets") {
+				model.Properties.Configuration.Secrets = helpers.ExpandContainerAppJobSecrets(state.Secrets)
+			}
 
 			if d.HasChange("registries") {
 				model.Properties.Configuration.Registries, err = helpers.ExpandContainerAppJobRegistries(state.Registries)
@@ -438,11 +447,11 @@ func (r ContainerAppJobResource) Update() sdk.ResourceFunc {
 			}
 
 			if d.HasChange("identity") {
-				ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
+				ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(state.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
+				model.Identity = ident
 			}
 
 			if d.HasChange("workload_profile_name") {
