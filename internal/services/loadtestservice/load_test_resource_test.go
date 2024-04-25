@@ -194,7 +194,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   soft_delete_retention_days = 7
-  purge_protection_enabled = true
+  purge_protection_enabled   = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -237,7 +237,7 @@ resource "azurerm_key_vault_key" "test" {
   key_type     = "RSA"
   key_size     = 2048
 
-   key_opts = [
+  key_opts = [
     "decrypt",
     "encrypt",
     "sign",
@@ -259,7 +259,7 @@ resource "azurerm_load_test" "test" {
 
   encryption {
     key_url = azurerm_key_vault_key.test.id
-    
+
     identity {
       type        = "UserAssigned"
       identity_id = azurerm_user_assigned_identity.test.id
