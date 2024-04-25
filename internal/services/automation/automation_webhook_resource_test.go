@@ -77,6 +77,12 @@ func TestAccAutomationWebhook_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
 			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_automation_webhook"),
 		},
