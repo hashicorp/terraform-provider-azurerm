@@ -281,15 +281,18 @@ func testAccNetworkConnectionMonitor_updateEndpointIPAddressAndCoverageLevel(t *
 }
 
 func testAccNetworkConnectionMonitor_azureArcVM(t *testing.T) {
+	if os.Getenv("CLIENT_SECRET") == "" {
+		t.Skip("Skipping as CLIENT_SECRET is not specified")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 	r := NetworkConnectionMonitorResource{}
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	randomUUID, _ := uuid.GenerateUUID()
 	password := generateRandomPassword(10)
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azureArcVM(data, clientSecret, randomUUID, password),
+			Config: r.azureArcVM(data, randomUUID, password),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1001,7 +1004,7 @@ resource "azurerm_network_connection_monitor" "test" {
 `, r.baseConfig(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetworkConnectionMonitorResource) azureArcVM(data acceptance.TestData, secret string, randomUUID string, password string) string {
+func (r NetworkConnectionMonitorResource) azureArcVM(data acceptance.TestData, randomUUID string, password string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1195,5 +1198,5 @@ resource "azurerm_network_connection_monitor" "test" {
 
   depends_on = [azurerm_arc_machine_extension.test]
 }
-`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, password, password, secret, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, password, password, os.Getenv("CLIENT_SECRET"), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
