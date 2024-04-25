@@ -67,7 +67,11 @@ func (c *Client) DataPlaneClientWithEndpoint(endpoint string) (*attestation.Poli
 		segments = segments[2:]
 	}
 	authTokenUri := fmt.Sprintf("https://%s/", strings.Join(segments, "."))
-	api := environments.AttestationAPI(authTokenUri)
+	domainSuffix, ok := c.o.Environment.Attestation.DomainSuffix()
+	if !ok {
+		return nil, fmt.Errorf("building Authorizer for %q: domain suffix for Attestation service could not be determined", endpoint)
+	}
+	api := environments.AttestationAPI(authTokenUri, *domainSuffix)
 	auth, err := c.o.Authorizers.AuthorizerFunc(api)
 	if err != nil {
 		return nil, fmt.Errorf("building Authorizer for %q: %+v", endpoint, err)

@@ -136,13 +136,15 @@ The following arguments are supported:
 
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
-~> **NOTE:** `queue_properties` cannot be set when the `account_kind` is set to `BlobStorage`
+~> **NOTE:** `queue_properties` can only be configured when `account_tier` is set to `Standard` and `account_kind` is set to either `Storage` or `StorageV2`.
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
 ~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
 * `share_properties` - (Optional) A `share_properties` block as defined below.
+
+~> **NOTE:** `share_properties` can only be configured when either `account_tier` is `Standard` and `account_kind` is either `Storage` or `StorageV2` - or when `account_tier` is `Premium` and `account_kind` is `FileStorage`.
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
@@ -190,6 +192,8 @@ A `blob_properties` block supports the following:
 * `restore_policy` - (Optional) A `restore_policy` block as defined below. This must be used together with `delete_retention_policy` set, `versioning_enabled` and `change_feed_enabled` set to `true`.
 
 -> **NOTE:** This field cannot be configured when `kind` is set to `Storage` (V1).
+
+-> **NOTE:** `restore_policy` can not be configured when `dns_endpoint_type` is `AzureDnsZone`.
 
 * `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 

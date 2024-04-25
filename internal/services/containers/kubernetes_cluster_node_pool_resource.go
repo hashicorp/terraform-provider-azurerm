@@ -1073,6 +1073,21 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 }
 
 func upgradeSettingsSchema() *pluginsdk.Schema {
+	if !features.FourPointOhBeta() {
+		return &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"max_surge": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+				},
+			},
+		}
+	}
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -1081,7 +1096,8 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
 					Type:     pluginsdk.TypeString,
-					Required: true,
+					Optional: true,
+					Default:  "10%",
 				},
 			},
 		},
@@ -1515,7 +1531,7 @@ func expandAgentPoolWindowsProfile(input []interface{}) *agentpools.AgentPoolWin
 }
 
 func flattenAgentPoolWindowsProfile(input *agentpools.AgentPoolWindowsProfile) []interface{} {
-	if input == nil {
+	if input == nil || input.DisableOutboundNat == nil {
 		return []interface{}{}
 	}
 

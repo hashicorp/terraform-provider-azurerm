@@ -91,6 +91,7 @@ var subnetDelegationServiceNames = []string{
 	"NGINX.NGINXPLUS/nginxDeployments",
 	"PaloAltoNetworks.Cloudngfw/firewalls",
 	"Qumulo.Storage/fileSystems",
+	"Oracle.Database/networkAttachments",
 }
 
 func resourceSubnet() *pluginsdk.Resource {
@@ -222,17 +223,17 @@ func resourceSubnet() *pluginsdk.Resource {
 			"private_link_service_network_policies_enabled": {
 				Type: pluginsdk.TypeBool,
 				Computed: func() bool {
-					return !features.FourPointOh()
+					return !features.FourPointOhBeta()
 				}(),
 				Optional: true,
 				Default: func() interface{} {
-					if !features.FourPointOh() {
+					if !features.FourPointOhBeta() {
 						return nil
 					}
-					return features.FourPointOh()
+					return features.FourPointOhBeta()
 				}(),
 				ConflictsWith: func() []string {
-					if !features.FourPointOh() {
+					if !features.FourPointOhBeta() {
 						return []string{"enforce_private_link_service_network_policies"}
 					}
 					return []string{}

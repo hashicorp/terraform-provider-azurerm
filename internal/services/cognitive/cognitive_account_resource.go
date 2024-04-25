@@ -82,6 +82,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					"CognitiveServices",
 					"ComputerVision",
 					"ContentModerator",
+					"ConversationalLanguageUnderstanding",
 					"ContentSafety",
 					"CustomSpeech",
 					"CustomVision.Prediction",

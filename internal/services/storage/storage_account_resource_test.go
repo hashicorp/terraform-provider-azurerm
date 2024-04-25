@@ -1113,13 +1113,13 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 	})
 }
 
-func TestAccStorageAccount_allowSharedKeyAccess(t *testing.T) {
+func TestAccStorageAccount_sharedKeyAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allowSharedKeyAccess(data),
+			Config: r.sharedKeyAccessDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("account_tier").HasValue("Standard"),
@@ -1129,8 +1129,9 @@ func TestAccStorageAccount_allowSharedKeyAccess(t *testing.T) {
 				check.That(data.ResourceName).Key("shared_access_key_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.allowSharedKeyAccessUpdated(data),
+			Config: r.sharedKeyAccessEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("account_tier").HasValue("Standard"),
@@ -1139,6 +1140,31 @@ func TestAccStorageAccount_allowSharedKeyAccess(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
 				check.That(data.ResourceName).Key("shared_access_key_enabled").HasValue("true"),
 			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sharedKeyAccessDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("account_tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("shared_access_key_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_sharedKeyAccessUnsupported(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.sharedKeyAccessDisabledWithAzureADAuthDisabled(data),
+			ExpectError: regexp.MustCompile("Key based authentication is not permitted on this storage account"),
 		},
 	})
 }
@@ -1608,6 +1634,111 @@ func TestAccStorageAccount_invalidAccountKindForAccessTier(t *testing.T) {
 			Config:      r.invalidAccountKindForAccessTier(data),
 			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind: \\[BlobStorage StorageV2 FileStorage\\]"),
 		},
+	})
+}
+
+func TestAccStorageAccount_StorageV1_blobProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1BlobProperties(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_queuePropertiesLRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1QueueProperties(data, "LRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_queuePropertiesGRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1QueueProperties(data, "GRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_queuePropertiesRAGRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1QueueProperties(data, "RAGRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_sharePropertiesLRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1ShareProperties(data, "LRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_sharePropertiesGRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1ShareProperties(data, "GRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_StorageV1_sharePropertiesRAGRS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageV1ShareProperties(data, "RAGRS"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -3680,7 +3811,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) allowSharedKeyAccess(data acceptance.TestData) string {
+func (r StorageAccountResource) sharedKeyAccessDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3708,7 +3839,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) allowSharedKeyAccessUpdated(data acceptance.TestData) string {
+func (r StorageAccountResource) sharedKeyAccessEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3732,6 +3863,30 @@ resource "azurerm_storage_account" "test" {
   tags = {
     environment = "production"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) sharedKeyAccessDisabledWithAzureADAuthDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+  storage_use_azuread = false
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  shared_access_key_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -4701,4 +4856,141 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "GRS"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) storageV1BlobProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "Storage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  blob_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT", "PATCH"]
+      max_age_in_seconds = "500"
+    }
+
+    delete_retention_policy {
+      days = 300
+    }
+    default_service_version = "2019-07-07"
+    container_delete_retention_policy {
+      days = 7
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) storageV1QueueProperties(data acceptance.TestData, repl string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "Storage"
+  account_tier             = "Standard"
+  account_replication_type = "%s"
+
+  queue_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT"]
+      max_age_in_seconds = "500"
+    }
+
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
+
+    hour_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
+
+    minute_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, repl)
+}
+
+func (r StorageAccountResource) storageV1ShareProperties(data acceptance.TestData, repl string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "Storage"
+  account_tier             = "Standard"
+  account_replication_type = "%s"
+
+  share_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT", "PATCH"]
+      max_age_in_seconds = "500"
+    }
+
+    retention_policy {
+      days = 300
+    }
+
+    smb {
+      versions                        = ["SMB3.0"]
+      authentication_types            = ["NTLMv2"]
+      kerberos_ticket_encryption_type = ["AES-256"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, repl)
 }
