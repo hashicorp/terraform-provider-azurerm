@@ -1022,7 +1022,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-monitor-%d"
   location = "%s"
 }
 
