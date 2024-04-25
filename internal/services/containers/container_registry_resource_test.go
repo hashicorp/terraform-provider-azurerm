@@ -529,6 +529,54 @@ resource "azurerm_container_registry" "import" {
 }
 
 func (ContainerRegistryResource) complete(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = true
+  sku                 = "Premium"
+  identity {
+    type = "SystemAssigned"
+  }
+
+  public_network_access_enabled = false
+  quarantine_policy_enabled     = true
+  retention_policy {
+    enabled = true
+    days    = 10
+  }
+  trust_policy {
+    enabled = true
+  }
+  export_policy_enabled  = false
+  anonymous_pull_enabled = true
+  data_endpoint_enabled  = true
+
+  network_rule_bypass_option = "None"
+
+  tags = {
+    environment = "production"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -573,6 +621,66 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) completeUpdated(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "testaccuai%[2]d"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = true
+  sku                 = "Premium"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  public_network_access_enabled = true
+  quarantine_policy_enabled     = false
+  retention_policy {
+    enabled = true
+    days    = 15
+  }
+  trust_policy {
+    enabled = false
+  }
+  export_policy_enabled  = true
+  anonymous_pull_enabled = false
+  data_endpoint_enabled  = false
+
+  network_rule_bypass_option = "AzureServices"
+
+  tags = {
+    environment = "production"
+    oompa       = "loompa"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -629,6 +737,35 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) downgradeSku(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = true
+  sku                 = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  retention_policy {}
+  trust_policy {}
+
+  network_rule_set = []
+}
+`, data.Locations.Primary, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

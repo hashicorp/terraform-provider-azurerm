@@ -734,17 +734,16 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := containerinstance.NewContainerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.ContainerGroupsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
+	existing, err := client.ContainerGroupsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_container_group", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_container_group", id.ID())
 	}
 
 	location := location.Normalize(d.Get("location").(string))

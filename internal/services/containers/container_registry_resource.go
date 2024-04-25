@@ -89,9 +89,12 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
-			// This validation needs to be disabled until 4.0 when the old `retention_policy` is remove and `retention_policy_in_days` is no longer computed
-			// until then this check always fails and users won't be able to downgrade the sku
-			if features.FourPointOh() {
+			if !features.FourPointOhBeta() {
+				retentionPolicyEnabled, ok := d.GetOk("retention_policy.0.enabled")
+				if ok && retentionPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+					return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please set retention_policy {}")
+				}
+			} else {
 				retentionPolicyEnabled, ok := d.GetOk("retention_policy_in_days")
 				if ok && retentionPolicyEnabled.(int) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 					return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
@@ -226,18 +229,20 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	retentionPolicy := &registries.RetentionPolicy{}
 	if !features.FourPointOhBeta() {
 		retentionPolicy = expandRetentionPolicy(d.Get("retention_policy").([]interface{}))
-	}
-	if v, ok := d.GetOk("retention_policy_in_days"); ok && v.(int) > 0 {
-		retentionPolicy.Days = pointer.To(int64(v.(int)))
-		retentionPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
+	} else {
+		if v, ok := d.GetOk("retention_policy_in_days"); ok && v.(int) > 0 {
+			retentionPolicy.Days = pointer.To(int64(v.(int)))
+			retentionPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
+		}
 	}
 
 	trustPolicy := &registries.TrustPolicy{}
 	if !features.FourPointOhBeta() {
 		trustPolicy = expandTrustPolicy(d.Get("trust_policy").([]interface{}))
-	}
-	if v, ok := d.GetOk("trust_policy_enabled"); ok && v.(bool) {
-		trustPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
+	} else {
+		if v, ok := d.GetOk("trust_policy_enabled"); ok && v.(bool) {
+			trustPolicy.Status = pointer.To(registries.PolicyStatusEnabled)
+		}
 	}
 
 	parameters := registries.Registry{
@@ -347,14 +352,13 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	policyKeys := []string{
-		"retention_policy_in_days",
-		"trust_policy_enabled",
 		"quarantine_policy_enabled",
 		"export_policy_enabled",
 	}
-
-	if !features.FourPointOh() {
+	if !features.FourPointOhBeta() {
 		policyKeys = append(policyKeys, []string{"retention_policy", "trust_policy"}...)
+	} else {
+		policyKeys = append(policyKeys, []string{"retention_policy_in_days", "trust_policy_enabled"}...)
 	}
 
 	if d.HasChanges(policyKeys...) {
@@ -371,29 +375,29 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 			trustPolicy := expandTrustPolicy(d.Get("trust_policy").([]interface{}))
 			payload.Properties.Policies.TrustPolicy = trustPolicy
 		}
-	}
-
-	if d.HasChange("retention_policy_in_days") {
-		payload.Properties.Policies.RetentionPolicy = &registries.RetentionPolicy{
-			Status: pointer.To(registries.PolicyStatusDisabled),
-		}
-
-		if v := d.Get("retention_policy_in_days").(int); v != 0 {
+	} else {
+		if d.HasChange("retention_policy_in_days") {
 			payload.Properties.Policies.RetentionPolicy = &registries.RetentionPolicy{
-				Status: pointer.To(registries.PolicyStatusEnabled),
-				Days:   pointer.To(int64(v)),
+				Status: pointer.To(registries.PolicyStatusDisabled),
+			}
+
+			if v := d.Get("retention_policy_in_days").(int); v != 0 {
+				payload.Properties.Policies.RetentionPolicy = &registries.RetentionPolicy{
+					Status: pointer.To(registries.PolicyStatusEnabled),
+					Days:   pointer.To(int64(v)),
+				}
 			}
 		}
-	}
 
-	if d.HasChange("trust_policy_enabled") {
-		payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
-			Status: pointer.To(registries.PolicyStatusDisabled),
-		}
-
-		if v := d.Get("trust_policy_enabled").(bool); v {
+		if d.HasChange("trust_policy_enabled") {
 			payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
-				Status: pointer.To(registries.PolicyStatusEnabled),
+				Status: pointer.To(registries.PolicyStatusDisabled),
+			}
+
+			if v := d.Get("trust_policy_enabled").(bool); v {
+				payload.Properties.Policies.TrustPolicy = &registries.TrustPolicy{
+					Status: pointer.To(registries.PolicyStatusEnabled),
+				}
 			}
 		}
 	}
@@ -683,15 +687,17 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
 
 			if policies := props.Policies; policies != nil {
-				var retentionInDays int64
-				if policies.RetentionPolicy != nil && policies.RetentionPolicy.Status != nil && *policies.RetentionPolicy.Status == registries.PolicyStatusEnabled {
-					retentionInDays = pointer.From(policies.RetentionPolicy.Days)
-				}
-				d.Set("retention_policy_in_days", retentionInDays)
+				if features.FourPointOhBeta() {
+					var retentionInDays int64
+					if policies.RetentionPolicy != nil && policies.RetentionPolicy.Status != nil && *policies.RetentionPolicy.Status == registries.PolicyStatusEnabled {
+						retentionInDays = pointer.From(policies.RetentionPolicy.Days)
+					}
+					d.Set("retention_policy_in_days", retentionInDays)
 
-				if policies.TrustPolicy != nil && policies.TrustPolicy.Status != nil {
-					policyEnabled := *policies.TrustPolicy.Status == registries.PolicyStatusEnabled
-					d.Set("trust_policy_enabled", policyEnabled)
+					if policies.TrustPolicy != nil && policies.TrustPolicy.Status != nil {
+						policyEnabled := *policies.TrustPolicy.Status == registries.PolicyStatusEnabled
+						d.Set("trust_policy_enabled", policyEnabled)
+					}
 				}
 
 				d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
@@ -1203,33 +1209,15 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"retention_policy_in_days": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: !features.FourPointOhBeta(),
-			ConflictsWith: func() []string {
-				if !features.FourPointOhBeta() {
-					return []string{"retention_policy"}
-				}
-				return []string{}
-			}(),
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(0, 365),
 		},
 
 		"trust_policy_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: !features.FourPointOhBeta(),
-			Default: func() interface{} {
-				if !features.FourPointOhBeta() {
-					return nil
-				}
-				return false
-			}(),
-			ConflictsWith: func() []string {
-				if !features.FourPointOhBeta() {
-					return []string{"trust_policy"}
-				}
-				return []string{}
-			}(),
+			Default:  false,
 		},
 
 		"export_policy_enabled": {
@@ -1297,13 +1285,12 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			},
 		}
 		schema["retention_policy"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			MaxItems:      1,
-			Optional:      true,
-			Computed:      true,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
-			ConflictsWith: []string{"retention_policy_in_days"},
-			Deprecated:    "The block `retention_policy` has been superseded by `retention_policy_in_days` and will be removed in v4.0 of the AzureRM provider.",
+			Type:       pluginsdk.TypeList,
+			MaxItems:   1,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Deprecated: features.DeprecatedInFourPointOh("The block `retention_policy` will be removed and replace by the property `retention_policy_in_days` in v4.0 of the AzureRM provider"),
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"days": {
@@ -1320,13 +1307,12 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 			},
 		}
 		schema["trust_policy"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			MaxItems:      1,
-			Optional:      true,
-			Computed:      true,
-			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
-			ConflictsWith: []string{"trust_policy_enabled"},
-			Deprecated:    "The block `trust_policy` has been superseded by `trust_policy_enabled` and will be removed in v4.0 of the AzureRM provider.",
+			Type:       pluginsdk.TypeList,
+			MaxItems:   1,
+			Optional:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Deprecated: features.DeprecatedInFourPointOh("The block `trust_policy` will be removed and replace by the property `trust_policy_enabled` in v4.0 of the AzureRM provider"),
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
@@ -1402,6 +1388,9 @@ func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 				},
 			},
 		}
+		// removing these until 4.0 since we can only support a hard deprecation here
+		delete(schema, "retention_policy_in_days")
+		delete(schema, "trust_policy_enabled")
 	}
 
 	return schema
