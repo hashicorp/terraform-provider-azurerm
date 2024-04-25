@@ -21,7 +21,7 @@ type CustomLocationDataSource struct{}
 
 var _ sdk.DataSource = CustomLocationDataSource{}
 
-type CustomLocationModel struct {
+type CustomLocationDataSourceModel struct {
 	ClusterExtensionIds []string                       `tfschema:"cluster_extension_ids"`
 	DisplayName         string                         `tfschema:"display_name"`
 	HostResourceId      string                         `tfschema:"host_resource_id"`
@@ -38,7 +38,7 @@ func (r CustomLocationDataSource) ResourceType() string {
 }
 
 func (r CustomLocationDataSource) ModelObject() interface{} {
-	return &CustomLocationModel{}
+	return &CustomLocationDataSourceModel{}
 }
 
 func (r CustomLocationDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -96,7 +96,7 @@ func (r CustomLocationDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ExtendedLocation.CustomLocations
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model CustomLocationModel
+			var model CustomLocationDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -112,7 +112,7 @@ func (r CustomLocationDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := CustomLocationModel{
+			state := CustomLocationDataSourceModel{
 				Name:              model.Name,
 				ResourceGroupName: model.ResourceGroupName,
 			}
