@@ -22,12 +22,23 @@ type ArcResourceBridgeApplianceDataSource struct{}
 
 var _ sdk.DataSource = ArcResourceBridgeApplianceDataSource{}
 
+type ApplianceDataSourceModel struct {
+	Name              string                         `tfschema:"name"`
+	ResourceGroupName string                         `tfschema:"resource_group_name"`
+	Location          string                         `tfschema:"location"`
+	Distro            appliances.Distro              `tfschema:"distro"`
+	Identity          []identity.ModelSystemAssigned `tfschema:"identity"`
+	Provider          appliances.Provider            `tfschema:"infrastructure_provider"`
+	PublicKeyBase64   string                         `tfschema:"public_key_base64"`
+	Tags              map[string]interface{}         `tfschema:"tags"`
+}
+
 func (r ArcResourceBridgeApplianceDataSource) ResourceType() string {
 	return "azurerm_arc_resource_bridge_appliance"
 }
 
 func (r ArcResourceBridgeApplianceDataSource) ModelObject() interface{} {
-	return &ApplianceModel{}
+	return &ApplianceDataSourceModel{}
 }
 
 func (r ArcResourceBridgeApplianceDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -77,7 +88,7 @@ func (r ArcResourceBridgeApplianceDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ArcResourceBridge.AppliancesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model ApplianceModel
+			var model ApplianceDataSourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -93,7 +104,7 @@ func (r ArcResourceBridgeApplianceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ApplianceModel{
+			state := ApplianceDataSourceModel{
 				Name:              model.Name,
 				ResourceGroupName: model.ResourceGroupName,
 			}
