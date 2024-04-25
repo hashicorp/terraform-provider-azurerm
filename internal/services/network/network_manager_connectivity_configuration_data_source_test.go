@@ -10,7 +10,7 @@ import (
 
 type ManagerConnectivityConfigurationDataSource struct{}
 
-func TestAccManagerConnectivityConfigurationDataSource_basic(t *testing.T) {
+func testAccNetworkManagerConnectivityConfigurationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_manager_connectivity_configuration", "test")
 	d := ManagerConnectivityConfigurationDataSource{}
 
