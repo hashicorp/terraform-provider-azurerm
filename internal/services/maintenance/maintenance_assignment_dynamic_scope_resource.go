@@ -358,7 +358,9 @@ func (MaintenanceDynamicScopeResource) Update() sdk.ResourceFunc {
 						filterProperties.TagSettings = tagProperties
 					}
 
-					existing.Properties.Filter = pointer.To(filterProperties)
+					if pointer.To(filterProperties) != nil {
+						existing.Properties.Filter = pointer.To(filterProperties)
+					}
 				} else {
 					existing.Properties.Filter = &configurationassignments.ConfigurationAssignmentFilterProperties{}
 				}
