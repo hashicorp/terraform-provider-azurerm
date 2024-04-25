@@ -96,19 +96,20 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	stateConf := &pluginsdk.StateChangeConf{ //nolint:staticcheck
 		Pending:                   []string{"Waiting"},
 		Target:                    []string{"Done"},
-		Timeout:                   5 * time.Minute,
+		Timeout:                   10 * time.Minute,
 		MinTimeout:                5 * time.Second,
 		ContinuousTargetOccurence: 5,
 		Refresh: func() (interface{}, string, error) {
 			rg, err := client.Get(ctx, name)
 			if err != nil {
+				if utils.ResponseWasNotFound(rg.Response) {
+					return false, "Waiting", nil
+				}
 				return nil, "Error", fmt.Errorf("retrieving Resource Group: %+v", err)
 			}
 
-			if !utils.ResponseWasNotFound(rg.Response) {
-				return true, "Done", nil
-			}
-			return false, "Waiting", nil
+			return true, "Done", nil
+
 		},
 	}
 
