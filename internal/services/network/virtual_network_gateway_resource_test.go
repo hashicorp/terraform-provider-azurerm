@@ -397,6 +397,28 @@ func TestAccVirtualNetworkGateway_updateTagsWithBgpSettings(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkGateway_updateWithNatRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.updateWithNatRule(data, "Test1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateWithNatRule(data, "Test2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualNetworkGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	gatewayName := state.Attributes["name"]
 	resourceGroup := state.Attributes["resource_group_name"]
@@ -1762,4 +1784,90 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkGatewayResource) updateWithNatRule(data acceptance.TestData, tag string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type                       = "Vpn"
+  vpn_type                   = "RouteBased"
+  enable_bgp                 = false
+  active_active              = false
+  private_ip_address_enabled = false
+  sku                        = "VpnGw2"
+  generation                 = "Generation2"
+
+  ip_configuration {
+    name                          = "default"
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  tags = {
+    env = "%s"
+  }
+}
+
+data "azurerm_virtual_network_gateway" "test" {
+  name                = azurerm_virtual_network_gateway.test.name
+  resource_group_name = azurerm_virtual_network_gateway.test.resource_group_name
+}
+
+resource "azurerm_virtual_network_gateway_nat_rule" "test" {
+  name                       = "acctestvngnatrule-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  virtual_network_gateway_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/acctestRG-%d/providers/Microsoft.Network/virtualNetworkGateways/acctestvng-%d"
+  mode                       = "EgressSnat"
+  type                       = "Dynamic"
+  ip_configuration_id        = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/acctestRG-%d/providers/Microsoft.Network/virtualNetworkGateways/acctestvng-%d/ipConfigurations/default"
+
+  external_mapping {
+    address_space = "10.1.0.0/26"
+  }
+
+  internal_mapping {
+    address_space = "10.2.0.0/26"
+  }
+
+  depends_on = [data.azurerm_virtual_network_gateway.test]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tag, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
