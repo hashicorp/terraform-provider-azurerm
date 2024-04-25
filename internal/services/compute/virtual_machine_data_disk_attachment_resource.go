@@ -22,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
@@ -36,38 +34,43 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 			_, err := parse.DataDiskID(id)
 			return err
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-			client := meta.(*clients.Client).Compute.VMClient
+			client := meta.(*clients.Client).Compute.VirtualMachinesClient
 			id, err := parse.DataDiskID(d.Id())
 			if err != nil {
 				return nil, err
 			}
 
-			virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+			virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
+			virtualMachine, err := client.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 			if err != nil {
-				if utils.ResponseWasNotFound(virtualMachine.Response) {
-					return nil, fmt.Errorf("Virtual Machine %q was not found in Resource Group %q", id.VirtualMachineName, id.ResourceGroup)
+				if response.WasNotFound(virtualMachine.HttpResponse) {
+					return nil, fmt.Errorf("%s was not found therefore Data Disk Attachment cannot be imported", virtualMachineId)
 				}
 
-				return nil, fmt.Errorf("retrieving Virtual Machine %q in Resource Group %q: %+v", id.VirtualMachineName, id.ResourceGroup, err)
+				return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var disk *compute.DataDisk
-			if profile := virtualMachine.StorageProfile; profile != nil {
-				if dataDisks := profile.DataDisks; dataDisks != nil {
-					for _, dataDisk := range *dataDisks {
-						if *dataDisk.Name == id.Name {
-							disk = &dataDisk
-							break
+			var disk *virtualmachines.DataDisk
+			if model := virtualMachine.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if profile := props.StorageProfile; profile != nil {
+						if dataDisks := profile.DataDisks; dataDisks != nil {
+							for _, dataDisk := range *dataDisks {
+								if *dataDisk.Name == id.Name {
+									disk = &dataDisk
+									break
+								}
+							}
 						}
 					}
 				}
 			}
 
 			if disk == nil {
-				return nil, fmt.Errorf("Data Disk %q was not found on Virtual Machine %q", id.Name, id.VirtualMachineName)
+				return nil, fmt.Errorf("Data Disk %s was not found", *id)
 			}
 
-			if disk.CreateOption != compute.DiskCreateOptionTypesAttach && disk.CreateOption != compute.DiskCreateOptionTypesEmpty {
+			if disk.CreateOption != virtualmachines.DiskCreateOptionTypesAttach && disk.CreateOption != virtualmachines.DiskCreateOptionTypesEmpty {
 				return nil, fmt.Errorf("the value of `create_option` for the imported `azurerm_virtual_machine_data_disk_attachment` instance must be `Attach` or `Empty`, whereas now is %s", disk.CreateOption)
 			}
 
@@ -192,6 +195,15 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(*managedDisk.Sku.Name)),
 		},
 		WriteAcceleratorEnabled: pointer.To(writeAcceleratorEnabled),
+	}
+
+	// there are ways to provision a VM without a StorageProfile and/or DataDisks
+	if virtualMachine.Model.Properties.StorageProfile == nil {
+		virtualMachine.Model.Properties.StorageProfile = &virtualmachines.StorageProfile{}
+	}
+
+	if virtualMachine.Model.Properties.StorageProfile.DataDisks == nil {
+		virtualMachine.Model.Properties.StorageProfile.DataDisks = pointer.To(make([]virtualmachines.DataDisk, 0))
 	}
 
 	disks := *virtualMachine.Model.Properties.StorageProfile.DataDisks
