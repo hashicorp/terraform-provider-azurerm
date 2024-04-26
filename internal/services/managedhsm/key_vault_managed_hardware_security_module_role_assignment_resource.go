@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
@@ -192,9 +193,12 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 			var param keyvault.RoleAssignmentCreateParameters
 			param.Properties = &keyvault.RoleAssignmentProperties{
 				PrincipalID: pointer.FromString(config.PrincipalId),
-				// the role definition id may has '/' prefix, but the api doesn't accept it
+				// the role definition id may have '/' prefix, but the api doesn't accept it
 				RoleDefinitionID: pointer.FromString(strings.TrimPrefix(config.RoleDefinitionId, "/")),
 			}
+
+			// TODO: @manicminer: when migrating to go-azure-sdk, the SDK should auto-retry on 400 responses with code "BadParameter" and message "Unkown role definition" (note the misspelling)
+
 			if _, err = client.Create(ctx, endpoint.BaseURI(), config.Scope, config.Name, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id.ID(), err)
 			}
@@ -271,6 +275,8 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
+
 			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
 			if !ok {
 				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
@@ -293,9 +299,37 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
-			if _, err := metadata.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient.Delete(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName); err != nil {
+			if _, err := client.Delete(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName); err != nil {
 				return fmt.Errorf("deleting %s: %v", id.ID(), err)
 			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context has no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"InProgress"},
+				Target:  []string{"NotFound"},
+				Refresh: func() (interface{}, string, error) {
+					result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName)
+					if err != nil {
+						if response.WasNotFound(result.Response.Response) {
+							return result, "NotFound", nil
+						}
+
+						return nil, "Error", err
+					}
+
+					return result, "InProgress", nil
+				},
+				ContinuousTargetOccurence: 5,
+				PollInterval:              5 * time.Second,
+				Timeout:                   time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}

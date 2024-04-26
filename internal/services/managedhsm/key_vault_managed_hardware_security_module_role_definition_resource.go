@@ -267,8 +267,37 @@ func (r KeyVaultMHSMRoleDefinitionResource) Create() sdk.ResourceFunc {
 				},
 			}
 
+			// TODO: @manicminer: when migrating to go-azure-sdk, the SDK should auto-retry on 409 responses and should consider manually polling afterwards
+
 			if _, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload); err != nil {
 				return fmt.Errorf("creating %s: %v", id.ID(), err)
+			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context has no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"InProgress"},
+				Target:  []string{"Found"},
+				Refresh: func() (interface{}, string, error) {
+					result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
+					if err != nil {
+						if response.WasNotFound(result.Response.Response) {
+							return result, "InProgress", nil
+						}
+
+						return nil, "Error", err
+					}
+
+					return result, "Found", nil
+				},
+				ContinuousTargetOccurence: 5,
+				PollInterval:              5 * time.Second,
+				Timeout:                   time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -428,9 +457,40 @@ func (r KeyVaultMHSMRoleDefinitionResource) Delete() sdk.ResourceFunc {
 			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
+			// TODO: @manicminer: when migrating to go-azure-sdk, the SDK should auto-retry on 409 responses
+			// (these occur when a recently deleted assignment for the role has not yet fully replicated)
+
 			if _, err = client.Delete(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName); err != nil {
 				return fmt.Errorf("deleting %+v: %v", id, err)
 			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context has no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"InProgress"},
+				Target:  []string{"NotFound"},
+				Refresh: func() (interface{}, string, error) {
+					result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
+					if err != nil {
+						if response.WasNotFound(result.Response.Response) {
+							return result, "NotFound", nil
+						}
+
+						return nil, "Error", err
+					}
+
+					return result, "InProgress", nil
+				},
+				ContinuousTargetOccurence: 5,
+				PollInterval:              5 * time.Second,
+				Timeout:                   time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
