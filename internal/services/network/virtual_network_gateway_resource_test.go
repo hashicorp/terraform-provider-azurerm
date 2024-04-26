@@ -109,21 +109,6 @@ func TestAccVirtualNetworkGateway_activeActiveZoneRedundantWithP2S(t *testing.T)
 	})
 }
 
-func TestAccVirtualNetworkGateway_standard(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	r := VirtualNetworkGatewayResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.sku(data, "Standard"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
-			),
-		},
-	})
-}
-
 func TestAccVirtualNetworkGateway_vpnGw2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayResource{}
@@ -580,7 +565,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -635,7 +621,8 @@ resource "azurerm_public_ip" "first" {
   name                = "acctestpip1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "second" {
@@ -643,7 +630,8 @@ resource "azurerm_public_ip" "second" {
 
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -825,7 +813,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -913,7 +902,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -972,7 +962,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1028,7 +1019,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1078,7 +1070,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1129,7 +1122,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1188,7 +1182,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1238,7 +1233,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1514,7 +1510,8 @@ resource "azurerm_public_ip" "first" {
   name                = "acctestpip1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "second" {
@@ -1522,7 +1519,8 @@ resource "azurerm_public_ip" "second" {
 
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1600,7 +1598,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -1725,7 +1724,8 @@ resource "azurerm_public_ip" "first" {
   name                = "acctestpip1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "second" {
@@ -1733,7 +1733,8 @@ resource "azurerm_public_ip" "second" {
 
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
