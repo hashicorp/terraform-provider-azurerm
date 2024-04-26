@@ -631,10 +631,11 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if !features.FourPointOhBeta() {
 				d.Set("enforce_private_link_endpoint_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
+				d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
 				d.Set("enforce_private_link_service_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 			}
 
-			d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
+			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 
 			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
@@ -802,15 +803,27 @@ func expandSubnetNetworkPolicy(enabled bool) string {
 }
 
 // TODO 4.0: Remove flattenEnforceSubnetPrivateLinkNetworkPolicy function
-func flattenEnforceSubnetNetworkPolicy(input string) bool {
+func flattenEnforceSubnetNetworkPolicy(input string) interface{} {
 	// This is strange logic, but to get the schema to make sense for the end user
 	// I exposed it with the same name that the Azure CLI does to be consistent
 	// between the tool sets, which means true == Disabled.
-	return strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled))
+	if strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled)) {
+		return true
+	} else if strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled)) {
+		return false
+	}
+
+	return nil
 }
 
-func flattenSubnetNetworkPolicy(input string) bool {
-	return strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled))
+func flattenSubnetNetworkPolicy(input string) interface{} {
+	if strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled)) {
+		return true
+	} else if strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled)) {
+		return false
+	}
+
+	return nil
 }
 
 func expandSubnetServiceEndpointPolicies(input []interface{}) *[]subnets.ServiceEndpointPolicy {
