@@ -88,12 +88,12 @@ func (r ArcResourceBridgeApplianceDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ArcResourceBridge.AppliancesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model ApplianceDataSourceModel
-			if err := metadata.Decode(&model); err != nil {
+			var state ApplianceDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := appliances.NewApplianceID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := appliances.NewApplianceID(subscriptionId, state.ResourceGroupName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -102,11 +102,6 @@ func (r ArcResourceBridgeApplianceDataSource) Read() sdk.ResourceFunc {
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-
-			state := ApplianceDataSourceModel{
-				Name:              model.Name,
-				ResourceGroupName: model.ResourceGroupName,
 			}
 
 			if model := resp.Model; model != nil {

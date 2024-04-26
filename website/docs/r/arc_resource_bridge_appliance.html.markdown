@@ -68,7 +68,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Arc Resource Bridge Appliance.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - An `identity` block as defined below.
 
 ---
 An `identity` block exports the following:
