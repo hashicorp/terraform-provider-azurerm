@@ -144,7 +144,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
 
         // Network Regional Tire Public IP is only available in
-        "network" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus", "westeurope", false)),
+        "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
 
         // Orbital is only available in certain locations
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
