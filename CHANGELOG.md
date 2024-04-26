@@ -1,3 +1,9 @@
+## 3.102.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` [GH-25745]
+
 ## 3.101.0 (April 25, 2024)
 
 ENHANCEMENTS:
