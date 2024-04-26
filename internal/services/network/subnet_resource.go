@@ -493,9 +493,9 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if features.FourPointOhBeta() {
-		if d.HasChange("private_endpoint_network_policies_enabled") {
-			v := d.Get("private_endpoint_network_policies_enabled").(bool)
-			props.PrivateEndpointNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(v)))
+		if d.HasChange("private_endpoint_network_policies") {
+			v := d.Get("private_endpoint_network_policies").(string)
+			props.PrivateEndpointNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateEndpointNetworkPolicies(v))
 		}
 
 		if d.HasChange("private_link_service_network_policies_enabled") {
@@ -511,14 +511,17 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		var privateEndpointNetworkPolicies subnets.VirtualNetworkPrivateEndpointNetworkPolicies
 		var privateLinkServiceNetworkPolicies subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies
 
-		if d.HasChange("enforce_private_link_endpoint_network_policies") || d.HasChange("private_endpoint_network_policies_enabled") {
+		if d.HasChange("enforce_private_link_endpoint_network_policies") || d.HasChange("private_endpoint_network_policies_enabled") || d.HasChange("private_endpoint_network_policies") {
 			enforcePrivateEndpointNetworkPoliciesRaw := d.Get("enforce_private_link_endpoint_network_policies").(bool)
 			privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
+			privateEndpointNetworkPoliciesStringRaw := d.Get("private_endpoint_network_policies").(string)
 
 			if d.HasChange("enforce_private_link_endpoint_network_policies") {
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
 			} else if d.HasChange("private_endpoint_network_policies_enabled") {
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
+			} else if d.HasChange("private_endpoint_network_policies") {
+				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesStringRaw)
 			}
 
 			props.PrivateEndpointNetworkPolicies = pointer.To(privateEndpointNetworkPolicies)
