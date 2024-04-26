@@ -850,14 +850,14 @@ const managedInstanceStaticRoutes = `
     next_hop_type  = "Internet"
   }
   route {
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-102-37-18-nexthop-internet"
-    address_prefix = "102.37.0.0/18"
-    next_hop_type  = "Internet"
+   name           = "Microsoft.Sql-managedInstances_UseOnly_mi-102-37-18-nexthop-internet"
+   address_prefix = "102.37.0.0/18"
+   next_hop_type  = "Internet"
   }
   route {
-    name           = "Microsoft.Sql-managedInstances_UseOnly_mi-102-133-16-nexthop-internet"
-    address_prefix = "102.133.0.0/16"
-    next_hop_type  = "Internet"
+   name           = "Microsoft.Sql-managedInstances_UseOnly_mi-102-133-16-nexthop-internet"
+   address_prefix = "102.133.0.0/16"
+   next_hop_type  = "Internet"
   }
   route {
     name           = "Microsoft.Sql-managedInstances_UseOnly_mi-199-30-16-20-nexthop-internet"
@@ -1744,21 +1744,28 @@ func TestAccMsSqlManagedInstance_aadAdminUpdate(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password"),
 		{
+			Config: r.aadAdminUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.aadAuthOnlyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.aadAdminWithAuthOnlyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
 			Config: r.withoutAadAdmin(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-		{
-			Config: r.grantDirectoryReaderPermission(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_login_password"),
-		{
-			Config: r.aadAdminWithAadAuthOnlyEnabledUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1839,6 +1846,12 @@ data "azuread_domains" "test" {
 resource "azuread_user" "test" {
   user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
   display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_user" "test2" {
+  user_principal_name = "acctestAadAdminUser2-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser2-%[2]d"
   password            = "TerrAform321!"
 }
 
@@ -1928,6 +1941,12 @@ resource "azuread_user" "test" {
   password            = "TerrAform321!"
 }
 
+resource "azuread_user" "test2" {
+  user_principal_name = "acctestAadAdminUser2-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser2-%[2]d"
+  password            = "TerrAform321!"
+}
+
 resource "azuread_directory_role_member" "test" {
   role_object_id   = azuread_directory_role.test.object_id
   member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
@@ -1970,7 +1989,7 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
-func (r MsSqlManagedInstanceResource) aadAdminWithAadAuthOnlyEnabledUpdate(data acceptance.TestData) string {
+func (r MsSqlManagedInstanceResource) aadAdminUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1989,6 +2008,153 @@ data "azuread_domains" "test" {
 resource "azuread_user" "test" {
   user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
   display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_user" "test2" {
+  user_principal_name = "acctestAadAdminUser2-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser2-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username = azuread_user.test2.user_principal_name
+    object_id      = azuread_user.test2.object_id
+    tenant_id      = data.azurerm_client_config.test.tenant_id
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) aadAuthOnlyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_user" "test2" {
+  user_principal_name = "acctestAadAdminUser2-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser2-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_directory_role_member" "test" {
+  role_object_id   = azuread_directory_role.test.object_id
+  member_object_id = azurerm_mssql_managed_instance.test.identity.0.principal_id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                = "acctestsqlserver%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  license_type       = "BasePrice"
+  sku_name           = "GP_Gen5"
+  storage_size_in_gb = 32
+  subnet_id          = azurerm_subnet.test.id
+  vcores             = 4
+
+  administrator_login          = "missadministrator"
+  administrator_login_password = "NCC-1701-D"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  azure_active_directory_administrator {
+    login_username                      = azuread_user.test2.user_principal_name
+    object_id                           = azuread_user.test2.object_id
+    tenant_id                           = data.azurerm_client_config.test.tenant_id
+    azuread_authentication_only_enabled = true
+  }
+
+  tags = {
+    environment = "staging"
+    database    = "test"
+  }
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
+}
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
+}
+
+func (r MsSqlManagedInstanceResource) aadAdminWithAuthOnlyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azuread_directory_role" "test" {
+  display_name = "Directory Readers"
+}
+
+data "azuread_domains" "test" {
+  only_initial = true
+}
+
+resource "azuread_user" "test" {
+  user_principal_name = "acctestAadAdminUser-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser-%[2]d"
+  password            = "TerrAform321!"
+}
+
+resource "azuread_user" "test2" {
+  user_principal_name = "acctestAadAdminUser2-%[2]d@${data.azuread_domains.test.domains.0.domain_name}"
+  display_name        = "acctestAadAdminUser2-%[2]d"
   password            = "TerrAform321!"
 }
 
@@ -2019,7 +2185,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     login_username                      = azuread_user.test.user_principal_name
     object_id                           = azuread_user.test.object_id
     tenant_id                           = data.azurerm_client_config.test.tenant_id
-    azuread_authentication_only_enabled = true
+    azuread_authentication_only_enabled = false
   }
 
   tags = {

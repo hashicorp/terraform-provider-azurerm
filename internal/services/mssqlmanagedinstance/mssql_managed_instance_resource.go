@@ -501,7 +501,8 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					aadAdminExists = true
 				}
 
-				if aadAdminExists {
+				aadAdminRemoved := checkAADAdminRemoved(metadata.ResourceData)
+				if aadAdminRemoved && aadAdminExists {
 					future, err := azureADAuthenticationOnlyClient.Delete(ctx, id.ResourceGroup, id.Name)
 					if err != nil {
 						log.Printf("[INFO] Deletion of AAD Authentication Only failed for %s: %+v", *id, err)
@@ -527,29 +528,32 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					return err
 				}
 				if aadAdminProps != nil {
-					future, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdminProps)
-					if err != nil {
-						return fmt.Errorf("creating AAD Administrator for %s: %+v", *id, err)
-					}
-					if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting for creation of AAD Administrator for %s: %+v", *id, err)
-					}
-				}
+					aadAdminChanged := checkAADAdminChanged(metadata.ResourceData)
+					if aadAdminChanged {
+						// if enabling AAD Authentication only, AAD admin must be set first.
+						future, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdminProps)
+						if err != nil {
+							return fmt.Errorf("creating AAD Administrator for %s: %+v", *id, err)
+						}
+						if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+							return fmt.Errorf("waiting for creation of AAD Administrator for %s: %+v", *id, err)
+						}
 
-				if aadOnlyAuthenticationsEnabled := expandMsSqlManagedInstanceAadAuthenticationOnly(state.AzureActiveDirectoryAdministrator); aadOnlyAuthenticationsEnabled {
-					aadOnlyAuthenticationsProps := sql.ManagedInstanceAzureADOnlyAuthentication{
-						ManagedInstanceAzureADOnlyAuthProperties: &sql.ManagedInstanceAzureADOnlyAuthProperties{
-							AzureADOnlyAuthentication: pointer.To(true),
-						},
 					}
-
-					future, err := azureADAuthenticationOnlyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthenticationsProps)
-					if err != nil {
-
-						return fmt.Errorf("setting `azuread_authentication_only_enabled` for %s: %+v", *id, err)
-					}
-					if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-						return fmt.Errorf("waiting to set `azuread_authentication_only_enabled` for  %s: %+v", *id, err)
+					aadAuthOnlyChanged := checkAADAuthOnlyChanged(metadata.ResourceData)
+					if aadAuthOnlyChanged {
+						aadOnlyAuthenticationsProps := sql.ManagedInstanceAzureADOnlyAuthentication{
+							ManagedInstanceAzureADOnlyAuthProperties: &sql.ManagedInstanceAzureADOnlyAuthProperties{
+								AzureADOnlyAuthentication: pointer.To(expandMsSqlManagedInstanceAadAuthenticationOnly(state.AzureActiveDirectoryAdministrator)),
+							},
+						}
+						resp, err := azureADAuthenticationOnlyClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, aadOnlyAuthenticationsProps)
+						if err != nil {
+							return fmt.Errorf("setting `azuread_authentication_only_enabled` for %s: %+v", *id, err)
+						}
+						if err = resp.WaitForCompletionRef(ctx, client.Client); err != nil {
+							return fmt.Errorf("waiting to set `azuread_authentication_only_enabled` for  %s: %+v", *id, err)
+						}
 					}
 				}
 
@@ -574,6 +578,26 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func checkAADAdminRemoved(d *schema.ResourceData) bool {
+	old, new := d.GetChange("azure_active_directory_administrator")
+	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+		return true
+	}
+	return false
+}
+
+func checkAADAdminChanged(d *schema.ResourceData) bool {
+	oldLogin, newLogin := d.GetChange("azure_active_directory_administrator.0.login_username")
+	oldObjId, newObjId := d.GetChange("azure_active_directory_administrator.0.object_id")
+	oldTenantID, newTenantID := d.GetChange("azure_active_directory_administrator.0.tenant_id")
+	return oldLogin.(string) != newLogin.(string) || oldObjId.(string) != newObjId.(string) || oldTenantID.(string) != newTenantID.(string)
+}
+
+func checkAADAuthOnlyChanged(d *schema.ResourceData) bool {
+	old, new := d.GetChange("azure_active_directory_administrator.0.azuread_authentication_only_enabled")
+	return old.(bool) != new.(bool)
 }
 
 func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {

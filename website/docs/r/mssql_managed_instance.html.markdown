@@ -225,11 +225,11 @@ The following arguments are supported:
 
 * `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `6`, `8`, `10`, `12`, `16`, `20`, `24`, `32`, `40`, `48`, `56`, `64`, `80`, `96` or `128` for Gen5 SKUs.
 
-* `administrator_login` - (Optional) The administrator login name for the new SQL Managed Instance. Changing this forces a new resource to be created.
+* `administrator_login` - (Optional) The administrator login name for the new SQL Managed Instance. Required when `azure_active_directory_administrator` is not specified. Changing this forces a new resource to be created.
 
-* `administrator_login_password` - (Optional) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
+* `administrator_login_password` - (Optional) The password associated with the `administrator_login` user. Required when `administrator_login` is specified. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
-* `azure_active_directory_administrator` - (Optional) An `azure_active_directory_administrator` block as defined below.
+* `azure_active_directory_administrator` - (Optional) An `azure_active_directory_administrator` block as defined below. Required when `administrator_login` is not specified.
 
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
