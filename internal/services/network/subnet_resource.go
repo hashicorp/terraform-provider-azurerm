@@ -211,7 +211,7 @@ func resourceSubnet() *pluginsdk.Resource {
 					if !features.FourPointOh() {
 						return nil
 					}
-					return !features.FourPointOh()
+					return string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled)
 				}(),
 				ValidateFunc: validation.StringInSlice(subnets.PossibleValuesForVirtualNetworkPrivateEndpointNetworkPolicies(), false),
 				ConflictsWith: func() []string {
@@ -317,20 +317,22 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	var privateLinkServiceNetworkPolicies subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies
 
 	if features.FourPointOhBeta() {
-		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
+		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies").(string)
 		privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled").(bool)
 
-		privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
+		privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesRaw)
 		privateLinkServiceNetworkPolicies = subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw))
 	} else {
 		var enforceOk bool
 		var enforceServiceOk bool
 		var enableOk bool
 		var enableServiceOk bool
+		var privateEndpointNetworkPoliciesOk bool
 		var enforcePrivateEndpointNetworkPoliciesRaw bool
 		var enforcePrivateLinkServiceNetworkPoliciesRaw bool
 		var privateEndpointNetworkPoliciesRaw bool
 		var privateLinkServiceNetworkPoliciesRaw bool
+		var privateEndpointNetworkPoliciesStringRaw string
 
 		// Set the legacy default value since they are now computed optional
 		privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled
@@ -358,13 +360,20 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			privateLinkServiceNetworkPoliciesRaw = d.Get("private_link_service_network_policies_enabled").(bool)
 		}
 
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "private_endpoint_network_policies") {
+			privateEndpointNetworkPoliciesOk = true
+			privateEndpointNetworkPoliciesStringRaw = d.Get("private_endpoint_network_policies").(string)
+		}
+
 		// Only one of these values can be set since they conflict with each other
 		// if neither of them are set use the default values
-		if enforceOk || enableOk {
+		if enforceOk || enableOk || privateEndpointNetworkPoliciesOk {
 			if enforceOk {
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
 			} else if enableOk {
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
+			} else if privateEndpointNetworkPoliciesOk {
+				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesStringRaw)
 			}
 		}
 
