@@ -201,8 +201,8 @@ func resourceSubnet() *pluginsdk.Resource {
 				},
 			},
 
-			"private_endpoint_network_policies_enabled": {
-				Type: pluginsdk.TypeBool,
+			"private_endpoint_network_policies": {
+				Type: pluginsdk.TypeString,
 				Computed: func() bool {
 					return !features.FourPointOh()
 				}(),
@@ -213,9 +213,10 @@ func resourceSubnet() *pluginsdk.Resource {
 					}
 					return !features.FourPointOh()
 				}(),
+				ValidateFunc: validation.StringInSlice(subnets.PossibleValuesForVirtualNetworkPrivateEndpointNetworkPolicies(), false),
 				ConflictsWith: func() []string {
 					if !features.FourPointOhBeta() {
-						return []string{"enforce_private_link_endpoint_network_policies"}
+						return []string{"enforce_private_link_endpoint_network_policies", "private_endpoint_network_policies_enabled"}
 					}
 					return []string{}
 				}(),
@@ -244,12 +245,20 @@ func resourceSubnet() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Computed:      true,
+			Optional:      true,
+			Deprecated:    "`private_endpoint_network_policies_enabled` will be removed in favour of the property `private_endpoint_network_policies` in version 4.0 of the AzureRM Provider",
+			ConflictsWith: []string{"enforce_private_link_endpoint_network_policies", "private_endpoint_network_policies"},
+		}
+
 		resource.Schema["enforce_private_link_endpoint_network_policies"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Computed:      true,
 			Optional:      true,
-			Deprecated:    "`enforce_private_link_endpoint_network_policies` will be removed in favour of the property `private_endpoint_network_policies_enabled` in version 4.0 of the AzureRM Provider",
-			ConflictsWith: []string{"private_endpoint_network_policies_enabled"},
+			Deprecated:    "`enforce_private_link_endpoint_network_policies` will be removed in favour of the property `private_endpoint_network_policies` in version 4.0 of the AzureRM Provider",
+			ConflictsWith: []string{"private_endpoint_network_policies_enabled", "private_endpoint_network_policies"},
 		}
 
 		resource.Schema["enforce_private_link_service_network_policies"] = &pluginsdk.Schema{
