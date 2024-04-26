@@ -192,7 +192,7 @@ func TestAccSubnet_enablePrivateEndpointNetworkPolicies(t *testing.T) {
 			data.ImportStep(),
 		})
 	} else {
-		t.Skip("skipping due to deprecation of the 'enforce_private_link_endpoint_network_policies' and 'enforce_private_link_service_network_policies' and 'private_endpoint_network_policies_enabled' fields in 4.0")
+		t.Skip("skipping due to deprecation of the 'private_endpoint_network_policies_enabled' fields in 4.0")
 	}
 }
 
