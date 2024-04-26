@@ -73,7 +73,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.ManagedHSMs.DataPlaneRoleDefinitionsClient.Get(ctx, id.BaseURI(), id.Scope, id.ManagedHSMName)
+	resp, err := client.ManagedHSMs.DataPlaneRoleDefinitionsClient.Get(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Type %s: %+v", id, err)
 	}
@@ -82,8 +82,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Exists(ctx context.Context, client *
 
 func (r KeyVaultMHSMRoleDefinitionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 locals {
@@ -93,6 +91,7 @@ locals {
 resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
   name           = local.roleTestName
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  role_name      = "myRole%s"
   description    = "desc foo"
   permission {
     data_actions = [
@@ -107,13 +106,11 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "t
     ]
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomString)
 }
 
 func (r KeyVaultMHSMRoleDefinitionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 locals {
@@ -123,6 +120,7 @@ locals {
 resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
   name           = local.roleTestName
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  role_name      = "myRole%s"
   description    = "desc foo2"
   permission {
     data_actions = [
@@ -137,7 +135,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "t
     ]
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomString)
 }
 
 func (r KeyVaultMHSMRoleDefinitionResource) legacy(data acceptance.TestData) string {

@@ -119,14 +119,14 @@ data "azurerm_key_vault_managed_hardware_security_module_role_definition" "offic
   name           = "515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
 }
 
-resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "officer" {
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
   managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
   name               = local.assignmentOfficerName
   scope              = "/keys"
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.officer.resource_manager_id
   principal_id       = data.azurerm_client_config.current.object_id
 }
-`, r.template(data))
+`, KeyVaultManagedHardwareSecurityModuleResource{}.download(data, 3))
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) customRole(data acceptance.TestData) string {
@@ -144,7 +144,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
   role_definition_id = azurerm_key_vault_managed_hardware_security_module_role_definition.test.resource_manager_id
   principal_id       = data.azurerm_client_config.current.object_id
 }
-`, r.template(data))
+`, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) legacyBuiltInRole(data acceptance.TestData) string {
@@ -160,14 +160,14 @@ data "azurerm_key_vault_managed_hardware_security_module_role_definition" "offic
   name           = "515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
 }
 
-resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "officer" {
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
   vault_base_url     = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
   name               = local.assignmentOfficerName
   scope              = "/keys"
   role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.officer.resource_manager_id
   principal_id       = data.azurerm_client_config.current.object_id
 }
-`, r.template(data))
+`, KeyVaultManagedHardwareSecurityModuleResource{}.download(data, 3))
 }
 
 func (r KeyVaultManagedHSMRoleAssignmentResource) legacyCustomRole(data acceptance.TestData) string {
@@ -185,9 +185,5 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "t
   role_definition_id = azurerm_key_vault_managed_hardware_security_module_role_definition.test.resource_manager_id
   principal_id       = data.azurerm_client_config.current.object_id
 }
-`, r.template(data))
-}
-
-func (r KeyVaultManagedHSMRoleAssignmentResource) template(data acceptance.TestData) string {
-	return KeyVaultMHSMRoleDefinitionResource{}.basic(data)
+`, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
 }

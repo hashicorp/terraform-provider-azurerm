@@ -19,11 +19,12 @@ import (
 type KeyVaultManagedHardwareSecurityModuleResource struct{}
 
 func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being able to provision against one instance at a time
+	// @manicminer: these tests are sequential due to low service limits for Managed HSM
+	// (max 5 instances per subscription as of 2024-04-23)
+	// and to try and maintain a little headroom for cleanup after failed tests
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"dataSource": {
-			"data_source": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
+			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
 		},
 		"resource": {
 			"basic":    testAccKeyVaultManagedHardwareSecurityModule_basic,
