@@ -803,27 +803,12 @@ func expandSubnetNetworkPolicy(enabled bool) string {
 }
 
 // TODO 4.0: Remove flattenEnforceSubnetPrivateLinkNetworkPolicy function
-func flattenEnforceSubnetNetworkPolicy(input string) interface{} {
-	// This is strange logic, but to get the schema to make sense for the end user
-	// I exposed it with the same name that the Azure CLI does to be consistent
-	// between the tool sets, which means true == Disabled.
-	if strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled)) {
-		return true
-	} else if strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled)) {
-		return false
-	}
-
-	return nil
+func flattenEnforceSubnetNetworkPolicy(input string) bool {
+	return strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled))
 }
 
-func flattenSubnetNetworkPolicy(input string) interface{} {
-	if strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled)) {
-		return true
-	} else if strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled)) {
-		return false
-	}
-
-	return nil
+func flattenSubnetNetworkPolicy(input string) bool {
+	return strings.EqualFold(input, string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled))
 }
 
 func expandSubnetServiceEndpointPolicies(input []interface{}) *[]subnets.ServiceEndpointPolicy {
