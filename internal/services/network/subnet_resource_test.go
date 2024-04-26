@@ -162,27 +162,61 @@ func TestAccSubnet_delegation(t *testing.T) {
 	})
 }
 
+// TODO 4.0: Remove test
 func TestAccSubnet_enablePrivateEndpointNetworkPolicies(t *testing.T) {
+	if !features.FourPointOhBeta() {
+		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+		r := SubnetResource{}
+
+		data.ResourceTest(t, r, []acceptance.TestStep{
+			{
+				Config: r.enablePrivateEndpointNetworkPolicies(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.enablePrivateEndpointNetworkPolicies(data, false),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.enablePrivateEndpointNetworkPolicies(data, true),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
+			},
+			data.ImportStep(),
+		})
+	} else {
+		t.Skip("skipping due to deprecation of the 'enforce_private_link_endpoint_network_policies' and 'enforce_private_link_service_network_policies' and 'private_endpoint_network_policies_enabled' fields in 4.0")
+	}
+}
+
+func TestAccSubnet_privateEndpointNetworkPolicies(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.enablePrivateEndpointNetworkPolicies(data, true),
+			Config: r.privateEndpointNetworkPolicies(data, "Enabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.enablePrivateEndpointNetworkPolicies(data, false),
+			Config: r.privateEndpointNetworkPolicies(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.enablePrivateEndpointNetworkPolicies(data, true),
+			Config: r.privateEndpointNetworkPolicies(data, "Enabled"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -303,6 +337,19 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnforceFirst(t *testing.T) {
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.privateEndpointNetworkPolicies(data, "Enabled"),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
 				),
 			},
 			data.ImportStep(),
@@ -314,6 +361,7 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnforceFirst(t *testing.T) {
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
 				),
 			},
 			data.ImportStep(),
@@ -325,6 +373,7 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnforceFirst(t *testing.T) {
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("true"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
 				),
 			},
 			data.ImportStep(),
@@ -336,6 +385,7 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnforceFirst(t *testing.T) {
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
 				),
 			},
 			data.ImportStep(),
@@ -353,6 +403,18 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnabledFirst(t *testing.T) {
 
 		data.ResourceTest(t, r, []acceptance.TestStep{
 			{
+				Config: r.privateEndpointNetworkPolicies(data, "Disabled"),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("true"),
+					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
+					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: r.enablePrivateEndpointNetworkPolicies(data, false),
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
@@ -360,6 +422,7 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnabledFirst(t *testing.T) {
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
 				),
 			},
 			data.ImportStep(),
@@ -371,6 +434,7 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnabledFirst(t *testing.T) {
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
 				),
 			},
 			data.ImportStep(),
@@ -382,6 +446,7 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnabledFirst(t *testing.T) {
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("true"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
 				),
 			},
 			data.ImportStep(),
@@ -393,6 +458,7 @@ func TestAccSubnet_PrivateLinkPoliciesToggleWithEnabledFirst(t *testing.T) {
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
 				),
 			},
 			data.ImportStep(),
@@ -499,7 +565,7 @@ func TestAccSubnet_privateLinkEndpointNetworkPoliciesValidateDefaultValues(t *te
 				Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
 				Check: acceptance.ComposeTestCheckFunc(
 					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("false"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
 				),
 			},
@@ -518,6 +584,7 @@ func TestAccSubnet_privateLinkEndpointNetworkPoliciesValidateDefaultValues(t *te
 					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
 					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
 					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
 				),
 			},
 			data.ImportStep(),
@@ -761,6 +828,7 @@ resource "azurerm_subnet" "test" {
 `, r.template(data))
 }
 
+// TODO 4.0: Remove test
 func (r SubnetResource) enablePrivateEndpointNetworkPolicies(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -772,6 +840,21 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 
   private_endpoint_network_policies_enabled = %t
+}
+`, r.template(data), enabled)
+}
+
+func (r SubnetResource) privateEndpointNetworkPolicies(data acceptance.TestData, enabled string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  private_endpoint_network_policies = "%s"
 }
 `, r.template(data), enabled)
 }
