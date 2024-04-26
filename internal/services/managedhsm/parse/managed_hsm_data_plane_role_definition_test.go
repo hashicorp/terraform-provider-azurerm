@@ -35,6 +35,11 @@ func TestManagedHSMDataPlaneRoleDefinitionID(t *testing.T) {
 			expected: nil,
 		},
 		{
+			// scope is missing
+			input:    "https://my-hsm.managedhsm.azure.net//providers/Microsoft.Authorization/roleDefinitions/test",
+			expected: nil,
+		},
+		{
 			input: "https://my-hsm.managedhsm.azure.net///providers/Microsoft.Authorization/roleDefinitions/test",
 			expected: &ManagedHSMDataPlaneRoleDefinitionId{
 				ManagedHSMName:     "my-hsm",

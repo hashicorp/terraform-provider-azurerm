@@ -131,8 +131,7 @@ func (id *managedHSMRoleDefinitionPathId) FromParseResult(parsed resourceids.Par
 }
 
 func (id *managedHSMRoleDefinitionPathId) ID() string {
-	scope := strings.TrimPrefix(id.scope, "/")
-	return fmt.Sprintf("/%s/providers/Microsoft.Authorization/roleDefinitions/%s", scope, id.roleDefinitionName)
+	return fmt.Sprintf("/%s/providers/Microsoft.Authorization/roleDefinitions/%s", id.scope, id.roleDefinitionName)
 }
 
 func (id *managedHSMRoleDefinitionPathId) String() string {
