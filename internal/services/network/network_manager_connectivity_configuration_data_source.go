@@ -128,17 +128,17 @@ func (r ManagerConnectivityConfigurationDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.ConnectivityConfigurations
 
-			var model ManagerConnectivityConfigurationDataSourceModel
-			if err := metadata.Decode(&model); err != nil {
+			var state ManagerConnectivityConfigurationDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			networkManagerId, err := connectivityconfigurations.ParseNetworkManagerID(model.NetworkManagerId)
+			networkManagerId, err := connectivityconfigurations.ParseNetworkManagerID(state.NetworkManagerId)
 			if err != nil {
 				return err
 			}
 
-			id := connectivityconfigurations.NewConnectivityConfigurationID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, model.Name)
+			id := connectivityconfigurations.NewConnectivityConfigurationID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -147,11 +147,6 @@ func (r ManagerConnectivityConfigurationDataSource) Read() sdk.ResourceFunc {
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-
-			state := ManagerConnectivityConfigurationDataSourceModel{
-				Name:             model.Name,
-				NetworkManagerId: networkManagerId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
