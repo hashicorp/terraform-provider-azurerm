@@ -661,9 +661,7 @@ func UnpackContainerJobSecretsCollection(input *jobs.JobSecretsCollection) *[]jo
 	}
 
 	result := make([]jobs.Secret, 0)
-	for _, v := range input.Value {
-		result = append(result, v)
-	}
+	result = append(result, input.Value...)
 
 	return &result
 }
