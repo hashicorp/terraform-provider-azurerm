@@ -49,6 +49,11 @@ func TestRoleDefinitionV0Parser(t *testing.T) {
 			},
 		},
 		{
+			// Public - invalid port
+			input:    "https://my-hsm.managedhsm.azure.net:445///RoleDefinition/test",
+			expected: nil,
+		},
+		{
 			input: "https://my-hsm.managedhsm.azure.cn///RoleDefinition/test",
 			expected: &legacyV0RoleDefinitionId{
 				managedHSMName:     "my-hsm",
