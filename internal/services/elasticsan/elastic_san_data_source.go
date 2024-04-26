@@ -22,18 +22,18 @@ type ElasticSANDataSource struct{}
 var _ sdk.DataSource = ElasticSANDataSource{}
 
 type ElasticSANDataSourceModel struct {
-	BaseSizeInTiB        int                          `tfschema:"base_size_in_tib"`
-	ExtendedSizeInTiB    int                          `tfschema:"extended_size_in_tib"`
+	BaseSizeInTiB        int64                        `tfschema:"base_size_in_tib"`
+	ExtendedSizeInTiB    int64                        `tfschema:"extended_size_in_tib"`
 	Location             string                       `tfschema:"location"`
 	Name                 string                       `tfschema:"name"`
 	ResourceGroupName    string                       `tfschema:"resource_group_name"`
 	Sku                  []ElasticSANResourceSkuModel `tfschema:"sku"`
 	Tags                 map[string]interface{}       `tfschema:"tags"`
-	TotalIops            int                          `tfschema:"total_iops"`
-	TotalMBps            int                          `tfschema:"total_mbps"`
-	TotalSizeInTiB       int                          `tfschema:"total_size_in_tib"`
-	TotalVolumeSizeInGiB int                          `tfschema:"total_volume_size_in_gib"`
-	VolumeGroupCount     int                          `tfschema:"volume_group_count"`
+	TotalIops            int64                        `tfschema:"total_iops"`
+	TotalMBps            int64                        `tfschema:"total_mbps"`
+	TotalSizeInTiB       int64                        `tfschema:"total_size_in_tib"`
+	TotalVolumeSizeInGiB int64                        `tfschema:"total_volume_size_in_gib"`
+	VolumeGroupCount     int64                        `tfschema:"volume_group_count"`
 	Zones                []string                     `tfschema:"zones"`
 }
 
@@ -127,12 +127,12 @@ func (r ElasticSANDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ElasticSan.ElasticSans
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model ElasticSANDataSourceModel
-			if err := metadata.Decode(&model); err != nil {
+			var state ElasticSANDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := elasticsans.NewElasticSanID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := elasticsans.NewElasticSanID(subscriptionId, state.ResourceGroupName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -143,11 +143,6 @@ func (r ElasticSANDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ElasticSANDataSourceModel{
-				Name:              model.Name,
-				ResourceGroupName: model.ResourceGroupName,
-			}
-
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
@@ -155,13 +150,13 @@ func (r ElasticSANDataSource) Read() sdk.ResourceFunc {
 				prop := model.Properties
 				state.Sku = FlattenSku(prop.Sku)
 				state.Zones = zones.Flatten(prop.AvailabilityZones)
-				state.BaseSizeInTiB = int(prop.BaseSizeTiB)
-				state.ExtendedSizeInTiB = int(prop.ExtendedCapacitySizeTiB)
-				state.TotalIops = int(pointer.From(prop.TotalIops))
-				state.TotalMBps = int(pointer.From(prop.TotalMBps))
-				state.TotalSizeInTiB = int(pointer.From(prop.TotalSizeTiB))
-				state.TotalVolumeSizeInGiB = int(pointer.From(prop.TotalVolumeSizeGiB))
-				state.VolumeGroupCount = int(pointer.From(prop.VolumeGroupCount))
+				state.BaseSizeInTiB = prop.BaseSizeTiB
+				state.ExtendedSizeInTiB = prop.ExtendedCapacitySizeTiB
+				state.TotalIops = pointer.From(prop.TotalIops)
+				state.TotalMBps = pointer.From(prop.TotalMBps)
+				state.TotalSizeInTiB = pointer.From(prop.TotalSizeTiB)
+				state.TotalVolumeSizeInGiB = pointer.From(prop.TotalVolumeSizeGiB)
+				state.VolumeGroupCount = pointer.From(prop.VolumeGroupCount)
 			}
 
 			metadata.SetID(id)
