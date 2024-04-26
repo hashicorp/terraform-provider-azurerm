@@ -361,6 +361,11 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("creating Monitor Diagnostics Setting %q for Resource %q: %+v", id.DiagnosticSettingName, id.ResourceUri, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
+	}
+
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to become ready", id.DiagnosticSettingName, id.ResourceUri)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"NotFound"},
@@ -368,7 +373,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 		Refresh:                   monitorDiagnosticSettingRefreshFunc(ctx, client, id),
 		MinTimeout:                5 * time.Second,
 		ContinuousTargetOccurence: 3,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
@@ -609,6 +614,11 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: could not retrieve context deadline for %s", id.ID())
+	}
+
 	// API appears to be eventually consistent (identified during tainting this resource)
 	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.DiagnosticSettingName, id.ResourceUri)
 	stateConf := &pluginsdk.StateChangeConf{
@@ -617,7 +627,7 @@ func resourceMonitorDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta inte
 		Refresh:                   monitorDiagnosticSettingRefreshFunc(ctx, client, *id),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
-		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
+		Timeout:                   time.Until(deadline),
 	}
 
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
