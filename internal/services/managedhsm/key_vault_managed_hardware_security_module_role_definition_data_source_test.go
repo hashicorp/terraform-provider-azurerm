@@ -59,7 +59,6 @@ func (KeyVaultManagedHardwareSecurityModuleRoleDefinitionDataSource) basic(data 
 data "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
   managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
   name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
-  scope          = "/"
 }
 `, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
 }
@@ -71,7 +70,6 @@ func (KeyVaultManagedHardwareSecurityModuleRoleDefinitionDataSource) legacy(data
 data "azurerm_key_vault_managed_hardware_security_module_role_definition" "test" {
   vault_base_url = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
   name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
-  scope          = "/"
 }
 `, KeyVaultMHSMRoleDefinitionResource{}.basic(data))
 }
