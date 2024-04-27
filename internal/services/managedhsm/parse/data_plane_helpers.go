@@ -17,7 +17,7 @@ type ManagedHSMDataPlaneEndpoint struct {
 }
 
 func (e ManagedHSMDataPlaneEndpoint) BaseURI() string {
-	return fmt.Sprintf("https://%s.%s", e.ManagedHSMName, e.DomainSuffix)
+	return fmt.Sprintf("https://%s.%s/", e.ManagedHSMName, e.DomainSuffix)
 }
 
 func ManagedHSMEndpoint(input string, domainSuffix *string) (*ManagedHSMDataPlaneEndpoint, error) {
