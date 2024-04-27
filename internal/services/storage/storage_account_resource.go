@@ -489,6 +489,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 										Default:      7,
 										ValidateFunc: validation.IntBetween(1, 365),
 									},
+									"permanent_delete_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
 								},
 							},
 						},
@@ -1932,6 +1937,20 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
+		// Disable restore_policy first. Disabling restore_policy and while setting delete_retention_policy.allow_permanent_delete to true cause error.
+		// Issue : https://github.com/Azure/azure-rest-api-specs/issues/11237
+		if v := d.Get("blob_properties.0.restore_policy"); d.HasChange("blob_properties.0.restore_policy") && len(v.([]interface{})) == 0 {
+			log.Print("[DEBUG] Disabling RestorePolicy prior to changing DeleteRetentionPolicy")
+			props := storage.BlobServiceProperties{
+				BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+					RestorePolicy: expandBlobPropertiesRestorePolicy(v.([]interface{})),
+				},
+			}
+			if _, err := blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, props); err != nil {
+				return fmt.Errorf("updating Azure Storage Account blob restore policy %q: %+v", id.StorageAccountName, err)
+			}
+		}
+
 		if d.Get("dns_endpoint_type").(string) == string(storage.DNSEndpointTypeAzureDNSZone) {
 			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
 				// Otherwise, API returns: "Required feature Global Dns is disabled"
@@ -2862,8 +2881,9 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 	policy := input[0].(map[string]interface{})
 
 	return &storage.DeleteRetentionPolicy{
-		Enabled: utils.Bool(true),
-		Days:    utils.Int32(int32(policy["days"].(int))),
+		Enabled:              utils.Bool(true),
+		Days:                 utils.Int32(int32(policy["days"].(int))),
+		AllowPermanentDelete: utils.Bool(policy["permanent_delete_enabled"].(bool)),
 	}
 }
 
@@ -3419,8 +3439,14 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 			days = int(*input.Days)
 		}
 
+		var permanentDeleteEnabled bool
+		if input.AllowPermanentDelete != nil {
+			permanentDeleteEnabled = *input.AllowPermanentDelete
+		}
+
 		deleteRetentionPolicy = append(deleteRetentionPolicy, map[string]interface{}{
-			"days": days,
+			"days":                     days,
+			"permanent_delete_enabled": permanentDeleteEnabled,
 		})
 	}
 
