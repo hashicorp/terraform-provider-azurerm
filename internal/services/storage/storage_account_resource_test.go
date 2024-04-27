@@ -2779,7 +2779,7 @@ resource "azurerm_storage_account" "test" {
     }
 
     delete_retention_policy {
-      permanant_delete_enabled = true
+      permanent_delete_enabled = true
     }
 
     container_delete_retention_policy {
