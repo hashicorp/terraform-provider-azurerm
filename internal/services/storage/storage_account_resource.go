@@ -2805,7 +2805,7 @@ func expandBlobProperties(kind storage.Kind, input []interface{}) (*storage.Blob
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 
 	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesContainerDeleteRetentionPolicy(containerDeletePolicyRaw)
+	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesContainerDeleteRetentionPolicyWithoutPermDeleteOption(containerDeletePolicyRaw)
 
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
@@ -2887,7 +2887,7 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 	}
 }
 
-func expandBlobPropertiesContainerDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
+func expandBlobPropertiesContainerDeleteRetentionPolicyWithoutPermDeleteOption(input []interface{}) *storage.DeleteRetentionPolicy {
 	result := storage.DeleteRetentionPolicy{
 		Enabled: utils.Bool(false),
 	}
@@ -2969,7 +2969,7 @@ func expandShareProperties(input []interface{}) storage.FileServiceProperties {
 
 	v := input[0].(map[string]interface{})
 
-	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(v["retention_policy"].([]interface{}))
+	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesContainerDeleteRetentionPolicyWithoutPermDeleteOption(v["retention_policy"].([]interface{}))
 
 	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(v["cors_rule"].([]interface{}))
 
