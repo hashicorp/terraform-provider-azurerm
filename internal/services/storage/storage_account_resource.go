@@ -2805,7 +2805,7 @@ func expandBlobProperties(kind storage.Kind, input []interface{}) (*storage.Blob
 	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 
 	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(containerDeletePolicyRaw)
+	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesContainerDeleteRetentionPolicy(containerDeletePolicyRaw)
 
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
@@ -2884,6 +2884,22 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 		Enabled:              utils.Bool(true),
 		Days:                 utils.Int32(int32(policy["days"].(int))),
 		AllowPermanentDelete: utils.Bool(policy["permanent_delete_enabled"].(bool)),
+	}
+}
+
+func expandBlobPropertiesContainerDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
+	result := storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(false),
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &result
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(true),
+		Days:    utils.Int32(int32(policy["days"].(int))),
 	}
 }
 
@@ -3339,7 +3355,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 
 	flattenedContainerDeletePolicy := make([]interface{}, 0)
 	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
-		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
+		flattenedContainerDeletePolicy = flattenBlobPropertiesContainerDeleteRetentionPolicy(containerDeletePolicy)
 	}
 
 	versioning, changeFeedEnabled, changeFeedRetentionInDays := false, false, 0
@@ -3447,6 +3463,27 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 		deleteRetentionPolicy = append(deleteRetentionPolicy, map[string]interface{}{
 			"days":                     days,
 			"permanent_delete_enabled": permanentDeleteEnabled,
+		})
+	}
+
+	return deleteRetentionPolicy
+}
+
+func flattenBlobPropertiesContainerDeleteRetentionPolicy(input *storage.DeleteRetentionPolicy) []interface{} {
+	deleteRetentionPolicy := make([]interface{}, 0)
+
+	if input == nil {
+		return deleteRetentionPolicy
+	}
+
+	if enabled := input.Enabled; enabled != nil && *enabled {
+		days := 0
+		if input.Days != nil {
+			days = int(*input.Days)
+		}
+
+		deleteRetentionPolicy = append(deleteRetentionPolicy, map[string]interface{}{
+			"days": days,
 		})
 	}
 
