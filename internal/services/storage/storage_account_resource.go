@@ -3355,7 +3355,7 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 
 	flattenedContainerDeletePolicy := make([]interface{}, 0)
 	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
-		flattenedContainerDeletePolicy = flattenBlobPropertiesContainerDeleteRetentionPolicy(containerDeletePolicy)
+		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicyWithoutPermDeleteOption(containerDeletePolicy)
 	}
 
 	versioning, changeFeedEnabled, changeFeedRetentionInDays := false, false, 0
@@ -3469,7 +3469,7 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	return deleteRetentionPolicy
 }
 
-func flattenBlobPropertiesContainerDeleteRetentionPolicy(input *storage.DeleteRetentionPolicy) []interface{} {
+func flattenBlobPropertiesDeleteRetentionPolicyWithoutPermDeleteOption(input *storage.DeleteRetentionPolicy) []interface{} {
 	deleteRetentionPolicy := make([]interface{}, 0)
 
 	if input == nil {
@@ -3623,7 +3623,7 @@ func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
 
 	flattenedDeletePolicy := make([]interface{}, 0)
 	if deletePolicy := input.FileServicePropertiesProperties.ShareDeleteRetentionPolicy; deletePolicy != nil {
-		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
+		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicyWithoutPermDeleteOption(deletePolicy)
 	}
 
 	flattenedSMB := make([]interface{}, 0)
