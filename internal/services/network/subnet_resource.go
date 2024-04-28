@@ -517,11 +517,12 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
 			privateEndpointNetworkPoliciesStringRaw := d.Get("private_endpoint_network_policies").(string)
 
-			if d.HasChange("enforce_private_link_endpoint_network_policies") {
+			switch {
+			case d.HasChange("enforce_private_link_endpoint_network_policies"):
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
-			} else if d.HasChange("private_endpoint_network_policies_enabled") {
+			case d.HasChange("private_endpoint_network_policies_enabled"):
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
-			} else if d.HasChange("private_endpoint_network_policies") {
+			case d.HasChange("private_endpoint_network_policies"):
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesStringRaw)
 			}
 
