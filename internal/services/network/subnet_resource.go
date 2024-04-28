@@ -367,12 +367,15 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		// Only one of these values can be set since they conflict with each other
 		// if neither of them are set use the default values
-		if enforceOk {
-			privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
-		} else if enableOk {
-			privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
-		} else if privateEndpointNetworkPoliciesOk {
-			privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesStringRaw)
+		if enforceOk || enableOk || privateEndpointNetworkPoliciesOk {
+			switch {
+			case enforceOk:
+				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
+			case enableOk:
+				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
+			case privateEndpointNetworkPoliciesOk:
+				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesStringRaw)
+			}
 		}
 
 		if enforceServiceOk || enableServiceOk {
