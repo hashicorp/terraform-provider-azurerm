@@ -207,8 +207,8 @@ func (r ElasticSANResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(config.Location),
 				Tags:     tags.Expand(config.Tags),
 				Properties: elasticsans.ElasticSanProperties{
-					BaseSizeTiB:             int64(config.BaseSizeInTiB),
-					ExtendedCapacitySizeTiB: int64(config.ExtendedSizeInTiB),
+					BaseSizeTiB:             config.BaseSizeInTiB,
+					ExtendedCapacitySizeTiB: config.ExtendedSizeInTiB,
 					Sku:                     ExpandSku(config.Sku),
 				},
 			}
@@ -314,14 +314,14 @@ func (r ElasticSANResource) Update() sdk.ResourceFunc {
 				if payload.Properties == nil {
 					payload.Properties = &elasticsans.ElasticSanUpdateProperties{}
 				}
-				payload.Properties.BaseSizeTiB = pointer.To(int64(config.BaseSizeInTiB))
+				payload.Properties.BaseSizeTiB = pointer.To(config.BaseSizeInTiB)
 			}
 
 			if metadata.ResourceData.HasChange("extended_size_in_tib") {
 				if payload.Properties == nil {
 					payload.Properties = &elasticsans.ElasticSanUpdateProperties{}
 				}
-				payload.Properties.ExtendedCapacitySizeTiB = pointer.To(int64(config.ExtendedSizeInTiB))
+				payload.Properties.ExtendedCapacitySizeTiB = pointer.To(config.ExtendedSizeInTiB)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
