@@ -39,14 +39,14 @@ func TestAccSentinelAlertRuleScheduled_upgrade(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeVersion(data, false),
+			Config: r.upgradeVersion(data, "1.0.4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeVersion(data, true),
+			Config: r.upgradeVersion(data, "1.0.5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -361,11 +361,7 @@ QUERY
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SentinelAlertRuleScheduledResource) upgradeVersion(data acceptance.TestData, update bool) string {
-	version := "1.0.4"
-	if update {
-		version = "1.0.5"
-	}
+func (r SentinelAlertRuleScheduledResource) upgradeVersion(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
