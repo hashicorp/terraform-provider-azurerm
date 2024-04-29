@@ -94,8 +94,8 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 						return fmt.Errorf("database-level CMK is not supported for Data Warehouse SKUs")
 					}
 					// NOTE: Got `InternalServerError` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_automatic_rotation_enabled` is specified
-					if _, ok := d.GetOk("transparent_data_encryption_key_automatic_rotation_enabled"); ok {
-						return fmt.Errorf("transparent_data_encryption_key_automatic_rotation_enabled could not be specifyed as database-level CMK is not supported for Data Warehouse SKUs")
+					if d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool) {
+						return fmt.Errorf("transparent_data_encryption_key_automatic_rotation_enabled should not be specified when using Data Warehouse SKUs")
 					}
 				}
 
@@ -306,8 +306,12 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Properties.PreferredEnclaveType = pointer.To(enclaveType)
 	}
 
-	if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
-		input.Properties.EncryptionProtectorAutoRotation = pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool))
+	v, ok := d.GetOk("transparent_data_encryption_key_automatic_rotation_enabled")
+	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
+	if ok && !v.(bool) && isDwSku {
+		input.Properties.EncryptionProtectorAutoRotation = nil
+	} else if !isDwSku {
+		input.Properties.EncryptionProtectorAutoRotation = pointer.To(v.(bool))
 	}
 
 	createMode := d.Get("create_mode").(string)
@@ -878,8 +882,12 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("transparent_data_encryption_key_automatic_rotation_enabled") {
-		if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
-			props.EncryptionProtectorAutoRotation = pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool))
+		v, ok := d.GetOk("transparent_data_encryption_key_automatic_rotation_enabled")
+		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
+		if ok && !v.(bool) && isDwSku {
+			props.EncryptionProtectorAutoRotation = nil
+		} else if !isDwSku {
+			props.EncryptionProtectorAutoRotation = pointer.To(v.(bool))
 		}
 	}
 
