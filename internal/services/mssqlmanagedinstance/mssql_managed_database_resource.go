@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
+	miParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -102,7 +103,7 @@ func (r MsSqlManagedDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         schema.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validate.ManagedDatabaseID,
+						ValidateFunc: validation.Any(validate.ManagedDatabaseID, validate.RestorableDatabaseID),
 					},
 				},
 			},
@@ -163,7 +164,13 @@ func (r MsSqlManagedDatabaseResource) Create() sdk.ResourceFunc {
 				parameters.RestorePointInTime = &date.Time{
 					Time: t,
 				}
-				parameters.SourceDatabaseID = pointer.To(restorePointInTime.SourceDatabaseId)
+
+				_, err := miParse.RestorableDroppedDatabaseID(restorePointInTime.SourceDatabaseId)
+				if err == nil {
+					parameters.RestorableDroppedDatabaseID = pointer.To(restorePointInTime.SourceDatabaseId)
+				} else {
+					parameters.SourceDatabaseID = pointer.To(restorePointInTime.SourceDatabaseId)
+				}
 			}
 
 			metadata.Logger.Infof("Creating %s", id)

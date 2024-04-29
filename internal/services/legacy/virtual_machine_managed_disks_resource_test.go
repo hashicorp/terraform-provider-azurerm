@@ -254,7 +254,7 @@ func TestAccVirtualMachine_linuxNoConfig(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.linuxNoConfig(data),
-			ExpectError: regexp.MustCompile("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified."),
+			ExpectError: regexp.MustCompile("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified"),
 		},
 	})
 }
@@ -266,7 +266,7 @@ func TestAccVirtualMachine_windowsNoConfig(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.windowsNoConfig(data),
-			ExpectError: regexp.MustCompile("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified."),
+			ExpectError: regexp.MustCompile("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified"),
 		},
 	})
 }
