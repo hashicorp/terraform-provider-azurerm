@@ -6,6 +6,7 @@ package eventgrid_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
@@ -142,6 +143,13 @@ func TestAccEventGridTopic_inboundIPRules(t *testing.T) {
 				check.That(data.ResourceName).Key("inbound_ip_rule.1.ip_mask").HasValue("10.1.0.0/16"),
 				check.That(data.ResourceName).Key("inbound_ip_rule.0.action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("inbound_ip_rule.1.action").HasValue("Allow"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.unsetInboundIPRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -337,6 +345,49 @@ resource "azurerm_eventgrid_topic" "test" {
     ip_mask = "10.1.0.0/16"
     action  = "Allow"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventGridTopicResource) unsetInboundIPRules(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  public_network_access_enabled = true
+
+  inbound_ip_rule = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  public_network_access_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

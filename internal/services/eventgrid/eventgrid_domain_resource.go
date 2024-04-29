@@ -166,10 +166,9 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			},
 
 			"inbound_ip_rule": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				MaxItems:   128,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 128,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"ip_mask": {
@@ -300,17 +299,6 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-
-	//existing, err := client.Get(ctx, *id)
-	//if err != nil {
-	//	return fmt.Errorf("retrieving %s: %+v", id, err)
-	//}
-	//
-	//if existing.Model == nil {
-	//	return fmt.Errorf("retrieving %s: `model` was nil", id)
-	//}
-	//
-	//payload := existing.Model
 
 	payload := domains.DomainUpdateParameters{Properties: &domains.DomainUpdateParameterProperties{}}
 
