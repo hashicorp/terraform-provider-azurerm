@@ -545,7 +545,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	d.SetId(id.ID())
 
 	// For datawarehouse SKUs only
-	if strings.HasPrefix(strings.ToLower(skuName), "dw") {
+	if isDwSku {
 		enabled := d.Get("geo_backup_enabled").(bool)
 
 		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
@@ -583,7 +583,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		securityAlertPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
 		// DataWarehouse SKU's do not support LRP currently
-		if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
+		if !isDwSku {
 			securityAlertPolicyPayload.Properties = securityAlertPolicyProps
 		}
 
@@ -597,7 +597,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if shortTermSecurityAlertPolicyProps != nil {
 		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
-		if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
+		if !isDwSku {
 			securityAlertPolicyPayload.Properties = shortTermSecurityAlertPolicyProps
 		}
 
@@ -991,7 +991,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// For datawarehouse SKUs only
-	if strings.HasPrefix(strings.ToLower(skuName), "dw") && d.HasChange("geo_backup_enabled") {
+	if isDwSku && d.HasChange("geo_backup_enabled") {
 		isEnabled := d.Get("geo_backup_enabled").(bool)
 		var geoBackupPolicyState geobackuppolicies.GeoBackupPolicyState
 
@@ -1034,7 +1034,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			longTermRetentionPolicy := longtermretentionpolicies.LongTermRetentionPolicy{}
 
 			// DataWarehouse SKU's do not support LRP currently
-			if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
+			if !isDwSku {
 				longTermRetentionPolicy.Properties = longTermRetentionProps
 			}
 
@@ -1051,7 +1051,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if backupShortTermPolicyProps != nil {
 			backupShortTermPolicy := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
-			if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
+			if !isDwSku {
 				backupShortTermPolicy.Properties = backupShortTermPolicyProps
 			}
 
@@ -1191,7 +1191,8 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		// DW SKU's do not currently support LRP and do not honour normal SRP operations
-		if !strings.HasPrefix(strings.ToLower(skuName), "dw") {
+		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
+		if !isDwSku {
 			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
@@ -1232,7 +1233,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 			// For Datawarehouse SKUs, set the geo-backup policy setting
 			if model := geoPoliciesResponse.Model; model != nil {
-				if strings.HasPrefix(strings.ToLower(skuName), "dw") && model.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
+				if isDwSku && model.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
 					geoBackupPolicy = false
 				}
 			}
