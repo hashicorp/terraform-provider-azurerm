@@ -123,7 +123,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 			// field back into the resource for UPDATE ONLY. If this is a new resource and the
 			// contact field is defined in the configuration file it will now throw an error.
 			// This will allow legacy key vaults to continue to work as the previously have
-			// and enforces our new model of seperating out the data plane call into its
+			// and enforces our new model of separating out the data plane call into its
 			// own resource (e.g., contacts)...
 			"contact": {
 				Type:       pluginsdk.TypeSet,
