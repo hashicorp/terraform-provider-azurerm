@@ -290,14 +290,6 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	isPublic := d.Get("public_network_access_enabled").(bool)
-	contactRaw := d.Get("contact").(*pluginsdk.Set).List() // TODO: Remove in 4.0
-
-	if !features.FourPointOhBeta() {
-		if !isPublic && len(contactRaw) > 0 {
-			return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
-		}
-	}
-
 	tenantUUID := d.Get("tenant_id").(string)
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
@@ -424,6 +416,10 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if !features.FourPointOhBeta() {
+		contactRaw := d.Get("contact").(*pluginsdk.Set).List() // TODO: Remove in 4.0
+		if !isPublic && len(contactRaw) > 0 {
+			return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
+		}
 		if len(contactRaw) > 0 {
 			if !isPublic {
 				return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
