@@ -229,7 +229,9 @@ func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Cl
 
 	ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
-	if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx2, *id, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
+	opts := virtualmachines.DefaultDeallocateOperationOptions()
+	opts.Hibernate = pointer.To(false)
+	if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx2, *id, opts); err != nil {
 		return fmt.Errorf("failed stopping %s: %+v", id, err)
 	}
 
