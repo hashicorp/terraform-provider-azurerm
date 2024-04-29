@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -2333,9 +2334,22 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}
 
-		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
+		var staticWebsiteProps accounts.GetServicePropertiesResult
+		if e2 := pluginsdk.Retry(time.Second*10, func() *retry.RetryError {
+			var err error
+			staticWebsiteProps, err = accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+
+			if response.WasNotFound(staticWebsiteProps.HttpResponse) {
+				return pluginsdk.RetryableError(err)
+			}
+
+			if err != nil {
+				return pluginsdk.NonRetryableError(err)
+			}
+
+			return nil
+		}); e2 != nil {
+			return fmt.Errorf("retrieving static website properties for %s: %+v", *id, e2)
 		}
 		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
 		if err := d.Set("static_website", staticWebsite); err != nil {
