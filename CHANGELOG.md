@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` [GH-25745]
+* `azurerm_mssql_managed_database` - support for RestorableDatabaseID to be used as the `source_database_id` for point in time restore [GH-25568]
 
 ## 3.101.0 (April 25, 2024)
 
