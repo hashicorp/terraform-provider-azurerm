@@ -80,7 +80,7 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 			"value": {
 				Type:             pluginsdk.TypeString,
 				Required:         true,
-				DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
+				DiffSuppressFunc: XmlWhitespaceDiffSuppress,
 			},
 
 			"description": {
