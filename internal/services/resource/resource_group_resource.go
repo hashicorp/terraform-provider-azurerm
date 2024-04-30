@@ -113,28 +113,30 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	// consistent. ARM team has worked in the past to make the multi-master model work transparently,
 	// and I assume they will continue this work as will our other teams working on the problem.
 
-	stateConf := &pluginsdk.StateChangeConf{ //nolint:staticcheck
-		Pending:                   []string{"Waiting"},
-		Target:                    []string{"Done"},
-		Timeout:                   10 * time.Minute,
-		MinTimeout:                4 * time.Second,
-		ContinuousTargetOccurence: 3,
-		Refresh: func() (interface{}, string, error) {
-			rg, err := client.Get(ctx, name)
-			if err != nil {
-				if utils.ResponseWasNotFound(rg.Response) {
-					return false, "Waiting", nil
+	if d.IsNewResource() {
+		stateConf := &pluginsdk.StateChangeConf{ //nolint:staticcheck
+			Pending:                   []string{"Waiting"},
+			Target:                    []string{"Done"},
+			Timeout:                   10 * time.Minute,
+			MinTimeout:                4 * time.Second,
+			ContinuousTargetOccurence: 3,
+			Refresh: func() (interface{}, string, error) {
+				rg, err := client.Get(ctx, name)
+				if err != nil {
+					if utils.ResponseWasNotFound(rg.Response) {
+						return false, "Waiting", nil
+					}
+					return nil, "Error", fmt.Errorf("retrieving Resource Group: %+v", err)
 				}
-				return nil, "Error", fmt.Errorf("retrieving Resource Group: %+v", err)
-			}
 
-			return true, "Done", nil
+				return true, "Done", nil
 
-		},
-	}
+			},
+		}
 
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Resource Group %s to become available: %+v", name, err)
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Resource Group %s to become available: %+v", name, err)
+		}
 	}
 
 	// @favoretti kludge end
