@@ -50,7 +50,7 @@ func TestAccApiManagementPolicyFragment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementPolicyFragment_updateDescription(t *testing.T) {
+func TestAccApiManagementPolicyFragment_updateDescriptionAndFormat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_policy_fragment", "test")
 	r := ApiManagementPolicyFragmentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -59,6 +59,7 @@ func TestAccApiManagementPolicyFragment_updateDescription(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue("Some descriptive text"),
+				check.That(data.ResourceName).Key("format").HasValue("xml"),
 			),
 		},
 		data.ImportStep(),
@@ -139,6 +140,7 @@ resource "azurerm_api_management_policy_fragment" "test" {
   name              = azurerm_api_management.test.name
   description       = "Some descriptive text which is updated"
   value             = file("testdata/api_management_policy_fragment_test_xml.xml")
+  format            = "rawxml"
 }
 `, r.template(data))
 }
