@@ -909,7 +909,6 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 				Network:                    expandArmServerNetwork(d),
 			},
 		}
-
 		if err = client.CreateThenPoll(ctx, *id, loginParameters); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
