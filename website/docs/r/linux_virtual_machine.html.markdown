@@ -230,6 +230,8 @@ A `additional_capabilities` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`.
 
+* `hibernation_enabled` - (Optional) Whether to enable the hibernation capability or not. Changing this forces a new Linux Virtual Machine to be created.
+
 ---
 
 A `admin_ssh_key` block supports the following:
