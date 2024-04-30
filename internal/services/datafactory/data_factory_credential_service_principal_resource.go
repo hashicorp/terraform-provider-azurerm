@@ -215,7 +215,7 @@ func (r DataFactoryCredentialServicePrincipalResource) Create() sdk.ResourceFunc
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
+				return tf.ImportAsExistsError("azurerm_data_factory_credential_service_principal", id.ID())
 			}
 
 			var servicePrincipalId interface{} = data.ServicePrincipalId

@@ -158,7 +158,7 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Create() sdk.R
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_data_factory_dataset_http", id.ID())
+				return tf.ImportAsExistsError("azurerm_data_factory_credential_user_managed_identity", id.ID())
 			}
 
 			props := credentials.ManagedIdentityCredential{
