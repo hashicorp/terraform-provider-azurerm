@@ -131,67 +131,6 @@ func (DataFactoryCredentialServicePrincipalResource) IDValidationFunc() pluginsd
 	return credentials.ValidateCredentialID
 }
 
-func (DataFactoryCredentialServicePrincipalResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			d := metadata.ResourceData
-			client := metadata.Client.DataFactory.Credentials
-
-			id, err := credentials.ParseCredentialID(d.Id())
-			if err != nil {
-				return err
-			}
-
-			existing, err := client.CredentialOperationsGet(ctx, *id, credentials.DefaultCredentialOperationsGetOperationOptions())
-			if err != nil {
-				if response.WasNotFound(existing.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			state := DataFactoryCredentialServicePrincipalResourceSchema{
-				Name:          id.CredentialName,
-				DataFactoryId: credentials.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID(),
-			}
-
-			if model := existing.Model; model != nil {
-				props, ok := model.Properties.(credentials.ServicePrincipalCredential)
-				if !ok {
-					return fmt.Errorf("retrieving %s: expected `credentials.ServicePrincipalCredential` but got %+v", id, model.Properties)
-				}
-
-				state.Description = pointer.From(props.Description)
-				state.Annotations = flattenDataFactoryAnnotations(props.Annotations)
-
-				if props.TypeProperties.Tenant != nil {
-					if v, ok := (*props.TypeProperties.Tenant).(string); ok {
-						state.TenantId = v
-					}
-				}
-
-				if props.TypeProperties.ServicePrincipalId != nil {
-					if v, ok := (*props.TypeProperties.ServicePrincipalId).(string); ok {
-						state.ServicePrincipalId = v
-					}
-				}
-
-				if props.TypeProperties.ServicePrincipalKey != nil {
-					state.ServicePrincipalKey = flattenDataFactoryCredentialKeyVaultSecretReference(props.TypeProperties.ServicePrincipalKey)
-				}
-
-				if props.Description != nil {
-					state.Description = *props.Description
-				}
-			}
-
-			return metadata.Encode(&state)
-		},
-	}
-}
-
 func (r DataFactoryCredentialServicePrincipalResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -253,6 +192,67 @@ func (r DataFactoryCredentialServicePrincipalResource) Create() sdk.ResourceFunc
 	}
 }
 
+func (DataFactoryCredentialServicePrincipalResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			d := metadata.ResourceData
+			client := metadata.Client.DataFactory.Credentials
+
+			id, err := credentials.ParseCredentialID(d.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.CredentialOperationsGet(ctx, *id, credentials.DefaultCredentialOperationsGetOperationOptions())
+			if err != nil {
+				if response.WasNotFound(existing.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state := DataFactoryCredentialServicePrincipalResourceSchema{
+				Name:          id.CredentialName,
+				DataFactoryId: credentials.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID(),
+			}
+
+			if model := existing.Model; model != nil {
+				props, ok := model.Properties.(credentials.ServicePrincipalCredential)
+				if !ok {
+					return fmt.Errorf("retrieving %s: expected `credentials.ServicePrincipalCredential` but got %T", id, model.Properties)
+				}
+
+				state.Description = pointer.From(props.Description)
+				state.Annotations = flattenDataFactoryAnnotations(props.Annotations)
+
+				if props.TypeProperties.Tenant != nil {
+					if v, ok := (*props.TypeProperties.Tenant).(string); ok {
+						state.TenantId = v
+					}
+				}
+
+				if props.TypeProperties.ServicePrincipalId != nil {
+					if v, ok := (*props.TypeProperties.ServicePrincipalId).(string); ok {
+						state.ServicePrincipalId = v
+					}
+				}
+
+				if props.TypeProperties.ServicePrincipalKey != nil {
+					state.ServicePrincipalKey = flattenDataFactoryCredentialKeyVaultSecretReference(props.TypeProperties.ServicePrincipalKey)
+				}
+
+				if props.Description != nil {
+					state.Description = *props.Description
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
 func (r DataFactoryCredentialServicePrincipalResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -279,7 +279,7 @@ func (r DataFactoryCredentialServicePrincipalResource) Update() sdk.ResourceFunc
 
 			props, ok := existing.Model.Properties.(credentials.ServicePrincipalCredential)
 			if !ok {
-				return fmt.Errorf("retrieving %s: expected `credentials.ServicePrincipalCredential` but got %+v", id, existing.Model.Properties)
+				return fmt.Errorf("retrieving %s: expected `credentials.ServicePrincipalCredential` but got %T", id, existing.Model.Properties)
 			}
 
 			if metadata.ResourceData.HasChange("description") {

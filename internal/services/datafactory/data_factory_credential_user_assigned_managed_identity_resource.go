@@ -116,7 +116,7 @@ func (DataFactoryCredentialUserAssignedManagedIdentityResource) Read() sdk.Resou
 			if model := existing.Model; model != nil {
 				props, ok := model.Properties.(credentials.ManagedIdentityCredential)
 				if !ok {
-					return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %+v", id, model.Properties)
+					return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %T", id, model.Properties)
 				}
 
 				if props.Description != nil {
@@ -217,7 +217,7 @@ func (r DataFactoryCredentialUserAssignedManagedIdentityResource) Update() sdk.R
 
 			props, ok := existing.Model.Properties.(credentials.ManagedIdentityCredential)
 			if !ok {
-				return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %+v", id, existing.Model.Properties)
+				return fmt.Errorf("retrieving %s: expected `credentials.ManagedIdentityCredential` but got %T", id, existing.Model.Properties)
 			}
 
 			if metadata.ResourceData.HasChange("description") {

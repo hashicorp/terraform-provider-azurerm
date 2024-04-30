@@ -1,12 +1,12 @@
 ---
 subcategory: "Data Factory"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_data_factory_credential_user_managed_identity"
+page_title: "Azure Resource Manager: azurerm_data_factory_credential_service_principal"
 description: |-
   Manage a Data Factory Service Principal credential resource
 ---
 
-# azurerm_data_factory_credential_user_managed_identity
+# azurerm_data_factory_credential_service_principal
 
 Manage a Data Factory Service Principal credential resource. These resources are used by Data Factory to access data sources.
 
