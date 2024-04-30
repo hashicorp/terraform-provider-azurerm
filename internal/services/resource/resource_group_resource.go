@@ -112,7 +112,6 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	// a different region, they were made outside of the session scope - so, effectively eventually
 	// consistent. ARM team has worked in the past to make the multi-master model work transparently,
 	// and I assume they will continue this work as will our other teams working on the problem.
-
 	if d.IsNewResource() {
 		stateConf := &pluginsdk.StateChangeConf{ //nolint:staticcheck
 			Pending:                   []string{"Waiting"},
@@ -138,8 +137,6 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("waiting for Resource Group %s to become available: %+v", name, err)
 		}
 	}
-
-	// @favoretti kludge end
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
