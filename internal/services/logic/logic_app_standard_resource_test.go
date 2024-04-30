@@ -1818,9 +1818,7 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    ip_restriction {
-      scm_ip_address = []
-    }
+    scm_ip_restriction = []
   }
 }
 `, r.template(data), data.RandomInteger)
