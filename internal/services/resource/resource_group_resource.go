@@ -118,7 +118,7 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		Target:                    []string{"Done"},
 		Timeout:                   10 * time.Minute,
 		MinTimeout:                4 * time.Second,
-		ContinuousTargetOccurence: 5,
+		ContinuousTargetOccurence: 3,
 		Refresh: func() (interface{}, string, error) {
 			rg, err := client.Get(ctx, name)
 			if err != nil {
