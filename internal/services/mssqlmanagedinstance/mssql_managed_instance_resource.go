@@ -52,7 +52,7 @@ type MsSqlManagedInstanceModel struct {
 	SubnetId                          string                              `tfschema:"subnet_id"`
 	TimezoneId                        string                              `tfschema:"timezone_id"`
 	VCores                            int64                               `tfschema:"vcores"`
-	AzureActiveDirectoryAdministrator []AzureActiveDirectoryAdministrator `tfschema:"microsoft_entra_administrator"`
+	AzureActiveDirectoryAdministrator []AzureActiveDirectoryAdministrator `tfschema:"azure_active_directory_administrator"`
 	ZoneRedundantEnabled              bool                                `tfschema:"zone_redundant_enabled"`
 	Tags                              map[string]string                   `tfschema:"tags"`
 }
@@ -159,7 +159,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			AtLeastOneOf: []string{"administrator_login", "microsoft_entra_administrator"},
+			AtLeastOneOf: []string{"administrator_login", "azure_active_directory_administrator"},
 			RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
@@ -168,12 +168,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			AtLeastOneOf: []string{"administrator_login_password", "microsoft_entra_administrator"},
+			AtLeastOneOf: []string{"administrator_login_password", "azure_active_directory_administrator"},
 			RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"microsoft_entra_administrator": {
+		"azure_active_directory_administrator": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -503,9 +503,9 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 
 				aadAdminRemoved := checkAADAdminRemoved(metadata.ResourceData)
 				if aadAdminRemoved && aadAdminExists {
+					log.Printf("[INFO] Disabling AAD Authentication Only for %s: %+v", *id, err)
 					future, err := azureADAuthenticationOnlyClient.Delete(ctx, id.ResourceGroup, id.Name)
 					if err != nil {
-						log.Printf("[INFO] Deletion of AAD Authentication Only failed for %s: %+v", *id, err)
 						return fmt.Errorf("disabling AAD Authentication Only for %s: %+v", *id, err)
 					}
 
@@ -513,6 +513,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 						return fmt.Errorf("waiting to disable AAD Authentication Only for %s: %+v", *id, err)
 					}
 
+					log.Printf("[INFO] Removing AAD Administrator for %s: %+v", *id, err)
 					resp, err := adminClient.Delete(ctx, id.ResourceGroup, id.Name)
 					if err != nil {
 						return fmt.Errorf("removing the AAD Administrator for %s: %+v", *id, err)
@@ -531,6 +532,7 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 					aadAdminChanged := checkAADAdminChanged(metadata.ResourceData)
 					if aadAdminChanged {
 						// if enabling AAD Authentication only, AAD admin must be set first.
+						log.Printf("[INFO] Creating/updating AAD Administrator for %s: %+v", *id, err)
 						future, err := adminClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *aadAdminProps)
 						if err != nil {
 							return fmt.Errorf("creating AAD Administrator for %s: %+v", *id, err)
@@ -540,8 +542,8 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 						}
 
 					}
-					aadAuthOnlyChanged := checkAADAuthOnlyChanged(metadata.ResourceData)
-					if aadAuthOnlyChanged {
+
+					if metadata.ResourceData.HasChange("azure_active_directory_administrator.0.azuread_authentication_only_enabled") {
 						aadOnlyAuthenticationsProps := sql.ManagedInstanceAzureADOnlyAuthentication{
 							ManagedInstanceAzureADOnlyAuthProperties: &sql.ManagedInstanceAzureADOnlyAuthProperties{
 								AzureADOnlyAuthentication: pointer.To(expandMsSqlManagedInstanceAadAuthenticationOnly(state.AzureActiveDirectoryAdministrator)),
@@ -556,12 +558,6 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 						}
 					}
 				}
-
-				administrators, err := expandMsSqlManagedInstanceExternalAdministrators(state.AzureActiveDirectoryAdministrator)
-				if err != nil {
-					return fmt.Errorf("expanding `azure_active_directory_administrator` for SQL Managed Instance Server %q: %v", id.ID(), err)
-				}
-				properties.ManagedInstanceProperties.Administrators = administrators
 			}
 
 			metadata.Logger.Infof("Updating %s", *id)
@@ -593,11 +589,6 @@ func checkAADAdminChanged(d *schema.ResourceData) bool {
 	oldObjId, newObjId := d.GetChange("azure_active_directory_administrator.0.object_id")
 	oldTenantID, newTenantID := d.GetChange("azure_active_directory_administrator.0.tenant_id")
 	return oldLogin.(string) != newLogin.(string) || oldObjId.(string) != newObjId.(string) || oldTenantID.(string) != newTenantID.(string)
-}
-
-func checkAADAuthOnlyChanged(d *schema.ResourceData) bool {
-	old, new := d.GetChange("azure_active_directory_administrator.0.azuread_authentication_only_enabled")
-	return old.(bool) != new.(bool)
 }
 
 func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
