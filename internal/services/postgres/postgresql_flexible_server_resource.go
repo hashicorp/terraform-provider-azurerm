@@ -528,7 +528,6 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	parameters := servers.Server{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &servers.ServerProperties{
-			Network:          expandArmServerNetwork(d),
 			Storage:          storage,
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
@@ -537,6 +536,12 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	network, err := expandArmServerNetwork(d)
+	if err != nil {
+		return err
+	}
+	parameters.Properties.Network = network
 
 	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
 		parameters.Properties.AdministratorLogin = utils.String(v.(string))
@@ -769,7 +774,11 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
-		parameters.Properties.Network = expandArmServerNetwork(d)
+		network, err := expandArmServerNetwork(d)
+		if err != nil {
+			return err
+		}
+		parameters.Properties.Network = network
 	}
 
 	var requireFailover bool
@@ -907,9 +916,15 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
 				AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
 				AdministratorLoginPassword: utils.String(d.Get("administrator_password").(string)),
-				Network:                    expandArmServerNetwork(d),
 			},
 		}
+
+		network, err := expandArmServerNetwork(d)
+		if err != nil {
+			return err
+		}
+		loginParameters.Properties.Network = network
+
 		if err = client.CreateThenPoll(ctx, *id, loginParameters); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
@@ -954,7 +969,7 @@ func resourcePostgresqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
+func expandArmServerNetwork(d *pluginsdk.ResourceData) (*servers.Network, error) {
 	network := servers.Network{}
 
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
@@ -967,11 +982,15 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 
 	publicNetworkAccessEnabled := servers.ServerPublicNetworkAccessStateDisabled
 	if d.Get("public_network_access_enabled").(bool) {
+		if network.DelegatedSubnetResourceId != nil || network.PrivateDnsZoneArmResourceId != nil {
+			return nil, fmt.Errorf("'public_network_access_enabled' must be set to `false` when `delegated_subnet_id` or `private_dns_zone_id` is set")
+		}
+
 		publicNetworkAccessEnabled = servers.ServerPublicNetworkAccessStateEnabled
 	}
 	network.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 
-	return &network
+	return &network, nil
 }
 
 func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceWindow {
