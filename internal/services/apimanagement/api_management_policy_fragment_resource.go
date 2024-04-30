@@ -69,7 +69,6 @@ func resourceApiManagementPolicyFragment() *pluginsdk.Resource {
 
 			"format": {
 				Type:     pluginsdk.TypeString,
-				ForceNew: true,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(policyfragment.PolicyFragmentContentFormatRawxml),
@@ -149,18 +148,35 @@ func resourceApiManagementPolicyFragmentUpdate(d *pluginsdk.ResourceData, meta i
 
 	format := policyfragment.PolicyFragmentContentFormat(d.Get("format").(string))
 
-	description := d.Get("description").(string)
-	value := d.Get("value").(string)
-
-	parameters := policyfragment.PolicyFragmentContract{
-		Properties: &policyfragment.PolicyFragmentContractProperties{
-			Description: pointer.To(description),
-			Format:      pointer.To(format),
-			Value:       value,
-		},
+	opts := policyfragment.DefaultGetOperationOptions()
+	opts.Format = pointer.To(format)
+	existing, err := client.Get(ctx, *id, opts)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, pointer.From(id), parameters, policyfragment.CreateOrUpdateOperationOptions{}); err != nil {
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("description") {
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("value") {
+		payload.Properties.Value = d.Get("value").(string)
+	}
+
+	if d.HasChange("format") {
+		payload.Properties.Format = pointer.To(format)
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload, policyfragment.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

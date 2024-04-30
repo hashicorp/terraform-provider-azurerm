@@ -67,9 +67,10 @@ func TestAccApiManagementPolicyFragment_updateDescription(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue("Some descriptive text which is updated"),
+				check.That(data.ResourceName).Key("format").HasValue("rawxml"),
 			),
 		},
-		data.ImportStep(),
+		// `data.ImportStep()` must be omitted for this test because of the behaviour of the API and the import function
 	})
 }
 
@@ -82,9 +83,10 @@ func TestAccApiManagementPolicyFragment_rawxml(t *testing.T) {
 			Config: r.rawxml(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("format").HasValue("rawxml"),
 			),
 		},
-		data.ImportStep(),
+		// `data.ImportStep()` must be omitted for this test because of the behaviour of the API and the import function
 	})
 }
 
@@ -172,7 +174,7 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+  sku_name            = "Consumption_0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
