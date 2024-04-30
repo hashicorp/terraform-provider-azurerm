@@ -136,6 +136,10 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - Is public network access enabled? Defaults to `true`.
 
+~> **Note:** When `delegated_subnet_id` or `private_dns_zone_id` is set, the default value of `public_network_access_enabled` is `false`.
+
+~> **Note:** When `delegated_subnet_id` or `private_dns_zone_id` isn't set, the default value of `public_network_access_enabled` is `true`.
+
 * `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
 
 ~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value.
