@@ -957,7 +957,7 @@ resource "azurerm_kusto_cluster" "test" {
 
   optimized_auto_scale {
     minimum_instances = 2
-    maximum_instances = 2
+    maximum_instances = 3
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
