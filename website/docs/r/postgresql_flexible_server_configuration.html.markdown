@@ -25,12 +25,13 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                   = "example-psqlflexibleserver"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
-  version                = "12"
-  administrator_login    = "psqladmin"
-  administrator_password = "H@Sh1CoR3!"
+  name                          = "example-psqlflexibleserver"
+  resource_group_name           = azurerm_resource_group.example.name
+  location                      = azurerm_resource_group.example.location
+  version                       = "12"
+  administrator_login           = "psqladmin"
+  administrator_password        = "H@Sh1CoR3!"
+  public_network_access_enabled = true
 
   storage_mb = 32768
 
@@ -57,12 +58,13 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                   = "example-psqlflexibleserver"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
-  version                = "12"
-  administrator_login    = "psqladmin"
-  administrator_password = "H@Sh1CoR3!"
+  name                          = "example-psqlflexibleserver"
+  resource_group_name           = azurerm_resource_group.example.name
+  location                      = azurerm_resource_group.example.location
+  version                       = "12"
+  administrator_login           = "psqladmin"
+  administrator_password        = "H@Sh1CoR3!"
+  public_network_access_enabled = true
 
   storage_mb = 32768
 

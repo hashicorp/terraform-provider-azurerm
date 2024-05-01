@@ -524,7 +524,7 @@ func TestAccPostgresqlFlexibleServer_invalidStorageTierScalingStorageMbStorageTi
 	})
 }
 
-func TestAccPostgresqlFlexibleServer_publicNetworkAccess(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_publicNetworkAccessEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

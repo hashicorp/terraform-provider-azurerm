@@ -337,6 +337,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                = "12"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
+  public_network_access_enabled = true
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "test" {
