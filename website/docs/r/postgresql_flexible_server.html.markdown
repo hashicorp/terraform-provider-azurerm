@@ -118,9 +118,9 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is public network access enabled?
 
-~> **Note:** When `delegated_subnet_id` and `private_dns_zone_id` are set, the default value of `public_network_access_enabled` is `false`.
+~> **Note:** When `delegated_subnet_id` and `private_dns_zone_id` are set but `public_network_access_enabled` isn't set, the default value of `public_network_access_enabled` is `false`.
 
-~> **Note:** When `delegated_subnet_id` and `private_dns_zone_id` aren't set, the default value of `public_network_access_enabled` is `true`.
+~> **Note:** When `delegated_subnet_id`, `private_dns_zone_id` and `public_network_access_enabled` aren't set, the default value of `public_network_access_enabled` is `true`.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
 
