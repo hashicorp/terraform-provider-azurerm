@@ -964,9 +964,10 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 		network.PrivateDnsZoneArmResourceId = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("public_network_access_enabled"); ok {
+	// `d.GetOk()` cannot identify if the bool property `public_network_access_enabled` is set or not in the tf config since d.GetOk() always returns `false` when `public_network_access_enabled` is set to `false` and `public_network_access_enabled` isn't set in the tf config
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "public_network_access_enabled") {
 		publicNetworkAccessEnabled := servers.ServerPublicNetworkAccessStateDisabled
-		if v.(bool) {
+		if d.Get("public_network_access_enabled").(bool) {
 			publicNetworkAccessEnabled = servers.ServerPublicNetworkAccessStateEnabled
 		}
 		network.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
