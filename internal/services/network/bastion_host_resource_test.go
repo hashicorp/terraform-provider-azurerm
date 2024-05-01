@@ -224,6 +224,7 @@ resource "azurerm_bastion_host" "test" {
   sku                    = "Standard"
   file_copy_enabled      = true
   ip_connect_enabled     = true
+  kerberos_enabled       = true
   shareable_link_enabled = true
   tunneling_enabled      = true
 
