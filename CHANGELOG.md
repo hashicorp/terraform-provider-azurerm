@@ -9,6 +9,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_linux_function_app` - now sets docker registry url in `linux_fx_version` by default [GH-23911]
+* `azurerm_resource_group` - work around sporadic eventual consistency errors [GH-25758]
 
 ## 3.101.0 (April 25, 2024)
 
