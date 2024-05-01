@@ -124,6 +124,8 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 
 			}
 
+			time.Sleep(30 * time.Second)
+
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCertObj); err != nil {
 				return fmt.Errorf("creating web pubsub custom certificate: %s: %+v", id, err)
 			}
