@@ -401,7 +401,15 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("kind", resp.Model.Kind)
 
 	if props := resp.Model.Properties; props != nil {
-		d.Set("application_insights_id", props.ApplicationInsights)
+		appInsightsId := ""
+		if props.ApplicationInsights != nil {
+			applicationInsightsId, err := components.ParseComponentIDInsensitively(*props.ApplicationInsights)
+			if err != nil {
+				return err
+			}
+			appInsightsId = applicationInsightsId.ID()
+		}
+		d.Set("application_insights_id", appInsightsId)
 		d.Set("storage_account_id", props.StorageAccount)
 		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)

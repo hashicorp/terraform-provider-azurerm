@@ -1,3 +1,33 @@
+## 3.102.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_load_test` - add support for `encryption` [GH-25759]
+* `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` [GH-25745]
+* `azurerm_mssql_managed_database` - support for RestorableDatabaseID to be used as the `source_database_id` for point in time restore [GH-25568]
+
+BUG FIXES:
+
+* `azurerm_linux_function_app` - now sets docker registry url in `linux_fx_version` by default [GH-23911]
+* `azurerm_resource_group` - work around sporadic eventual consistency errors [GH-25758]
+
+## 3.101.0 (April 25, 2024)
+
+ENHANCEMENTS:
+
+* dependencies: updating to `v0.20240424.1114424` of `github.com/hashicorp/go-azure-sdk` ([#25749](https://github.com/hashicorp/terraform-provider-azurerm/issues/25749))
+* dependencies: updating to `v0.27.0` of `github.com/tombuildsstuff/giovanni` ([#25702](https://github.com/hashicorp/terraform-provider-azurerm/issues/25702))
+* dependencies: updating `golang.org/x/net` to `0.23.0`
+* `azurerm_cognitive_account` - the `kind` property now supports `ConversationalLanguageUnderstanding` ([#25735](https://github.com/hashicorp/terraform-provider-azurerm/issues/25735))
+* `azurerm_container_app_custom_domain` - support the ability to use Azure Managed Certificates ([#25356](https://github.com/hashicorp/terraform-provider-azurerm/issues/25356))
+
+BUG FIXES:
+
+* Data Source: `azurerm_application_insights` - set correct AppID in data source ([#25687](https://github.com/hashicorp/terraform-provider-azurerm/issues/25687))
+* `azurerm_virtual_network` - suppress diff in ordering for `address_space` due to inconsistent API response ([#23793](https://github.com/hashicorp/terraform-provider-azurerm/issues/23793))
+* `azurerm_storage_data_lake_gen2_filesystem` - add context deadline for import ([#25712](https://github.com/hashicorp/terraform-provider-azurerm/issues/25712))
+* `azurerm_virtual_network_gateway` - preserve existing `nat_rules` on updates ([#25690](https://github.com/hashicorp/terraform-provider-azurerm/issues/25690))
+
 ## 3.100.0 (April 18, 2024)
 
 ENHANCEMENTS:

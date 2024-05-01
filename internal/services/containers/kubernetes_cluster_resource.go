@@ -304,7 +304,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 							AtLeastOneOf: []string{
 								"azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed",
 								"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
 							},
 						},
@@ -323,7 +322,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							},
 							AtLeastOneOf: []string{
 								"azure_active_directory_role_based_access_control.0.tenant_id",
-								"azure_active_directory_role_based_access_control.0.managed",
 								"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
 							},
 						},
@@ -1114,8 +1112,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"outbound_ip_prefix_ids": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
-										Computed:      true,
-										ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -1125,8 +1121,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 									"outbound_ip_address_ids": {
 										Type:          pluginsdk.TypeSet,
 										Optional:      true,
-										Computed:      true,
-										ConfigMode:    pluginsdk.SchemaConfigModeAttr,
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
@@ -1134,9 +1128,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										},
 									},
 									"effective_outbound_ips": {
-										Type:       pluginsdk.TypeSet,
-										Computed:   true,
-										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Type:     pluginsdk.TypeSet,
+										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
@@ -1166,9 +1159,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"effective_outbound_ips": {
-										Type:       pluginsdk.TypeSet,
-										Computed:   true,
-										ConfigMode: pluginsdk.SchemaConfigModeAttr,
+										Type:     pluginsdk.TypeSet,
+										Computed: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 										},
@@ -1543,6 +1535,28 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			}, false),
 			Deprecated: features.DeprecatedInFourPointOh("The property `node_os_channel_upgrade` will be renamed to `node_os_upgrade_channel` in v4.0 of the AzureRM Provider."),
 		}
+		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["outbound_ip_prefix_ids"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Computed:      true,
+			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+			ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+		}
+		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["outbound_ip_address_ids"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Computed:      true,
+			ConfigMode:    pluginsdk.SchemaConfigModeAttr,
+			ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+		}
 		resource.Schema["azure_active_directory_role_based_access_control"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -1600,7 +1614,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					},
 
 					"managed": {
-						Deprecated: "Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated and clusters can no longer be created with the Azure AD integration (legacy) enabled. This field will be removed in v4.0 of the AzureRM Provider.",
+						Deprecated: "Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated and clusters can no longer be created with the Azure AD integration (legacy) enabled. This field must be supplied with the value `true` for AKS-managed Entra Integration, but will be removed and defaulted to `true` for the user in v4.0 of the AzureRM Provider.",
 						Type:       pluginsdk.TypeBool,
 						Optional:   true,
 						AtLeastOneOf: []string{

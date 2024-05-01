@@ -67,10 +67,12 @@ func (c Client) BreakLease(ctx context.Context, containerName string, input Brea
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			if leaseTimeRaw := resp.Header.Get("x-ms-lease-time"); leaseTimeRaw != "" {
-				if leaseTime, err := strconv.Atoi(leaseTimeRaw); err == nil {
-					result.LeaseTime = leaseTime
+		if err == nil {
+			if resp.Header != nil {
+				if leaseTimeRaw := resp.Header.Get("x-ms-lease-time"); leaseTimeRaw != "" {
+					if leaseTime, err := strconv.Atoi(leaseTimeRaw); err == nil {
+						result.LeaseTime = leaseTime
+					}
 				}
 			}
 		}
