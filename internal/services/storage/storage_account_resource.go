@@ -2507,11 +2507,11 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 		keyVersion = utils.String(keyId.Version)
 		keyVaultURI = utils.String(keyId.KeyVaultBaseUrl)
 	} else if managedHSMKeyId, ok := v["managed_hsm_key_id"]; ok && managedHSMKeyId != "" {
-		if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err != nil {
+		if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
 			keyName = utils.String(keyId.KeyName)
 			keyVersion = utils.String(keyId.KeyVersion)
 			keyVaultURI = utils.String(keyId.BaseUri())
-		} else if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err != nil {
+		} else if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
 			keyName = utils.String(keyId.KeyName)
 			keyVersion = utils.String("")
 			keyVaultURI = utils.String(keyId.BaseUri())
