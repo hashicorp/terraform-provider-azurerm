@@ -183,11 +183,11 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		keyVersion = d.Get("key_version").(string)
 		keyVaultURI = *keyVaultBaseURL
 	} else if managedHSMKeyId, ok := d.GetOk("managed_hsm_key_id"); ok {
-		if keyId, err := parse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err != nil {
+		if keyId, err := parse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
 			keyName = keyId.KeyName
 			keyVersion = keyId.KeyVersion
 			keyVaultURI = keyId.BaseUri()
-		} else if keyId, err := parse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err != nil {
+		} else if keyId, err := parse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
 			keyName = keyId.KeyName
 			keyVersion = ""
 			keyVaultURI = keyId.BaseUri()
