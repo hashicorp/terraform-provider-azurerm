@@ -148,7 +148,7 @@ func resourceSubnet() *pluginsdk.Resource {
 			"service_endpoint_policy_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				MinItems: 1,
+				MinItems: 0,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.SubnetServiceEndpointStoragePolicyID,
