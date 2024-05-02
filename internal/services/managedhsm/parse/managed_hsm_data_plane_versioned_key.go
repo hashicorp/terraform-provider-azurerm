@@ -69,8 +69,8 @@ func ManagedHSMDataPlaneVersionedKeyID(input string, domainSuffix *string) (*Man
 	}
 
 	return &ManagedHSMDataPlaneVersionedKeyId{
-		ManagedHSMName: endpoint.managedHsmName,
-		DomainSuffix:   endpoint.domainSuffix,
+		ManagedHSMName: endpoint.ManagedHSMName,
+		DomainSuffix:   endpoint.DomainSuffix,
 		KeyName:        resource.itemName,
 		KeyVersion:     *resource.itemVersion,
 	}, nil

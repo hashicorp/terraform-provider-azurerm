@@ -68,17 +68,25 @@ type storageAccountServiceSupportLevel struct {
 	supportStaticWebsite bool
 }
 
-func resolveStorageAccountServiceSupportLevel(kind storage.Kind, tier storage.SkuTier) storageAccountServiceSupportLevel {
+func resolveStorageAccountServiceSupportLevel(kind storage.Kind, tier storage.SkuTier, replicationType string) storageAccountServiceSupportLevel {
 	// FileStorage doesn't support blob
 	supportBlob := kind != storage.KindFileStorage
 
 	// Queue is only supported for Storage and StorageV2, in Standard sku tier.
-	supportQueue := tier == storage.SkuTierStandard && slices.Contains([]storage.Kind{storage.KindStorage, storage.KindStorageV2}, kind)
+	supportQueue := tier == storage.SkuTierStandard && (kind == storage.KindStorageV2 ||
+		(kind == storage.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support queue endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no queue endpoint.
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType)))
 
 	// File share is only supported for StorageV2 and FileStorage.
 	// See: https://docs.microsoft.com/en-us/azure/storage/files/storage-files-planning#management-concepts
 	// Per test, the StorageV2 with Premium sku tier also doesn't support file share.
-	supportShare := kind == storage.KindFileStorage || (slices.Contains([]storage.Kind{storage.KindStorage, storage.KindStorageV2}, kind) && tier != storage.SkuTierPremium)
+	supportShare := kind == storage.KindFileStorage || (tier != storage.SkuTierPremium && (kind == storage.KindStorageV2 ||
+		(kind == storage.KindStorage &&
+			// Per local test, only LRS/GRS/RAGRS Storage V1 accounts support file endpoint.
+			// GZRS and RAGZRS is invalid, while ZRS is valid but has no file endpoint.
+			slices.Contains([]string{"LRS", "GRS", "RAGRS"}, replicationType))))
 
 	// Static Website is only supported for StorageV2 (not for Storage(v1)) and BlockBlobStorage
 	supportStaticWebSite := kind == storage.KindStorageV2 || kind == storage.KindBlockBlobStorage
@@ -1556,7 +1564,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
-	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		if !supportLevel.supportBlob {
@@ -1587,6 +1595,17 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
 				// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
 				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
+			}
+		}
+
+		// TODO: This is a temporary limitation on Storage service. Remove this check once the API supports this scenario.
+		// See https://github.com/hashicorp/terraform-provider-azurerm/pull/25450#discussion_r1542471667 for the context.
+		if dnsEndpointType == string(storage.DNSEndpointTypeAzureDNSZone) {
+			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+				// Otherwise, API returns: "Required feature Global Dns is disabled"
+				// This is confirmed with the SRP team, where they said:
+				// > restorePolicy feature is incompatible with partitioned DNS
+				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storage.DNSEndpointTypeAzureDNSZone)
 			}
 		}
 
@@ -1908,7 +1927,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// Followings are updates to the sub-services
-	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
 
 	if d.HasChange("blob_properties") {
 		if !supportLevel.supportBlob {
@@ -1923,6 +1942,15 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
+		}
+
+		if d.Get("dns_endpoint_type").(string) == string(storage.DNSEndpointTypeAzureDNSZone) {
+			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+				// Otherwise, API returns: "Required feature Global Dns is disabled"
+				// This is confirmed with the SRP team, where they said:
+				// > restorePolicy feature is incompatible with partitioned DNS
+				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storage.DNSEndpointTypeAzureDNSZone)
+			}
 		}
 
 		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
@@ -2270,7 +2298,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if resp.Sku != nil {
 		tier = resp.Sku.Tier
 	}
-	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier)
+	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier, d.Get("account_replication_type").(string))
 
 	if supportLevel.supportBlob {
 		blobClient := storageClient.BlobServicesClient

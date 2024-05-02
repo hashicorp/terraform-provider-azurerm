@@ -87,16 +87,18 @@ func (c Client) GetByteRange(ctx context.Context, shareName, path, fileName stri
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		result.Contents = &[]byte{}
-		if resp.Body != nil {
-			respBody, err := io.ReadAll(resp.Body)
-			defer resp.Body.Close()
-			if err != nil {
-				return result, fmt.Errorf("could not parse response body")
-			}
+		if err == nil {
+			result.Contents = &[]byte{}
+			if resp.Body != nil {
+				respBody, err := io.ReadAll(resp.Body)
+				defer resp.Body.Close()
+				if err != nil {
+					return result, fmt.Errorf("could not parse response body")
+				}
 
-			if respBody != nil {
-				result.Contents = pointer.To(respBody)
+				if respBody != nil {
+					result.Contents = pointer.To(respBody)
+				}
 			}
 		}
 	}

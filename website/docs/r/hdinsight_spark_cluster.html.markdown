@@ -101,6 +101,8 @@ The following arguments are supported:
 
 * `network` - (Optional) A `network` block as defined below.
 
+* `private_link_configuration` - (Optional) A `private_link_configuration` block as defined below.
+
 * `compute_isolation` - (Optional) A `compute_isolation` block as defined below.
 
 * `storage_account` - (Optional) One or more `storage_account` block as defined below.
@@ -232,6 +234,30 @@ A `storage_account_gen2` block supports the following:
 * `managed_identity_resource_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+
+---
+
+A `private_link_configuration` block supports the following:
+
+* `name` - (Required) The name of the private link configuration.
+
+* `group_id` - (Required) The ID of the private link service group.
+
+* `private_link_service_connection` - (Required) A `private_link_service_connection` block as defined below.
+
+---
+
+A `private_link_service_connection` block supports the following:
+
+* `name` - (Required) The name of the private link service connection.
+
+* `primary` - (Optional) Indicates whether this IP configuration is primary.
+
+* `private_ip_allocation_method` - (Optional) The private IP allocation method. The only possible value now is `Dynamic`.
+
+* `private_ip_address` - (Optional) The private IP address of the IP configuration.
+
+* `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the private link service connection should be provisioned within.
 
 ---
 

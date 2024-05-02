@@ -101,10 +101,9 @@ func TestParseManagedHSMDataPlaneVersionlessKeyID_WithDomainSuffix_InvalidValues
 	for _, input := range values {
 		t.Logf("Validating %q", input)
 		actual, err := ManagedHSMDataPlaneVersionlessKeyID(input, pointer.To("managedhsm.azure.net"))
-		if err != nil {
-			continue
+		if err == nil {
+			t.Fatalf("unexpected value for %q: %q", input, actual.ID())
 		}
-		t.Fatalf("unexpected value for %q: %q", input, actual.ID())
 	}
 }
 

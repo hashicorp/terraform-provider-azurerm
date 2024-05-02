@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A friendly name for this Management Group. If not specified, this will be the same as the `name`.
 
-* `parent_management_group_id` - (Optional) The ID of the Parent Management Group. 
+* `parent_management_group_id` - (Optional) The ID of the Parent Management Group.
 
 * `subscription_ids` - (Optional) A list of Subscription GUIDs which should be assigned to the Management Group.
 
@@ -56,6 +56,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Management Group.
+
+* `tenant_scoped_id` - The Management Group ID with the Tenant ID prefix.
 
 ## Timeouts
 

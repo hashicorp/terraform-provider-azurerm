@@ -97,10 +97,12 @@ func (c Client) PutPageUpdate(ctx context.Context, containerName, blobName strin
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.BlobSequenceNumber = resp.Header.Get("x-ms-blob-sequence-number")
-			result.ContentMD5 = resp.Header.Get("Content-MD5")
-			result.LastModified = resp.Header.Get("Last-Modified")
+		if err == nil {
+			if resp.Header != nil {
+				result.BlobSequenceNumber = resp.Header.Get("x-ms-blob-sequence-number")
+				result.ContentMD5 = resp.Header.Get("Content-MD5")
+				result.LastModified = resp.Header.Get("Last-Modified")
+			}
 		}
 	}
 	if err != nil {

@@ -11,18 +11,35 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
-type dataPlaneEndpoint struct {
-	managedHsmName string
-	domainSuffix   string
+type ManagedHSMDataPlaneEndpoint struct {
+	ManagedHSMName string
+	DomainSuffix   string
 }
 
-func parseDataPlaneEndpoint(input *url.URL, domainSuffix *string) (*dataPlaneEndpoint, error) {
+func (e ManagedHSMDataPlaneEndpoint) BaseURI() string {
+	return fmt.Sprintf("https://%s.%s/", e.ManagedHSMName, e.DomainSuffix)
+}
+
+func ManagedHSMEndpoint(input string, domainSuffix *string) (*ManagedHSMDataPlaneEndpoint, error) {
+	// NOTE: this function can be removed in 4.0
+	uri, err := url.Parse(input)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	return parseDataPlaneEndpoint(uri, domainSuffix)
+}
+
+func parseDataPlaneEndpoint(input *url.URL, domainSuffix *string) (*ManagedHSMDataPlaneEndpoint, error) {
 	if input.Scheme != "https" {
 		return nil, fmt.Errorf("expected the scheme to be `https` but got %q", input.Scheme)
 	}
 
 	hostname := strings.ToLower(input.Host)
-	if input.Port() != "" {
+	if port := input.Port(); port != "" {
+		if port != "443" {
+			return nil, fmt.Errorf("expected port to be '443' but got %q", port)
+		}
 		hostname = strings.TrimSuffix(hostname, fmt.Sprintf(":%s", input.Port()))
 	}
 	hostnameComponents := strings.Split(hostname, ".")
@@ -41,9 +58,9 @@ func parseDataPlaneEndpoint(input *url.URL, domainSuffix *string) (*dataPlaneEnd
 		return nil, fmt.Errorf("expected the hostname to end be in the format `{name}.%s` but got %q", *domainSuffix, hostname)
 	}
 
-	return &dataPlaneEndpoint{
-		managedHsmName: managedHSMName,
-		domainSuffix:   parsedDomainSuffix,
+	return &ManagedHSMDataPlaneEndpoint{
+		ManagedHSMName: managedHSMName,
+		DomainSuffix:   parsedDomainSuffix,
 	}, nil
 }
 

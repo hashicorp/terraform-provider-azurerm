@@ -54,6 +54,10 @@ provider "azurerm" {
       permanently_delete_on_destroy = true
     }
 
+    machine_learning {
+      purge_soft_deleted_workspace_on_destroy = true
+    }
+
     managed_disk {
       expand_without_downtime = true
     }
@@ -109,6 +113,8 @@ The `features` block supports the following:
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
+
+* `machine_learning` - (Optional) A `machine_learning` block as defined below.
 
 * `managed_disk` - (Optional) A `managed_disk` block as defined below.
 
@@ -183,6 +189,12 @@ The `log_analytics_workspace` block supports the following:
 * `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 -> **Note:** This will be defaulted to `false` in the next major version of the Azure Provider (4.0).
+
+---
+
+The `machine_learning` block supports the following:
+
+* `purge_soft_deleted_workspace_on_destroy` - (Optional) Should the `azurerm_machine_learning_workspace` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 
