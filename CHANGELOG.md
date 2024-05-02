@@ -1,5 +1,9 @@
 ## 3.102.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_storage_sync_server_endpoint` [GH-25831]
+
 ENHANCEMENTS:
 
 * `azurerm_load_test` - add support for `encryption` [GH-25759]
