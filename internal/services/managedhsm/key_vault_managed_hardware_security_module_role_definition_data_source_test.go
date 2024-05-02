@@ -26,7 +26,6 @@ func testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic(
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("managed_hsm_id").Exists(),
-				check.That(data.ResourceName).Key("vault_base_url").Exists(), // TODO: remove in v4.0
 				check.That(data.ResourceName).Key("role_name").HasValue(fmt.Sprintf("myRole%s", data.RandomString)),
 				check.That(data.ResourceName).Key("description").HasValue("desc foo"),
 				check.That(data.ResourceName).Key("permission.%").HasValue("1"),
