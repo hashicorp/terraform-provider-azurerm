@@ -11,10 +11,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	mhsmParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -66,6 +69,13 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 				),
 			},
 
+			"managed_hsm_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.Any(validate.ManagedHSMDataPlaneVersionedKeyID, validate.ManagedHSMDataPlaneVersionlessKeyID),
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_key_id"},
+			},
+
 			"auto_rotation_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -99,10 +109,9 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 	serverKeyName := ""
 	serverKeyType := sql.ServerKeyTypeServiceManaged
 
-	keyVaultKeyId := strings.TrimSpace(d.Get("key_vault_key_id").(string))
-
 	// If it has content, then we assume it's a key vault key id
-	if keyVaultKeyId != "" {
+	if v, ok := d.GetOk("key_vault_id"); ok {
+		keyVaultKeyId := strings.TrimSpace(v.(string))
 		// Update the server key type to AKV
 		serverKeyType = sql.ServerKeyTypeAzureKeyVault
 
@@ -139,6 +148,50 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		} else {
 			return fmt.Errorf("key vault key id must be a reference to a key, but got: %s", keyId.NestedItemType)
 		}
+	}
+
+	if v, ok := d.GetOk("managed_hsm_key_id"); ok {
+		mhsmKeyId := strings.TrimSpace(v.(string))
+		// Update the server key type to AKV
+		serverKeyType = sql.ServerKeyTypeAzureKeyVault
+
+		// Set the SQL Server Key properties z
+		serverKeyProperties := sql.ServerKeyProperties{
+			ServerKeyType:       serverKeyType,
+			URI:                 &mhsmKeyId,
+			AutoRotationEnabled: utils.Bool(d.Get("auto_rotation_enabled").(bool)),
+		}
+		serverKey.ServerKeyProperties = &serverKeyProperties
+
+		keyName := ""
+		keyVersion := ""
+		keyVaultURI := ""
+
+		// Make sure it's a key, if not, throw an error
+		if keyId, err := mhsmParser.ManagedHSMDataPlaneVersionedKeyID(mhsmKeyId, nil); err != nil {
+			keyName = keyId.KeyName
+			keyVersion = keyId.KeyVersion
+			keyVaultURI = keyId.BaseUri()
+		} else if keyId, err := mhsmParser.ManagedHSMDataPlaneVersionlessKeyID(mhsmKeyId, nil); err != nil {
+			keyName = keyId.KeyName
+			keyVersion = ""
+			keyVaultURI = keyId.BaseUri()
+		} else {
+			return fmt.Errorf("Failed to parse '%s' as HSM key ID", mhsmKeyId)
+		}
+
+		// Extract the vault name from the keyvault base url
+		idURL, err := url.ParseRequestURI(keyVaultURI)
+		if err != nil {
+			return fmt.Errorf("unable to parse key vault hostname: %s", keyVaultURI)
+		}
+
+		hostParts := strings.Split(idURL.Host, ".")
+		vaultName := hostParts[0]
+
+		// Create the key path for the Encryption Protector. Format is: {vaultname}_{key}_{key_version}
+		serverKeyName = fmt.Sprintf("%s_%s_%s", vaultName, keyName, keyVersion)
+
 	}
 
 	// Service managed doesn't require a key name
@@ -184,6 +237,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 
 func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	encryptionProtectorClient := meta.(*clients.Client).MSSQL.EncryptionProtectorClient
+	env := meta.(*clients.Client).Account.Environment
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,13 +261,13 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 
 	log.Printf("[INFO] Encryption protector key type is %s", resp.EncryptionProtectorProperties.ServerKeyType)
 
-	keyVaultKeyId := ""
+	keyId := ""
 	autoRotationEnabled := false
 	// Only set the key type if it's an AKV key. For service managed, we can omit the setting the key_vault_key_id
 	if resp.EncryptionProtectorProperties != nil && resp.EncryptionProtectorProperties.ServerKeyType == sql.ServerKeyTypeAzureKeyVault {
 		log.Printf("[INFO] Setting Key Vault URI to %s", *resp.EncryptionProtectorProperties.URI)
 
-		keyVaultKeyId = *resp.EncryptionProtectorProperties.URI
+		keyId = *resp.EncryptionProtectorProperties.URI
 
 		// autoRotation is only for AKV keys
 		if resp.EncryptionProtectorProperties.AutoRotationEnabled != nil {
@@ -221,10 +275,50 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
-	if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
-		return fmt.Errorf("setting `key_vault_key_id`: %+v", err)
-	}
+	if keyId != "" {
+		isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyId)
+		if err != nil {
+			return err
+		}
 
+		keyName := ""
+		keyVaultURI := ""
+		keyVersion := ""
+
+		switch {
+		case isHSMURI && keyVersion == "":
+			{
+				keyId := parse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName)
+				d.Set("managed_hsm_key_id", keyId.ID())
+			}
+		case isHSMURI && keyVersion != "":
+			{
+				keyId := parse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion)
+				d.Set("managed_hsm_key_id", keyId.ID())
+			}
+		case !isHSMURI:
+			{
+				d.Set("key_vault_key_id", keyVaultURI)
+				// now we have the key vault uri we can look up the ID
+				// we can't look up the ID when using federated identity as the key will be under different tenant
+				keyVaultID := ""
+				if federatedIdentityClientID == "" {
+					subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+					tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
+					if err != nil {
+						return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+					}
+					keyVaultID = pointer.From(tmpKeyVaultID)
+				}
+				d.Set("key_vault_key_id", keyVaultID)
+			}
+			keyVaultID = pointer.From(tmpKeyVaultID)
+		}
+
+		if err := d.Set("key_vault_key_id", keyId); err != nil {
+			return fmt.Errorf("setting `key_vault_key_id`: %+v", err)
+		}
+	}
 	if err := d.Set("auto_rotation_enabled", autoRotationEnabled); err != nil {
 		return fmt.Errorf("setting `auto_rotation_enabled`: %+v", err)
 	}
