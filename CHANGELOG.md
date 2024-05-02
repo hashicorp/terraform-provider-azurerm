@@ -15,6 +15,10 @@ BUG FIXES:
 * `azurerm_linux_function_app` - now sets docker registry url in `linux_fx_version` by default [GH-23911]
 * `azurerm_resource_group` - work around sporadic eventual consistency errors [GH-25758]
 
+DEPRECATIONS:
+
+* `azurerm_key_vault_managed_hardware_security_module_role_assignment` - the `vault_base_url` property has been deprecated in favour of the `managed_hsm_id` property [GH-25601]
+
 ## 3.101.0 (April 25, 2024)
 
 ENHANCEMENTS:
