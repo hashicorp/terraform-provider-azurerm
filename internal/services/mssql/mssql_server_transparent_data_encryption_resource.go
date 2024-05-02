@@ -11,9 +11,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -56,9 +58,12 @@ func resourceMsSqlTransparentDataEncryption() *pluginsdk.Resource {
 			},
 
 			"key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.Any(
+					keyVaultValidate.NestedItemId,
+					validate.ManagedHSMDataPlaneVersionlessKeyID,
+				),
 			},
 
 			"auto_rotation_enabled": {
@@ -101,7 +106,7 @@ func resourceMsSqlTransparentDataEncryptionCreateUpdate(d *pluginsdk.ResourceDat
 		// Update the server key type to AKV
 		serverKeyType = sql.ServerKeyTypeAzureKeyVault
 
-		// Set the SQL Server Key properties
+		// Set the SQL Server Key properties z
 		serverKeyProperties := sql.ServerKeyProperties{
 			ServerKeyType:       serverKeyType,
 			URI:                 &keyVaultKeyId,
