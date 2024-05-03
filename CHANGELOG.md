@@ -3,6 +3,7 @@
 FEATURES:
 
 * New Resource: `azurerm_storage_sync_server_endpoint` [GH-25831]
+* New Resource: `azurerm_storage_container_immutability_policy` [GH-25804]
 
 ENHANCEMENTS:
 
