@@ -1,26 +1,26 @@
-## 3.102.0 (Unreleased)
+## 3.102.0 (May 02, 2024)
 
 FEATURES:
 
-* New Resource: `azurerm_storage_sync_server_endpoint` [GH-25831]
-* New Resource: `azurerm_storage_container_immutability_policy` [GH-25804]
+* New Resource: `azurerm_storage_sync_server_endpoint` ([#25831](https://github.com/hashicorp/terraform-provider-azurerm/issues/25831))
+* New Resource: `azurerm_storage_container_immutability_policy` ([#25804](https://github.com/hashicorp/terraform-provider-azurerm/issues/25804))
 
 ENHANCEMENTS:
 
-* `azurerm_load_test` - add support for `encryption` [GH-25759]
-* `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` [GH-25745]
-* `azurerm_mssql_managed_database` - support for a Restorable Database ID to be used as the `source_database_id` for point in time restore [GH-25568]
-* `azurerm_storage_account` - support for the `managed_hsm_key_id` property [GH-25088]
-* `azurerm_storage_account_customer_managed_key` - support for the `managed_hsm_key_id` property [GH-25088]
+* `azurerm_load_test` - add support for `encryption` ([#25759](https://github.com/hashicorp/terraform-provider-azurerm/issues/25759))
+* `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` ([#25745](https://github.com/hashicorp/terraform-provider-azurerm/issues/25745))
+* `azurerm_mssql_managed_database` - support for a Restorable Database ID to be used as the `source_database_id` for point in time restore ([#25568](https://github.com/hashicorp/terraform-provider-azurerm/issues/25568))
+* `azurerm_storage_account` - support for the `managed_hsm_key_id` property ([#25088](https://github.com/hashicorp/terraform-provider-azurerm/issues/25088))
+* `azurerm_storage_account_customer_managed_key` - support for the `managed_hsm_key_id` property ([#25088](https://github.com/hashicorp/terraform-provider-azurerm/issues/25088))
 
 BUG FIXES:
 
-* `azurerm_linux_function_app` - now sets docker registry url in `linux_fx_version` by default [GH-23911]
-* `azurerm_resource_group` - work around sporadic eventual consistency errors [GH-25758]
+* `azurerm_linux_function_app` - now sets docker registry url in `linux_fx_version` by default ([#23911](https://github.com/hashicorp/terraform-provider-azurerm/issues/23911))
+* `azurerm_resource_group` - work around sporadic eventual consistency errors ([#25758](https://github.com/hashicorp/terraform-provider-azurerm/issues/25758))
 
 DEPRECATIONS:
 
-* `azurerm_key_vault_managed_hardware_security_module_role_assignment` - the `vault_base_url` property has been deprecated in favour of the `managed_hsm_id` property [GH-25601]
+* `azurerm_key_vault_managed_hardware_security_module_role_assignment` - the `vault_base_url` property has been deprecated in favour of the `managed_hsm_id` property ([#25601](https://github.com/hashicorp/terraform-provider-azurerm/issues/25601))
 
 ## 3.101.0 (April 25, 2024)
 
