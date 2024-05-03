@@ -9,6 +9,8 @@ ENHANCEMENTS:
 * `azurerm_load_test` - add support for `encryption` [GH-25759]
 * `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` [GH-25745]
 * `azurerm_mssql_managed_database` - support for RestorableDatabaseID to be used as the `source_database_id` for point in time restore [GH-25568]
+* `azurerm_storage_account` - support for the `managed_hsm_key_id` property [GH-25088]
+* `azurerm_storage_account_customer_managed_key` - support for the `managed_hsm_key_id` property [GH-25088]
 
 BUG FIXES:
 
