@@ -360,18 +360,17 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name st
 
 		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 		if err != nil {
-			if utils.ResponseErrorIsRetryable(err) {
+			switch {
+			case utils.ResponseErrorIsRetryable(err):
 				return pluginsdk.RetryableError(err)
-			} else if utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {
+			case utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound"):
 				// When waiting for service principal to become available
 				return pluginsdk.RetryableError(err)
-			} else if retryLinkedAuthorizationFailedError &&
-				utils.ResponseWasForbidden(resp.Response) &&
-				strings.Contains(err.Error(), "LinkedAuthorizationFailed") {
+			case retryLinkedAuthorizationFailedError && utils.ResponseWasForbidden(resp.Response) && strings.Contains(err.Error(), "LinkedAuthorizationFailed"):
 				return pluginsdk.RetryableError(err)
+			default:
+				return pluginsdk.NonRetryableError(err)
 			}
-
-			return pluginsdk.NonRetryableError(err)
 		}
 
 		if resp.ID == nil {
