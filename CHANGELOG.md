@@ -1,9 +1,25 @@
 ## 3.102.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_storage_sync_server_endpoint` [GH-25831]
+
 ENHANCEMENTS:
 
+* `azurerm_load_test` - add support for `encryption` [GH-25759]
 * `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` [GH-25745]
 * `azurerm_mssql_managed_database` - support for RestorableDatabaseID to be used as the `source_database_id` for point in time restore [GH-25568]
+* `azurerm_storage_account` - support for the `managed_hsm_key_id` property [GH-25088]
+* `azurerm_storage_account_customer_managed_key` - support for the `managed_hsm_key_id` property [GH-25088]
+
+BUG FIXES:
+
+* `azurerm_linux_function_app` - now sets docker registry url in `linux_fx_version` by default [GH-23911]
+* `azurerm_resource_group` - work around sporadic eventual consistency errors [GH-25758]
+
+DEPRECATIONS:
+
+* `azurerm_key_vault_managed_hardware_security_module_role_assignment` - the `vault_base_url` property has been deprecated in favour of the `managed_hsm_id` property [GH-25601]
 
 ## 3.101.0 (April 25, 2024)
 
