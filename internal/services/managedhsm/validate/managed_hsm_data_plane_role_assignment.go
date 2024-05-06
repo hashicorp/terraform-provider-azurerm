@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func ManagedHSMRoleAssignmentId(i interface{}, k string) (warnings []string, errors []error) {
+func ManagedHSMDataPlaneRoleAssignmentID(i interface{}, k string) (warnings []string, errors []error) {
 	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
 		return warnings, errors
 	}
@@ -21,8 +21,8 @@ func ManagedHSMRoleAssignmentId(i interface{}, k string) (warnings []string, err
 		return warnings, errors
 	}
 
-	if _, err := parse.ManagedHSMRoleAssignmentID(v); err != nil {
-		errors = append(errors, fmt.Errorf("parsing %q: %s", v, err))
+	if _, err := parse.ManagedHSMDataPlaneRoleAssignmentID(v, nil); err != nil {
+		errors = append(errors, fmt.Errorf("parsing %q: %+v", v, err))
 		return warnings, errors
 	}
 

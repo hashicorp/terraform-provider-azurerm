@@ -131,7 +131,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.67.0
+# github.com/hashicorp/go-azure-helpers v0.68.0
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/lang/dates
@@ -141,6 +141,7 @@ github.com/hashicorp/go-azure-helpers/polling
 github.com/hashicorp/go-azure-helpers/resourcemanager/commonids
 github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema
 github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones
+github.com/hashicorp/go-azure-helpers/resourcemanager/features
 github.com/hashicorp/go-azure-helpers/resourcemanager/identity
 github.com/hashicorp/go-azure-helpers/resourcemanager/location
 github.com/hashicorp/go-azure-helpers/resourcemanager/recaser
@@ -151,7 +152,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240424.1114424
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20240506.1094936
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -1026,6 +1027,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/stora
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/diskpools
 github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource
+github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource
+github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/clusters
@@ -1084,7 +1087,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplands
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20240424.1114424
+# github.com/hashicorp/go-azure-sdk/sdk v0.20240506.1094936
 ## explicit; go 1.21
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
