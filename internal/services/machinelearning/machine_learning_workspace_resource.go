@@ -101,6 +101,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Default",
 					"FeatureStore",
+					"Hub",
 				}, false),
 				Default: "Default",
 			},
@@ -344,15 +345,15 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]interface{}))
-	if strings.EqualFold(*workspace.Kind, "Default") {
-		if featureStore != nil {
-			return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
-		}
-	} else {
+	if strings.EqualFold(*workspace.Kind, "FeatureStore") {
 		if featureStore == nil {
 			return fmt.Errorf("`feature_store` can not be empty when `kind` is `FeatureStore`")
 		}
 		workspace.Properties.FeatureStoreSettings = featureStore
+	} else {
+		if featureStore != nil {
+			return fmt.Errorf("`feature_store` can only be set when `kind` is `FeatureStore`")
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id, workspace)
