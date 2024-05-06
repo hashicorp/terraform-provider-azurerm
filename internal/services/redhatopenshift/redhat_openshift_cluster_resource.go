@@ -49,12 +49,12 @@ type ServicePrincipal struct {
 }
 
 type ClusterProfile struct {
-	PullSecret              string `tfschema:"pull_secret"`
-	Domain                  string `tfschema:"domain"`
-	CustomResourceGroupName string `tfschema:"custom_resource_group_name"`
-	ResourceGroupId         string `tfschema:"resource_group_id"`
-	Version                 string `tfschema:"version"`
-	FipsEnabled             bool   `tfschema:"fips_enabled"`
+	PullSecret               string `tfschema:"pull_secret"`
+	Domain                   string `tfschema:"domain"`
+	ClusterResourceGroupName string `tfschema:"cluster_resource_group_name"`
+	ResourceGroupId          string `tfschema:"resource_group_id"`
+	Version                  string `tfschema:"version"`
+	FipsEnabled              bool   `tfschema:"fips_enabled"`
 }
 
 type NetworkProfile struct {
@@ -136,7 +136,7 @@ func (r RedHatOpenShiftCluster) Arguments() map[string]*pluginsdk.Schema {
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
-					"custom_resource_group_name": {
+					"cluster_resource_group_name": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
@@ -555,7 +555,7 @@ func expandOpenshiftClusterProfile(input []ClusterProfile, subscriptionId string
 	// the api needs a ResourceGroupId value and the portal doesn't allow you to set it but the portal returns the
 	// resource id being `aro-{domain}` so we'll follow that here.
 	resourceGroupId := commonids.NewResourceGroupID(subscriptionId, fmt.Sprintf("aro-%s", input[0].Domain)).ID()
-	if rg := input[0].CustomResourceGroupName; rg != "" {
+	if rg := input[0].ClusterResourceGroupName; rg != "" {
 		resourceGroupId = commonids.NewResourceGroupID(subscriptionId, rg).ID()
 	}
 
@@ -598,12 +598,12 @@ func flattenOpenShiftClusterProfile(profile *openshiftclusters.ClusterProfile, c
 
 	return &[]ClusterProfile{
 		{
-			PullSecret:              pullSecret,
-			Domain:                  pointer.From(profile.Domain),
-			FipsEnabled:             fipsEnabled,
-			ResourceGroupId:         resourceGroupIdString,
-			CustomResourceGroupName: resourceGroupName,
-			Version:                 pointer.From(profile.Version),
+			PullSecret:               pullSecret,
+			Domain:                   pointer.From(profile.Domain),
+			FipsEnabled:              fipsEnabled,
+			ResourceGroupId:          resourceGroupIdString,
+			ClusterResourceGroupName: resourceGroupName,
+			Version:                  pointer.From(profile.Version),
 		},
 	}, nil
 }
