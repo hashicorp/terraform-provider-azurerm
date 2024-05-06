@@ -3,6 +3,10 @@
 FEATURES:
 
 * New Resource: `azurerm_virtual_machine_gallery_application_assignment` [GH-22945]
+
+ENHANCEMENTS:
+
+* `azurerm_container_app` - secrets can now be removed [GH-25743]
   
 ## 3.102.0 (May 02, 2024)
 
