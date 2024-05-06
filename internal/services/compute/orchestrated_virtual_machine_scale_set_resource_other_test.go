@@ -1348,7 +1348,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   zones = []
 
-  sku_name  = "Standard_D1_v2"
+  sku_name  = "Standard_D2s_v3" # intentional for premium/edgezones
   instances = 1
 
   platform_fault_domain_count = 2
@@ -1381,7 +1381,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 
   os_disk {
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
     caching              = "ReadWrite"
   }
 
