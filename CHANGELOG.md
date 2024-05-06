@@ -9,6 +9,8 @@ ENHANCEMENTS:
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to ` v0.68.0` [GH-25873]
 * `azurerm_bastion_host` - support for the `kerberos_enabled` property [GH-25823]
 * `azurerm_container_app` - secrets can now be removed [GH-25743]
+* `azurerm_linux_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
+* `azurerm_windows_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
 
 BUG FIXES:
 
