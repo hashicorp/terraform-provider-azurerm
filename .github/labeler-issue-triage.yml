@@ -40,7 +40,7 @@ service/authorization:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|marketplace_role_assignment|pim_|role_|user_assigned_identity)((.|\n)*)###'
 
 service/automanage:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automanage_configuration((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(automanage_configuration|virtual_machine_automanage_configuration_assignment)((.|\n)*)###'
 
 service/automation:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automation_((.|\n)*)###'
