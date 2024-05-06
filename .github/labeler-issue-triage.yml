@@ -189,9 +189,6 @@ service/lighthouse:
 service/load-balancers:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_lb((.|\n)*)###'
 
-service/load-test:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_load_test((.|\n)*)###'
-
 service/log-analytics:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_log_analytics_((.|\n)*)###'
 
