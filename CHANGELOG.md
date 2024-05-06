@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to ` v0.68.0` [GH-25873]
 * `azurerm_container_app` - secrets can now be removed [GH-25743]
   
 ## 3.102.0 (May 02, 2024)
