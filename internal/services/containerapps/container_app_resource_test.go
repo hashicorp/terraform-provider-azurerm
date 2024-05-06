@@ -411,7 +411,7 @@ func TestAccContainerAppResource_removeDaprAppPort(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppResource_secretFail(t *testing.T) {
+func TestAccContainerAppResource_secretChangeName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
 
@@ -424,13 +424,34 @@ func TestAccContainerAppResource_secretFail(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:      r.secretRemove(data),
-			ExpectError: regexp.MustCompile("cannot remove secrets from Container Apps at this time"),
+			Config: r.secretChangeName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_secretRemove(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.secretChangeName(data),
-			ExpectError: regexp.MustCompile("previously configured secret"),
+			Config: r.secretBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.secretRemove(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
