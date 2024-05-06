@@ -127,10 +127,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_web_app_hybrid_connection" "test" {
-	web_app_id = azurerm_windows_web_app.test.id
-	relay_id   = azurerm_relay_hybrid_connection.test.id
-	hostname   = "acctest%[2]s.hostname"
-	port       = 8081
+  web_app_id = azurerm_windows_web_app.test.id
+  relay_id   = azurerm_relay_hybrid_connection.test.id
+  hostname   = "acctest%[2]s.hostname"
+  port       = 8081
 }
 
 resource "azurerm_web_app_slot_hybrid_connection" "test" {
@@ -255,9 +255,9 @@ resource "azurerm_windows_web_app" "test" {
 }
 
 resource "azurerm_windows_web_app_slot" "test" {
-  name                = "staging"
-  app_service_id      = azurerm_windows_web_app.test.id
-  
+  name           = "staging"
+  app_service_id = azurerm_windows_web_app.test.id
+
   site_config {}
 }
 `, data.RandomInteger, data.Locations.Primary, SkuStandardPlan)
@@ -308,8 +308,8 @@ resource "azurerm_windows_web_app" "test" {
 }
 
 resource "azurerm_windows_web_app_slot" "test" {
-  name                = "staging"
-  app_service_id      = azurerm_windows_web_app.test.id
+  name           = "staging"
+  app_service_id = azurerm_windows_web_app.test.id
 
   site_config {}
 }
