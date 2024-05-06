@@ -106,6 +106,12 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"kerberos_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"scale_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -169,6 +175,7 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
 	fileCopyEnabled := d.Get("file_copy_enabled").(bool)
 	ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
+	kerberosEnabled := d.Get("kerberos_enabled").(bool)
 	shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
 	tunnelingEnabled := d.Get("tunneling_enabled").(bool)
 
@@ -182,6 +189,10 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if ipConnectEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
 		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
+	}
+
+	if kerberosEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
+		return fmt.Errorf("`kerberos_enabled` is only supported when `sku` is `Standard`")
 	}
 
 	if shareableLinkEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
@@ -209,6 +220,7 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 			DisableCopyPaste:    pointer.To(!d.Get("copy_paste_enabled").(bool)),
 			EnableFileCopy:      pointer.To(fileCopyEnabled),
 			EnableIPConnect:     pointer.To(ipConnectEnabled),
+			EnableKerberos:      pointer.To(kerberosEnabled),
 			EnableShareableLink: pointer.To(shareableLinkEnabled),
 			EnableTunneling:     pointer.To(tunnelingEnabled),
 			IPConfigurations:    expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
@@ -354,6 +366,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("scale_units", props.ScaleUnits)
 			d.Set("file_copy_enabled", props.EnableFileCopy)
 			d.Set("ip_connect_enabled", props.EnableIPConnect)
+			d.Set("kerberos_enabled", props.EnableKerberos)
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
 
