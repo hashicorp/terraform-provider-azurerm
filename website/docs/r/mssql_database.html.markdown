@@ -256,6 +256,8 @@ The following arguments are supported:
 
 * `transparent_data_encryption_key_automatic_rotation_enabled` - (Optional) Boolean flag to specify whether TDE automatically rotates the encryption Key to latest version or not. Possible values are `true` or `false`. Defaults to `false`.
 
+~> **NOTE:** When the `sku_name` is `DW100c`, the `transparent_data_encryption_key_automatic_rotation_enabled` and the `transparent_data_encryption_key_vault_key_id` properties should not be specified, as database-level CMK is not supported for Data Warehouse SKUs.
+
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases.
 
 * `secondary_type` - (Optional) How do you want your replica to be made? Valid values include `Geo` and `Named`. Defaults to `Geo`. Changing this forces a new resource to be created.
