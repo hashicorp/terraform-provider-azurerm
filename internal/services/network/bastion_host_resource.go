@@ -217,12 +217,12 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	parameters := bastionhosts.BastionHost{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &bastionhosts.BastionHostPropertiesFormat{
-			DisableCopyPaste:    utils.Bool(!d.Get("copy_paste_enabled").(bool)),
-			EnableFileCopy:      utils.Bool(fileCopyEnabled),
-			EnableIPConnect:     utils.Bool(ipConnectEnabled),
-			EnableKerberos:      utils.Bool(kerberosEnabled),
-			EnableShareableLink: utils.Bool(shareableLinkEnabled),
-			EnableTunneling:     utils.Bool(tunnelingEnabled),
+			DisableCopyPaste:    pointer.To(!d.Get("copy_paste_enabled").(bool)),
+			EnableFileCopy:      pointer.To(fileCopyEnabled),
+			EnableIPConnect:     pointer.To(ipConnectEnabled),
+			EnableKerberos:      pointer.To(kerberosEnabled),
+			EnableShareableLink: pointer.To(shareableLinkEnabled),
+			EnableTunneling:     pointer.To(tunnelingEnabled),
 			IPConfigurations:    expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
 			ScaleUnits:          pointer.To(int64(d.Get("scale_units").(int))),
 		},
