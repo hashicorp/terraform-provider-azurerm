@@ -319,11 +319,6 @@ service/load-balancers:
   - any-glob-to-any-file:
     - internal/services/loadbalancer/**/*
 
-service/load-test:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/loadtestservice/**/*
-
 service/log-analytics:
 - changed-files:
   - any-glob-to-any-file:
