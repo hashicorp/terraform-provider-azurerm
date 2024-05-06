@@ -36,7 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func xresourceLinuxVirtualMachine() *pluginsdk.Resource {
+func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceLinuxVirtualMachineCreate,
 		Read:   resourceLinuxVirtualMachineRead,
