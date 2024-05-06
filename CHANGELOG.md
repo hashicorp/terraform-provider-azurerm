@@ -13,6 +13,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_log_analytics_saved_search` - the `function_parameters` property now repsects the order of elements [GH-25869]
+* `azurerm_monitor_private_link_scoped_service` - normalize case of the `linked_resource_id` property during reads  [GH-25787]
 * `azurerm_role_assignment` -add addtional retry logic to assist with cross-tenant use [GH-25853]
   
 ## 3.102.0 (May 02, 2024)
