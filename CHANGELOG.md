@@ -4,6 +4,7 @@ FEATURES:
 
 * New Resource: `azurerm_network_manager_connectivity_configuration` [GH-25746]
 * New Resource: `azurerm_virtual_machine_gallery_application_assignment` [GH-22945]
+* New Resource: `azurerm_virtual_machine_automanage_configuration_assignment` [GH-25480]
 
 ENHANCEMENTS:
 
