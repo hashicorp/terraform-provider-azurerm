@@ -14,31 +14,27 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type UpdateOperationResponse struct {
+type DeleteOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *Cluster
 }
 
-// Update ...
-func (c ClustersClient) Update(ctx context.Context, id ClusterId, input ClusterPatch) (result UpdateOperationResponse, err error) {
+// Delete ...
+func (c ClustersClient) Delete(ctx context.Context, id ClusterId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
+			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPatch,
+		HttpMethod: http.MethodDelete,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -60,15 +56,15 @@ func (c ClustersClient) Update(ctx context.Context, id ClusterId, input ClusterP
 	return
 }
 
-// UpdateThenPoll performs Update then polls until it's completed
-func (c ClustersClient) UpdateThenPoll(ctx context.Context, id ClusterId, input ClusterPatch) error {
-	result, err := c.Update(ctx, id, input)
+// DeleteThenPoll performs Delete then polls until it's completed
+func (c ClustersClient) DeleteThenPoll(ctx context.Context, id ClusterId) error {
+	result, err := c.Delete(ctx, id)
 	if err != nil {
-		return fmt.Errorf("performing Update: %+v", err)
+		return fmt.Errorf("performing Delete: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after Update: %+v", err)
+		return fmt.Errorf("polling after Delete: %+v", err)
 	}
 
 	return nil
