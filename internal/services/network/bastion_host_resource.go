@@ -191,11 +191,11 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if kerberosEnabled && sku == string(bastionhosts.BastionHostSkuNameBasic) {
+	if kerberosEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
 		return fmt.Errorf("`kerberos_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if shareableLinkEnabled && sku == string(bastionhosts.BastionHostSkuNameBasic) {
+	if shareableLinkEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
 		return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard`")
 	}
 
