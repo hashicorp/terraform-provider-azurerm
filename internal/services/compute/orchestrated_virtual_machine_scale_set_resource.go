@@ -116,6 +116,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			// Optional
 			"additional_capabilities": OrchestratedVirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
+			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+
 			"encryption_at_host_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -298,8 +300,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	t := d.Get("tags").(map[string]interface{})
 
 	props := virtualmachinescalesets.VirtualMachineScaleSet{
-		Location: location.Normalize(d.Get("location").(string)),
-		Tags:     tags.Expand(t),
+		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
+		Location:         location.Normalize(d.Get("location").(string)),
+		Tags:             tags.Expand(t),
 		Properties: &virtualmachinescalesets.VirtualMachineScaleSetProperties{
 			PlatformFaultDomainCount: pointer.To(int64(d.Get("platform_fault_domain_count").(int))),
 			// OrchestrationMode needs to be hardcoded to Uniform, for the
@@ -1123,6 +1126,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
+		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
 		var skuName *string
