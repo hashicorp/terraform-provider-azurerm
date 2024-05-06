@@ -2,6 +2,12 @@
 
 FEATURES:
 
+* New Resource: `azurerm_virtual_machine_gallery_application_assignment` [GH-22945]
+  
+## 3.102.0 (May 02, 2024)
+
+FEATURES:
+
 * New Resource: `azurerm_storage_sync_server_endpoint` ([#25831](https://github.com/hashicorp/terraform-provider-azurerm/issues/25831))
 * New Resource: `azurerm_storage_container_immutability_policy` ([#25804](https://github.com/hashicorp/terraform-provider-azurerm/issues/25804))
 
