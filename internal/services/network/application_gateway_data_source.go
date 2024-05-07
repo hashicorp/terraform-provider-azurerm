@@ -1319,7 +1319,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 }
 
 func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.V20220701Client.ApplicationGateways
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
