@@ -794,10 +794,6 @@ resource "azurerm_backup_policy_vm" "test_change_backup" {
 // For update backup policy id test
 func (r BackupProtectedVmResource) linkFirstBackupPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_backup_protected_vm" "test" {
@@ -812,10 +808,6 @@ resource "azurerm_backup_protected_vm" "test" {
 // For update backup policy id test
 func (r BackupProtectedVmResource) linkSecondBackupPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_backup_protected_vm" "test" {
