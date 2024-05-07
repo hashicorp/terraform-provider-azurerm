@@ -1,9 +1,58 @@
-## 3.102.0 (Unreleased)
+## 3.102.0 (May 02, 2024)
+
+FEATURES:
+
+* New Resource: `azurerm_container_app_job` [GH-23871]
+* New Resource: `azurerm_network_manager_connectivity_configuration` [GH-25746]
+* New Resource: `azurerm_maintenance_assignment_dynamic_scope` [GH-25467]
+* New Resource: `azurerm_virtual_machine_gallery_application_assignment` [GH-22945]
+* New Resource: `azurerm_virtual_machine_automanage_configuration_assignment` [GH-25480]
 
 ENHANCEMENTS:
 
-* `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` [GH-25745]
-* `azurerm_mssql_managed_database` - support for RestorableDatabaseID to be used as the `source_database_id` for point in time restore [GH-25568]
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to ` v0.68.0` [GH-25873]
+* `loganalytics` - update cluster resource to api version `2022-01-01` [GH-25686]
+* `azurerm_bastion_host` - support for the `kerberos_enabled` property [GH-25823]
+* `azurerm_container_app` - secrets can now be removed [GH-25743]
+* `azurerm_linux_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
+* `azurerm_linux_virtual_machine_scale_set` - support for the `maximum_surge_instances` property for vmss rolling upgrades [GH-24914]
+* `azurerm_windows_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
+* `azurerm_windows_virtual_machine_scale_set` - support for the `maximum_surge_instances` property for vmss rolling upgrades [GH-24914]
+* `azurerm_storage_account` - support for the `permanent_delete_enabled` property within retention policies [GH-25778]
+
+BUG FIXES:
+
+* `azurerm_log_analytics_saved_search` - the `function_parameters` property now repsects the order of elements [GH-25869]
+* `azurerm_linux_web_app` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
+* `azurerm_linux _web_app_slot` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
+* `azurerm_monitor_private_link_scoped_service` - normalize case of the `linked_resource_id` property during reads  [GH-25787]
+* `azurerm_role_assignment` - add addtional retry logic to assist with cross-tenant use [GH-25853]
+* `azurerm_windows_web_app` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
+* `azurerm_windows_web_app_slot` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
+  
+## 3.102.0 (May 02, 2024)
+
+FEATURES:
+
+* New Resource: `azurerm_storage_sync_server_endpoint` ([#25831](https://github.com/hashicorp/terraform-provider-azurerm/issues/25831))
+* New Resource: `azurerm_storage_container_immutability_policy` ([#25804](https://github.com/hashicorp/terraform-provider-azurerm/issues/25804))
+
+ENHANCEMENTS:
+
+* `azurerm_load_test` - add support for `encryption` ([#25759](https://github.com/hashicorp/terraform-provider-azurerm/issues/25759))
+* `azurerm_network_connection_monitor` - update validation for `target_resource_type` and `target_resource_id` ([#25745](https://github.com/hashicorp/terraform-provider-azurerm/issues/25745))
+* `azurerm_mssql_managed_database` - support for a Restorable Database ID to be used as the `source_database_id` for point in time restore ([#25568](https://github.com/hashicorp/terraform-provider-azurerm/issues/25568))
+* `azurerm_storage_account` - support for the `managed_hsm_key_id` property ([#25088](https://github.com/hashicorp/terraform-provider-azurerm/issues/25088))
+* `azurerm_storage_account_customer_managed_key` - support for the `managed_hsm_key_id` property ([#25088](https://github.com/hashicorp/terraform-provider-azurerm/issues/25088))
+
+BUG FIXES:
+
+* `azurerm_linux_function_app` - now sets docker registry url in `linux_fx_version` by default ([#23911](https://github.com/hashicorp/terraform-provider-azurerm/issues/23911))
+* `azurerm_resource_group` - work around sporadic eventual consistency errors ([#25758](https://github.com/hashicorp/terraform-provider-azurerm/issues/25758))
+
+DEPRECATIONS:
+
+* `azurerm_key_vault_managed_hardware_security_module_role_assignment` - the `vault_base_url` property has been deprecated in favour of the `managed_hsm_id` property ([#25601](https://github.com/hashicorp/terraform-provider-azurerm/issues/25601))
 
 ## 3.101.0 (April 25, 2024)
 

@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the subnet. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the subnet. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the subnet. This must be the resource group that the virtual network resides in. Changing this forces a new resource to be created.
 
 * `virtual_network_name` - (Required) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
 

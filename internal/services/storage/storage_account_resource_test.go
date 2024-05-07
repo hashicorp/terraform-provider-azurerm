@@ -658,6 +658,7 @@ func TestAccStorageAccount_blobProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.days").HasValue("7"),
 				check.That(data.ResourceName).Key("blob_properties.0.versioning_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("blob_properties.0.change_feed_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("blob_properties.0.delete_retention_policy.0.permanent_delete_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -2778,6 +2779,7 @@ resource "azurerm_storage_account" "test" {
     }
 
     delete_retention_policy {
+      permanent_delete_enabled = true
     }
 
     container_delete_retention_policy {

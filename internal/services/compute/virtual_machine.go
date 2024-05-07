@@ -37,6 +37,13 @@ func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"hibernation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					ForceNew: true,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
@@ -49,6 +56,8 @@ func expandVirtualMachineAdditionalCapabilities(input []interface{}) *virtualmac
 		raw := input[0].(map[string]interface{})
 
 		capabilities.UltraSSDEnabled = pointer.To(raw["ultra_ssd_enabled"].(bool))
+
+		capabilities.HibernationEnabled = pointer.To(raw["hibernation_enabled"].(bool))
 	}
 
 	return &capabilities
@@ -65,9 +74,15 @@ func flattenVirtualMachineAdditionalCapabilities(input *virtualmachines.Addition
 		ultraSsdEnabled = *input.UltraSSDEnabled
 	}
 
+	hibernationEnabled := false
+	if input.HibernationEnabled != nil {
+		hibernationEnabled = *input.HibernationEnabled
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+			"ultra_ssd_enabled":   ultraSsdEnabled,
+			"hibernation_enabled": hibernationEnabled,
 		},
 	}
 }
