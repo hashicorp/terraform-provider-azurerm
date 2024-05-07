@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* New Resource: `azurerm_container_app_job` [GH-23871]
 * New Resource: `azurerm_network_manager_connectivity_configuration` [GH-25746]
 * New Resource: `azurerm_maintenance_assignment_dynamic_scope` [GH-25467]
 * New Resource: `azurerm_virtual_machine_gallery_application_assignment` [GH-22945]
