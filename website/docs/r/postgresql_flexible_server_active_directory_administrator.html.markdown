@@ -25,16 +25,15 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                          = "example-fs"
-  resource_group_name           = azurerm_resource_group.example.name
-  location                      = azurerm_resource_group.example.location
-  administrator_login           = "adminTerraform"
-  administrator_password        = "QAZwsx123"
-  storage_mb                    = 32768
-  version                       = "12"
-  sku_name                      = "GP_Standard_D2s_v3"
-  zone                          = "2"
-  public_network_access_enabled = true
+  name                   = "example-fs"
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
 
   authentication {
     active_directory_auth_enabled = true
