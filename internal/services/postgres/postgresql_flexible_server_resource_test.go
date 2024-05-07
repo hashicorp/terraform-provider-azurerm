@@ -626,7 +626,6 @@ resource "azurerm_postgresql_flexible_server" "geo_restore" {
   create_mode                       = "GeoRestore"
   source_server_id                  = azurerm_postgresql_flexible_server.test.id
   point_in_time_restore_time_in_utc = "%s"
-  public_network_access_enabled     = true
 }
 `, r.geoRestoreSource(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
@@ -880,7 +879,6 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   source_server_id                  = azurerm_postgresql_flexible_server.test.id
   zone                              = "1"
   point_in_time_restore_time_in_utc = "%s"
-  public_network_access_enabled     = true
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
