@@ -279,6 +279,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 
 			"replication_role": {
