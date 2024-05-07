@@ -1900,14 +1900,11 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.ForceFirewallPolicyAssociation = pointer.To(d.Get("force_firewall_policy_association").(bool))
 	}
 
-	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-
-		payload.Identity = expandedIdentity
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+	payload.Identity = expandedIdentity
 
 	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
 	if payload.Properties != nil && payload.Properties.BackendHTTPSettingsCollection != nil {
