@@ -85,8 +85,9 @@ func dataSourceSubnet() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "This is deprecated in favor of `private_endpoint_network_policies`",
 		}
 
 		resource.Schema["enforce_private_link_endpoint_network_policies"] = &pluginsdk.Schema{
