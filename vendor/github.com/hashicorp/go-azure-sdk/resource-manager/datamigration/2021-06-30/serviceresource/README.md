@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/serviceresource` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/serviceresource` Documentation
 
-The `serviceresource` SDK allows for interaction with the Azure Resource Manager Service `datamigration` (API Version `2018-04-19`).
+The `serviceresource` SDK allows for interaction with the Azure Resource Manager Service `datamigration` (API Version `2021-06-30`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/serviceresource"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/serviceresource"
 ```
 
 
@@ -18,6 +18,23 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04
 ```go
 client := serviceresource.NewServiceResourceClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `ServiceResourceClient.ServiceTasksList`
+
+```go
+ctx := context.TODO()
+id := serviceresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupValue", "serviceValue")
+
+// alternatively `client.ServiceTasksList(ctx, id, serviceresource.DefaultServiceTasksListOperationOptions())` can be used to do batched pagination
+items, err := client.ServiceTasksListComplete(ctx, id, serviceresource.DefaultServiceTasksListOperationOptions())
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
 ```
 
 
