@@ -24,9 +24,9 @@ type ContainerAppEnvironmentCustomDomainResource struct{}
 type ContainerAppEnvironmentCustomDomainModel struct {
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 
-	CertificatePassword string `tfschema:"custom_domain_certificate_password"`
-	CertificateValue    string `tfschema:"custom_domain_certificate_blob_base64"`
-	DnsSuffix           string `tfschema:"custom_domain_dns_suffix"`
+	CertificatePassword string `tfschema:"certificate_password"`
+	CertificateValue    string `tfschema:"certificate_blob_base64"`
+	DnsSuffix           string `tfschema:"dns_suffix"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentCustomDomainResource{}
@@ -54,21 +54,21 @@ func (r ContainerAppEnvironmentCustomDomainResource) Arguments() map[string]*plu
 			Description:  "The Container App Managed Environment ID to configure this Custom Domain on.",
 		},
 
-		"custom_domain_certificate_blob_base64": {
+		"certificate_blob_base64": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsBase64,
 			Description:  "The Custom Domain Certificate Private Key as a base64 encoded PFX or PEM.",
 		},
 
-		"custom_domain_certificate_password": {
+		"certificate_password": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
 			Sensitive:   true,
 			Description: "The Custom Domain Certificate password.",
 		},
 
-		"custom_domain_dns_suffix": {
+		"dns_suffix": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -174,10 +174,10 @@ func (r ContainerAppEnvironmentCustomDomainResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					if customdomain := props.CustomDomainConfiguration; customdomain.DnsSuffix != nil {
 						state.DnsSuffix = pointer.From(customdomain.DnsSuffix)
-						if certValue, ok := metadata.ResourceData.GetOk("custom_domain_certificate_blob_base64"); ok {
+						if certValue, ok := metadata.ResourceData.GetOk("certificate_blob_base64"); ok {
 							state.CertificateValue = certValue.(string)
 						}
-						if certPassword, ok := metadata.ResourceData.GetOk("custom_domain_certificate_password"); ok {
+						if certPassword, ok := metadata.ResourceData.GetOk("certificate_password"); ok {
 							state.CertificatePassword = certPassword.(string)
 						}
 						state.ManagedEnvironmentId = metadata.ResourceData.Id()
@@ -281,9 +281,9 @@ func (r ContainerAppEnvironmentCustomDomainResource) Update() sdk.ResourceFunc {
 			}
 
 			// If custom domain dns suffix or its certificate changed, update all the required attributes
-			if metadata.ResourceData.HasChange("custom_domain_dns_suffix") ||
-				metadata.ResourceData.HasChange("custom_domain_certificate_blob_base64") ||
-				metadata.ResourceData.HasChange("custom_domain_certificate_password") {
+			if metadata.ResourceData.HasChange("dns_suffix") ||
+				metadata.ResourceData.HasChange("certificate_blob_base64") ||
+				metadata.ResourceData.HasChange("certificate_password") {
 				existing.Model.Properties.CustomDomainConfiguration = &managedenvironments.CustomDomainConfiguration{
 					DnsSuffix:           pointer.To(model.DnsSuffix),
 					CertificateValue:    pointer.To(model.CertificateValue),

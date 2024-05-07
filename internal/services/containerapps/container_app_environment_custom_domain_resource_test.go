@@ -58,7 +58,7 @@ func TestAccContainerAppEnvironmentCustomDomainResource_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("custom_domain_certificate_blob_base64", "custom_domain_certificate_password"),
+		data.ImportStep("certificate_blob_base64", "certificate_password"),
 	})
 }
 
@@ -96,14 +96,14 @@ func TestAccContainerAppEnvironmentCustomDomainResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("custom_domain_certificate_blob_base64", "custom_domain_certificate_password"),
+		data.ImportStep("certificate_blob_base64", "certificate_password"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("custom_domain_certificate_blob_base64", "custom_domain_certificate_password"),
+		data.ImportStep("certificate_blob_base64", "certificate_password"),
 	})
 }
 
@@ -118,16 +118,15 @@ provider azurerm {
 %s
 
 resource "azurerm_container_app_environment_custom_domain" "test" {
-  container_app_environment_id          = azurerm_container_app_environment.test.id
-  custom_domain_dns_suffix              = "%[2]s"
-  custom_domain_certificate_blob_base64 = filebase64("testdata/testacc.pfx")
-  custom_domain_certificate_password    = "TestAcc"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  dns_suffix                   = "%[2]s"
+  certificate_blob_base64      = filebase64("testdata/testacc.pfx")
+  certificate_password         = "TestAcc"
 
   depends_on = [
     time_sleep.wait_60_seconds
   ]
 }
-
 
 `, r.template(data), dnsZone)
 }
@@ -140,12 +139,11 @@ func (r ContainerAppEnvironmentCustomDomainResource) requiresImport(data accepta
 %s
 
 resource "azurerm_container_app_environment_custom_domain" "example" {
-  container_app_environment_id          = azurerm_container_app_environment.test.id
-  custom_domain_dns_suffix              = "%[2]s"
-  custom_domain_certificate_blob_base64 = filebase64("testdata/testacc.pfx")
-  custom_domain_certificate_password    = "TestAcc"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  dns_suffix                   = "%[2]s"
+  certificate_blob_base64      = filebase64("testdata/testacc.pfx")
+  certificate_password         = "TestAcc"
 }
-
 
 `, r.basic(data), dnsZone)
 }
@@ -161,16 +159,15 @@ provider azurerm {
 %s
 
 resource "azurerm_container_app_environment_custom_domain" "test" {
-  container_app_environment_id          = azurerm_container_app_environment.test.id
-  custom_domain_dns_suffix              = "%[2]s"
-  custom_domain_certificate_blob_base64 = filebase64("testdata/testacc_nopassword.pfx")
-  custom_domain_certificate_password    = ""
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  dns_suffix                   = "%[2]s"
+  certificate_blob_base64      = filebase64("testdata/testacc_nopassword.pfx")
+  certificate_password         = ""
 
   depends_on = [
     time_sleep.wait_60_seconds
   ]
 }
-
 
 `, r.template(data), dnsZone)
 }

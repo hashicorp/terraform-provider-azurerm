@@ -34,10 +34,10 @@ resource "azurerm_container_app_environment" "example" {
 }
 
 resource "azurerm_container_app_environment_custom_domain" "example" {
-  container_app_environment_id          = azurerm_container_app_environment.example.id
-  custom_domain_certificate_blob_base64 = filebase64("testacc.pfx")
-  custom_domain_certificate_password    = "TestAcc"
-  custom_domain_dns_suffix              = "acceptancetest.contoso.com"
+  container_app_environment_id = azurerm_container_app_environment.example.id
+  certificate_blob_base64      = filebase64("testacc.pfx")
+  certificate_password         = "TestAcc"
+  dns_suffix                   = "acceptancetest.contoso.com"
 }
 
 ```
@@ -48,11 +48,11 @@ The following arguments are supported:
 
 * `container_app_environment_id` - (Required) The ID of the Container Apps Managed Environment. Changing this forces a new resource to be created.
 
-* `custom_domain_certificate_blob_base64` - (Required) The bundle of Private Key and Certificate for the Custom DNS Suffix as a base64 encoded PFX or PEM.
+* `certificate_blob_base64` - (Required) The bundle of Private Key and Certificate for the Custom DNS Suffix as a base64 encoded PFX or PEM.
 
-* `custom_domain_certificate_password` - (Required) The password for the Certificate bundle.
+* `certificate_password` - (Required) The password for the Certificate bundle.
 
-* `custom_domain_dns_suffix` - (Required) Custom DNS Suffix for the Container App Environment.
+* `dns_suffix` - (Required) Custom DNS Suffix for the Container App Environment.
 
 
 
