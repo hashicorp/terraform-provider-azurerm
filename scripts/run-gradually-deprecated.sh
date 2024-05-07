@@ -112,6 +112,25 @@ function runGraduallyDeprecatedFunctions {
             exit 1
         }
 
+        # Resource IDs shouldn't be compared by using a.ID() == b.ID() - but instead use the resourceids.Match method
+        grep -H -n ".ID() ==" "$f" && {
+            echo "Resource IDs should not be compared by using a.ID() == b.ID(), but instead use 'resourceids.Match(a, b)"
+            echo "which can be found in the Go package 'github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids'."
+            echo "These can be found in:"
+            echo "* $f"
+            exit 1
+        }
+
+        # The case-aware comparisons feature flag is problematic until the rollout is completed
+        grep -H -n "\.TreatUserSpecifiedSegmentsAsCaseInsensitive =" "$f" && {
+            echo "The case-aware comparisons feature is not ready for usage and should not be configured/exposed at this time."
+            echo "There's a substantial number of dependencies required for this to not cause more problems then it solves"
+            echo "and as such this is not supported in any form at this point-in-time."
+            echo "Please remove the assignment to 'features.TreatUserSpecifiedSegmentsAsCaseInsensitive', which can be found in:"
+            echo "* $f"
+            exit 1
+        }
+
         ## Test Configurations should NOT use os.GetEnv to load credentials and use these in tests
         ## Instead a User Assigned Identity should be created as a part of the Test Configuration with as
         ## minimal permissions as possible - which can then be cleaned up as a part of the test.
