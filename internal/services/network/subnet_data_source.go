@@ -87,7 +87,7 @@ func dataSourceSubnet() *pluginsdk.Resource {
 		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Computed:   true,
-			Deprecated: "This is deprecated in favor of `private_endpoint_network_policies`",
+			Deprecated: "This property has been superseded by `private_endpoint_network_policies` and will be removed in v4.0 of the AzureRM Provider.",
 		}
 
 		resource.Schema["enforce_private_link_endpoint_network_policies"] = &pluginsdk.Schema{
