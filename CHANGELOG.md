@@ -17,7 +17,7 @@ ENHANCEMENTS:
 * `azurerm_linux_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `maximum_surge_instances` property for vmss rolling upgrades [GH-24914]
 * `azurerm_windows_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
-* `azurerm_windows_virtual_machine_scale_set` - support for the `maximum_surge_instances` property for vmss rolling upgrades [GH-24914]
+* `azurerm_windows_virtual_machine_scale_set` - support for the `maximum_surge_instances_enabled` property for vmss rolling upgrades [GH-24914]
 * `azurerm_storage_account` - support for the `permanent_delete_enabled` property within retention policies [GH-25778]
 
 BUG FIXES:
