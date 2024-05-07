@@ -125,7 +125,6 @@ func resourceAutomationJobScheduleCreate(d *pluginsdk.ResourceData, meta interfa
 		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
 	}
 
-	// accountID := automationaccount.NewAutomationAccountID(subscriptionId, resourceGroup, accountName)
 	scheduleID := schedule.NewScheduleID(subscriptionId, resourceGroup, accountName, scheduleName)
 	runbookID := runbook.NewRunbookID(subscriptionId, resourceGroup, accountName, runbookName)
 	id := jobschedule.NewJobScheduleID(subscriptionId, resourceGroup, accountName, jobScheduleUUID.String())
@@ -279,6 +278,9 @@ func GetJobScheduleFromTFID(ctx context.Context, client *jobschedule.JobSchedule
 	filter := fmt.Sprintf("properties/schedule/name eq '%s' and properties/runbook/name eq '%s'", id.First.ScheduleName, id.Second.RunbookName)
 	jsList, err := client.ListByAutomationAccountComplete(ctx, accountID, jobschedule.ListByAutomationAccountOperationOptions{Filter: &filter})
 	if err != nil {
+		if response.WasNotFound(jsList.LatestHttpResponse) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountID.AutomationAccountName, err)
 	}
 
