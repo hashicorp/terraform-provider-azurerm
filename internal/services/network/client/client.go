@@ -16,8 +16,11 @@ import (
 type Client struct {
 	*network_2023_09_01.Client
 
-	// this additional version has been added to facilitate migration of the remaining network
-	// resources to `hashicorp/go-azure-sdk`
+	// This additional version has been added to facilitate migration of the remaining network
+	// resources to `hashicorp/go-azure-sdk` because upgrading directly to 2023-09-01 will have introduced
+	// breaking changes
+	// TODO 4.0 the following resources/data sources should be updated to use 2023-09-01 just prior to releasing 4.0:
+	// `azurerm_application_gateway` (resource and data source)
 	V20220701Client *network_2022_07_01.Client
 
 	// Usages of the clients below use `Azure/azure-sdk-for-go` and should be updated
@@ -191,7 +194,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building 2022-07-01 clients for Network: %+v", err)
 	}
 	return &Client{
-		Client:    client,
+		Client:          client,
 		V20220701Client: v20220701Client,
 
 		ApplicationGatewaysClient:              &ApplicationGatewaysClient,
