@@ -2687,7 +2687,7 @@ resource "azurerm_container_app_environment_storage" "test" {
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
 }
-`, ContainerAppEnvironmentResource{}.complete(data), data.RandomInteger, data.RandomString)
+`, ContainerAppEnvironmentResource{}.completeWithoutWorkloadProfile(data), data.RandomInteger, data.RandomString)
 }
 
 func (ContainerAppResource) templatePlusExtras(data acceptance.TestData) string {
