@@ -13,10 +13,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
@@ -1322,17 +1323,17 @@ func TestAccApplicationGateway_removeFirewallPolicy(t *testing.T) {
 }
 
 func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationGatewayID(state.ID)
+	id, err := applicationgateways.ParseApplicationGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.Client.ApplicationGateways.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Application Gateway (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ApplicationGatewayResource) basic(data acceptance.TestData) string {

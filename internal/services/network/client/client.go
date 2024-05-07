@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	network_2022_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01"
 	network_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -14,6 +15,10 @@ import (
 
 type Client struct {
 	*network_2023_09_01.Client
+
+	// this additional version has been added to facilitate migration of the remaining network
+	// resources to `hashicorp/go-azure-sdk`
+	V20220701Client *network_2022_07_01.Client
 
 	// Usages of the clients below use `Azure/azure-sdk-for-go` and should be updated
 	// to use `hashicorp/go-azure-sdk` (available above).
@@ -179,8 +184,15 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building clients for Network: %+v", err)
 	}
 
+	v20220701Client, err := network_2022_07_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("building 2022-07-01 clients for Network: %+v", err)
+	}
 	return &Client{
-		Client: client,
+		Client:    client,
+		V20220701Client: v20220701Client,
 
 		ApplicationGatewaysClient:              &ApplicationGatewaysClient,
 		CustomIPPrefixesClient:                 &customIpPrefixesClient,
