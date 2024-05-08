@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2022-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -175,6 +175,13 @@ func resourceDataProtectionBackupPolicyPostgreSQLFlexibleServer() *pluginsdk.Res
 					},
 				},
 			},
+
+			"time_zone": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -207,7 +214,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLFlexibleServerCreate(d *plugins
 	}
 
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
-	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), taggingCriteria)...)
+	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(d.Get("default_retention_duration")))
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
 	parameters := backuppolicies.BaseBackupPolicyResource{
@@ -260,6 +267,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLFlexibleServerRead(d *pluginsdk
 				if err := d.Set("retention_rule", flattenBackupPolicyPostgreSQLRetentionRuleArray(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `retention_rule`: %+v", err)
 				}
+				d.Set("time_zone", flattenBackupPolicyPostgreSQLBackupTimeZone(&props.PolicyRules))
 			}
 		}
 	}
