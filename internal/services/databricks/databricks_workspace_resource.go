@@ -15,7 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -124,6 +125,19 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"default_storage_firewall_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				Default:      false,
+				RequiredWith: []string{"access_connector_id"},
+			},
+
+			"access_connector_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"default_storage_firewall_enabled"},
 			},
 
 			"network_security_group_rules_required": {
@@ -326,6 +340,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
+			_, defaultStorageFirewallEnabled := d.GetChange("default_storage_firewall_enabled")
 			_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
 			_, publicNetworkAccess := d.GetChange("public_network_access_enabled")
 			_, requireNsgRules := d.GetChange("network_security_group_rules_required")
@@ -357,8 +372,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
-				return fmt.Errorf("'customer_managed_key_enabled', 'infrastructure_encryption_enabled', 'managed_disk_cmk_key_vault_key_id' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
+			if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
+				return fmt.Errorf("'customer_managed_key_enabled', 'default_storage_firewall_enabled', 'infrastructure_encryption_enabled', 'managed_disk_cmk_key_vault_key_id' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
 			}
 
 			return nil
@@ -368,6 +383,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
+	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -433,6 +449,11 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
 	customerEncryptionEnabled := d.Get("customer_managed_key_enabled").(bool)
 	infrastructureEncryptionEnabled := d.Get("infrastructure_encryption_enabled").(bool)
+	defaultStorageFirewallEnabledRaw := d.Get("default_storage_firewall_enabled").(bool)
+	defaultStorageFirewallEnabled := workspaces.DefaultStorageFirewallDisabled
+	if defaultStorageFirewallEnabledRaw {
+		defaultStorageFirewallEnabled = workspaces.DefaultStorageFirewallEnabled
+	}
 	publicNetowrkAccessRaw := d.Get("public_network_access_enabled").(bool)
 	publicNetworkAccess := workspaces.PublicNetworkAccessDisabled
 	if publicNetowrkAccessRaw {
@@ -563,6 +584,35 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = utils.Bool(rotationEnabled)
 	}
 
+	accessConnectorIdRaw := d.Get("access_connector_id").(string)
+	accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
+
+	if err != nil {
+		return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
+	}
+
+	accessConnector, err := acClient.Get(ctx, *accessConnectorId)
+	if err != nil {
+		return fmt.Errorf("retrieving Access Connector %s: %+v", accessConnectorId.AccessConnectorName, err)
+	}
+
+	accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
+	if accessConnector.Model.Identity != nil {
+
+		accIdentityId := ""
+		for raw := range accessConnector.Model.Identity.IdentityIds {
+			id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+			if err != nil {
+				return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
+			}
+			accIdentityId = id.ID()
+		}
+
+		accessConnectorProperties.Id = *accessConnector.Model.Id
+		accessConnectorProperties.IdentityType = workspaces.IdentityType(accessConnector.Model.Identity.Type)
+		accessConnectorProperties.UserAssignedIdentityId = &accIdentityId
+	}
+
 	// Including the Tags in the workspace parameters will update the tags on
 	// the workspace only
 	workspace := workspaces.Workspace{
@@ -571,7 +621,9 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		Location: location,
 		Properties: workspaces.WorkspaceProperties{
+			AccessConnector:        &accessConnectorProperties,
 			PublicNetworkAccess:    &publicNetworkAccess,
+			DefaultStorageFirewall: &defaultStorageFirewallEnabled,
 			ManagedResourceGroupId: managedResourceGroupID,
 			Parameters:             customParams,
 		},
@@ -676,6 +728,12 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
+
+		defaultStorageFirewall := model.Properties.DefaultStorageFirewall
+		if defaultStorageFirewall != nil {
+			d.Set("default_storage_firewall_enabled", *defaultStorageFirewall != workspaces.DefaultStorageFirewallDisabled)
+			d.Set("access_connector_id", model.Properties.AccessConnector.Id)
+		}
 
 		publicNetworkAccess := model.Properties.PublicNetworkAccess
 		if publicNetworkAccess != nil {
@@ -790,7 +848,7 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, workspaces.DeleteOperationOptions{}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -976,7 +1034,7 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 	}
 
 	if v, ok := config["no_public_ip"].(bool); ok {
-		parameters.EnableNoPublicIP = &workspaces.WorkspaceCustomBooleanParameter{
+		parameters.EnableNoPublicIP = &workspaces.WorkspaceNoPublicIPBooleanParameter{
 			Value: v,
 		}
 	}
