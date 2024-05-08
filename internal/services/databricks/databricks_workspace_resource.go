@@ -584,9 +584,25 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = utils.Bool(rotationEnabled)
 	}
 
-	accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
+	// Including the Tags in the workspace parameters will update the tags on
+	// the workspace only
+	workspace := workspaces.Workspace{
+		Sku: &workspaces.Sku{
+			Name: skuName,
+		},
+		Location: location,
+		Properties: workspaces.WorkspaceProperties{
+
+			PublicNetworkAccess:    &publicNetworkAccess,
+			DefaultStorageFirewall: &defaultStorageFirewallEnabled,
+			ManagedResourceGroupId: managedResourceGroupID,
+			Parameters:             customParams,
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
 
 	if defaultStorageFirewallEnabledRaw {
+		accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
 		accessConnectorIdRaw := d.Get("access_connector_id").(string)
 		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
 
@@ -614,23 +630,8 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			accessConnectorProperties.IdentityType = workspaces.IdentityType(accessConnector.Model.Identity.Type)
 			accessConnectorProperties.UserAssignedIdentityId = &accIdentityId
 		}
-	}
 
-	// Including the Tags in the workspace parameters will update the tags on
-	// the workspace only
-	workspace := workspaces.Workspace{
-		Sku: &workspaces.Sku{
-			Name: skuName,
-		},
-		Location: location,
-		Properties: workspaces.WorkspaceProperties{
-			AccessConnector:        &accessConnectorProperties,
-			PublicNetworkAccess:    &publicNetworkAccess,
-			DefaultStorageFirewall: &defaultStorageFirewallEnabled,
-			ManagedResourceGroupId: managedResourceGroupID,
-			Parameters:             customParams,
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		workspace.Properties.AccessConnector = &accessConnectorProperties
 	}
 
 	if requireNsgRules != "" {
