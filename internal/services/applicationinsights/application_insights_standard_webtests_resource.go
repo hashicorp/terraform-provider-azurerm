@@ -32,8 +32,8 @@ type ApplicationInsightsStandardWebTestResourceModel struct {
 	ResourceGroupName     string                `tfschema:"resource_group_name"`
 	ApplicationInsightsID string                `tfschema:"application_insights_id"`
 	Location              string                `tfschema:"location"`
-	Frequency             int                   `tfschema:"frequency"`
-	Timeout               int                   `tfschema:"timeout"`
+	Frequency             int64                 `tfschema:"frequency"`
+	Timeout               int64                 `tfschema:"timeout"`
 	Enabled               bool                  `tfschema:"enabled"`
 	Retry                 bool                  `tfschema:"retry_enabled"`
 	Request               []RequestModel        `tfschema:"request"`
@@ -341,11 +341,11 @@ func (r ApplicationInsightsStandardWebTestResource) Create() sdk.ResourceFunc {
 			props := webtests.WebTestProperties{
 				Name:               id.WebTestName, // API requires this to be specified despite ARM spec guidance that it should come from the ID
 				Enabled:            pointer.To(model.Enabled),
-				Frequency:          pointer.To(int64(model.Frequency)),
+				Frequency:          pointer.To(model.Frequency),
 				Kind:               webtests.WebTestKindStandard,
 				SyntheticMonitorId: id.WebTestName,
 				RetryEnabled:       pointer.To(model.Retry),
-				Timeout:            pointer.To(int64(model.Timeout)),
+				Timeout:            pointer.To(model.Timeout),
 				Locations:          expandApplicationInsightsStandardWebTestGeoLocations(model.GeoLocations),
 				ValidationRules:    pointer.To(validations),
 				Request:            expandApplicationInsightsStandardWebTestRequest(model.Request),
@@ -495,8 +495,8 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 					state.SyntheticMonitorID = props.SyntheticMonitorId
 					state.Description = pointer.From(props.Description)
 					state.Enabled = pointer.From(props.Enabled)
-					state.Frequency = int(pointer.From(props.Frequency))
-					state.Timeout = int(pointer.From(props.Timeout))
+					state.Frequency = pointer.From(props.Frequency)
+					state.Timeout = pointer.From(props.Timeout)
 					state.Retry = pointer.From(props.RetryEnabled)
 					req, err := flattenApplicationInsightsStandardWebTestRequest(props.Request)
 					if err != nil {
