@@ -50,8 +50,8 @@ type ServicePlanModel struct {
 	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
 	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
 	Reserved                  bool              `tfschema:"reserved"`
-	WorkerCount               int               `tfschema:"worker_count"`
-	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
+	WorkerCount               int64             `tfschema:"worker_count"`
+	MaximumElasticWorkerCount int64             `tfschema:"maximum_elastic_worker_count"`
 	ZoneBalancing             bool              `tfschema:"zone_balancing_enabled"`
 	Tags                      map[string]string `tfschema:"tags"`
 }
@@ -245,7 +245,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 					if sku.Name != nil {
 						state.Sku = *sku.Name
 						if sku.Capacity != nil {
-							state.WorkerCount = int(*sku.Capacity)
+							state.WorkerCount = *sku.Capacity
 						}
 					}
 				}
@@ -270,7 +270,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 
 					state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
 
-					state.MaximumElasticWorkerCount = int(pointer.From(props.MaximumElasticWorkerCount))
+					state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
 				}
 				state.Tags = pointer.From(model.Tags)
 			}
