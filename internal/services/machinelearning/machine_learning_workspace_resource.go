@@ -338,7 +338,7 @@ func resourceMachineLearningWorkspaceCreateOrUpdate(d *pluginsdk.ResourceData, m
 
 	serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]interface{}))
 	if serverlessCompute != nil {
-		if !networkAccessBehindVnetEnabled && !*serverlessCompute.ServerlessComputeNoPublicIP {
+		if *serverlessCompute.ServerlessComputeNoPublicIP && serverlessCompute.ServerlessComputeCustomSubnet == nil && !networkAccessBehindVnetEnabled {
 			return fmt.Errorf(" Not supported to set `public_ip_enabled` to `false` without `subnet_id` when `public_network_access_enabled` is `false`")
 		}
 
