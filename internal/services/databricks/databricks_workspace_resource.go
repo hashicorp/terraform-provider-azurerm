@@ -584,33 +584,36 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = utils.Bool(rotationEnabled)
 	}
 
-	accessConnectorIdRaw := d.Get("access_connector_id").(string)
-	accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
-
-	if err != nil {
-		return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
-	}
-
-	accessConnector, err := acClient.Get(ctx, *accessConnectorId)
-	if err != nil {
-		return fmt.Errorf("retrieving Access Connector %s: %+v", accessConnectorId.AccessConnectorName, err)
-	}
-
 	accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
-	if accessConnector.Model.Identity != nil {
 
-		accIdentityId := ""
-		for raw := range accessConnector.Model.Identity.IdentityIds {
-			id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
-			if err != nil {
-				return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
-			}
-			accIdentityId = id.ID()
+	if defaultStorageFirewallEnabledRaw {
+		accessConnectorIdRaw := d.Get("access_connector_id").(string)
+		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
+
+		if err != nil {
+			return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
 		}
 
-		accessConnectorProperties.Id = *accessConnector.Model.Id
-		accessConnectorProperties.IdentityType = workspaces.IdentityType(accessConnector.Model.Identity.Type)
-		accessConnectorProperties.UserAssignedIdentityId = &accIdentityId
+		accessConnector, err := acClient.Get(ctx, *accessConnectorId)
+		if err != nil {
+			return fmt.Errorf("retrieving Access Connector %s: %+v", accessConnectorId.AccessConnectorName, err)
+		}
+
+		if accessConnector.Model.Identity != nil {
+
+			accIdentityId := ""
+			for raw := range accessConnector.Model.Identity.IdentityIds {
+				id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+				if err != nil {
+					return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
+				}
+				accIdentityId = id.ID()
+			}
+
+			accessConnectorProperties.Id = *accessConnector.Model.Id
+			accessConnectorProperties.IdentityType = workspaces.IdentityType(accessConnector.Model.Identity.Type)
+			accessConnectorProperties.UserAssignedIdentityId = &accIdentityId
+		}
 	}
 
 	// Including the Tags in the workspace parameters will update the tags on
