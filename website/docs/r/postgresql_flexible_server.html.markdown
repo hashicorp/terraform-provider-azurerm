@@ -116,7 +116,7 @@ The following arguments are supported:
 
 ~> **Note:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private DNS zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
 
-* `public_network_access_enabled` - (Optional) Is public network access enabled?
+* `public_network_access_enabled` - (Optional) Specifies whether this PostgreSQL Flexible Server is publicly accessible.
 
 ~> **Note:** When `delegated_subnet_id` and `private_dns_zone_id` are set, the default value of `public_network_access_enabled` is `false`.
 
