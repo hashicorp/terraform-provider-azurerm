@@ -436,7 +436,7 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 
 	initialState := existing.Model.Properties.CommissionedState
 
-	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, initialState, desiredState)
+	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, *initialState, desiredState)
 
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
 	stateTree := map[customipprefixes.CommissionedState]map[customipprefixes.CommissionedState][]customipprefixes.CommissionedState{

@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 		Delete: resourceNATGatewayPublicIpAssociationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NatGatewayPublicIPAddressAssociationID(id)
+			_, err := commonids.ParseCompositeResourceID(id, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 			return err
 		}),
 
@@ -63,35 +62,35 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for NAT Gateway <-> Public IP Association creation.")
-	natGatewayId := d.Get("nat_gateway_id").(string)
 	publicIpAddressId, err := commonids.ParsePublicIPAddressID(d.Get("public_ip_address_id").(string))
 	if err != nil {
 		return err
 	}
-	parsedNatGatewayId, err := natgateways.ParseNatGatewayID(natGatewayId)
+	natGatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(parsedNatGatewayId.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(parsedNatGatewayId.NatGatewayName, natGatewayResourceName)
+	id := commonids.NewCompositeResourceID(natGatewayId, publicIpAddressId)
 
-	natGateway, err := client.Get(ctx, *parsedNatGatewayId, natgateways.DefaultGetOperationOptions())
+	locks.ByName(natGatewayId.NatGatewayName, natGatewayResourceName)
+	defer locks.UnlockByName(natGatewayId.NatGatewayName, natGatewayResourceName)
+
+	natGateway, err := client.Get(ctx, *natGatewayId, natgateways.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(natGateway.HttpResponse) {
-			return fmt.Errorf("%s was not found", parsedNatGatewayId)
+			return fmt.Errorf("%s was not found", natGatewayId)
 		}
-		return fmt.Errorf("retrieving %s: %+v", parsedNatGatewayId, err)
+		return fmt.Errorf("retrieving %s: %+v", natGatewayId, err)
 	}
 
 	if natGateway.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", parsedNatGatewayId)
+		return fmt.Errorf("retrieving %s: `model` was nil", natGatewayId)
 	}
 	if natGateway.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", parsedNatGatewayId)
+		return fmt.Errorf("retrieving %s: `properties` was nil", natGatewayId)
 	}
 
-	id := fmt.Sprintf("%s|%s", parsedNatGatewayId.ID(), publicIpAddressId.ID())
 	publicIpAddresses := make([]natgateways.SubResource, 0)
 	if natGateway.Model.Properties.PublicIPAddresses != nil {
 		for _, existingPublicIPAddress := range *natGateway.Model.Properties.PublicIPAddresses {
@@ -100,7 +99,7 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 			}
 
 			if strings.EqualFold(*existingPublicIPAddress.Id, publicIpAddressId.ID()) {
-				return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id)
+				return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id.ID())
 			}
 
 			publicIpAddresses = append(publicIpAddresses, existingPublicIPAddress)
@@ -112,11 +111,11 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 	})
 	natGateway.Model.Properties.PublicIPAddresses = &publicIpAddresses
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *parsedNatGatewayId, *natGateway.Model); err != nil {
-		return fmt.Errorf("updating %s: %+v", parsedNatGatewayId, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
+		return fmt.Errorf("updating %s: %+v", natGatewayId, err)
 	}
 
-	d.SetId(id)
+	d.SetId(id.ID())
 
 	return resourceNATGatewayPublicIpAssociationRead(d, meta)
 }
