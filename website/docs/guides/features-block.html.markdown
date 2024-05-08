@@ -54,8 +54,21 @@ provider "azurerm" {
       permanently_delete_on_destroy = true
     }
 
+    machine_learning {
+      purge_soft_deleted_workspace_on_destroy = true
+    }
+
     managed_disk {
       expand_without_downtime = true
+    }
+
+    postgresql_flexible_server {
+      restart_server_on_configuration_value_change = true
+    }
+
+    recovery_service {
+      retain_data_and_stop_protection_on_back_vm_destroy = true
+      purge_protected_items_from_vault_on_destroy        = true
     }
 
     resource_group {
@@ -101,7 +114,11 @@ The `features` block supports the following:
 
 * `log_analytics_workspace` - (Optional) A `log_analytics_workspace` block as defined below.
 
+* `machine_learning` - (Optional) A `machine_learning` block as defined below.
+
 * `managed_disk` - (Optional) A `managed_disk` block as defined below.
+
+* `recovery_service` - (Optional) A `recovery_service` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
 
@@ -175,11 +192,31 @@ The `log_analytics_workspace` block supports the following:
 
 ---
 
+The `machine_learning` block supports the following:
+
+* `purge_soft_deleted_workspace_on_destroy` - (Optional) Should the `azurerm_machine_learning_workspace` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
+
+---
+
 The `managed_disk` block supports the following:
 
 * `expand_without_downtime` - (Optional) Specifies whether Managed Disks which can be Expanded without Downtime (on either [a Linux VM](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) [or a Windows VM](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime)) should be expanded without restarting the associated Virtual Machine. Defaults to `true`.
 
 ~> **Note:** Expand Without Downtime requires a specific configuration for the Managed Disk and Virtual Machine - Terraform will use Expand Without Downtime when the Managed Disk and Virtual Machine meet these requirements, and shut the Virtual Machine down as needed if this is inapplicable. More information on when Expand Without Downtime is applicable can be found in the [Linux VM](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) [or Windows VM](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime) documentation.
+
+---
+
+The `postgresql_flexible_server` block supports the following:
+
+* `restart_server_on_configuration_value_change` - (Optional) Should the `postgresql_flexible_server` restart after static server parameter change or removal? Defaults to `true`.
+
+---
+
+The `recovery_service` block supports the following:
+
+* `vm_backup_stop_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and stop protection instead of destroying the backup protected vm? Defaults to `false`.
+
+* `purge_protected_items_from_vault_on_destroy` - (Optional) Should we purge all protected items when destroying the vault. Defaults to `false`.
 
 ---
 
@@ -222,6 +259,8 @@ The `virtual_machine_scale_set` block supports the following:
 * `force_delete` - Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
 
 ~> **Note:** Support for Force Delete is in an opt-in Preview.
+
+* `reimage_on_manual_upgrade` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically reimage during the update the instances in the Scale Set when `upgrade_mode` is `Manual`. Defaults to `true`.
 
 * `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.
 

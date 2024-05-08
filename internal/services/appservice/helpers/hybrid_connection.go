@@ -7,19 +7,30 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 )
 
-func GetSendKeyValue(ctx context.Context, metadata sdk.ResourceMetaData, id parse.AppHybridConnectionId, sendKeyName string) (*string, error) {
-	relayClient := metadata.Client.Relay.NamespacesClient
-	connectionId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroup, id.HybridConnectionNamespaceName, sendKeyName)
-	keys, err := relayClient.ListKeys(ctx, connectionId)
-	if err != nil {
-		return nil, fmt.Errorf("listing Send Keys for %s in %s: %+v", connectionId, id, err)
+func GetSendKeyValue(ctx context.Context, metadata sdk.ResourceMetaData, id hybridconnections.HybridConnectionId, sendKeyName string) (*string, error) {
+	relayNamespaceClient := metadata.Client.Relay.NamespacesClient
+	relayConnectionId := namespaces.NewAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, sendKeyName)
+	relayKeys, err := relayNamespaceClient.ListKeys(ctx, relayConnectionId)
+	if err != nil && !response.WasNotFound(relayKeys.HttpResponse) {
+		return nil, fmt.Errorf("listing Send Keys for name %s for %s in %s: %+v", sendKeyName, relayConnectionId, id, err)
 	}
-	if err != nil || keys.Model == nil || keys.Model.PrimaryKey == nil {
+	if relayKeys.Model != nil && relayKeys.Model.PrimaryKey != nil {
+		return relayKeys.Model.PrimaryKey, nil
+	}
+
+	hybridConnectionsClient := metadata.Client.Relay.HybridConnectionsClient
+	connectionId := hybridconnections.NewHybridConnectionAuthorizationRuleID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName, id.HybridConnectionName, sendKeyName)
+	keys, err := hybridConnectionsClient.ListKeys(ctx, connectionId)
+	if err != nil {
+		return nil, fmt.Errorf("listing Send Keys for name %s for %s in %s: %+v", sendKeyName, connectionId, id, err)
+	}
+	if keys.Model == nil || keys.Model.PrimaryKey == nil {
 		return nil, fmt.Errorf("reading Send Key Value for %s in %s", connectionId.AuthorizationRuleName, id)
 	}
 	return keys.Model.PrimaryKey, nil

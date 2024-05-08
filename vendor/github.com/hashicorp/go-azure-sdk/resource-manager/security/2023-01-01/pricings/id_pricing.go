@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PricingId{}
+func init() {
+	recaser.RegisterResourceId(&PricingId{})
+}
+
+var _ resourceids.ResourceId = &PricingId{}
 
 // PricingId is a struct representing the Resource ID for a Pricing
 type PricingId struct {
@@ -28,7 +33,7 @@ func NewPricingID(subscriptionId string, pricingName string) PricingId {
 
 // ParsePricingID parses 'input' into a PricingId
 func ParsePricingID(input string) (*PricingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PricingId{})
+	parser := resourceids.NewParserFromResourceIdType(&PricingId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +50,7 @@ func ParsePricingID(input string) (*PricingId, error) {
 // ParsePricingIDInsensitively parses 'input' case-insensitively into a PricingId
 // note: this method should only be used for API response data and not user input
 func ParsePricingIDInsensitively(input string) (*PricingId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PricingId{})
+	parser := resourceids.NewParserFromResourceIdType(&PricingId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

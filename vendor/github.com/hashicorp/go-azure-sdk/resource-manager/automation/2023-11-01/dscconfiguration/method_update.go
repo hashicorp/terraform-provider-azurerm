@@ -47,7 +47,10 @@ func (c DscConfigurationClient) Update(ctx context.Context, id ConfigurationId, 
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DscConfiguration
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

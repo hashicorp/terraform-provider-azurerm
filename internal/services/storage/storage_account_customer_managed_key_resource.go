@@ -8,13 +8,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -49,24 +53,29 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 			},
 
 			"key_vault_id": {
-				// TODO: should this be split into two resources, since Key Vault and Managed HSM behave subtly differently in places already
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					// Storage Account Customer Managed Keys support both Key Vault and Key Vault Managed HSM keys:
-					// https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview
+					// TODO 4.0: revert to only accepting key vault IDs as there is an explicit attribute for managed HSMs
 					commonids.ValidateKeyVaultID,
 					managedhsms.ValidateManagedHSMID,
 				),
-				ExactlyOneOf: []string{"key_vault_id", "key_vault_uri"},
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri"},
 			},
 
 			"key_vault_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
-				ExactlyOneOf: []string{"key_vault_id", "key_vault_uri"},
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri"},
 				Computed:     true,
+			},
+
+			"managed_hsm_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.Any(validate.ManagedHSMDataPlaneVersionedKeyID, validate.ManagedHSMDataPlaneVersionlessKeyID),
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri"},
 			},
 
 			"key_name": {
@@ -98,7 +107,7 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 }
 
 func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage.AccountsClient
+	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	vaultsClient := keyVaultsClient.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -112,28 +121,35 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
-	storageAccount, err := storageClient.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	existing, err := storageClient.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	if storageAccount.AccountProperties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
-
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
+	}
 	if d.IsNewResource() {
 		// whilst this looks superfluous given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
-		if storageAccount.AccountProperties.Encryption != nil {
-			if storageAccount.AccountProperties.Encryption.KeySource == storage.KeySourceMicrosoftKeyvault {
+		if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Encryption != nil && existing.Model.Properties.Encryption.KeySource != nil {
+			if *existing.Model.Properties.Encryption.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
 				return tf.ImportAsExistsError("azurerm_storage_account_customer_managed_key", id.ID())
 			}
 		}
 	}
 
+	keyName := ""
+	keyVersion := ""
 	keyVaultURI := ""
+
 	if keyVaultURIRaw := d.Get("key_vault_uri").(string); keyVaultURIRaw != "" {
+		keyName = d.Get("key_name").(string)
+		keyVersion = d.Get("key_version").(string)
 		keyVaultURI = keyVaultURIRaw
-	} else {
+	} else if _, ok := d.GetOk("key_vault_id"); ok {
 		keyVaultID, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 		if err != nil {
 			return err
@@ -163,43 +179,54 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
 		}
 
+		keyName = d.Get("key_name").(string)
+		keyVersion = d.Get("key_version").(string)
 		keyVaultURI = *keyVaultBaseURL
+	} else if managedHSMKeyId, ok := d.GetOk("managed_hsm_key_id"); ok {
+		if keyId, err := parse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
+			keyName = keyId.KeyName
+			keyVersion = keyId.KeyVersion
+			keyVaultURI = keyId.BaseUri()
+		} else if keyId, err := parse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
+			keyName = keyId.KeyName
+			keyVersion = ""
+			keyVaultURI = keyId.BaseUri()
+		} else {
+			return fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId)
+		}
 	}
 
-	keyName := d.Get("key_name").(string)
-	keyVersion := d.Get("key_version").(string)
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
 	federatedIdentityClientID := d.Get("federated_identity_client_id").(string)
 
-	props := storage.AccountUpdateParameters{
-		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-			Encryption: &storage.Encryption{
-				Services: &storage.EncryptionServices{
-					Blob: &storage.EncryptionService{
+	payload := storageaccounts.StorageAccountUpdateParameters{
+		Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
+			Encryption: &storageaccounts.Encryption{
+				Services: &storageaccounts.EncryptionServices{
+					Blob: &storageaccounts.EncryptionService{
 						Enabled: utils.Bool(true),
 					},
-					File: &storage.EncryptionService{
+					File: &storageaccounts.EncryptionService{
 						Enabled: utils.Bool(true),
 					},
 				},
-				EncryptionIdentity: &storage.EncryptionIdentity{
-					EncryptionUserAssignedIdentity: utils.String(userAssignedIdentity),
+				Identity: &storageaccounts.EncryptionIdentity{
+					UserAssignedIdentity: utils.String(userAssignedIdentity),
 				},
-				KeySource: storage.KeySourceMicrosoftKeyvault,
-				KeyVaultProperties: &storage.KeyVaultProperties{
-					KeyName:     utils.String(keyName),
-					KeyVersion:  utils.String(keyVersion),
-					KeyVaultURI: utils.String(keyVaultURI),
+				KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
+				Keyvaultproperties: &storageaccounts.KeyVaultProperties{
+					Keyname:     utils.String(keyName),
+					Keyversion:  utils.String(keyVersion),
+					Keyvaulturi: utils.String(keyVaultURI),
 				},
 			},
 		},
 	}
 
 	if federatedIdentityClientID != "" {
-		props.Encryption.EncryptionIdentity.EncryptionFederatedIdentityClientID = utils.String(federatedIdentityClientID)
+		payload.Properties.Encryption.Identity.FederatedIdentityClientId = utils.String(federatedIdentityClientID)
 	}
-
-	if _, err = storageClient.Update(ctx, id.ResourceGroupName, id.StorageAccountName, props); err != nil {
+	if _, err = storageClient.Update(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating Customer Managed Key for %s: %+v", id, err)
 	}
 
@@ -208,8 +235,9 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 }
 
 func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage.AccountsClient
+	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -218,83 +246,95 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		return err
 	}
 
-	storageAccount, err := storageClient.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	resp, err := storageClient.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(storageAccount.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %q was not found - removing from state!", *id)
 			d.SetId("")
 			return nil
 		}
-
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if storageAccount.AccountProperties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+
+	d.Set("storage_account_id", id.ID())
+
+	enabled := false
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if encryption := props.Encryption; encryption != nil && encryption.KeySource != nil && *encryption.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
+				enabled = true
+				keyName := ""
+				keyVaultURI := ""
+				keyVersion := ""
+				if keyVaultProps := encryption.Keyvaultproperties; keyVaultProps != nil {
+					keyName = pointer.From(keyVaultProps.Keyname)
+					keyVaultURI = pointer.From(keyVaultProps.Keyvaulturi)
+					keyVersion = pointer.From(keyVaultProps.Keyversion)
+				}
+				if keyVaultURI == "" {
+					return fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", id)
+				}
+
+				federatedIdentityClientID := ""
+				userAssignedIdentity := ""
+				if identityProps := encryption.Identity; identityProps != nil {
+					federatedIdentityClientID = pointer.From(identityProps.FederatedIdentityClientId)
+					userAssignedIdentity = pointer.From(identityProps.UserAssignedIdentity)
+				}
+
+				isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+				if err != nil {
+					return err
+				}
+
+				switch {
+				case isHSMURI && keyVersion == "":
+					{
+						keyId := parse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName)
+						d.Set("managed_hsm_key_id", keyId.ID())
+					}
+				case isHSMURI && keyVersion != "":
+					{
+						keyId := parse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion)
+						d.Set("managed_hsm_key_id", keyId.ID())
+					}
+				case !isHSMURI:
+					{
+						d.Set("key_vault_uri", keyVaultURI)
+						// now we have the key vault uri we can look up the ID
+						// we can't look up the ID when using federated identity as the key will be under different tenant
+						keyVaultID := ""
+						if federatedIdentityClientID == "" {
+							subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+							tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
+							if err != nil {
+								return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+							}
+							keyVaultID = pointer.From(tmpKeyVaultID)
+						}
+						d.Set("key_vault_id", keyVaultID)
+					}
+				}
+
+				d.Set("key_name", keyName)
+				d.Set("key_version", keyVersion)
+				d.Set("user_assigned_identity_id", userAssignedIdentity)
+				d.Set("federated_identity_client_id", federatedIdentityClientID)
+			}
+		}
 	}
-	if storageAccount.AccountProperties.Encryption == nil || storageAccount.AccountProperties.Encryption.KeySource != storage.KeySourceMicrosoftKeyvault {
+
+	if !enabled {
 		log.Printf("[DEBUG] Customer Managed Key was not defined for %s - removing from state!", id)
 		d.SetId("")
 		return nil
 	}
 
-	encryption := *storageAccount.AccountProperties.Encryption
-
-	keyName := ""
-	keyVaultURI := ""
-	keyVersion := ""
-	if props := encryption.KeyVaultProperties; props != nil {
-		if props.KeyName != nil {
-			keyName = *props.KeyName
-		}
-		if props.KeyVaultURI != nil {
-			keyVaultURI = *props.KeyVaultURI
-		}
-		if props.KeyVersion != nil {
-			keyVersion = *props.KeyVersion
-		}
-	}
-
-	userAssignedIdentity := ""
-	federatedIdentityClientID := ""
-	if props := encryption.EncryptionIdentity; props != nil {
-		if props.EncryptionUserAssignedIdentity != nil {
-			userAssignedIdentity = *props.EncryptionUserAssignedIdentity
-		}
-		if props.EncryptionFederatedIdentityClientID != nil {
-			federatedIdentityClientID = *props.EncryptionFederatedIdentityClientID
-		}
-	}
-
-	if keyVaultURI == "" {
-		return fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", id)
-	}
-
-	// now we have the key vault uri we can look up the ID
-
-	// we can't look up the ID when using federated identity as the key will be under different tenant
-	keyVaultID := ""
-	if federatedIdentityClientID == "" {
-		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-		tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
-		if err != nil {
-			return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
-		}
-		keyVaultID = pointer.From(tmpKeyVaultID)
-	}
-
-	d.Set("storage_account_id", id.ID())
-	d.Set("key_vault_id", keyVaultID)
-	d.Set("key_vault_uri", keyVaultURI)
-	d.Set("key_name", keyName)
-	d.Set("key_version", keyVersion)
-	d.Set("user_assigned_identity_id", userAssignedIdentity)
-	d.Set("federated_identity_client_id", federatedIdentityClientID)
-
 	return nil
 }
 
 func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageClient := meta.(*clients.Client).Storage.AccountsClient
+	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -307,9 +347,9 @@ func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, m
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
 	// confirm it still exists prior to trying to update it, else we'll get an error
-	storageAccount, err := storageClient.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	storageAccount, err := storageClient.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(storageAccount.Response) {
+		if response.WasNotFound(storageAccount.HttpResponse) {
 			return nil
 		}
 
@@ -320,24 +360,24 @@ func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, m
 	// "Delete" doesn't really make sense it should really be a "Revert to Default"
 	// So instead of the Delete func actually deleting the Storage Account I am
 	// making it reset the Storage Account to its default state
-	props := storage.AccountUpdateParameters{
-		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-			Encryption: &storage.Encryption{
-				Services: &storage.EncryptionServices{
-					Blob: &storage.EncryptionService{
+	payload := storageaccounts.StorageAccountUpdateParameters{
+		Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
+			Encryption: &storageaccounts.Encryption{
+				Services: &storageaccounts.EncryptionServices{
+					Blob: &storageaccounts.EncryptionService{
 						Enabled: utils.Bool(true),
 					},
-					File: &storage.EncryptionService{
+					File: &storageaccounts.EncryptionService{
 						Enabled: utils.Bool(true),
 					},
 				},
-				KeySource: storage.KeySourceMicrosoftStorage,
+				KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointStorage),
 			},
 		},
 	}
 
-	if _, err = storageClient.Update(ctx, id.ResourceGroupName, id.StorageAccountName, props); err != nil {
-		return fmt.Errorf("removing Customer Managed Key for %s: %+v", id, err)
+	if _, err = storageClient.Update(ctx, *id, payload); err != nil {
+		return fmt.Errorf("removing Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	return nil

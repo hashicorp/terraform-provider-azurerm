@@ -12,16 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/bastionhosts"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var skuWeight = map[string]int8{
@@ -31,9 +30,9 @@ var skuWeight = map[string]int8{
 
 func resourceBastionHost() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBastionHostCreateUpdate,
+		Create: resourceBastionHostCreate,
 		Read:   resourceBastionHostRead,
-		Update: resourceBastionHostCreateUpdate,
+		Update: resourceBastionHostUpdate,
 		Delete: resourceBastionHostDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -107,6 +106,12 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"kerberos_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"scale_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -156,76 +161,169 @@ func resourceBastionHost() *pluginsdk.Resource {
 	}
 }
 
-func resourceBastionHostCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.BastionHosts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
 
 	id := bastionhosts.NewBastionHostID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+
 	scaleUnits := d.Get("scale_units").(int)
-	sku := d.Get("sku").(string)
+	sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
 	fileCopyEnabled := d.Get("file_copy_enabled").(bool)
 	ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
+	kerberosEnabled := d.Get("kerberos_enabled").(bool)
 	shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
 	tunnelingEnabled := d.Get("tunneling_enabled").(bool)
 
-	if scaleUnits > 2 && sku == string(bastionhosts.BastionHostSkuNameBasic) {
+	if scaleUnits > 2 && sku == bastionhosts.BastionHostSkuNameBasic {
 		return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
 	}
 
-	if fileCopyEnabled && sku == string(bastionhosts.BastionHostSkuNameBasic) {
+	if fileCopyEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
 		return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if ipConnectEnabled && sku == string(bastionhosts.BastionHostSkuNameBasic) {
+	if ipConnectEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
 		return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if shareableLinkEnabled && sku == string(bastionhosts.BastionHostSkuNameBasic) {
+	if kerberosEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
+		return fmt.Errorf("`kerberos_enabled` is only supported when `sku` is `Standard`")
+	}
+
+	if shareableLinkEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
 		return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if tunnelingEnabled && sku == string(bastionhosts.BastionHostSkuNameBasic) {
+	if tunnelingEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
 		return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard`")
 	}
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_bastion_host", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_bastion_host", id.ID())
 	}
 
 	parameters := bastionhosts.BastionHost{
-		Location: &location,
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &bastionhosts.BastionHostPropertiesFormat{
-			DisableCopyPaste:    utils.Bool(!d.Get("copy_paste_enabled").(bool)),
-			EnableFileCopy:      utils.Bool(fileCopyEnabled),
-			EnableIPConnect:     utils.Bool(ipConnectEnabled),
-			EnableShareableLink: utils.Bool(shareableLinkEnabled),
-			EnableTunneling:     utils.Bool(tunnelingEnabled),
+			DisableCopyPaste:    pointer.To(!d.Get("copy_paste_enabled").(bool)),
+			EnableFileCopy:      pointer.To(fileCopyEnabled),
+			EnableIPConnect:     pointer.To(ipConnectEnabled),
+			EnableKerberos:      pointer.To(kerberosEnabled),
+			EnableShareableLink: pointer.To(shareableLinkEnabled),
+			EnableTunneling:     pointer.To(tunnelingEnabled),
 			IPConfigurations:    expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
-			ScaleUnits:          utils.Int64(int64(d.Get("scale_units").(int))),
+			ScaleUnits:          pointer.To(int64(d.Get("scale_units").(int))),
 		},
 		Sku: &bastionhosts.Sku{
-			Name: pointer.To(bastionhosts.BastionHostSkuName(sku)),
+			Name: pointer.To(sku),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceBastionHostRead(d, meta)
+}
+
+func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.BastionHosts
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := bastionhosts.ParseBastionHostID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
+
+	if d.HasChange("sku") {
+		payload.Sku = &bastionhosts.Sku{
+			Name: pointer.To(sku),
+		}
+	}
+
+	if d.HasChange("copy_paste_enabled") {
+		payload.Properties.DisableCopyPaste = pointer.To(!d.Get("copy_paste_enabled").(bool))
+	}
+
+	if d.HasChange("file_copy_enabled") {
+		fileCopyEnabled := d.Get("file_copy_enabled").(bool)
+		if fileCopyEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
+			return fmt.Errorf("`file_copy_enabled` is only supported when `sku` is `Standard`")
+		}
+		payload.Properties.EnableFileCopy = pointer.To(fileCopyEnabled)
+	}
+
+	if d.HasChange("ip_connect_enabled") {
+		ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
+		if ipConnectEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
+			return fmt.Errorf("`ip_connect_enabled` is only supported when `sku` is `Standard`")
+		}
+		payload.Properties.EnableIPConnect = pointer.To(ipConnectEnabled)
+	}
+
+	if d.HasChange("scale_units") {
+		scaleUnits := d.Get("scale_units").(int)
+		if scaleUnits > 2 && sku == bastionhosts.BastionHostSkuNameBasic {
+			return fmt.Errorf("`scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`")
+		}
+		payload.Properties.ScaleUnits = pointer.To(int64(scaleUnits))
+	}
+
+	if d.HasChange("shareable_link_enabled") {
+		shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
+		if shareableLinkEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
+			return fmt.Errorf("`shareable_link_enabled` is only supported when `sku` is `Standard`")
+		}
+		payload.Properties.EnableShareableLink = pointer.To(shareableLinkEnabled)
+	}
+
+	if d.HasChange("tunneling_enabled") {
+		tunnelingEnabled := d.Get("tunneling_enabled").(bool)
+		if tunnelingEnabled && sku == bastionhosts.BastionHostSkuNameBasic {
+			return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard`")
+		}
+		payload.Properties.EnableTunneling = pointer.To(tunnelingEnabled)
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -257,9 +355,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
-		}
+		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if sku := model.Sku; sku != nil {
 			d.Set("sku", string(*sku.Name))
@@ -270,6 +366,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("scale_units", props.ScaleUnits)
 			d.Set("file_copy_enabled", props.EnableFileCopy)
 			d.Set("ip_connect_enabled", props.EnableIPConnect)
+			d.Set("kerberos_enabled", props.EnableKerberos)
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
 

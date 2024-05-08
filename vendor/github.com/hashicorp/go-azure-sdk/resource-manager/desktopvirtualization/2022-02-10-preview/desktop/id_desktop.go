@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DesktopId{}
+func init() {
+	recaser.RegisterResourceId(&DesktopId{})
+}
+
+var _ resourceids.ResourceId = &DesktopId{}
 
 // DesktopId is a struct representing the Resource ID for a Desktop
 type DesktopId struct {
@@ -32,7 +37,7 @@ func NewDesktopID(subscriptionId string, resourceGroupName string, applicationGr
 
 // ParseDesktopID parses 'input' into a DesktopId
 func ParseDesktopID(input string) (*DesktopId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DesktopId{})
+	parser := resourceids.NewParserFromResourceIdType(&DesktopId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseDesktopID(input string) (*DesktopId, error) {
 // ParseDesktopIDInsensitively parses 'input' case-insensitively into a DesktopId
 // note: this method should only be used for API response data and not user input
 func ParseDesktopIDInsensitively(input string) (*DesktopId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DesktopId{})
+	parser := resourceids.NewParserFromResourceIdType(&DesktopId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

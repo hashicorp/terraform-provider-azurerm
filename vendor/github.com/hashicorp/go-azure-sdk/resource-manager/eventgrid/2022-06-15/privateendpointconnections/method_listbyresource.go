@@ -20,7 +20,8 @@ type ListByResourceOperationResponse struct {
 }
 
 type ListByResourceCompleteResult struct {
-	Items []PrivateEndpointConnection
+	LatestHttpResponse *http.Response
+	Items              []PrivateEndpointConnection
 }
 
 type ListByResourceOperationOptions struct {
@@ -116,7 +117,8 @@ func (c PrivateEndpointConnectionsClient) ListByResourceCompleteMatchingPredicat
 	}
 
 	result = ListByResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

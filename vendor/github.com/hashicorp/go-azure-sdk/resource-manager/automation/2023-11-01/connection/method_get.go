@@ -43,7 +43,10 @@ func (c ConnectionClient) Get(ctx context.Context, id ConnectionId) (result GetO
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Connection
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

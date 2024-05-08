@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StreamingEndpointId{}
+func init() {
+	recaser.RegisterResourceId(&StreamingEndpointId{})
+}
+
+var _ resourceids.ResourceId = &StreamingEndpointId{}
 
 // StreamingEndpointId is a struct representing the Resource ID for a Streaming Endpoint
 type StreamingEndpointId struct {
@@ -32,7 +37,7 @@ func NewStreamingEndpointID(subscriptionId string, resourceGroupName string, med
 
 // ParseStreamingEndpointID parses 'input' into a StreamingEndpointId
 func ParseStreamingEndpointID(input string) (*StreamingEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamingEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamingEndpointId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseStreamingEndpointID(input string) (*StreamingEndpointId, error) {
 // ParseStreamingEndpointIDInsensitively parses 'input' case-insensitively into a StreamingEndpointId
 // note: this method should only be used for API response data and not user input
 func ParseStreamingEndpointIDInsensitively(input string) (*StreamingEndpointId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StreamingEndpointId{})
+	parser := resourceids.NewParserFromResourceIdType(&StreamingEndpointId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

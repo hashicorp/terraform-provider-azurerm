@@ -43,7 +43,10 @@ func (c RolesClient) Get(ctx context.Context, id RoleId) (result GetOperationRes
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Role
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

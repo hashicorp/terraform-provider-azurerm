@@ -20,7 +20,8 @@ type ListByServerOperationResponse struct {
 }
 
 type ListByServerCompleteResult struct {
-	Items []ServerAzureADAdministrator
+	LatestHttpResponse *http.Response
+	Items              []ServerAzureADAdministrator
 }
 
 // ListByServer ...
@@ -84,7 +85,8 @@ func (c ServerAzureADAdministratorsClient) ListByServerCompleteMatchingPredicate
 	}
 
 	result = ListByServerCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -68,9 +69,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			MinItems: 1,
+			Type:             pluginsdk.TypeList,
+			Required:         true,
+			MinItems:         1,
+			DiffSuppressFunc: suppress.ListOrder,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -541,18 +543,26 @@ func resourceAzureSubnetHash(v interface{}) int {
 }
 
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
-	subnetClient := meta.(*clients.Client).Network.SubnetsClient
-	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
+	vnetClient := meta.(*clients.Client).Network.VnetClient
+	resp, err := vnetClient.Get(ctx, resGroup, vnetName, "")
 	if err != nil {
+		// The Subnet doesn't exist when the Virtual Network doesn't exist
 		if resp.StatusCode == http.StatusNotFound {
-			return &network.Subnet{}, nil
+			return pointer.To(network.Subnet{}), nil
 		}
 		// raise an error if there was an issue other than 404 in getting subnet properties
 		return nil, err
 	}
 
-	// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
-	return &resp, nil
+	for _, subnet := range pointer.From(resp.Subnets) {
+		if subnetName == pointer.From(subnet.Name) {
+			// Return it directly rather than copy the fields to prevent potential uncovered properties (for example, `ServiceEndpoints` mentioned in #1619)
+			return pointer.To(subnet), nil
+		}
+	}
+
+	// TODO 4.0: Return empty object when the Subnet isn't found
+	return pointer.To(network.Subnet{}), nil
 }
 
 func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *pluginsdk.ResourceData) ([]string, error) {

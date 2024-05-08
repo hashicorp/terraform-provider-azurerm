@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ContainerGroupId{}
+func init() {
+	recaser.RegisterResourceId(&ContainerGroupId{})
+}
+
+var _ resourceids.ResourceId = &ContainerGroupId{}
 
 // ContainerGroupId is a struct representing the Resource ID for a Container Group
 type ContainerGroupId struct {
@@ -30,7 +35,7 @@ func NewContainerGroupID(subscriptionId string, resourceGroupName string, contai
 
 // ParseContainerGroupID parses 'input' into a ContainerGroupId
 func ParseContainerGroupID(input string) (*ContainerGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContainerGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContainerGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseContainerGroupID(input string) (*ContainerGroupId, error) {
 // ParseContainerGroupIDInsensitively parses 'input' case-insensitively into a ContainerGroupId
 // note: this method should only be used for API response data and not user input
 func ParseContainerGroupIDInsensitively(input string) (*ContainerGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContainerGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContainerGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

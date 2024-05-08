@@ -19,7 +19,8 @@ type ListByAutomationAccountOperationResponse struct {
 }
 
 type ListByAutomationAccountCompleteResult struct {
-	Items []DscNodeConfiguration
+	LatestHttpResponse *http.Response
+	Items              []DscNodeConfiguration
 }
 
 type ListByAutomationAccountOperationOptions struct {
@@ -123,7 +124,8 @@ func (c DscNodeConfigurationClient) ListByAutomationAccountCompleteMatchingPredi
 	}
 
 	result = ListByAutomationAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -48,7 +48,10 @@ func (c IntegrationAccountMapsClient) CreateOrUpdate(ctx context.Context, id Map
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model IntegrationAccountMap
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

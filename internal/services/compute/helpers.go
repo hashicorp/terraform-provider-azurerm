@@ -6,58 +6,59 @@ package compute
 import (
 	"sort"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
-func expandIDsToSubResources(input []interface{}) *[]compute.SubResource {
-	ids := make([]compute.SubResource, 0)
+func expandIDsToSubResources(input []interface{}) *[]virtualmachinescalesets.SubResource {
+	ids := make([]virtualmachinescalesets.SubResource, 0)
 
 	for _, v := range input {
-		ids = append(ids, compute.SubResource{
-			ID: utils.String(v.(string)),
+		ids = append(ids, virtualmachinescalesets.SubResource{
+			Id: pointer.To(v.(string)),
 		})
 	}
 
 	return &ids
 }
 
-func flattenSubResourcesToIDs(input *[]compute.SubResource) []interface{} {
+func flattenSubResourcesToIDs(input *[]virtualmachinescalesets.SubResource) []interface{} {
 	ids := make([]interface{}, 0)
 	if input == nil {
 		return ids
 	}
 
 	for _, v := range *input {
-		if v.ID == nil {
+		if v.Id == nil {
 			continue
 		}
 
-		ids = append(ids, *v.ID)
+		ids = append(ids, *v.Id)
 	}
 
 	return ids
 }
 
-func flattenSubResourcesToStringIDs(input *[]compute.SubResource) []string {
+func flattenSubResourcesToStringIDs(input *[]virtualmachinescalesets.SubResource) []string {
 	ids := make([]string, 0)
 	if input == nil {
 		return ids
 	}
 
 	for _, v := range *input {
-		if v.ID == nil {
+		if v.Id == nil {
 			continue
 		}
 
-		ids = append(ids, *v.ID)
+		ids = append(ids, *v.Id)
 	}
 
 	return ids
 }
 
-func sortSharedImageVersions(values []compute.GalleryImageVersion) ([]compute.GalleryImageVersion, []error) {
+func sortSharedImageVersions(values []galleryimageversions.GalleryImageVersion) ([]galleryimageversions.GalleryImageVersion, []error) {
 	errors := make([]error, 0)
 	sort.Slice(values, func(i, j int) bool {
 		if values[i].Name == nil || values[j].Name == nil {

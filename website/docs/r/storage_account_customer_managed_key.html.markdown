@@ -35,7 +35,7 @@ resource "azurerm_key_vault" "example" {
 resource "azurerm_key_vault_access_policy" "storage" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_storage_account.example.identity.0.principal_id
+  object_id    = azurerm_storage_account.example.identity[0].principal_id
 
   secret_permissions = ["Get"]
   key_permissions = [
@@ -125,12 +125,14 @@ The following arguments are supported:
 
 * `key_name` - (Required) The name of Key Vault Key.
 
-* `key_vault_id` - (Optional) The ID of the Key Vault. Exactly one of `key_vault_id`, or `key_vault_uri` must be specified.
+* `key_vault_id` - (Optional) The ID of the Key Vault. Exactly one of `managed_hsm_key_id`, `key_vault_id`, or `key_vault_uri` must be specified.
 
 ~> Note: When the principal running Terraform has access to the subscription containing the Key Vault, it's recommended to use the `key_vault_id` property for maximum compatibility, rather than the `key_vault_uri` property.
 
 
-* `key_vault_uri` - (Optional) URI pointing at the Key Vault. Required when using `federated_identity_client_id`. Exactly one of `key_vault_id`, or `key_vault_uri` must be specified.
+* `key_vault_uri` - (Optional) URI pointing at the Key Vault. Required when using `federated_identity_client_id`. Exactly one of `managed_hsm_key_id`, `key_vault_id`, or `key_vault_uri` must be specified.
+
+* `managed_hsm_key_id` - (Optional) Key ID of a key in a managed HSM.  Exactly one of `managed_hsm_key_id`, `key_vault_id`, or `key_vault_uri` must be specified.
 
 * `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
 

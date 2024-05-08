@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
 )
 
 var _ pluginsdk.StateUpgrade = ShareV0ToV1{}
@@ -25,7 +26,7 @@ func (ShareV0ToV1) Schema() map[string]*pluginsdk.Schema {
 
 func (ShareV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	// this should have been applied from pre-0.12 migration system; backporting just in-case
-	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	return func(ctx context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 		shareName := rawState["name"].(string)
 		resourceGroup := rawState["resource_group_name"].(string)
 		accountName := rawState["storage_account_name"].(string)
@@ -54,25 +55,28 @@ func (s ShareV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// name/resourceGroup/accountName
 		parsedId := strings.Split(id, "/")
 		if len(parsedId) != 3 {
-			return rawState, fmt.Errorf("Expected 3 segments in the ID but got %d", len(parsedId))
+			return rawState, fmt.Errorf("expected 3 segments in the ID but got %d", len(parsedId))
 		}
 
 		shareName := parsedId[0]
 		accountName := parsedId[2]
 
-		environment := meta.(*clients.Client).Account.AzureEnvironment
-		client := shares.NewWithEnvironment(environment)
+		accountId := accounts.AccountId{
+			AccountName:   accountName,
+			SubDomainType: "file",
+			DomainSuffix:  meta.(*clients.Client).Storage.StorageDomainSuffix,
+		}
 
-		newResourceId := client.GetResourceID(accountName, shareName)
+		newResourceId := shares.NewShareID(accountId, shareName)
 		log.Printf("[DEBUG] Updating Resource ID from %q to %q", id, newResourceId)
 
-		rawState["id"] = newResourceId
+		rawState["id"] = newResourceId.ID()
 
 		return rawState, nil
 	}
 }
 
-// the schema schema was used for both V0 and V1
+// this schema was used for both V0 and V1
 func shareSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {

@@ -1,6 +1,10 @@
 package availabilitygrouplisteners
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForCommit() []string {
 		string(CommitAsynchronousCommit),
 		string(CommitSynchronousCommit),
 	}
+}
+
+func (s *Commit) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCommit(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCommit(input string) (*Commit, error) {
@@ -45,6 +62,19 @@ func PossibleValuesForFailover() []string {
 		string(FailoverAutomatic),
 		string(FailoverManual),
 	}
+}
+
+func (s *Failover) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFailover(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseFailover(input string) (*Failover, error) {
@@ -77,6 +107,19 @@ func PossibleValuesForReadableSecondary() []string {
 	}
 }
 
+func (s *ReadableSecondary) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReadableSecondary(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseReadableSecondary(input string) (*ReadableSecondary, error) {
 	vals := map[string]ReadableSecondary{
 		"all":       ReadableSecondaryAll,
@@ -104,6 +147,19 @@ func PossibleValuesForRole() []string {
 		string(RolePrimary),
 		string(RoleSecondary),
 	}
+}
+
+func (s *Role) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRole(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseRole(input string) (*Role, error) {

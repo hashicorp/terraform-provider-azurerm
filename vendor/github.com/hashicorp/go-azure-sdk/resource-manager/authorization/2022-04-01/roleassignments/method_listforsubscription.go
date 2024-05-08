@@ -20,7 +20,8 @@ type ListForSubscriptionOperationResponse struct {
 }
 
 type ListForSubscriptionCompleteResult struct {
-	Items []RoleAssignment
+	LatestHttpResponse *http.Response
+	Items              []RoleAssignment
 }
 
 type ListForSubscriptionOperationOptions struct {
@@ -116,7 +117,8 @@ func (c RoleAssignmentsClient) ListForSubscriptionCompleteMatchingPredicate(ctx 
 	}
 
 	result = ListForSubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

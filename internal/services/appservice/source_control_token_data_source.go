@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceSourceControlTokenDataSource struct{}
@@ -62,24 +62,25 @@ func (d AppServiceSourceControlTokenDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.AppService.BaseClient
+			client := metadata.Client.AppService.ResourceProvidersClient
 
 			var sourceControlToken AppServiceSourceControlTokenModel
 			if err := metadata.Decode(&sourceControlToken); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
-			id := parse.NewAppServiceSourceControlTokenID(sourceControlToken.Type)
+			id := resourceproviders.NewSourceControlID(sourceControlToken.Type)
 
-			resp, err := client.GetSourceControl(ctx, id.Type)
+			resp, err := client.GetSourceControl(ctx, id)
 			if err != nil {
 				return fmt.Errorf("reading %s: %+v", id, err)
 			}
-			if resp.SourceControlProperties == nil {
-				return fmt.Errorf("reading properties of %s", id)
-			}
 
-			sourceControlToken.Token = utils.NormalizeNilableString(resp.Token)
-			sourceControlToken.TokenSecret = utils.NormalizeNilableString(resp.TokenSecret)
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					sourceControlToken.Token = pointer.From(props.Token)
+					sourceControlToken.TokenSecret = pointer.From(props.TokenSecret)
+				}
+			}
 
 			metadata.SetID(id)
 

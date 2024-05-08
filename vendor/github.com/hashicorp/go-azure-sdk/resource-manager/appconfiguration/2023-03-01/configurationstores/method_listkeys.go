@@ -19,7 +19,8 @@ type ListKeysOperationResponse struct {
 }
 
 type ListKeysCompleteResult struct {
-	Items []ApiKey
+	LatestHttpResponse *http.Response
+	Items              []ApiKey
 }
 
 // ListKeys ...
@@ -83,7 +84,8 @@ func (c ConfigurationStoresClient) ListKeysCompleteMatchingPredicate(ctx context
 	}
 
 	result = ListKeysCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LiveOutputId{}
+func init() {
+	recaser.RegisterResourceId(&LiveOutputId{})
+}
+
+var _ resourceids.ResourceId = &LiveOutputId{}
 
 // LiveOutputId is a struct representing the Resource ID for a Live Output
 type LiveOutputId struct {
@@ -34,7 +39,7 @@ func NewLiveOutputID(subscriptionId string, resourceGroupName string, mediaServi
 
 // ParseLiveOutputID parses 'input' into a LiveOutputId
 func ParseLiveOutputID(input string) (*LiveOutputId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LiveOutputId{})
+	parser := resourceids.NewParserFromResourceIdType(&LiveOutputId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseLiveOutputID(input string) (*LiveOutputId, error) {
 // ParseLiveOutputIDInsensitively parses 'input' case-insensitively into a LiveOutputId
 // note: this method should only be used for API response data and not user input
 func ParseLiveOutputIDInsensitively(input string) (*LiveOutputId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LiveOutputId{})
+	parser := resourceids.NewParserFromResourceIdType(&LiveOutputId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

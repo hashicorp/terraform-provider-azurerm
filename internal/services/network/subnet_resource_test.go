@@ -7,8 +7,11 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -548,6 +551,13 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.updateServiceDelegationNetworkInterfaces(data, "Oracle.Database/networkAttachments"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -557,12 +567,12 @@ func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -571,92 +581,111 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 		return nil, err
 	}
 
-	future, err := client.Network.SubnetsClient.Delete(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName)
-	if err != nil {
+	if err := client.Network.Client.Subnets.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Subnet %q: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Network.SubnetsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Subnet %q: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil
 }
 
 func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	subnet, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	subnet, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(subnet.Response) {
+		if response.WasNotFound(subnet.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
 		}
 		return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
 	}
 
-	props := subnet.SubnetPropertiesFormat
+	model := subnet.Model
+	if model == nil {
+		return fmt.Errorf("model was nil for %s", id)
+	}
+
+	props := subnet.Model.Properties
 	if props == nil {
 		return fmt.Errorf("properties was nil for %s", id)
 	}
 
-	if props.NatGateway != nil && ((props.NatGateway.ID == nil) || (props.NatGateway.ID != nil && *props.NatGateway.ID == "")) {
-		return fmt.Errorf("no Route Table should exist for %s but got %q", id, *props.RouteTable.ID)
+	if props.NatGateway != nil && ((props.NatGateway.Id == nil) || (props.NatGateway.Id != nil && *props.NatGateway.Id == "")) {
+		return fmt.Errorf("no Route Table should exist for %s but got %q", id, *props.RouteTable.Id)
 	}
 	return nil
 }
 
 func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
 		}
 
 		return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
 	}
 
-	props := resp.SubnetPropertiesFormat
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("model was nil for %s", id)
+	}
+
+	props := resp.Model.Properties
 	if props == nil {
 		return fmt.Errorf("properties was nil for %s", id)
 	}
 
-	if props.NetworkSecurityGroup != nil && ((props.NetworkSecurityGroup.ID == nil) || (props.NetworkSecurityGroup.ID != nil && *props.NetworkSecurityGroup.ID == "")) {
-		return fmt.Errorf("no Network Security Group should exist for %s but got %q", id, *props.NetworkSecurityGroup.ID)
+	if props.NetworkSecurityGroup != nil && ((props.NetworkSecurityGroup.Id == nil) || (props.NetworkSecurityGroup.Id != nil && *props.NetworkSecurityGroup.Id == "")) {
+		return fmt.Errorf("no Network Security Group should exist for %s but got %q", id, *props.NetworkSecurityGroup.Id)
 	}
 
 	return nil
 }
 
 func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(15*time.Minute))
+	defer cancel()
+
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Network.SubnetsClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, id.SubnetName, "")
+	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
 		}
 
 		return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
 	}
 
-	props := resp.SubnetPropertiesFormat
+	model := resp.Model
+	if model == nil {
+		return fmt.Errorf("model was nil for %s", id)
+	}
+
+	props := resp.Model.Properties
 	if props == nil {
 		return fmt.Errorf("properties was nil for %s", id)
 	}
 
-	if props.RouteTable != nil && ((props.RouteTable.ID == nil) || (props.RouteTable.ID != nil && *props.RouteTable.ID == "")) {
-		return fmt.Errorf("no Route Table should exist for %s but got %q", id, *props.RouteTable.ID)
+	if props.RouteTable != nil && ((props.RouteTable.Id == nil) || (props.RouteTable.Id != nil && *props.RouteTable.Id == "")) {
+		return fmt.Errorf("no Route Table should exist for %s but got %q", id, *props.RouteTable.Id)
 	}
 
 	return nil
@@ -976,6 +1005,32 @@ resource "azurerm_subnet" "test" {
       name = "%s"
 
       actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+`, r.template(data), serviceName)
+}
+
+func (r SubnetResource) updateServiceDelegationNetworkInterfaces(data acceptance.TestData, serviceName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  delegation {
+    name = "first"
+
+    service_delegation {
+      name = "%s"
+
+      actions = [
+        "Microsoft.Network/networkinterfaces/*",
         "Microsoft.Network/virtualNetworks/subnets/join/action",
       ]
     }

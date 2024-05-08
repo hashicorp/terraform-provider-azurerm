@@ -49,6 +49,21 @@ func TestAccDataSourceMsSqlDatabase_complete(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceMsSqlDatabase_transparentDataEncryptionKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mssql_database", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: MsSqlDatabaseDataSource{}.transparentDataEncryptionKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-db-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("server_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+			),
+		},
+	})
+}
+
 func (MsSqlDatabaseDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -69,4 +84,15 @@ data "azurerm_mssql_database" "test" {
   server_id = azurerm_mssql_server.test.id
 }
 `, MsSqlDatabaseResource{}.complete(data))
+}
+
+func (MsSqlDatabaseDataSource) transparentDataEncryptionKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_mssql_database" "test" {
+  name      = azurerm_mssql_database.test.name
+  server_id = azurerm_mssql_server.test.id
+}
+`, MsSqlDatabaseResource{}.transparentDataEncryptionKey(data))
 }

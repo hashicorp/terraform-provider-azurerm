@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -262,6 +262,97 @@ func TestAccMachineLearningWorkspace_systemAssignedAndCustomManagedKey(t *testin
 	})
 }
 
+func TestAccMachineLearningWorkspace_featureStore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.featureStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMachineLearningWorkspace_featureStoreUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.featureStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.featureStoreUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMachineLearningWorkspace_kindUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.featureStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.featureStore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMachineLearningWorkspace_purgeSoftDelete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.purgeSoftDelete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	workspacesClient := client.MachineLearning.Workspaces
 	id, err := workspaces.ParseWorkspaceID(state.ID)
@@ -283,6 +374,18 @@ func (r WorkspaceResource) Exists(ctx context.Context, client *clients.Client, s
 func (r WorkspaceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %s
 
 resource "azurerm_machine_learning_workspace" "test" {
@@ -303,6 +406,18 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) basicUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %s
 
 resource "azurerm_machine_learning_workspace" "test" {
@@ -329,13 +444,25 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_container_registry" "test" {
   name                = "acctestacr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku                 = "Premium"
   admin_enabled       = true
 }
 
@@ -382,6 +509,10 @@ resource "azurerm_machine_learning_workspace" "test" {
     key_id       = azurerm_key_vault_key.test.id
   }
 
+  managed_network {
+    isolation_mode = "AllowInternetOutbound"
+  }
+
   tags = {
     ENV = "Test"
   }
@@ -392,13 +523,25 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) completeUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_container_registry" "test" {
   name                = "acctestacr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku                 = "Premium"
   admin_enabled       = true
 }
 
@@ -474,18 +617,6 @@ resource "azurerm_machine_learning_workspace" "import" {
 
 func (r WorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
-}
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -537,6 +668,18 @@ resource "azurerm_storage_account" "test" {
 
 func (r WorkspaceResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -573,6 +716,18 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 func (r WorkspaceResource) userAssignedIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -623,6 +778,18 @@ resource "azurerm_machine_learning_workspace" "test" {
 
 func (r WorkspaceResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -651,6 +818,18 @@ resource "azurerm_machine_learning_workspace" "test" {
 
 func (r WorkspaceResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -676,6 +855,18 @@ resource "azurerm_machine_learning_workspace" "test" {
 
 func (r WorkspaceResource) systemAssignedAndCustomManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 resource "azurerm_key_vault_key" "test" {
@@ -732,6 +923,18 @@ resource "azurerm_machine_learning_workspace" "test" {
 
 func (r WorkspaceResource) userAssignedAndCustomManagedKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
 %[1]s
 
 data "azuread_service_principal" "test" {
@@ -850,4 +1053,116 @@ resource "azurerm_machine_learning_workspace" "test" {
   ]
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r WorkspaceResource) featureStore(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  kind = "FeatureStore"
+
+  feature_store {
+    computer_spark_runtime_version = "3.1"
+    offline_connection_name        = "offlineStoreConnectionName"
+    online_connection_name         = "onlineStoreConnectionName"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r WorkspaceResource) featureStoreUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  kind = "FeatureStore"
+
+  feature_store {
+    computer_spark_runtime_version = "3.5"
+    offline_connection_name        = "offlineStoreConnectionNameUpdate"
+    online_connection_name         = "onlineStoreConnectionNameUpdate"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r WorkspaceResource) purgeSoftDelete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    machine_learning {
+      purge_soft_deleted_workspace_on_destroy = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                    = "acctest-MLW-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
 }

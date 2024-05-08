@@ -43,7 +43,10 @@ func (c CatalogsClient) Get(ctx context.Context, id CatalogId) (result GetOperat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Catalog
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

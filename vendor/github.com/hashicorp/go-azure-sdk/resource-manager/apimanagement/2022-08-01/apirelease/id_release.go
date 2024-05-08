@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReleaseId{}
+func init() {
+	recaser.RegisterResourceId(&ReleaseId{})
+}
+
+var _ resourceids.ResourceId = &ReleaseId{}
 
 // ReleaseId is a struct representing the Resource ID for a Release
 type ReleaseId struct {
@@ -34,7 +39,7 @@ func NewReleaseID(subscriptionId string, resourceGroupName string, serviceName s
 
 // ParseReleaseID parses 'input' into a ReleaseId
 func ParseReleaseID(input string) (*ReleaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReleaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReleaseId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseReleaseID(input string) (*ReleaseId, error) {
 // ParseReleaseIDInsensitively parses 'input' case-insensitively into a ReleaseId
 // note: this method should only be used for API response data and not user input
 func ParseReleaseIDInsensitively(input string) (*ReleaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReleaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReleaseId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -101,14 +102,14 @@ func TestAccWebAppHybridConnection_complete(t *testing.T) {
 }
 
 func (r WebAppHybridConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AppHybridConnectionID(state.ID)
+	id, err := webapps.ParseRelayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppService.WebAppsClient.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
+	resp, err := clients.AppService.WebAppsClient.GetHybridConnection(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Windows %s: %+v", *id, err)
@@ -243,6 +244,52 @@ resource "azurerm_windows_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, SkuBasicPlan)
 }
 
+func (r WebAppHybridConnectionResource) templateRelayInOtherResourceGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "rg-test-relay" {
+  name     = "acctestRG-%[1]d-relay"
+  location = "%[2]s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctest-RN-%[1]d"
+  location            = azurerm_resource_group.rg-test-relay.location
+  resource_group_name = azurerm_resource_group.rg-test-relay.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+  name                 = "acctest-RHC-%[1]d"
+  resource_group_name  = azurerm_resource_group.rg-test-relay.name
+  relay_namespace_name = azurerm_relay_namespace.test.name
+  user_metadata        = "metadatatest"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "%[3]s"
+}
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, data.RandomInteger, data.Locations.Primary, SkuBasicPlan)
+}
+
 func (r WebAppHybridConnectionResource) authRuleTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -265,14 +312,9 @@ func (r WebAppHybridConnectionResource) authRuleInRemoteResourceGroupTemplate(da
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_resource_group" "relay" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
 resource "azurerm_relay_hybrid_connection_authorization_rule" "test" {
   name                   = "sendKey"
-  resource_group_name    = azurerm_resource_group.relay.name
+  resource_group_name    = azurerm_resource_group.rg-test-relay.name
   hybrid_connection_name = azurerm_relay_hybrid_connection.test.name
   namespace_name         = azurerm_relay_namespace.test.name
 
@@ -281,5 +323,5 @@ resource "azurerm_relay_hybrid_connection_authorization_rule" "test" {
   manage = false
 }
 
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.templateRelayInOtherResourceGroup(data))
 }

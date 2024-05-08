@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedRoleEligibilityScheduleRequestId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedRoleEligibilityScheduleRequestId{})
+}
+
+var _ resourceids.ResourceId = &ScopedRoleEligibilityScheduleRequestId{}
 
 // ScopedRoleEligibilityScheduleRequestId is a struct representing the Resource ID for a Scoped Role Eligibility Schedule Request
 type ScopedRoleEligibilityScheduleRequestId struct {
@@ -28,7 +33,7 @@ func NewScopedRoleEligibilityScheduleRequestID(scope string, roleEligibilitySche
 
 // ParseScopedRoleEligibilityScheduleRequestID parses 'input' into a ScopedRoleEligibilityScheduleRequestId
 func ParseScopedRoleEligibilityScheduleRequestID(input string) (*ScopedRoleEligibilityScheduleRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRoleEligibilityScheduleRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRoleEligibilityScheduleRequestId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +50,7 @@ func ParseScopedRoleEligibilityScheduleRequestID(input string) (*ScopedRoleEligi
 // ParseScopedRoleEligibilityScheduleRequestIDInsensitively parses 'input' case-insensitively into a ScopedRoleEligibilityScheduleRequestId
 // note: this method should only be used for API response data and not user input
 func ParseScopedRoleEligibilityScheduleRequestIDInsensitively(input string) (*ScopedRoleEligibilityScheduleRequestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedRoleEligibilityScheduleRequestId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedRoleEligibilityScheduleRequestId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

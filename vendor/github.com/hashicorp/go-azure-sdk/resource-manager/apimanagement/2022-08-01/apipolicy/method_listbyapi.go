@@ -15,7 +15,12 @@ import (
 type ListByApiOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PolicyCollection
+	Model        *[]PolicyContract
+}
+
+type ListByApiCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []PolicyContract
 }
 
 // ListByApi ...
@@ -35,7 +40,7 @@ func (c ApiPolicyClient) ListByApi(ctx context.Context, id ApiId) (result ListBy
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c ApiPolicyClient) ListByApi(ctx context.Context, id ApiId) (result ListBy
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]PolicyContract `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByApiComplete retrieves all the results into a single object
+func (c ApiPolicyClient) ListByApiComplete(ctx context.Context, id ApiId) (ListByApiCompleteResult, error) {
+	return c.ListByApiCompleteMatchingPredicate(ctx, id, PolicyContractOperationPredicate{})
+}
+
+// ListByApiCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ApiPolicyClient) ListByApiCompleteMatchingPredicate(ctx context.Context, id ApiId, predicate PolicyContractOperationPredicate) (result ListByApiCompleteResult, err error) {
+	items := make([]PolicyContract, 0)
+
+	resp, err := c.ListByApi(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByApiCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

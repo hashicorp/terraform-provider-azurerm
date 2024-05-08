@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []EdgeModuleEntity
+	LatestHttpResponse *http.Response
+	Items              []EdgeModuleEntity
 }
 
 type ListOperationOptions struct {
@@ -119,7 +120,8 @@ func (c EdgeModulesClient) ListCompleteMatchingPredicate(ctx context.Context, id
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

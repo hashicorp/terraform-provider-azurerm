@@ -43,7 +43,10 @@ func (c AccessConnectorClient) Get(ctx context.Context, id AccessConnectorId) (r
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model AccessConnector
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

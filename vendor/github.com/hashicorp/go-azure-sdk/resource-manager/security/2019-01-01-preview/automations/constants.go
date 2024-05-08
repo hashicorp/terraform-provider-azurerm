@@ -1,6 +1,10 @@
 package automations
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -19,6 +23,19 @@ func PossibleValuesForActionType() []string {
 		string(ActionTypeLogicApp),
 		string(ActionTypeWorkspace),
 	}
+}
+
+func (s *ActionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseActionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseActionType(input string) (*ActionType, error) {
@@ -66,6 +83,19 @@ func PossibleValuesForEventSource() []string {
 		string(EventSourceSubAssessments),
 		string(EventSourceSubAssessmentsSnapshot),
 	}
+}
+
+func (s *EventSource) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEventSource(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseEventSource(input string) (*EventSource, error) {
@@ -119,6 +149,19 @@ func PossibleValuesForOperator() []string {
 	}
 }
 
+func (s *Operator) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperator(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseOperator(input string) (*Operator, error) {
 	vals := map[string]Operator{
 		"contains":             OperatorContains,
@@ -156,6 +199,19 @@ func PossibleValuesForPropertyType() []string {
 		string(PropertyTypeNumber),
 		string(PropertyTypeString),
 	}
+}
+
+func (s *PropertyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePropertyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePropertyType(input string) (*PropertyType, error) {

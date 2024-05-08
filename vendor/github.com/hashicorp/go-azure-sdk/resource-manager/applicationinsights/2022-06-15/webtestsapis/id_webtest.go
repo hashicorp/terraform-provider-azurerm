@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = WebTestId{}
+func init() {
+	recaser.RegisterResourceId(&WebTestId{})
+}
+
+var _ resourceids.ResourceId = &WebTestId{}
 
 // WebTestId is a struct representing the Resource ID for a Web Test
 type WebTestId struct {
@@ -30,7 +35,7 @@ func NewWebTestID(subscriptionId string, resourceGroupName string, webTestName s
 
 // ParseWebTestID parses 'input' into a WebTestId
 func ParseWebTestID(input string) (*WebTestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WebTestId{})
+	parser := resourceids.NewParserFromResourceIdType(&WebTestId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseWebTestID(input string) (*WebTestId, error) {
 // ParseWebTestIDInsensitively parses 'input' case-insensitively into a WebTestId
 // note: this method should only be used for API response data and not user input
 func ParseWebTestIDInsensitively(input string) (*WebTestId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WebTestId{})
+	parser := resourceids.NewParserFromResourceIdType(&WebTestId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PrivateLinkAssociationId{}
+func init() {
+	recaser.RegisterResourceId(&PrivateLinkAssociationId{})
+}
+
+var _ resourceids.ResourceId = &PrivateLinkAssociationId{}
 
 // PrivateLinkAssociationId is a struct representing the Resource ID for a Private Link Association
 type PrivateLinkAssociationId struct {
@@ -28,7 +33,7 @@ func NewPrivateLinkAssociationID(groupId string, plaId string) PrivateLinkAssoci
 
 // ParsePrivateLinkAssociationID parses 'input' into a PrivateLinkAssociationId
 func ParsePrivateLinkAssociationID(input string) (*PrivateLinkAssociationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateLinkAssociationId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateLinkAssociationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +50,7 @@ func ParsePrivateLinkAssociationID(input string) (*PrivateLinkAssociationId, err
 // ParsePrivateLinkAssociationIDInsensitively parses 'input' case-insensitively into a PrivateLinkAssociationId
 // note: this method should only be used for API response data and not user input
 func ParsePrivateLinkAssociationIDInsensitively(input string) (*PrivateLinkAssociationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PrivateLinkAssociationId{})
+	parser := resourceids.NewParserFromResourceIdType(&PrivateLinkAssociationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

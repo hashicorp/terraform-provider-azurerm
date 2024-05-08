@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -241,6 +242,25 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.vnetRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -312,6 +332,35 @@ func TestAccKustoCluster_optimizedAutoScale(t *testing.T) {
 	})
 }
 
+func TestAccKustoCluster_updateSkuAndOptimizedAutoScale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	r := KustoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noOptimizedAutoScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.optimizedAutoScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.noOptimizedAutoScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 	r := KustoClusterResource{}
@@ -332,7 +381,7 @@ func TestAccKustoCluster_trustedExternalTenants(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.trustedExternalTenants(data, "[]"),
+			Config: r.unsetTrustedExternalTenants(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -370,7 +419,7 @@ func TestAccKustoCluster_newSkus(t *testing.T) {
 }
 
 func (KustoClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := clusters.ParseClusterID(state.ID)
+	id, err := commonids.ParseKustoClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -467,6 +516,61 @@ resource "azurerm_kusto_cluster" "test" {
   trusted_external_tenants = %s
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantConfig)
+}
+
+func (KustoClusterResource) unsetTrustedExternalTenants(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  trusted_external_tenants = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (KustoClusterResource) doubleEncryption(data acceptance.TestData) string {
@@ -806,6 +910,30 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func (KustoClusterResource) noOptimizedAutoScale(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_E2a_v4"
+    capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (KustoClusterResource) optimizedAutoScale(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -823,7 +951,8 @@ resource "azurerm_kusto_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name = "Standard_D11_v2"
+    name     = "Standard_L8s_v3"
+    capacity = 2
   }
 
   optimized_auto_scale {
@@ -964,6 +1093,107 @@ resource "azurerm_kusto_cluster" "test" {
     data_management_public_ip_id = azurerm_public_ip.management_pip.id
   }
 
+  depends_on = [
+    azurerm_subnet_route_table_association.test,
+    azurerm_subnet_network_security_group_association.test,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (KustoClusterResource) vnetRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestkc%s-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestkc%s-subnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Kusto/clusters"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action", "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"]
+    }
+  }
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestkc%s-rt"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestkc%s-nsg"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_security_rule" "test_allow_management_inbound" {
+  name                        = "AllowAzureDataExplorerManagement"
+  priority                    = 1000
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "443"
+  source_address_prefix       = "AzureDataExplorerManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_public_ip" "engine_pip" {
+  name                = "acctestkc%s-engine-pip"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_public_ip" "management_pip" {
+  name                = "acctestkc%s-management-pip"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+  public_network_access_enabled = false
   depends_on = [
     azurerm_subnet_route_table_association.test,
     azurerm_subnet_network_security_group_association.test,

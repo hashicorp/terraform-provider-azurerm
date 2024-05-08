@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualNetworkPeeringId{}
+func init() {
+	recaser.RegisterResourceId(&VirtualNetworkPeeringId{})
+}
+
+var _ resourceids.ResourceId = &VirtualNetworkPeeringId{}
 
 // VirtualNetworkPeeringId is a struct representing the Resource ID for a Virtual Network Peering
 type VirtualNetworkPeeringId struct {
@@ -32,7 +37,7 @@ func NewVirtualNetworkPeeringID(subscriptionId string, resourceGroupName string,
 
 // ParseVirtualNetworkPeeringID parses 'input' into a VirtualNetworkPeeringId
 func ParseVirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkPeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkPeeringId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseVirtualNetworkPeeringID(input string) (*VirtualNetworkPeeringId, error
 // ParseVirtualNetworkPeeringIDInsensitively parses 'input' case-insensitively into a VirtualNetworkPeeringId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualNetworkPeeringIDInsensitively(input string) (*VirtualNetworkPeeringId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkPeeringId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkPeeringId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

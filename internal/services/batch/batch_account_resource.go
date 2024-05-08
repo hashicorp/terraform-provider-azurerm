@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +29,7 @@ import (
 )
 
 func resourceBatchAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceBatchAccountCreate,
 		Read:   resourceBatchAccountRead,
 		Update: resourceBatchAccountUpdate,
@@ -145,7 +146,7 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				},
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
@@ -164,10 +165,9 @@ func resourceBatchAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 			"encryption": {
-				Type:       pluginsdk.TypeList,
-				Optional:   true,
-				MaxItems:   1,
-				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
@@ -182,6 +182,26 @@ func resourceBatchAccount() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["encryption"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -272,7 +292,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("`storage_account_authentication_mode` is required when `storage_account_id` ")
 		}
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-			StorageAccountId:   &storageAccountId,
+			StorageAccountId:   storageAccountId,
 			AuthenticationMode: pointer.To(batchaccount.AutoStorageAuthenticationMode(authMode)),
 		}
 	}
@@ -435,11 +455,11 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	if d.HasChange("storage_account_id") {
 		if v, ok := d.GetOk("storage_account_id"); ok {
 			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-				StorageAccountId: utils.String(v.(string)),
+				StorageAccountId: v.(string),
 			}
 		} else {
 			parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-				StorageAccountId: nil,
+				StorageAccountId: "",
 			}
 		}
 	}
@@ -452,7 +472,7 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
 		parameters.Properties.AutoStorage = &batchaccount.AutoStorageBaseProperties{
-			StorageAccountId:   &storageAccountId,
+			StorageAccountId:   storageAccountId,
 			AuthenticationMode: pointer.To(batchaccount.AutoStorageAuthenticationMode(authMode)),
 		}
 	}

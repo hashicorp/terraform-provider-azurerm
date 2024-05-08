@@ -105,6 +105,10 @@ The following arguments are supported:
 
 * `image_registry_credential` - (Optional) An `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
+* `priority` - (Optional) The priority of the Container Group. Possible values are `Regular` and `Spot`. Changing this forces a new resource to be created.
+
+~> **NOTE:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
+
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
 * `zones` - (Optional) A list of Availability Zones in which this Container Group is located. Changing this forces a new resource to be created.
@@ -155,15 +159,9 @@ A `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
-* `gpu` - (Optional) A `gpu` block as defined below. Changing this forces a new resource to be created.
-
-~> **Note:** Gpu resources are currently only supported in Linux containers.
-
 * `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers.
 
-* `memory_limit` - (Optional) The the upper limit of the memory of the containers in GB.
-
-* `gpu_limit` - (Optional) A `gpu_limit` block as defined below.
+* `memory_limit` - (Optional) The upper limit of the memory of the containers in GB.
 
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
@@ -230,22 +228,6 @@ A `ports` block supports:
 * `protocol` - (Optional) The network protocol associated with port. Possible values are `TCP` & `UDP`. Changing this forces a new resource to be created. Defaults to `TCP`.
 
 ~> **Note:** Omitting these blocks will default the exposed ports on the group to all ports on all containers defined in the `container` blocks of this group.
-
----
-
-A `gpu` block supports:
-
-* `count` - (Optional) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
-
-* `sku` - (Optional) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
-
----
-
-A `gpu_limit` block supports:
-
-* `count` - (Optional) The upper limit of the number of GPUs which should be assigned to this container.
-
-* `sku` - (Optional) The allowed SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
 
 ---
 
@@ -375,7 +357,7 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Container Group.
+* `create` - (Defaults to 60 minutes) Used when creating the Container Group.
 
 * `update` - (Defaults to 30 minutes) Used when updating the Container Group.
 

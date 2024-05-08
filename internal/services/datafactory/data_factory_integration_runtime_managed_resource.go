@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryIntegrationRuntimeManaged() *pluginsdk.Resource {
@@ -34,7 +35,7 @@ func resourceDataFactoryIntegrationRuntimeManaged() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The resource 'azurerm_data_factory_integration_runtime_managed' has been superseded by the 'azurerm_data_factory_integration_runtime_azure_ssis'.",
+		DeprecationMessage: "The resource 'azurerm_data_factory_integration_runtime_managed' has been superseded by the 'azurerm_data_factory_integration_runtime_azure_ssis' resource and will be removed in v4.0 of the AzureRM Provider.",
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -205,6 +206,12 @@ func resourceDataFactoryIntegrationRuntimeManaged() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"credential_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -328,6 +335,10 @@ func resourceDataFactoryIntegrationRuntimeManagedRead(d *pluginsdk.ResourceData,
 		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
 			return fmt.Errorf("setting `vnet_integration`: %+v", err)
 		}
+
+		if ssisProps.Credential != nil {
+			d.Set("credential_name", pointer.From(ssisProps.Credential.ReferenceName))
+		}
 	}
 
 	return nil
@@ -410,6 +421,12 @@ func expandDataFactoryIntegrationRuntimeManagedSsisProperties(d *pluginsdk.Resou
 		ssisProperties.CustomSetupScriptProperties = &datafactory.IntegrationRuntimeCustomSetupScriptProperties{
 			BlobContainerURI: utils.String(customSetupScript["blob_container_uri"].(string)),
 			SasToken:         sasToken,
+		}
+	}
+
+	if credentialName := d.Get("credential_name").(string); credentialName != "" {
+		ssisProperties.Credential = &datafactory.CredentialReference{
+			ReferenceName: pointer.To(credentialName),
 		}
 	}
 

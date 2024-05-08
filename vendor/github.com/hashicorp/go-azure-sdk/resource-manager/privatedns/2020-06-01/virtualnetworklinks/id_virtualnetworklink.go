@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VirtualNetworkLinkId{}
+func init() {
+	recaser.RegisterResourceId(&VirtualNetworkLinkId{})
+}
+
+var _ resourceids.ResourceId = &VirtualNetworkLinkId{}
 
 // VirtualNetworkLinkId is a struct representing the Resource ID for a Virtual Network Link
 type VirtualNetworkLinkId struct {
@@ -32,7 +37,7 @@ func NewVirtualNetworkLinkID(subscriptionId string, resourceGroupName string, pr
 
 // ParseVirtualNetworkLinkID parses 'input' into a VirtualNetworkLinkId
 func ParseVirtualNetworkLinkID(input string) (*VirtualNetworkLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkLinkId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseVirtualNetworkLinkID(input string) (*VirtualNetworkLinkId, error) {
 // ParseVirtualNetworkLinkIDInsensitively parses 'input' case-insensitively into a VirtualNetworkLinkId
 // note: this method should only be used for API response data and not user input
 func ParseVirtualNetworkLinkIDInsensitively(input string) (*VirtualNetworkLinkId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VirtualNetworkLinkId{})
+	parser := resourceids.NewParserFromResourceIdType(&VirtualNetworkLinkId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

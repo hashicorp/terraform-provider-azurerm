@@ -94,17 +94,15 @@ func (r ApiManagementNotificationRecipientUserResource) Create() sdk.ResourceFun
 
 			// CheckEntityExists can not be used, it returns autorest error
 			notificationId := notificationrecipientuser.NewNotificationID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, notificationrecipientuser.NotificationName(model.NotificationName))
-			users, err := client.ListByNotification(ctx, notificationId)
+			users, err := client.ListByNotificationComplete(ctx, notificationId)
 			if err != nil {
-				if !response.WasNotFound(users.HttpResponse) {
+				if !response.WasNotFound(users.LatestHttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if m := users.Model; m != nil && m.Value != nil {
-				for _, existing := range *m.Value {
-					if existing.Name != nil && *existing.Name == model.UserId {
-						return metadata.ResourceRequiresImport(r.ResourceType(), id)
-					}
+			for _, existing := range users.Items {
+				if existing.Name != nil && *existing.Name == model.UserId {
+					return metadata.ResourceRequiresImport(r.ResourceType(), id)
 				}
 			}
 
@@ -132,19 +130,17 @@ func (r ApiManagementNotificationRecipientUserResource) Read() sdk.ResourceFunc 
 
 			// CheckEntityExists can not be used, it returns autorest error
 			notificationId := notificationrecipientuser.NewNotificationID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.NotificationName)
-			users, err := client.ListByNotification(ctx, notificationId)
+			users, err := client.ListByNotificationComplete(ctx, notificationId)
 			if err != nil {
-				if !response.WasNotFound(users.HttpResponse) {
+				if !response.WasNotFound(users.LatestHttpResponse) {
 					return fmt.Errorf("retrieving %s: %+v", id, err)
 				}
 			}
 
 			found := false
-			if m := users.Model; m != nil && m.Value != nil {
-				for _, existing := range *m.Value {
-					if existing.Name != nil && *existing.Name == id.UserId {
-						found = true
-					}
+			for _, existing := range users.Items {
+				if existing.Name != nil && *existing.Name == id.UserId {
+					found = true
 				}
 			}
 

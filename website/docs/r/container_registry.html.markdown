@@ -243,8 +243,6 @@ An `identity` block supports the following:
 
 The `encryption` block supports the following:
 
-* `enabled` - (Optional) Boolean value that indicates whether encryption is enabled.
-
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key.
 
 * `identity_client_id` - (Required) The client ID of the managed identity associated with the encryption key.
@@ -275,7 +273,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_container_registry.example.identity[0].principal_id` and the Tenant ID via `azurerm_container_registry.example.identity[0].tenant_id`
 
 ---
 

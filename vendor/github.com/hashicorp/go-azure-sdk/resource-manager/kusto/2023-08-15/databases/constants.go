@@ -1,6 +1,10 @@
 package databases
 
-import "strings"
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+)
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -17,6 +21,19 @@ func PossibleValuesForCallerRole() []string {
 		string(CallerRoleAdmin),
 		string(CallerRoleNone),
 	}
+}
+
+func (s *CallerRole) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCallerRole(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseCallerRole(input string) (*CallerRole, error) {
@@ -55,6 +72,19 @@ func PossibleValuesForDatabasePrincipalRole() []string {
 	}
 }
 
+func (s *DatabasePrincipalRole) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatabasePrincipalRole(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDatabasePrincipalRole(input string) (*DatabasePrincipalRole, error) {
 	vals := map[string]DatabasePrincipalRole{
 		"admin":              DatabasePrincipalRoleAdmin,
@@ -89,6 +119,19 @@ func PossibleValuesForDatabasePrincipalType() []string {
 	}
 }
 
+func (s *DatabasePrincipalType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatabasePrincipalType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDatabasePrincipalType(input string) (*DatabasePrincipalType, error) {
 	vals := map[string]DatabasePrincipalType{
 		"app":   DatabasePrincipalTypeApp,
@@ -120,6 +163,19 @@ func PossibleValuesForDatabaseShareOrigin() []string {
 	}
 }
 
+func (s *DatabaseShareOrigin) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDatabaseShareOrigin(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseDatabaseShareOrigin(input string) (*DatabaseShareOrigin, error) {
 	vals := map[string]DatabaseShareOrigin{
 		"datashare": DatabaseShareOriginDataShare,
@@ -147,6 +203,19 @@ func PossibleValuesForKind() []string {
 		string(KindReadOnlyFollowing),
 		string(KindReadWrite),
 	}
+}
+
+func (s *Kind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseKind(input string) (*Kind, error) {
@@ -177,6 +246,19 @@ func PossibleValuesForPrincipalsModificationKind() []string {
 		string(PrincipalsModificationKindReplace),
 		string(PrincipalsModificationKindUnion),
 	}
+}
+
+func (s *PrincipalsModificationKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrincipalsModificationKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parsePrincipalsModificationKind(input string) (*PrincipalsModificationKind, error) {
@@ -218,6 +300,19 @@ func PossibleValuesForProvisioningState() []string {
 	}
 }
 
+func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"canceled":  ProvisioningStateCanceled,
@@ -251,6 +346,19 @@ func PossibleValuesForReason() []string {
 	}
 }
 
+func (s *Reason) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseReason(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
 func parseReason(input string) (*Reason, error) {
 	vals := map[string]Reason{
 		"alreadyexists": ReasonAlreadyExists,
@@ -277,6 +385,19 @@ func PossibleValuesForType() []string {
 		string(TypeMicrosoftPointKustoClustersAttachedDatabaseConfigurations),
 		string(TypeMicrosoftPointKustoClustersDatabases),
 	}
+}
+
+func (s *Type) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
 }
 
 func parseType(input string) (*Type, error) {

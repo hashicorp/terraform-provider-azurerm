@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = LabPlanId{}
+func init() {
+	recaser.RegisterResourceId(&LabPlanId{})
+}
+
+var _ resourceids.ResourceId = &LabPlanId{}
 
 // LabPlanId is a struct representing the Resource ID for a Lab Plan
 type LabPlanId struct {
@@ -30,7 +35,7 @@ func NewLabPlanID(subscriptionId string, resourceGroupName string, labPlanName s
 
 // ParseLabPlanID parses 'input' into a LabPlanId
 func ParseLabPlanID(input string) (*LabPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LabPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&LabPlanId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseLabPlanID(input string) (*LabPlanId, error) {
 // ParseLabPlanIDInsensitively parses 'input' case-insensitively into a LabPlanId
 // note: this method should only be used for API response data and not user input
 func ParseLabPlanIDInsensitively(input string) (*LabPlanId, error) {
-	parser := resourceids.NewParserFromResourceIdType(LabPlanId{})
+	parser := resourceids.NewParserFromResourceIdType(&LabPlanId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

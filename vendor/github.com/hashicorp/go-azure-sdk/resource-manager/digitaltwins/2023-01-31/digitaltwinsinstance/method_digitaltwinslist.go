@@ -20,7 +20,8 @@ type DigitalTwinsListOperationResponse struct {
 }
 
 type DigitalTwinsListCompleteResult struct {
-	Items []DigitalTwinsDescription
+	LatestHttpResponse *http.Response
+	Items              []DigitalTwinsDescription
 }
 
 // DigitalTwinsList ...
@@ -84,7 +85,8 @@ func (c DigitalTwinsInstanceClient) DigitalTwinsListCompleteMatchingPredicate(ct
 	}
 
 	result = DigitalTwinsListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

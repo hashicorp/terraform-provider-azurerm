@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = IotConnectorId{}
+func init() {
+	recaser.RegisterResourceId(&IotConnectorId{})
+}
+
+var _ resourceids.ResourceId = &IotConnectorId{}
 
 // IotConnectorId is a struct representing the Resource ID for a Iot Connector
 type IotConnectorId struct {
@@ -32,7 +37,7 @@ func NewIotConnectorID(subscriptionId string, resourceGroupName string, workspac
 
 // ParseIotConnectorID parses 'input' into a IotConnectorId
 func ParseIotConnectorID(input string) (*IotConnectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IotConnectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&IotConnectorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseIotConnectorID(input string) (*IotConnectorId, error) {
 // ParseIotConnectorIDInsensitively parses 'input' case-insensitively into a IotConnectorId
 // note: this method should only be used for API response data and not user input
 func ParseIotConnectorIDInsensitively(input string) (*IotConnectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IotConnectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&IotConnectorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

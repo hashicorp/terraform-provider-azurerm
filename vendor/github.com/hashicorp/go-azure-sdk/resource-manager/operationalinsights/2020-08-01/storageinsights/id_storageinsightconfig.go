@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StorageInsightConfigId{}
+func init() {
+	recaser.RegisterResourceId(&StorageInsightConfigId{})
+}
+
+var _ resourceids.ResourceId = &StorageInsightConfigId{}
 
 // StorageInsightConfigId is a struct representing the Resource ID for a Storage Insight Config
 type StorageInsightConfigId struct {
@@ -32,7 +37,7 @@ func NewStorageInsightConfigID(subscriptionId string, resourceGroupName string, 
 
 // ParseStorageInsightConfigID parses 'input' into a StorageInsightConfigId
 func ParseStorageInsightConfigID(input string) (*StorageInsightConfigId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageInsightConfigId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageInsightConfigId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseStorageInsightConfigID(input string) (*StorageInsightConfigId, error) 
 // ParseStorageInsightConfigIDInsensitively parses 'input' case-insensitively into a StorageInsightConfigId
 // note: this method should only be used for API response data and not user input
 func ParseStorageInsightConfigIDInsensitively(input string) (*StorageInsightConfigId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageInsightConfigId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageInsightConfigId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

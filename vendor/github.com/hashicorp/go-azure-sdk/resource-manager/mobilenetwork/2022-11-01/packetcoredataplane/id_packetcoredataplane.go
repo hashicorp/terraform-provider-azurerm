@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = PacketCoreDataPlaneId{}
+func init() {
+	recaser.RegisterResourceId(&PacketCoreDataPlaneId{})
+}
+
+var _ resourceids.ResourceId = &PacketCoreDataPlaneId{}
 
 // PacketCoreDataPlaneId is a struct representing the Resource ID for a Packet Core Data Plane
 type PacketCoreDataPlaneId struct {
@@ -32,7 +37,7 @@ func NewPacketCoreDataPlaneID(subscriptionId string, resourceGroupName string, p
 
 // ParsePacketCoreDataPlaneID parses 'input' into a PacketCoreDataPlaneId
 func ParsePacketCoreDataPlaneID(input string) (*PacketCoreDataPlaneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PacketCoreDataPlaneId{})
+	parser := resourceids.NewParserFromResourceIdType(&PacketCoreDataPlaneId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParsePacketCoreDataPlaneID(input string) (*PacketCoreDataPlaneId, error) {
 // ParsePacketCoreDataPlaneIDInsensitively parses 'input' case-insensitively into a PacketCoreDataPlaneId
 // note: this method should only be used for API response data and not user input
 func ParsePacketCoreDataPlaneIDInsensitively(input string) (*PacketCoreDataPlaneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(PacketCoreDataPlaneId{})
+	parser := resourceids.NewParserFromResourceIdType(&PacketCoreDataPlaneId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

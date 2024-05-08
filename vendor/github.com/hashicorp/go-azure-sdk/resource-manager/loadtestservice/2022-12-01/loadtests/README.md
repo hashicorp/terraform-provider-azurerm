@@ -8,6 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 import "github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 ```
 
@@ -69,7 +70,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := loadtests.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
 
 // alternatively `client.ListByResourceGroup(ctx, id)` can be used to do batched pagination
 items, err := client.ListByResourceGroupComplete(ctx, id)
@@ -86,10 +87,27 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := loadtests.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
 
 // alternatively `client.ListBySubscription(ctx, id)` can be used to do batched pagination
 items, err := client.ListBySubscriptionComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `LoadTestsClient.ListOutboundNetworkDependenciesEndpoints`
+
+```go
+ctx := context.TODO()
+id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestValue")
+
+// alternatively `client.ListOutboundNetworkDependenciesEndpoints(ctx, id)` can be used to do batched pagination
+items, err := client.ListOutboundNetworkDependenciesEndpointsComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
@@ -105,7 +123,7 @@ for _, item := range items {
 ctx := context.TODO()
 id := loadtests.NewLoadTestID("12345678-1234-9876-4563-123456789012", "example-resource-group", "loadTestValue")
 
-payload := loadtests.LoadTestResourcePatchRequestBody{
+payload := loadtests.LoadTestResourceUpdate{
 	// ...
 }
 

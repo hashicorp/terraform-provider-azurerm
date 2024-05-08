@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagepool/2021-08-01/iscsitargets"
 )
 
@@ -18,10 +18,10 @@ var _ resourceids.Id = DiskPoolIscsiTargetLunId{}
 
 type DiskPoolIscsiTargetLunId struct {
 	IscsiTargetId iscsitargets.IscsiTargetId
-	ManagedDiskId disks.DiskId
+	ManagedDiskId commonids.ManagedDiskId
 }
 
-func NewDiskPoolIscsiTargetLunId(iscsiTargetId iscsitargets.IscsiTargetId, managedDiskId disks.DiskId) DiskPoolIscsiTargetLunId {
+func NewDiskPoolIscsiTargetLunId(iscsiTargetId iscsitargets.IscsiTargetId, managedDiskId commonids.ManagedDiskId) DiskPoolIscsiTargetLunId {
 	return DiskPoolIscsiTargetLunId{
 		IscsiTargetId: iscsiTargetId,
 		ManagedDiskId: managedDiskId,
@@ -56,7 +56,7 @@ func IscsiTargetLunID(input string) (*DiskPoolIscsiTargetLunId, error) {
 	if err != nil {
 		return nil, fmt.Errorf("malformed iscsi target id: %q, %v", input, err)
 	}
-	managedDiskId, err := disks.ParseDiskID(parts[1])
+	managedDiskId, err := commonids.ParseManagedDiskID(parts[1])
 	if managedDiskId == nil {
 		return nil, fmt.Errorf("malformed iscsi target id: %q", input)
 	}
