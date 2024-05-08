@@ -31,7 +31,7 @@ type SpringCloudGatewayModel struct {
 	LocalResponseCachePerInstance         []ResponseCacheModel       `tfschema:"local_response_cache_per_instance"`
 	SensitiveEnvironmentVariables         map[string]string          `tfschema:"sensitive_environment_variables"`
 	HttpsOnly                             bool                       `tfschema:"https_only"`
-	InstanceCount                         int                        `tfschema:"instance_count"`
+	InstanceCount                         int64                      `tfschema:"instance_count"`
 	PublicNetworkAccessEnabled            bool                       `tfschema:"public_network_access_enabled"`
 	Quota                                 []QuotaModel               `tfschema:"quota"`
 	Sso                                   []GatewaySsoModel          `tfschema:"sso"`
@@ -486,7 +486,7 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				Sku: &appplatform.Sku{
 					Name:     service.Model.Sku.Name,
 					Tier:     service.Model.Sku.Tier,
-					Capacity: pointer.To(int64(model.InstanceCount)),
+					Capacity: pointer.To(model.InstanceCount),
 				},
 			}
 
@@ -650,7 +650,7 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 				}
 
 				if sku := resp.Model.Sku; sku != nil {
-					state.InstanceCount = int(pointer.From(sku.Capacity))
+					state.InstanceCount = pointer.From(sku.Capacity)
 				}
 			}
 
