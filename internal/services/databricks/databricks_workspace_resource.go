@@ -592,9 +592,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		},
 		Location: location,
 		Properties: workspaces.WorkspaceProperties{
-
 			PublicNetworkAccess:    &publicNetworkAccess,
-			DefaultStorageFirewall: &defaultStorageFirewallEnabled,
 			ManagedResourceGroupId: managedResourceGroupID,
 			Parameters:             customParams,
 		},
@@ -632,6 +630,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 
 		workspace.Properties.AccessConnector = &accessConnectorProperties
+		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
 	}
 
 	if requireNsgRules != "" {
