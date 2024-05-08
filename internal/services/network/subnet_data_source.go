@@ -71,6 +71,12 @@ func dataSourceSubnet() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
+
+			"default_outbound_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"private_endpoint_network_policies": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -141,6 +147,10 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				d.Set("enforce_private_link_endpoint_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
 				d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
 				d.Set("enforce_private_link_service_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
+			}
+
+			if props.DefaultOutboundAccess != nil {
+				d.Set("default_outbound_access_enabled", props.DefaultOutboundAccess)
 			}
 
 			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
