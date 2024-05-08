@@ -6,6 +6,7 @@ package streamanalytics
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -33,8 +34,8 @@ type OutputFunctionResourceModel struct {
 	FunctionApp        string `tfschema:"function_app"`
 	FunctionName       string `tfschema:"function_name"`
 	ApiKey             string `tfschema:"api_key"`
-	BatchMaxInBytes    int    `tfschema:"batch_max_in_bytes"`
-	BatchMaxCount      int    `tfschema:"batch_max_count"`
+	BatchMaxInBytes    int64  `tfschema:"batch_max_in_bytes"`
+	BatchMaxCount      int64  `tfschema:"batch_max_count"`
 }
 
 func (r OutputFunctionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -189,31 +190,11 @@ func (r OutputFunctionResource) Read() sdk.ResourceFunc {
 							ResourceGroup:      id.ResourceGroupName,
 							StreamAnalyticsJob: id.StreamingJobName,
 							ApiKey:             metadata.ResourceData.Get("api_key").(string),
+							FunctionApp:        pointer.From(output.Properties.FunctionAppName),
+							FunctionName:       pointer.From(output.Properties.FunctionName),
+							BatchMaxInBytes:    int64(pointer.From(output.Properties.MaxBatchSize)),
+							BatchMaxCount:      int64(pointer.From(output.Properties.MaxBatchCount)),
 						}
-
-						functionApp := ""
-						if v := output.Properties.FunctionAppName; v != nil {
-							functionApp = *v
-						}
-						state.FunctionApp = functionApp
-
-						functionName := ""
-						if v := output.Properties.FunctionName; v != nil {
-							functionName = *v
-						}
-						state.FunctionName = functionName
-
-						batchMaxInBytes := 0
-						if v := output.Properties.MaxBatchSize; v != nil {
-							batchMaxInBytes = int(*v)
-						}
-						state.BatchMaxInBytes = batchMaxInBytes
-
-						batchMaxCount := 0
-						if v := output.Properties.MaxBatchCount; v != nil {
-							batchMaxCount = int(*v)
-						}
-						state.BatchMaxCount = batchMaxCount
 
 						return metadata.Encode(&state)
 					}
