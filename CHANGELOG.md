@@ -26,9 +26,10 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - erase `load_balancer_profile` when changing `network_profile.outbound_type` from `loadBalancer` to another outbound type [GH-25530]
 * `azurerm_log_analytics_saved_search` - the `function_parameters` property now repsects the order of elements [GH-25869]
 * `azurerm_linux_web_app` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
-* `azurerm_linux _web_app_slot` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
+* `azurerm_linux_web_app_slot` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
 * `azurerm_monitor_private_link_scoped_service` - normalize case of the `linked_resource_id` property during reads  [GH-25787]
 * `azurerm_role_assignment` - add addtional retry logic to assist with cross-tenant use [GH-25853]
+* `azurerm_web_pubsub_network_acl` - fixing a crash when `networkACL.PublicNetwork.Deny` was nil [GH-25886]
 * `azurerm_windows_web_app` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
 * `azurerm_windows_web_app_slot` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
   
