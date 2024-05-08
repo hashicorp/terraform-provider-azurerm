@@ -562,7 +562,7 @@ resource "azurerm_databricks_workspace" "test" {
 
   access_connector_id              = azurerm_databricks_access_connector.test.id
   default_storage_firewall_enabled = true
-  
+
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
