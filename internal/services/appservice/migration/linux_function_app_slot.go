@@ -1576,6 +1576,7 @@ func (l LinuxFunctionAppSlotV0toV1) Schema() map[string]*pluginsdk.Schema {
 func (l LinuxFunctionAppSlotV0toV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 		oldId, ok := rawState["service_plan_id"].(string)
+		// service_plan_id can be empty if it is not in a different Service Plan to the "parent" app
 		if !ok || oldId == "" {
 			return rawState, nil
 		}
