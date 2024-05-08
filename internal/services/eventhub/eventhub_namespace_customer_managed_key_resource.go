@@ -6,6 +6,7 @@ package eventhub
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"log"
 	"time"
 
@@ -134,6 +135,10 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
+	userAssignedIdentityId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentity)
+	if err != nil {
+		return err
+	}
 	if userAssignedIdentity != "" && keyVaultProps != nil {
 
 		// this provides a more helpful error message than the API response
@@ -147,7 +152,7 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 			if err != nil {
 				return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", item, err)
 			}
-			if parentEhnUaiId.ID() == userAssignedIdentity {
+			if resourceids.Match(parentEhnUaiId, userAssignedIdentityId) {
 				isIdentityAssignedToParent = true
 			}
 		}
