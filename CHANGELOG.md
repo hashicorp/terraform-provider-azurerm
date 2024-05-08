@@ -11,7 +11,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating `github.com/hashicorp/go-azure-helpers` to ` v0.68.0` [GH-25873]
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.69.0` [GH-25903]
 * `loganalytics` - update cluster resource to api version `2022-01-01` [GH-25686]
 * `azurerm_bastion_host` - support for the `kerberos_enabled` property [GH-25823]
 * `azurerm_container_app` - secrets can now be removed [GH-25743]
