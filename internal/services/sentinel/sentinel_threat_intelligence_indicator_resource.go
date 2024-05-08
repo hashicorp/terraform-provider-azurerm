@@ -701,7 +701,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			state.Pattern = patternValue
 
 			if model.Confidence != nil {
-				state.Confidence = *model.Confidence
+				state.Confidence = int64(*model.Confidence)
 			} else {
 				state.Confidence = -1
 			}
