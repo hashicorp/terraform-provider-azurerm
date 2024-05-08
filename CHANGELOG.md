@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_bastion_host` - support for the `kerberos_enabled` property [GH-25823]
 * `azurerm_container_app` - secrets can now be removed [GH-25743]
 * `azurerm_linux_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
+* `azurerm_linux_virtual_machine` - support for additional values for the `license_type` property [GH-25909]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `maximum_surge_instances` property for vmss rolling upgrades [GH-24914]
 * `azurerm_windows_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
 * `azurerm_windows_virtual_machine_scale_set` - support for the `maximum_surge_instances_enabled` property for vmss rolling upgrades [GH-24914]
