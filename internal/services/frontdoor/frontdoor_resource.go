@@ -2072,6 +2072,7 @@ func resourceFrontDoorSchema() map[string]*pluginsdk.Schema {
 		"backend_pool_settings": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enforce_backend_pools_certificate_name_check": {
