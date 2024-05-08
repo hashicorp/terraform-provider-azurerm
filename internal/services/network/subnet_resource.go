@@ -207,8 +207,8 @@ func resourceSubnet() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"private_endpoint_network_policies_enabled": {
-				Type: pluginsdk.TypeBool,
+			"private_endpoint_network_policies": {
+				Type: pluginsdk.TypeString,
 				Computed: func() bool {
 					return !features.FourPointOh()
 				}(),
@@ -364,6 +364,11 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if !pluginsdk.IsExplicitlyNullInConfig(d, "private_link_service_network_policies_enabled") {
 			enableServiceOk = true
 			privateLinkServiceNetworkPoliciesRaw = d.Get("private_link_service_network_policies_enabled").(bool)
+		}
+
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "private_endpoint_network_policies") {
+			privateEndpointNetworkPoliciesOk = true
+			privateEndpointNetworkPoliciesStringRaw = d.Get("private_endpoint_network_policies").(string)
 		}
 
 		// Only one of these values can be set since they conflict with each other
