@@ -154,16 +154,17 @@ func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	cidr := d.Get("cidr").(string)
-	ipGroupId, err := ipgroups.ParseIPGroupID(d.Get("ip_group_id").(string))
+	id, err := parse.IpGroupCidrID(d.Id())
 	if err != nil {
 		return err
 	}
+	cidr := d.Get("cidr").(string)
+	ipGroupId := ipgroups.NewIPGroupID(id.SubscriptionId, id.ResourceGroup, id.IpGroupName)
 
 	locks.ByID(ipGroupId.ID())
 	defer locks.UnlockByID(ipGroupId.ID())
 
-	existing, err := client.Get(ctx, *ipGroupId, ipgroups.DefaultGetOperationOptions())
+	existing, err := client.Get(ctx, ipGroupId, ipgroups.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("retrieving %s: %s", ipGroupId, err)
@@ -188,7 +189,7 @@ func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *ipGroupId, params); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, ipGroupId, params); err != nil {
 		return fmt.Errorf("updating %s: %+v", ipGroupId.ID(), err)
 	}
 

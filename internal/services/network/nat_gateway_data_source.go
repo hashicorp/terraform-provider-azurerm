@@ -100,7 +100,11 @@ func dataSourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("sku_name", pointer.From(model.Sku))
+		sku := ""
+		if model.Sku != nil {
+			sku = string(pointer.From(model.Sku.Name))
+		}
+		d.Set("sku_name", sku)
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		if props := model.Properties; props != nil {
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
