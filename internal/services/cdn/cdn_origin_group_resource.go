@@ -34,7 +34,7 @@ func resourceCdnOriginGroup() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CdnOriginGroupID(id)
+			_, err := parse.OriginGroupID(id)
 			return err
 		}),
 
@@ -43,45 +43,14 @@ func resourceCdnOriginGroup() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CdnOriginGroupName,
+				ValidateFunc: validate.OriginGroupName,
 			},
 
 			"cdn_profile_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CdnProfileID,
-			},
-
-			"load_balancing": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MaxItems: 1,
-
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"additional_latency_in_milliseconds": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      50,
-							ValidateFunc: validation.IntBetween(0, 1000),
-						},
-
-						"sample_size": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      4,
-							ValidateFunc: validation.IntBetween(0, 255),
-						},
-
-						"successful_samples_required": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							Default:      3,
-							ValidateFunc: validation.IntBetween(0, 255),
-						},
-					},
-				},
+				ValidateFunc: validate.ProfileID,
 			},
 
 			// Optional
@@ -113,7 +82,8 @@ func resourceCdnOriginGroup() *pluginsdk.Resource {
 
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
-							Required:     true,
+							Optional:     true,
+							Default:      420,
 							ValidateFunc: validation.IntBetween(5, 31536000),
 						},
 
@@ -127,52 +97,14 @@ func resourceCdnOriginGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"origins": {
+			"origin_ids": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Required: true,
 
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.ProbeProtocolHTTP),
-								string(cdn.ProbeProtocolHTTPS),
-							}, false),
-						},
-
-						"request_type": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(cdn.HealthProbeRequestTypeHEAD),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.HealthProbeRequestTypeGET),
-								string(cdn.HealthProbeRequestTypeHEAD),
-							}, false),
-						},
-
-						"interval_in_seconds": {
-							Type:         pluginsdk.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(5, 31536000),
-						},
-
-						"path": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Default:      "/",
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validate.OriginID,
 				},
-			},
-
-			"session_affinity_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 
 			"restore_traffic_time_to_healed_or_new_endpoint_in_minutes": {
@@ -190,13 +122,13 @@ func resourceCdnOriginGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profile, err := parse.CdnProfileID(d.Get("cdn_profile_id").(string))
+	profile, err := parse.ProfileID(d.Get("cdn_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewCdnOriginGroupID(profile.SubscriptionId, profile.ResourceGroup, profile.ProfileName, d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
+	id := parse.NewOriginGroupID(profile.SubscriptionId, profile.ResourceGroup, profile.Name, d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -215,7 +147,7 @@ func resourceCdnOriginGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		},
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName, props)
+	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.Name, props)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -233,7 +165,7 @@ func resourceCdnOriginGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnOriginGroupID(d.Id())
+	id, err := parse.OriginGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -248,7 +180,7 @@ func resourceCdnOriginGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	d.Set("name", id.OriginGroupName)
-	d.Set("cdn_profile_id", parse.NewCdnProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_profile_id", parse.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.AFDOriginGroupProperties; props != nil {
 		if err := d.Set("health_probe", flattenCdnOriginGroupHealthProbeParameters(props.HealthProbeSettings)); err != nil {
@@ -272,7 +204,7 @@ func resourceCdnOriginGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnOriginGroupID(d.Id())
+	id, err := parse.OriginGroupID(d.Id())
 	if err != nil {
 		return err
 	}
