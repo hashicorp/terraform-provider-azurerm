@@ -6,6 +6,7 @@ package sentinel
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"regexp"
 	"time"
 
@@ -36,7 +37,7 @@ const killChainName = "Lockheed Martin - Intrusion Kill Chain"
 type IndicatorModel struct {
 	Name                       string                   `tfschema:"guid"`
 	WorkspaceId                string                   `tfschema:"workspace_id"`
-	Confidence                 int32                    `tfschema:"confidence"`
+	Confidence                 int64                    `tfschema:"confidence"`
 	CreatedByRef               string                   `tfschema:"created_by"`
 	Description                string                   `tfschema:"description"`
 	DisplayName                string                   `tfschema:"display_name"`
@@ -435,7 +436,7 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 			props.Pattern = &patternValue
 
 			if model.Confidence != -1 {
-				props.Confidence = utils.Int32(model.Confidence)
+				props.Confidence = pointer.To(int32(model.Confidence))
 			}
 
 			if model.CreatedByRef != "" {
@@ -561,7 +562,7 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				if model.Confidence == -1 {
 					properties.Confidence = nil
 				} else {
-					properties.Confidence = &model.Confidence
+					properties.Confidence = pointer.To(int32(model.Confidence))
 				}
 			}
 
