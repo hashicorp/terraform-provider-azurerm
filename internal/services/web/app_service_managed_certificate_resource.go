@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -118,7 +119,7 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 	}
 	appServicePlanIDRaw = *appService.SiteProperties.ServerFarmID
 
-	appServicePlanID, err := parse.AppServicePlanID(appServicePlanIDRaw)
+	appServicePlanID, err := commonids.ParseAppServicePlanIDInsensitively(appServicePlanIDRaw)
 	if err != nil {
 		return err
 	}
@@ -130,7 +131,7 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 
 	t := d.Get("tags").(map[string]interface{})
 
-	id := parse.NewManagedCertificateID(subscriptionId, appServicePlanID.ResourceGroup, name)
+	id := parse.NewManagedCertificateID(subscriptionId, appServicePlanID.ResourceGroupName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.CertificateName)

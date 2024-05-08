@@ -13,6 +13,7 @@ package resourceproviders
 func Required() map[string]struct{} {
 	// NOTE: Resource Providers in this list are case sensitive
 	return map[string]struct{}{
+		"Microsoft.AppConfiguration":        {},
 		"Microsoft.ApiManagement":           {},
 		"Microsoft.AppPlatform":             {},
 		"Microsoft.Authorization":           {},
@@ -30,6 +31,7 @@ func Required() map[string]struct{} {
 		"Microsoft.CostManagement":          {},
 		"Microsoft.CustomProviders":         {},
 		"Microsoft.Databricks":              {},
+		"Microsoft.DataFactory":             {},
 		"Microsoft.DataLakeAnalytics":       {},
 		"Microsoft.DataLakeStore":           {},
 		"Microsoft.DataMigration":           {},
@@ -68,6 +70,7 @@ func Required() map[string]struct{} {
 		"Microsoft.Relay":                   {},
 		"Microsoft.RecoveryServices":        {},
 		"Microsoft.Resources":               {},
+		"Microsoft.SignalRService":          {},
 		"Microsoft.Search":                  {},
 		"Microsoft.Security":                {},
 		"Microsoft.SecurityInsights":        {},

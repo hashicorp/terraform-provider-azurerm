@@ -6,6 +6,7 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -13,71 +14,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryResource struct{}
 
-func TestAccContainerRegistryName_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "four",
-			ErrCount: 1,
-		},
-		{
-			Value:    "5five",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello-world",
-			ErrCount: 1,
-		},
-		{
-			Value:    "hello_world",
-			ErrCount: 1,
-		},
-		{
-			Value:    "helloWorld",
-			ErrCount: 0,
-		},
-		{
-			Value:    "helloworld12",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello@world",
-			ErrCount: 1,
-		},
-
-		{
-			Value:    "qfvbdsbvipqdbwsbddbdcwqffewsqwcdw21ddwqwd3324120",
-			ErrCount: 0,
-		},
-		{
-			Value:    "qfvbdsbvipqdbwsbddbdcwqffewsqwcdw21ddwqwd33241202",
-			ErrCount: 0,
-		},
-		{
-			Value:    "qfvbdsbvipqdbwsbddbdcwqfjjfewsqwcdw21ddwqwd3324120",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validate.ContainerRegistryName(tc.Value, "azurerm_container_registry")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Container Registry Name to trigger a validation error: %v", errors)
-		}
-	}
-}
-
-func TestAccContainerRegistry_basic_basic(t *testing.T) {
+func TestAccContainerRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
@@ -98,19 +42,13 @@ func TestAccContainerRegistry_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicManaged(data, "Basic"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
 			Config:      r.requiresImport(data, "Basic"),
 			ExpectError: acceptance.RequiresImportError("azurerm_container_registry"),
 		},
 	})
 }
 
-func TestAccContainerRegistry_basic_standard(t *testing.T) {
+func TestAccContainerRegistry_basicManagedStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
@@ -125,7 +63,7 @@ func TestAccContainerRegistry_basic_standard(t *testing.T) {
 	})
 }
 
-func TestAccContainerRegistry_basic_premium(t *testing.T) {
+func TestAccContainerRegistry_basicManagedPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
@@ -140,7 +78,7 @@ func TestAccContainerRegistry_basic_premium(t *testing.T) {
 	})
 }
 
-func TestAccContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
+func TestAccContainerRegistry_basic2Premium2basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
@@ -195,12 +133,21 @@ func TestAccContainerRegistry_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.completeUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.downgradeSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -208,8 +155,11 @@ func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
-	secondaryLocation := location.Normalize(data.Locations.Secondary)
-	ternaryLocation := location.Normalize(data.Locations.Ternary)
+	locs := []string{location.Normalize(data.Locations.Secondary), location.Normalize(data.Locations.Ternary)}
+	// Sorting the secondary and ternary locations to ensure the order as is expected by this resource (see its Read() function)
+	slices.Sort(locs)
+	secondaryLocation := locs[0]
+	ternaryLocation := locs[1]
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		// creates an ACR with locations
@@ -245,57 +195,7 @@ func TestAccContainerRegistry_geoReplicationLocation(t *testing.T) {
 		data.ImportStep(),
 		// updates the SKU to basic.
 		{
-			Config: r.geoReplicationUpdateWithNoLocation_basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccContainerRegistry_geoReplication(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
-	r := ContainerRegistryResource{}
-
-	secondaryLocation := location.Normalize(data.Locations.Secondary)
-	ternaryLocation := location.Normalize(data.Locations.Ternary)
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		// creates an ACR with locations
-		{
-			Config: r.geoReplication(data, secondaryLocation),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		// updates the ACR with updated locations
-		{
-			Config: r.geoReplication(data, ternaryLocation),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		// updates the ACR with updated locations
-		{
-			Config: r.geoReplicationMultipleLocations(data, secondaryLocation, ternaryLocation),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.geoReplicationMultipleLocationsUpdate(data, secondaryLocation, ternaryLocation),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		// updates the SKU to basic.
-		{
-			Config: r.geoReplicationUpdateWithNoReplication_basic(data),
+			Config: r.geoReplicationUpdateWithNoLocationBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -310,18 +210,23 @@ func TestAccContainerRegistry_networkAccessProfileIp(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkAccessProfile_ip(data, "Premium"),
+			Config: r.networkAccessProfileIp(data, "Premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
-				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkAccessProfileIpRemoved(data, "Premium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccContainerRegistry_networkAccessProfile_update(t *testing.T) {
+func TestAccContainerRegistry_networkAccessProfileUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
@@ -333,7 +238,7 @@ func TestAccContainerRegistry_networkAccessProfile_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.networkAccessProfile_ip(data, "Premium"),
+			Config: r.networkAccessProfileIp(data, "Premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
@@ -345,8 +250,6 @@ func TestAccContainerRegistry_networkAccessProfile_update(t *testing.T) {
 			Config: r.networkAccessProfile_vnet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
-				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -354,8 +257,6 @@ func TestAccContainerRegistry_networkAccessProfile_update(t *testing.T) {
 			Config: r.networkAccessProfile_both(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
-				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -371,8 +272,6 @@ func TestAccContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 			Config: r.networkAccessProfile_vnet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Deny"),
-				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -380,6 +279,9 @@ func TestAccContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 }
 
 func TestAccContainerRegistry_policies(t *testing.T) {
+	if features.FourPointOhBeta() {
+		t.Skip("Skipping in 4.0 since policy updates are tested in the update test using the new properties")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 	r := ContainerRegistryResource{}
 
@@ -388,73 +290,20 @@ func TestAccContainerRegistry_policies(t *testing.T) {
 			Config: r.policies(data, 10),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
-				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("0"),
-				check.That(data.ResourceName).Key("quarantine_policy_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("10"),
-				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.policies(data, 20),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
-				check.That(data.ResourceName).Key("network_rule_set.0.virtual_network.#").HasValue("0"),
-				check.That(data.ResourceName).Key("quarantine_policy_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("retention_policy.0.days").HasValue("20"),
-				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.policies_downgradeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_rule_set.#").HasValue("0"),
-				check.That(data.ResourceName).Key("quarantine_policy_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("retention_policy.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("trust_policy.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("export_policy_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccContainerRegistry_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
-	r := ContainerRegistryResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		// creates an ACR with encryption
-		{
-			Config: r.identity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccContainerRegistry_identitySystemAssigned(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
-	r := ContainerRegistryResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		// creates an ACR with encryption
-		{
-			Config: r.identitySystemAssigned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
 		data.ImportStep(),
@@ -593,6 +442,21 @@ func TestAccContainerRegistry_networkRuleBypassOption(t *testing.T) {
 	})
 }
 
+func TestAccContainerRegistry_encryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ContainerRegistryResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := registries.ParseRegistryID(state.ID)
 	if err != nil {
@@ -625,7 +489,7 @@ resource "azurerm_container_registry" "test" {
   sku                 = "Basic"
 
   # make sure network_rule_set is empty for basic SKU
-  # premiuim SKU will automatically populate network_rule_set.default_action to allow
+  # premium SKU will automatically populate network_rule_set.default_action to allow
   network_rule_set = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -665,58 +529,272 @@ resource "azurerm_container_registry" "import" {
 }
 
 func (ContainerRegistryResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "testacccr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  admin_enabled       = false
-  sku                 = "Basic"
+  admin_enabled       = true
+  sku                 = "Premium"
+  identity {
+    type = "SystemAssigned"
+  }
+
+  public_network_access_enabled = false
+  quarantine_policy_enabled     = true
+  retention_policy {
+    enabled = true
+    days    = 10
+  }
+  trust_policy {
+    enabled = true
+  }
+  export_policy_enabled  = false
+  anonymous_pull_enabled = true
+  data_endpoint_enabled  = true
+
+  network_rule_bypass_option = "None"
 
   tags = {
     environment = "production"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
 
-func (ContainerRegistryResource) completeUpdated(data acceptance.TestData) string {
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = true
+  sku                 = "Premium"
+  identity {
+    type = "SystemAssigned"
+  }
+
+  public_network_access_enabled = false
+  quarantine_policy_enabled     = true
+  retention_policy_in_days      = 10
+  trust_policy_enabled          = true
+  export_policy_enabled         = false
+  anonymous_pull_enabled        = true
+  data_endpoint_enabled         = true
+
+  network_rule_bypass_option = "None"
+
+  tags = {
+    environment = "production"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) completeUpdated(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "testaccuai%[2]d"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_enabled       = true
   sku                 = "Premium"
 
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  public_network_access_enabled = true
+  quarantine_policy_enabled     = false
+  retention_policy {
+    enabled = true
+    days    = 15
+  }
+  trust_policy {
+    enabled = false
+  }
+  export_policy_enabled  = true
+  anonymous_pull_enabled = false
+  data_endpoint_enabled  = false
+
+  network_rule_bypass_option = "AzureServices"
+
   tags = {
     environment = "production"
+    oompa       = "loompa"
   }
-  public_network_access_enabled = false
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "testaccuai%[2]d"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = true
+  sku                 = "Premium"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  public_network_access_enabled = true
+  quarantine_policy_enabled     = false
+  retention_policy_in_days      = 15
+  trust_policy_enabled          = false
+  export_policy_enabled         = true
+  anonymous_pull_enabled        = false
+  data_endpoint_enabled         = false
+
+  network_rule_bypass_option = "AzureServices"
+
+  tags = {
+    environment = "production"
+    oompa       = "loompa"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) downgradeSku(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = true
+  sku                 = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  retention_policy {}
+  trust_policy {}
+
+  network_rule_set = []
+}
+`, data.Locations.Primary, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = true
+  sku                 = "Basic"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_rule_set = []
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (ContainerRegistryResource) geoReplicationLocation(data acceptance.TestData, replicationRegion string) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -736,9 +814,8 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replicationRegion)
-}
+	}
 
-func (ContainerRegistryResource) geoReplication(data acceptance.TestData, replication string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -756,16 +833,19 @@ resource "azurerm_container_registry" "test" {
   sku                 = "Premium"
   georeplications {
     location = "%s"
-    tags = {
-      Environment = "Production"
-    }
+  }
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replication)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replicationRegion)
 }
 
 func (ContainerRegistryResource) geoReplicationMultipleLocations(data acceptance.TestData, primaryLocation string, secondaryLocation string) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -788,10 +868,40 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location = "%s"
+  }
+  georeplications {
+    location = "%s"
+  }
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
 }
 
 func (ContainerRegistryResource) geoReplicationMultipleLocationsUpdate(data acceptance.TestData, primaryLocation string, secondaryLocation string) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -819,9 +929,43 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
 }
 
-func (ContainerRegistryResource) geoReplicationUpdateWithNoLocation_basic(data acceptance.TestData) string {
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location                = "%s"
+    zone_redundancy_enabled = true
+  }
+  georeplications {
+    location                  = "%s"
+    regional_endpoint_enabled = true
+    tags = {
+      foo = "bar"
+    }
+  }
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
+}
+
+func (ContainerRegistryResource) geoReplicationUpdateWithNoLocationBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -845,31 +989,7 @@ resource "azurerm_container_registry" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerRegistryResource) geoReplicationUpdateWithNoReplication_basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Basic"
-
-  # make sure network_rule_set is empty for basic SKU
-  # premiuim SKU will automatically populate network_rule_set.default_action to allow
-  network_rule_set = []
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (ContainerRegistryResource) networkAccessProfile_ip(data acceptance.TestData, sku string) string {
+func (ContainerRegistryResource) networkAccessProfileIp(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -904,8 +1024,34 @@ resource "azurerm_container_registry" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
 
-func (ContainerRegistryResource) networkAccessProfile_vnet(data acceptance.TestData) string {
+func (ContainerRegistryResource) networkAccessProfileIpRemoved(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testAccCr%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "%[3]s"
+  admin_enabled       = false
+
+  network_rule_set {
+    default_action = "Allow"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func (ContainerRegistryResource) networkAccessProfile_vnet(data acceptance.TestData) string {
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -953,10 +1099,56 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "virtualNetwork1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  service_endpoints = ["Microsoft.ContainerRegistry"]
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testAccCr%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  admin_enabled       = false
+
+  network_rule_set {
+    default_action = "Deny"
+
+    ip_rule {
+      action   = "Allow"
+      ip_range = "8.8.8.8/32"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ContainerRegistryResource) networkAccessProfile_both(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1000,6 +1192,50 @@ resource "azurerm_container_registry" "test" {
     virtual_network {
       action    = "Allow"
       subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "virtualNetwork1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  service_endpoints = ["Microsoft.ContainerRegistry"]
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testAccCr%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  admin_enabled       = false
+
+  network_rule_set {
+    default_action = "Deny"
+
+    ip_rule {
+      action   = "Allow"
+      ip_range = "8.8.8.8/32"
     }
   }
 }
@@ -1071,64 +1307,6 @@ resource "azurerm_container_registry" "test" {
     Environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (ContainerRegistryResource) identity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id
-    ]
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  name = "testaccuai%d"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (ContainerRegistryResource) identitySystemAssigned(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
@@ -1256,4 +1434,135 @@ resource "azurerm_container_registry" "test" {
   network_rule_bypass_option = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, opt)
+}
+
+func (ContainerRegistryResource) encryptionEnabled(data acceptance.TestData) string {
+	template := ContainerRegistryResource{}.encryptionTemplate(data)
+
+	if !features.FourPointOhBeta() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkvkey%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  encryption {
+    enabled            = true
+    identity_client_id = azurerm_user_assigned_identity.test.client_id
+    key_vault_key_id   = azurerm_key_vault_key.test.id
+  }
+}
+`, template, data.RandomInteger, data.RandomString)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkvkey%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  encryption {
+    identity_client_id = azurerm_user_assigned_identity.test.client_id
+    key_vault_key_id   = azurerm_key_vault_key.test.id
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_rule_set
+    ]
+  }
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
+func (ContainerRegistryResource) encryptionTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "%[3]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                     = "acctestkv%[3]s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+    key_permissions = [
+      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
+    ]
+    secret_permissions = [
+      "Get",
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -222,12 +222,12 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 ```hcl
 provider "kubernetes" {
-  host                   = data.azurerm_kubernetes_cluster.main.kube_config.0.host
-  username               = data.azurerm_kubernetes_cluster.main.kube_config.0.username
-  password               = data.azurerm_kubernetes_cluster.main.kube_config.0.password
-  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)
-  client_key             = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)
+  host                   = data.azurerm_kubernetes_cluster.main.kube_config[0].host
+  username               = data.azurerm_kubernetes_cluster.main.kube_config[0].username
+  password               = data.azurerm_kubernetes_cluster.main.kube_config[0].password
+  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.main.kube_config[0].client_certificate)
+  client_key             = base64decode(data.azurerm_kubernetes_cluster.main.kube_config[0].client_key)
+  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.main.kube_config[0].cluster_ca_certificate)
 }
 ```
 
@@ -354,8 +354,6 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Kubernetes Cluster.
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Kubernetes Cluster.
-
--> **NOTE:** Currently only one User Assigned Identity is supported.
 
 ---
 

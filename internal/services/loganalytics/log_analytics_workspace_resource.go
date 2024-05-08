@@ -154,6 +154,11 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				ValidateFunc: datacollectionrules.ValidateDataCollectionRuleID,
 			},
 
+			"immediate_data_purge_on_30_days_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"workspace_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -299,6 +304,12 @@ func resourceLogAnalyticsWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta i
 		parameters.Properties.WorkspaceCapping = &workspaces.WorkspaceCapping{
 			DailyQuotaGb: utils.Float(dailyQuotaGb.(float64)),
 		}
+	}
+
+	// The `ImmediatePurgeDataOn30Days` are not returned before it has been set
+	// nolint : staticcheck
+	if v, ok := d.GetOkExists("immediate_data_purge_on_30_days_enabled"); ok {
+		parameters.Properties.Features.ImmediatePurgeDataOn30Days = utils.Bool(v.(bool))
 	}
 
 	propName := "reservation_capacity_in_gb_per_day"
@@ -457,18 +468,15 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 			allowResourceOnlyPermissions := true
 			disableLocalAuth := false
+			purgeDataOnThirtyDays := false
 			if features := props.Features; features != nil {
-				v := features.EnableLogAccessUsingOnlyResourcePermissions
-				if v != nil {
-					allowResourceOnlyPermissions = *v
-				}
-				d := features.DisableLocalAuth
-				if d != nil {
-					disableLocalAuth = *d
-				}
+				allowResourceOnlyPermissions = pointer.From(features.EnableLogAccessUsingOnlyResourcePermissions)
+				disableLocalAuth = pointer.From(features.DisableLocalAuth)
+				purgeDataOnThirtyDays = pointer.From(features.ImmediatePurgeDataOn30Days)
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
 			d.Set("local_authentication_disabled", disableLocalAuth)
+			d.Set("immediate_data_purge_on_30_days_enabled", purgeDataOnThirtyDays)
 
 			defaultDataCollectionRuleResourceId := ""
 			if props.DefaultDataCollectionRuleResourceId != nil {
@@ -481,11 +489,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("data_collection_rule_id", defaultDataCollectionRuleResourceId)
 
-			sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
-				SubscriptionId:    id.SubscriptionId,
-				ResourceGroupName: id.ResourceGroupName,
-				WorkspaceName:     id.WorkspaceName,
-			}
+			sharedKeyId := sharedKeyWorkspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 			sharedKeysResp, err := sharedKeyClient.SharedKeysGetSharedKeys(ctx, sharedKeyId)
 			if err != nil {
 				log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.WorkspaceName, err)
@@ -521,17 +525,13 @@ func resourceLogAnalyticsWorkspaceDelete(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id, err := workspaces.ParseWorkspaceID(d.Id())
-	sharedKeyId := sharedKeyWorkspaces.WorkspaceId{
-		SubscriptionId:    id.SubscriptionId,
-		ResourceGroupName: id.ResourceGroupName,
-		WorkspaceName:     id.WorkspaceName,
-	}
+	sharedKeyId := sharedKeyWorkspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	if err != nil {
 		return err
 	}
 
-	PermanentlyDeleteOnDestroy := meta.(*clients.Client).Features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy
-	err = client.DeleteThenPoll(ctx, sharedKeyId, sharedKeyWorkspaces.DeleteOperationOptions{Force: utils.Bool(PermanentlyDeleteOnDestroy)})
+	permanentlyDeleteOnDestroy := meta.(*clients.Client).Features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy
+	err = client.DeleteThenPoll(ctx, sharedKeyId, sharedKeyWorkspaces.DeleteOperationOptions{Force: utils.Bool(permanentlyDeleteOnDestroy)})
 	if err != nil {
 		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.WorkspaceName, err)
 	}

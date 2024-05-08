@@ -19,7 +19,8 @@ type ListDeploymentsAtResourceOperationResponse struct {
 }
 
 type ListDeploymentsAtResourceCompleteResult struct {
-	Items []RemediationDeployment
+	LatestHttpResponse *http.Response
+	Items              []RemediationDeployment
 }
 
 type ListDeploymentsAtResourceOperationOptions struct {
@@ -111,7 +112,8 @@ func (c RemediationsClient) ListDeploymentsAtResourceCompleteMatchingPredicate(c
 	}
 
 	result = ListDeploymentsAtResourceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

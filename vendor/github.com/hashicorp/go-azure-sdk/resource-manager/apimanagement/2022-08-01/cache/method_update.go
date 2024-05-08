@@ -76,7 +76,10 @@ func (c CacheClient) Update(ctx context.Context, id CacheId, input CacheUpdatePa
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CacheContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

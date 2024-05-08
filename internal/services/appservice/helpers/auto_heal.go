@@ -8,10 +8,11 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
 )
 
 type AutoHealSettingWindows struct {
@@ -20,30 +21,38 @@ type AutoHealSettingWindows struct {
 }
 
 type AutoHealTriggerWindows struct {
-	Requests        []AutoHealRequestTrigger    `tfschema:"requests"`
-	PrivateMemoryKB int                         `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
-	StatusCodes     []AutoHealStatusCodeTrigger `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests    []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests             []AutoHealRequestTrigger      `tfschema:"requests"`
+	PrivateMemoryKB      int64                         `tfschema:"private_memory_kb"` // Private should be > 102400 KB (100 MB) to 13631488 KB (13 GB), defaults to 0 however and is always present.
+	StatusCodes          []AutoHealStatusCodeTrigger   `tfschema:"status_code"`       // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests         []AutoHealSlowRequest         `tfschema:"slow_request"`
+	SlowRequestsWithPath []AutoHealSlowRequestWithPath `tfschema:"slow_request_with_path"`
 }
 
 type AutoHealRequestTrigger struct {
-	Count    int    `tfschema:"count"`
+	Count    int64  `tfschema:"count"`
 	Interval string `tfschema:"interval"`
 }
 
 type AutoHealStatusCodeTrigger struct {
 	StatusCodeRange string `tfschema:"status_code_range"` // Conflicts with `StatusCode`, `Win32Code`, and `SubStatus` when not a single value...
-	SubStatus       int    `tfschema:"sub_status"`
-	Win32Status     int    `tfschema:"win32_status_code"`
+	SubStatus       int64  `tfschema:"sub_status"`
+	Win32Status     int64  `tfschema:"win32_status_code"`
 	Path            string `tfschema:"path"`
-	Count           int    `tfschema:"count"`
+	Count           int64  `tfschema:"count"`
 	Interval        string `tfschema:"interval"` // Format - hh:mm:ss
 }
 
 type AutoHealSlowRequest struct {
 	TimeTaken string `tfschema:"time_taken"`
 	Interval  string `tfschema:"interval"`
-	Count     int    `tfschema:"count"`
+	Count     int64  `tfschema:"count"`
+	Path      string `tfschema:"path,removedInNextMajorVersion"`
+}
+
+type AutoHealSlowRequestWithPath struct {
+	TimeTaken string `tfschema:"time_taken"`
+	Interval  string `tfschema:"interval"`
+	Count     int64  `tfschema:"count"`
 	Path      string `tfschema:"path"`
 }
 
@@ -98,13 +107,9 @@ func autoHealActionSchemaWindows() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"action_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AutoHealActionTypeCustomAction),
-						string(web.AutoHealActionTypeLogEvent),
-						string(web.AutoHealActionTypeRecycle),
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAutoHealActionType(), false),
 				},
 
 				"custom_action": {
@@ -179,7 +184,7 @@ func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -277,6 +282,32 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 								Required:     true,
 								ValidateFunc: validation.IntAtLeast(1),
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.TimeInterval,
+							},
+
+							"interval": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validate.TimeInterval,
+							},
+
+							"count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
 
 							"path": {
 								Type:         pluginsdk.TypeString,
@@ -289,10 +320,46 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOhBeta() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.TimeInterval,
+					},
+
+					"interval": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.TimeInterval,
+					},
+
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"path": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Deprecated:   "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
 func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -377,6 +444,29 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
 							"path": {
 								Type:     pluginsdk.TypeString,
@@ -388,16 +478,47 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 			},
 		},
 	}
+	if !features.FourPointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"time_taken": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"interval": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+
+					"path": {
+						Type:       pluginsdk.TypeString,
+						Computed:   true,
+						Deprecated: "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
+					},
+				},
+			},
+		}
+	}
+	return s
 }
 
-func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *web.AutoHealRules {
+func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *webapps.AutoHealRules {
 	if len(autoHealSettings) == 0 {
-		return &web.AutoHealRules{}
+		return &webapps.AutoHealRules{}
 	}
 
-	result := &web.AutoHealRules{
-		Triggers: &web.AutoHealTriggers{},
-		Actions:  &web.AutoHealActions{},
+	result := &webapps.AutoHealRules{
+		Triggers: &webapps.AutoHealTriggers{},
+		Actions:  &webapps.AutoHealActions{},
 	}
 
 	autoHeal := autoHealSettings[0]
@@ -407,37 +528,55 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 	triggers := autoHeal.Triggers[0]
 	if len(triggers.Requests) == 1 {
-		result.Triggers.Requests = &web.RequestsBasedTrigger{
-			Count:        pointer.To(int32(triggers.Requests[0].Count)),
+		result.Triggers.Requests = &webapps.RequestsBasedTrigger{
+			Count:        pointer.To(triggers.Requests[0].Count),
 			TimeInterval: pointer.To(triggers.Requests[0].Interval),
 		}
 	}
 
 	if len(triggers.SlowRequests) == 1 {
-		result.Triggers.SlowRequests = &web.SlowRequestsBasedTrigger{
+		result.Triggers.SlowRequests = &webapps.SlowRequestsBasedTrigger{
 			TimeTaken:    pointer.To(triggers.SlowRequests[0].TimeTaken),
 			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
-			Count:        pointer.To(int32(triggers.SlowRequests[0].Count)),
+			Count:        pointer.To(triggers.SlowRequests[0].Count),
 		}
-		if triggers.SlowRequests[0].Path != "" {
-			result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
+		if !features.FourPointOh() {
+			if triggers.SlowRequests[0].Path != "" {
+				result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
+			}
 		}
+	}
+
+	if len(triggers.SlowRequestsWithPath) > 0 {
+		slowRequestWithPathTriggers := make([]webapps.SlowRequestsBasedTrigger, 0)
+		for _, sr := range triggers.SlowRequestsWithPath {
+			trigger := webapps.SlowRequestsBasedTrigger{
+				TimeTaken:    pointer.To(sr.TimeTaken),
+				TimeInterval: pointer.To(sr.Interval),
+				Count:        pointer.To(sr.Count),
+			}
+			if sr.Path != "" {
+				trigger.Path = pointer.To(sr.Path)
+			}
+			slowRequestWithPathTriggers = append(slowRequestWithPathTriggers, trigger)
+		}
+		result.Triggers.SlowRequestsWithPath = &slowRequestWithPathTriggers
 	}
 
 	if triggers.PrivateMemoryKB != 0 {
-		result.Triggers.PrivateBytesInKB = pointer.To(int32(triggers.PrivateMemoryKB))
+		result.Triggers.PrivateBytesInKB = pointer.To(triggers.PrivateMemoryKB)
 	}
 
 	if len(triggers.StatusCodes) > 0 {
-		statusCodeTriggers := make([]web.StatusCodesBasedTrigger, 0)
-		statusCodeRangeTriggers := make([]web.StatusCodesRangeBasedTrigger, 0)
+		statusCodeTriggers := make([]webapps.StatusCodesBasedTrigger, 0)
+		statusCodeRangeTriggers := make([]webapps.StatusCodesRangeBasedTrigger, 0)
 		for _, s := range triggers.StatusCodes {
-			statusCodeTrigger := web.StatusCodesBasedTrigger{}
-			statusCodeRangeTrigger := web.StatusCodesRangeBasedTrigger{}
+			statusCodeTrigger := webapps.StatusCodesBasedTrigger{}
+			statusCodeRangeTrigger := webapps.StatusCodesRangeBasedTrigger{}
 			parts := strings.Split(s.StatusCodeRange, "-")
 			if len(parts) == 2 {
 				statusCodeRangeTrigger.StatusCodes = pointer.To(s.StatusCodeRange)
-				statusCodeRangeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeRangeTrigger.Count = pointer.To(s.Count)
 				statusCodeRangeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
 					statusCodeRangeTrigger.Path = pointer.To(s.Path)
@@ -446,18 +585,18 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 			} else {
 				statusCode, err := strconv.Atoi(s.StatusCodeRange)
 				if err == nil {
-					statusCodeTrigger.Status = pointer.To(int32(statusCode))
+					statusCodeTrigger.Status = pointer.To(int64(statusCode))
 				}
-				statusCodeTrigger.Count = pointer.To(int32(s.Count))
+				statusCodeTrigger.Count = pointer.To(s.Count)
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
 				if s.Path != "" {
 					statusCodeTrigger.Path = pointer.To(s.Path)
 				}
 				if s.SubStatus != 0 {
-					statusCodeTrigger.SubStatus = pointer.To(int32(s.SubStatus))
+					statusCodeTrigger.SubStatus = pointer.To(s.SubStatus)
 				}
 				if s.Win32Status != 0 {
-					statusCodeTrigger.Win32Status = pointer.To(int32(s.Win32Status))
+					statusCodeTrigger.Win32Status = pointer.To((s.Win32Status))
 				}
 				statusCodeTriggers = append(statusCodeTriggers, statusCodeTrigger)
 			}
@@ -468,11 +607,11 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 
 	if len(autoHeal.Actions) > 0 {
 		action := autoHeal.Actions[0]
-		result.Actions.ActionType = web.AutoHealActionType(action.ActionType)
+		result.Actions.ActionType = pointer.To(webapps.AutoHealActionType(action.ActionType))
 		result.Actions.MinProcessExecutionTime = pointer.To(action.MinimumProcessTime)
 		if len(action.CustomAction) != 0 {
 			customAction := action.CustomAction[0]
-			result.Actions.CustomAction = &web.AutoHealCustomAction{
+			result.Actions.CustomAction = &webapps.AutoHealCustomAction{
 				Exe:        pointer.To(customAction.Executable),
 				Parameters: pointer.To(customAction.Parameters),
 			}
@@ -481,7 +620,7 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 	return result
 }
 
-func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHealSettingWindows {
+func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []AutoHealSettingWindows {
 	if autoHealRules == nil {
 		return []AutoHealSettingWindows{}
 	}
@@ -492,18 +631,14 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		resultTrigger := AutoHealTriggerWindows{}
 		triggers := *autoHealRules.Triggers
 		if triggers.Requests != nil {
-			count := 0
-			if triggers.Requests.Count != nil {
-				count = int(*triggers.Requests.Count)
-			}
 			resultTrigger.Requests = []AutoHealRequestTrigger{{
-				Count:    count,
+				Count:    pointer.From(triggers.Requests.Count),
 				Interval: pointer.From(triggers.Requests.TimeInterval),
 			}}
 		}
 
 		if privateBytes := triggers.PrivateBytesInKB; privateBytes != nil && *privateBytes != 0 {
-			resultTrigger.PrivateMemoryKB = int(*triggers.PrivateBytesInKB)
+			resultTrigger.PrivateMemoryKB = *triggers.PrivateBytesInKB
 		}
 
 		statusCodeTriggers := make([]AutoHealStatusCodeTrigger, 0)
@@ -519,15 +654,15 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 				}
 
 				if s.Count != nil {
-					t.Count = int(*s.Count)
+					t.Count = *s.Count
 				}
 
 				if s.SubStatus != nil {
-					t.SubStatus = int(*s.SubStatus)
+					t.SubStatus = *s.SubStatus
 				}
 
 				if s.Win32Status != nil {
-					t.Win32Status = int(pointer.From(s.Win32Status))
+					t.Win32Status = pointer.From(s.Win32Status)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
@@ -539,7 +674,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 					Path:     pointer.From(s.Path),
 				}
 				if s.Count != nil {
-					t.Count = int(*s.Count)
+					t.Count = *s.Count
 				}
 
 				if s.StatusCodes != nil {
@@ -555,11 +690,26 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 			slowRequestTriggers = append(slowRequestTriggers, AutoHealSlowRequest{
 				TimeTaken: pointer.From(triggers.SlowRequests.TimeTaken),
 				Interval:  pointer.From(triggers.SlowRequests.TimeInterval),
-				Count:     int(pointer.From(triggers.SlowRequests.Count)),
+				Count:     pointer.From(triggers.SlowRequests.Count),
 				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
+
+		slowRequestTriggersWithPaths := make([]AutoHealSlowRequestWithPath, 0)
+		if triggers.SlowRequestsWithPath != nil {
+			for _, v := range *triggers.SlowRequestsWithPath {
+				sr := AutoHealSlowRequestWithPath{
+					TimeTaken: pointer.From(v.TimeTaken),
+					Interval:  pointer.From(v.TimeInterval),
+					Count:     pointer.From(v.Count),
+					Path:      pointer.From(v.Path),
+				}
+				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)
+			}
+		}
+
 		resultTrigger.SlowRequests = slowRequestTriggers
+		resultTrigger.SlowRequestsWithPath = slowRequestTriggersWithPaths
 		result.Triggers = []AutoHealTriggerWindows{resultTrigger}
 	}
 
@@ -575,7 +725,7 @@ func flattenAutoHealSettingsWindows(autoHealRules *web.AutoHealRules) []AutoHeal
 		}
 
 		resultActions := AutoHealActionWindows{
-			ActionType:         string(actions.ActionType),
+			ActionType:         string(pointer.From(actions.ActionType)),
 			CustomAction:       customActions,
 			MinimumProcessTime: pointer.From(actions.MinProcessExecutionTime),
 		}

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,7 +21,7 @@ type ManagerResource struct{}
 
 func TestAccNetworkManager(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one network manager per subscription at once
+	// Azure only being happy about provisioning one (connectivity or securityAdmin) network manager per subscription at once
 	// (which our test suite can't easily work around)
 
 	testCases := map[string]map[string]func(t *testing.T){
@@ -30,6 +30,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManager_complete,
 			"update":         testAccNetworkManager_update,
 			"requiresImport": testAccNetworkManager_requiresImport,
+			"dataSource":     testAccNetworkManagerDataSource_complete,
 		},
 		"NetworkGroup": {
 			"basic":          testAccNetworkManagerNetworkGroup_basic,
@@ -66,6 +67,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":          testAccNetworkManagerConnectivityConfiguration_complete,
 			"update":            testAccNetworkManagerConnectivityConfiguration_update,
 			"requiresImport":    testAccNetworkManagerConnectivityConfiguration_requiresImport,
+			"dataSource":        testAccNetworkManagerConnectivityConfigurationDataSource_basic,
 		},
 		"SecurityAdminConfiguration": {
 			"basic":          testAccNetworkManagerSecurityAdminConfiguration_basic,

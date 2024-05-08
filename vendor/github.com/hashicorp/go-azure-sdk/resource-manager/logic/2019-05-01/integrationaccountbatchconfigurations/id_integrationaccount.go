@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = IntegrationAccountId{}
+func init() {
+	recaser.RegisterResourceId(&IntegrationAccountId{})
+}
+
+var _ resourceids.ResourceId = &IntegrationAccountId{}
 
 // IntegrationAccountId is a struct representing the Resource ID for a Integration Account
 type IntegrationAccountId struct {
@@ -30,7 +35,7 @@ func NewIntegrationAccountID(subscriptionId string, resourceGroupName string, in
 
 // ParseIntegrationAccountID parses 'input' into a IntegrationAccountId
 func ParseIntegrationAccountID(input string) (*IntegrationAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IntegrationAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&IntegrationAccountId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseIntegrationAccountID(input string) (*IntegrationAccountId, error) {
 // ParseIntegrationAccountIDInsensitively parses 'input' case-insensitively into a IntegrationAccountId
 // note: this method should only be used for API response data and not user input
 func ParseIntegrationAccountIDInsensitively(input string) (*IntegrationAccountId, error) {
-	parser := resourceids.NewParserFromResourceIdType(IntegrationAccountId{})
+	parser := resourceids.NewParserFromResourceIdType(&IntegrationAccountId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

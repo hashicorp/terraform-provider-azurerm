@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -984,6 +984,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
+						"data": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -1487,7 +1492,7 @@ func dataSourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-// TODO: 4.0 remove this, after the resource schema `verify_client_cert_issuer_dn` is changed to `verify_client_certificate_issuer_dn`
+// TODO: 4.0 remove this after the r/app_gateway schema `verify_client_cert_issuer_dn` is changed to `verify_client_certificate_issuer_dn`, and reuse the flatten function in r/app_gateway file.
 func flattenApplicationGatewayDataSourceSslProfiles(input *[]network.ApplicationGatewaySslProfile) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {

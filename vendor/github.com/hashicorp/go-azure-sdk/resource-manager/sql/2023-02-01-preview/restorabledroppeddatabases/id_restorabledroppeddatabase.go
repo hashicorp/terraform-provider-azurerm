@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RestorableDroppedDatabaseId{}
+func init() {
+	recaser.RegisterResourceId(&RestorableDroppedDatabaseId{})
+}
+
+var _ resourceids.ResourceId = &RestorableDroppedDatabaseId{}
 
 // RestorableDroppedDatabaseId is a struct representing the Resource ID for a Restorable Dropped Database
 type RestorableDroppedDatabaseId struct {
@@ -32,7 +37,7 @@ func NewRestorableDroppedDatabaseID(subscriptionId string, resourceGroupName str
 
 // ParseRestorableDroppedDatabaseID parses 'input' into a RestorableDroppedDatabaseId
 func ParseRestorableDroppedDatabaseID(input string) (*RestorableDroppedDatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RestorableDroppedDatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&RestorableDroppedDatabaseId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseRestorableDroppedDatabaseID(input string) (*RestorableDroppedDatabaseI
 // ParseRestorableDroppedDatabaseIDInsensitively parses 'input' case-insensitively into a RestorableDroppedDatabaseId
 // note: this method should only be used for API response data and not user input
 func ParseRestorableDroppedDatabaseIDInsensitively(input string) (*RestorableDroppedDatabaseId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RestorableDroppedDatabaseId{})
+	parser := resourceids.NewParserFromResourceIdType(&RestorableDroppedDatabaseId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

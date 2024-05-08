@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ConnectedEnvironmentId{}
+func init() {
+	recaser.RegisterResourceId(&ConnectedEnvironmentId{})
+}
+
+var _ resourceids.ResourceId = &ConnectedEnvironmentId{}
 
 // ConnectedEnvironmentId is a struct representing the Resource ID for a Connected Environment
 type ConnectedEnvironmentId struct {
@@ -30,7 +35,7 @@ func NewConnectedEnvironmentID(subscriptionId string, resourceGroupName string, 
 
 // ParseConnectedEnvironmentID parses 'input' into a ConnectedEnvironmentId
 func ParseConnectedEnvironmentID(input string) (*ConnectedEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedEnvironmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseConnectedEnvironmentID(input string) (*ConnectedEnvironmentId, error) 
 // ParseConnectedEnvironmentIDInsensitively parses 'input' case-insensitively into a ConnectedEnvironmentId
 // note: this method should only be used for API response data and not user input
 func ParseConnectedEnvironmentIDInsensitively(input string) (*ConnectedEnvironmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ConnectedEnvironmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ConnectedEnvironmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

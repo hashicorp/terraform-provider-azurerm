@@ -43,7 +43,10 @@ func (c ResourceClient) SpatialAnchorsAccountsGet(ctx context.Context, id Spatia
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SpatialAnchorsAccount
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

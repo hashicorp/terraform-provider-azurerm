@@ -79,6 +79,8 @@ The following arguments are supported:
 
 -> **NOTE:** `streaming_units` must be set when `type` is `Cloud`.
 
+* `sku_name` - (Optional) The SKU Name to use for the Stream Analytics Job. Possible values are `Standard`, `StandardV2`. Defaults to `Standard`.
+
 * `content_storage_policy` - (Optional) The policy for storing stream analytics content. Possible values are `JobStorageAccount`, `SystemAccount`. Defaults to `SystemAccount`.
 
 * `job_storage_account` - (Optional) The details of the job storage account. A `job_storage_account` block as defined below. 
@@ -103,7 +105,9 @@ A `job_storage_account` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Stream Analytics Job. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Stream Analytics Job. Possible values are `SystemAssigned` and `UserAssigned`.
+
+* `identity_ids` - (Optional) The identity id of the user assigned identity to use when type is `UserAssigned`
 
 ## Attributes Reference
 
@@ -112,8 +116,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Stream Analytics Job.
 
 * `job_id` - The Job ID assigned by the Stream Analytics Job.
-  
-* `identity` - (Optional) An `identity` block as defined below.
 
 ---
 

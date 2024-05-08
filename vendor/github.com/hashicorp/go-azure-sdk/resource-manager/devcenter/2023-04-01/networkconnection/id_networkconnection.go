@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = NetworkConnectionId{}
+func init() {
+	recaser.RegisterResourceId(&NetworkConnectionId{})
+}
+
+var _ resourceids.ResourceId = &NetworkConnectionId{}
 
 // NetworkConnectionId is a struct representing the Resource ID for a Network Connection
 type NetworkConnectionId struct {
@@ -30,7 +35,7 @@ func NewNetworkConnectionID(subscriptionId string, resourceGroupName string, net
 
 // ParseNetworkConnectionID parses 'input' into a NetworkConnectionId
 func ParseNetworkConnectionID(input string) (*NetworkConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkConnectionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseNetworkConnectionID(input string) (*NetworkConnectionId, error) {
 // ParseNetworkConnectionIDInsensitively parses 'input' case-insensitively into a NetworkConnectionId
 // note: this method should only be used for API response data and not user input
 func ParseNetworkConnectionIDInsensitively(input string) (*NetworkConnectionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(NetworkConnectionId{})
+	parser := resourceids.NewParserFromResourceIdType(&NetworkConnectionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

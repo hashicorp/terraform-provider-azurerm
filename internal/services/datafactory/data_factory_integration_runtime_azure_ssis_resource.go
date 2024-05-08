@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
@@ -107,6 +108,12 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(1, 16),
 			},
 
+			"credential_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"edition": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -115,6 +122,30 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 					string(datafactory.IntegrationRuntimeEditionStandard),
 					string(datafactory.IntegrationRuntimeEditionEnterprise),
 				}, false),
+			},
+
+			"copy_compute_scale": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"data_integration_unit": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(4, 256),
+								validation.IntDivisibleBy(4),
+							),
+						},
+
+						"time_to_live": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(5),
+						},
+					},
+				},
 			},
 
 			"express_vnet_integration": {
@@ -417,6 +448,33 @@ func resourceDataFactoryIntegrationRuntimeAzureSsis() *pluginsdk.Resource {
 				},
 			},
 
+			"pipeline_external_compute_scale": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"number_of_external_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 10),
+						},
+
+						"number_of_pipeline_nodes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 10),
+						},
+
+						"time_to_live": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(5),
+						},
+					},
+				},
+			},
+
 			"proxy": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -554,6 +612,14 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 		if err := d.Set("vnet_integration", flattenDataFactoryIntegrationRuntimeAzureSsisVnetIntegration(computeProps.VNetProperties)); err != nil {
 			return fmt.Errorf("setting `vnet_integration`: %+v", err)
 		}
+
+		if err := d.Set("copy_compute_scale", flattenDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(computeProps.CopyComputeScaleProperties)); err != nil {
+			return fmt.Errorf("setting `copy_compute_scale`: %+v", err)
+		}
+
+		if err := d.Set("pipeline_external_compute_scale", flattenDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScaleProperties(computeProps.PipelineExternalComputeScaleProperties)); err != nil {
+			return fmt.Errorf("setting `pipeline_external_compute_scale`: %+v", err)
+		}
 	}
 
 	if ssisProps := managedIntegrationRuntime.SsisProperties; ssisProps != nil {
@@ -562,6 +628,10 @@ func resourceDataFactoryIntegrationRuntimeAzureSsisRead(d *pluginsdk.ResourceDat
 
 		if err := d.Set("catalog_info", flattenDataFactoryIntegrationRuntimeAzureSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
 			return fmt.Errorf("setting `catalog_info`: %+v", err)
+		}
+
+		if err := d.Set("credential_name", flattenDataFactoryIntegrationRuntimeUserAssignedCredential(ssisProps.Credential)); err != nil {
+			return fmt.Errorf("setting `credential_name`: %+v", err)
 		}
 
 		if err := d.Set("custom_setup_script", flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
@@ -636,6 +706,44 @@ func expandDataFactoryIntegrationRuntimeAzureSsisComputeProperties(d *pluginsdk.
 		}
 	}
 
+	if copyComputeScales, ok := d.GetOk("copy_compute_scale"); ok && len(copyComputeScales.([]interface{})) > 0 {
+		copyComputeScale := copyComputeScales.([]interface{})[0].(map[string]interface{})
+		if v := copyComputeScale["data_integration_unit"].(int); v != 0 {
+			if computeProperties.CopyComputeScaleProperties == nil {
+				computeProperties.CopyComputeScaleProperties = &datafactory.CopyComputeScaleProperties{}
+			}
+			computeProperties.CopyComputeScaleProperties.DataIntegrationUnit = pointer.To(int32(copyComputeScale["data_integration_unit"].(int)))
+		}
+		if v := copyComputeScale["time_to_live"].(int); v != 0 {
+			if computeProperties.CopyComputeScaleProperties == nil {
+				computeProperties.CopyComputeScaleProperties = &datafactory.CopyComputeScaleProperties{}
+			}
+			computeProperties.CopyComputeScaleProperties.TimeToLive = pointer.To(int32(copyComputeScale["time_to_live"].(int)))
+		}
+	}
+
+	if pipelineExternalComputeScales, ok := d.GetOk("pipeline_external_compute_scale"); ok && len(pipelineExternalComputeScales.([]interface{})) > 0 {
+		pipelineExternalComputeScale := pipelineExternalComputeScales.([]interface{})[0].(map[string]interface{})
+		if v := pipelineExternalComputeScale["number_of_external_nodes"].(int); v != 0 {
+			if computeProperties.PipelineExternalComputeScaleProperties == nil {
+				computeProperties.PipelineExternalComputeScaleProperties = &datafactory.PipelineExternalComputeScaleProperties{}
+			}
+			computeProperties.PipelineExternalComputeScaleProperties.NumberOfExternalNodes = pointer.To(int32(pipelineExternalComputeScale["number_of_external_nodes"].(int)))
+		}
+		if v := pipelineExternalComputeScale["number_of_pipeline_nodes"].(int); v != 0 {
+			if computeProperties.PipelineExternalComputeScaleProperties == nil {
+				computeProperties.PipelineExternalComputeScaleProperties = &datafactory.PipelineExternalComputeScaleProperties{}
+			}
+			computeProperties.PipelineExternalComputeScaleProperties.NumberOfPipelineNodes = pointer.To(int32(pipelineExternalComputeScale["number_of_pipeline_nodes"].(int)))
+		}
+		if v := pipelineExternalComputeScale["time_to_live"].(int); v != 0 {
+			if computeProperties.PipelineExternalComputeScaleProperties == nil {
+				computeProperties.PipelineExternalComputeScaleProperties = &datafactory.PipelineExternalComputeScaleProperties{}
+			}
+			computeProperties.PipelineExternalComputeScaleProperties.TimeToLive = pointer.To(int32(pipelineExternalComputeScale["time_to_live"].(int)))
+		}
+	}
+
 	return &computeProperties
 }
 
@@ -646,6 +754,13 @@ func expandDataFactoryIntegrationRuntimeAzureSsisProperties(d *pluginsdk.Resourc
 		Edition:                      datafactory.IntegrationRuntimeEdition(d.Get("edition").(string)),
 		ExpressCustomSetupProperties: expandDataFactoryIntegrationRuntimeAzureSsisExpressCustomSetUp(d.Get("express_custom_setup").([]interface{})),
 		PackageStores:                expandDataFactoryIntegrationRuntimeAzureSsisPackageStore(d.Get("package_store").([]interface{})),
+	}
+
+	if credentialName := d.Get("credential_name"); credentialName.(string) != "" {
+		ssisProperties.Credential = &datafactory.CredentialReference{
+			ReferenceName: utils.String(credentialName.(string)),
+			Type:          utils.String("CredentialReference"),
+		}
 	}
 
 	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
@@ -937,6 +1052,14 @@ func flattenDataFactoryIntegrationRuntimeAzureSsisProxy(input *datafactory.Integ
 	}
 }
 
+func flattenDataFactoryIntegrationRuntimeUserAssignedCredential(credentialProperties *datafactory.CredentialReference) *string {
+	if credentialProperties == nil {
+		return nil
+	}
+
+	return credentialProperties.ReferenceName
+}
+
 func flattenDataFactoryIntegrationRuntimeAzureSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *pluginsdk.ResourceData) []interface{} {
 	if customSetupScriptProperties == nil {
 		return []interface{}{}
@@ -1116,6 +1239,31 @@ func flattenDataFactoryIntegrationRuntimeCustomerVnetIntegration(input *datafact
 	return []interface{}{
 		map[string]interface{}{
 			"subnet_id": subnetId,
+		},
+	}
+}
+
+func flattenDataFactoryIntegrationRuntimeAzureSsisPipelineExternalComputeScaleProperties(input *datafactory.PipelineExternalComputeScaleProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"number_of_external_nodes": pointer.From(input.NumberOfPipelineNodes),
+			"number_of_pipeline_nodes": pointer.From(input.NumberOfPipelineNodes),
+			"time_to_live":             pointer.From(input.TimeToLive),
+		},
+	}
+}
+
+func flattenDataFactoryIntegrationRuntimeAzureSsisCopyComputeScale(input *datafactory.CopyComputeScaleProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"data_integration_unit": pointer.From(input.DataIntegrationUnit),
+			"time_to_live":          pointer.From(input.TimeToLive),
 		},
 	}
 }

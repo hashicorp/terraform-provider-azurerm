@@ -19,7 +19,8 @@ type EnvironmentTypesListByDevCenterOperationResponse struct {
 }
 
 type EnvironmentTypesListByDevCenterCompleteResult struct {
-	Items []EnvironmentType
+	LatestHttpResponse *http.Response
+	Items              []EnvironmentType
 }
 
 type EnvironmentTypesListByDevCenterOperationOptions struct {
@@ -111,7 +112,8 @@ func (c EnvironmentTypesClient) EnvironmentTypesListByDevCenterCompleteMatchingP
 	}
 
 	result = EnvironmentTypesListByDevCenterCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

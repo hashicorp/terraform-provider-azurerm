@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceArmLoadBalancer() *pluginsdk.Resource {
@@ -113,10 +113,11 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	id := loadbalancers.NewLoadBalancerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: subscriptionId, ResourceGroupName: id.ResourceGroupName, LoadBalancerName: id.LoadBalancerName}
+	resp, err := client.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -124,43 +125,48 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
-	}
 
-	privateIpAddress := ""
-	privateIpAddresses := make([]string, 0)
-	frontendIpConfigurations := make([]interface{}, 0)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", string(pointer.From(sku.Name)))
+		}
 
-	if props := resp.LoadBalancerPropertiesFormat; props != nil {
-		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
-			frontendIpConfigurations = flattenLoadBalancerDataSourceFrontendIpConfiguration(feipConfigs)
+		privateIpAddress := ""
+		privateIpAddresses := make([]string, 0)
+		frontendIpConfigurations := make([]interface{}, 0)
 
-			for _, config := range *feipConfigs {
-				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
-					if ip := feipProps.PrivateIPAddress; ip != nil {
-						if privateIpAddress == "" {
-							privateIpAddress = *feipProps.PrivateIPAddress
+		if props := model.Properties; props != nil {
+			if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
+				frontendIpConfigurations = flattenLoadBalancerDataSourceFrontendIpConfiguration(feipConfigs)
+				for _, config := range *feipConfigs {
+					if feipProps := config.Properties; feipProps != nil {
+						if ip := feipProps.PrivateIPAddress; ip != nil {
+							if privateIpAddress == "" {
+								privateIpAddress = pointer.From(ip)
+							}
+
+							privateIpAddresses = append(privateIpAddresses, pointer.From(ip))
 						}
-
-						privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
 					}
 				}
 			}
 		}
+
+		if err := d.Set("frontend_ip_configuration", frontendIpConfigurations); err != nil {
+			return fmt.Errorf("flattening `frontend_ip_configuration`: %+v", err)
+		}
+		d.Set("private_ip_address", privateIpAddress)
+		d.Set("private_ip_addresses", privateIpAddresses)
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	if err := d.Set("frontend_ip_configuration", frontendIpConfigurations); err != nil {
-		return fmt.Errorf("flattening `frontend_ip_configuration`: %+v", err)
-	}
-	d.Set("private_ip_address", privateIpAddress)
-	d.Set("private_ip_addresses", privateIpAddresses)
+	return nil
 
-	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {
+func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]loadbalancers.FrontendIPConfiguration) []interface{} {
 	result := make([]interface{}, 0)
 	if ipConfigs == nil {
 		return result
@@ -173,8 +179,8 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 		}
 
 		id := ""
-		if config.ID != nil {
-			id = *config.ID
+		if config.Id != nil {
+			id = *config.Id
 		}
 
 		privateIpAddress := ""
@@ -182,23 +188,18 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 		privateIpAddressVersion := ""
 		publicIpAddressId := ""
 		subnetId := ""
-		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
-			privateIpAddressAllocation = string(props.PrivateIPAllocationMethod)
+		if props := config.Properties; props != nil {
+			privateIpAddressAllocation = string(pointer.From(props.PrivateIPAllocationMethod))
 
-			if subnet := props.Subnet; subnet != nil && subnet.ID != nil {
-				subnetId = *subnet.ID
+			if subnet := props.Subnet; subnet != nil {
+				subnetId = pointer.From(subnet.Id)
 			}
 
-			if pip := props.PrivateIPAddress; pip != nil {
-				privateIpAddress = *pip
-			}
+			privateIpAddress = pointer.From(props.PrivateIPAddress)
+			privateIpAddressVersion = string(pointer.From(props.PrivateIPAddressVersion))
 
-			if props.PrivateIPAddressVersion != "" {
-				privateIpAddressVersion = string(props.PrivateIPAddressVersion)
-			}
-
-			if pip := props.PublicIPAddress; pip != nil && pip.ID != nil {
-				publicIpAddressId = *pip.ID
+			if pip := props.PublicIPAddress; pip != nil {
+				publicIpAddressId = pointer.From(pip.Id)
 			}
 		}
 

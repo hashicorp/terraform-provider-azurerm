@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ScopedBlueprintAssignmentId{}
+func init() {
+	recaser.RegisterResourceId(&ScopedBlueprintAssignmentId{})
+}
+
+var _ resourceids.ResourceId = &ScopedBlueprintAssignmentId{}
 
 // ScopedBlueprintAssignmentId is a struct representing the Resource ID for a Scoped Blueprint Assignment
 type ScopedBlueprintAssignmentId struct {
@@ -28,7 +33,7 @@ func NewScopedBlueprintAssignmentID(resourceScope string, blueprintAssignmentNam
 
 // ParseScopedBlueprintAssignmentID parses 'input' into a ScopedBlueprintAssignmentId
 func ParseScopedBlueprintAssignmentID(input string) (*ScopedBlueprintAssignmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedBlueprintAssignmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedBlueprintAssignmentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -45,7 +50,7 @@ func ParseScopedBlueprintAssignmentID(input string) (*ScopedBlueprintAssignmentI
 // ParseScopedBlueprintAssignmentIDInsensitively parses 'input' case-insensitively into a ScopedBlueprintAssignmentId
 // note: this method should only be used for API response data and not user input
 func ParseScopedBlueprintAssignmentIDInsensitively(input string) (*ScopedBlueprintAssignmentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ScopedBlueprintAssignmentId{})
+	parser := resourceids.NewParserFromResourceIdType(&ScopedBlueprintAssignmentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

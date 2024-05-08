@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ProviderId{}
+func init() {
+	recaser.RegisterResourceId(&ProviderId{})
+}
+
+var _ resourceids.ResourceId = &ProviderId{}
 
 // ProviderId is a struct representing the Resource ID for a Provider
 type ProviderId struct {
@@ -26,7 +31,7 @@ func NewProviderID(providerName string) ProviderId {
 
 // ParseProviderID parses 'input' into a ProviderId
 func ParseProviderID(input string) (*ProviderId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -43,7 +48,7 @@ func ParseProviderID(input string) (*ProviderId, error) {
 // ParseProviderIDInsensitively parses 'input' case-insensitively into a ProviderId
 // note: this method should only be used for API response data and not user input
 func ParseProviderIDInsensitively(input string) (*ProviderId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ProviderId{})
+	parser := resourceids.NewParserFromResourceIdType(&ProviderId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

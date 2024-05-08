@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -130,7 +130,7 @@ func TestAccKustoClusterCustomerManagedKey_userIdentity(t *testing.T) {
 }
 
 func (KustoClusterCustomerManagedKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := clusters.ParseClusterID(state.ID)
+	id, err := commonids.ParseKustoClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ resource "azurerm_key_vault_access_policy" "cluster" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {

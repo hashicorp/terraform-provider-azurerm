@@ -19,7 +19,8 @@ type ListByBatchAccountOperationResponse struct {
 }
 
 type ListByBatchAccountCompleteResult struct {
-	Items []Pool
+	LatestHttpResponse *http.Response
+	Items              []Pool
 }
 
 type ListByBatchAccountOperationOptions struct {
@@ -119,7 +120,8 @@ func (c PoolClient) ListByBatchAccountCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = ListByBatchAccountCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

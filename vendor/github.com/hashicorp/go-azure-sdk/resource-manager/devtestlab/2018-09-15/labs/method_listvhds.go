@@ -19,7 +19,8 @@ type ListVhdsOperationResponse struct {
 }
 
 type ListVhdsCompleteResult struct {
-	Items []LabVhd
+	LatestHttpResponse *http.Response
+	Items              []LabVhd
 }
 
 // ListVhds ...
@@ -83,7 +84,8 @@ func (c LabsClient) ListVhdsCompleteMatchingPredicate(ctx context.Context, id La
 	}
 
 	result = ListVhdsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

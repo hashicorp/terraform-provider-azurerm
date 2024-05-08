@@ -114,6 +114,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `minimal_tls_version` - (Optional) Specifies the minimal TLS version for the CosmosDB account. Possible values are: `Tls`, `Tls11`, and `Tls12`. Defaults to `Tls12`.
+
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account; currently, this can only be set to `Standard`.
 
 * `analytical_storage` - (Optional) An `analytical_storage` block as defined below.
@@ -122,11 +124,11 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The creation mode for the CosmosDB Account. Possible values are `Default` and `Restore`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `create_mode` only works when `backup.type` is `Continuous`.
+~> **Note:** `create_mode` can only be defined when the `backup.type` is set to `Continuous`.
 
 * `default_identity_type` - (Optional) The default identity for accessing Key Vault. Possible values are `FirstPartyIdentity`, `SystemAssignedIdentity` or `UserAssignedIdentity`. Defaults to `FirstPartyIdentity`.
 
-~> **NOTE:** When `default_identity_type` is a `UserAssignedIdentity` it must include the User Assigned Identity ID in the following format: `UserAssignedIdentity=/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{userAssignedIdentityName}`.
+~> **Note:** When `default_identity_type` is a `UserAssignedIdentity` it must include the User Assigned Identity ID in the following format: `UserAssignedIdentity=/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{userAssignedIdentityName}`.
 
 * `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB`, `MongoDB` and `Parse`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
@@ -136,15 +138,17 @@ The following arguments are supported:
 
 * `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
 
-~> **NOTE:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
+~> **Note:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
 
-~> **NOTE:** To enable the "Accept connections from within public Azure datacenters" behavior, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
+~> **Note:** To enable the "Accept connections from within public Azure datacenters" behavior, you should add `0.0.0.0` to the list, see the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure) for more details.
 
-* `enable_free_tier` - (Optional) Enable the Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
+* `free_tier_enabled` - (Optional) Enable the Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `analytical_storage_enabled` - (Optional) Enable Analytical Storage option for this Cosmos DB account. Defaults to `false`. Enabling and then disabling analytical storage forces a new resource to be created.
 
-* `enable_automatic_failover` - (Optional) Enable automatic failover for this Cosmos DB account.
+* `automatic_failover_enabled` - (Optional) Enable automatic failover for this Cosmos DB account.
+
+* `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 
@@ -154,13 +158,13 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) A versionless Key Vault Key ID for CMK encryption. Changing this forces a new resource to be created.
 
-~> **NOTE:** When referencing an `azurerm_key_vault_key` resource, use `versionless_id` instead of `id`
+~> **Note:** When referencing an `azurerm_key_vault_key` resource, use `versionless_id` instead of `id`
 
-~> **NOTE:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
+~> **Note:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rule` block as defined below, used to define which subnets are allowed to access this CosmosDB account.
 
-* `enable_multiple_write_locations` - (Optional) Enable multiple write locations for this Cosmos DB account.
+* `multiple_write_locations_enabled` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
@@ -180,7 +184,7 @@ The following arguments are supported:
 
 * `restore` - (Optional) A `restore` block as defined below.
 
-~> **NOTE:** `restore` should be set when `create_mode` is `Restore`.
+~> **Note:** `restore` should be set when `create_mode` is `Restore`.
 
 ---
 
@@ -192,7 +196,7 @@ The `consistency_policy` block Configures the database consistency and supports 
   
 * `max_staleness_prefix` - (Optional) When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. The accepted range for this value is `10` – `2147483647`. Defaults to `100`. Required when `consistency_level` is set to `BoundedStaleness`.
 
-~> **Note:** `max_interval_in_seconds` and `max_staleness_prefix` can only be set to custom values when `consistency_level` is set to `BoundedStaleness` - otherwise they will return the default values shown above.
+~> **Note:** `max_interval_in_seconds` and `max_staleness_prefix` can only be set to values other than default when the `consistency_level` is set to `BoundedStaleness`.
 
 ---
 
@@ -210,11 +214,11 @@ A `capabilities` block Configures the capabilities to be enabled for this Cosmos
 
 * `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnablePartialUniqueIndex`, `EnableServerless`, `EnableTable`, `EnableTtlOnCustomPath`, `EnableUniqueCompoundNestedDocs`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
-~> **NOTE:** Setting `MongoDBv3.4` also requires setting `EnableMongo`. 
+~> **Note:** Setting `MongoDBv3.4` also requires setting `EnableMongo`. 
 
-~> **NOTE:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath` and `EnablePartialUniqueIndex` can be added to an existing Cosmos DB account.
+~> **Note:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath` and `EnablePartialUniqueIndex` can be added to an existing Cosmos DB account.
 
-~> **NOTE:** Only `DisableRateLimitingResponses` and `EnableMongoRetryableWrites` can be removed from an existing Cosmos DB account.
+~> **Note:** Only `DisableRateLimitingResponses` and `EnableMongoRetryableWrites` can be removed from an existing Cosmos DB account.
 
 ---
 
@@ -239,13 +243,19 @@ A `capacity` block supports the following:
 
 A `backup` block supports the following:
 
-* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. Migration of `Periodic` to `Continuous` is one-way, changing `Continuous` to `Periodic` forces a new resource to be created.
+* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. 
 
-* `interval_in_minutes` - (Optional) The interval in minutes between two backups. This is configurable only when `type` is `Periodic`. Possible values are between 60 and 1440.
+~> **Note:** Migration of `Periodic` to `Continuous` is one-way, changing `Continuous` to `Periodic` forces a new resource to be created.
 
-* `retention_in_hours` - (Optional) The time in hours that each backup is retained. This is configurable only when `type` is `Periodic`. Possible values are between 8 and 720.
+* `tier` - (Optional) The continuous backup tier. Possible values are `Continuous7Days` and `Continuous30Days`.
 
-* `storage_redundancy` - (Optional) The storage redundancy is used to indicate the type of backup residency. This is configurable only when `type` is `Periodic`. Possible values are `Geo`, `Local` and `Zone`.
+* `interval_in_minutes` - (Optional) The interval in minutes between two backups. Possible values are between 60 and 1440. Defaults to `240`.
+
+* `retention_in_hours` - (Optional) The time in hours that each backup is retained. Possible values are between 8 and 720. Defaults to `8`.
+
+* `storage_redundancy` - (Optional) The storage redundancy is used to indicate the type of backup residency. Possible values are `Geo`, `Local` and `Zone`. Defaults to `Geo`.
+
+~> **Note:** You can only configure `interval_in_minutes`, `retention_in_hours` and `storage_redundancy` when the `type` field is set to `Periodic`.
 
 ---
 
@@ -275,11 +285,15 @@ A `restore` block supports the following:
 
 * `source_cosmosdb_account_id` - (Required) The resource ID of the restorable database account from which the restore has to be initiated. The example is `/subscriptions/{subscriptionId}/providers/Microsoft.DocumentDB/locations/{location}/restorableDatabaseAccounts/{restorableDatabaseAccountName}`. Changing this forces a new resource to be created.
 
-~> **NOTE:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) is a restorable database account and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
+~> **Note:** Any database account with `Continuous` type (live account or accounts deleted in last 30 days) is a restorable database account and there cannot be Create/Update/Delete operations on the restorable database accounts. They can only be read and retrieved by `azurerm_cosmosdb_restorable_database_accounts`.
 
 * `restore_timestamp_in_utc` - (Required) The creation time of the database or the collection (Datetime Format `RFC 3339`). Changing this forces a new resource to be created.
 
 * `database` - (Optional) A `database` block as defined below. Changing this forces a new resource to be created.
+
+* `gremlin_database` - (Optional) One or more `gremlin_database` blocks as defined below. Changing this forces a new resource to be created.
+
+* `tables_to_restore` - (Optional) A list of specific tables available for restore. Changing this forces a new resource to be created.
 
 ---
 
@@ -288,6 +302,14 @@ A `database` block supports the following:
 * `name` - (Required) The database name for the restore request. Changing this forces a new resource to be created.
 
 * `collection_names` - (Optional) A list of the collection names for the restore request. Changing this forces a new resource to be created.
+
+---
+
+A `gremlin_database` block supports the following:
+
+* `name` - (Required) The Gremlin Database name for the restore request. Changing this forces a new resource to be created.
+
+* `graph_names` - (Optional) A list of the Graph names for the restore request. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -308,8 +330,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `primary_readonly_key` - The Primary read-only Key for the CosmosDB Account.
 
 * `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
-
-* `connection_strings` - A list of connection strings available for this CosmosDB account.
 
 * `primary_sql_connection_string` - Primary SQL connection string for the CosmosDB Account.
 

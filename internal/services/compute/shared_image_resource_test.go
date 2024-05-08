@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SharedImageResource struct{}
@@ -34,7 +34,7 @@ func TestAccSharedImage_basic(t *testing.T) {
 	})
 }
 
-func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
+func TestAccSharedImage_basicHyperVGenerationV2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -50,7 +50,7 @@ func TestAccSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
 	})
 }
 
-func TestAccSharedImage_basic_Arm(t *testing.T) {
+func TestAccSharedImage_basicArmArchitecture(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	r := SharedImageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -324,17 +324,17 @@ func TestAccSharedImage_recommended(t *testing.T) {
 }
 
 func (t SharedImageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.SharedImageID(state.ID)
+	id, err := galleryimages.ParseGalleryImageID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.GalleryImagesClient.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
+	resp, err := clients.Compute.GalleryImagesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Shared Image %q", id.String())
+		return nil, fmt.Errorf("retrieving %s", id)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SharedImageResource) basic(data acceptance.TestData) string {

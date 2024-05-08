@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package mssql
 
 import (
@@ -9,13 +12,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/availabilitygrouplisteners"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	lbParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	lbValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	sqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -115,7 +117,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: lbValidate.LoadBalancerID,
+						ValidateFunc: loadbalancers.ValidateLoadBalancerID,
 					},
 
 					"private_ip_address": {
@@ -392,7 +394,7 @@ func expandMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguration
 
 		parsedLbId := ""
 		if lb.LoadBalancerId != "" {
-			id, err := lbParse.LoadBalancerID(lb.LoadBalancerId)
+			id, err := loadbalancers.ParseLoadBalancerID(lb.LoadBalancerId)
 			if err != nil {
 				return nil, err
 			}
@@ -461,7 +463,7 @@ func flattenMsSqlVirtualMachineAvailabilityGroupListenerLoadBalancerConfiguratio
 
 		loadBalancerId := ""
 		if lbConfig.LoadBalancerResourceId != nil {
-			id, err := lbParse.LoadBalancerID(pointer.From(lbConfig.LoadBalancerResourceId))
+			id, err := loadbalancers.ParseLoadBalancerIDInsensitively(pointer.From(lbConfig.LoadBalancerResourceId))
 			if err != nil {
 				return nil, err
 			}

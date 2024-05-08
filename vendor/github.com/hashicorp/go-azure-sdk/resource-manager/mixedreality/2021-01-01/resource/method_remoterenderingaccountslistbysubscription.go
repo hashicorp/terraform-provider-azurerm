@@ -20,7 +20,8 @@ type RemoteRenderingAccountsListBySubscriptionOperationResponse struct {
 }
 
 type RemoteRenderingAccountsListBySubscriptionCompleteResult struct {
-	Items []RemoteRenderingAccount
+	LatestHttpResponse *http.Response
+	Items              []RemoteRenderingAccount
 }
 
 // RemoteRenderingAccountsListBySubscription ...
@@ -84,7 +85,8 @@ func (c ResourceClient) RemoteRenderingAccountsListBySubscriptionCompleteMatchin
 	}
 
 	result = RemoteRenderingAccountsListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

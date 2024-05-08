@@ -12,8 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/connectionmonitors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/connectionmonitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -175,6 +176,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 							workspaces.ValidateWorkspaceID,
 							commonids.ValidateSubnetID,
 							commonids.ValidateVirtualNetworkID,
+							machines.ValidateMachineID,
 						),
 					},
 
@@ -182,6 +184,7 @@ func resourceNetworkConnectionMonitorSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
+							string(connectionmonitors.EndpointTypeAzureArcVM),
 							string(connectionmonitors.EndpointTypeAzureSubnet),
 							string(connectionmonitors.EndpointTypeAzureVM),
 							string(connectionmonitors.EndpointTypeAzureVNet),

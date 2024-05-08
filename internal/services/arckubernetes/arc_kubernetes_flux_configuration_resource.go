@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,11 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
 )
 
 const (
@@ -570,7 +570,7 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				properties.Properties.Bucket, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
 			} else if _, exists = metadata.ResourceData.GetOk("blob_storage"); exists {
 				properties.Properties.SourceKind = pointer.To(fluxconfiguration.SourceKindTypeAzureBlob)
-				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
@@ -624,7 +624,7 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 
 			properties.Properties.ConfigurationProtectedSettings = nil
 			if metadata.ResourceData.HasChange("blob_storage") {
-				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage)
+				azureBlob, err := expandArcAzureBlobDefinitionModel(model.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 				if err != nil {
 					return fmt.Errorf("expanding `blob_storage`: %+v", err)
 				}
@@ -663,6 +663,12 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("continuous_reconciliation_enabled") {
 				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
+			}
+
+			if properties.Properties.ConfigurationProtectedSettings == nil {
+				if err := setConfigurationProtectedSettings(metadata, model, properties); err != nil {
+					return err
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
@@ -711,7 +717,7 @@ func (r ArcKubernetesFluxConfigurationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					blobStorage, err := flattenArcAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage)
+					blobStorage, err := flattenArcAzureBlobDefinitionModel(properties.AzureBlob, configModel.BlobStorage, metadata.Client.Storage.StorageDomainSuffix)
 					if err != nil {
 						return fmt.Errorf("flattening `blob_storage`: %+v", err)
 					}
@@ -756,7 +762,7 @@ func (r ArcKubernetesFluxConfigurationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*fluxconfiguration.AzureBlobDefinition, error) {
+func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel, storageDomainSuffix string) (*fluxconfiguration.AzureBlobDefinition, error) {
 	if len(inputList) == 0 {
 		return nil, nil
 	}
@@ -772,13 +778,13 @@ func expandArcAzureBlobDefinitionModel(inputList []AzureBlobDefinitionModel) (*f
 	}
 
 	if input.ContainerID != "" {
-		id, err := parse.StorageContainerDataPlaneID(input.ContainerID)
+		id, err := containers.ParseContainerID(input.ContainerID, storageDomainSuffix)
 		if err != nil {
 			return nil, err
 		}
 
-		output.ContainerName = &id.Name
-		output.Url = pointer.To(strings.TrimSuffix(input.ContainerID, "/"+id.Name))
+		output.ContainerName = &id.ContainerName
+		output.Url = pointer.To(id.AccountId.ID())
 	}
 
 	if input.LocalAuthRef != "" {
@@ -963,16 +969,18 @@ func expandRepositoryRefDefinitionModel(referenceType string, referenceValue str
 	return &output, nil
 }
 
-func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel) ([]AzureBlobDefinitionModel, error) {
+func flattenArcAzureBlobDefinitionModel(input *fluxconfiguration.AzureBlobDefinition, azureBlob []AzureBlobDefinitionModel, storageDomainSuffix string) ([]AzureBlobDefinitionModel, error) {
 	outputList := make([]AzureBlobDefinitionModel, 0)
 	if input == nil {
 		return outputList, nil
 	}
 
-	id, err := parse.StorageContainerDataPlaneID(fmt.Sprintf("%s/%s", pointer.From(input.Url), pointer.From(input.ContainerName)))
+	accountId, err := accounts.ParseAccountID(pointer.From(input.Url), storageDomainSuffix)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing account %q: %+v", pointer.From(input.Url), err)
 	}
+
+	id := containers.NewContainerID(*accountId, pointer.From(input.ContainerName))
 
 	output := AzureBlobDefinitionModel{
 		ContainerID:           id.ID(),
@@ -1130,5 +1138,18 @@ func validateArcKubernetesFluxConfigurationModel(model *ArcKubernetesFluxConfigu
 		allKeys[k.Name] = true
 	}
 
+	return nil
+}
+
+func setConfigurationProtectedSettings(metadata sdk.ResourceMetaData, model ArcKubernetesFluxConfigurationModel, properties *fluxconfiguration.FluxConfiguration) error {
+	if _, exists := metadata.ResourceData.GetOk("git_repository"); exists {
+		_, configurationProtectedSettings, err := expandGitRepositoryDefinitionModel(model.GitRepository)
+		if err != nil {
+			return err
+		}
+		properties.Properties.ConfigurationProtectedSettings = configurationProtectedSettings
+	} else if _, exists = metadata.ResourceData.GetOk("bucket"); exists {
+		_, properties.Properties.ConfigurationProtectedSettings = expandBucketDefinitionModel(model.Bucket)
+	}
 	return nil
 }

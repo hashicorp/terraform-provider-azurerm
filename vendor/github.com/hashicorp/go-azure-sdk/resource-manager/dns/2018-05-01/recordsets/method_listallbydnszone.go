@@ -19,7 +19,8 @@ type ListAllByDnsZoneOperationResponse struct {
 }
 
 type ListAllByDnsZoneCompleteResult struct {
-	Items []RecordSet
+	LatestHttpResponse *http.Response
+	Items              []RecordSet
 }
 
 type ListAllByDnsZoneOperationOptions struct {
@@ -115,7 +116,8 @@ func (c RecordSetsClient) ListAllByDnsZoneCompleteMatchingPredicate(ctx context.
 	}
 
 	result = ListAllByDnsZoneCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

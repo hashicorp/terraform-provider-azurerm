@@ -226,6 +226,11 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
+					"reimage_on_manual_upgrade": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
 					"roll_instances_when_required": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -277,6 +282,55 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"prevent_cancellation_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"postgresql_flexible_server": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"restart_server_on_configuration_value_change": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
+		"machine_learning": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"purge_soft_deleted_workspace_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"recovery_service": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"vm_backup_stop_protection_and_retain_data_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"purge_protected_items_from_vault_on_destroy": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -439,6 +493,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			scaleSetRaw := items[0].(map[string]interface{})
+			if v, ok := scaleSetRaw["reimage_on_manual_upgrade"]; ok {
+				featuresMap.VirtualMachineScaleSet.ReimageOnManualUpgrade = v.(bool)
+			}
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
 				featuresMap.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
 			}
@@ -477,6 +534,39 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			subscriptionRaw := items[0].(map[string]interface{})
 			if v, ok := subscriptionRaw["prevent_cancellation_on_destroy"]; ok {
 				featuresMap.Subscription.PreventCancellationOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["postgresql_flexible_server"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			subscriptionRaw := items[0].(map[string]interface{})
+			if v, ok := subscriptionRaw["restart_server_on_configuration_value_change"]; ok {
+				featuresMap.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["machine_learning"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			subscriptionRaw := items[0].(map[string]interface{})
+			if v, ok := subscriptionRaw["purge_soft_deleted_workspace_on_destroy"]; ok {
+				featuresMap.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["recovery_service"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			recoveryServicesRaw := items[0].(map[string]interface{})
+			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
+			}
+			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
+				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
 			}
 		}
 	}

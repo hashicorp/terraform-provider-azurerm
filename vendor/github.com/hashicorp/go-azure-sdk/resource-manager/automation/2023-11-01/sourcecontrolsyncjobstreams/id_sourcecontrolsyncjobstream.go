@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SourceControlSyncJobStreamId{}
+func init() {
+	recaser.RegisterResourceId(&SourceControlSyncJobStreamId{})
+}
+
+var _ resourceids.ResourceId = &SourceControlSyncJobStreamId{}
 
 // SourceControlSyncJobStreamId is a struct representing the Resource ID for a Source Control Sync Job Stream
 type SourceControlSyncJobStreamId struct {
@@ -36,7 +41,7 @@ func NewSourceControlSyncJobStreamID(subscriptionId string, resourceGroupName st
 
 // ParseSourceControlSyncJobStreamID parses 'input' into a SourceControlSyncJobStreamId
 func ParseSourceControlSyncJobStreamID(input string) (*SourceControlSyncJobStreamId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SourceControlSyncJobStreamId{})
+	parser := resourceids.NewParserFromResourceIdType(&SourceControlSyncJobStreamId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -53,7 +58,7 @@ func ParseSourceControlSyncJobStreamID(input string) (*SourceControlSyncJobStrea
 // ParseSourceControlSyncJobStreamIDInsensitively parses 'input' case-insensitively into a SourceControlSyncJobStreamId
 // note: this method should only be used for API response data and not user input
 func ParseSourceControlSyncJobStreamIDInsensitively(input string) (*SourceControlSyncJobStreamId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SourceControlSyncJobStreamId{})
+	parser := resourceids.NewParserFromResourceIdType(&SourceControlSyncJobStreamId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

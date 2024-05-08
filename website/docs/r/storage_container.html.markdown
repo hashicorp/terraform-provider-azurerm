@@ -47,6 +47,12 @@ The following arguments are supported:
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
+~> **Note** When updating `container_access_type` for an existing storage container resource, Shared Key authentication will always be used, as AzureAD authentication is not supported.
+
+* `default_encryption_scope` - (Optional) The default encryption scope to use for blobs uploaded to this container. Changing this forces a new resource to be created.
+
+* `encryption_scope_override_enabled` - (Optional) Whether to allow blobs to override the default encryption scope for this container. Can only be set when specifying `default_encryption_scope`. Defaults to `true`. Changing this forces a new resource to be created.
+
 * `metadata` - (Optional) A mapping of MetaData for this Container. All metadata keys should be lowercase.
 
 ## Attributes Reference

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EdgeModuleId{}
+func init() {
+	recaser.RegisterResourceId(&EdgeModuleId{})
+}
+
+var _ resourceids.ResourceId = &EdgeModuleId{}
 
 // EdgeModuleId is a struct representing the Resource ID for a Edge Module
 type EdgeModuleId struct {
@@ -32,7 +37,7 @@ func NewEdgeModuleID(subscriptionId string, resourceGroupName string, videoAnaly
 
 // ParseEdgeModuleID parses 'input' into a EdgeModuleId
 func ParseEdgeModuleID(input string) (*EdgeModuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EdgeModuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&EdgeModuleId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseEdgeModuleID(input string) (*EdgeModuleId, error) {
 // ParseEdgeModuleIDInsensitively parses 'input' case-insensitively into a EdgeModuleId
 // note: this method should only be used for API response data and not user input
 func ParseEdgeModuleIDInsensitively(input string) (*EdgeModuleId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EdgeModuleId{})
+	parser := resourceids.NewParserFromResourceIdType(&EdgeModuleId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

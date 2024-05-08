@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []ApiManagementServiceResource
+	LatestHttpResponse *http.Response
+	Items              []ApiManagementServiceResource
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c ApiManagementServiceClient) ListByResourceGroupCompleteMatchingPredicate
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

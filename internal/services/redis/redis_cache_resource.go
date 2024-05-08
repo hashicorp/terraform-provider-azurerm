@@ -54,10 +54,10 @@ func resourceRedisCache() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(180 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(180 * time.Minute),
 		},
 
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -179,6 +179,16 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"data_persistence_authentication_method": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  "SAS",
+							ValidateFunc: validation.StringInSlice([]string{
+								"SAS",
+								"ManagedIdentity",
+							}, false),
+						},
+
 						"rdb_backup_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -227,6 +237,11 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
+						},
+						"storage_account_subscription_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
 						},
 					},
 				},
@@ -825,19 +840,16 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		output.MaxmemoryPolicy = utils.String(v)
 	}
 
+	if v := raw["data_persistence_authentication_method"].(string); v != "" {
+		output.PreferredDataPersistenceAuthMethod = utils.String(v)
+	}
+
 	// AAD/Entra support
 	// nolint : staticcheck
 	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
-
-		// active_directory_authentication_enabled is available when SKU is Premium
-		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-
-			output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
-		} else if entraEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-			return nil, fmt.Errorf("The `active_directory_authentication_enabled` property requires a `Premium` sku to be set")
-		}
+		output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
 	}
 
 	// RDB Backup
@@ -872,7 +884,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	if v := raw["notify_keyspace_events"].(string); v != "" {
-		output.NotifyKeyspaceEvents = utils.String(v)
+		output.NotifyKeyspaceEvents = pointer.To(v)
 	}
 
 	// AOF Backup
@@ -901,6 +913,10 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	} else {
 		value := isAuthNotRequiredAsString(authEnabled)
 		output.Authnotrequired = utils.String(value)
+	}
+
+	if v := raw["storage_account_subscription_id"].(string); v != "" {
+		output.StorageSubscriptionId = pointer.To(v)
 	}
 	return output, nil
 }
@@ -991,6 +1007,10 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 		outputs["maxmemory_policy"] = *input.MaxmemoryPolicy
 	}
 
+	if input.PreferredDataPersistenceAuthMethod != nil {
+		outputs["data_persistence_authentication_method"] = *input.PreferredDataPersistenceAuthMethod
+	}
+
 	if input.MaxfragmentationmemoryReserved != nil {
 		i, err := strconv.Atoi(*input.MaxfragmentationmemoryReserved)
 		if err != nil {
@@ -1024,9 +1044,7 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 	if input.RdbStorageConnectionString != nil {
 		outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
 	}
-	if v := input.NotifyKeyspaceEvents; v != nil {
-		outputs["notify_keyspace_events"] = v
-	}
+	outputs["notify_keyspace_events"] = pointer.From(input.NotifyKeyspaceEvents)
 
 	if v := input.AofBackupEnabled; v != nil {
 		b, err := strconv.ParseBool(*v)
@@ -1047,6 +1065,8 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 	if v := input.Authnotrequired; v != nil {
 		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
 	}
+
+	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)
 
 	return []interface{}{outputs}, nil
 }

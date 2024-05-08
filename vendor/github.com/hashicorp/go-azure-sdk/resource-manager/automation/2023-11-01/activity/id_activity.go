@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ActivityId{}
+func init() {
+	recaser.RegisterResourceId(&ActivityId{})
+}
+
+var _ resourceids.ResourceId = &ActivityId{}
 
 // ActivityId is a struct representing the Resource ID for a Activity
 type ActivityId struct {
@@ -34,7 +39,7 @@ func NewActivityID(subscriptionId string, resourceGroupName string, automationAc
 
 // ParseActivityID parses 'input' into a ActivityId
 func ParseActivityID(input string) (*ActivityId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ActivityId{})
+	parser := resourceids.NewParserFromResourceIdType(&ActivityId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseActivityID(input string) (*ActivityId, error) {
 // ParseActivityIDInsensitively parses 'input' case-insensitively into a ActivityId
 // note: this method should only be used for API response data and not user input
 func ParseActivityIDInsensitively(input string) (*ActivityId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ActivityId{})
+	parser := resourceids.NewParserFromResourceIdType(&ActivityId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

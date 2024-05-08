@@ -150,6 +150,21 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_aadAuth(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_userAssignedManagedCredentials(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedManagedCredentials(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactoryIntegrationRuntimeManagedSsis_expressVnetInjection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
 	r := IntegrationRuntimeManagedSsisResource{}
@@ -177,6 +192,50 @@ func TestAccDataFactoryIntegrationRuntimeManagedSsis_withElasticPool(t *testing.
 			),
 		},
 		data.ImportStep("catalog_info.0.administrator_password"),
+	})
+}
+
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_computeScale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.computeScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryIntegrationRuntimeManagedSsis_computeScaleUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_azure_ssis", "test")
+	r := IntegrationRuntimeManagedSsisResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.computeScale(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -844,6 +903,111 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (IntegrationRuntimeManagedSsisResource) userAssignedManagedCredentials(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "testuser%d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+
+resource "azurerm_data_factory_credential_user_managed_identity" "test" {
+  name            = "credential%d"
+  data_factory_id = azurerm_data_factory.test.id
+  identity_id     = azurerm_user_assigned_identity.test.id
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsql%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "ssis_catalog_admin"
+  administrator_login_password = "my-s3cret-p4ssword!"
+}
+
+resource "azurerm_sql_active_directory_administrator" "test" {
+  server_name         = azurerm_sql_server.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  login               = azurerm_data_factory.test.name
+  tenant_id           = azurerm_user_assigned_identity.test.tenant_id
+  object_id           = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
+  name            = "managed-integration-runtime-%d"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
+  credential_name = azurerm_data_factory_credential_user_managed_identity.test.name
+
+  catalog_info {
+    server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name
+    pricing_tier    = "Basic"
+  }
+
+  depends_on = [azurerm_sql_active_directory_administrator.test]
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (IntegrationRuntimeManagedSsisResource) computeScale(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
+  name            = "acctestir%[2]d"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
+
+  copy_compute_scale {
+    data_integration_unit = 8
+    time_to_live          = 6
+  }
+
+  pipeline_external_compute_scale {
+    number_of_external_nodes = 6
+    number_of_pipeline_nodes = 6
+    time_to_live             = 8
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2023-09-01-preview/appplatform"
+	appplatform2 "github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
@@ -15,7 +15,6 @@ type Client struct {
 	AppPlatformClient *appplatform2.AppPlatformClient
 
 	// TODO: convert to using hashicorp/go-azure-sdk
-	APIPortalClient              *appplatform.APIPortalsClient
 	APIPortalCustomDomainClient  *appplatform.APIPortalCustomDomainsClient
 	ApplicationAcceleratorClient *appplatform.ApplicationAcceleratorsClient
 	ApplicationLiveViewsClient   *appplatform.ApplicationLiveViewsClient
@@ -27,11 +26,9 @@ type Client struct {
 	BuildServiceClient           *appplatform.BuildServiceClient
 	CertificatesClient           *appplatform.CertificatesClient
 	ConfigServersClient          *appplatform.ConfigServersClient
-	ConfigurationServiceClient   *appplatform.ConfigurationServicesClient
 	ContainerRegistryClient      *appplatform.ContainerRegistriesClient
 	CustomDomainsClient          *appplatform.CustomDomainsClient
 	DevToolPortalClient          *appplatform.DevToolPortalsClient
-	GatewayClient                *appplatform.GatewaysClient
 	GatewayCustomDomainClient    *appplatform.GatewayCustomDomainsClient
 	GatewayRouteConfigClient     *appplatform.GatewayRouteConfigsClient
 	MonitoringSettingsClient     *appplatform.MonitoringSettingsClient
@@ -47,9 +44,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building AppPlatform client: %+v", err)
 	}
 	o.Configure(appPlatformClient.Client, o.Authorizers.ResourceManager)
-
-	apiPortalClient := appplatform.NewAPIPortalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&apiPortalClient.Client, o.ResourceManagerAuthorizer)
 
 	apiPortalCustomDomainClient := appplatform.NewAPIPortalCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiPortalCustomDomainClient.Client, o.ResourceManagerAuthorizer)
@@ -84,9 +78,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	configServersClient := appplatform.NewConfigServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configServersClient.Client, o.ResourceManagerAuthorizer)
 
-	configurationServiceClient := appplatform.NewConfigurationServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&configurationServiceClient.Client, o.ResourceManagerAuthorizer)
-
 	containerRegistryClient := appplatform.NewContainerRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&containerRegistryClient.Client, o.ResourceManagerAuthorizer)
 
@@ -98,9 +89,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	devToolPortalClient := appplatform.NewDevToolPortalsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&devToolPortalClient.Client, o.ResourceManagerAuthorizer)
-
-	gatewayClient := appplatform.NewGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&gatewayClient.Client, o.ResourceManagerAuthorizer)
 
 	gatewayCustomDomainClient := appplatform.NewGatewayCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&gatewayCustomDomainClient.Client, o.ResourceManagerAuthorizer)
@@ -124,7 +112,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		AppPlatformClient: appPlatformClient,
 
 		// TODO: port to `hashicorp/go-azure-sdk`
-		APIPortalClient:              &apiPortalClient,
 		APIPortalCustomDomainClient:  &apiPortalCustomDomainClient,
 		ApplicationAcceleratorClient: &applicationAcceleratorClient,
 		ApplicationLiveViewsClient:   &applicationLiveViewsClient,
@@ -136,12 +123,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		BuildServiceClient:           &buildServiceClient,
 		CertificatesClient:           &certificatesClient,
 		ConfigServersClient:          &configServersClient,
-		ConfigurationServiceClient:   &configurationServiceClient,
 		ContainerRegistryClient:      &containerRegistryClient,
 		CustomDomainsClient:          &customDomainsClient,
 		DeploymentsClient:            &deploymentsClient,
 		DevToolPortalClient:          &devToolPortalClient,
-		GatewayClient:                &gatewayClient,
 		GatewayCustomDomainClient:    &gatewayCustomDomainClient,
 		GatewayRouteConfigClient:     &gatewayRouteConfigClient,
 		MonitoringSettingsClient:     &monitoringSettingsClient,

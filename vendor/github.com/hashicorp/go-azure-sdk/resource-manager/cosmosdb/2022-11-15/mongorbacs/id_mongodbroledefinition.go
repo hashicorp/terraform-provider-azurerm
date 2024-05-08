@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = MongodbRoleDefinitionId{}
+func init() {
+	recaser.RegisterResourceId(&MongodbRoleDefinitionId{})
+}
+
+var _ resourceids.ResourceId = &MongodbRoleDefinitionId{}
 
 // MongodbRoleDefinitionId is a struct representing the Resource ID for a Mongodb Role Definition
 type MongodbRoleDefinitionId struct {
@@ -32,7 +37,7 @@ func NewMongodbRoleDefinitionID(subscriptionId string, resourceGroupName string,
 
 // ParseMongodbRoleDefinitionID parses 'input' into a MongodbRoleDefinitionId
 func ParseMongodbRoleDefinitionID(input string) (*MongodbRoleDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MongodbRoleDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&MongodbRoleDefinitionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseMongodbRoleDefinitionID(input string) (*MongodbRoleDefinitionId, error
 // ParseMongodbRoleDefinitionIDInsensitively parses 'input' case-insensitively into a MongodbRoleDefinitionId
 // note: this method should only be used for API response data and not user input
 func ParseMongodbRoleDefinitionIDInsensitively(input string) (*MongodbRoleDefinitionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(MongodbRoleDefinitionId{})
+	parser := resourceids.NewParserFromResourceIdType(&MongodbRoleDefinitionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

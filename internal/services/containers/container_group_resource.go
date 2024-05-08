@@ -5,6 +5,7 @@ package containers
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -32,7 +34,7 @@ import (
 )
 
 func resourceContainerGroup() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceContainerGroupCreate,
 		Read:   resourceContainerGroupRead,
 		Delete: resourceContainerGroupDelete,
@@ -43,7 +45,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -189,12 +191,10 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			},
 
 			"exposed_port": {
-				Type:       pluginsdk.TypeSet,
-				Optional:   true, // change to 'Required' in 3.0 of the provider
-				ForceNew:   true,
-				Computed:   true,                           // remove in 3.0 of the provider
-				ConfigMode: pluginsdk.SchemaConfigModeAttr, // remove in 3.0 of the provider
-				Set:        resourceContainerGroupPortsHash,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Set:      resourceContainerGroupPortsHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"port": {
@@ -306,39 +306,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							ForceNew: true,
 						},
 
-						//lintignore:XS003
-						"gpu": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							ForceNew: true,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"count": {
-										Type:     pluginsdk.TypeInt,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.IntInSlice([]int{
-											1,
-											2,
-											4,
-										}),
-									},
-
-									"sku": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"K80",
-											"P100",
-											"V100",
-										}, false),
-									},
-								},
-							},
-						},
-
 						"cpu_limit": {
 							Type:         pluginsdk.TypeFloat,
 							Optional:     true,
@@ -349,32 +316,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeFloat,
 							Optional:     true,
 							ValidateFunc: validation.FloatAtLeast(0.0),
-						},
-
-						//lintignore:XS003
-						"gpu_limit": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"count": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-									},
-
-									"sku": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"K80",
-											"P100",
-											"V100",
-										}, false),
-									},
-								},
-							},
 						},
 
 						"ports": {
@@ -559,8 +500,115 @@ func resourceContainerGroup() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
+
+			"priority": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(containerinstance.PossibleValuesForContainerGroupPriority(), false),
+			},
+		},
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if p := d.Get("priority").(string); p == string(containerinstance.ContainerGroupPrioritySpot) {
+				if d.Get("ip_address_type").(string) != "None" {
+					return fmt.Errorf("`ip_address_type` has to be `None` when `priority` is set to `Spot`")
+				}
+			}
+			return nil
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["exposed_port"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			ForceNew:   true,
+			Computed:   true,
+			ConfigMode: pluginsdk.SchemaConfigModeAttr,
+			Set:        resourceContainerGroupPortsHash,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"port": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validate.PortNumber,
+					},
+
+					"protocol": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(containerinstance.ContainerGroupNetworkProtocolTCP),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(containerinstance.ContainerGroupNetworkProtocolTCP),
+							string(containerinstance.ContainerGroupNetworkProtocolUDP),
+						}, false),
+					},
+				},
+			},
+		}
+
+		resource.Schema["container"].Elem.(*pluginsdk.Resource).Schema["gpu"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			ForceNew:   true,
+			Deprecated: "The `gpu` block has been deprecated since K80 and P100 GPU Skus have been retired and remaining GPU resources are not fully supported and not appropriate for production workloads. This block will be removed in v4.0 of the AzureRM provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.IntInSlice([]int{
+							1,
+							2,
+							4,
+						}),
+					},
+
+					"sku": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"K80",
+							"P100",
+							"V100",
+						}, false),
+					},
+				},
+			},
+		}
+		resource.Schema["container"].Elem.(*pluginsdk.Resource).Schema["gpu_limit"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "The `gpu_limit` block has been deprecated since K80 and P100 GPU Skus have been retired and remaining GPU resources are not fully supported and not appropriate for production workloads. This block will be removed in v4.0 of the AzureRM provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"count": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+
+					"sku": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"K80",
+							"P100",
+							"V100",
+						}, false),
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }
 
 func containerVolumeSchema() *pluginsdk.Schema {
@@ -686,17 +734,16 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer cancel()
 
 	id := containerinstance.NewContainerGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.ContainerGroupsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
+	existing, err := client.ContainerGroupsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_container_group", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_container_group", id.ID())
 	}
 
 	location := location.Normalize(d.Get("location").(string))
@@ -789,6 +836,10 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if priority := d.Get("priority").(string); priority != "" {
+		containerGroup.Properties.Priority = pointer.To(containerinstance.ContainerGroupPriority(priority))
+	}
+
 	// Avoid parallel provisioning if "subnet_ids" are given.
 	if subnets != nil && len(*subnets) != 0 {
 		for _, item := range *subnets {
@@ -820,13 +871,29 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	t := d.Get("tags").(map[string]interface{})
-
-	parameters := containerinstance.Resource{
-		Tags: tags.Expand(t),
+	existing, err := client.ContainerGroupsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("reading %s: %v", id, err)
+	}
+	if existing.Model == nil {
+		return fmt.Errorf("reading %s: `model` was nil", id)
 	}
 
-	if _, err := client.ContainerGroupsUpdate(ctx, *id, parameters); err != nil {
+	model := *existing.Model
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		model.Identity = expandedIdentity
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -879,6 +946,12 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 			sku = string(*v)
 		}
 		d.Set("sku", sku)
+
+		var priority string
+		if v := props.Priority; v != nil {
+			priority = string(*v)
+		}
+		d.Set("priority", priority)
 
 		containerConfigs := flattenContainerGroupContainers(d, &props.Containers, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
@@ -1158,29 +1231,10 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 			},
 		}
 
-		if v, ok := data["gpu"]; ok {
-			gpus := v.([]interface{})
-			for _, gpuRaw := range gpus {
-				if gpuRaw == nil {
-					continue
-				}
-				v := gpuRaw.(map[string]interface{})
-				gpuCount := int32(v["count"].(int))
-				gpuSku := containerinstance.GpuSku(v["sku"].(string))
-
-				gpus := containerinstance.GpuResource{
-					Count: int64(gpuCount),
-					Sku:   gpuSku,
-				}
-				container.Properties.Resources.Requests.Gpu = &gpus
-			}
-		}
-
 		cpuLimit := data["cpu_limit"].(float64)
 		memLimit := data["memory_limit"].(float64)
-		gpuLimit := data["gpu_limit"].([]interface{})
 
-		if !(cpuLimit == 0.0 && memLimit == 0.0 && len(gpuLimit) == 0) {
+		if !(cpuLimit == 0.0 && memLimit == 0.0) {
 			limits := &containerinstance.ResourceLimits{}
 			if cpuLimit != 0.0 {
 				limits.Cpu = &cpuLimit
@@ -1188,17 +1242,45 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 			if memLimit != 0.0 {
 				limits.MemoryInGB = &memLimit
 			}
-			if len(gpuLimit) == 1 && gpuLimit[0] != nil {
-				v := gpuLimit[0].(map[string]interface{})
-				limits.Gpu = &containerinstance.GpuResource{}
-				if v := int64(v["count"].(int)); v != 0 {
-					limits.Gpu.Count = v
-				}
-				if v := containerinstance.GpuSku(v["sku"].(string)); v != "" {
-					limits.Gpu.Sku = v
+
+			container.Properties.Resources.Limits = limits
+		}
+
+		if !features.FourPointOhBeta() {
+			if v, ok := data["gpu"]; ok {
+				gpus := v.([]interface{})
+				for _, gpuRaw := range gpus {
+					if gpuRaw == nil {
+						continue
+					}
+					v := gpuRaw.(map[string]interface{})
+					gpuCount := int32(v["count"].(int))
+					gpuSku := containerinstance.GpuSku(v["sku"].(string))
+
+					gpus := containerinstance.GpuResource{
+						Count: int64(gpuCount),
+						Sku:   gpuSku,
+					}
+					container.Properties.Resources.Requests.Gpu = &gpus
 				}
 			}
-			container.Properties.Resources.Limits = limits
+
+			gpuLimit, ok := data["gpu_limit"].([]interface{})
+			if ok && len(gpuLimit) == 1 && gpuLimit[0] != nil {
+				if container.Properties.Resources.Limits == nil {
+					container.Properties.Resources.Limits = &containerinstance.ResourceLimits{}
+				}
+
+				v := gpuLimit[0].(map[string]interface{})
+				container.Properties.Resources.Limits.Gpu = &containerinstance.GpuResource{}
+				if v := int64(v["count"].(int)); v != 0 {
+					container.Properties.Resources.Limits.Gpu.Count = v
+				}
+				if v := containerinstance.GpuSku(v["sku"].(string)); v != "" {
+					container.Properties.Resources.Limits.Gpu.Sku = v
+				}
+
+			}
 		}
 
 		if v, ok := data["ports"].(*pluginsdk.Set); ok && len(v.List()) > 0 {
@@ -1557,6 +1639,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				scheme := x["scheme"].(string)
 
 				httpGetScheme := containerinstance.Scheme(scheme)
+
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
 					Path:        pointer.FromString(path),
 					Port:        int64(port),
@@ -1709,14 +1792,16 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 		containerConfig["cpu"] = resourceRequests.Cpu
 		containerConfig["memory"] = resourceRequests.MemoryInGB
 
-		gpus := make([]interface{}, 0)
-		if v := resourceRequests.Gpu; v != nil {
-			gpu := make(map[string]interface{})
-			gpu["count"] = v.Count
-			gpu["sku"] = string(v.Sku)
-			gpus = append(gpus, gpu)
+		if !features.FourPointOhBeta() {
+			gpus := make([]interface{}, 0)
+			if v := resourceRequests.Gpu; v != nil {
+				gpu := make(map[string]interface{})
+				gpu["count"] = v.Count
+				gpu["sku"] = string(v.Sku)
+				gpus = append(gpus, gpu)
+			}
+			containerConfig["gpu"] = gpus
 		}
-		containerConfig["gpu"] = gpus
 
 		if resourceLimits := resources.Limits; resourceLimits != nil {
 			if v := resourceLimits.Cpu; v != nil {
@@ -1726,14 +1811,16 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 				containerConfig["memory_limit"] = *v
 			}
 
-			gpus := make([]interface{}, 0)
-			if v := resourceLimits.Gpu; v != nil {
-				gpu := make(map[string]interface{})
-				gpu["count"] = v.Count
-				gpu["sku"] = string(v.Sku)
-				gpus = append(gpus, gpu)
+			if !features.FourPointOhBeta() {
+				gpus := make([]interface{}, 0)
+				if v := resourceLimits.Gpu; v != nil {
+					gpu := make(map[string]interface{})
+					gpu["count"] = v.Count
+					gpu["sku"] = string(v.Sku)
+					gpus = append(gpus, gpu)
+				}
+				containerConfig["gpu_limit"] = gpus
 			}
-			containerConfig["gpu_limit"] = gpus
 		}
 
 		containerPorts := make([]interface{}, len(*container.Properties.Ports))

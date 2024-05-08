@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -114,6 +115,13 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostpoolPublicNetworkAccess(), false),
+				Default:      string(hostpool.HostpoolPublicNetworkAccessEnabled),
+			},
+
 			"maximum_sessions_allowed": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -196,6 +204,13 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 				},
 			},
 
+			"vm_template": {
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -220,6 +235,15 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	personalDesktopAssignmentType := hostpool.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string))
+	vmTemplate := d.Get("vm_template").(string)
+	if vmTemplate != "" {
+		// we have no use with the json object as azure accepts string only
+		// merely here for validation
+		_, err := pluginsdk.ExpandJsonFromString(vmTemplate)
+		if err != nil {
+			return fmt.Errorf("expanding JSON for `vm_template`: %+v", err)
+		}
+	}
 	payload := hostpool.HostPool{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -234,7 +258,9 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 			LoadBalancerType:              hostpool.LoadBalancerType(d.Get("load_balancer_type").(string)),
 			PersonalDesktopAssignmentType: &personalDesktopAssignmentType,
 			PreferredAppGroupType:         hostpool.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
+			PublicNetworkAccess:           pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string))),
 			AgentUpdate:                   expandAgentUpdateCreate(d.Get("scheduled_agent_updates").([]interface{})),
+			VMTemplate:                    &vmTemplate,
 		},
 	}
 
@@ -265,7 +291,7 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
+	if d.HasChanges("custom_rdp_properties", "description", "friendly_name", "load_balancer_type", "maximum_sessions_allowed", "preferred_app_group_type", "public_network_access", "start_vm_on_connect", "validate_environment", "scheduled_agent_updates") {
 		payload.Properties = &hostpool.HostPoolPatchProperties{}
 
 		if d.HasChange("custom_rdp_properties") {
@@ -294,6 +320,10 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 			payload.Properties.PreferredAppGroupType = &preferredAppGroupType
 		}
 
+		if d.HasChange("public_network_access") {
+			payload.Properties.PublicNetworkAccess = pointer.To(hostpool.HostpoolPublicNetworkAccess(d.Get("public_network_access").(string)))
+		}
+
 		if d.HasChange("start_vm_on_connect") {
 			payload.Properties.StartVMOnConnect = utils.Bool(d.Get("start_vm_on_connect").(bool))
 		}
@@ -304,6 +334,10 @@ func resourceVirtualDesktopHostPoolUpdate(d *pluginsdk.ResourceData, meta interf
 
 		if d.HasChanges("scheduled_agent_updates") {
 			payload.Properties.AgentUpdate = expandAgentUpdatePatch(d.Get("scheduled_agent_updates").([]interface{}))
+		}
+
+		if d.HasChanges("vm_template") {
+			payload.Properties.VMTemplate = utils.String(d.Get("vm_template").(string))
 		}
 	}
 
@@ -361,10 +395,12 @@ func resourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interfac
 		}
 		d.Set("personal_desktop_assignment_type", personalDesktopAssignmentType)
 		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
+		d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))
 		d.Set("start_vm_on_connect", props.StartVMOnConnect)
 		d.Set("type", string(props.HostPoolType))
 		d.Set("validate_environment", props.ValidationEnvironment)
 		d.Set("scheduled_agent_updates", flattenAgentUpdate(props.AgentUpdate))
+		d.Set("vm_template", props.VMTemplate)
 	}
 
 	return nil

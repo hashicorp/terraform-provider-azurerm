@@ -9,10 +9,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -125,21 +126,29 @@ func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Cli
 
 func (r ComputeInstanceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
+	var location string
+	if !features.FourPointOhBeta() {
+		location = "location = azurerm_resource_group.test.location"
+	}
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
+  name = "acctest%d"
+  %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   local_auth_enabled            = false
 }
-`, template, data.RandomIntOfLength(8))
+`, template, data.RandomIntOfLength(8), location)
 }
 
 func (r ComputeInstanceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
+	var location string
+	if !features.FourPointOhBeta() {
+		location = "location = azurerm_resource_group.test.location"
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -213,8 +222,8 @@ resource "azurerm_private_endpoint" "test" {
 }
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
+  name = "acctest%d"
+  %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
@@ -232,42 +241,57 @@ resource "azurerm_machine_learning_compute_instance" "test" {
     azurerm_private_endpoint.test
   ]
 }
-`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, template, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), location)
 }
 
 func (r ComputeInstanceResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
+	var template string
+	var location string
+
+	if !features.FourPointOhBeta() {
+		location = "location = azurerm_resource_group.test.location"
+	}
+
+	template = r.basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_machine_learning_compute_instance" "import" {
-  name                          = azurerm_machine_learning_compute_instance.test.name
-  location                      = azurerm_machine_learning_compute_instance.test.location
+  name = azurerm_machine_learning_compute_instance.test.name
+  %s
   machine_learning_workspace_id = azurerm_machine_learning_compute_instance.test.machine_learning_workspace_id
   virtual_machine_size          = "STANDARD_DS2_V2"
 }
-`, template)
+`, template, location)
 }
 
 func (r ComputeInstanceResource) identitySystemAssigned(data acceptance.TestData) string {
 	template := r.template(data)
+	var location string
+	if !features.FourPointOhBeta() {
+		location = "location = azurerm_resource_group.test.location"
+	}
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
+  name = "acctest%d"
+  %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomIntOfLength(8))
+`, template, data.RandomIntOfLength(8), location)
 }
 
 func (r ComputeInstanceResource) identityUserAssigned(data acceptance.TestData) string {
 	template := r.template(data)
+	var location string
+	if !features.FourPointOhBeta() {
+		location = "location = azurerm_resource_group.test.location"
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -278,8 +302,8 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
+  name = "acctest%d"
+  %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {
@@ -289,11 +313,16 @@ resource "azurerm_machine_learning_compute_instance" "test" {
     ]
   }
 }
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
+`, template, data.RandomInteger, data.RandomIntOfLength(8), location)
 }
 
 func (r ComputeInstanceResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+	var location string
 	template := r.template(data)
+
+	if !features.FourPointOhBeta() {
+		location = "location = azurerm_resource_group.test.location"
+	}
 	return fmt.Sprintf(`
 %s
 
@@ -304,8 +333,8 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
+  name = "acctest%d"
+  %s
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {
@@ -315,7 +344,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
     ]
   }
 }
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
+`, template, data.RandomInteger, data.RandomIntOfLength(8), location)
 }
 
 func (r ComputeInstanceResource) template(data acceptance.TestData) string {

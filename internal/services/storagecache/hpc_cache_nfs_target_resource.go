@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
@@ -115,6 +116,18 @@ func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 					"WRITE_WORKLOAD_CLOUDWS",
 				}, false),
 			},
+
+			"verification_timer_in_seconds": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 31536000),
+			},
+
+			"write_back_timer_in_seconds": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 31536000),
+			},
 		},
 	}
 }
@@ -151,6 +164,14 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 				UsageModel: pointer.To(d.Get("usage_model").(string)),
 			},
 		},
+	}
+
+	if v, ok := d.GetOk("verification_timer_in_seconds"); ok {
+		param.Properties.Nfs3.VerificationTimer = utils.Int64(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("write_back_timer_in_seconds"); ok {
+		param.Properties.Nfs3.WriteBackTimer = utils.Int64(int64(v.(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
@@ -194,6 +215,8 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if nfs3 := props.Nfs3; nfs3 != nil {
 				d.Set("target_host_name", nfs3.Target)
 				d.Set("usage_model", nfs3.UsageModel)
+				d.Set("verification_timer_in_seconds", pointer.From(nfs3.VerificationTimer))
+				d.Set("write_back_timer_in_seconds", pointer.From(nfs3.WriteBackTimer))
 			}
 			if err := d.Set("namespace_junction", flattenNamespaceJunctions(props.Junctions)); err != nil {
 				return fmt.Errorf(`error setting "namespace_junction"(%q): %+v`, id, err)

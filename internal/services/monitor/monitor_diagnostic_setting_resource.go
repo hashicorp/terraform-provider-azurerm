@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
-	kustoParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -493,10 +492,6 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	if v, err := kustoParse.ClusterIDInsensitively(id.ResourceUri); err == nil {
-		id.ResourceUri = v.ID()
-	}
-
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -509,7 +504,11 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.Set("name", id.DiagnosticSettingName)
-	d.Set("target_resource_id", id.ResourceUri)
+	resourceUri := id.ResourceUri
+	if v, err := commonids.ParseKustoClusterIDInsensitively(resourceUri); err == nil {
+		resourceUri = v.ID()
+	}
+	d.Set("target_resource_id", resourceUri)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -864,10 +863,8 @@ func ParseMonitorDiagnosticId(monitorId string) (*diagnosticsettings.ScopedDiagn
 		return nil, fmt.Errorf("expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
 	}
 
-	identifier := diagnosticsettings.ScopedDiagnosticSettingId{
-		ResourceUri:           v[0],
-		DiagnosticSettingName: v[1],
-	}
+	// TODO: this can become a Composite Resource ID once https://github.com/hashicorp/go-azure-helpers/pull/208 is released
+	identifier := diagnosticsettings.NewScopedDiagnosticSettingID(v[0], v[1])
 	return &identifier, nil
 }
 

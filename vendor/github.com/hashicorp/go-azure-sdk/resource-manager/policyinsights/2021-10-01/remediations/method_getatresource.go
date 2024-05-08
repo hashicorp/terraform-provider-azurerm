@@ -43,7 +43,10 @@ func (c RemediationsClient) GetAtResource(ctx context.Context, id ScopedRemediat
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model Remediation
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

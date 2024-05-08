@@ -203,8 +203,6 @@ The `network_rule_set` block supports the following:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-* `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
-
 ~> **NOTE:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
 ~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
@@ -216,14 +214,6 @@ The `ip_rule` block supports the following:
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
-
----
-
-The `virtual_network` block supports the following:
-
-* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
-
-* `subnet_id` - (Required) The subnet id from which requests will match the rule.
 
 ---
 
@@ -252,8 +242,6 @@ An `identity` block supports the following:
 ---
 
 The `encryption` block supports the following:
-
-* `enabled` - (Optional) Boolean value that indicates whether encryption is enabled.
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key.
 
@@ -285,7 +273,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_container_registry.example.identity.0.principal_id` and the Tenant ID via `azurerm_container_registry.example.identity.0.tenant_id`
+-> You can access the Principal ID via `azurerm_container_registry.example.identity[0].principal_id` and the Tenant ID via `azurerm_container_registry.example.identity[0].tenant_id`
 
 ---
 

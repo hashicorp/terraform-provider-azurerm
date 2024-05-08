@@ -11,30 +11,31 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func resourceSharedImage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSharedImageCreateUpdate,
+		Create: resourceSharedImageCreate,
 		Read:   resourceSharedImageRead,
-		Update: resourceSharedImageCreateUpdate,
+		Update: resourceSharedImageUpdate,
 		Delete: resourceSharedImageDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SharedImageID(id)
+			_, err := galleryimages.ParseGalleryImageID(id)
 			return err
 		}),
 
@@ -67,11 +68,11 @@ func resourceSharedImage() *pluginsdk.Resource {
 			"architecture": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(compute.ArchitectureTypesX64),
+				Default:  string(galleryimages.ArchitectureXSixFour),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.ArchitectureTypesX64),
-					string(compute.ArchitectureTypesArm64),
+					string(galleryimages.ArchitectureXSixFour),
+					string(galleryimages.ArchitectureArmSixFour),
 				}, false),
 			},
 
@@ -80,8 +81,8 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.OperatingSystemTypesLinux),
-					string(compute.OperatingSystemTypesWindows),
+					string(galleryimages.OperatingSystemTypesLinux),
+					string(galleryimages.OperatingSystemTypesWindows),
 				}, false),
 			},
 
@@ -91,8 +92,8 @@ func resourceSharedImage() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.DiskStorageAccountTypesStandardLRS),
-						string(compute.DiskStorageAccountTypesPremiumLRS),
+						string(galleryimageversions.StorageAccountTypeStandardLRS),
+						string(galleryimageversions.StorageAccountTypePremiumLRS),
 					}, false),
 				},
 			},
@@ -107,11 +108,11 @@ func resourceSharedImage() *pluginsdk.Resource {
 			"hyper_v_generation": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(compute.HyperVGenerationTypesV1),
+				Default:  string(galleryimages.HyperVGenerationVOne),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.HyperVGenerationV1),
-					string(compute.HyperVGenerationV2),
+					string(galleryimages.HyperVGenerationVOne),
+					string(galleryimages.HyperVGenerationVTwo),
 				}, false),
 			},
 
@@ -257,7 +258,7 @@ func resourceSharedImage() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
@@ -268,26 +269,24 @@ func resourceSharedImage() *pluginsdk.Resource {
 	}
 }
 
-func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSharedImageCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
-	id := parse.NewSharedImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
+	id := galleryimages.NewGalleryImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("gallery_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
-		}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_shared_image", id.ID())
 	}
 
 	recommended, err := expandGalleryImageRecommended(d)
@@ -295,17 +294,17 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	image := compute.GalleryImage{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		GalleryImageProperties: &compute.GalleryImageProperties{
-			Description:         utils.String(d.Get("description").(string)),
+	image := galleryimages.GalleryImage{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &galleryimages.GalleryImageProperties{
+			Description:         pointer.To(d.Get("description").(string)),
 			Disallowed:          expandGalleryImageDisallowed(d),
 			Identifier:          expandGalleryImageIdentifier(d),
-			PrivacyStatementURI: utils.String(d.Get("privacy_statement_uri").(string)),
-			ReleaseNoteURI:      utils.String(d.Get("release_note_uri").(string)),
-			Architecture:        compute.Architecture(d.Get("architecture").(string)),
-			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
-			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
+			PrivacyStatementUri: pointer.To(d.Get("privacy_statement_uri").(string)),
+			ReleaseNoteUri:      pointer.To(d.Get("release_note_uri").(string)),
+			Architecture:        pointer.To(galleryimages.Architecture(d.Get("architecture").(string))),
+			OsType:              galleryimages.OperatingSystemTypes(d.Get("os_type").(string)),
+			HyperVGeneration:    pointer.To(galleryimages.HyperVGeneration(d.Get("hyper_v_generation").(string))),
 			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
 			Features:            expandSharedImageFeatures(d),
 			Recommended:         recommended,
@@ -315,28 +314,98 @@ func resourceSharedImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("end_of_life_date"); ok {
 		endOfLifeDate, _ := time.Parse(time.RFC3339, v.(string))
-		image.GalleryImageProperties.EndOfLifeDate = &date.Time{
+		image.Properties.EndOfLifeDate = pointer.To(date.Time{
 			Time: endOfLifeDate,
-		}
+		}.String())
 	}
 
 	if v, ok := d.GetOk("eula"); ok {
-		image.GalleryImageProperties.Eula = utils.String(v.(string))
+		image.Properties.Eula = pointer.To(v.(string))
 	}
 
 	if d.Get("specialized").(bool) {
-		image.GalleryImageProperties.OsState = compute.OperatingSystemStateTypesSpecialized
+		image.Properties.OsState = galleryimages.OperatingSystemStateTypesSpecialized
 	} else {
-		image.GalleryImageProperties.OsState = compute.OperatingSystemStateTypesGeneralized
+		image.Properties.OsState = galleryimages.OperatingSystemStateTypesGeneralized
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, image)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, image); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceSharedImageRead(d, meta)
+}
+
+func resourceSharedImageUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.GalleryImagesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := galleryimages.ParseGalleryImageID(d.Id())
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return err
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+	}
+
+	payload := existing.Model
+
+	if payload == nil {
+		return fmt.Errorf("model is nil for %s", id)
+	}
+
+	if d.HasChange("disk_types_not_allowed") {
+		payload.Properties.Disallowed = expandGalleryImageDisallowed(d)
+	}
+
+	if d.HasChange("end_of_life_date") {
+		endOfLifeDate, _ := time.Parse(time.RFC3339, d.Get("end_of_life_date").(string))
+		payload.Properties.EndOfLifeDate = pointer.To(date.Time{
+			Time: endOfLifeDate,
+		}.String())
+	}
+
+	if d.HasChange("description") {
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("eula") {
+		payload.Properties.Description = pointer.To(d.Get("eula").(string))
+	}
+
+	if d.HasChange("specialized") {
+		if d.Get("specialized").(bool) {
+			payload.Properties.OsState = galleryimages.OperatingSystemStateTypesSpecialized
+		} else {
+			payload.Properties.OsState = galleryimages.OperatingSystemStateTypesGeneralized
+		}
+	}
+
+	if d.HasChange("release_note_uri") {
+		payload.Properties.ReleaseNoteUri = pointer.To(d.Get("release_note_uri").(string))
+	}
+
+	if d.HasChanges("max_recommended_vcpu_count", "min_recommended_vcpu_count", "max_recommended_memory_in_gb", "min_recommended_memory_in_gb") {
+		recommended, err := expandGalleryImageRecommended(d)
+		if err != nil {
+			return err
+		}
+		payload.Properties.Recommended = recommended
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -349,125 +418,132 @@ func resourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SharedImageID(d.Id())
+	id, err := galleryimages.ParseGalleryImageID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", id.ImageName, id.GalleryName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.ImageName)
 	d.Set("gallery_name", id.GalleryName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("description", props.Description)
+
+			diskTypesNotAllowed := make([]string, 0)
+			if disallowed := props.Disallowed; disallowed != nil {
+				if disallowed.DiskTypes != nil {
+					diskTypesNotAllowed = append(diskTypesNotAllowed, *disallowed.DiskTypes...)
+				}
+			}
+			d.Set("disk_types_not_allowed", diskTypesNotAllowed)
+
+			if v := props.EndOfLifeDate; v != nil {
+				d.Set("end_of_life_date", props.EndOfLifeDate)
+			}
+
+			d.Set("eula", props.Eula)
+
+			maxRecommendedVcpuCount := 0
+			minRecommendedVcpuCount := 0
+			maxRecommendedMemoryInGB := 0
+			minRecommendedMemoryInGB := 0
+			if recommended := props.Recommended; recommended != nil {
+				if vcpus := recommended.VCPUs; vcpus != nil {
+					if vcpus.Max != nil {
+						maxRecommendedVcpuCount = int(*vcpus.Max)
+					}
+					if vcpus.Min != nil {
+						minRecommendedVcpuCount = int(*vcpus.Min)
+					}
+				}
+				if memory := recommended.Memory; memory != nil {
+					if memory.Max != nil {
+						maxRecommendedMemoryInGB = int(*memory.Max)
+					}
+					if memory.Min != nil {
+						minRecommendedMemoryInGB = int(*memory.Min)
+					}
+				}
+			}
+			d.Set("max_recommended_vcpu_count", maxRecommendedVcpuCount)
+			d.Set("min_recommended_vcpu_count", minRecommendedVcpuCount)
+			d.Set("max_recommended_memory_in_gb", maxRecommendedMemoryInGB)
+			d.Set("min_recommended_memory_in_gb", minRecommendedMemoryInGB)
+
+			d.Set("os_type", string(props.OsType))
+
+			architecture := string((galleryimages.ArchitectureXSixFour))
+			if props.Architecture != nil {
+				architecture = string(*props.Architecture)
+			}
+			d.Set("architecture", architecture)
+
+			d.Set("specialized", props.OsState == galleryimages.OperatingSystemStateTypesSpecialized)
+
+			hyperVGeneration := string(galleryimages.HyperVGenerationVOne)
+			if props.HyperVGeneration != nil {
+				hyperVGeneration = string(*props.HyperVGeneration)
+			}
+			d.Set("hyper_v_generation", hyperVGeneration)
+			d.Set("privacy_statement_uri", props.PrivacyStatementUri)
+			d.Set("release_note_uri", props.ReleaseNoteUri)
+
+			if err := d.Set("identifier", flattenGalleryImageIdentifier(&props.Identifier)); err != nil {
+				return fmt.Errorf("setting `identifier`: %+v", err)
+			}
+
+			if err := d.Set("purchase_plan", flattenGalleryImagePurchasePlan(props.PurchasePlan)); err != nil {
+				return fmt.Errorf("setting `purchase_plan`: %+v", err)
+			}
+
+			trustedLaunchSupported := false
+			trustedLaunchEnabled := false
+			cvmEnabled := false
+			cvmSupported := false
+			acceleratedNetworkSupportEnabled := false
+			if features := props.Features; features != nil {
+				for _, feature := range *features {
+					if feature.Name == nil || feature.Value == nil {
+						continue
+					}
+
+					if strings.EqualFold(*feature.Name, "SecurityType") {
+						trustedLaunchSupported = strings.EqualFold(*feature.Value, "TrustedLaunchSupported")
+						trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
+						cvmSupported = strings.EqualFold(*feature.Value, "ConfidentialVmSupported")
+						cvmEnabled = strings.EqualFold(*feature.Value, "ConfidentialVm")
+					}
+
+					if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
+						acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
+					}
+				}
+			}
+			d.Set("confidential_vm_supported", cvmSupported)
+			d.Set("confidential_vm_enabled", cvmEnabled)
+			d.Set("trusted_launch_supported", trustedLaunchSupported)
+			d.Set("trusted_launch_enabled", trustedLaunchEnabled)
+			d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
+		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	if props := resp.GalleryImageProperties; props != nil {
-		d.Set("description", props.Description)
-
-		diskTypesNotAllowed := make([]string, 0)
-		if disallowed := props.Disallowed; disallowed != nil {
-			if disallowed.DiskTypes != nil {
-				diskTypesNotAllowed = append(diskTypesNotAllowed, *disallowed.DiskTypes...)
-			}
-		}
-		d.Set("disk_types_not_allowed", diskTypesNotAllowed)
-
-		if v := props.EndOfLifeDate; v != nil {
-			d.Set("end_of_life_date", props.EndOfLifeDate.Format(time.RFC3339))
-		}
-
-		d.Set("eula", props.Eula)
-
-		maxRecommendedVcpuCount := 0
-		minRecommendedVcpuCount := 0
-		maxRecommendedMemoryInGB := 0
-		minRecommendedMemoryInGB := 0
-		if recommended := props.Recommended; recommended != nil {
-			if vcpus := recommended.VCPUs; vcpus != nil {
-				if vcpus.Max != nil {
-					maxRecommendedVcpuCount = int(*vcpus.Max)
-				}
-				if vcpus.Min != nil {
-					minRecommendedVcpuCount = int(*vcpus.Min)
-				}
-			}
-			if memory := recommended.Memory; memory != nil {
-				if memory.Max != nil {
-					maxRecommendedMemoryInGB = int(*memory.Max)
-				}
-				if memory.Min != nil {
-					minRecommendedMemoryInGB = int(*memory.Min)
-				}
-			}
-		}
-		d.Set("max_recommended_vcpu_count", maxRecommendedVcpuCount)
-		d.Set("min_recommended_vcpu_count", minRecommendedVcpuCount)
-		d.Set("max_recommended_memory_in_gb", maxRecommendedMemoryInGB)
-		d.Set("min_recommended_memory_in_gb", minRecommendedMemoryInGB)
-
-		d.Set("os_type", string(props.OsType))
-
-		architecture := string((compute.ArchitectureTypesX64))
-		if props.Architecture != "" {
-			architecture = string(props.Architecture)
-		}
-		d.Set("architecture", architecture)
-
-		d.Set("specialized", props.OsState == compute.OperatingSystemStateTypesSpecialized)
-		d.Set("hyper_v_generation", string(props.HyperVGeneration))
-		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
-		d.Set("release_note_uri", props.ReleaseNoteURI)
-
-		if err := d.Set("identifier", flattenGalleryImageIdentifier(props.Identifier)); err != nil {
-			return fmt.Errorf("setting `identifier`: %+v", err)
-		}
-
-		if err := d.Set("purchase_plan", flattenGalleryImagePurchasePlan(props.PurchasePlan)); err != nil {
-			return fmt.Errorf("setting `purchase_plan`: %+v", err)
-		}
-
-		trustedLaunchSupported := false
-		trustedLaunchEnabled := false
-		cvmEnabled := false
-		cvmSupported := false
-		acceleratedNetworkSupportEnabled := false
-		if features := props.Features; features != nil {
-			for _, feature := range *features {
-				if feature.Name == nil || feature.Value == nil {
-					continue
-				}
-
-				if strings.EqualFold(*feature.Name, "SecurityType") {
-					trustedLaunchSupported = strings.EqualFold(*feature.Value, "TrustedLaunchSupported")
-					trustedLaunchEnabled = strings.EqualFold(*feature.Value, "TrustedLaunch")
-					cvmSupported = strings.EqualFold(*feature.Value, "ConfidentialVmSupported")
-					cvmEnabled = strings.EqualFold(*feature.Value, "ConfidentialVm")
-				}
-
-				if strings.EqualFold(*feature.Name, "IsAcceleratedNetworkSupported") {
-					acceleratedNetworkSupportEnabled = strings.EqualFold(*feature.Value, "true")
-				}
-			}
-		}
-		d.Set("confidential_vm_supported", cvmSupported)
-		d.Set("confidential_vm_enabled", cvmEnabled)
-		d.Set("trusted_launch_supported", trustedLaunchSupported)
-		d.Set("trusted_launch_enabled", trustedLaunchEnabled)
-		d.Set("accelerated_network_support_enabled", acceleratedNetworkSupportEnabled)
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -475,24 +551,20 @@ func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SharedImageID(d.Id())
+	id, err := galleryimages.ParseGalleryImageID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of: %s: %+v", *id, err)
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to be eventually deleted", *id)
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
-		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.GalleryName, id.ImageName),
+		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, *id),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 		Timeout:                   d.Timeout(pluginsdk.TimeoutDelete),
@@ -505,16 +577,16 @@ func resourceSharedImageDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImagesClient, resourceGroupName string, galleryName string, imageName string) pluginsdk.StateRefreshFunc {
+func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *galleryimages.GalleryImagesClient, id galleryimages.GalleryImageId) pluginsdk.StateRefreshFunc {
 	// The resource Shared Image depends on the resource Shared Image Gallery.
 	// Although the delete API returns 404 which means the Shared Image resource has been deleted.
 	// Then it tries to immediately delete Shared Image Gallery but it still throws error `Can not delete resource before nested resources are deleted.`
 	// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/8314
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, galleryName, imageName)
+		res, err := client.Get(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
+			if response.WasNotFound(res.HttpResponse) {
 				return "NotFound", "NotFound", nil
 			}
 
@@ -525,7 +597,7 @@ func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.Gall
 	}
 }
 
-func expandGalleryImageIdentifier(d *pluginsdk.ResourceData) *compute.GalleryImageIdentifier {
+func expandGalleryImageIdentifier(d *pluginsdk.ResourceData) galleryimages.GalleryImageIdentifier {
 	vs := d.Get("identifier").([]interface{})
 	v := vs[0].(map[string]interface{})
 
@@ -533,50 +605,35 @@ func expandGalleryImageIdentifier(d *pluginsdk.ResourceData) *compute.GalleryIma
 	publisher := v["publisher"].(string)
 	sku := v["sku"].(string)
 
-	return &compute.GalleryImageIdentifier{
-		Sku:       utils.String(sku),
-		Publisher: utils.String(publisher),
-		Offer:     utils.String(offer),
+	return galleryimages.GalleryImageIdentifier{
+		Sku:       sku,
+		Publisher: publisher,
+		Offer:     offer,
 	}
 }
 
-func flattenGalleryImageIdentifier(input *compute.GalleryImageIdentifier) []interface{} {
+func flattenGalleryImageIdentifier(input *galleryimages.GalleryImageIdentifier) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	offer := ""
-	if input.Offer != nil {
-		offer = *input.Offer
-	}
-
-	publisher := ""
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
-
-	sku := ""
-	if input.Sku != nil {
-		sku = *input.Sku
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"offer":     offer,
-			"publisher": publisher,
-			"sku":       sku,
+			"offer":     input.Offer,
+			"publisher": input.Publisher,
+			"sku":       input.Sku,
 		},
 	}
 }
 
-func expandGalleryImagePurchasePlan(input []interface{}) *compute.ImagePurchasePlan {
+func expandGalleryImagePurchasePlan(input []interface{}) *galleryimages.ImagePurchasePlan {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
-	result := compute.ImagePurchasePlan{
-		Name: utils.String(v["name"].(string)),
+	result := galleryimages.ImagePurchasePlan{
+		Name: pointer.To(v["name"].(string)),
 	}
 
 	if publisher := v["publisher"].(string); publisher != "" {
@@ -590,7 +647,7 @@ func expandGalleryImagePurchasePlan(input []interface{}) *compute.ImagePurchaseP
 	return &result
 }
 
-func flattenGalleryImagePurchasePlan(input *compute.ImagePurchasePlan) []interface{} {
+func flattenGalleryImagePurchasePlan(input *galleryimages.ImagePurchasePlan) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -619,7 +676,7 @@ func flattenGalleryImagePurchasePlan(input *compute.ImagePurchasePlan) []interfa
 	}
 }
 
-func expandGalleryImageDisallowed(d *pluginsdk.ResourceData) *compute.Disallowed {
+func expandGalleryImageDisallowed(d *pluginsdk.ResourceData) *galleryimages.Disallowed {
 	diskTypesNotAllowedRaw := d.Get("disk_types_not_allowed").(*pluginsdk.Set).List()
 
 	diskTypesNotAllowed := make([]string, 0)
@@ -627,15 +684,15 @@ func expandGalleryImageDisallowed(d *pluginsdk.ResourceData) *compute.Disallowed
 		diskTypesNotAllowed = append(diskTypesNotAllowed, v.(string))
 	}
 
-	return &compute.Disallowed{
+	return &galleryimages.Disallowed{
 		DiskTypes: &diskTypesNotAllowed,
 	}
 }
 
-func expandGalleryImageRecommended(d *pluginsdk.ResourceData) (*compute.RecommendedMachineConfiguration, error) {
-	result := &compute.RecommendedMachineConfiguration{
-		VCPUs:  &compute.ResourceRange{},
-		Memory: &compute.ResourceRange{},
+func expandGalleryImageRecommended(d *pluginsdk.ResourceData) (*galleryimages.RecommendedMachineConfiguration, error) {
+	result := &galleryimages.RecommendedMachineConfiguration{
+		VCPUs:  &galleryimages.ResourceRange{},
+		Memory: &galleryimages.ResourceRange{},
 	}
 
 	maxVcpuCount := d.Get("max_recommended_vcpu_count").(int)
@@ -644,10 +701,10 @@ func expandGalleryImageRecommended(d *pluginsdk.ResourceData) (*compute.Recommen
 		return nil, fmt.Errorf("`max_recommended_vcpu_count` must be greater than or equal to `min_recommended_vcpu_count`")
 	}
 	if maxVcpuCount != 0 {
-		result.VCPUs.Max = utils.Int32(int32(maxVcpuCount))
+		result.VCPUs.Max = pointer.To(int64(maxVcpuCount))
 	}
 	if minVcpuCount != 0 {
-		result.VCPUs.Min = utils.Int32(int32(minVcpuCount))
+		result.VCPUs.Min = pointer.To(int64(minVcpuCount))
 	}
 
 	maxMemory := d.Get("max_recommended_memory_in_gb").(int)
@@ -656,49 +713,49 @@ func expandGalleryImageRecommended(d *pluginsdk.ResourceData) (*compute.Recommen
 		return nil, fmt.Errorf("`max_recommended_memory_in_gb` must be greater than or equal to `min_recommended_memory_in_gb`")
 	}
 	if maxMemory != 0 {
-		result.Memory.Max = utils.Int32(int32(maxMemory))
+		result.Memory.Max = pointer.To(int64(maxMemory))
 	}
 	if minMemory != 0 {
-		result.Memory.Min = utils.Int32(int32(minMemory))
+		result.Memory.Min = pointer.To(int64(minMemory))
 	}
 
 	return result, nil
 }
 
-func expandSharedImageFeatures(d *pluginsdk.ResourceData) *[]compute.GalleryImageFeature {
-	var features []compute.GalleryImageFeature
+func expandSharedImageFeatures(d *pluginsdk.ResourceData) *[]galleryimages.GalleryImageFeature {
+	var features []galleryimages.GalleryImageFeature
 	if d.Get("accelerated_network_support_enabled").(bool) {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("IsAcceleratedNetworkSupported"),
-			Value: utils.String("true"),
+		features = append(features, galleryimages.GalleryImageFeature{
+			Name:  pointer.To("IsAcceleratedNetworkSupported"),
+			Value: pointer.To("true"),
 		})
 	}
 
 	if tvmSupported := d.Get("trusted_launch_supported").(bool); tvmSupported {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("SecurityType"),
-			Value: utils.String("TrustedLaunchSupported"),
+		features = append(features, galleryimages.GalleryImageFeature{
+			Name:  pointer.To("SecurityType"),
+			Value: pointer.To("TrustedLaunchSupported"),
 		})
 	}
 
 	if tvmEnabled := d.Get("trusted_launch_enabled").(bool); tvmEnabled {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("SecurityType"),
-			Value: utils.String("TrustedLaunch"),
+		features = append(features, galleryimages.GalleryImageFeature{
+			Name:  pointer.To("SecurityType"),
+			Value: pointer.To("TrustedLaunch"),
 		})
 	}
 
 	if cvmSupported := d.Get("confidential_vm_supported").(bool); cvmSupported {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("SecurityType"),
-			Value: utils.String("ConfidentialVmSupported"),
+		features = append(features, galleryimages.GalleryImageFeature{
+			Name:  pointer.To("SecurityType"),
+			Value: pointer.To("ConfidentialVmSupported"),
 		})
 	}
 
 	if cvmEnabled := d.Get("confidential_vm_enabled").(bool); cvmEnabled {
-		features = append(features, compute.GalleryImageFeature{
-			Name:  utils.String("SecurityType"),
-			Value: utils.String("ConfidentialVM"),
+		features = append(features, galleryimages.GalleryImageFeature{
+			Name:  pointer.To("SecurityType"),
+			Value: pointer.To("ConfidentialVM"),
 		})
 	}
 

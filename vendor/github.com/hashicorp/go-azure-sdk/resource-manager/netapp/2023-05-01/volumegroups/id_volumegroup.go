@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = VolumeGroupId{}
+func init() {
+	recaser.RegisterResourceId(&VolumeGroupId{})
+}
+
+var _ resourceids.ResourceId = &VolumeGroupId{}
 
 // VolumeGroupId is a struct representing the Resource ID for a Volume Group
 type VolumeGroupId struct {
@@ -32,7 +37,7 @@ func NewVolumeGroupID(subscriptionId string, resourceGroupName string, netAppAcc
 
 // ParseVolumeGroupID parses 'input' into a VolumeGroupId
 func ParseVolumeGroupID(input string) (*VolumeGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VolumeGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&VolumeGroupId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseVolumeGroupID(input string) (*VolumeGroupId, error) {
 // ParseVolumeGroupIDInsensitively parses 'input' case-insensitively into a VolumeGroupId
 // note: this method should only be used for API response data and not user input
 func ParseVolumeGroupIDInsensitively(input string) (*VolumeGroupId, error) {
-	parser := resourceids.NewParserFromResourceIdType(VolumeGroupId{})
+	parser := resourceids.NewParserFromResourceIdType(&VolumeGroupId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -43,7 +43,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_spring_cloud_active_deployment":        resourceSpringCloudActiveDeployment(),
-		"azurerm_spring_cloud_api_portal":               resourceSpringCloudAPIPortal(),
 		"azurerm_spring_cloud_api_portal_custom_domain": resourceSpringCloudAPIPortalCustomDomain(),
 		"azurerm_spring_cloud_app":                      resourceSpringCloudApp(),
 		"azurerm_spring_cloud_app_cosmosdb_association": resourceSpringCloudAppCosmosDBAssociation(),
@@ -53,9 +52,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_spring_cloud_build_deployment":         resourceSpringCloudBuildDeployment(),
 		"azurerm_spring_cloud_build_pack_binding":       resourceSpringCloudBuildPackBinding(),
 		"azurerm_spring_cloud_certificate":              resourceSpringCloudCertificate(),
-		"azurerm_spring_cloud_configuration_service":    resourceSpringCloudConfigurationService(),
 		"azurerm_spring_cloud_custom_domain":            resourceSpringCloudCustomDomain(),
-		"azurerm_spring_cloud_gateway":                  resourceSpringCloudGateway(),
 		"azurerm_spring_cloud_gateway_custom_domain":    resourceSpringCloudGatewayCustomDomain(),
 		"azurerm_spring_cloud_gateway_route_config":     resourceSpringCloudGatewayRouteConfig(),
 		"azurerm_spring_cloud_container_deployment":     resourceSpringCloudContainerDeployment(),
@@ -71,10 +68,17 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{},
 		SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{},
+		SpringCloudAPIPortalResource{},
 		SpringCloudAcceleratorResource{},
 		SpringCloudApplicationLiveViewResource{},
-		SpringCloudDevToolPortalResource{},
+		SpringCloudConfigurationServiceResource{},
 		SpringCloudCustomizedAcceleratorResource{},
+		SpringCloudDevToolPortalResource{},
+		SpringCloudDynatraceApplicationPerformanceMonitoringResource{},
+		SpringCloudGatewayResource{},
+		SpringCloudElasticApplicationPerformanceMonitoringResource{},
+		SpringCloudNewRelicApplicationPerformanceMonitoringResource{},
 	}
 }

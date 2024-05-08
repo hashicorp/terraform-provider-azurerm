@@ -6,17 +6,19 @@ package hdinsight
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -27,9 +29,9 @@ import (
 var hdInsightInteractiveQueryClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         utils.Int(2),
+	MaxInstanceCount:         pointer.To(2),
 	CanSpecifyDisks:          false,
-	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	FixedTargetInstanceCount: pointer.To(int64(2)),
 }
 
 var hdInsightInteractiveQueryClusterWorkerNodeDefinition = HDInsightNodeDefinition{
@@ -43,9 +45,9 @@ var hdInsightInteractiveQueryClusterWorkerNodeDefinition = HDInsightNodeDefiniti
 var hdInsightInteractiveQueryClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         utils.Int(3),
+	MaxInstanceCount:         pointer.To(3),
 	CanSpecifyDisks:          false,
-	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	FixedTargetInstanceCount: pointer.To(int64(3)),
 }
 
 func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
@@ -56,7 +58,7 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 		Delete: hdinsightClusterDelete("Interactive Query"),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ClusterID(id)
+			_, err := commonids.ParseHDInsightClusterID(id)
 			return err
 		}),
 
@@ -118,7 +120,9 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
-			"tags": tags.Schema(),
+			"private_link_configuration": SchemaHDInsightPrivateLinkConfigurations(),
+
+			"tags": commonschema.Tags(),
 
 			"https_endpoint": {
 				Type:     pluginsdk.TypeString,
@@ -173,19 +177,19 @@ func resourceHDInsightInteractiveQueryCluster() *pluginsdk.Resource {
 }
 
 func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HDInsight.ClustersClient
+	client := meta.(*clients.Client).HDInsight.Clusters
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	id := commonids.NewHDInsightClusterID(subscriptionId, resourceGroup, name)
+	location := location.Normalize(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
-	tier := hdinsight.Tier(d.Get("tier").(string))
+	tier := clusters.Tier(d.Get("tier").(string))
 	tls := d.Get("tls_min_version").(string)
 
 	componentVersionsRaw := d.Get("component_version").([]interface{})
@@ -203,9 +207,12 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
+	privateLinkConfigurationsRaw := d.Get("private_link_configuration").([]interface{})
+	privateLinkConfigurations := ExpandHDInsightPrivateLinkConfigurations(privateLinkConfigurationsRaw)
+
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
-	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
+	storageAccounts, expandedIdentity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("expanding `storage_account`: %s", err)
 	}
@@ -223,45 +230,47 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 
 	computeIsolationProperties := ExpandHDInsightComputeIsolationProperties(d.Get("compute_isolation").([]interface{}))
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing HDInsight InteractiveQuery Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_hdinsight_interactive_query_cluster", id.ID())
 	}
 
 	encryptionInTransit := d.Get("encryption_in_transit_enabled").(bool)
 
-	params := hdinsight.ClusterCreateParametersExtended{
+	var configurationsRaw interface{} = configurations
+	params := clusters.ClusterCreateParametersExtended{
 		Location: utils.String(location),
-		Properties: &hdinsight.ClusterCreateProperties{
-			Tier:                   tier,
-			OsType:                 hdinsight.OSTypeLinux,
-			ClusterVersion:         utils.String(clusterVersion),
-			MinSupportedTLSVersion: utils.String(tls),
-			NetworkProperties:      networkProperties,
-			EncryptionInTransitProperties: &hdinsight.EncryptionInTransitProperties{
+		Properties: &clusters.ClusterCreateProperties{
+			Tier:                      pointer.To(tier),
+			OsType:                    pointer.To(clusters.OSTypeLinux),
+			ClusterVersion:            utils.String(clusterVersion),
+			MinSupportedTlsVersion:    utils.String(tls),
+			NetworkProperties:         networkProperties,
+			PrivateLinkConfigurations: privateLinkConfigurations,
+			EncryptionInTransitProperties: &clusters.EncryptionInTransitProperties{
 				IsEncryptionInTransitEnabled: &encryptionInTransit,
 			},
-			ClusterDefinition: &hdinsight.ClusterDefinition{
-				Kind:             utils.String("INTERACTIVEHIVE"),
+			ClusterDefinition: &clusters.ClusterDefinition{
+				Kind:             pointer.To(clusters.ClusterKindInteractiveHive),
 				ComponentVersion: componentVersions,
-				Configurations:   configurations,
+				Configurations:   &configurationsRaw,
 			},
-			StorageProfile: &hdinsight.StorageProfile{
+			StorageProfile: &clusters.StorageProfile{
 				Storageaccounts: storageAccounts,
 			},
-			ComputeProfile: &hdinsight.ComputeProfile{
+			ComputeProfile: &clusters.ComputeProfile{
 				Roles: roles,
 			},
 			ComputeIsolationProperties: computeIsolationProperties,
 		},
 		Tags:     tags.Expand(t),
-		Identity: identity,
+		Identity: expandedIdentity,
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
@@ -274,32 +283,20 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 	if v, ok := d.GetOk("security_profile"); ok {
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
 
-		params.Identity = &hdinsight.ClusterIdentity{
-			Type:                   hdinsight.ResourceIdentityTypeUserAssigned,
-			UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
+		// @tombuildsstuff: this behaviour is likely wrong and wants reevaluating - users should need to explicitly define this in the config?
+		params.Identity = &identity.SystemAndUserAssignedMap{
+			Type:        identity.TypeUserAssigned,
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
-
-		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceID != nil {
-			params.Identity.UserAssignedIdentities[*params.Properties.SecurityProfile.MsiResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
+		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceId != nil {
+			params.Identity.IdentityIds[*params.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
 		}
 	}
 
-	future, err := client.Create(ctx, resourceGroup, name, params)
-	if err != nil {
-		return fmt.Errorf("creating HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("reading ID for HDInsight Interactive Query Cluster %q (Resource Group %q)", name, resourceGroup)
+	if err := client.CreateThenPoll(ctx, id, params); err != nil {
+		return fmt.Errorf("creating Interactive Query %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -307,14 +304,14 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 	// We can only enable monitoring after creation
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
-		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+		if err := enableHDInsightMonitoring(ctx, extensionsClient, id, monitorRaw); err != nil {
 			return err
 		}
 	}
 
 	if v, ok := d.GetOk("extension"); ok {
 		extensionRaw := v.([]interface{})
-		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, resourceGroup, name, extensionRaw); err != nil {
+		if err := enableHDInsightAzureMonitor(ctx, extensionsClient, id, extensionRaw); err != nil {
 			return err
 		}
 	}
@@ -323,63 +320,67 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 }
 
 func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
-	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
-	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+	clustersClient := meta.(*clients.Client).HDInsight.Clusters
+	configurationsClient := meta.(*clients.Client).HDInsight.Configurations
+	extensionsClient := meta.(*clients.Client).HDInsight.Extensions
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ClusterID(d.Id())
+	id, err := commonids.ParseHDInsightClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clustersClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Interactive Query Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] Interactive Query %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Interactive Query %s: %+v", id, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
-	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
+	configurationsResp, err := configurationsClient.List(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving Configuration for HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Configuration for Interactive Query %s: %+v", id, err)
 	}
 
-	gateway, exists := configurations.Configurations["gateway"]
+	configurations := make(map[string]map[string]string)
+	if model := configurationsResp.Model; model != nil && model.Configurations != nil {
+		configurations = *model.Configurations
+	}
+
+	gateway, exists := configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("retrieving gateway for HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Gateway Configuration for Interactive Query %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	monitor, err := extensionsClient.GetMonitoringStatus(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Monitoring Status for Interactive Query %s: %+v", id, err)
 	}
 
-	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
-	if props := resp.Properties; props != nil {
-		tier := ""
-		// the Azure API is inconsistent here, so rewrite this into the casing we expect
-		for _, v := range hdinsight.PossibleTierValues() {
-			if strings.EqualFold(string(v), string(props.Tier)) {
-				tier = string(v)
-			}
-		}
-		d.Set("tier", tier)
-		d.Set("cluster_version", props.ClusterVersion)
-		d.Set("tls_min_version", props.MinSupportedTLSVersion)
+	extension, err := extensionsClient.GetAzureMonitorStatus(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Azure Monitor Status for Interactive Query %s: %+v", id, err)
+	}
 
-		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("component_version", flattenHDInsightInteractiveQueryComponentVersion(def.ComponentVersion)); err != nil {
+	d.Set("name", id.ClusterName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
+		if props := model.Properties; props != nil {
+			d.Set("tier", string(pointer.From(props.Tier)))
+			d.Set("cluster_version", props.ClusterVersion)
+			d.Set("tls_min_version", props.MinSupportedTlsVersion)
+
+			if err := d.Set("component_version", flattenHDInsightInteractiveQueryComponentVersion(props.ClusterDefinition.ComponentVersion)); err != nil {
 				return fmt.Errorf("flattening `component_version`: %+v", err)
 			}
 
@@ -387,89 +388,80 @@ func resourceHDInsightInteractiveQueryClusterRead(d *pluginsdk.ResourceData, met
 				return fmt.Errorf("flattening `gateway`: %+v", err)
 			}
 
-			flattenHDInsightsMetastores(d, configurations.Configurations)
+			flattenHDInsightsMetastores(d, configurations)
 
 			if props.EncryptionInTransitProperties != nil {
 				d.Set("encryption_in_transit_enabled", props.EncryptionInTransitProperties.IsEncryptionInTransitEnabled)
 			}
 
-			if props.DiskEncryptionProperties != nil {
-				diskEncryptionProps, err := FlattenHDInsightsDiskEncryptionProperties(*props.DiskEncryptionProperties)
-				if err != nil {
-					return err
-				}
-				if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
-					return fmt.Errorf("flattening `disk_encryption`: %+v", err)
-				}
+			diskEncryptionProps, err := flattenHDInsightsDiskEncryptionProperties(props.DiskEncryptionProperties)
+			if err != nil {
+				return err
+			}
+			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
+				return fmt.Errorf("flattening `disk_encryption`: %+v", err)
 			}
 
-			if props.NetworkProperties != nil {
-				if err := d.Set("network", FlattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
-					return fmt.Errorf("flattening `network`: %+v", err)
-				}
+			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
+				return fmt.Errorf("flattening `network`: %+v", err)
 			}
-		}
 
-		interactiveQueryRoles := hdInsightRoleDefinition{
-			HeadNodeDef:      hdInsightInteractiveQueryClusterHeadNodeDefinition,
-			WorkerNodeDef:    hdInsightInteractiveQueryClusterWorkerNodeDefinition,
-			ZookeeperNodeDef: hdInsightInteractiveQueryClusterZookeeperNodeDefinition,
-		}
-		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, interactiveQueryRoles)
-		if err := d.Set("roles", flattenedRoles); err != nil {
-			return fmt.Errorf("flattening `roles`: %+v", err)
-		}
+			if err := d.Set("private_link_configuration", flattenHDInsightPrivateLinkConfigurations(props.PrivateLinkConfigurations)); err != nil {
+				return fmt.Errorf("flattening `private_link_configuration`: %+v", err)
+			}
 
-		if props.ComputeIsolationProperties != nil {
-			if err := d.Set("compute_isolation", FlattenHDInsightComputeIsolationProperties(*props.ComputeIsolationProperties)); err != nil {
+			interactiveQueryRoles := hdInsightRoleDefinition{
+				HeadNodeDef:      hdInsightInteractiveQueryClusterHeadNodeDefinition,
+				WorkerNodeDef:    hdInsightInteractiveQueryClusterWorkerNodeDefinition,
+				ZookeeperNodeDef: hdInsightInteractiveQueryClusterZookeeperNodeDefinition,
+			}
+			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, interactiveQueryRoles)
+			if err := d.Set("roles", flattenedRoles); err != nil {
+				return fmt.Errorf("flattening `roles`: %+v", err)
+			}
+
+			if err := d.Set("compute_isolation", flattenHDInsightComputeIsolationProperties(props.ComputeIsolationProperties)); err != nil {
 				return fmt.Errorf("failed setting `compute_isolation`: %+v", err)
 			}
+
+			httpEndpoint := findHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+			d.Set("https_endpoint", httpEndpoint)
+			sshEndpoint := findHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+			d.Set("ssh_endpoint", sshEndpoint)
+
+			d.Set("monitor", flattenHDInsightMonitoring(monitor.Model))
+
+			d.Set("extension", flattenHDInsightAzureMonitor(extension.Model))
+
+			if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
+				return fmt.Errorf("setting `security_profile`: %+v", err)
+			}
 		}
-
-		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
-		d.Set("https_endpoint", httpEndpoint)
-		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
-		d.Set("ssh_endpoint", sshEndpoint)
-
-		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		d.Set("monitor", flattenHDInsightMonitoring(monitor))
-
-		extension, err := extensionsClient.GetAzureMonitorStatus(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("reading extension configuration for HDInsight Hadoop Cluster %q (Resource Group %q) %+v", name, resourceGroup, err)
-		}
-
-		d.Set("extension", flattenHDInsightAzureMonitor(extension))
-
-		if err := d.Set("security_profile", flattenHDInsightSecurityProfile(props.SecurityProfile, d)); err != nil {
-			return fmt.Errorf("setting `security_profile`: %+v", err)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func expandHDInsightInteractiveQueryComponentVersion(input []interface{}) map[string]*string {
+func expandHDInsightInteractiveQueryComponentVersion(input []interface{}) *map[string]string {
 	vs := input[0].(map[string]interface{})
-	return map[string]*string{
-		"InteractiveHive": utils.String(vs["interactive_hive"].(string)),
+	return &map[string]string{
+		"InteractiveHive": vs["interactive_hive"].(string),
 	}
 }
 
-func flattenHDInsightInteractiveQueryComponentVersion(input map[string]*string) []interface{} {
-	interactiveHiveVersion := ""
-	if v, ok := input["InteractiveHive"]; ok {
-		if v != nil {
-			interactiveHiveVersion = *v
+func flattenHDInsightInteractiveQueryComponentVersion(input *map[string]string) []interface{} {
+	output := make([]interface{}, 0)
+	if input != nil {
+		interactiveHiveVersion := ""
+		if v, ok := (*input)["InteractiveHive"]; ok {
+			interactiveHiveVersion = v
 		}
-	}
-	return []interface{}{
-		map[string]interface{}{
+		output = append(output, map[string]interface{}{
 			"interactive_hive": interactiveHiveVersion,
-		},
+		})
 	}
+	return output
 }

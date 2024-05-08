@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -679,20 +679,17 @@ func TestAccHDInsightSparkCluster_computeIsolation(t *testing.T) {
 }
 
 func (t HDInsightSparkClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ClusterID(state.ID)
+	id, err := commonids.ParseHDInsightClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := clients.HDInsight.ClustersClient.Get(ctx, resourceGroup, name)
+	resp, err := clients.HDInsight.Clusters.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading HDInsight Spark Cluster (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("reading Spark %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r HDInsightSparkClusterResource) basic(data acceptance.TestData) string {
@@ -934,6 +931,17 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     managed_identity_resource_id = azurerm_user_assigned_identity.test.id
     is_default                   = true
+  }
+
+  private_link_configuration {
+    name     = "testconfig"
+    group_id = "headnode"
+    ip_configuration {
+      name                         = "testipconfig"
+      primary                      = false
+      private_ip_allocation_method = "dynamic"
+      subnet_id                    = azurerm_subnet.test.id
+    }
   }
 
   roles {

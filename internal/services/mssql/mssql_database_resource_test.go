@@ -31,6 +31,7 @@ func TestAccMsSqlDatabase_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -77,6 +78,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("10"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("Local"),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
 			),
@@ -88,6 +90,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("license_type").HasValue("LicenseIncluded"),
 				check.That(data.ResourceName).Key("max_size_gb").HasValue("2"),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("Default"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.ENV").HasValue("Staging"),
 			),
@@ -127,7 +130,7 @@ func TestAccMsSqlDatabase_elasticPool(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_GP(t *testing.T) {
+func TestAccMsSqlDatabase_gp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -143,7 +146,7 @@ func TestAccMsSqlDatabase_GP(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_GP_Serverless(t *testing.T) {
+func TestAccMsSqlDatabase_gpServerless(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -171,7 +174,7 @@ func TestAccMsSqlDatabase_GP_Serverless(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_BC(t *testing.T) {
+func TestAccMsSqlDatabase_bc(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -202,7 +205,7 @@ func TestAccMsSqlDatabase_BC(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_HS(t *testing.T) {
+func TestAccMsSqlDatabase_hs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -228,7 +231,7 @@ func TestAccMsSqlDatabase_HS(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_HSWithRetentionPolicy(t *testing.T) {
+func TestAccMsSqlDatabase_hsWithRetentionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -254,7 +257,23 @@ func TestAccMsSqlDatabase_HSWithRetentionPolicy(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_S0(t *testing.T) {
+func TestAccMsSqlDatabase_hsWithLongRetentionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hsWithLongRetentionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("read_replica_count").HasValue("2"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("HS_Gen5_2"),
+			),
+		},
+	})
+}
+
+func TestAccMsSqlDatabase_s0(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -275,15 +294,28 @@ func TestAccMsSqlDatabase_createCopyMode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.createCopyMode(data),
+			Config: r.createCopyMode(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("collation").HasValue("SQL_AltDiction_CP850_CI_AI"),
 				check.That(data.ResourceName).Key("license_type").HasValue("BasePrice"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
 		data.ImportStep("create_mode", "creation_source_database_id"),
+	})
+}
+
+func TestAccMsSqlDatabase_createCopyModeError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "copy")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.createCopyMode(data, ""),
+			ExpectError: regexp.MustCompile("specifying different 'enclave_type' properties for 'create_mode'"),
+		},
 	})
 }
 
@@ -326,7 +358,9 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name"),
+		// SQL changes 'create_mode' to Default after creating the secondary and
+		// clears the 'creation_source_database_id' which will cause a diff...
+		data.ImportStep("sample_name", "create_mode", "creation_source_database_id"),
 		{
 			Config: r.createSecondaryMode(data, "test2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -336,7 +370,7 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name"),
+		data.ImportStep("sample_name", "create_mode", "creation_source_database_id"),
 	})
 }
 
@@ -354,7 +388,7 @@ func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name", "create_mode"),
+		data.ImportStep("sample_name", "create_mode", "creation_source_database_id"),
 		{
 			Config: r.createOnlineSecondaryMode(data, "test2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -364,7 +398,7 @@ func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep("sample_name", "create_mode"),
+		data.ImportStep("sample_name", "create_mode", "creation_source_database_id"),
 	})
 }
 
@@ -719,7 +753,7 @@ func TestAccMsSqlDatabase_geoBackupPolicy(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlDatabase_TransparentDataEncryptionUpdate(t *testing.T) {
+func TestAccMsSqlDatabase_transparentDataEncryptionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
 
@@ -790,6 +824,148 @@ func TestAccMsSqlDatabase_bacpac(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+	})
+}
+
+func TestAccMsSqlDatabase_enclaveType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.enclaveType(data, `  enclave_type = "VBS"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_enclaveTypeUpdate(t *testing.T) {
+	// NOTE: Once the enclave_type field has be set it cannot be changed...
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enclaveType(data, `  enclave_type = "VBS"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enclaveType(data, `  enclave_type = "Default"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("Default"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enclaveType(data, `  enclave_type = "VBS"`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_elasticPoolEnclaveTypeError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.elasticPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("elastic_pool_id").Exists(),
+				check.That(data.ResourceName).Key("sku_name").HasValue("ElasticPool"),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.elasticPoolEnclaveTypeError(data),
+			ExpectError: regexp.MustCompile("Before updating a database that belongs to an elastic pool please ensure"),
+		},
+	})
+}
+
+func TestAccMsSqlDatabase_transparentDataEncryptionKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.transparentDataEncryptionKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_namedReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.hs(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.namedReplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_namedReplicationZoneRedundant(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.namedReplicationZoneRedundant(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -877,10 +1053,10 @@ resource "azurerm_mssql_database" "test" {
   max_size_gb  = 10
   sample_name  = "AdventureWorksLT"
   sku_name     = "GP_Gen5_2"
+  enclave_type = "VBS"
 
   maintenance_configuration_name = "%[3]s"
-
-  storage_account_type = "Local"
+  storage_account_type           = "Local"
 
   tags = {
     ENV = "Test"
@@ -900,6 +1076,7 @@ resource "azurerm_mssql_database" "test" {
   license_type = "LicenseIncluded"
   max_size_gb  = 2
   sku_name     = "GP_Gen5_2"
+  enclave_type = "Default"
 
   storage_account_type = "Zone"
 
@@ -939,6 +1116,40 @@ resource "azurerm_mssql_database" "test" {
   server_id       = azurerm_mssql_server.test.id
   elastic_pool_id = azurerm_mssql_elasticpool.test.id
   sku_name        = "ElasticPool"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) elasticPoolEnclaveTypeError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+  max_size_gb         = 5
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%[2]d"
+  server_id       = azurerm_mssql_server.test.id
+  elastic_pool_id = azurerm_mssql_elasticpool.test.id
+  sku_name        = "ElasticPool"
+  enclave_type    = "VBS"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1067,6 +1278,26 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r MsSqlDatabaseResource) hsWithLongRetentionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  read_replica_count = 2
+  sku_name           = "HS_Gen5_2"
+
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 2
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r MsSqlDatabaseResource) s0WithRetentionPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1142,7 +1373,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlDatabaseResource) createCopyMode(data acceptance.TestData) string {
+func (r MsSqlDatabaseResource) createCopyMode(data acceptance.TestData, enclaveType string) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1151,8 +1382,9 @@ resource "azurerm_mssql_database" "copy" {
   server_id                   = azurerm_mssql_server.test.id
   create_mode                 = "Copy"
   creation_source_database_id = azurerm_mssql_database.test.id
+  %[3]s
 }
-`, r.complete(data), data.RandomInteger)
+`, r.complete(data), data.RandomInteger, enclaveType)
 }
 
 func (r MsSqlDatabaseResource) createPITRMode(data acceptance.TestData, restorePointInTime string) string {
@@ -1193,6 +1425,7 @@ resource "azurerm_mssql_database" "secondary" {
   server_id                   = azurerm_mssql_server.second.id
   create_mode                 = "Secondary"
   creation_source_database_id = azurerm_mssql_database.test.id
+  enclave_type                = "VBS"
 
   tags = {
     tag = "%[4]s"
@@ -1224,6 +1457,7 @@ resource "azurerm_mssql_database" "secondary" {
   server_id                   = azurerm_mssql_server.second.id
   create_mode                 = "OnlineSecondary"
   creation_source_database_id = azurerm_mssql_database.test.id
+  enclave_type                = "VBS"
 
   tags = {
     tag = "%[4]s"
@@ -1814,6 +2048,125 @@ resource "azurerm_mssql_database" "test" {
   timeouts {
     create = "10h"
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) enclaveType(data acceptance.TestData, enclaveType string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+
+  %[3]s
+}
+`, r.template(data), data.RandomInteger, enclaveType)
+}
+
+func (r MsSqlDatabaseResource) transparentDataEncryptionKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test_identity"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "vault%[2]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = azurerm_user_assigned_identity.test.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = true
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.test.tenant_id
+    object_id = data.azurerm_client_config.test.object_id
+
+    key_permissions = ["Get", "List", "Create", "Delete", "Update", "Recover", "Purge", "GetRotationPolicy"]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = ["Get", "WrapKey", "UnwrapKey"]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  depends_on = [azurerm_key_vault.test]
+
+  name         = "key-%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = ["unwrapKey", "wrapKey"]
+}
+
+resource "azurerm_mssql_database" "test" {
+  name                                                       = "acctest-db-%[2]d"
+  server_id                                                  = azurerm_mssql_server.test.id
+  sku_name                                                   = "S0"
+  transparent_data_encryption_enabled                        = true
+  transparent_data_encryption_key_vault_key_id               = azurerm_key_vault_key.test.id
+  transparent_data_encryption_key_automatic_rotation_enabled = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MsSqlDatabaseResource) namedReplication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "secondary" {
+  name                        = "acctest-dbs2-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Secondary"
+  secondary_type              = "Named"
+  creation_source_database_id = azurerm_mssql_database.test.id
+}
+`, r.hs(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) namedReplicationZoneRedundant(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name               = "acctest-db-%[2]d"
+  server_id          = azurerm_mssql_server.test.id
+  read_replica_count = 2
+  sku_name           = "HS_Gen5_2"
+
+  storage_account_type = "Zone"
+  zone_redundant       = true
+}
+
+resource "azurerm_mssql_database" "secondary" {
+  name                        = "acctest-dbs2-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Secondary"
+  secondary_type              = "Named"
+  creation_source_database_id = azurerm_mssql_database.test.id
+
+  zone_redundant     = true
+  read_replica_count = 1
 }
 `, r.template(data), data.RandomInteger)
 }

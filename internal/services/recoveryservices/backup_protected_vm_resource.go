@@ -234,12 +234,56 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	opResultClient := meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient
+	opClient := meta.(*clients.Client).RecoveryServices.ProtectedItemOperationResultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := protecteditems.ParseProtectedItemID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	if meta.(*clients.Client).Features.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy {
+		log.Printf("[DEBUG] Retaining Data and Stopping Protection for %s", id)
+
+		existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
+		if err != nil {
+			if response.WasNotFound(existing.HttpResponse) {
+				d.SetId("")
+				return nil
+			}
+
+			return fmt.Errorf("making Read request on %s: %+v", id, err)
+		}
+
+		if model := existing.Model; model != nil {
+			if properties := model.Properties; properties != nil {
+				if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
+					updateInput := protecteditems.ProtectedItemResource{
+						Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
+							ProtectionState:  pointer.To(protecteditems.ProtectionStateProtectionStopped),
+							SourceResourceId: vm.SourceResourceId,
+						},
+					}
+
+					resp, err := client.CreateOrUpdate(ctx, *id, updateInput)
+					if err != nil {
+						return fmt.Errorf("stopping protection and retaining data for %s: %+v", id, err)
+					}
+
+					operationId, err := parseBackupOperationId(resp.HttpResponse)
+					if err != nil {
+						return fmt.Errorf("issuing creating/updating request for %s: %+v", id, err)
+					}
+
+					if err = resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx, opClient, *id, operationId); err != nil {
+						return err
+					}
+
+					return nil
+				}
+			}
+		}
 	}
 
 	log.Printf("[DEBUG] Deleting %s", id)

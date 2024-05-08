@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeploymentId{}
+func init() {
+	recaser.RegisterResourceId(&DeploymentId{})
+}
+
+var _ resourceids.ResourceId = &DeploymentId{}
 
 // DeploymentId is a struct representing the Resource ID for a Deployment
 type DeploymentId struct {
@@ -32,7 +37,7 @@ func NewDeploymentID(subscriptionId string, resourceGroupName string, accountNam
 
 // ParseDeploymentID parses 'input' into a DeploymentId
 func ParseDeploymentID(input string) (*DeploymentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeploymentId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeploymentId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseDeploymentID(input string) (*DeploymentId, error) {
 // ParseDeploymentIDInsensitively parses 'input' case-insensitively into a DeploymentId
 // note: this method should only be used for API response data and not user input
 func ParseDeploymentIDInsensitively(input string) (*DeploymentId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeploymentId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeploymentId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

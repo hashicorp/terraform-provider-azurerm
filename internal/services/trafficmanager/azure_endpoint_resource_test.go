@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2018-08-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -227,12 +227,13 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_traffic_manager_azure_endpoint" "test" {
-  name               = "acctestend-azure%[2]d"
-  target_resource_id = azurerm_public_ip.test.id
-  weight             = 5
-  profile_id         = azurerm_traffic_manager_profile.test.id
-  enabled            = false
-  priority           = 4
+  name                 = "acctestend-azure%[2]d"
+  target_resource_id   = azurerm_public_ip.test.id
+  weight               = 5
+  profile_id           = azurerm_traffic_manager_profile.test.id
+  enabled              = false
+  always_serve_enabled = true
+  priority             = 4
 
   geo_mappings = ["WORLD"]
 

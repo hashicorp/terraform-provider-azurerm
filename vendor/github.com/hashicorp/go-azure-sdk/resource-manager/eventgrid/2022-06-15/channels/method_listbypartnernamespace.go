@@ -19,7 +19,8 @@ type ListByPartnerNamespaceOperationResponse struct {
 }
 
 type ListByPartnerNamespaceCompleteResult struct {
-	Items []Channel
+	LatestHttpResponse *http.Response
+	Items              []Channel
 }
 
 type ListByPartnerNamespaceOperationOptions struct {
@@ -115,7 +116,8 @@ func (c ChannelsClient) ListByPartnerNamespaceCompleteMatchingPredicate(ctx cont
 	}
 
 	result = ListByPartnerNamespaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

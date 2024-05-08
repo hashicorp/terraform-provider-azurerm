@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ZoneId{}
+func init() {
+	recaser.RegisterResourceId(&ZoneId{})
+}
+
+var _ resourceids.ResourceId = &ZoneId{}
 
 // ZoneId is a struct representing the Resource ID for a Zone
 type ZoneId struct {
@@ -32,7 +37,7 @@ func NewZoneID(subscriptionId string, resourceGroupName string, dnsZoneName stri
 
 // ParseZoneID parses 'input' into a ZoneId
 func ParseZoneID(input string) (*ZoneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ZoneId{})
+	parser := resourceids.NewParserFromResourceIdType(&ZoneId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseZoneID(input string) (*ZoneId, error) {
 // ParseZoneIDInsensitively parses 'input' case-insensitively into a ZoneId
 // note: this method should only be used for API response data and not user input
 func ParseZoneIDInsensitively(input string) (*ZoneId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ZoneId{})
+	parser := resourceids.NewParserFromResourceIdType(&ZoneId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

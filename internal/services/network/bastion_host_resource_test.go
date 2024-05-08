@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/bastionhosts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -224,6 +224,7 @@ resource "azurerm_bastion_host" "test" {
   sku                    = "Standard"
   file_copy_enabled      = true
   ip_connect_enabled     = true
+  kerberos_enabled       = true
   shareable_link_enabled = true
   tunneling_enabled      = true
 

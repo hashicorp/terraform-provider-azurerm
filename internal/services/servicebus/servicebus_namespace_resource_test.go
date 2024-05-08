@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -135,6 +135,17 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 		{
 			Config:      r.premiumCapacity(data),
 			ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2, 4, 8 or 16"),
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusNamespace_premiumMessagingPartition(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.premiumMessagingPartition(data),
+			ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `premium_messaging_partitions` of 1, 2, 4"),
 		},
 	})
 }
@@ -404,11 +415,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = 1
+  name                         = "acctestservicebusnamespace-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  capacity                     = 4
+  premium_messaging_partitions = 1
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -446,11 +458,33 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
+  name                         = "acctestservicebusnamespace-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  capacity                     = 0
+  premium_messaging_partitions = 1
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ServiceBusNamespaceResource) premiumMessagingPartition(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Premium"
-  capacity            = 0
+  capacity            = 2
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -467,12 +501,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = 1
-  zone_redundant      = true
+  name                         = "acctestservicebusnamespace-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  premium_messaging_partitions = 1
+  capacity                     = 1
+  zone_redundant               = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -631,11 +666,12 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = 1
+  name                         = "acctestservicebusnamespace-%[2]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  premium_messaging_partitions = 1
+  capacity                     = 1
 
   identity {
     type = "UserAssigned"
@@ -724,11 +760,12 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = 1
+  name                         = "acctestservicebusnamespace-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  capacity                     = 1
+  premium_messaging_partitions = 1
 
   network_rule_set {
     default_action = "Deny"
@@ -771,12 +808,12 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = 1
-
+  name                         = "acctestservicebusnamespace-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  capacity                     = 1
+  premium_messaging_partitions = 1
   network_rule_set {
     default_action                = "Deny"
     trusted_services_allowed      = true
@@ -822,11 +859,12 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = 1
+  name                         = "acctestservicebusnamespace-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "Premium"
+  capacity                     = 1
+  premium_messaging_partitions = 1
 
   network_rule_set {}
 }

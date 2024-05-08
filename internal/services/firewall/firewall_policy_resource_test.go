@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -119,7 +119,7 @@ func TestAccFirewallPolicy_updatePremium(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicPremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -522,36 +522,20 @@ resource "azurerm_key_vault_access_policy" "test" {
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
   key_permissions = [
-    "Backup",
     "Create",
-    "Delete",
     "Get",
-    "Import",
-    "List",
-    "Purge",
-    "Recover",
-    "Restore",
-    "Update"
   ]
 
   certificate_permissions = [
-    "Backup",
     "Create",
     "Get",
     "List",
-    "Import",
-    "Purge",
-    "Delete",
-    "Recover",
+    "ManageContacts",
   ]
 
   secret_permissions = [
     "Get",
     "List",
-    "Set",
-    "Purge",
-    "Delete",
-    "Recover"
   ]
 }
 
@@ -582,6 +566,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Purge",
     "Delete",
     "Recover",
+    "ManageContacts",
   ]
 
   secret_permissions = [

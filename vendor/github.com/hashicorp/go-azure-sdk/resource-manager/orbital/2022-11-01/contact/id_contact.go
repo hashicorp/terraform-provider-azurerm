@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ContactId{}
+func init() {
+	recaser.RegisterResourceId(&ContactId{})
+}
+
+var _ resourceids.ResourceId = &ContactId{}
 
 // ContactId is a struct representing the Resource ID for a Contact
 type ContactId struct {
@@ -32,7 +37,7 @@ func NewContactID(subscriptionId string, resourceGroupName string, spacecraftNam
 
 // ParseContactID parses 'input' into a ContactId
 func ParseContactID(input string) (*ContactId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContactId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContactId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseContactID(input string) (*ContactId, error) {
 // ParseContactIDInsensitively parses 'input' case-insensitively into a ContactId
 // note: this method should only be used for API response data and not user input
 func ParseContactIDInsensitively(input string) (*ContactId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ContactId{})
+	parser := resourceids.NewParserFromResourceIdType(&ContactId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

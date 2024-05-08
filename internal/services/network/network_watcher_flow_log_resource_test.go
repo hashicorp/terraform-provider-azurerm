@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/flowlogs"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/flowlogs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetworkWatcherFlowLogResource struct{}
@@ -242,10 +242,10 @@ func (t NetworkWatcherFlowLogResource) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.Network.FlowLogs.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Network Watcher Flow Log (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetworkWatcherFlowLogResource) prerequisites(data acceptance.TestData) string {

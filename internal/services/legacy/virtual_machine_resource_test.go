@@ -7,15 +7,17 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2020-08-04/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type VirtualMachineResource struct{}
@@ -101,41 +103,38 @@ func TestAccVirtualMachine_withPPG(t *testing.T) {
 }
 
 func (VirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := commonids.ParseVirtualMachineID(state.ID)
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Legacy.VMClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
+	resp, err := clients.Compute.VirtualMachinesClient.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Virtual Machine %q", id)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := disks.ParseDiskID(*diskId)
+		id, err := commonids.ParseManagedDiskID(*diskId)
 		if err != nil {
 			return err
 		}
 
-		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroupName, id.DiskName)
+		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+		disk, err := clients.Compute.DisksClient.Get(ctx2, *id)
 		if err != nil {
-			if utils.ResponseWasNotFound(disk.Response) {
+			if response.WasNotFound(disk.HttpResponse) {
 				return fmt.Errorf("disk %s does not exist", *id)
 			}
 			return err
 		}
 
-		future, err := clients.Legacy.DisksClient.Delete(ctx, id.ResourceGroupName, id.DiskName)
-		if err != nil {
-			return fmt.Errorf("deleting disk %q: %s", id.String(), err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, clients.Legacy.DisksClient.Client); err != nil {
-			return fmt.Errorf("waiting for deletion of disk %q: %s", id.String(), err)
+		if err := clients.Compute.DisksClient.DeleteThenPoll(ctx2, *id); err != nil {
+			return fmt.Errorf("deleting disk %s: %+v", id, err)
 		}
 
 		return nil
@@ -144,14 +143,16 @@ func (VirtualMachineResource) managedDiskDelete(diskId *string) acceptance.Clien
 
 func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := disks.ParseDiskID(*diskId)
+		id, err := commonids.ParseManagedDiskID(*diskId)
 		if err != nil {
 			return err
 		}
 
-		disk, err := clients.Legacy.DisksClient.Get(ctx, id.ResourceGroupName, id.DiskName)
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		disk, err := clients.Compute.DisksClient.Get(ctx2, *id)
 		if err != nil {
-			if utils.ResponseWasNotFound(disk.Response) {
+			if response.WasNotFound(disk.HttpResponse) {
 				if !shouldExist {
 					return nil
 				}
@@ -171,41 +172,46 @@ func (VirtualMachineResource) managedDiskExists(diskId *string, shouldExist bool
 
 func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *string) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		id, err := commonids.ParseVirtualMachineID(state.ID)
+		id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		virtualMachine, err := clients.Legacy.VMClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineName, "")
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		virtualMachine, err := clients.Compute.VirtualMachinesClient.Get(ctx2, *id, virtualmachines.DefaultGetOperationOptions())
 		if err != nil {
 			return err
 		}
-		if virtualMachine.VirtualMachineProperties == nil {
+		if virtualMachine.Model == nil {
+			return fmt.Errorf("`model` was nil")
+		}
+		if virtualMachine.Model.Properties == nil {
 			return fmt.Errorf("`properties` was nil")
 		}
-		if virtualMachine.VirtualMachineProperties.StorageProfile == nil {
+		if virtualMachine.Model.Properties.StorageProfile == nil {
 			return fmt.Errorf("`properties.StorageProfile` was nil")
 		}
 
 		diskName := state.Attributes[field]
 
-		if osDisk := virtualMachine.VirtualMachineProperties.StorageProfile.OsDisk; osDisk != nil {
-			if osDisk.Name != nil && osDisk.ManagedDisk != nil && osDisk.ManagedDisk.ID != nil {
+		if osDisk := virtualMachine.Model.Properties.StorageProfile.OsDisk; osDisk != nil {
+			if osDisk.Name != nil && osDisk.ManagedDisk != nil && osDisk.ManagedDisk.Id != nil {
 				if *osDisk.Name == diskName {
-					*managedDiskID = *osDisk.ManagedDisk.ID
+					*managedDiskID = *osDisk.ManagedDisk.Id
 					return nil
 				}
 			}
 		}
 
-		if dataDisks := virtualMachine.VirtualMachineProperties.StorageProfile.DataDisks; dataDisks != nil {
+		if dataDisks := virtualMachine.Model.Properties.StorageProfile.DataDisks; dataDisks != nil {
 			for _, dataDisk := range *dataDisks {
-				if dataDisk.Name == nil || dataDisk.ManagedDisk == nil || dataDisk.ManagedDisk.ID == nil {
+				if dataDisk.Name == nil || dataDisk.ManagedDisk == nil || dataDisk.ManagedDisk.Id == nil {
 					continue
 				}
 
 				if *dataDisk.Name == diskName {
-					*managedDiskID = *dataDisk.ManagedDisk.ID
+					*managedDiskID = *dataDisk.ManagedDisk.Id
 					return nil
 				}
 			}
@@ -216,22 +222,17 @@ func (VirtualMachineResource) findManagedDiskID(field string, managedDiskID *str
 }
 
 func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	vmID, err := commonids.ParseVirtualMachineID(state.ID)
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	name := vmID.VirtualMachineName
-	resourceGroup := vmID.ResourceGroupName
-
-	// Upgrading to the 2021-07-01 exposed a new hibernate parameter in the GET method
-	future, err := client.Legacy.VMClient.Deallocate(ctx, resourceGroup, name, utils.Bool(false))
-	if err != nil {
-		return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Legacy.VMClient.Client); err != nil {
-		return fmt.Errorf("Failed long polling for the stop of virtual machine %q: %+v", resourceGroup, err)
+	ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
+	opts := virtualmachines.DefaultDeallocateOperationOptions()
+	opts.Hibernate = pointer.To(false)
+	if err := client.Compute.VirtualMachinesClient.DeallocateThenPoll(ctx2, *id, opts); err != nil {
+		return fmt.Errorf("failed stopping %s: %+v", id, err)
 	}
 
 	return nil
@@ -239,10 +240,13 @@ func (VirtualMachineResource) deallocate(ctx context.Context, client *clients.Cl
 
 func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, shouldExist bool) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+
 		accountName := state.Attributes["storage_account_name"]
 		containerName := state.Attributes["name"]
 
-		account, err := clients.Storage.FindAccount(ctx, accountName)
+		account, err := clients.Storage.FindAccount(ctx, clients.Account.SubscriptionId, accountName)
 		if err != nil {
 			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
 		}
@@ -250,15 +254,15 @@ func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, sh
 			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := clients.Storage.BlobsClient(ctx, *account)
+		client, err := clients.Storage.BlobsDataPlaneClient(ctx, *account, clients.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Blobs Client: %s", err)
 		}
 
 		input := blobs.GetPropertiesInput{}
-		props, err := client.GetProperties(ctx, accountName, containerName, blobName, input)
+		props, err := client.GetProperties(ctx, containerName, blobName, input)
 		if err != nil {
-			if utils.ResponseWasNotFound(props.Response) {
+			if response.WasNotFound(props.HttpResponse) {
 				if !shouldExist {
 					return nil
 				}
@@ -278,21 +282,19 @@ func (VirtualMachineResource) unmanagedDiskExistsInContainer(blobName string, sh
 }
 
 func (VirtualMachineResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	vmName := state.Attributes["name"]
-	resourceGroup := state.Attributes["resource_group_name"]
+	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	// this is a preview feature we don't want to use right now
-	var forceDelete *bool = nil
-	future, err := client.Legacy.VMClient.Delete(ctx, resourceGroup, vmName, forceDelete)
-	if err != nil {
-		return nil, fmt.Errorf("Bad: Delete on vmClient: %+v", err)
+	opts := virtualmachines.DefaultDeleteOperationOptions()
+	opts.ForceDeletion = nil
+	if err := client.Compute.VirtualMachinesClient.DeleteThenPoll(ctx, *id, opts); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Legacy.VMClient.Client); err != nil {
-		return nil, fmt.Errorf("Bad: Delete on vmClient: %+v", err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (VirtualMachineResource) winTimeZone(data acceptance.TestData) string {
