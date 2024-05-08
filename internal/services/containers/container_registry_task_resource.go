@@ -84,7 +84,7 @@ type Auth struct {
 	Token        string `tfschema:"token"`
 	RefreshToken string `tfschema:"refresh_token"`
 	Scope        string `tfschema:"scope"`
-	ExpireInSec  int    `tfschema:"expire_in_seconds"`
+	ExpireInSec  int64  `tfschema:"expire_in_seconds"`
 }
 
 type SourceSetting struct{}
@@ -130,7 +130,7 @@ type ContainerRegistryTaskModel struct {
 	LogTemplate         string               `tfschema:"log_template"`
 	Platform            []Platform           `tfschema:"platform"`
 	Enabled             bool                 `tfschema:"enabled"`
-	TimeoutInSec        int                  `tfschema:"timeout_in_seconds"`
+	TimeoutInSec        int64                `tfschema:"timeout_in_seconds"`
 	DockerStep          []DockerStep         `tfschema:"docker_step"`
 	FileTaskStep        []FileTaskStep       `tfschema:"file_step"`
 	EncodedTaskStep     []EncodedTaskStep    `tfschema:"encoded_step"`
@@ -768,7 +768,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 				logTemplate        string
 				platform           []Platform
 				enabled            bool
-				timeoutInSec       int
+				timeoutInSec       int64
 				dockerStep         []DockerStep
 				fileTaskStep       []FileTaskStep
 				encodedTaskStep    []EncodedTaskStep
@@ -806,7 +806,7 @@ func (r ContainerRegistryTaskResource) Read() sdk.ResourceFunc {
 					platform = flattenRegistryTaskPlatform(props.Platform)
 					enabled = *props.Status == tasks.TaskStatusEnabled
 					if props.Timeout != nil {
-						timeoutInSec = int(*props.Timeout)
+						timeoutInSec = *props.Timeout
 					}
 					dockerStep = flattenRegistryTaskDockerStep(props.Step, diffOrStateModel)
 					fileTaskStep = flattenRegistryTaskFileTaskStep(props.Step, diffOrStateModel)
