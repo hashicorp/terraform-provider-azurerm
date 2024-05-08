@@ -124,8 +124,6 @@ resource "azurerm_monitor_private_link_scope" "test" {
   name                = "acctest-ampls-%d"
   resource_group_name = azurerm_resource_group.test.name
 
-  ingestion_access_mode = "Open"
-  query_access_mode     = "Open"
 }
 `, r.template(data), data.RandomInteger)
 }

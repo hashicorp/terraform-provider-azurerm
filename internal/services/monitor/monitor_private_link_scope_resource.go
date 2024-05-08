@@ -50,7 +50,8 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 
 			"ingestion_access_mode": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
+				Default:  string(privatelinkscopesapis.AccessModeOpen),
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						string(privatelinkscopesapis.AccessModeOpen),
@@ -61,7 +62,8 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 
 			"query_access_mode": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
+				Default:  string(privatelinkscopesapis.AccessModeOpen),
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						string(privatelinkscopesapis.AccessModeOpen),

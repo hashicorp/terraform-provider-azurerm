@@ -35,9 +35,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Azure Monitor Private Link Scope should exist. Changing this forces a new resource to be created.
 
-* `ingestion_access_mode` - (Required) The default ingestion access mode for the associated private endpoints in scope. Possible values `Open` and `PrivateOnly`.
+* `ingestion_access_mode` - (Optional) The default ingestion access mode for the associated private endpoints in scope. Possible values `Open` and `PrivateOnly`. Omitting this field sets this value to `Open`.
 
-* `query_access_mode` - (Required) The default query access mode for hte associated private endpoints in scope. Possible values `Open` and `PrivateOnly`.
+* `query_access_mode` - (Optional) The default query access mode for hte associated private endpoints in scope. Possible values `Open` and `PrivateOnly`. Omitting this field sets this value to `Open`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Monitor Private Link Scope.
 
