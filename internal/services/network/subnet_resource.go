@@ -200,8 +200,15 @@ func resourceSubnet() *pluginsdk.Resource {
 				},
 			},
 
-			"private_endpoint_network_policies": {
-				Type: pluginsdk.TypeString,
+			"default_outbound_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"private_endpoint_network_policies_enabled": {
+				Type: pluginsdk.TypeBool,
 				Computed: func() bool {
 					return !features.FourPointOh()
 				}(),
@@ -359,9 +366,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			privateLinkServiceNetworkPoliciesRaw = d.Get("private_link_service_network_policies_enabled").(bool)
 		}
 
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "private_endpoint_network_policies") {
-			privateEndpointNetworkPoliciesOk = true
-			privateEndpointNetworkPoliciesStringRaw = d.Get("private_endpoint_network_policies").(string)
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "default_outbound_access_enabled") {
+			properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 		}
 
 		// Only one of these values can be set since they conflict with each other
@@ -485,6 +491,10 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
 		}
+	}
+
+	if d.HasChange("default_outbound_access_enabled") {
+		props.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 	}
 
 	if d.HasChange("delegation") {
@@ -623,6 +633,10 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				}
 			} else {
 				d.Set("address_prefixes", props.AddressPrefixes)
+			}
+
+			if props.DefaultOutboundAccess != nil {
+				d.Set("default_outbound_access_enabled", props.DefaultOutboundAccess)
 			}
 
 			delegation := flattenSubnetDelegation(props.Delegations)
