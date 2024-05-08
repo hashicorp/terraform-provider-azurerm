@@ -202,7 +202,7 @@ func resourceSubnet() *pluginsdk.Resource {
 
 			"default_outbound_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Default:  true,
 				Optional: true,
 				ForceNew: true,
 			},
@@ -366,10 +366,6 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			privateLinkServiceNetworkPoliciesRaw = d.Get("private_link_service_network_policies_enabled").(bool)
 		}
 
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "default_outbound_access_enabled") {
-			properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
-		}
-
 		// Only one of these values can be set since they conflict with each other
 		// if neither of them are set use the default values
 		if enforceOk || enableOk || privateEndpointNetworkPoliciesOk {
@@ -400,6 +396,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+
+	properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
@@ -491,10 +489,6 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
 		}
-	}
-
-	if d.HasChange("default_outbound_access_enabled") {
-		props.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 	}
 
 	if d.HasChange("delegation") {
@@ -635,9 +629,11 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				d.Set("address_prefixes", props.AddressPrefixes)
 			}
 
+			defaultOutboundAccessEnabled := true
 			if props.DefaultOutboundAccess != nil {
-				d.Set("default_outbound_access_enabled", props.DefaultOutboundAccess)
+				defaultOutboundAccessEnabled = *props.DefaultOutboundAccess
 			}
+			d.Set("default_outbound_access_enabled", defaultOutboundAccessEnabled)
 
 			delegation := flattenSubnetDelegation(props.Delegations)
 			if err := d.Set("delegation", delegation); err != nil {

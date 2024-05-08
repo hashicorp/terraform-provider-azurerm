@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
 
-* `default_outbound_access_enabled` - (Optional) Enable default outbound access to the internet for the subnet. Setting to `false` creates a private subnet.
+* `default_outbound_access_enabled` - (Optional) Enable default outbound access to the internet for the subnet. Defaults to `true`.
 
 * `private_endpoint_network_policies` - (Optional) Enable or Disable network policies for the private endpoint on the subnet. Possible values are `Disabled`, `Enabled`, `NetworkSecurityGroupEnabled` and `RouteTableEnabled`. Defaults to `Disabled`.
 
