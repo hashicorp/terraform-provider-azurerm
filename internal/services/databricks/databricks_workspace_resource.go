@@ -130,7 +130,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"default_storage_firewall_enabled": {
 				Type:         pluginsdk.TypeBool,
 				Optional:     true,
-				Default:      false,
 				RequiredWith: []string{"access_connector_id"},
 			},
 
