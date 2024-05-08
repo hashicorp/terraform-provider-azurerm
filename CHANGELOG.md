@@ -23,6 +23,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_kubernetes_cluster` - erase `load_balancer_profile` when changing `network_profile.outbound_type` from `loadBalancer` to another outbound type [GH-25530]
 * `azurerm_log_analytics_saved_search` - the `function_parameters` property now repsects the order of elements [GH-25869]
 * `azurerm_linux_web_app` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
 * `azurerm_linux _web_app_slot` - fix `slow_request` with `path` issue in `auto_heal` by adding support for `slow_request_with_path` block [GH-20049]
