@@ -9,6 +9,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/natgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -86,17 +89,17 @@ func TestAccNatGatewayPublicIpAssociation_deleted(t *testing.T) {
 }
 
 func (t NatGatewayPublicAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NatGatewayPublicIPAddressAssociationID(state.ID)
+	id, err := commonids.ParseCompositeResourceID(state.ID, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.NatGatewayClient.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
+	resp, err := clients.Network.Client.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Nat Gateway Public IP Association (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

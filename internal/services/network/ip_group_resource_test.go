@@ -6,14 +6,14 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ipgroups"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IPGroupResource struct{}
@@ -141,17 +141,17 @@ func TestAccIpGroup_updateWithAttachedPolicy(t *testing.T) {
 }
 
 func (t IPGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IpGroupID(state.ID)
+	id, err := ipgroups.ParseIPGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.IPGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.Client.IPGroups.Get(ctx, *id, ipgroups.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading IP Group (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (IPGroupResource) basic(data acceptance.TestData) string {

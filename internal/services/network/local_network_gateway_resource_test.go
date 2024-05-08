@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/localnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -243,21 +245,16 @@ func (t LocalNetworkGatewayResource) Exists(ctx context.Context, clients *client
 }
 
 func (LocalNetworkGatewayResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LocalNetworkGatewayID(state.ID)
+	id, err := localnetworkgateways.ParseLocalNetworkGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.LocalNetworkGatewaysClient.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.Network.Client.LocalNetworkGateways.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.LocalNetworkGatewaysClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for %s : %+v", *id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (LocalNetworkGatewayResource) basic(data acceptance.TestData) string {
