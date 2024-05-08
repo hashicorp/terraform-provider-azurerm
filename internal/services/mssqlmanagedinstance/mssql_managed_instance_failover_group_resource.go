@@ -33,7 +33,7 @@ type MsSqlManagedInstanceFailoverGroupModel struct {
 }
 
 type MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel struct {
-	GraceMinutes int32  `tfschema:"grace_minutes"`
+	GraceMinutes int64  `tfschema:"grace_minutes"`
 	Mode         string `tfschema:"mode"`
 }
 
@@ -208,7 +208,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Create() sdk.ResourceFunc {
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
 				parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverPolicy = sql.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
 				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
-					parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(rwPolicy[0].GraceMinutes)
+					parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(int32(rwPolicy[0].GraceMinutes))
 				}
 			}
 
@@ -291,7 +291,7 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Update() sdk.ResourceFunc {
 			if rwPolicy := state.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
 				parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverPolicy = sql.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
 				if rwPolicy[0].Mode == string(sql.ReadWriteEndpointFailoverPolicyAutomatic) {
-					parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(rwPolicy[0].GraceMinutes)
+					parameters.InstanceFailoverGroupProperties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = utils.Int32(int32(rwPolicy[0].GraceMinutes))
 				}
 			}
 
@@ -385,9 +385,9 @@ func (r MsSqlManagedInstanceFailoverGroupResource) Read() sdk.ResourceFunc {
 				}
 
 				if readWriteEndpoint := props.ReadWriteEndpoint; readWriteEndpoint != nil {
-					var graceMinutes int32
+					var graceMinutes int64
 					if readWriteEndpoint.FailoverWithDataLossGracePeriodMinutes != nil {
-						graceMinutes = *readWriteEndpoint.FailoverWithDataLossGracePeriodMinutes
+						graceMinutes = int64(*readWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
 					}
 
 					model.ReadWriteEndpointFailurePolicy = []MsSqlManagedInstanceReadWriteEndpointFailurePolicyModel{

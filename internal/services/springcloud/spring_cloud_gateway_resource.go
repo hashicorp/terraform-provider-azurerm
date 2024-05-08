@@ -58,7 +58,7 @@ type CorsModel struct {
 	AllowedOrigins        []string `tfschema:"allowed_origins"`
 	AllowedOriginPatterns []string `tfschema:"allowed_origin_patterns"`
 	ExposedHeaders        []string `tfschema:"exposed_headers"`
-	MaxAgeSeconds         int      `tfschema:"max_age_seconds"`
+	MaxAgeSeconds         int64    `tfschema:"max_age_seconds"`
 }
 
 type GatewaySsoModel struct {
@@ -704,7 +704,7 @@ func expandGatewayGatewayCorsProperties(input []CorsModel) *appplatform.GatewayC
 		AllowedOriginPatterns: pointer.To(v.AllowedOriginPatterns),
 		AllowedMethods:        pointer.To(v.AllowedMethods),
 		AllowedHeaders:        pointer.To(v.AllowedHeaders),
-		MaxAge:                pointer.To(int64(v.MaxAgeSeconds)),
+		MaxAge:                pointer.To(v.MaxAgeSeconds),
 		AllowCredentials:      pointer.To(v.CredentialsAllowed),
 		ExposedHeaders:        pointer.To(v.ExposedHeaders),
 	}
@@ -829,7 +829,7 @@ func flattenGatewayGatewayCorsProperties(input *appplatform.GatewayCorsPropertie
 			AllowedOrigins:        pointer.From(input.AllowedOrigins),
 			AllowedOriginPatterns: pointer.From(input.AllowedOriginPatterns),
 			ExposedHeaders:        pointer.From(input.ExposedHeaders),
-			MaxAgeSeconds:         int(pointer.From(input.MaxAge)),
+			MaxAgeSeconds:         pointer.From(input.MaxAge),
 		},
 	}
 }

@@ -60,9 +60,9 @@ type AlertProcessingRuleWeeklyModel struct {
 }
 
 type AlertProcessingRuleMonthlyModel struct {
-	StartTime   string `tfschema:"start_time"`
-	EndTime     string `tfschema:"end_time"`
-	DaysOfMonth []int  `tfschema:"days_of_month"`
+	StartTime   string  `tfschema:"start_time"`
+	EndTime     string  `tfschema:"end_time"`
+	DaysOfMonth []int64 `tfschema:"days_of_month"`
 }
 
 func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
@@ -502,7 +502,7 @@ func expandAlertProcessingRuleScheduleRecurrences(input []AlertProcessingRuleRec
 		recurrences = append(recurrences, alertprocessingrules.MonthlyRecurrence{
 			StartTime:   startTime,
 			EndTime:     endTime,
-			DaysOfMonth: *expandAlertProcessingRuleScheduleRecurrenceDaysOfMonth(item.DaysOfMonth),
+			DaysOfMonth: item.DaysOfMonth,
 		})
 	}
 
@@ -618,7 +618,7 @@ func flattenAlertProcessingRuleRecurrences(input *[]alertprocessingrules.Recurre
 		case alertprocessingrules.MonthlyRecurrence:
 			monthlyRecurrence := item.(alertprocessingrules.MonthlyRecurrence)
 			monthly := AlertProcessingRuleMonthlyModel{
-				DaysOfMonth: flattenAlertProcessingRuleRecurrenceDaysOfMonth(&monthlyRecurrence.DaysOfMonth),
+				DaysOfMonth: monthlyRecurrence.DaysOfMonth,
 				StartTime:   flattenPtrString(monthlyRecurrence.StartTime),
 				EndTime:     flattenPtrString(monthlyRecurrence.EndTime),
 			}

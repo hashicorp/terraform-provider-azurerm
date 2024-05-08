@@ -32,7 +32,7 @@ var (
 )
 
 type AgentConfig struct {
-	CPU int `tfschema:"cpu"`
+	CPU int64 `tfschema:"cpu"`
 }
 
 type Platform struct {
@@ -1558,7 +1558,7 @@ func expandRegistryTaskAgentProperties(input []AgentConfig) *tasks.AgentProperti
 	}
 
 	agentConfig := input[0]
-	return &tasks.AgentProperties{Cpu: utils.Int64(int64(agentConfig.CPU))}
+	return &tasks.AgentProperties{Cpu: utils.Int64(agentConfig.CPU)}
 }
 
 func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentConfig {
@@ -1566,11 +1566,7 @@ func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentCon
 		return nil
 	}
 
-	cpu := 0
-	if input.Cpu != nil {
-		cpu = int(*input.Cpu)
-	}
-	return []AgentConfig{{CPU: cpu}}
+	return []AgentConfig{{CPU: pointer.From(input.Cpu)}}
 }
 
 func patchRegistryTaskTriggerSourceTrigger(triggers []tasks.SourceTrigger, model ContainerRegistryTaskModel) *[]tasks.SourceTrigger {

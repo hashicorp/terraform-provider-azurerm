@@ -56,8 +56,8 @@ type RequestModel struct {
 }
 
 type ValidationRuleModel struct {
-	ExpectedStatusCode           int            `tfschema:"expected_status_code"`
-	CertificateRemainingLifetime int            `tfschema:"ssl_cert_remaining_lifetime"`
+	ExpectedStatusCode           int64          `tfschema:"expected_status_code"`
+	CertificateRemainingLifetime int64          `tfschema:"ssl_cert_remaining_lifetime"`
 	SSLCheck                     bool           `tfschema:"ssl_check_enabled"`
 	Content                      []ContentModel `tfschema:"content"`
 }
@@ -641,8 +641,8 @@ func flattenApplicationInsightsStandardWebTestValidations(input *webtests.WebTes
 	}
 
 	result := ValidationRuleModel{
-		ExpectedStatusCode:           int(pointer.From(rules.ExpectedHTTPStatusCode)),
-		CertificateRemainingLifetime: int(pointer.From(rules.SSLCertRemainingLifetimeCheck)),
+		ExpectedStatusCode:           pointer.From(rules.ExpectedHTTPStatusCode),
+		CertificateRemainingLifetime: pointer.From(rules.SSLCertRemainingLifetimeCheck),
 		SSLCheck:                     pointer.From(rules.SSLCheck),
 		Content:                      flattenApplicationInsightsStandardWebTestContentValidations(rules.ContentValidation),
 	}
