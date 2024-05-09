@@ -59,15 +59,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "example" {
 }
 
 resource "azurerm_postgresql_flexible_server" "example" {
-  name                   = "example-psqlflexibleserver"
-  resource_group_name    = azurerm_resource_group.example.name
-  location               = azurerm_resource_group.example.location
-  version                = "12"
-  delegated_subnet_id    = azurerm_subnet.example.id
-  private_dns_zone_id    = azurerm_private_dns_zone.example.id
-  administrator_login    = "psqladmin"
-  administrator_password = "H@Sh1CoR3!"
-  zone                   = "1"
+  name                          = "example-psqlflexibleserver"
+  resource_group_name           = azurerm_resource_group.example.name
+  location                      = azurerm_resource_group.example.location
+  version                       = "12"
+  delegated_subnet_id           = azurerm_subnet.example.id
+  private_dns_zone_id           = azurerm_private_dns_zone.example.id
+  public_network_access_enabled = false
+  administrator_login           = "psqladmin"
+  administrator_password        = "H@Sh1CoR3!"
+  zone                          = "1"
 
   storage_mb   = 32768
   storage_tier = "P30"
@@ -116,11 +117,9 @@ The following arguments are supported:
 
 ~> **Note:** There will be a breaking change from upstream service at 15th July 2021, the `private_dns_zone_id` will be required when setting a `delegated_subnet_id`. For existing flexible servers who don't want to be recreated, you need to provide the `private_dns_zone_id` to the service team to manually migrate to the specified private DNS zone. The `azurerm_private_dns_zone` should end with suffix `.postgres.database.azure.com`.
 
-* `public_network_access_enabled` - (Optional) Specifies whether this PostgreSQL Flexible Server is publicly accessible.
+* `public_network_access_enabled` - (Optional) Specifies whether this PostgreSQL Flexible Server is publicly accessible. Defaults to `true`.
 
-~> **Note:** When `delegated_subnet_id` and `private_dns_zone_id` are set, the default value of `public_network_access_enabled` is `false`.
-
-~> **Note:** When `delegated_subnet_id` and `private_dns_zone_id` aren't set, the default value of `public_network_access_enabled` is `true`.
+-> **Note:** `public_network_access_enabled` must be set to `false` when `delegated_subnet_id` and `private_dns_zone_id` have a value.
 
 * `high_availability` - (Optional) A `high_availability` block as defined below.
 

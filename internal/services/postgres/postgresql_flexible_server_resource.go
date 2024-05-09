@@ -279,7 +279,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"replication_role": {
@@ -965,14 +965,11 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 		network.PrivateDnsZoneArmResourceId = utils.String(v.(string))
 	}
 
-	// `d.GetOk()` cannot identify if the bool property `public_network_access_enabled` is set or not in the tf config since d.GetOk() always returns `false` when `public_network_access_enabled` is set to `false` and `public_network_access_enabled` isn't set in the tf config
-	if !pluginsdk.IsExplicitlyNullInConfig(d, "public_network_access_enabled") {
-		publicNetworkAccessEnabled := servers.ServerPublicNetworkAccessStateDisabled
-		if d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccessEnabled = servers.ServerPublicNetworkAccessStateEnabled
-		}
-		network.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
+	publicNetworkAccessEnabled := servers.ServerPublicNetworkAccessStateEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = servers.ServerPublicNetworkAccessStateDisabled
 	}
+	network.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 
 	return &network
 }
