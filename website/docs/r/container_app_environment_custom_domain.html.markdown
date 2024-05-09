@@ -52,9 +52,6 @@ The following arguments are supported:
 * `certificate_password` - (Required) The password for the Certificate bundle.
 
 * `dns_suffix` - (Required) Custom DNS Suffix for the Container App Environment.
-
-
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
