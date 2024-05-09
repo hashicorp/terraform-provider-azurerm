@@ -462,6 +462,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.HDInsight, err = hdinsight.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HDInsight: %+v", err)
 	}
+	if client.HDInsight2024, err = hdinsight.NewHDInsightOnArksClient(o); err != nil {
+		return fmt.Errorf("building clients for HDInsight: %+v", err)
+	}
 	if client.HealthCare, err = healthcare.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for HealthCare: %+v", err)
 	}

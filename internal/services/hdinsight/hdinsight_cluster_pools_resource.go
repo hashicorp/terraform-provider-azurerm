@@ -63,7 +63,7 @@ func (r ClusterPoolResource) ResourceType() string {
 }
 
 func (r ClusterPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return nil
+	return hdinsights.ValidateClusterPoolID
 }
 
 func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
