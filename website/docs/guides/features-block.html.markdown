@@ -75,6 +75,10 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = true
     }
 
+    recovery_services_vault {
+      recover_soft_deleted_backup_protected_vm = true
+    }
+
     subscription {
       prevent_cancellation_on_destroy = false
     }
@@ -121,6 +125,8 @@ The `features` block supports the following:
 * `recovery_service` - (Optional) A `recovery_service` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
+
+* `recovery_services_vault` - (Optional) A `recovery_services_vault` block as defined below.
 
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
@@ -223,6 +229,12 @@ The `recovery_service` block supports the following:
 The `resource_group` block supports the following:
 
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
+
+---
+
+The `recovery_services_vault` block supports the following:
+
+* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
 
 ---
 

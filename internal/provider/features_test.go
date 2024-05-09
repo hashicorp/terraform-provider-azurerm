@@ -69,6 +69,9 @@ func TestExpandFeatures(t *testing.T) {
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
 				},
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: true,
+				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
 				},
@@ -143,6 +146,11 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_deletion_if_contains_resources": true,
 						},
 					},
+					"recovery_services_vaults": []interface{}{
+						map[string]interface{}{
+							"recover_soft_deleted_backup_protected_vm": true,
+						},
+					},
 					"subscription": []interface{}{
 						map[string]interface{}{
 							"prevent_cancellation_on_destroy": true,
@@ -215,6 +223,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
+				},
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
@@ -304,6 +315,11 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_deletion_if_contains_resources": false,
 						},
 					},
+					"recovery_services_vaults": []interface{}{
+						map[string]interface{}{
+							"recover_soft_deleted_backup_protected_vm": false,
+						},
+					},
 					"subscription": []interface{}{
 						map[string]interface{}{
 							"prevent_cancellation_on_destroy": false,
@@ -376,6 +392,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
+				},
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -1220,6 +1239,71 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ResourceGroup, testCase.Expected.ResourceGroup) {
 			t.Fatalf("Expected %+v but got %+v", result.ResourceGroup, testCase.Expected.ResourceGroup)
+		}
+	}
+}
+
+func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_services_vaults": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: true,
+				},
+			},
+		},
+		{
+			Name: "Recover Soft Deleted Protected VM Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_services_vaults": []interface{}{
+						map[string]interface{}{
+							"recover_soft_deleted_backup_protected_vm": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: true,
+				},
+			},
+		},
+		{
+			Name: "Recover Soft Deleted Protected VM Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_services_vaults": []interface{}{
+						map[string]interface{}{
+							"recover_soft_deleted_backup_protected_vm": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.RecoveryServicesVault, testCase.Expected.RecoveryServicesVault) {
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.RecoveryServicesVault, result.RecoveryServicesVault)
 		}
 	}
 }

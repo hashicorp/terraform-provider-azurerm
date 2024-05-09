@@ -14,6 +14,7 @@ type UserFeatures struct {
 	TemplateDeployment       TemplateDeploymentFeatures
 	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
 	ResourceGroup            ResourceGroupFeatures
+	RecoveryServicesVault    RecoveryServicesVault
 	ManagedDisk              ManagedDiskFeatures
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
@@ -82,6 +83,10 @@ type AppConfigurationFeatures struct {
 
 type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
+}
+
+type RecoveryServicesVault struct {
+	RecoverSoftDeletedBackupProtectedVM bool
 }
 
 type PostgresqlFlexibleServerFeatures struct {
