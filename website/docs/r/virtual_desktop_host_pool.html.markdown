@@ -98,7 +98,6 @@ A `scheduled_agent_updates` block supports the following:
 * `schedule` - (Optional) A `schedule` block as defined below. A maximum of two blocks can be added.
 
 ---
----
 
 A `schedule` block supports the following:
 
