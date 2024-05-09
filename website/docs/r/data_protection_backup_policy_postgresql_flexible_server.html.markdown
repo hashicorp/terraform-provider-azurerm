@@ -32,8 +32,8 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
   vault_name          = azurerm_data_protection_backup_vault.example.name
 
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-
-  default_retention_duration = "P4M"
+  time_zone                       = "India Standard Time"
+  default_retention_duration      = "P4M"
 
   retention_rule {
     name     = "weekly"
@@ -71,45 +71,45 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Backup Policy PostgreSQL Flexible Server. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `name` - (Required) The name which should be used for this Backup Policy PostgreSQL Flexible Server. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new resource to be created.
 
-* `vault_name` - (Required) The name of the Backup Vault where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `vault_name` - (Required) The name of the Backup Vault where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new resource to be created.
 
-* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
-  
-* `default_retention_duration` - (Required) The duration of default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new resource to be created.
 
----
+* `default_retention_duration` - (Required) The duration of default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
-* `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new resource to be created.
+
+* `time_zone` - (Optional) Specifies the Time Zone which should be used by the backup schedule. Changing this forces a new resource to be created.
 
 ---
 
 A `retention_rule` block supports the following:
 
-* `name` - (Required) The name which should be used for this retention rule. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `name` - (Required) The name which should be used for this retention rule. Changing this forces a new resource to be created.
 
-* `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
-* `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new resource to be created.
 
-* `priority` - (Required) Specifies the priority of the rule. The priority number must be unique for each rule. The lower the priority number, the higher the priority of the rule. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `priority` - (Required) Specifies the priority of the rule. The priority number must be unique for each rule. The lower the priority number, the higher the priority of the rule. Changing this forces a new resource to be created.
 
 ---
 
 A `criteria` block supports the following:
 
-* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new resource to be created.
 
-* `days_of_week` - (Optional) Possible values are `Monday`, `Tuesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `days_of_week` - (Optional) Possible values are `Monday`, `Tuesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`. Changing this forces a new resource to be created.
 
-* `months_of_year` - (Optional) Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `months_of_year` - (Optional) Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`. Changing this forces a new resource to be created.
 
-* `scheduled_backup_times` - (Optional) Specifies a list of backup times for backup in the `RFC3339` format. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `scheduled_backup_times` - (Optional) Specifies a list of backup times for backup in the `RFC3339` format. Changing this forces a new resource to be created.
 
-* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new Backup Policy PostgreSQL Flexible Server to be created.
+* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

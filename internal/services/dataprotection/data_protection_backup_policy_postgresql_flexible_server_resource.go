@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
@@ -208,15 +209,15 @@ func resourceDataProtectionBackupPolicyPostgreSQLFlexibleServerCreate(d *plugins
 		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_postgresql_flexible_server", id.ID())
 	}
 
-	taggingCriteria, err := expandBackupPolicyPostgreSQLTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
+	taggingCriteria, err := expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
 	if err != nil {
 		return err
 	}
 
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
-	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
-	policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(d.Get("default_retention_duration")))
-	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
+	policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
+	policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(d.Get("default_retention_duration")))
+	policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
 	parameters := backuppolicies.BaseBackupPolicyResource{
 		Properties: &backuppolicies.BackupPolicy{
 			PolicyRules:     policyRules,
@@ -258,16 +259,16 @@ func resourceDataProtectionBackupPolicyPostgreSQLFlexibleServerRead(d *pluginsdk
 	if resp.Model != nil {
 		if resp.Model.Properties != nil {
 			if props, ok := resp.Model.Properties.(backuppolicies.BackupPolicy); ok {
-				if err := d.Set("backup_repeating_time_intervals", flattenBackupPolicyPostgreSQLBackupRuleArray(&props.PolicyRules)); err != nil {
+				if err := d.Set("backup_repeating_time_intervals", flattenBackupPolicyPostgreSQLFlexibleServerBackupRuleArray(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `backup_rule`: %+v", err)
 				}
-				if err := d.Set("default_retention_duration", flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(&props.PolicyRules)); err != nil {
+				if err := d.Set("default_retention_duration", flattenBackupPolicyPostgreSQLFlexibleServerDefaultRetentionRuleDuration(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `default_retention_duration`: %+v", err)
 				}
-				if err := d.Set("retention_rule", flattenBackupPolicyPostgreSQLRetentionRuleArray(&props.PolicyRules)); err != nil {
+				if err := d.Set("retention_rule", flattenBackupPolicyPostgreSQLFlexibleServerRetentionRuleArray(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `retention_rule`: %+v", err)
 				}
-				d.Set("time_zone", flattenBackupPolicyPostgreSQLBackupTimeZone(&props.PolicyRules))
+				d.Set("time_zone", flattenBackupPolicyPostgreSQLFlexibleServerBackupTimeZone(&props.PolicyRules))
 			}
 		}
 	}
@@ -294,7 +295,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLFlexibleServerDelete(d *plugins
 	return nil
 }
 
-func expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRuleArray(input []interface{}, taggingCriteria *[]backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
+func expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRuleArray(input []interface{}, timeZone string, taggingCriteria *[]backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
 	results := make([]backuppolicies.BasePolicyRule, 0)
 	results = append(results, backuppolicies.AzureBackupRule{
 		Name: "BackupIntervals",
@@ -308,6 +309,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRuleArray(input []inte
 		Trigger: backuppolicies.ScheduleBasedTriggerContext{
 			Schedule: backuppolicies.BackupSchedule{
 				RepeatingTimeIntervals: *utils.ExpandStringSlice(input),
+				TimeZone:               pointer.To(timeZone),
 			},
 			TaggingCriteria: *taggingCriteria,
 		},
@@ -461,6 +463,22 @@ func flattenBackupPolicyPostgreSQLFlexibleServerBackupRuleArray(input *[]backupp
 		}
 	}
 	return make([]interface{}, 0)
+}
+
+func flattenBackupPolicyPostgreSQLFlexibleServerBackupTimeZone(input *[]backuppolicies.BasePolicyRule) string {
+	if input == nil {
+		return ""
+	}
+	for _, item := range *input {
+		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
+			if backupRule.Trigger != nil {
+				if scheduleBasedTrigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+					return pointer.From(scheduleBasedTrigger.Schedule.TimeZone)
+				}
+			}
+		}
+	}
+	return ""
 }
 
 func flattenBackupPolicyPostgreSQLFlexibleServerDefaultRetentionRuleDuration(input *[]backuppolicies.BasePolicyRule) interface{} {

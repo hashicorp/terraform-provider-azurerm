@@ -169,6 +169,8 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
 
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P4M"
+  time_zone                       = "India Standard Time"
+
   retention_rule {
     name     = "weekly"
     duration = "P6M"
