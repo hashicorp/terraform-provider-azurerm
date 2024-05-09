@@ -39,7 +39,6 @@ resource "azurerm_container_app_environment_custom_domain" "example" {
   certificate_password         = "TestAcc"
   dns_suffix                   = "acceptancetest.contoso.com"
 }
-
 ```
 
 ## Arguments Reference
