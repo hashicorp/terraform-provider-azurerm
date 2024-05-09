@@ -11,6 +11,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* provider - support for the `recover_soft_deleted_backup_protected_vm` feature [GH-24157]
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.69.0` [GH-25903]
 * `loganalytics` - update cluster resource to api version `2022-01-01` [GH-25686]
 * `azurerm_bastion_host` - support for the `kerberos_enabled` property [GH-25823]
