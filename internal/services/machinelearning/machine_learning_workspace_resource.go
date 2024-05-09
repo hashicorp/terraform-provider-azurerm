@@ -245,7 +245,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 						"public_ip_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  true,
+							Default:  false,
 						},
 					},
 				},
