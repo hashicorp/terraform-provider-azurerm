@@ -364,7 +364,7 @@ func TestAccMachineLearningWorkspace_serverlessCompute(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("serverless_compute.#").HasValue("1"),
 				check.That(data.ResourceName).Key("serverless_compute.0.subnet_id").Exists(),
-				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
