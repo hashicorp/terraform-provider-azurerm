@@ -529,7 +529,7 @@ func TestAccPostgresqlFlexibleServer_publicNetworkAccessEnabled(t *testing.T) {
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.publicNetworkAccessEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -537,13 +537,6 @@ func TestAccPostgresqlFlexibleServer_publicNetworkAccessEnabled(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.publicNetworkAccessEnabled(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
