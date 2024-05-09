@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -93,7 +92,7 @@ func (r RoleManagementPolicyResource) IDValidationFunc() pluginsdk.SchemaValidat
 			return
 		}
 
-		_, err := parse.RoleManagementPolicyID(v)
+		_, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(v)
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -374,10 +373,10 @@ func (r RoleManagementPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			id := parse.NewRoleManagementPolicyID(config.Scope, "")
+			id := rolemanagementpolicies.NewScopedRoleManagementPolicyID(config.Scope, "")
 			roleDefinitionId := config.RoleDefinitionId
 
-			scopedId, err := getScopedPolicyId(ctx, metadata, id, roleDefinitionId)
+			scopedId, err := getScopedPolicyId(ctx, metadata, &id, roleDefinitionId)
 			if err != nil {
 				return err
 			}
@@ -401,7 +400,7 @@ func (r RoleManagementPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("could not create assignment schedule request, %+v", err)
 			}
 
-			updatedId, err := parse.RoleManagementPolicyID(*resp.Model.Id)
+			updatedId, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(*resp.Model.Id)
 			if err != nil {
 				return err
 			}
@@ -417,7 +416,7 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Authorization.RoleManagementPoliciesClient
 
-			stateId, err := parse.RoleManagementPolicyID(metadata.ResourceData.Id())
+			stateId, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -613,11 +612,11 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 
 func (r RoleManagementPolicyResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Authorization.RoleManagementPoliciesClient
 
-			stateId, err := parse.RoleManagementPolicyID(metadata.ResourceData.Id())
+			stateId, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -652,7 +651,7 @@ func (r RoleManagementPolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("could not create assignment schedule request, %+v", err)
 			}
 
-			updatedId, err := parse.RoleManagementPolicyID(*resp.Model.Id)
+			updatedId, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(*resp.Model.Id)
 			if err != nil {
 				return err
 			}
@@ -666,7 +665,7 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.RoleManagementPolicyID(metadata.ResourceData.Id())
+			id, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -1005,17 +1004,15 @@ func flattenNotificationSettings(rule *map[string]interface{}) *RoleManagementPo
 	}
 }
 
-func getScopedPolicyId(ctx context.Context, metadata sdk.ResourceMetaData, id *parse.RoleManagementPolicyId, roleDefinitionId string) (*rolemanagementpolicies.ScopedRoleManagementPolicyId, error) {
-	if id.Name != "" {
+func getScopedPolicyId(ctx context.Context, metadata sdk.ResourceMetaData, id *rolemanagementpolicies.ScopedRoleManagementPolicyId, roleDefinitionId string) (*rolemanagementpolicies.ScopedRoleManagementPolicyId, error) {
+	if id.RoleManagementPolicyName != "" {
 		// Check if the current ID is still valid
-		scopedId := pointer.To(rolemanagementpolicies.NewScopedRoleManagementPolicyID(id.Scope, id.Name))
-
-		resp, err := metadata.Client.Authorization.RoleManagementPoliciesClient.Get(ctx, *scopedId)
+		resp, err := metadata.Client.Authorization.RoleManagementPoliciesClient.Get(ctx, *id)
 		switch {
 		case err != nil && !response.WasNotFound(resp.HttpResponse):
-			return nil, fmt.Errorf("failed to get existing Role Management Policy %s. %+v", scopedId.ID(), err)
+			return nil, fmt.Errorf("failed to get existing Role Management Policy %s. %+v", id.ID(), err)
 		case resp.Model != nil:
-			return scopedId, nil
+			return id, nil
 		}
 	}
 
@@ -1027,8 +1024,10 @@ func getScopedPolicyId(ctx context.Context, metadata sdk.ResourceMetaData, id *p
 
 	for _, assignment := range *resp.Model {
 		if *assignment.Properties.RoleDefinitionId == roleDefinitionId {
-			parts := strings.Split(*assignment.Properties.PolicyId, "/providers/Microsoft.Authorization/roleManagementPolicies/")
-			scopedId := pointer.To(rolemanagementpolicies.NewScopedRoleManagementPolicyID(parts[0], parts[1]))
+			scopedId, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(*assignment.Properties.PolicyId)
+			if err != nil {
+				return nil, err
+			}
 			return scopedId, nil
 		}
 	}

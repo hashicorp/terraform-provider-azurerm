@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 )
 
 type RoleManagementPolicyResource struct{}
@@ -71,12 +70,12 @@ func TestRoleManagementPolicy_managementGroup(t *testing.T) {
 func (RoleManagementPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	client := clients.Authorization.RoleManagementPoliciesClient
 
-	id, err := parse.RoleManagementPolicyID(state.ID)
+	id, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Get(ctx, rolemanagementpolicies.NewScopedRoleManagementPolicyID(id.Scope, id.Name))
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

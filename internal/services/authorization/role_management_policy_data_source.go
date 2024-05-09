@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -92,7 +91,7 @@ func (r RoleManagementPolicyDataSource) IDValidationFunc() pluginsdk.SchemaValid
 			return
 		}
 
-		_, err := parse.RoleManagementPolicyID(v)
+		_, err := rolemanagementpolicies.ParseScopedRoleManagementPolicyID(v)
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -115,7 +114,6 @@ func (r RoleManagementPolicyDataSource) Arguments() map[string]*pluginsdk.Schema
 			Description:  "The scope of the role to which this policy will apply",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringStartsWithOneOf("/subscriptions/", "/providers/Microsoft.Management/managementGroups/"),
 		},
 
@@ -123,7 +121,6 @@ func (r RoleManagementPolicyDataSource) Arguments() map[string]*pluginsdk.Schema
 			Description:  "ID of the Azure Role to which this policy is assigned",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringMatch(regexp.MustCompile("/providers/Microsoft.Authorization/roleDefinitions/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"), "should be in the format /providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000"),
 		},
 	}
@@ -298,6 +295,7 @@ func (r RoleManagementPolicyDataSource) Attributes() map[string]*pluginsdk.Schem
 							Schema: notificationRuleDataSourceSchema(),
 						},
 					},
+
 					"eligible_activations": {
 						Description: "Notifications about activations of eligible assignments",
 						Type:        pluginsdk.TypeList,
@@ -306,6 +304,7 @@ func (r RoleManagementPolicyDataSource) Attributes() map[string]*pluginsdk.Schem
 							Schema: notificationRuleDataSourceSchema(),
 						},
 					},
+
 					"eligible_assignments": {
 						Description: "Notifications about eligible assignments",
 						Type:        pluginsdk.TypeList,
@@ -326,7 +325,7 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Authorization.RoleManagementPoliciesClient
 
-			var id *parse.RoleManagementPolicyId
+			var id *rolemanagementpolicies.ScopedRoleManagementPolicyId
 
 			scope := metadata.ResourceData.Get("scope").(string)
 			roleDefinitionId := metadata.ResourceData.Get("role_definition_id").(string)
@@ -339,7 +338,7 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 
 			for _, assignment := range *assigns.Model {
 				if *assignment.Properties.RoleDefinitionId == roleDefinitionId {
-					id, err = parse.RoleManagementPolicyID(*assignment.Properties.PolicyId)
+					id, err = rolemanagementpolicies.ParseScopedRoleManagementPolicyID(*assignment.Properties.PolicyId)
 					if err != nil {
 						return err
 					}
@@ -347,7 +346,7 @@ func (r RoleManagementPolicyDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			resp, err := client.Get(ctx, rolemanagementpolicies.NewScopedRoleManagementPolicyID(id.Scope, id.Name))
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("role management policy %s not found", id.ID())
@@ -552,6 +551,7 @@ func notificationRuleDataSourceSchema() map[string]*pluginsdk.Schema {
 				Schema: notificationSettingsDataSourceSchema(),
 			},
 		},
+
 		"approver_notifications": {
 			Description: "Approver notification settings",
 			Type:        pluginsdk.TypeList,
@@ -560,6 +560,7 @@ func notificationRuleDataSourceSchema() map[string]*pluginsdk.Schema {
 				Schema: notificationSettingsDataSourceSchema(),
 			},
 		},
+
 		"assignee_notifications": {
 			Description: "Assignee notification settings",
 			Type:        pluginsdk.TypeList,
@@ -578,11 +579,13 @@ func notificationSettingsDataSourceSchema() map[string]*pluginsdk.Schema {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
 		},
+
 		"default_recipients": {
 			Description: "Whether the default recipients are notified",
 			Type:        pluginsdk.TypeBool,
 			Computed:    true,
 		},
+
 		"additional_recipients": {
 			Description: "The additional recipients to notify",
 			Type:        pluginsdk.TypeSet,

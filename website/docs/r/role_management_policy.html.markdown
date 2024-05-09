@@ -118,8 +118,8 @@ resource "azurerm_role_management_policy" "example" {
 * `active_assignment_rules` - (Optional) An `active_assignment_rules` block as defined below.
 * `eligible_assignment_rules` - (Optional) An `eligible_assignment_rules` block as defined below.
 * `notification_rules` - (Optional) A `notification_rules` block as defined below.
-* `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy will apply
-* `scope` - (Required) The scope to which this Role Management Policy will apply. Can be any scope where a role assignment can be made.
+* `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy will apply. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope to which this Role Management Policy will apply. Can be any scope where a role assignment can be made. Changing this forces a new resource to be created.
 
 ---
 
@@ -216,6 +216,6 @@ terraform import azurerm_role_management_policy.example "/subscriptions/00000000
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
-* `update` - (Defaults to 60 minutes) Used when updating the Role Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Role Definition.
+* `delete` - (Defaults to 5 minutes) Used when deleting the Role Definition.
