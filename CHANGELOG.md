@@ -3,6 +3,7 @@
 FEATURES:
 
 * New Resource: `azurerm_container_app_job` [GH-23871]
+* New Resource: `azurerm_container_app_environment_custom_domain` [GH-24346]
 * New Resource: `azurerm_data_factory_credential_service_principal` [GH-25805]
 * New Resource: `azurerm_network_manager_connectivity_configuration` [GH-25746]
 * New Resource: `azurerm_maintenance_assignment_dynamic_scope` [GH-25467]
@@ -16,6 +17,7 @@ ENHANCEMENTS:
 * `loganalytics` - update cluster resource to api version `2022-01-01` [GH-25686]
 * `azurerm_bastion_host` - support for the `kerberos_enabled` property [GH-25823]
 * `azurerm_container_app` - secrets can now be removed [GH-25743]
+* `azurerm_container_app_environment` - support for the `custom_domain_verification_id` property [GH-24346]
 * `azurerm_linux_virtual_machine` - support for the additional capability `hibernation_enabled` [GH-25807]
 * `azurerm_linux_virtual_machine` - support for additional values for the `license_type` property [GH-25909]
 * `azurerm_linux_virtual_machine_scale_set` - support for the `maximum_surge_instances` property for vmss rolling upgrades [GH-24914]
