@@ -6,7 +6,6 @@ package dataprotection
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -206,18 +205,16 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 					}
 					state.BackupPolicyId = backupPolicyId.ID()
 
-					if props.DatasourceAuthCredentials != nil {
-						credential := props.DatasourceAuthCredentials.(backupinstances.SecretStoreBasedAuthCredentials)
-
-						if credential.SecretStoreResource != nil {
-							keyVaultSecretId, err := secrets.ParseSecretID(pointer.From(credential.SecretStoreResource.Uri))
-							if err != nil {
-								return err
+					if datasourceAuthCredentials := props.DatasourceAuthCredentials; datasourceAuthCredentials != nil {
+						if secretStoreBasedAuthCredentials, ok := datasourceAuthCredentials.(backupinstances.SecretStoreBasedAuthCredentials); ok {
+							if secretStoreResource := secretStoreBasedAuthCredentials.SecretStoreResource; secretStoreResource != nil {
+								keyVaultSecretId, err := secrets.ParseSecretID(pointer.From(secretStoreResource.Uri))
+								if err != nil {
+									return err
+								}
+								state.DatabaseCredentialKeyVaultSecretId = keyVaultSecretId.ID()
 							}
-							state.DatabaseCredentialKeyVaultSecretId = keyVaultSecretId.ID()
 						}
-					} else {
-						log.Printf("[DEBUG] Skipping setting database_credential_key_vault_secret_id since this DatasourceAuthCredentials is not supported")
 					}
 				}
 			}
