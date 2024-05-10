@@ -26,6 +26,7 @@ func Default() UserFeatures {
 			PurgeSoftDeletedCertsOnDestroy:   true,
 			PurgeSoftDeletedSecretsOnDestroy: true,
 			PurgeSoftDeletedHSMsOnDestroy:    true,
+			PurgeSoftDeletedHSMKeysOnDestroy: true,
 			RecoverSoftDeletedKeyVaults:      true,
 			RecoverSoftDeletedKeys:           true,
 			RecoverSoftDeletedCerts:          true,

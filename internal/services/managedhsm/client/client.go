@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsmkeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
@@ -20,10 +21,12 @@ type Client struct {
 	// As such this separation on our side is intentional to avoid code reuse given these differences.
 
 	// Resource Manager
-	ManagedHsmClient *managedhsms.ManagedHsmsClient
+	ManagedHsmClient    *managedhsms.ManagedHsmsClient
+	ManagedHsmKeyClient *managedhsmkeys.ManagedHsmKeysClient
 
 	// Data Plane
 	DataPlaneClient                *dataplane.BaseClient
+	DataPlaneKeysClient            *dataplane.BaseClient
 	DataPlaneRoleAssignmentsClient *dataplane.RoleAssignmentsClient
 	DataPlaneRoleDefinitionsClient *dataplane.RoleDefinitionsClient
 	DataPlaneSecurityDomainsClient *dataplane.HSMSecurityDomainClient
@@ -36,8 +39,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(managedHsmClient.Client, o.Authorizers.ResourceManager)
 
+	managedHsmKeyClient, err := managedhsmkeys.NewManagedHsmKeysClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building ManagedHsm Keys client: %+v", err)
+	}
+	o.Configure(managedHsmClient.Client, o.Authorizers.ResourceManager)
+
 	managementClient := dataplane.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
+
+	managementKeysClient := dataplane.New()
+	o.ConfigureClient(&managementKeysClient.Client, o.ManagedHSMAuthorizer)
 
 	securityDomainClient := dataplane.NewHSMSecurityDomainClient()
 	o.ConfigureClient(&securityDomainClient.Client, o.ManagedHSMAuthorizer)
@@ -50,10 +62,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		// Resource Manger
-		ManagedHsmClient: managedHsmClient,
+		ManagedHsmClient:    managedHsmClient,
+		ManagedHsmKeyClient: managedHsmKeyClient,
 
 		// Data Plane
 		DataPlaneClient:                &managementClient,
+		DataPlaneKeysClient:            &managementKeysClient,
 		DataPlaneSecurityDomainsClient: &securityDomainClient,
 		DataPlaneRoleDefinitionsClient: &roleDefinitionsClient,
 		DataPlaneRoleAssignmentsClient: &roleAssignmentsClient,
