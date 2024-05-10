@@ -86,7 +86,7 @@ func ContainerAppsJobsScaleSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
-					ValidateFunc: validation.IntAtLeast(1),
+					ValidateFunc: validation.IntAtLeast(0),
 				},
 
 				"polling_interval_in_seconds": {
