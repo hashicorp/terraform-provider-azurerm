@@ -649,7 +649,24 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		// here. Many of our customers will have already set up private endpoints so the above
 		// data plane calls would succeed...
 		if err != nil && !utils.ResponseWasForbidden(resp.Response) {
-			return fmt.Errorf("setting Contacts for %s: %+v", *id, err)
+			return fmt.Errorf("updating Contacts for %s: %+v", *id, err)
+		}
+
+		// Moved state management of the contact field out of the read function
+		// to the update function because if this is a new resource this would
+		// cause a context deadline exceeded error during the read call during
+		// create...
+		if resp.Response.StatusCode >= 200 && resp.Response.StatusCode < 300 {
+			contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
+			if err != nil {
+				if !utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response) {
+					return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+				}
+			}
+
+			if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
+				return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+			}
 		}
 	}
 
@@ -660,7 +677,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
-	dataplaneClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -689,21 +705,6 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if vaultUri != "" {
 		meta.(*clients.Client).KeyVault.AddToCache(*id, vaultUri)
 	}
-
-	// NOTE: We are skipping the isPublic check here because we are enabling support
-	// for legacy key vaults that were already deployed and are assuming that the
-	// customer has already created a private link for this key vault so the
-	// data plane call should succeed if the key vault was configured correctly
-	// in Azure, which would allow the customer to continue to manage the contacts
-	// via the exposed contact field in the key vault resource as before...
-	var contactsResp *dataplane.Contacts
-	contacts, err := dataplaneClient.GetCertificateContacts(ctx, vaultUri)
-	if err != nil {
-		if !utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response) {
-			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
-		}
-	}
-	contactsResp = &contacts
 
 	d.Set("name", id.VaultName)
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -750,10 +751,6 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		flattenedPolicies := flattenAccessPolicies(model.Properties.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("setting `access_policy`: %+v", err)
-		}
-
-		if err := d.Set("contact", flattenKeyVaultCertificateContactList(contactsResp)); err != nil {
-			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
