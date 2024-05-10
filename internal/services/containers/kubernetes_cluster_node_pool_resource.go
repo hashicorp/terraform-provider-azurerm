@@ -700,8 +700,12 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if subnetID != nil {
 		// Wait for vnet to come back to Succeeded before releasing any locks
-		timeout, _ := ctx.Deadline()
+		timeout, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
 
+		// TODO: refactor this into a `custompoller` within the `network` package
 		stateConf := &pluginsdk.StateChangeConf{
 			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 			Target:     []string{string(subnets.ProvisioningStateSucceeded)},

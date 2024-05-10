@@ -2979,7 +2979,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  count                = 20
+  count                = 8
   name                 = "acctestsubnet%d${count.index}"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -3008,8 +3008,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     name           = "default"
     node_count     = 1
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test["19"].id
-    pod_subnet_id  = azurerm_subnet.test["18"].id
+    vnet_subnet_id = azurerm_subnet.test["6"].id
+    pod_subnet_id  = azurerm_subnet.test["7"].id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3030,8 +3030,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test1" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_L8s_v3"
   node_count            = 1
-  vnet_subnet_id        = azurerm_subnet.test[1].id
-  pod_subnet_id         = azurerm_subnet.test[2].id
+  vnet_subnet_id        = azurerm_subnet.test[0].id
+  pod_subnet_id         = azurerm_subnet.test[1].id
   zones                 = ["1"]
 }
 
@@ -3040,8 +3040,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test2" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_L8s_v3"
   node_count            = 1
-  vnet_subnet_id        = azurerm_subnet.test[3].id
-  pod_subnet_id         = azurerm_subnet.test[4].id
+  vnet_subnet_id        = azurerm_subnet.test[2].id
+  pod_subnet_id         = azurerm_subnet.test[3].id
   zones                 = ["1"]
 }
 
@@ -3050,8 +3050,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test3" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_L8s_v3"
   node_count            = 1
-  vnet_subnet_id        = azurerm_subnet.test[5].id
-  pod_subnet_id         = azurerm_subnet.test[6].id
+  vnet_subnet_id        = azurerm_subnet.test[4].id
+  pod_subnet_id         = azurerm_subnet.test[5].id
   zones                 = ["1"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
