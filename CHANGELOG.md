@@ -1,3 +1,9 @@
+## 3.103.1 (Unreleased)
+
+BUG FIXES
+
+* `loadtest` - fixing an issue where the SDK Clients weren't registered [GH-25920]
+
 ## 3.103.0 (May 09, 2024)
 
 FEATURES:
