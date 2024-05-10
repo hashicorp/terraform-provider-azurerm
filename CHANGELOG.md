@@ -1,8 +1,8 @@
-## 3.103.1 (Unreleased)
+## 3.103.1 (May 10, 2024)
 
 BUG FIXES
 
-* `loadtest` - fixing an issue where the SDK Clients weren't registered [GH-25920]
+* `loadtest` - fixing an issue where the SDK Clients weren't registered ([#25920](https://github.com/hashicorp/terraform-provider-azurerm/issues/25920))
 
 ## 3.103.0 (May 09, 2024)
 
