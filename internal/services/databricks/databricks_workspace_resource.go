@@ -621,6 +621,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 					return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
 				}
 				accIdentityId = id.ID()
+				break
 			}
 
 			accessConnectorProperties.Id = *accessConnector.Model.Id
