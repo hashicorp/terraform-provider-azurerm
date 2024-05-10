@@ -732,8 +732,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 
-		defaultStorageFirewall := model.Properties.DefaultStorageFirewall
-		if defaultStorageFirewall != nil {
+		if defaultStorageFirewall := model.Properties.DefaultStorageFirewall; defaultStorageFirewall != nil {
 			d.Set("default_storage_firewall_enabled", *defaultStorageFirewall != workspaces.DefaultStorageFirewallDisabled)
 			d.Set("access_connector_id", model.Properties.AccessConnector.Id)
 		}
