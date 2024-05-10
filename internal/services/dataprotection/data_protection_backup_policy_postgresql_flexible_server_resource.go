@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -23,8 +22,7 @@ import (
 
 type BackupPolicyPostgreSQLFlexibleServerModel struct {
 	Name                         string                                              `tfschema:"name"`
-	ResourceGroupName            string                                              `tfschema:"resource_group_name"`
-	VaultName                    string                                              `tfschema:"vault_name"`
+	VaultId                      string                                              `tfschema:"vault_id"`
 	BackupRepeatingTimeIntervals []string                                            `tfschema:"backup_repeating_time_intervals"`
 	DefaultRetentionDuration     string                                              `tfschema:"default_retention_duration"`
 	RetentionRules               []BackupPolicyPostgreSQLFlexibleServerRetentionRule `tfschema:"retention_rule"`
@@ -71,12 +69,11 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 			ValidateFunc: validate.BackupPolicyPostgreSQLFlexibleServerName,
 		},
 
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"vault_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+		"vault_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: backuppolicies.ValidateBackupVaultID,
 		},
 
 		"backup_repeating_time_intervals": {
@@ -85,7 +82,8 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 			ForceNew: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
@@ -103,9 +101,10 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"criteria": {
@@ -211,7 +210,9 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Create() sdk
 			client := metadata.Client.DataProtection.BackupPolicyClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := backuppolicies.NewBackupPolicyID(subscriptionId, model.ResourceGroupName, model.VaultName, model.Name)
+			vaultId, _ := backuppolicies.ParseBackupVaultID(model.VaultId)
+			id := backuppolicies.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
+
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -266,10 +267,10 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Read() sdk.R
 				return fmt.Errorf("retrieving %s: %+v", pointer.From(id), err)
 			}
 
+			vaultId := backuppolicies.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 			state := BackupPolicyPostgreSQLFlexibleServerModel{
-				Name:              id.BackupPolicyName,
-				ResourceGroupName: id.ResourceGroupName,
-				VaultName:         id.BackupVaultName,
+				Name:    id.BackupPolicyName,
+				VaultId: vaultId.ID(),
 			}
 
 			if model := resp.Model; model != nil {

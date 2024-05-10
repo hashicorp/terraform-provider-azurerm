@@ -22,6 +22,7 @@ type DataProtectionBackupPolicyPostgreSQLFlexibleServerResource struct{}
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
 	r := DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,6 +37,7 @@ func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_basic(t *testing.
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
 	r := DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -50,6 +52,7 @@ func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_requiresImport(t 
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
 	r := DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -64,6 +67,7 @@ func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_complete(t *testi
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
 	r := DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -131,10 +135,8 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) basic(data a
 %s
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {
-  name                = "acctest-dbp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  vault_name          = azurerm_data_protection_backup_vault.test.name
-
+  name                            = "acctest-dbp-%d"
+  vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P4M"
 }
@@ -147,10 +149,8 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) requiresImpo
 %s
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "import" {
-  name                = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.name
-  resource_group_name = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.resource_group_name
-  vault_name          = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.vault_name
-
+  name                            = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.name
+  vault_id                        = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P4M"
 }
@@ -163,10 +163,8 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) complete(dat
 %s
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {
-  name                = "acctest-dbp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  vault_name          = azurerm_data_protection_backup_vault.test.name
-
+  name                            = "acctest-dbp-%d"
+  vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P4M"
   time_zone                       = "India Standard Time"
@@ -175,6 +173,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
     name     = "weekly"
     duration = "P6M"
     priority = 20
+
     criteria {
       absolute_criteria = "FirstOfWeek"
     }
@@ -184,6 +183,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
     name     = "thursday"
     duration = "P1W"
     priority = 25
+
     criteria {
       days_of_week           = ["Thursday"]
       months_of_year         = ["November"]
@@ -195,6 +195,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
     name     = "monthly"
     duration = "P1D"
     priority = 30
+
     criteria {
       weeks_of_month         = ["First", "Last"]
       days_of_week           = ["Tuesday"]

@@ -27,10 +27,8 @@ resource "azurerm_data_protection_backup_vault" "example" {
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "example" {
-  name                = "example-backup-policy"
-  resource_group_name = azurerm_resource_group.example.name
-  vault_name          = azurerm_data_protection_backup_vault.example.name
-
+  name                            = "example-backup-policy"
+  vault_id                        = azurerm_data_protection_backup_vault.example.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   time_zone                       = "India Standard Time"
   default_retention_duration      = "P4M"
@@ -39,6 +37,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
     name     = "weekly"
     duration = "P6M"
     priority = 20
+    
     criteria {
       absolute_criteria = "FirstOfWeek"
     }
@@ -48,6 +47,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
     name     = "thursday"
     duration = "P1W"
     priority = 25
+    
     criteria {
       days_of_week           = ["Thursday"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]
@@ -58,6 +58,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
     name     = "monthly"
     duration = "P1D"
     priority = 15
+    
     criteria {
       weeks_of_month         = ["First", "Last"]
       days_of_week           = ["Tuesday"]
@@ -73,9 +74,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Backup Policy PostgreSQL Flexible Server. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new resource to be created.
-
-* `vault_name` - (Required) The name of the Backup Vault where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new resource to be created.
+* `vault_id` - (Required) The ID of the Backup Vault where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new resource to be created.
 
 * `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new resource to be created.
 
