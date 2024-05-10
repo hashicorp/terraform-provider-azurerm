@@ -100,13 +100,13 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_key_vault_secret" "example" {
-  name         = "example"
+  name         = "examplekvs"
   value        = "Server=${azurerm_postgresql_flexible_server.example.name}.postgres.database.azure.com;Database=${azurerm_postgresql_flexibel_server_database.example.name};Port=5432;User Id=psqladmin@${azurerm_postgresql_flexible_server.example.name};Password=H@Sh1CoR3!;Ssl Mode=Require;"
   key_vault_id = azurerm_key_vault.example.id
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "example" {
-  name                            = "example"
+  name                            = "example-backuppolicy"
   resource_group_name             = azurerm_resource_group.example.name
   vault_name                      = azurerm_data_protection_backup_vault.example.name
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
@@ -120,7 +120,7 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "example" {
-  name                                    = "example"
+  name                                    = "example-backupinstance"
   location                                = azurerm_resource_group.example.location
   vault_id                                = azurerm_data_protection_backup_vault.example.id
   database_id                             = azurerm_postgresql_flexible_server_database.example.id
@@ -133,13 +133,13 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "e
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Backup Instance PostgreSQL Flexible Server. Changing this forces a new Backup Instance PostgreSQL Flexible Server to be created.
+* `name` - (Required) The name which should be used for this Backup Instance PostgreSQL Flexible Server. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location of the source database. Changing this forces a new Backup Instance PostgreSQL Flexible Server to be created.
+* `location` - (Required) The location of the source database. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) The ID of the Backup Vault within which the PostgreSQL Flexible Server Backup Instance should exist. Changing this forces a new Backup Instance PostgreSQL Flexible Server to be created.
+* `vault_id` - (Required) The ID of the Backup Vault within which the PostgreSQL Flexible Server Backup Instance should exist. Changing this forces a new resource to be created.
 
-* `database_id` - (Required) The ID of the source database. Changing this forces a new Backup Instance PostgreSQL Flexible Server to be created.
+* `database_id` - (Required) The ID of the source database. Changing this forces a new resource to be created.
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 

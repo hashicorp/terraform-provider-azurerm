@@ -22,6 +22,7 @@ type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
 	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,6 +37,7 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_basic(t *testin
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
 	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -50,6 +52,7 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_requiresImport(
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
 	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -64,6 +67,7 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_complete(t *tes
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_keyVaultAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
 	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.keyVaultAuth(data),
@@ -78,6 +82,7 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_keyVaultAuth(t 
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
 	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -220,18 +225,16 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = azurerm_data_protection_backup_vault.test.identity.0.principal_id
 }
 
-resource "azurerm_data_protection_backup_policy_postgresql" "test" {
+resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {
   name                            = "acctest-dp-%[1]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vault_name                      = azurerm_data_protection_backup_vault.test.name
+  vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P4M"
 }
 
-resource "azurerm_data_protection_backup_policy_postgresql" "another" {
+resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "another" {
   name                            = "acctest-dp-second-%[1]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  vault_name                      = azurerm_data_protection_backup_vault.test.name
+  vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   default_retention_duration      = "P3M"
 }
@@ -247,7 +250,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   name             = "acctest-dbi-%d"
   location         = azurerm_resource_group.test.location
   vault_id         = azurerm_data_protection_backup_vault.test.id
-  database_id      = azurerm_postgresql_database.test.id
+  database_id      = azurerm_postgresql_flexible_server_database.test.id
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
 }
 `, template, data.RandomInteger)
@@ -260,10 +263,10 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) requiresIm
 
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "import" {
   name             = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.name
-  location         = azurerm_resource_group.test.location
+  location         = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.location
   vault_id         = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.vault_id
-  database_id      = azurerm_postgresql_database.test.id
-  backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
+  database_id      = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.database_id
+  backup_policy_id = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.backup_policy_id
 }
 `, config)
 }
@@ -277,7 +280,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   name             = "acctest-dbi-%d"
   location         = azurerm_resource_group.test.location
   vault_id         = azurerm_data_protection_backup_vault.test.id
-  database_id      = azurerm_postgresql_database.test.id
+  database_id      = azurerm_postgresql_flexible_server_database.test.id
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.another.id
 }
 `, template, data.RandomInteger)
@@ -292,7 +295,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   name                                    = "acctest-dbi-%d"
   location                                = azurerm_resource_group.test.location
   vault_id                                = azurerm_data_protection_backup_vault.test.id
-  database_id                             = azurerm_postgresql_database.test.id
+  database_id                             = azurerm_postgresql_flexible_server_database.test.id
   backup_policy_id                        = azurerm_data_protection_backup_policy_postgresql_flexible_server.another.id
   database_credential_key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
 }
