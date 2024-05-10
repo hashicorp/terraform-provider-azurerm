@@ -22,7 +22,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -35,6 +37,8 @@ import (
 	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -1569,7 +1573,19 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("populating cache for %s: %+v", id, err)
 	}
 
+	dataPlaneAccount, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if dataPlaneAccount == nil {
+		return fmt.Errorf("unable to locate %q", id)
+	}
+
 	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
+
+	if err := resourceStorageAccountWaitForDataPlaneToBecomeAvailable(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
+		return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
+	}
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		if !supportLevel.supportBlob {
@@ -2347,9 +2363,9 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if supportLevel.supportShare {
-		fileServiceClient := storageClient.FileServicesClient
+		fileServiceClient := storageClient.ResourceManager.FileService
 
-		shareProps, err := fileServiceClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+		shareProps, err := fileServiceClient.GetServiceProperties(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
 		}
@@ -2440,6 +2456,60 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 
 	// remove this from the cache
 	storageClient.RemoveAccountFromCache(*id)
+
+	return nil
+}
+
+func resourceStorageAccountWaitForDataPlaneToBecomeAvailable(ctx context.Context, client *client.Client, account *client.AccountDetails, supportLevel storageAccountServiceSupportLevel) error {
+	initialDelayDuration := 10 * time.Second
+
+	if supportLevel.supportBlob {
+		log.Printf("[DEBUG] waiting for the Blob Service to become available")
+		pollerType, err := custompollers.NewDataPlaneBlobContainersAvailabilityPoller(ctx, client, account)
+		if err != nil {
+			return fmt.Errorf("building Blob Service Poller: %+v", err)
+		}
+		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for the Blob Service to become available: %+v", err)
+		}
+	}
+
+	if supportLevel.supportQueue {
+		log.Printf("[DEBUG] waiting for the Queues Service to become available")
+		pollerType, err := custompollers.NewDataPlaneQueuesAvailabilityPoller(ctx, client, account)
+		if err != nil {
+			return fmt.Errorf("building Queues Poller: %+v", err)
+		}
+		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
+		}
+	}
+
+	if supportLevel.supportShare {
+		log.Printf("[DEBUG] waiting for the File Service to become available")
+		pollerType, err := custompollers.NewDataPlaneFileShareAvailabilityPoller(client, account)
+		if err != nil {
+			return fmt.Errorf("building File Share Poller: %+v", err)
+		}
+		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for the File Service to become available: %+v", err)
+		}
+	}
+
+	if supportLevel.supportStaticWebsite {
+		log.Printf("[DEBUG] waiting for the Static Website to become available")
+		pollerType, err := custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller(ctx, client, account)
+		if err != nil {
+			return fmt.Errorf("building Static Website Poller: %+v", err)
+		}
+		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for the Static Website to become available: %+v", err)
+		}
+	}
 
 	return nil
 }
@@ -3459,37 +3529,12 @@ func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
 	}
 
 	for _, corsRule := range *input.CorsRules {
-		allowedOrigins := make([]string, 0)
-		if corsRule.AllowedOrigins != nil {
-			allowedOrigins = *corsRule.AllowedOrigins
-		}
-
-		allowedMethods := make([]string, 0)
-		if corsRule.AllowedMethods != nil {
-			allowedMethods = *corsRule.AllowedMethods
-		}
-
-		allowedHeaders := make([]string, 0)
-		if corsRule.AllowedHeaders != nil {
-			allowedHeaders = *corsRule.AllowedHeaders
-		}
-
-		exposedHeaders := make([]string, 0)
-		if corsRule.ExposedHeaders != nil {
-			exposedHeaders = *corsRule.ExposedHeaders
-		}
-
-		maxAgeInSeconds := 0
-		if corsRule.MaxAgeInSeconds != nil {
-			maxAgeInSeconds = int(*corsRule.MaxAgeInSeconds)
-		}
-
 		corsRules = append(corsRules, map[string]interface{}{
-			"allowed_headers":    allowedHeaders,
-			"allowed_origins":    allowedOrigins,
-			"allowed_methods":    allowedMethods,
-			"exposed_headers":    exposedHeaders,
-			"max_age_in_seconds": maxAgeInSeconds,
+			"allowed_headers":    corsRule.AllowedHeaders,
+			"allowed_origins":    corsRule.AllowedOrigins,
+			"allowed_methods":    corsRule.AllowedMethods,
+			"exposed_headers":    corsRule.ExposedHeaders,
+			"max_age_in_seconds": int(*corsRule.MaxAgeInSeconds),
 		})
 	}
 
@@ -3665,66 +3710,92 @@ func flattenCorsProperty(input string) []interface{} {
 	return results
 }
 
-func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
-	if input.FileServicePropertiesProperties == nil {
-		return []interface{}{}
+func flattenSharePropertiesCorsRule(input *fileservice.CorsRules) []interface{} {
+	corsRules := make([]interface{}, 0)
+
+	if input == nil || input.CorsRules == nil {
+		return corsRules
 	}
 
-	flattenedCorsRules := make([]interface{}, 0)
-	if corsRules := input.FileServicePropertiesProperties.Cors; corsRules != nil {
-		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
+	for _, corsRule := range *input.CorsRules {
+		corsRules = append(corsRules, map[string]interface{}{
+			"allowed_headers":    corsRule.AllowedHeaders,
+			"allowed_origins":    corsRule.AllowedOrigins,
+			"allowed_methods":    corsRule.AllowedMethods,
+			"exposed_headers":    corsRule.ExposedHeaders,
+			"max_age_in_seconds": int(corsRule.MaxAgeInSeconds),
+		})
 	}
 
-	flattenedDeletePolicy := make([]interface{}, 0)
-	if deletePolicy := input.FileServicePropertiesProperties.ShareDeleteRetentionPolicy; deletePolicy != nil {
-		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicyWithoutPermDeleteOption(deletePolicy)
-	}
-
-	flattenedSMB := make([]interface{}, 0)
-	if protocol := input.FileServicePropertiesProperties.ProtocolSettings; protocol != nil {
-		flattenedSMB = flattenedSharePropertiesSMB(protocol.Smb)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"cors_rule":        flattenedCorsRules,
-			"retention_policy": flattenedDeletePolicy,
-			"smb":              flattenedSMB,
-		},
-	}
+	return corsRules
 }
 
-func flattenedSharePropertiesSMB(input *storage.SmbSetting) []interface{} {
-	if input == nil {
+func flattenShareProperties(input fileservice.GetServicePropertiesOperationResponse) []interface{} {
+	output := make([]interface{}, 0)
+
+	if model := input.Model; model != nil {
+		if props := model.Properties; props != nil {
+			output = append(output, map[string]interface{}{
+				"cors_rule":        flattenSharePropertiesCorsRule(props.Cors),
+				"retention_policy": flattenSharePropertiesDeleteRetentionPolicyWithoutPermDeleteOption(props.ShareDeleteRetentionPolicy),
+				"smb":              flattenedSharePropertiesSMB(props.ProtocolSettings),
+			})
+		}
+	}
+
+	return output
+}
+
+func flattenSharePropertiesDeleteRetentionPolicyWithoutPermDeleteOption(input *fileservice.DeleteRetentionPolicy) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		if enabled := input.Enabled; enabled != nil && *enabled {
+			days := 0
+			if input.Days != nil {
+				days = int(*input.Days)
+			}
+
+			output = append(output, map[string]interface{}{
+				"days": days,
+			})
+		}
+	}
+
+	return output
+}
+
+func flattenedSharePropertiesSMB(input *fileservice.ProtocolSettings) []interface{} {
+	if input == nil || input.Smb == nil {
 		return []interface{}{}
 	}
 
-	versions := []interface{}{}
-	if input.Versions != nil {
-		versions = utils.FlattenStringSliceWithDelimiter(input.Versions, ";")
+	versions := make([]interface{}, 0)
+	if input.Smb.Versions != nil {
+		versions = utils.FlattenStringSliceWithDelimiter(input.Smb.Versions, ";")
 	}
 
-	authenticationMethods := []interface{}{}
-	if input.AuthenticationMethods != nil {
-		authenticationMethods = utils.FlattenStringSliceWithDelimiter(input.AuthenticationMethods, ";")
+	authenticationMethods := make([]interface{}, 0)
+	if input.Smb.AuthenticationMethods != nil {
+		authenticationMethods = utils.FlattenStringSliceWithDelimiter(input.Smb.AuthenticationMethods, ";")
 	}
 
-	kerberosTicketEncryption := []interface{}{}
-	if input.KerberosTicketEncryption != nil {
-		kerberosTicketEncryption = utils.FlattenStringSliceWithDelimiter(input.KerberosTicketEncryption, ";")
+	kerberosTicketEncryption := make([]interface{}, 0)
+	if input.Smb.KerberosTicketEncryption != nil {
+		kerberosTicketEncryption = utils.FlattenStringSliceWithDelimiter(input.Smb.KerberosTicketEncryption, ";")
 	}
 
-	channelEncryption := []interface{}{}
-	if input.ChannelEncryption != nil {
-		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.ChannelEncryption, ";")
+	channelEncryption := make([]interface{}, 0)
+	if input.Smb.ChannelEncryption != nil {
+		channelEncryption = utils.FlattenStringSliceWithDelimiter(input.Smb.ChannelEncryption, ";")
 	}
 
 	multichannelEnabled := false
-	if input.Multichannel != nil && input.Multichannel.Enabled != nil {
-		multichannelEnabled = *input.Multichannel.Enabled
+	if input.Smb.Multichannel != nil && input.Smb.Multichannel.Enabled != nil {
+		multichannelEnabled = *input.Smb.Multichannel.Enabled
 	}
 
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && input.Multichannel == nil {
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && input.Smb.Multichannel == nil {
 		return []interface{}{}
 	}
 

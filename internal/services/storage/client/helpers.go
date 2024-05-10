@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	storageAccountsCache = map[string]accountDetails{}
+	storageAccountsCache = map[string]AccountDetails{}
 
 	accountsLock    = sync.RWMutex{}
 	credentialsLock = sync.RWMutex{}
@@ -32,7 +32,7 @@ const (
 	EndpointTypeTable = "table"
 )
 
-type accountDetails struct {
+type AccountDetails struct {
 	Kind             storageaccounts.Kind
 	IsHnsEnabled     bool
 	StorageAccountId commonids.StorageAccountId
@@ -60,7 +60,7 @@ type accountDetails struct {
 	primaryTableEndpoint *string
 }
 
-func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*string, error) {
+func (ad *AccountDetails) AccountKey(ctx context.Context, client Client) (*string, error) {
 	credentialsLock.Lock()
 	defer credentialsLock.Unlock()
 
@@ -99,7 +99,7 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	return ad.accountKey, nil
 }
 
-func (ad *accountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string, error) {
+func (ad *AccountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string, error) {
 	var baseUri *string
 	switch endpointType {
 	case EndpointTypeBlob:
@@ -146,7 +146,7 @@ func (c Client) RemoveAccountFromCache(accountId commonids.StorageAccountId) {
 	accountsLock.Unlock()
 }
 
-func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName string) (*accountDetails, error) {
+func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName string) (*AccountDetails, error) {
 	accountsLock.Lock()
 	defer accountsLock.Unlock()
 
@@ -184,8 +184,8 @@ func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName 
 	return nil, nil
 }
 
-func populateAccountDetails(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) (*accountDetails, error) {
-	out := accountDetails{
+func populateAccountDetails(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) (*AccountDetails, error) {
+	out := AccountDetails{
 		Kind:             pointer.From(account.Kind),
 		StorageAccountId: accountId,
 	}
