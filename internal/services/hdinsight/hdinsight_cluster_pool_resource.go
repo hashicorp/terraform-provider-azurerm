@@ -6,6 +6,8 @@ package hdinsight
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -16,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"time"
 )
 
 type ClusterPoolResource struct{}
@@ -59,7 +60,7 @@ func (r ClusterPoolResource) ModelObject() interface{} {
 }
 
 func (r ClusterPoolResource) ResourceType() string {
-	return "azurerm_hdinsight_cluster_pools"
+	return "azurerm_hdinsight_cluster_pool"
 }
 
 func (r ClusterPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -92,6 +93,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"compute_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"vm_size": {
@@ -105,18 +107,20 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"managed_resource_group_name": {
 			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"cluster_pool_profile": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"cluster_pool_version": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
@@ -149,6 +153,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
@@ -158,9 +163,12 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"outbound_type": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(hdinsights.OutboundTypeLoadBalancer),
+							string(hdinsights.OutboundTypeUserDefinedRouting),
+						}, false),
 					},
 				},
 			},
@@ -214,7 +222,7 @@ func (r ClusterPoolResource) Create() sdk.ResourceFunc {
 				Tags: tags.Expand(model.Tags),
 			}
 
-			if _, err := client.ClusterPoolsCreateOrUpdate(ctx, id, clusterPool); err != nil {
+			if err := client.ClusterPoolsCreateOrUpdateThenPoll(ctx, id, clusterPool); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
