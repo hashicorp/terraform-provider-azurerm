@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -93,6 +94,23 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.IsUUID,
 			},
+
+			"predicate_expression": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"audit_actions_and_groups": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// audit_actions_and_groups seems to be pre-populated with values ["SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP", "FAILED_DATABASE_AUTHENTICATION_GROUP", "BATCH_COMPLETED_GROUP"],
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
 		},
 	}
 }
@@ -151,6 +169,14 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("predicate_expression"); ok {
+		params.ExtendedServerBlobAuditingPolicyProperties.PredicateExpression = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]interface{})) > 0 {
+		params.ExtendedServerBlobAuditingPolicyProperties.AuditActionsAndGroups = utils.ExpandStringSlice(v.([]interface{}))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroupName, serverId.ServerName, params)
 	if err != nil {
 		return fmt.Errorf("creating MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
@@ -195,6 +221,8 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		d.Set("retention_in_days", props.RetentionDays)
 		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
 		d.Set("enabled", props.State == sql.BlobAuditingPolicyStateEnabled)
+		d.Set("predicate_expression", props.PredicateExpression)
+		d.Set("audit_actions_and_groups", utils.FlattenStringSlice(props.AuditActionsAndGroups))
 
 		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
 			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())

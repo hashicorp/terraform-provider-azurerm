@@ -228,10 +228,10 @@ A `redis_configuration` block exports the following:
 
  The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating the Redis Cache.
-* `update` - (Defaults to 90 minutes) Used when updating the Redis Cache.
+* `create` - (Defaults to 180 minutes) Used when creating the Redis Cache.
+* `update` - (Defaults to 180 minutes) Used when updating the Redis Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
-* `delete` - (Defaults to 90 minutes) Used when deleting the Redis Cache.
+* `delete` - (Defaults to 180 minutes) Used when deleting the Redis Cache.
 
 ## Import
 

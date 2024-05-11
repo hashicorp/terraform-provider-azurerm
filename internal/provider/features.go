@@ -15,7 +15,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
-		//lintignore:XS003
+		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -189,7 +189,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"virtual_machine": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -260,6 +260,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		"recovery_services_vaults": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"recover_soft_deleted_backup_protected_vm": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
 		"managed_disk": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -300,6 +315,40 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
+					},
+				},
+			},
+		},
+		"machine_learning": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"purge_soft_deleted_workspace_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
+		"recovery_service": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"vm_backup_stop_protection_and_retain_data_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"purge_protected_items_from_vault_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -484,6 +533,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		}
 	}
 
+	if raw, ok := val["recovery_services_vaults"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			appConfRaw := items[0].(map[string]interface{})
+			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm"]; ok {
+				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM = v.(bool)
+			}
+		}
+	}
+
 	if raw, ok := val["managed_disk"]; ok {
 		items := raw.([]interface{})
 		if len(items) > 0 {
@@ -510,6 +569,29 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			subscriptionRaw := items[0].(map[string]interface{})
 			if v, ok := subscriptionRaw["restart_server_on_configuration_value_change"]; ok {
 				featuresMap.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["machine_learning"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			subscriptionRaw := items[0].(map[string]interface{})
+			if v, ok := subscriptionRaw["purge_soft_deleted_workspace_on_destroy"]; ok {
+				featuresMap.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["recovery_service"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			recoveryServicesRaw := items[0].(map[string]interface{})
+			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
+			}
+			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
+				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
 			}
 		}
 	}

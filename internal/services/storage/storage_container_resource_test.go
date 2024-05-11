@@ -113,6 +113,21 @@ func TestAccStorageContainer_update(t *testing.T) {
 	})
 }
 
+func TestAccStorageContainer_encryptionScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageContainer_metaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 	r := StorageContainerResource{}
@@ -192,7 +207,7 @@ func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Cl
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
 	}
@@ -207,7 +222,7 @@ func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Cl
 
 	prop, err := containersClient.Get(ctx, id.ContainerName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %+v", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Container %q in %s: %+v", id.ContainerName, id.AccountId, err)
 	}
 
 	return utils.Bool(prop != nil), nil
@@ -219,7 +234,7 @@ func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.C
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountId.AccountName, id.ContainerName, err)
 	}
@@ -233,7 +248,7 @@ func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.C
 	}
 
 	if err = containersClient.Delete(ctx, id.ContainerName); err != nil {
-		return nil, fmt.Errorf("deleting Container %q (Account %q / Resource Group %q): %+v", id.ContainerName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("deleting Container %q in %s: %+v", id.ContainerName, id.AccountId, err)
 	}
 
 	return utils.Bool(true), nil
@@ -312,6 +327,27 @@ resource "azurerm_storage_container" "test" {
   }
 }
 `, template, accessType, metadataVal)
+}
+
+func (r StorageContainerResource) encryptionScope(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestEScontainer%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.Storage"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+
+  default_encryption_scope = azurerm_storage_encryption_scope.test.name
+}
+`, template, data.RandomInteger)
 }
 
 func (r StorageContainerResource) metaData(data acceptance.TestData) string {

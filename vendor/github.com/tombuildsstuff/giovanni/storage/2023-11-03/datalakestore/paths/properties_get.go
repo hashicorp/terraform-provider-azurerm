@@ -62,24 +62,26 @@ func (c Client) GetProperties(ctx context.Context, fileSystemName string, path s
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.ResourceType = PathResource(resp.Header.Get("x-ms-resource-type"))
-			result.ETag = resp.Header.Get("ETag")
+		if err == nil {
+			if resp.Header != nil {
+				result.ResourceType = PathResource(resp.Header.Get("x-ms-resource-type"))
+				result.ETag = resp.Header.Get("ETag")
 
-			if lastModifiedRaw := resp.Header.Get("Last-Modified"); lastModifiedRaw != "" {
-				lastModified, err := time.Parse(time.RFC1123, lastModifiedRaw)
-				if err != nil {
-					return GetPropertiesResponse{}, err
+				if lastModifiedRaw := resp.Header.Get("Last-Modified"); lastModifiedRaw != "" {
+					lastModified, err := time.Parse(time.RFC1123, lastModifiedRaw)
+					if err != nil {
+						return GetPropertiesResponse{}, err
+					}
+					result.LastModified = lastModified
 				}
-				result.LastModified = lastModified
-			}
 
-			result.Owner = resp.Header.Get("x-ms-owner")
-			result.Group = resp.Header.Get("x-ms-group")
-			result.ACL = resp.Header.Get("x-ms-acl")
+				result.Owner = resp.Header.Get("x-ms-owner")
+				result.Group = resp.Header.Get("x-ms-group")
+				result.ACL = resp.Header.Get("x-ms-acl")
+			}
 		}
 	}
 	if err != nil {

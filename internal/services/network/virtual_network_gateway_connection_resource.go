@@ -161,6 +161,12 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"private_link_fast_path_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"connection_protocol": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -521,6 +527,10 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
 	}
 
+	if conn.EnablePrivateLinkFastPath != nil {
+		d.Set("private_link_fast_path_enabled", conn.EnablePrivateLinkFastPath)
+	}
+
 	if conn.IpsecPolicies != nil {
 		ipsecPolicies := flattenVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
 
@@ -586,6 +596,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 		ConnectionType:                 connectionType,
 		ConnectionMode:                 connectionMode,
 		EnableBgp:                      utils.Bool(d.Get("enable_bgp").(bool)),
+		EnablePrivateLinkFastPath:      utils.Bool(d.Get("private_link_fast_path_enabled").(bool)),
 		ExpressRouteGatewayBypass:      utils.Bool(d.Get("express_route_gateway_bypass").(bool)),
 		UsePolicyBasedTrafficSelectors: utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool)),
 	}
@@ -698,6 +709,9 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	if props.ConnectionType == network.VirtualNetworkGatewayConnectionTypeExpressRoute {
 		if props.Peer == nil || props.Peer.ID == nil {
 			return nil, fmt.Errorf("`express_route_circuit_id` must be specified when `type` is set to `ExpressRoute`")
+		}
+		if d.Get("private_link_fast_path_enabled").(bool) && !d.Get("express_route_gateway_bypass").(bool) {
+			return nil, fmt.Errorf("`express_route_gateway_bypass` must be enabled when `private_link_fast_path_enabled` is set to `true`")
 		}
 	}
 

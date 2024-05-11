@@ -96,12 +96,14 @@ func (c Client) Snapshot(ctx context.Context, containerName, blobName string, in
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.ETag = resp.Header.Get("ETag")
-			result.SnapshotDateTime = resp.Header.Get("x-ms-snapshot")
+		if err == nil {
+			if resp.Header != nil {
+				result.ETag = resp.Header.Get("ETag")
+				result.SnapshotDateTime = resp.Header.Get("x-ms-snapshot")
+			}
 		}
 	}
 	if err != nil {

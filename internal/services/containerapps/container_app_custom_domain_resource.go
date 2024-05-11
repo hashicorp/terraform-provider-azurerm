@@ -53,14 +53,15 @@ func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Sche
 
 		"container_app_environment_certificate_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
+			RequiredWith: []string{"certificate_binding_type"},
 			ValidateFunc: managedenvironments.ValidateCertificateID,
 		},
 
 		"certificate_binding_type": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForBindingType(), false),
 			Description:  "The Binding type. Possible values include `Disabled` and `SniEnabled`.",
@@ -106,9 +107,12 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewContainerAppCustomDomainId(containerAppId.SubscriptionId, containerAppId.ResourceGroupName, containerAppId.ContainerAppName, model.Name)
 
-			certificateId, err := managedenvironments.ParseCertificateID(model.CertificateId)
-			if err != nil {
-				return err
+			var certificateId *managedenvironments.CertificateId
+			if model.CertificateId != "" {
+				certificateId, err = managedenvironments.ParseCertificateID(model.CertificateId)
+				if err != nil {
+					return err
+				}
 			}
 
 			containerApp, err := client.Get(ctx, *containerAppId)
@@ -134,7 +138,7 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving secrets for update for %s: %+v", *containerAppId, err)
 				}
 			}
-			config.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
+			props.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			ingress := *config.Ingress
 
@@ -149,11 +153,17 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 				customDomains = *existingCustomDomains
 			}
 
-			customDomains = append(customDomains, containerapps.CustomDomain{
-				BindingType:   pointer.To(containerapps.BindingType(model.BindingType)),
-				CertificateId: pointer.To(certificateId.ID()),
-				Name:          model.Name,
-			})
+			customDomain := containerapps.CustomDomain{
+				Name:        model.Name,
+				BindingType: pointer.To(containerapps.BindingTypeDisabled),
+			}
+
+			if certificateId != nil {
+				customDomain.CertificateId = pointer.To(certificateId.ID())
+				customDomain.BindingType = pointer.To(containerapps.BindingType(model.BindingType))
+			}
+
+			customDomains = append(customDomains, customDomain)
 
 			containerApp.Model.Properties.Configuration.Ingress.CustomDomains = pointer.To(customDomains)
 
@@ -200,11 +210,14 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 						found = true
 						state.Name = id.CustomDomainName
 						state.ContainerAppId = containerAppId.ID()
-						certId, err := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
-						if err != nil {
-							return err
+						if pointer.From(v.CertificateId) != "" {
+							certId, err := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
+							if err != nil {
+								return err
+							}
+							state.CertificateId = certId.ID()
 						}
-						state.CertificateId = certId.ID()
+
 						state.BindingType = string(pointer.From(v.BindingType))
 					}
 				}
@@ -262,6 +275,15 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 			}
 
 			model.Properties.Configuration.Ingress.CustomDomains = pointer.To(updatedCustomDomains)
+
+			// Delta-updates need the secrets back from the list API, or we'll end up removing them or erroring out.
+			secretsResp, err := client.ListSecrets(ctx, containerAppId)
+			if err != nil || secretsResp.Model == nil {
+				if !response.WasStatusCode(secretsResp.HttpResponse, http.StatusNoContent) {
+					return fmt.Errorf("retrieving secrets for update for %s: %+v", containerAppId, err)
+				}
+			}
+			model.Properties.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, containerAppId, *model); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

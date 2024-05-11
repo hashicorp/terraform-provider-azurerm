@@ -401,7 +401,15 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("kind", resp.Model.Kind)
 
 	if props := resp.Model.Properties; props != nil {
-		d.Set("application_insights_id", props.ApplicationInsights)
+		appInsightsId := ""
+		if props.ApplicationInsights != nil {
+			applicationInsightsId, err := components.ParseComponentIDInsensitively(*props.ApplicationInsights)
+			if err != nil {
+				return err
+			}
+			appInsightsId = applicationInsightsId.ID()
+		}
+		d.Set("application_insights_id", appInsightsId)
 		d.Set("storage_account_id", props.StorageAccount)
 		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)
@@ -461,7 +469,14 @@ func resourceMachineLearningWorkspaceDelete(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
 	}
 
-	future, err := client.Delete(ctx, *id, workspaces.DefaultDeleteOperationOptions())
+	options := workspaces.DefaultDeleteOperationOptions()
+	if meta.(*clients.Client).Features.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy {
+		options = workspaces.DeleteOperationOptions{
+			ForceToPurge: pointer.To(true),
+		}
+	}
+
+	future, err := client.Delete(ctx, *id, options)
 	if err != nil {
 		return fmt.Errorf("deleting Machine Learning Workspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}

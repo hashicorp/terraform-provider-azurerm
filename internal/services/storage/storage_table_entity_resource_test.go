@@ -182,7 +182,7 @@ func (r StorageTableEntityResource) Exists(ctx context.Context, client *clients.
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.Storage.FindAccount(ctx, id.AccountId.AccountName)
+	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Table %q: %+v", id.AccountId.AccountName, id.TableName, err)
 	}
@@ -205,7 +205,7 @@ func (r StorageTableEntityResource) Exists(ctx context.Context, client *clients.
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %+v", id.PartitionKey, id.RowKey, id.TableName, id.AccountId.AccountName, account.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q in %s): %+v", id.PartitionKey, id.RowKey, id.TableName, account.StorageAccountId, err)
 	}
 	return utils.Bool(true), nil
 }

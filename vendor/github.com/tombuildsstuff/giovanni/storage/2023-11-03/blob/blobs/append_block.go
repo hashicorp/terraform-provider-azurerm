@@ -102,22 +102,24 @@ func (c Client) AppendBlock(ctx context.Context, containerName, blobName string,
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.BlobAppendOffset = resp.Header.Get("x-ms-blob-append-offset")
-			result.ContentMD5 = resp.Header.Get("Content-MD5")
-			result.ETag = resp.Header.Get("ETag")
-			result.LastModified = resp.Header.Get("Last-Modified")
+		if err == nil {
+			if resp.Header != nil {
+				result.BlobAppendOffset = resp.Header.Get("x-ms-blob-append-offset")
+				result.ContentMD5 = resp.Header.Get("Content-MD5")
+				result.ETag = resp.Header.Get("ETag")
+				result.LastModified = resp.Header.Get("Last-Modified")
 
-			if v := resp.Header.Get("x-ms-blob-committed-block-count"); v != "" {
-				i, innerErr := strconv.Atoi(v)
-				if innerErr != nil {
-					err = fmt.Errorf("parsing `x-ms-blob-committed-block-count` header value %q: %+v", v, innerErr)
-					return
+				if v := resp.Header.Get("x-ms-blob-committed-block-count"); v != "" {
+					i, innerErr := strconv.Atoi(v)
+					if innerErr != nil {
+						err = fmt.Errorf("parsing `x-ms-blob-committed-block-count` header value %q: %+v", v, innerErr)
+						return
+					}
+					result.BlobCommittedBlockCount = int64(i)
 				}
-				result.BlobCommittedBlockCount = int64(i)
 			}
 		}
 	}

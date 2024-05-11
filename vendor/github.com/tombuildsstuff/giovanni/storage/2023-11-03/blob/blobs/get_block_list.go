@@ -68,29 +68,31 @@ func (c Client) GetBlockList(ctx context.Context, containerName, blobName string
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.ContentType = resp.Header.Get("Content-Type")
-			result.ETag = resp.Header.Get("ETag")
+		if err == nil {
+			if resp.Header != nil {
+				result.ContentType = resp.Header.Get("Content-Type")
+				result.ETag = resp.Header.Get("ETag")
 
-			if v := resp.Header.Get("x-ms-blob-content-length"); v != "" {
-				i, innerErr := strconv.Atoi(v)
-				if innerErr != nil {
-					err = fmt.Errorf("parsing `x-ms-blob-content-length` header value %q: %s", v, innerErr)
-					return
+				if v := resp.Header.Get("x-ms-blob-content-length"); v != "" {
+					i, innerErr := strconv.Atoi(v)
+					if innerErr != nil {
+						err = fmt.Errorf("parsing `x-ms-blob-content-length` header value %q: %s", v, innerErr)
+						return
+					}
+
+					i64 := int64(i)
+					result.BlobContentLength = &i64
 				}
-
-				i64 := int64(i)
-				result.BlobContentLength = &i64
 			}
-		}
 
-		err = resp.Unmarshal(&result)
-		if err != nil {
-			err = fmt.Errorf("unmarshalling response: %+v", err)
-			return
+			err = resp.Unmarshal(&result)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling response: %+v", err)
+				return
+			}
 		}
 	}
 	if err != nil {

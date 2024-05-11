@@ -434,6 +434,7 @@ func TestDataSourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	// TODO: 4.0 - work through this list
 	dataSourcesWhichNeedToBeAddressed := map[string]struct{}{
 		"azurerm_app_configuration": {},
+		"azurerm_batch_account":     {},
 		"azurerm_batch_pool":        {},
 		"azurerm_managed_disk":      {},
 		"azurerm_snapshot":          {},
@@ -480,6 +481,7 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 		"azurerm_managed_disk":           {},
 		"azurerm_media_services_account": {},
 		"azurerm_snapshot":               {},
+		"azurerm_load_test":              {},
 	}
 	if features.FourPointOhBeta() {
 		resourcesWhichNeedToBeAddressed = map[string]struct{}{}

@@ -151,6 +151,8 @@ The following arguments are supported:
 
 * `gallery_application` - (Optional) One or more `gallery_application` blocks as defined below.
 
+~> **Note** Gallery Application Assignments can be defined either directly on `azurerm_windows_virtual_machine` resource, or using the `azurerm_virtual_machine_gallery_application_assignment` resource - but the two approaches cannot be used together. If both are used with the same Virtual Machine, spurious changes will occur. If `azurerm_virtual_machine_gallery_application_assignment` is used, it's recommended to use `ignore_changes` for the `gallery_application` block on the corresponding `azurerm_windows_virtual_machine` resource, to avoid a persistent diff when using this resource.
+
 * `hotpatching_enabled` - (Optional) Should the VM be patched without requiring a reboot? Possible values are `true` or `false`. Defaults to `false`. For more information about hot patching please see the [product documentation](https://docs.microsoft.com/azure/automanage/automanage-hotpatch).
 
 -> **NOTE:** Hotpatching can only be enabled if the `patch_mode` is set to `AutomaticByPlatform`, the `provision_vm_agent` is set to `true`, your `source_image_reference` references a hotpatching enabled image, and the VM's `size` is set to a [Azure generation 2](https://docs.microsoft.com/azure/virtual-machines/generation-2#generation-2-vm-sizes) VM. An example of how to correctly configure a Windows Virtual Machine to use the `hotpatching_enabled` field can be found in the [`./examples/virtual-machines/windows/hotpatching-enabled`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/windows/hotpatching-enabled) directory within the GitHub Repository.
@@ -229,6 +231,8 @@ A `additional_capabilities` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`.
 
+* `hibernation_enabled` - (Optional) Whether to enable the hibernation capability or not. Changing this forces a new Windows Virtual Machine to be created.
+
 ---
 
 A `additional_unattend_content` block supports the following:
@@ -273,7 +277,7 @@ A `gallery_application` block supports the following:
 
 * `configuration_blob_uri` - (Optional) Specifies the URI to an Azure Blob that will replace the default configuration for the package if provided.
 
-* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2,147,483,647`.
+* `order` - (Optional) Specifies the order in which the packages have to be installed. Possible values are between `0` and `2147483647`. Defaults to `0`.
 
 * `tag` - (Optional) Specifies a passthrough value for more generic context. This field can be any valid `string` value.
 
