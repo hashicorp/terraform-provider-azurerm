@@ -41,6 +41,11 @@ provider "azurerm" {
       disable_generated_rule = false
     }
 
+    azure_stack_hci {
+      delete_arc_bridge_on_destroy      = false
+      delete_custom_location_on_destroy = false
+    }
+
     cognitive_account {
       purge_soft_delete_on_destroy = true
     }
@@ -108,6 +113,8 @@ The `features` block supports the following:
 
 * `application_insights` - (Optional) An `application_insights` block as defined below.
 
+* `azure_stack_hci` - (Optional) An `azure_stack_hci` block as defined below.
+
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
@@ -149,6 +156,14 @@ The `app_configuration` block supports the following:
 The `application_insights` block supports the following:
 
 * `disable_generated_rule` - (Optional) Should the `azurerm_application_insights` resources disable the Azure generated Alert Rule during the creation step? Defaults to `false`.
+
+---
+
+The `azure_stack_hci` block supports the following:
+
+* `delete_arc_bridge_on_destroy` - (Optional) Should the `azurerm_stack_hci_deployment_setting` resources delete the Arc Resource Bridge during the destroy step? Defaults to `false`.
+
+* `delete_custom_location_on_destroy` - (Optional) Should the `azurerm_stack_hci_deployment_setting` resources delete the Custom Location and the Azure Stack HCI Storage Containers in the location during the destroy step? Defaults to `false`.
 
 ---
 

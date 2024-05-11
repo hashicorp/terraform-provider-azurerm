@@ -32,6 +32,10 @@ func TestExpandFeatures(t *testing.T) {
 				ApplicationInsights: features.ApplicationInsightFeatures{
 					DisableGeneratedRule: false,
 				},
+				AzureStackHci: features.AzureStackHciFeatures{
+					DeleteArcBridgeOnDestroy:      false,
+					DeleteCustomLocationOnDestroy: false,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -103,6 +107,12 @@ func TestExpandFeatures(t *testing.T) {
 					"application_insights": []interface{}{
 						map[string]interface{}{
 							"disable_generated_rule": true,
+						},
+					},
+					"azure_stack_hci": []interface{}{
+						map[string]interface{}{
+							"delete_arc_bridge_on_destroy":      true,
+							"delete_custom_location_on_destroy": true,
 						},
 					},
 					"cognitive_account": []interface{}{
@@ -193,6 +203,10 @@ func TestExpandFeatures(t *testing.T) {
 				ApplicationInsights: features.ApplicationInsightFeatures{
 					DisableGeneratedRule: true,
 				},
+				AzureStackHci: features.AzureStackHciFeatures{
+					DeleteArcBridgeOnDestroy:      true,
+					DeleteCustomLocationOnDestroy: true,
+				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
@@ -264,6 +278,12 @@ func TestExpandFeatures(t *testing.T) {
 					"application_insights": []interface{}{
 						map[string]interface{}{
 							"disable_generated_rule": false,
+						},
+					},
+					"azure_stack_hci": []interface{}{
+						map[string]interface{}{
+							"delete_arc_bridge_on_destroy":      false,
+							"delete_custom_location_on_destroy": false,
 						},
 					},
 					"cognitive_account": []interface{}{
@@ -353,6 +373,10 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ApplicationInsights: features.ApplicationInsightFeatures{
 					DisableGeneratedRule: false,
+				},
+				AzureStackHci: features.AzureStackHciFeatures{
+					DeleteArcBridgeOnDestroy:      false,
+					DeleteCustomLocationOnDestroy: false,
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: false,

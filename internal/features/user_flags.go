@@ -7,6 +7,7 @@ type UserFeatures struct {
 	ApiManagement            ApiManagementFeatures
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures
+	AzureStackHci            AzureStackHciFeatures
 	CognitiveAccount         CognitiveAccountFeatures
 	VirtualMachine           VirtualMachineFeatures
 	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
@@ -69,6 +70,11 @@ type ApiManagementFeatures struct {
 
 type ApplicationInsightFeatures struct {
 	DisableGeneratedRule bool
+}
+
+type AzureStackHciFeatures struct {
+	DeleteArcBridgeOnDestroy      bool
+	DeleteCustomLocationOnDestroy bool
 }
 
 type ManagedDiskFeatures struct {

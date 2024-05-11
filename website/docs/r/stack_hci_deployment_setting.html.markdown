@@ -10,13 +10,23 @@ description: |-
 
 Manages a Stack HCI Deployment Setting.
 
+-> Note: Completion of the prerequisites of deploying the Azure Stack HCI in your environment is outside the scope of this document. For more details refer to the [Azure Stack HCI deployment sequence](https://learn.microsoft.com/en-us/azure-stack/hci/deploy/deployment-introduction#deployment-sequence). If you encounter issues completing the prerequisites, we'd recommend opening a ticket with Microsoft Support.
+
+-> Note: The Azure Provider include a Feature Toggle `delete_arc_bridge_on_destroy` which controls whether to delete Arc Resource Bridge generated on destroy, and Feature Toggle `delete_custom_location_on_destroy` which controls whether to delete Custom Location on destroy. The Provider will not do the deletion by default. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
+ 
+
 ## Example Usage
 
 ```hcl
 provider "azuread" {}
 
 provider "azurerm" {
-  features {}
+  features {
+    azure_stack_hci {
+      delete_arc_bridge_on_destroy      = false
+      delete_custom_location_on_destroy = false
+    }
+  }
 }
 
 variable "local_admin_user" {
@@ -103,7 +113,13 @@ resource "azurerm_role_assignment" "connect" {
   principal_id         = azuread_service_principal.example.object_id
 }
 
-## prepare Active Directory and register with Arc, and then the Arc VM is ready
+resource "azurerm_role_assignment" "connect" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Contributor"
+  principal_id         = azuread_service_principal.example.object_id
+}
+
+# after preparing Active Directory and registering servers with Arc, and then the Arc VM is ready
 data "azurerm_arc_machine" "server" {
   count               = length(local.servers)
   name                = local.servers[count.index].name
@@ -151,7 +167,7 @@ resource "azurerm_key_vault_secret" "LocalAdminCredential" {
 resource "azurerm_key_vault_secret" "DefaultARBApplication" {
   name         = "DefaultARBApplication"
   content_type = "Secret"
-  value        = base64encode("${azuread_service_principal.example.object_id}:${azuread_service_principal_password.example.value}")
+  value        = base64encode("${azuread_service_principal.example.client_id}:${azuread_service_principal_password.example.value}")
   key_vault_id = azurerm_key_vault.DeploymentKeyVault.id
   depends_on   = [azurerm_role_assignment.KeyVault]
 }
@@ -204,6 +220,7 @@ resource "azurerm_stack_hci_cluster" "example" {
     azurerm_key_vault_secret.LocalAdminCredential,
     azurerm_key_vault_secret.WitnessStorageKey,
     azurerm_role_assignment.connect,
+    azurerm_role_assignment.connect2,
     azurerm_role_assignment.ServicePrincipalRoleAssign,
     azurerm_role_assignment.MachineRoleAssign1,
     azurerm_role_assignment.MachineRoleAssign2,
@@ -243,8 +260,8 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
     }
 
     host_network {
-      storage_auto_ip_enabled         = true
-      storage_connectivity_switchless = false
+      storage_auto_ip_enabled                 = true
+      storage_connectivity_switchless_enabled = false
       intent {
         name                                          = "ManagementCompute"
         override_adapter_property_enabled             = false
@@ -258,12 +275,12 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
           "Management",
           "Compute",
         ]
-        qos_policy_override {
+        override_qos_policy {
           priority_value8021_action_cluster = "7"
           priority_value8021_action_smb     = "3"
           bandwidth_percentage_smb          = "50"
         }
-        adapter_property_override {
+        override_adapter_property {
           jumbo_packet              = "9014"
           network_direct            = "Disabled"
           network_direct_technology = "RoCEv2"
@@ -282,12 +299,12 @@ resource "azurerm_stack_hci_deployment_setting" "example" {
         traffic_type = [
           "Storage",
         ]
-        qos_policy_override {
+        override_qos_policy {
           priority_value8021_action_cluster = "7"
           priority_value8021_action_smb     = "3"
           bandwidth_percentage_smb          = "50"
         }
-        adapter_property_override {
+        override_adapter_property {
           jumbo_packet              = "9014"
           network_direct            = "Enabled"
           network_direct_technology = "RoCEv2"
@@ -370,31 +387,21 @@ The following arguments are supported:
 
 * `scale_unit` - (Required) One or more `scale_unit` blocks as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `version` - (Required) The deployment template version, possible value is `10.0.0.0`. Changing this forces a new Stack HCI Deployment Setting to be created.
-
----
-
-A `adapter_property_override` block supports the following:
-
-* `jumbo_packet` - (Optional) The jumbo frame size of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `network_direct` - (Optional) The network direct of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `network_direct_technology` - (Optional) The network direct technology of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `version` - (Required) The deployment template version. The format must be a set of numbers separated by dots such as `10.0.0.0`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
 A `cluster` block supports the following:
 
-* `azure_service_endpoint` - (Required) For Azure blob service endpoint type, select either Default or Custom domain. If you selected Custom domain, enter the domain for the blob service in this format `core.windows.net`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `azure_service_endpoint` - (Required) Specifies the Azure blob service endpoint, for example, `core.windows.net`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `cloud_account_name` - (Required) Specify the Azure Storage account name for cloud witness for your Azure Stack HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `cloud_account_name` - (Required) Specifies the Azure Storage account name of the cloud witness for the Azure Stack HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `name` - (Required) The cluster name provided when preparing Active Directory. It must be 3-15 characters long and contain only letters, numbers and hyphens. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `name` - (Required) Specifies the name of the cluster. It must be 3-15 characters long and contain only letters, numbers and hyphens. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `witness_path` - (Required) Specify the fileshare path for the local witness for your Azure Stack HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `witness_path` - (Required) Specifies the fileshare path of the local witness for the Azure Stack HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `witness_type` - (Required) Use a cloud witness if you have internet access and if you use an Azure Storage account to provide a vote on cluster quorum. A cloud witness uses Azure Blob Storage to read or write a blob file and then uses it to arbitrate in split-brain resolution. Possible values are `Cloud`, `FileShare`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `witness_type` - (Required) Specifies the type of the witness. Possible values are `Cloud`, `FileShare`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
@@ -404,9 +411,9 @@ A `host_network` block supports the following:
 
 * `storage_network` - (Required) One or more `storage_network` blocks as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `storage_auto_ip_enabled` - (Optional) Whether allows users to specify IPs and Mask for Storage NICs when Network ATC is not assigning the IPs for storage automatically. Optional parameter required only for 3 Nodes Switchless deployments. Possible values are `true` and `false`. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `storage_auto_ip_enabled` - (Optional) Whether allows users to specify IPs and Mask for Storage NICs when Network ATC is not assigning the IPs for storage automatically. Optional parameter required only for [3 Nodes Switchless deployments](https://learn.microsoft.com/azure-stack/hci/concepts/physical-network-requirements?tabs=overview%2C23H2reqs#using-switchless). Possible values are `true` and `false`. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `storage_connectivity_switchless` - (Optional) Defines how the storage adapters between nodes are connected either switch or switch less. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `storage_connectivity_switchless_enabled` - (Optional) Defines how the storage adapters between nodes are connected either switch or switch less. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
@@ -420,7 +427,9 @@ A `infrastructure_network` block supports the following:
 
 * `subnet_mask` - (Required) Specifies the subnet mask that matches the provided IP address space. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `dhcp_enabled` - (Optional) Whether allows customers to use DHCP for Hosts and Cluster IPs. If disabled, the deployment will Defaults to static IPs. If enabled, gateway and DNS servers are not required. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `dhcp_enabled` - (Optional) Whether DHCP is enabled for hosts and cluster IPs. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+-> **NOTE:** If `dhcp_enabled` is set to `false`, the deployment will use static IPs. If set to `true`, the gateway and DNS servers are not required.
 
 ---
 
@@ -432,17 +441,17 @@ A `intent` block supports the following:
 
 * `traffic_type` - (Required) Specifies a list of network traffic types. Possible values are `Compute`, `Storage`, `Management`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `adapter_property_override` - (Optional) A `adapter_property_override` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `override_adapter_property` - (Optional) A `override_adapter_property` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `qos_policy_override` - (Optional) A `qos_policy_override` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `override_adapter_property_enabled` - (Optional) Whether to override adapter properties. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `virtual_switch_configuration_override` - (Optional) A `virtual_switch_configuration_override` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `override_qos_policy` - (Optional) A `override_qos_policy` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_adapter_property_enabled` - (Optional) This parameter should only be modified based on your OEM guidance. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `override_qos_policy_enabled` - (Optional) Whether to override QoS policy. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_qos_policy_enabled` - (Optional) This parameter should only be modified based on your OEM guidance. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `override_virtual_switch_configuration` - (Optional) A `override_virtual_switch_configuration` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `override_virtual_switch_configuration_enabled` - (Optional) This parameter should only be modified based on your OEM guidance. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `override_virtual_switch_configuration_enabled` - (Optional) Whether to override virtual switch configuration. Possible values are `true` and `false`. defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
@@ -460,13 +469,41 @@ A `observability` block supports the following:
 
 * `eu_location_enabled` - (Required) Whether to store data sent to Microsoft in EU. The log and diagnostic data is sent to the appropriate diagnostics servers depending upon where your cluster resides. Setting this to `false` results in all data sent to Microsoft to be stored outside of the EU. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `streaming_data_client_enabled` - (Required) Whether send telemetry data to Microsoft. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `streaming_data_client_enabled` - (Required) Whether the telemetry data will be sent to Microsoft. Possible values are `true` and `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
 A `optional_service` block supports the following:
 
 * `custom_location` - (Required) Specifies the name of custom location. A custom location will be created after the deployment is completed. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+---
+
+A `override_adapter_property` block supports the following:
+
+* `jumbo_packet` - (Optional) The jumbo frame size of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+* `network_direct` - (Optional) The network direct of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+* `network_direct_technology` - (Optional) The network direct technology of the adapter. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+---
+
+A `override_qos_policy` block supports the following:
+
+* `bandwidth_percentage_smb` - (Optional) Specifies the percentage of the allocated storage traffic bandwidth. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+* `priority_value8021_action_cluster` - (Optional) Specifies the Cluster traffic priority. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+* `priority_value8021_action_smb` - (Optional) Specifies the Priority Flow Control where Data Center Bridging (DCB) is used. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+---
+
+A `override_virtual_switch_configuration` block supports the following:
+
+* `enable_iov` - (Optional) Specifies the IoV enable status for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
+
+* `load_balancing_algorithm` - (Optional) Specifies the load balancing algorithm for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
@@ -478,23 +515,13 @@ A `physical_node` block supports the following:
 
 ---
 
-A `qos_policy_override` block supports the following:
-
-* `bandwidth_percentage_smb` - (Optional) Specifies the bandwidth allocation in % for the storage traffic. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `priority_value8021_action_cluster` - (Optional) Specifies the Cluster traffic priority. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `priority_value8021_action_smb` - (Optional) Specifies the Priority Flow Control where Data Center Bridging (DCB) is used. This parameter should only be modified based on your OEM guidance. Changing this forces a new Stack HCI Deployment Setting to be created.
-
----
-
 A `scale_unit` block supports the following:
 
 * `adou_path` - (Required) Specify the full name of the Active Directory Organizational Unit container object prepared for the deployment, including the domain components. For example:`OU=HCI01,DC=contoso,DC=com`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `cluster` - (Required) A `cluster` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `domain_fqdn` - (Required) Specifies the FQDN to deploy cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `domain_fqdn` - (Required) Specifies the FQDN for deploying cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `host_network` - (Required) A `host_network` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
@@ -506,37 +533,37 @@ A `scale_unit` block supports the following:
 
 * `physical_node` - (Required) One or more `physical_node` blocks as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `secrets_location` - (Required) The URI to the keyvault or secret store. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `secrets_location` - (Required) The URI to the Key Vault or secret store. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `security_setting` - (Required) A `security_setting` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `storage` - (Required) A `storage` block as defined below. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `observability` - (Required) A `observability` block as defined above. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `episodic_data_upload_enabled` - (Optional) Whether to collect log data to facilitate quicker issue resolution. Possible values are `true` and `false`. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
----
+* `eu_location_enabled` - (Optional) Whether to store data sent to Microsoft in EU. The log and diagnostic data is sent to the appropriate diagnostics servers depending upon where your cluster resides. Setting this to `false` results in all data sent to Microsoft to be stored outside of the EU. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-A `security_setting` block supports the following:
+* `streaming_data_client_enabled` - (Optional) Whether the telemetry data will be sent to Microsoft. Possible values are `true` and `false`. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `bitlocker_boot_volume_enabled` - (Required) Whether to enable BitLocker for boot volume. When set to `true`, BitLocker XTS_AES 256-bit encryption is enabled for all data-at-rest on the OS volume of your Azure Stack HCI cluster. This setting is TPM-hardware dependent. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `bitlocker_boot_volume_enabled` - (Optional) Whether to enable BitLocker for boot volume. Possible values are `true` and `false`. When set to `true`, BitLocker XTS_AES 256-bit encryption is enabled for all data-at-rest on the OS volume of your Azure Stack HCI cluster. This setting is TPM-hardware dependent. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `bitlocker_data_volume_enabled` - (Required) Whether to enable BitLocker for data volume. When set to `true`, BitLocker XTS-AES 256-bit encryption is enabled for all data-at-rest on your Azure Stack HCI cluster shared volumes. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `bitlocker_data_volume_enabled` - (Optional) Whether to enable BitLocker for data volume. Possible values are `true` and `false`. When set to `true`, BitLocker XTS-AES 256-bit encryption is enabled for all data-at-rest on your Azure Stack HCI cluster shared volumes. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `credential_guard_enabled` - (Required) Whether to enable credential guard. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `credential_guard_enabled` - (Optional) Whether to enable credential guard. Possible values are `true` and `false`. Defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `drift_control_enabled` - (Required) Whether to enable drift control. When set to `true`, the security baseline is re-applied regularly. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `drift_control_enabled` - (Optional) Whether to enable drift control. Possible values are `true` and `false`. When set to `true`, the security baseline is re-applied regularly. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `drtm_protection_enabled` - (Required) Whether to enable DRTM protection. When set to `true`, Secure Boot is enabled on your Azure HCI cluster. This setting is hardware dependent. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `drtm_protection_enabled` - (Optional) Whether to enable DRTM protection. Possible values are `true` and `false`. When set to `true`, Secure Boot is enabled on your Azure HCI cluster. This setting is hardware dependent. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `hvci_protection_enabled` - (Required) Whether to enable HVCI protection. When set to `true`, Hypervisor-protected Code Integrity is enabled on your Azure HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `hvci_protection_enabled` - (Optional) Whether to enable HVCI protection. Possible values are `true` and `false`. When set to `true`, Hypervisor-protected Code Integrity is enabled on your Azure HCI cluster. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `side_channel_mitigation_enabled` - (Required) Whether to enable side channel mitigation. When set to `true`, all side channel mitigations are enabled on your Azure HCI cluster. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `side_channel_mitigation_enabled` - (Optional) Whether to enable side channel mitigation. Possible values are `true` and `false`. When set to `true`, all side channel mitigations are enabled on your Azure HCI cluster. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `smb_cluster_encryption_enabled` - (Required) Whether to enable SMB cluster encryption. When set to `true`, cluster east-west traffic is encrypted. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `smb_cluster_encryption_enabled` - (Optional) Whether to enable SMB cluster encryption. Possible values are `true` and `false`. When set to `true`, cluster east-west traffic is encrypted. Defaults to `false`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `smb_signing_enabled` - (Required) Whether to enable SMB signing. When set to `true`, the SMB default instance requires sign in for the client and server services. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `smb_signing_enabled` - (Optional) Whether to enable SMB signing. Possible values are `true` and `false`. When set to `true`, the SMB default instance requires sign in for the client and server services. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
-* `wdac_enabled` - (Required) Whether to enable WDAC. When set to `true`, applications and the code that you can run on your Azure Stack HCI cluster are limited. Changing this forces a new Stack HCI Deployment Setting to be created.
+* `wdac_enabled` - (Optional) Whether to enable WDAC. Possible values are `true` and `false`. When set to `true`, applications and the code that you can run on your Azure Stack HCI cluster are limited. Defaults to `true`. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 ---
 
@@ -553,15 +580,6 @@ A `storage_network` block supports the following:
 * `network_adapter_name` - (Required) The name of the network adapter. Changing this forces a new Stack HCI Deployment Setting to be created.
 
 * `vlan_id` - (Required) Specifies the ID for the VLAN storage network. This setting is applied to the network interfaces that route the storage and VM migration traffic. Changing this forces a new Stack HCI Deployment Setting to be created.
-
----
-
-A `virtual_switch_configuration_override` block supports the following:
-
-* `enable_iov` - (Optional) Specifies the IoV enable status for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
-
-* `load_balancing_algorithm` - (Optional) Specifies the load balancing algorithm for Virtual Switch. Changing this forces a new Stack HCI Deployment Setting to be created.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

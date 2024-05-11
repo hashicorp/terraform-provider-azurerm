@@ -111,7 +111,12 @@ func (r StackHCIDeploymentSettingResource) basic(data acceptance.TestData) strin
 %s
 
 provider "azurerm" {
-  features {}
+  features {
+    azure_stack_hci {
+      delete_arc_bridge_on_destroy      = true
+      delete_custom_location_on_destroy = true
+    }
+  }
 }
 
 resource "azurerm_stack_hci_deployment_setting" "test" {
@@ -120,10 +125,25 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
   version              = "10.0.0.0"
 
   scale_unit {
-    adou_path        = "OU=hci${var.random_string},DC=jumpstart,DC=local"
-    domain_fqdn      = "jumpstart.local"
-    secrets_location = azurerm_key_vault.DeploymentKeyVault.vault_uri
-    naming_prefix    = "hci${var.random_string}"
+    adou_path                     = "OU=hci${var.random_string},DC=jumpstart,DC=local"
+    domain_fqdn                   = "jumpstart.local"
+    secrets_location              = azurerm_key_vault.DeploymentKeyVault.vault_uri
+    naming_prefix                 = "hci${var.random_string}"
+    streaming_data_client_enabled = true
+    eu_location_enabled           = false
+    episodic_data_upload_enabled  = true
+
+    bitlocker_boot_volume_enabled   = true
+    bitlocker_data_volume_enabled   = true
+    credential_guard_enabled        = true
+    drift_control_enabled           = true
+    drtm_protection_enabled         = true
+    hvci_protection_enabled         = true
+    side_channel_mitigation_enabled = true
+    smb_cluster_encryption_enabled  = false
+    smb_signing_enabled             = true
+    wdac_enabled                    = true
+
 
     cluster {
       azure_service_endpoint = "core.windows.net"
@@ -196,24 +216,6 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
       name         = "AzSHOST2"
     }
 
-    observability {
-      streaming_data_client_enabled = true
-      eu_location_enabled           = false
-      episodic_data_upload_enabled  = true
-    }
-
-    security_setting {
-      bitlocker_boot_volume_enabled   = true
-      bitlocker_data_volume_enabled   = true
-      credential_guard_enabled        = true
-      drift_control_enabled           = true
-      drtm_protection_enabled         = true
-      hvci_protection_enabled         = true
-      side_channel_mitigation_enabled = true
-      smb_cluster_encryption_enabled  = false
-      smb_signing_enabled             = true
-      wdac_enabled                    = true
-    }
     storage {
       configuration_mode = "Express"
     }
@@ -229,7 +231,12 @@ func (r StackHCIDeploymentSettingResource) requiresImport(data acceptance.TestDa
 %s
 
 provider "azurerm" {
-  features {}
+  features {
+    azure_stack_hci {
+      delete_arc_bridge_on_destroy      = true
+      delete_custom_location_on_destroy = true
+    }
+  }
 }
 
 resource "azurerm_stack_hci_deployment_setting" "import" {
@@ -247,7 +254,12 @@ func (r StackHCIDeploymentSettingResource) complete(data acceptance.TestData) st
 %s
 
 provider "azurerm" {
-  features {}
+  features {
+    azure_stack_hci {
+      delete_arc_bridge_on_destroy      = true
+      delete_custom_location_on_destroy = true
+    }
+  }
 }
 
 resource "azurerm_stack_hci_deployment_setting" "test" {
@@ -256,10 +268,24 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
   version              = "10.0.0.0"
 
   scale_unit {
-    adou_path        = "OU=hci${var.random_string},DC=jumpstart,DC=local"
-    domain_fqdn      = "jumpstart.local"
-    secrets_location = azurerm_key_vault.DeploymentKeyVault.vault_uri
-    naming_prefix    = "hci${var.random_string}"
+    adou_path                       = "OU=hci${var.random_string},DC=jumpstart,DC=local"
+    domain_fqdn                     = "jumpstart.local"
+    secrets_location                = azurerm_key_vault.DeploymentKeyVault.vault_uri
+    naming_prefix                   = "hci${var.random_string}"
+    streaming_data_client_enabled   = true
+    eu_location_enabled             = false
+    episodic_data_upload_enabled    = true
+    bitlocker_boot_volume_enabled   = true
+    bitlocker_data_volume_enabled   = true
+    credential_guard_enabled        = true
+    drift_control_enabled           = true
+    drtm_protection_enabled         = true
+    hvci_protection_enabled         = true
+    side_channel_mitigation_enabled = true
+    smb_cluster_encryption_enabled  = false
+    smb_signing_enabled             = true
+    wdac_enabled                    = true
+
 
     cluster {
       azure_service_endpoint = "core.windows.net"
@@ -270,8 +296,9 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
     }
 
     host_network {
-      storage_auto_ip_enabled         = true
-      storage_connectivity_switchless = false
+      storage_auto_ip_enabled                 = true
+      storage_connectivity_switchless_enabled = false
+
       intent {
         name                                          = "ManagementCompute"
         override_adapter_property_enabled             = false
@@ -285,12 +312,12 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
           "Management",
           "Compute",
         ]
-        qos_policy_override {
+        override_qos_policy {
           priority_value8021_action_cluster = "7"
           priority_value8021_action_smb     = "3"
           bandwidth_percentage_smb          = "50"
         }
-        adapter_property_override {
+        override_adapter_property {
           jumbo_packet              = "9014"
           network_direct            = "Disabled"
           network_direct_technology = "RoCEv2"
@@ -309,12 +336,12 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
         traffic_type = [
           "Storage",
         ]
-        qos_policy_override {
+        override_qos_policy {
           priority_value8021_action_cluster = "7"
           priority_value8021_action_smb     = "3"
           bandwidth_percentage_smb          = "50"
         }
-        adapter_property_override {
+        override_adapter_property {
           jumbo_packet              = "9014"
           network_direct            = "Enabled"
           network_direct_technology = "RoCEv2"
@@ -359,25 +386,6 @@ resource "azurerm_stack_hci_deployment_setting" "test" {
     physical_node {
       ipv4_address = "192.168.1.13"
       name         = "AzSHOST2"
-    }
-
-    observability {
-      streaming_data_client_enabled = true
-      eu_location_enabled           = false
-      episodic_data_upload_enabled  = true
-    }
-
-    security_setting {
-      bitlocker_boot_volume_enabled   = true
-      bitlocker_data_volume_enabled   = true
-      credential_guard_enabled        = true
-      drift_control_enabled           = true
-      drtm_protection_enabled         = true
-      hvci_protection_enabled         = true
-      side_channel_mitigation_enabled = true
-      smb_cluster_encryption_enabled  = false
-      smb_signing_enabled             = true
-      wdac_enabled                    = true
     }
 
     storage {
@@ -548,7 +556,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_service_principal_password" "test" {
@@ -559,6 +567,12 @@ resource "azurerm_role_assignment" "connect" {
   count                = length(local.connection_roles)
   scope                = azurerm_resource_group.test2.id
   role_definition_name = local.connection_roles[count.index]
+  principal_id         = azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "connect2" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Contributor"
   principal_id         = azuread_service_principal.test.object_id
 }
 
@@ -582,6 +596,7 @@ resource "terraform_data" "provisioner" {
   depends_on = [
     terraform_data.ad_creation_provisioner,
     azurerm_role_assignment.connect,
+    azurerm_role_assignment.connect2,
   ]
 
   provisioner "local-exec" {
@@ -589,7 +604,7 @@ resource "terraform_data" "provisioner" {
   }
 
   provisioner "local-exec" {
-    command     = "powershell.exe -ExecutionPolicy Bypass -NoProfile -File ./testdata/connect.ps1 -userName ${var.local_admin_user} -password \"${var.local_admin_password}\" -authType Credssp -ip ${azurerm_public_ip.test.ip_address} -port ${local.servers[count.index].port} -subscriptionId ${data.azurerm_client_config.current.subscription_id} -resourceGroupName ${azurerm_resource_group.test2.name} -region ${azurerm_resource_group.test2.location} -tenant ${data.azurerm_client_config.current.tenant_id} -servicePrincipalId ${azuread_service_principal.test.object_id} -servicePrincipalSecret ${azuread_service_principal_password.test.value} -expandC true"
+    command     = "powershell.exe -ExecutionPolicy Bypass -NoProfile -File ./testdata/connect.ps1 -userName ${var.local_admin_user} -password \"${var.local_admin_password}\" -authType Credssp -ip ${azurerm_public_ip.test.ip_address} -port ${local.servers[count.index].port} -subscriptionId ${data.azurerm_client_config.current.subscription_id} -resourceGroupName ${azurerm_resource_group.test2.name} -region ${azurerm_resource_group.test2.location} -tenant ${data.azurerm_client_config.current.tenant_id} -servicePrincipalId ${azuread_service_principal.test.client_id} -servicePrincipalSecret ${azuread_service_principal_password.test.value} -expandC true"
     interpreter = ["PowerShell", "-Command"]
   }
 
@@ -650,7 +665,7 @@ resource "azurerm_key_vault_secret" "LocalAdminCredential" {
 resource "azurerm_key_vault_secret" "DefaultARBApplication" {
   name         = "DefaultARBApplication"
   content_type = "Secret"
-  value        = base64encode("${azuread_service_principal.test.object_id}:${azuread_service_principal_password.test.value}")
+  value        = base64encode("${azuread_service_principal.test.client_id}:${azuread_service_principal_password.test.value}")
   key_vault_id = azurerm_key_vault.DeploymentKeyVault.id
   depends_on   = [azurerm_role_assignment.KeyVault]
 }
