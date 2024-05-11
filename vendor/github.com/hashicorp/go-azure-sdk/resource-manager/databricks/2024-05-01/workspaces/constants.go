@@ -9,6 +9,132 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AutomaticClusterUpdateValue string
+
+const (
+	AutomaticClusterUpdateValueDisabled AutomaticClusterUpdateValue = "Disabled"
+	AutomaticClusterUpdateValueEnabled  AutomaticClusterUpdateValue = "Enabled"
+)
+
+func PossibleValuesForAutomaticClusterUpdateValue() []string {
+	return []string{
+		string(AutomaticClusterUpdateValueDisabled),
+		string(AutomaticClusterUpdateValueEnabled),
+	}
+}
+
+func (s *AutomaticClusterUpdateValue) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAutomaticClusterUpdateValue(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAutomaticClusterUpdateValue(input string) (*AutomaticClusterUpdateValue, error) {
+	vals := map[string]AutomaticClusterUpdateValue{
+		"disabled": AutomaticClusterUpdateValueDisabled,
+		"enabled":  AutomaticClusterUpdateValueEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AutomaticClusterUpdateValue(input)
+	return &out, nil
+}
+
+type ComplianceSecurityProfileValue string
+
+const (
+	ComplianceSecurityProfileValueDisabled ComplianceSecurityProfileValue = "Disabled"
+	ComplianceSecurityProfileValueEnabled  ComplianceSecurityProfileValue = "Enabled"
+)
+
+func PossibleValuesForComplianceSecurityProfileValue() []string {
+	return []string{
+		string(ComplianceSecurityProfileValueDisabled),
+		string(ComplianceSecurityProfileValueEnabled),
+	}
+}
+
+func (s *ComplianceSecurityProfileValue) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseComplianceSecurityProfileValue(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseComplianceSecurityProfileValue(input string) (*ComplianceSecurityProfileValue, error) {
+	vals := map[string]ComplianceSecurityProfileValue{
+		"disabled": ComplianceSecurityProfileValueDisabled,
+		"enabled":  ComplianceSecurityProfileValueEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ComplianceSecurityProfileValue(input)
+	return &out, nil
+}
+
+type ComplianceStandard string
+
+const (
+	ComplianceStandardHIPAA  ComplianceStandard = "HIPAA"
+	ComplianceStandardNONE   ComplianceStandard = "NONE"
+	ComplianceStandardPCIDSS ComplianceStandard = "PCI_DSS"
+)
+
+func PossibleValuesForComplianceStandard() []string {
+	return []string{
+		string(ComplianceStandardHIPAA),
+		string(ComplianceStandardNONE),
+		string(ComplianceStandardPCIDSS),
+	}
+}
+
+func (s *ComplianceStandard) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseComplianceStandard(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseComplianceStandard(input string) (*ComplianceStandard, error) {
+	vals := map[string]ComplianceStandard{
+		"hipaa":   ComplianceStandardHIPAA,
+		"none":    ComplianceStandardNONE,
+		"pci_dss": ComplianceStandardPCIDSS,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ComplianceStandard(input)
+	return &out, nil
+}
+
 type CustomParameterType string
 
 const (
@@ -53,6 +179,47 @@ func parseCustomParameterType(input string) (*CustomParameterType, error) {
 	return &out, nil
 }
 
+type DefaultStorageFirewall string
+
+const (
+	DefaultStorageFirewallDisabled DefaultStorageFirewall = "Disabled"
+	DefaultStorageFirewallEnabled  DefaultStorageFirewall = "Enabled"
+)
+
+func PossibleValuesForDefaultStorageFirewall() []string {
+	return []string{
+		string(DefaultStorageFirewallDisabled),
+		string(DefaultStorageFirewallEnabled),
+	}
+}
+
+func (s *DefaultStorageFirewall) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDefaultStorageFirewall(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDefaultStorageFirewall(input string) (*DefaultStorageFirewall, error) {
+	vals := map[string]DefaultStorageFirewall{
+		"disabled": DefaultStorageFirewallDisabled,
+		"enabled":  DefaultStorageFirewallEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DefaultStorageFirewall(input)
+	return &out, nil
+}
+
 type EncryptionKeySource string
 
 const (
@@ -88,6 +255,129 @@ func parseEncryptionKeySource(input string) (*EncryptionKeySource, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := EncryptionKeySource(input)
+	return &out, nil
+}
+
+type EnhancedSecurityMonitoringValue string
+
+const (
+	EnhancedSecurityMonitoringValueDisabled EnhancedSecurityMonitoringValue = "Disabled"
+	EnhancedSecurityMonitoringValueEnabled  EnhancedSecurityMonitoringValue = "Enabled"
+)
+
+func PossibleValuesForEnhancedSecurityMonitoringValue() []string {
+	return []string{
+		string(EnhancedSecurityMonitoringValueDisabled),
+		string(EnhancedSecurityMonitoringValueEnabled),
+	}
+}
+
+func (s *EnhancedSecurityMonitoringValue) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEnhancedSecurityMonitoringValue(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseEnhancedSecurityMonitoringValue(input string) (*EnhancedSecurityMonitoringValue, error) {
+	vals := map[string]EnhancedSecurityMonitoringValue{
+		"disabled": EnhancedSecurityMonitoringValueDisabled,
+		"enabled":  EnhancedSecurityMonitoringValueEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EnhancedSecurityMonitoringValue(input)
+	return &out, nil
+}
+
+type IdentityType string
+
+const (
+	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
+	IdentityTypeUserAssigned   IdentityType = "UserAssigned"
+)
+
+func PossibleValuesForIdentityType() []string {
+	return []string{
+		string(IdentityTypeSystemAssigned),
+		string(IdentityTypeUserAssigned),
+	}
+}
+
+func (s *IdentityType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIdentityType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseIdentityType(input string) (*IdentityType, error) {
+	vals := map[string]IdentityType{
+		"systemassigned": IdentityTypeSystemAssigned,
+		"userassigned":   IdentityTypeUserAssigned,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityType(input)
+	return &out, nil
+}
+
+type InitialType string
+
+const (
+	InitialTypeHiveMetastore InitialType = "HiveMetastore"
+	InitialTypeUnityCatalog  InitialType = "UnityCatalog"
+)
+
+func PossibleValuesForInitialType() []string {
+	return []string{
+		string(InitialTypeHiveMetastore),
+		string(InitialTypeUnityCatalog),
+	}
+}
+
+func (s *InitialType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseInitialType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseInitialType(input string) (*InitialType, error) {
+	vals := map[string]InitialType{
+		"hivemetastore": InitialTypeHiveMetastore,
+		"unitycatalog":  InitialTypeUnityCatalog,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := InitialType(input)
 	return &out, nil
 }
 

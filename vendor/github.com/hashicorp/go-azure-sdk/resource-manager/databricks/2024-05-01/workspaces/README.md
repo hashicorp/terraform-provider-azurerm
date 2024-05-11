@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces` Documentation
 
-The `workspaces` SDK allows for interaction with the Azure Resource Manager Service `databricks` (API Version `2023-02-01`).
+The `workspaces` SDK allows for interaction with the Azure Resource Manager Service `databricks` (API Version `2024-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 ```
 
 
@@ -44,7 +44,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ctx := context.TODO()
 id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
 
-if err := client.DeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id, workspaces.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
 }
 ```
