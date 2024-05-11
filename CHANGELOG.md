@@ -1,3 +1,9 @@
+## 3.104.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_databricks_workspace` - support for the `default_storage_firewall_enabled` property [GH-25919]
+
 ## 3.103.1 (May 10, 2024)
 
 BUG FIXES
