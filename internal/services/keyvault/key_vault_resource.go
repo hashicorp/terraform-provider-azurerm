@@ -34,6 +34,7 @@ import (
 )
 
 var keyVaultResourceName = "azurerm_key_vault"
+var contactUpdateSuccessful bool
 
 func resourceKeyVault() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -645,28 +646,18 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			resp, err = managementClient.SetCertificateContacts(ctx, vaultUri, contacts)
 		}
 
-		// NOTE: For legecy backwards compatibility, we need to ignore the Forbidden response
-		// here. Many of our customers will have already set up private endpoints so the above
+		// NOTE: For legecy backwards compatibility, we need to ignore the Forbidden/Not Found response
+		// status codes here. Many of our customers will have already set up private endpoints so the above
 		// data plane calls would succeed...
-		if err != nil && !utils.ResponseWasForbidden(resp.Response) {
+		if err != nil && !utils.ResponseWasForbidden(resp.Response) && !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("updating Contacts for %s: %+v", *id, err)
 		}
 
-		// Moved state management of the contact field out of the read function
-		// to the update function because if this is a new resource this would
-		// cause a context deadline exceeded error during the read call during
-		// create...
+		// Only set the 'contactUpdateSuccessful' flag if the call to the data plane was successful.
+		// If it was successfull the read function should call the data plane to get the contact
+		// information, if it wasn't is should not call the data plane...
 		if resp.Response.StatusCode >= 200 && resp.Response.StatusCode < 300 {
-			contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
-			if err != nil {
-				if !utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response) {
-					return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
-				}
-			}
-
-			if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
-				return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
-			}
+			contactUpdateSuccessful = true
 		}
 	}
 
@@ -677,6 +668,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -755,6 +747,19 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
+		}
+	}
+
+	// NOTE: Only call the data plane for the contact information if the update operation
+	// was successful...
+	if contactUpdateSuccessful {
+		contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
+		if err != nil {
+			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+		}
+
+		if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
+			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
 		}
 	}
 
