@@ -654,7 +654,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		// Only set the 'contactUpdateSuccessful' flag if the call to the data plane was successful.
-		// If it was successfull the read function should call the data plane to get the contact
+		// If it was successful the read function should call the data plane to get the contact
 		// information, if it wasn't is should not call the data plane...
 		if resp.Response.StatusCode >= 200 && resp.Response.StatusCode < 300 {
 			contactUpdateSuccessful = true
