@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	network2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -116,7 +116,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 		return nil, fmt.Errorf("retrieving %s: `properties.IPConfigurations` was nil", id)
 	}
 
-	config := network2.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, id.First.IpConfigurationName)
+	config := network.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, id.First.IpConfigurationName)
 	if config == nil {
 		return nil, fmt.Errorf("IP configuration was nil for %s: %+v", id, err)
 	}
@@ -154,7 +154,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) d
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	config := network2.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, ipConfigurationName)
+	config := network.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, ipConfigurationName)
 	if config == nil {
 		return fmt.Errorf("IP Configuration %q wasn't found for %s", ipConfigurationName, id)
 	}
