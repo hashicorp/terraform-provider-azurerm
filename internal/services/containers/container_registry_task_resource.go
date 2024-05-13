@@ -708,7 +708,7 @@ func (r ContainerRegistryTaskResource) Create() sdk.ResourceFunc {
 					Trigger:            expandRegistryTaskTrigger(model),
 					Status:             pointer.To(status),
 					IsSystemTask:       &model.IsSystemTask,
-					Timeout:            utils.Int64(int64(model.TimeoutInSec)),
+					Timeout:            pointer.To(model.TimeoutInSec),
 					Credentials:        expandRegistryTaskCredentials(model.RegistryCredential),
 					AgentConfiguration: expandRegistryTaskAgentProperties(model.AgentConfig),
 				},
@@ -940,7 +940,7 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.LogTemplate = &model.LogTemplate
 			}
 			if metadata.ResourceData.HasChange("timeout_in_seconds") {
-				existing.Model.Properties.Timeout = utils.Int64(int64(model.TimeoutInSec))
+				existing.Model.Properties.Timeout = pointer.To(model.TimeoutInSec)
 			}
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Model.Tags = &model.Tags
@@ -1103,7 +1103,7 @@ func expandRegistryTaskAuthInfo(auth Auth) *tasks.AuthInfo {
 		out.Scope = &auth.Scope
 	}
 	if auth.ExpireInSec != 0 {
-		out.ExpiresIn = utils.Int64(int64(auth.ExpireInSec))
+		out.ExpiresIn = pointer.To(auth.ExpireInSec)
 	}
 	return &out
 }

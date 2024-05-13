@@ -195,11 +195,11 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 				if !isServicePlanSupportScaleOut(servicePlan.Sku) {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
 				}
-				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(int64(servicePlan.MaximumElasticWorkerCount))
+				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(servicePlan.MaximumElasticWorkerCount)
 			}
 
 			if servicePlan.WorkerCount != 0 {
-				appServicePlan.Sku.Capacity = pointer.To(int64(servicePlan.WorkerCount))
+				appServicePlan.Sku.Capacity = pointer.To(servicePlan.WorkerCount)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, appServicePlan); err != nil {
@@ -341,14 +341,14 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("worker_count") {
-				model.Sku.Capacity = pointer.To(int64(state.WorkerCount))
+				model.Sku.Capacity = pointer.To(state.WorkerCount)
 			}
 
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
 				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !isServicePlanSupportScaleOut(state.Sku) {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
 				}
-				model.Properties.MaximumElasticWorkerCount = pointer.To(int64(state.MaximumElasticWorkerCount))
+				model.Properties.MaximumElasticWorkerCount = pointer.To(state.MaximumElasticWorkerCount)
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {

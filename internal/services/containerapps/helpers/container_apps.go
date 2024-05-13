@@ -930,14 +930,14 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
 		}
-		template.Scale.MaxReplicas = pointer.To(int64(config.MaxReplicas))
+		template.Scale.MaxReplicas = pointer.To(config.MaxReplicas)
 	}
 
 	if config.MinReplicas != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
 		}
-		template.Scale.MinReplicas = pointer.To(int64(config.MinReplicas))
+		template.Scale.MinReplicas = pointer.To(config.MinReplicas)
 	}
 
 	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
@@ -1910,10 +1910,10 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 	probeType := containerapps.TypeReadiness
 	result := containerapps.ContainerAppProbe{
 		Type:             &probeType,
-		PeriodSeconds:    pointer.To(int64(input.Interval)),
-		TimeoutSeconds:   pointer.To(int64(input.Timeout)),
-		FailureThreshold: pointer.To(int64(input.FailureThreshold)),
-		SuccessThreshold: pointer.To(int64(input.SuccessThreshold)),
+		PeriodSeconds:    pointer.To(input.Interval),
+		TimeoutSeconds:   pointer.To(input.Timeout),
+		FailureThreshold: pointer.To(input.FailureThreshold),
+		SuccessThreshold: pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -1922,7 +1922,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
-			Port:   int64(input.Port),
+			Port:   input.Port,
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
@@ -1940,7 +1940,7 @@ func expandContainerAppReadinessProbe(input ContainerAppReadinessProbe) containe
 	default:
 		result.TcpSocket = &containerapps.ContainerAppProbeTcpSocket{
 			Host: pointer.To(input.Host),
-			Port: int64(input.Port),
+			Port: input.Port,
 		}
 	}
 
@@ -2189,10 +2189,10 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 	probeType := containerapps.TypeLiveness
 	result := containerapps.ContainerAppProbe{
 		Type:                &probeType,
-		InitialDelaySeconds: pointer.To(int64(input.InitialDelay)),
-		PeriodSeconds:       pointer.To(int64(input.Interval)),
-		TimeoutSeconds:      pointer.To(int64(input.Timeout)),
-		FailureThreshold:    pointer.To(int64(input.FailureThreshold)),
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -2201,7 +2201,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 		result.HTTPGet = &containerapps.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
-			Port:   int64(input.Port),
+			Port:   input.Port,
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
@@ -2219,7 +2219,7 @@ func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containera
 	default:
 		result.TcpSocket = &containerapps.ContainerAppProbeTcpSocket{
 			Host: pointer.To(input.Host),
-			Port: int64(input.Port),
+			Port: input.Port,
 		}
 	}
 

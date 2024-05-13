@@ -270,7 +270,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			}
 
 			if model.Priority != 0 {
-				props.Priority = pointer.To(int64(model.Priority))
+				props.Priority = pointer.To(model.Priority)
 			}
 
 			if len(model.ProtocolPorts) != 0 {

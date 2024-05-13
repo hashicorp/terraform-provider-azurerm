@@ -403,11 +403,11 @@ func (r ApplicationInsightsStandardWebTestResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("frequency") {
-				props.Frequency = pointer.To(int64(model.Frequency))
+				props.Frequency = pointer.To(model.Frequency)
 			}
 
 			if metadata.ResourceData.HasChange("timeout") {
-				props.Timeout = pointer.To(int64(model.Timeout))
+				props.Timeout = pointer.To(model.Timeout)
 			}
 
 			props.Enabled = pointer.To(model.Enabled)
@@ -674,13 +674,13 @@ func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleM
 	}
 
 	validationsInput := input[0]
-	rules.ExpectedHTTPStatusCode = pointer.To(int64(validationsInput.ExpectedStatusCode))
+	rules.ExpectedHTTPStatusCode = pointer.To(validationsInput.ExpectedStatusCode)
 
 	// if URL http, sslCheck cannot be enabled - Catch in CustomiseDiff
 	rules.SSLCheck = pointer.To(validationsInput.SSLCheck)
 	// if sslCheck not enabled, SSLCertRemainingLifetimeCheck cannot be enabled
 	if validationsInput.CertificateRemainingLifetime != 0 && validationsInput.SSLCheck {
-		rules.SSLCertRemainingLifetimeCheck = pointer.To(int64(validationsInput.CertificateRemainingLifetime))
+		rules.SSLCertRemainingLifetimeCheck = pointer.To(validationsInput.CertificateRemainingLifetime)
 	}
 	rules.ContentValidation = expandApplicationInsightsStandardWebTestContentValidations(validationsInput.Content)
 

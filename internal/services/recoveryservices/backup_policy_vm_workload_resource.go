@@ -1009,7 +1009,7 @@ func expandBackupProtectionPolicyVMWorkloadRetentionDailyFormat(input []int64) *
 	days := make([]protectionpolicies.Day, 0)
 	for _, item := range input {
 		day := protectionpolicies.Day{
-			Date: pointer.To(int64(item)),
+			Date: pointer.To(item),
 		}
 
 		if item == 0 {

@@ -570,7 +570,7 @@ func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.Co
 	default:
 		result.TcpSocket = &jobs.ContainerAppProbeTcpSocket{
 			Host: pointer.To(input.Host),
-			Port: int64(input.Port),
+			Port: input.Port,
 		}
 	}
 
@@ -581,10 +581,10 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 	probeType := jobs.TypeReadiness
 	result := jobs.ContainerAppProbe{
 		Type:             &probeType,
-		PeriodSeconds:    pointer.To(int64(input.Interval)),
-		TimeoutSeconds:   pointer.To(int64(input.Timeout)),
-		FailureThreshold: pointer.To(int64(input.FailureThreshold)),
-		SuccessThreshold: pointer.To(int64(input.SuccessThreshold)),
+		PeriodSeconds:    pointer.To(input.Interval),
+		TimeoutSeconds:   pointer.To(input.Timeout),
+		FailureThreshold: pointer.To(input.FailureThreshold),
+		SuccessThreshold: pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -593,7 +593,7 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 		result.HTTPGet = &jobs.ContainerAppProbeHTTPGet{
 			Host:   pointer.To(input.Host),
 			Path:   pointer.To(input.Path),
-			Port:   int64(input.Port),
+			Port:   input.Port,
 			Scheme: &scheme,
 		}
 		if input.Headers != nil {
@@ -611,7 +611,7 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 	default:
 		result.TcpSocket = &jobs.ContainerAppProbeTcpSocket{
 			Host: pointer.To(input.Host),
-			Port: int64(input.Port),
+			Port: input.Port,
 		}
 	}
 
@@ -651,7 +651,7 @@ func expandContainerAppJobStartupProbe(input ContainerAppStartupProbe) jobs.Cont
 	default:
 		result.TcpSocket = &jobs.ContainerAppProbeTcpSocket{
 			Host: pointer.To(input.Host),
-			Port: int64(input.Port),
+			Port: input.Port,
 		}
 	}
 

@@ -579,7 +579,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("instance_count") {
-				sku.Capacity = pointer.To(int64(model.InstanceCount))
+				sku.Capacity = pointer.To(model.InstanceCount)
 			}
 			resource := appplatform.GatewayResource{
 				Properties: properties,

@@ -518,15 +518,6 @@ func expandAlertProcessingRuleScheduleRecurrenceDaysOfWeek(input []string) *[]al
 	return &result
 }
 
-func expandAlertProcessingRuleScheduleRecurrenceDaysOfMonth(input []int) *[]int64 {
-	result := make([]int64, 0)
-	for _, v := range input {
-		result = append(result, int64(v))
-	}
-
-	return &result
-}
-
 func flattenAlertProcessingRuleAddActionGroupId(input []alertprocessingrules.Action) ([]string, error) {
 	if len(input) != 1 {
 		return make([]string, 0), fmt.Errorf("read add_action_group_ids, the action should contains 1 element, but get %d element", len(input))
@@ -648,18 +639,6 @@ func flattenAlertProcessingRuleRecurrenceDaysOfWeek(input *[]alertprocessingrule
 	result := make([]string, 0)
 	for _, item := range *input {
 		result = append(result, string(item))
-	}
-
-	return result
-}
-
-func flattenAlertProcessingRuleRecurrenceDaysOfMonth(input *[]int64) []int {
-	if input == nil {
-		return make([]int, 0)
-	}
-	result := make([]int, 0)
-	for _, v := range *input {
-		result = append(result, int(v))
 	}
 
 	return result
