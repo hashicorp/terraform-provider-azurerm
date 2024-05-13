@@ -22,19 +22,29 @@ import (
 )
 
 type BackupPolicyPostgreSQLFlexibleServerModel struct {
-	Name                         string                                              `tfschema:"name"`
-	VaultId                      string                                              `tfschema:"vault_id"`
-	BackupRepeatingTimeIntervals []string                                            `tfschema:"backup_repeating_time_intervals"`
-	DefaultRetentionDuration     string                                              `tfschema:"default_retention_duration"`
-	RetentionRules               []BackupPolicyPostgreSQLFlexibleServerRetentionRule `tfschema:"retention_rule"`
-	TimeZone                     string                                              `tfschema:"time_zone"`
+	Name                         string                                                     `tfschema:"name"`
+	VaultId                      string                                                     `tfschema:"vault_id"`
+	BackupRepeatingTimeIntervals []string                                                   `tfschema:"backup_repeating_time_intervals"`
+	DataStoreType                string                                                     `tfschema:"data_store_type"`
+	DefaultRetentionRule         []BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule `tfschema:"default_retention_rule"`
+	RetentionRules               []BackupPolicyPostgreSQLFlexibleServerRetentionRule        `tfschema:"retention_rule"`
+	TimeZone                     string                                                     `tfschema:"time_zone"`
+}
+
+type BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule struct {
+	LifeCycle []BackupPolicyPostgreSQLFlexibleServerLifeCycle `tfschema:"life_cycle"`
+}
+
+type BackupPolicyPostgreSQLFlexibleServerLifeCycle struct {
+	DataStoreType string `tfschema:"data_store_type"`
+	Duration      string `tfschema:"duration"`
 }
 
 type BackupPolicyPostgreSQLFlexibleServerRetentionRule struct {
-	Name     string                                         `tfschema:"name"`
-	Criteria []BackupPolicyPostgreSQLFlexibleServerCriteria `tfschema:"criteria"`
-	Duration string                                         `tfschema:"duration"`
-	Priority int                                            `tfschema:"priority"`
+	Name      string                                          `tfschema:"name"`
+	Criteria  []BackupPolicyPostgreSQLFlexibleServerCriteria  `tfschema:"criteria"`
+	LifeCycle []BackupPolicyPostgreSQLFlexibleServerLifeCycle `tfschema:"life_cycle"`
+	Priority  int                                             `tfschema:"priority"`
 }
 
 type BackupPolicyPostgreSQLFlexibleServerCriteria struct {
@@ -83,11 +93,52 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 			},
 		},
 
-		"default_retention_duration": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: azValidate.ISO8601Duration,
+		"data_store_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				// Confirmed with the service team that current possible value only support `VaultStore`.
+				// However, considering that `ArchiveStore` will be supported in the future, it would be exposed for user specification.
+				string(backuppolicies.DataStoreTypesVaultStore),
+			}, false),
+		},
+
+		"default_retention_rule": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"life_cycle": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"data_store_type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// Confirmed with the service team that current possible value only support `VaultStore`.
+										// However, considering that `ArchiveStore` will be supported in the future, it would be exposed for user specification.
+										string(backuppolicies.DataStoreTypesVaultStore),
+									}, false),
+								},
+
+								"duration": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: azValidate.ISO8601Duration,
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 
 		"retention_rule": {
@@ -164,11 +215,31 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 						},
 					},
 
-					"duration": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azValidate.ISO8601Duration,
+					"life_cycle": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						ForceNew: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"data_store_type": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ForceNew: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// Confirmed with the service team that currently only `VaultStore` is supported.
+										// However, considering that `ArchiveStore` will be supported in the future, it would be exposed for user specification.
+										string(backuppolicies.DataStoreTypesVaultStore),
+									}, false),
+								},
+
+								"duration": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: azValidate.ISO8601Duration,
+								},
+							},
+						},
 					},
 
 					"priority": {
@@ -221,8 +292,8 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Create() sdk
 			}
 
 			policyRules := make([]backuppolicies.BasePolicyRule, 0)
-			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRules(model.BackupRepeatingTimeIntervals, model.TimeZone, expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(model.RetentionRules))...)
-			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(model.DefaultRetentionDuration))
+			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRules(model.BackupRepeatingTimeIntervals, model.DataStoreType, model.TimeZone, expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(model.RetentionRules))...)
+			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(model.DefaultRetentionRule))
 			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRules(model.RetentionRules)...)
 
 			parameters := backuppolicies.BaseBackupPolicyResource{
@@ -271,9 +342,10 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Read() sdk.R
 
 			if model := resp.Model; model != nil {
 				if properties, ok := model.Properties.(backuppolicies.BackupPolicy); ok {
-					state.DefaultRetentionDuration = flattenBackupPolicyPostgreSQLFlexibleServerDefaultRetentionRuleDuration(properties.PolicyRules)
+					state.DefaultRetentionRule = flattenBackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule(properties.PolicyRules)
 					state.RetentionRules = flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(properties.PolicyRules)
 					state.BackupRepeatingTimeIntervals = flattenBackupPolicyPostgreSQLFlexibleServerBackupRules(properties.PolicyRules)
+					state.DataStoreType = flattenBackupPolicyPostgreSQLFlexibleServerDataStoreType(properties.PolicyRules)
 					state.TimeZone = flattenBackupPolicyPostgreSQLFlexibleServerBackupTimeZone(properties.PolicyRules)
 				}
 			}
@@ -303,13 +375,13 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Delete() sdk
 	}
 }
 
-func expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRules(input []string, timeZone string, taggingCriteria []backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
+func expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRules(input []string, dataStoreType string, timeZone string, taggingCriteria []backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
 	results := make([]backuppolicies.BasePolicyRule, 0)
 
 	results = append(results, backuppolicies.AzureBackupRule{
 		Name: "BackupIntervals",
 		DataStore: backuppolicies.DataStoreInfoBase{
-			DataStoreType: backuppolicies.DataStoreTypesVaultStore,
+			DataStoreType: backuppolicies.DataStoreTypes(dataStoreType),
 			ObjectType:    "DataStoreInfoBase",
 		},
 		BackupParameters: backuppolicies.AzureBackupParams{
@@ -332,43 +404,42 @@ func expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRules(input []Backu
 
 	for _, item := range input {
 		results = append(results, backuppolicies.AzureRetentionRule{
-			Name:      item.Name,
-			IsDefault: utils.Bool(false),
-			Lifecycles: []backuppolicies.SourceLifeCycle{
-				{
-					DeleteAfter: backuppolicies.AbsoluteDeleteOption{
-						Duration: item.Duration,
-					},
-					SourceDataStore: backuppolicies.DataStoreInfoBase{
-						DataStoreType: "VaultStore",
-						ObjectType:    "DataStoreInfoBase",
-					},
-					TargetDataStoreCopySettings: pointer.To([]backuppolicies.TargetCopySetting{}),
-				},
-			},
+			Name:       item.Name,
+			IsDefault:  utils.Bool(false),
+			Lifecycles: expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(item.LifeCycle),
 		})
 	}
 
 	return results
 }
 
-func expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(input string) backuppolicies.BasePolicyRule {
+func expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(input []BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule) backuppolicies.BasePolicyRule {
 	return backuppolicies.AzureRetentionRule{
-		Name:      "Default",
-		IsDefault: utils.Bool(true),
-		Lifecycles: []backuppolicies.SourceLifeCycle{
-			{
-				DeleteAfter: backuppolicies.AbsoluteDeleteOption{
-					Duration: input,
-				},
-				SourceDataStore: backuppolicies.DataStoreInfoBase{
-					DataStoreType: "VaultStore",
-					ObjectType:    "DataStoreInfoBase",
-				},
-				TargetDataStoreCopySettings: pointer.To([]backuppolicies.TargetCopySetting{}),
-			},
-		},
+		Name:       "Default",
+		IsDefault:  utils.Bool(true),
+		Lifecycles: expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(input[0].LifeCycle),
 	}
+}
+
+func expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(input []BackupPolicyPostgreSQLFlexibleServerLifeCycle) []backuppolicies.SourceLifeCycle {
+	results := make([]backuppolicies.SourceLifeCycle, 0)
+
+	for _, item := range input {
+		sourceLifeCycle := backuppolicies.SourceLifeCycle{
+			DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+				Duration: item.Duration,
+			},
+			SourceDataStore: backuppolicies.DataStoreInfoBase{
+				DataStoreType: backuppolicies.DataStoreTypes(item.DataStoreType),
+				ObjectType:    "DataStoreInfoBase",
+			},
+			TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
+		}
+
+		results = append(results, sourceLifeCycle)
+	}
+
+	return results
 }
 
 func expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(input []BackupPolicyPostgreSQLFlexibleServerRetentionRule) []backuppolicies.TaggingCriteria {
@@ -473,6 +544,18 @@ func flattenBackupPolicyPostgreSQLFlexibleServerBackupRules(input []backuppolici
 	return backupRules
 }
 
+func flattenBackupPolicyPostgreSQLFlexibleServerDataStoreType(input []backuppolicies.BasePolicyRule) string {
+	var dataStoreType string
+
+	for _, item := range input {
+		if v, ok := item.(backuppolicies.AzureBackupRule); ok {
+			return string(v.DataStore.DataStoreType)
+		}
+	}
+
+	return dataStoreType
+}
+
 func flattenBackupPolicyPostgreSQLFlexibleServerBackupTimeZone(input []backuppolicies.BasePolicyRule) string {
 	var timeZone string
 
@@ -490,21 +573,25 @@ func flattenBackupPolicyPostgreSQLFlexibleServerBackupTimeZone(input []backuppol
 	return timeZone
 }
 
-func flattenBackupPolicyPostgreSQLFlexibleServerDefaultRetentionRuleDuration(input []backuppolicies.BasePolicyRule) string {
-	var defaultRetentionRuleDuration string
+func flattenBackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule(input []backuppolicies.BasePolicyRule) []BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule {
+	results := make([]BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule, 0)
 
 	for _, item := range input {
-		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && pointer.From(retentionRule.IsDefault) {
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
-					defaultRetentionRuleDuration = deleteOption.Duration
-					return defaultRetentionRuleDuration
+		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok {
+			if pointer.From(retentionRule.IsDefault) {
+				var lifeCycle []BackupPolicyPostgreSQLFlexibleServerLifeCycle
+				if v := retentionRule.Lifecycles; len(v) > 0 {
+					lifeCycle = flattenBackupPolicyPostgreSQLFlexibleServerLifeCycles(v)
 				}
+
+				results = append(results, BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule{
+					LifeCycle: lifeCycle,
+				})
 			}
 		}
 	}
 
-	return defaultRetentionRuleDuration
+	return results
 }
 
 func flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(input []backuppolicies.BasePolicyRule) []BackupPolicyPostgreSQLFlexibleServerRetentionRule {
@@ -522,32 +609,57 @@ func flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(input []backuppol
 	}
 
 	for _, item := range input {
-		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && (retentionRule.IsDefault == nil || !pointer.From(retentionRule.IsDefault)) {
-			name := retentionRule.Name
+		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok {
+			var name string
 			var taggingPriority int
 			var taggingCriteria []BackupPolicyPostgreSQLFlexibleServerCriteria
 
-			for _, criteria := range taggingCriterias {
-				if strings.EqualFold(criteria.TagInfo.TagName, name) {
-					taggingPriority = int(criteria.TaggingPriority)
-					taggingCriteria = flattenBackupPolicyPostgreSQLFlexibleServerBackupCriteria(criteria.Criteria)
-				}
-			}
+			if retentionRule.IsDefault == nil || !pointer.From(retentionRule.IsDefault) {
+				name = retentionRule.Name
 
-			var duration string
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
-					duration = deleteOption.Duration
+				for _, criteria := range taggingCriterias {
+					if strings.EqualFold(criteria.TagInfo.TagName, name) {
+						taggingPriority = int(criteria.TaggingPriority)
+						taggingCriteria = flattenBackupPolicyPostgreSQLFlexibleServerBackupCriteria(criteria.Criteria)
+						break
+					}
 				}
-			}
 
-			results = append(results, BackupPolicyPostgreSQLFlexibleServerRetentionRule{
-				Name:     name,
-				Priority: taggingPriority,
-				Criteria: taggingCriteria,
-				Duration: duration,
-			})
+				var lifeCycle []BackupPolicyPostgreSQLFlexibleServerLifeCycle
+				if v := retentionRule.Lifecycles; len(v) > 0 {
+					lifeCycle = flattenBackupPolicyPostgreSQLFlexibleServerLifeCycles(v)
+				}
+
+				results = append(results, BackupPolicyPostgreSQLFlexibleServerRetentionRule{
+					Name:      name,
+					Priority:  taggingPriority,
+					Criteria:  taggingCriteria,
+					LifeCycle: lifeCycle,
+				})
+			}
 		}
+	}
+
+	return results
+}
+
+func flattenBackupPolicyPostgreSQLFlexibleServerLifeCycles(input []backuppolicies.SourceLifeCycle) []BackupPolicyPostgreSQLFlexibleServerLifeCycle {
+	results := make([]BackupPolicyPostgreSQLFlexibleServerLifeCycle, 0)
+
+	for _, item := range input {
+		var duration string
+		var dataStoreType string
+
+		if deleteOption, ok := item.DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+			duration = deleteOption.Duration
+		}
+
+		dataStoreType = string(item.SourceDataStore.DataStoreType)
+
+		results = append(results, BackupPolicyPostgreSQLFlexibleServerLifeCycle{
+			Duration:      duration,
+			DataStoreType: dataStoreType,
+		})
 	}
 
 	return results

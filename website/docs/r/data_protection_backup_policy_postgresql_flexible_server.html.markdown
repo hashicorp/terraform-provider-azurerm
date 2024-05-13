@@ -31,7 +31,14 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
   vault_id                        = azurerm_data_protection_backup_vault.example.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   time_zone                       = "India Standard Time"
-  default_retention_duration      = "P4M"
+  data_store_type                 = "VaultStore"
+  
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
 
   retention_rule {
     name     = "weekly"
@@ -78,7 +85,9 @@ The following arguments are supported:
 
 * `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new resource to be created.
 
-* `default_retention_duration` - (Required) The duration of default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
+* `data_store_type` - (Required) The type of data store. The only possible value is `VaultStore`. Changing this forces a new resource to be created.
+
+* `default_retention_rule` - (Required) A `default_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -86,15 +95,29 @@ The following arguments are supported:
 
 ---
 
+A `default_retention_rule` block supports the following:
+
+* `life_cycle` - (Required) A `life_cycle` block as defined below. Changing this forces a new resource to be created.
+
+---
+
 A `retention_rule` block supports the following:
 
 * `name` - (Required) The name which should be used for this retention rule. Changing this forces a new resource to be created.
 
-* `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
-
 * `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new resource to be created.
 
+* `life_cycle` - (Required) A `life_cycle` block as defined below. Changing this forces a new resource to be created.
+
 * `priority` - (Required) Specifies the priority of the rule. The priority number must be unique for each rule. The lower the priority number, the higher the priority of the rule. Changing this forces a new resource to be created.
+
+---
+
+A `life_cycle` block supports the following:
+
+* `data_store_type` - (Required) The type of data store. The only possible value is `VaultStore`. Changing this forces a new resource to be created.
+
+* `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
 ---
 

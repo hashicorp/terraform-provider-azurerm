@@ -138,7 +138,14 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
   name                            = "acctest-dbp-%d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  default_retention_duration      = "P4M"
+  data_store_type                 = "VaultStore"
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -152,7 +159,14 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "imp
   name                            = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.name
   vault_id                        = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  default_retention_duration      = "P4M"
+  data_store_type                 = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.data_store_type
+  
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
 }
 `, config)
 }
@@ -166,13 +180,24 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
   name                            = "acctest-dbp-%d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  default_retention_duration      = "P4M"
   time_zone                       = "India Standard Time"
+  data_store_type                 = "VaultStore"
+
+  default_retention_rule {
+    life_cycle {
+      duration        = "P4M"
+      data_store_type = "VaultStore"
+    }
+  }
 
   retention_rule {
     name     = "weekly"
-    duration = "P6M"
     priority = 20
+
+    life_cycle {
+      duration        = "P6M"
+      data_store_type = "OperationalStore"
+    }
 
     criteria {
       absolute_criteria = "FirstOfWeek"
@@ -181,8 +206,12 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
 
   retention_rule {
     name     = "thursday"
-    duration = "P1W"
     priority = 25
+
+    life_cycle {
+      duration        = "P1W"
+      data_store_type = "OperationalStore"
+    }
 
     criteria {
       days_of_week           = ["Thursday"]
@@ -193,8 +222,12 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
 
   retention_rule {
     name     = "monthly"
-    duration = "P1D"
     priority = 30
+
+    life_cycle {
+      duration        = "P1D"
+      data_store_type = "OperationalStore"
+    }
 
     criteria {
       weeks_of_month         = ["First", "Last"]
