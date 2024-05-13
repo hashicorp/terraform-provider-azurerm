@@ -15,10 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type NatGatewayPublicAssociationResource struct{}
@@ -103,36 +100,38 @@ func (t NatGatewayPublicAssociationResource) Exists(ctx context.Context, clients
 }
 
 func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NatGatewayPublicIPAddressAssociationID(state.ID)
+	id, err := commonids.ParseCompositeResourceID(state.ID, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Network.NatGatewayClient.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
+	resp, err := client.Network.Client.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Nat Gateway Public IP Association (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	updatedAddresses := make([]network.SubResource, 0)
-	if publicIpAddresses := resp.PublicIPAddresses; publicIpAddresses != nil {
+	if resp.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id.First)
+	}
+	if resp.Model.Properties == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id.First)
+	}
+
+	updatedAddresses := make([]natgateways.SubResource, 0)
+	if publicIpAddresses := resp.Model.Properties.PublicIPAddresses; publicIpAddresses != nil {
 		for _, publicIpAddress := range *publicIpAddresses {
-			if !strings.EqualFold(*publicIpAddress.ID, id.PublicIPAddressID) {
+			if !strings.EqualFold(*publicIpAddress.Id, id.Second.ID()) {
 				updatedAddresses = append(updatedAddresses, publicIpAddress)
 			}
 		}
 	}
-	resp.PublicIPAddresses = &updatedAddresses
+	resp.Model.Properties.PublicIPAddresses = &updatedAddresses
 
-	future, err := client.Network.NatGatewayClient.CreateOrUpdate(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, resp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to remove Nat Gateway Public Ip Association for Nat Gateway %q: %+v", id, err)
+	if err := client.Network.Client.NatGateways.CreateOrUpdateThenPoll(ctx, *id.First, *resp.Model); err != nil {
+		return nil, fmt.Errorf("removing Association between %s and %s: %+v", id.First, id.Second, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.NatGatewayClient.Client); err != nil {
-		return nil, fmt.Errorf("failed to wait for removal of Nat Gateway Public Ip Association for Nat Gateway %q: %+v", id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r NatGatewayPublicAssociationResource) basic(data acceptance.TestData) string {
