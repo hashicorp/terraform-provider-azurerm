@@ -6,7 +6,6 @@ package network
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,15 +28,8 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *
 		Read:   resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead,
 		Delete: resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			splitId := strings.Split(id, "|")
-			if _, err := parse.NetworkInterfaceIpConfigurationID(splitId[0]); err != nil {
-				return err
-			}
-
-			if _, err := parse.BackendAddressPoolID(splitId[1]); err != nil {
-				return err
-			}
-			return nil
+			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceIPConfigurationId{}, &parse.ApplicationGatewayBackendAddressPoolId{})
+			return err
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -126,7 +118,6 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 	id := commonids.NewCompositeResourceID(&ipConfigId, backendAddressPoolId)
 
 	// first double-check it doesn't exist
-	//resourceId := fmt.Sprintf("%s/ipConfigurations/%s|%s", networkInterfaceId, ipConfigurationName, backendAddressPoolId)
 	if ipConfigProps.ApplicationGatewayBackendAddressPools != nil {
 		for _, existingPool := range *ipConfigProps.ApplicationGatewayBackendAddressPools {
 			if poolId := existingPool.Id; poolId != nil {
