@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +24,7 @@ type BackupInstancePostgreSQLFlexibleServerModel struct {
 	Location       string `tfschema:"location"`
 	VaultId        string `tfschema:"vault_id"`
 	BackupPolicyId string `tfschema:"backup_policy_id"`
-	DatabaseId     string `tfschema:"database_id"`
+	ServerId       string `tfschema:"server_id"`
 }
 
 type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
@@ -58,7 +57,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Arguments(
 
 		"backup_policy_id": commonschema.ResourceIDReferenceRequired(pointer.To(backuppolicies.BackupPolicyId{})),
 
-		"database_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(databases.DatabaseId{})),
+		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(servers.FlexibleServerId{})),
 	}
 }
 
@@ -95,12 +94,10 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			databaseId, err := databases.ParseDatabaseID(model.DatabaseId)
+			serverId, err := servers.ParseFlexibleServerID(model.ServerId)
 			if err != nil {
 				return err
 			}
-
-			serverId := servers.NewFlexibleServerID(databaseId.SubscriptionId, databaseId.ResourceGroupName, databaseId.FlexibleServerName)
 
 			policyId, err := backuppolicies.ParseBackupPolicyID(model.BackupPolicyId)
 			if err != nil {
@@ -110,13 +107,13 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 			parameters := backupinstances.BackupInstanceResource{
 				Properties: &backupinstances.BackupInstance{
 					DataSourceInfo: backupinstances.Datasource{
-						DatasourceType:   pointer.To("Microsoft.DBforPostgreSQL/flexibleServers/databases"),
+						DatasourceType:   pointer.To("Microsoft.DBforPostgreSQL/flexibleServers"),
 						ObjectType:       pointer.To("Datasource"),
-						ResourceID:       databaseId.ID(),
+						ResourceID:       serverId.ID(),
 						ResourceLocation: pointer.To(location.Normalize(model.Location)),
-						ResourceName:     pointer.To(databaseId.DatabaseName),
-						ResourceType:     pointer.To("Microsoft.DBforPostgreSQL/flexibleServers/databases"),
-						ResourceUri:      pointer.To(""),
+						ResourceName:     pointer.To(serverId.FlexibleServerName),
+						ResourceType:     pointer.To("Microsoft.DBforPostgreSQL/flexibleServers"),
+						ResourceUri:      pointer.To(serverId.ID()),
 					},
 					DataSourceSetInfo: &backupinstances.DatasourceSet{
 						DatasourceType:   pointer.To("Microsoft.DBForPostgreSQL/flexibleServers"),
@@ -125,7 +122,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 						ResourceLocation: pointer.To(location.Normalize(model.Location)),
 						ResourceName:     pointer.To(serverId.FlexibleServerName),
 						ResourceType:     pointer.To("Microsoft.DBForPostgreSQL/flexibleServers"),
-						ResourceUri:      pointer.To(""),
+						ResourceUri:      pointer.To(serverId.ID()),
 					},
 					FriendlyName: pointer.To(id.BackupInstanceName),
 					PolicyInfo: backupinstances.PolicyInfo{
@@ -175,11 +172,11 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 				if props := model.Properties; props != nil {
 					state.Location = location.Normalize(pointer.From(props.DataSourceInfo.ResourceLocation))
 
-					databaseId, err := databases.ParseDatabaseID(props.DataSourceInfo.ResourceID)
+					serverId, err := servers.ParseFlexibleServerID(props.DataSourceInfo.ResourceID)
 					if err != nil {
 						return err
 					}
-					state.DatabaseId = databaseId.ID()
+					state.ServerId = serverId.ID()
 
 					backupPolicyId, err := backuppolicies.ParseBackupPolicyID(props.PolicyInfo.PolicyId)
 					if err != nil {

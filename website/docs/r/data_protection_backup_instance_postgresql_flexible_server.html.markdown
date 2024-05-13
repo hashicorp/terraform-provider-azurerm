@@ -15,8 +15,6 @@ Manages a Backup Instance to back up PostgreSQL Flexible Server.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -34,20 +32,6 @@ resource "azurerm_postgresql_flexible_server" "example" {
   zone                   = "2"
 }
 
-resource "azurerm_postgresql_flexible_server_firewall_rule" "example" {
-  name             = "AllowAllWindowsAzureIps"
-  server_id        = azurerm_postgresql_flexible_server.example.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
-}
-
-resource "azurerm_postgresql_flexible_server_database" "example" {
-  name      = "example-fsd"
-  server_id = azurerm_postgresql_flexible_server.example.id
-  charset   = "UTF8"
-  collation = "English_United States.1252"
-}
-
 resource "azurerm_data_protection_backup_vault" "example" {
   name                = "examplebv"
   resource_group_name = azurerm_resource_group.example.name
@@ -58,6 +42,12 @@ resource "azurerm_data_protection_backup_vault" "example" {
   identity {
     type = "SystemAssigned"
   }
+}
+
+resource "azurerm_role_assignment" "example" {
+  scope                = azurerm_postgresql_flexible_server.example.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_data_protection_backup_vault.example.identity.0.principal_id
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "example" {
@@ -75,17 +65,11 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
   }
 }
 
-resource "azurerm_role_assignment" "example" {
-  scope                = azurerm_postgresql_server.example.id
-  role_definition_name = "Reader"
-  principal_id         = azurerm_data_protection_backup_vault.example.identity.0.principal_id
-}
-
 resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "example" {
   name             = "example-backupinstance"
   location         = azurerm_resource_group.example.location
   vault_id         = azurerm_data_protection_backup_vault.example.id
-  database_id      = azurerm_postgresql_flexible_server_database.example.id
+  server_id        = azurerm_postgresql_flexible_server.example.id
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.example.id
 }
 ```
@@ -100,7 +84,7 @@ The following arguments are supported:
 
 * `vault_id` - (Required) The ID of the Backup Vault within which the PostgreSQL Flexible Server Backup Instance should exist. Changing this forces a new resource to be created.
 
-* `database_id` - (Required) The ID of the source database. Changing this forces a new resource to be created.
+* `server_id` - (Required) The ID of the source server. Changing this forces a new resource to be created.
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 

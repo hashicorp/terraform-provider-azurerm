@@ -131,20 +131,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 }
 
-resource "azurerm_postgresql_flexible_server_firewall_rule" "test" {
-  name             = "AllowAllWindowsAzureIps"
-  server_id        = azurerm_postgresql_flexible_server.test.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
-}
-
-resource "azurerm_postgresql_flexible_server_database" "test" {
-  name      = "acctest-postgresql-database-%[1]d"
-  server_id = azurerm_postgresql_flexible_server.test.id
-  charset   = "UTF8"
-  collation = "English_United States.1252"
-}
-
 resource "azurerm_data_protection_backup_vault" "test" {
   name                = "acctest-dataprotection-vault-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -167,7 +153,6 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
   name                            = "acctest-dp-%[1]d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  data_store_type                 = "VaultStore"
   
   default_retention_rule {
     life_cycle {
@@ -181,7 +166,6 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "ano
   name                            = "acctest-dp-second-%[1]d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  data_store_type                 = "VaultStore"
   
   default_retention_rule {
     life_cycle {
@@ -202,7 +186,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   name             = "acctest-dbi-%d"
   location         = azurerm_resource_group.test.location
   vault_id         = azurerm_data_protection_backup_vault.test.id
-  database_id      = azurerm_postgresql_flexible_server_database.test.id
+  server_id        = azurerm_postgresql_flexible_server.test.id
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
 }
 `, template, data.RandomInteger)
@@ -217,7 +201,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "i
   name             = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.name
   location         = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.location
   vault_id         = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.vault_id
-  database_id      = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.database_id
+  server_id        = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.server_id
   backup_policy_id = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.backup_policy_id
 }
 `, config)
@@ -232,7 +216,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   name             = "acctest-dbi-%d"
   location         = azurerm_resource_group.test.location
   vault_id         = azurerm_data_protection_backup_vault.test.id
-  database_id      = azurerm_postgresql_flexible_server_database.test.id
+  server_id        = azurerm_postgresql_flexible_server.test.id
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.another.id
 }
 `, template, data.RandomInteger)
