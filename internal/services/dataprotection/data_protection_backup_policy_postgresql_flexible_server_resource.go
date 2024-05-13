@@ -25,7 +25,6 @@ type BackupPolicyPostgreSQLFlexibleServerModel struct {
 	Name                         string                                                     `tfschema:"name"`
 	VaultId                      string                                                     `tfschema:"vault_id"`
 	BackupRepeatingTimeIntervals []string                                                   `tfschema:"backup_repeating_time_intervals"`
-	DataStoreType                string                                                     `tfschema:"data_store_type"`
 	DefaultRetentionRule         []BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule `tfschema:"default_retention_rule"`
 	RetentionRules               []BackupPolicyPostgreSQLFlexibleServerRetentionRule        `tfschema:"retention_rule"`
 	TimeZone                     string                                                     `tfschema:"time_zone"`
@@ -91,17 +90,6 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Arguments() 
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-		},
-
-		"data_store_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				// Confirmed with the service team that current possible value only support `VaultStore`.
-				// However, considering that `ArchiveStore` will be supported in the future, it would be exposed for user specification.
-				string(backuppolicies.DataStoreTypesVaultStore),
-			}, false),
 		},
 
 		"default_retention_rule": {
@@ -292,7 +280,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Create() sdk
 			}
 
 			policyRules := make([]backuppolicies.BasePolicyRule, 0)
-			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRules(model.BackupRepeatingTimeIntervals, model.DataStoreType, model.TimeZone, expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(model.RetentionRules))...)
+			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRules(model.BackupRepeatingTimeIntervals, model.TimeZone, expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(model.RetentionRules))...)
 			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(model.DefaultRetentionRule))
 			policyRules = append(policyRules, expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRules(model.RetentionRules)...)
 
@@ -345,7 +333,6 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Read() sdk.R
 					state.DefaultRetentionRule = flattenBackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule(properties.PolicyRules)
 					state.RetentionRules = flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(properties.PolicyRules)
 					state.BackupRepeatingTimeIntervals = flattenBackupPolicyPostgreSQLFlexibleServerBackupRules(properties.PolicyRules)
-					state.DataStoreType = flattenBackupPolicyPostgreSQLFlexibleServerDataStoreType(properties.PolicyRules)
 					state.TimeZone = flattenBackupPolicyPostgreSQLFlexibleServerBackupTimeZone(properties.PolicyRules)
 				}
 			}
@@ -375,13 +362,13 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Delete() sdk
 	}
 }
 
-func expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRules(input []string, dataStoreType string, timeZone string, taggingCriteria []backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
+func expandBackupPolicyPostgreSQLFlexibleServerAzureBackupRules(input []string, timeZone string, taggingCriteria []backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
 	results := make([]backuppolicies.BasePolicyRule, 0)
 
 	results = append(results, backuppolicies.AzureBackupRule{
 		Name: "BackupIntervals",
 		DataStore: backuppolicies.DataStoreInfoBase{
-			DataStoreType: backuppolicies.DataStoreTypes(dataStoreType),
+			DataStoreType: backuppolicies.DataStoreTypesVaultStore,
 			ObjectType:    "DataStoreInfoBase",
 		},
 		BackupParameters: backuppolicies.AzureBackupParams{
@@ -542,18 +529,6 @@ func flattenBackupPolicyPostgreSQLFlexibleServerBackupRules(input []backuppolici
 	}
 
 	return backupRules
-}
-
-func flattenBackupPolicyPostgreSQLFlexibleServerDataStoreType(input []backuppolicies.BasePolicyRule) string {
-	var dataStoreType string
-
-	for _, item := range input {
-		if v, ok := item.(backuppolicies.AzureBackupRule); ok {
-			return string(v.DataStore.DataStoreType)
-		}
-	}
-
-	return dataStoreType
 }
 
 func flattenBackupPolicyPostgreSQLFlexibleServerBackupTimeZone(input []backuppolicies.BasePolicyRule) string {

@@ -138,7 +138,6 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
   name                            = "acctest-dbp-%d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  data_store_type                 = "VaultStore"
 
   default_retention_rule {
     life_cycle {
@@ -159,7 +158,6 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "imp
   name                            = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.name
   vault_id                        = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  data_store_type                 = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.data_store_type
   
   default_retention_rule {
     life_cycle {
@@ -181,7 +179,6 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
   vault_id                        = azurerm_data_protection_backup_vault.test.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   time_zone                       = "India Standard Time"
-  data_store_type                 = "VaultStore"
 
   default_retention_rule {
     life_cycle {

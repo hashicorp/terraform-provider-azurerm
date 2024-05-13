@@ -31,7 +31,6 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
   vault_id                        = azurerm_data_protection_backup_vault.example.id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   time_zone                       = "India Standard Time"
-  data_store_type                 = "VaultStore"
   
   default_retention_rule {
     life_cycle {
@@ -84,8 +83,6 @@ The following arguments are supported:
 * `vault_id` - (Required) The ID of the Backup Vault where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new resource to be created.
 
 * `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new resource to be created.
-
-* `data_store_type` - (Required) The type of data store. The only possible value is `VaultStore`. Changing this forces a new resource to be created.
 
 * `default_retention_rule` - (Required) A `default_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
