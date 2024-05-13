@@ -2098,7 +2098,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
-		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+		if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthenticationLegacy(props.AzureFilesIdentityBasedAuthentication)); err != nil {
 			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 		}
 		if err := d.Set("routing", flattenArmStorageAccountRouting(props.RoutingPreference)); err != nil {
@@ -2143,7 +2143,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("min_tls_version", minTlsVersion)
 
-		if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(props.CustomDomain)); err != nil {
+		if err := d.Set("custom_domain", flattenStorageAccountCustomDomainLegacy(props.CustomDomain)); err != nil {
 			return fmt.Errorf("setting `custom_domain`: %+v", err)
 		}
 
@@ -2487,7 +2487,18 @@ func expandStorageAccountCustomDomain(input []interface{}) *storage.CustomDomain
 	}
 }
 
-func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{} {
+func flattenStorageAccountCustomDomain(input *storageaccounts.CustomDomain) []interface{} {
+	output := make([]interface{}, 0)
+	if input != nil {
+		output = append(output, map[string]interface{}{
+			// use_subdomain isn't returned
+			"name": input.Name,
+		})
+	}
+	return output
+}
+
+func flattenStorageAccountCustomDomainLegacy(input *storage.CustomDomain) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -3261,7 +3272,20 @@ func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceP
 	return properties
 }
 
-func flattenArmStorageAccountAzureFilesAuthentication(input *storage.AzureFilesIdentityBasedAuthentication) []interface{} {
+func flattenAccountAzureFilesAuthentication(input *storageaccounts.AzureFilesIdentityBasedAuthentication) []interface{} {
+	if input == nil || input.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsNone {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"directory_type":   input.DirectoryServiceOptions,
+			"active_directory": flattenAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+		},
+	}
+}
+
+func flattenAccountAzureFilesAuthenticationLegacy(input *storage.AzureFilesIdentityBasedAuthentication) []interface{} {
 	if input == nil || input.DirectoryServiceOptions == storage.DirectoryServiceOptionsNone {
 		return make([]interface{}, 0)
 	}
@@ -3269,50 +3293,39 @@ func flattenArmStorageAccountAzureFilesAuthentication(input *storage.AzureFilesI
 	return []interface{}{
 		map[string]interface{}{
 			"directory_type":   input.DirectoryServiceOptions,
-			"active_directory": flattenArmStorageAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+			"active_directory": flattenAccountActiveDirectoryPropertiesLegacy(input.ActiveDirectoryProperties),
 		},
 	}
 }
 
-func flattenArmStorageAccountActiveDirectoryProperties(input *storage.ActiveDirectoryProperties) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
+func flattenAccountActiveDirectoryProperties(input *storageaccounts.ActiveDirectoryProperties) []interface{} {
+	output := make([]interface{}, 0)
+	if input != nil {
+		output = append(output, map[string]interface{}{
+			"storage_sid":         pointer.From(input.AzureStorageSid),
+			"domain_guid":         input.DomainGuid,
+			"domain_name":         input.DomainName,
+			"domain_sid":          pointer.From(input.DomainSid),
+			"forest_name":         pointer.From(input.ForestName),
+			"netbios_domain_name": pointer.From(input.NetBiosDomainName),
+		})
 	}
+	return output
+}
 
-	var azureStorageSid string
-	if input.AzureStorageSid != nil {
-		azureStorageSid = *input.AzureStorageSid
+func flattenAccountActiveDirectoryPropertiesLegacy(input *storage.ActiveDirectoryProperties) []interface{} {
+	output := make([]interface{}, 0)
+	if input != nil {
+		output = append(output, map[string]interface{}{
+			"storage_sid":         pointer.From(input.AzureStorageSid),
+			"domain_guid":         input.DomainGUID,
+			"domain_name":         input.DomainName,
+			"domain_sid":          pointer.From(input.DomainSid),
+			"forest_name":         pointer.From(input.ForestName),
+			"netbios_domain_name": pointer.From(input.NetBiosDomainName),
+		})
 	}
-	var domainGuid string
-	if input.DomainGUID != nil {
-		domainGuid = *input.DomainGUID
-	}
-	var domainName string
-	if input.DomainName != nil {
-		domainName = *input.DomainName
-	}
-	var domainSid string
-	if input.DomainSid != nil {
-		domainSid = *input.DomainSid
-	}
-	var forestName string
-	if input.ForestName != nil {
-		forestName = *input.ForestName
-	}
-	var netBiosDomainName string
-	if input.NetBiosDomainName != nil {
-		netBiosDomainName = *input.NetBiosDomainName
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"storage_sid":         azureStorageSid,
-			"domain_guid":         domainGuid,
-			"domain_name":         domainName,
-			"domain_sid":          domainSid,
-			"forest_name":         forestName,
-			"netbios_domain_name": netBiosDomainName,
-		},
-	}
+	return output
 }
 
 func flattenArmStorageAccountRouting(input *storage.RoutingPreference) []interface{} {
