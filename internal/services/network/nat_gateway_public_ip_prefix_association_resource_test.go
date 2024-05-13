@@ -129,7 +129,7 @@ func (NatGatewayPublicIpPrefixAssociationResource) Destroy(ctx context.Context, 
 	resp.Model.Properties.PublicIPPrefixes = &updatedPrefixes
 
 	if err := client.Network.Client.NatGateways.CreateOrUpdateThenPoll(ctx, *id.First, *resp.Model); err != nil {
-		return nil, fmt.Errorf("deleting %s from %s: %+v", id.Second, id.First, err)
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return pointer.To(true), nil

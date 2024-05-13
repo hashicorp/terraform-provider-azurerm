@@ -62,19 +62,15 @@ func resourceNATGatewayPublicIpPrefixAssociationCreate(d *pluginsdk.ResourceData
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for NAT Gateway <-> Public IP Prefix Association creation.")
-
-	natGatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
-	if err != nil {
-		return err
-	}
-
 	publicIpPrefixId, err := publicipprefixes.ParsePublicIPPrefixID(d.Get("public_ip_prefix_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := commonids.NewCompositeResourceID(natGatewayId, publicIpPrefixId)
+	natGatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
+	if err != nil {
+		return err
+	}
 
 	locks.ByName(natGatewayId.NatGatewayName, natGatewayResourceName)
 	defer locks.UnlockByName(natGatewayId.NatGatewayName, natGatewayResourceName)
@@ -93,6 +89,8 @@ func resourceNATGatewayPublicIpPrefixAssociationCreate(d *pluginsdk.ResourceData
 	if natGateway.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", natGatewayId)
 	}
+
+	id := commonids.NewCompositeResourceID(natGatewayId, publicIpPrefixId)
 
 	publicIpPrefixes := make([]natgateways.SubResource, 0)
 	if natGateway.Model.Properties.PublicIPPrefixes != nil {
@@ -162,6 +160,7 @@ func resourceNATGatewayPublicIpPrefixAssociationRead(d *pluginsdk.ResourceData, 
 					break
 				}
 			}
+
 			if publicIPPrefixId == "" {
 				log.Printf("[DEBUG] Association between %s and %s was not found - removing from state", id.First, id.Second)
 				d.SetId("")
@@ -196,6 +195,7 @@ func resourceNATGatewayPublicIpPrefixAssociationDelete(d *pluginsdk.ResourceData
 		}
 		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
+
 	if natGateway.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id.First)
 	}
