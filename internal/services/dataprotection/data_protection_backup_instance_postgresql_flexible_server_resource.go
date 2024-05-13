@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/secrets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2022-12-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -22,12 +21,11 @@ import (
 )
 
 type BackupInstancePostgreSQLFlexibleServerModel struct {
-	Name                               string `tfschema:"name"`
-	Location                           string `tfschema:"location"`
-	VaultId                            string `tfschema:"vault_id"`
-	BackupPolicyId                     string `tfschema:"backup_policy_id"`
-	DatabaseId                         string `tfschema:"database_id"`
-	DatabaseCredentialKeyVaultSecretId string `tfschema:"database_credential_key_vault_secret_id"`
+	Name           string `tfschema:"name"`
+	Location       string `tfschema:"location"`
+	VaultId        string `tfschema:"vault_id"`
+	BackupPolicyId string `tfschema:"backup_policy_id"`
+	DatabaseId     string `tfschema:"database_id"`
 }
 
 type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
@@ -61,8 +59,6 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Arguments(
 		"backup_policy_id": commonschema.ResourceIDReferenceRequired(pointer.To(backuppolicies.BackupPolicyId{})),
 
 		"database_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(databases.DatabaseId{})),
-
-		"database_credential_key_vault_secret_id": commonschema.ResourceIDReferenceOptional(pointer.To(secrets.SecretId{})),
 	}
 }
 
@@ -138,20 +134,6 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 				},
 			}
 
-			if v := model.DatabaseCredentialKeyVaultSecretId; v != "" {
-				keyVaultSecretId, err := secrets.ParseSecretID(v)
-				if err != nil {
-					return err
-				}
-
-				parameters.Properties.DatasourceAuthCredentials = backupinstances.SecretStoreBasedAuthCredentials{
-					SecretStoreResource: &backupinstances.SecretStoreResource{
-						Uri:             pointer.To(keyVaultSecretId.ID()),
-						SecretStoreType: backupinstances.SecretStoreTypeAzureKeyVault,
-					},
-				}
-			}
-
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -204,18 +186,6 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 						return err
 					}
 					state.BackupPolicyId = backupPolicyId.ID()
-
-					if datasourceAuthCredentials := props.DatasourceAuthCredentials; datasourceAuthCredentials != nil {
-						if secretStoreBasedAuthCredentials, ok := datasourceAuthCredentials.(backupinstances.SecretStoreBasedAuthCredentials); ok {
-							if secretStoreResource := secretStoreBasedAuthCredentials.SecretStoreResource; secretStoreResource != nil {
-								keyVaultSecretId, err := secrets.ParseSecretID(pointer.From(secretStoreResource.Uri))
-								if err != nil {
-									return err
-								}
-								state.DatabaseCredentialKeyVaultSecretId = keyVaultSecretId.ID()
-							}
-						}
-					}
 				}
 			}
 
@@ -257,20 +227,6 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 					return err
 				}
 				parameters.Properties.PolicyInfo.PolicyId = policyId.ID()
-			}
-
-			if metadata.ResourceData.HasChange("database_credential_key_vault_secret_id") {
-				keyVaultSecretId, err := secrets.ParseSecretID(model.DatabaseCredentialKeyVaultSecretId)
-				if err != nil {
-					return err
-				}
-
-				parameters.Properties.DatasourceAuthCredentials = backupinstances.SecretStoreBasedAuthCredentials{
-					SecretStoreResource: &backupinstances.SecretStoreResource{
-						Uri:             pointer.To(keyVaultSecretId.ID()),
-						SecretStoreType: backupinstances.SecretStoreTypeAzureKeyVault,
-					},
-				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, pointer.From(id), parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
