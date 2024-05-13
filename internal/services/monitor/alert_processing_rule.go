@@ -60,9 +60,9 @@ type AlertProcessingRuleWeeklyModel struct {
 }
 
 type AlertProcessingRuleMonthlyModel struct {
-	StartTime   string  `tfschema:"start_time"`
-	EndTime     string  `tfschema:"end_time"`
-	DaysOfMonth []int64 `tfschema:"days_of_month"`
+	StartTime   string `tfschema:"start_time"`
+	EndTime     string `tfschema:"end_time"`
+	DaysOfMonth []int  `tfschema:"days_of_month"`
 }
 
 func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
@@ -502,7 +502,7 @@ func expandAlertProcessingRuleScheduleRecurrences(input []AlertProcessingRuleRec
 		recurrences = append(recurrences, alertprocessingrules.MonthlyRecurrence{
 			StartTime:   startTime,
 			EndTime:     endTime,
-			DaysOfMonth: item.DaysOfMonth,
+			DaysOfMonth: *expandAlertProcessingRuleScheduleRecurrenceDaysOfMonth(item.DaysOfMonth),
 		})
 	}
 
@@ -513,6 +513,15 @@ func expandAlertProcessingRuleScheduleRecurrenceDaysOfWeek(input []string) *[]al
 	result := make([]alertprocessingrules.DaysOfWeek, 0, len(input))
 	for _, v := range input {
 		result = append(result, alertprocessingrules.DaysOfWeek(v))
+	}
+
+	return &result
+}
+
+func expandAlertProcessingRuleScheduleRecurrenceDaysOfMonth(input []int) *[]int64 {
+	result := make([]int64, 0)
+	for _, v := range input {
+		result = append(result, int64(v))
 	}
 
 	return &result
@@ -609,7 +618,7 @@ func flattenAlertProcessingRuleRecurrences(input *[]alertprocessingrules.Recurre
 		case alertprocessingrules.MonthlyRecurrence:
 			monthlyRecurrence := item.(alertprocessingrules.MonthlyRecurrence)
 			monthly := AlertProcessingRuleMonthlyModel{
-				DaysOfMonth: monthlyRecurrence.DaysOfMonth,
+				DaysOfMonth: flattenAlertProcessingRuleRecurrenceDaysOfMonth(&monthlyRecurrence.DaysOfMonth),
 				StartTime:   flattenPtrString(monthlyRecurrence.StartTime),
 				EndTime:     flattenPtrString(monthlyRecurrence.EndTime),
 			}
@@ -639,6 +648,18 @@ func flattenAlertProcessingRuleRecurrenceDaysOfWeek(input *[]alertprocessingrule
 	result := make([]string, 0)
 	for _, item := range *input {
 		result = append(result, string(item))
+	}
+
+	return result
+}
+
+func flattenAlertProcessingRuleRecurrenceDaysOfMonth(input *[]int64) []int {
+	if input == nil {
+		return make([]int, 0)
+	}
+	result := make([]int, 0)
+	for _, v := range *input {
+		result = append(result, int(v))
 	}
 
 	return result
