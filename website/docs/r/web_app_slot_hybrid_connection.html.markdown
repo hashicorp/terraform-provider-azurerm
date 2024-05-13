@@ -1,5 +1,5 @@
 ---
-subcategory: "TODO"
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_app_slot_hybrid_connection"
 description: |-
