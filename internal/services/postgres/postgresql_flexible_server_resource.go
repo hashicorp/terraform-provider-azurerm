@@ -382,7 +382,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			}
 
 			newMb = newStorageMbRaw.(int)
-			newTier = newTierRaw.(string)
 
 			// storage_mb can only be scaled up...
 			if newMb < oldStorageMbRaw.(int) {
@@ -400,8 +399,16 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			// storage_mb size...
 			storageTiers := storageTierMappings[newMb]
 
+			newTier = ""
+
+			// set new tier only when tier is changed or when value is faster than default
+			if oldTierRaw.(string) != newTierRaw.(string) || validate.CompareAzureManagedDiskPerformance(servers.AzureManagedDiskPerformanceTiers(newTierRaw.(string)), storageTiers.DefaultTier) {
+				newTier = newTierRaw.(string)
+			}
+
 			if newTier == "" {
 				newTier = string(storageTiers.DefaultTier)
+				diff.SetNew("storage_tier", newTier)
 			}
 
 			// verify that the storage_tier is valid

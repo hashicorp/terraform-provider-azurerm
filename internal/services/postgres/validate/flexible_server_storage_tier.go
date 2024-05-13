@@ -4,6 +4,9 @@
 package validate
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 )
 
@@ -87,4 +90,16 @@ func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
 	}
 
 	return storageTiersMappings
+}
+
+// CompareAzureManagedDiskPerformancef returns an bool comparing two AzureManagedDiskPerformanceTiers.
+// The result will be false if disk == compareDisk, false if disk < compareDisk, and true if disk > compareDisk.
+func CompareAzureManagedDiskPerformance(disk, compareDisk servers.AzureManagedDiskPerformanceTiers) bool {
+	diskP := strings.TrimLeft(strings.ToUpper(string(disk)), "P")
+	compareDiskP := strings.TrimLeft(strings.ToUpper(string(compareDisk)), "P")
+
+	dPn, _ := strconv.Atoi(diskP)
+	cPn, _ := strconv.Atoi(compareDiskP)
+
+	return dPn > cPn
 }
