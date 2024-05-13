@@ -53,8 +53,8 @@ resource "azurerm_windows_web_app" "example" {
 }
 
 resource "azurerm_windows_web_app_slot" "example" {
-  name            = "slot"
-  web_app_id      = azurerm_windows_web_app.example.id
+  name       = "slot"
+  web_app_id = azurerm_windows_web_app.example.id
 
   storage_account_name = azurerm_storage_account.example.name
 
