@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `azurerm_databricks_workspace` - support for the `default_storage_firewall_enabled` property [GH-25919]
 
+BUG FIXES:
+
+* `azurerm_container_app_job` - Allow `event_trigger_config.scale.min_executions` to be `0` [GH-25931]
+
 ## 3.103.1 (May 10, 2024)
 
 BUG FIXES
