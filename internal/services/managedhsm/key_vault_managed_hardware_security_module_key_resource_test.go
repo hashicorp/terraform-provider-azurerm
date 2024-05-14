@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsmkeys"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -78,17 +79,30 @@ func TestAccKeyVaultKey_purge(t *testing.T) {
 }
 
 func (r KeyVaultMHSMKeyTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := managedhsmkeys.ParseKeyID(state.ID)
+	domainSuffix, ok := clients.Account.Environment.ManagedHSM.DomainSuffix()
+	if !ok {
+		return nil, fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", clients.Account.Environment.Name)
+	}
+	id, err := parse.ManagedHSMDataPlaneVersionlessKeyID(state.ID, domainSuffix)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ManagedHSMs.ManagedHsmKeyClient.Get(ctx, *id)
+	subscriptionId := commonids.NewSubscriptionID(clients.Account.SubscriptionId)
+	resourceManagerId, err := clients.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseUri(), domainSuffix)
+	if err != nil {
+		return nil, fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
+	}
+	if resourceManagerId == nil {
+		return nil, fmt.Errorf("unable to determine the Resource Manager ID for %s", id)
+	}
+
+	resp, err := clients.ManagedHSMs.DataPlaneKeysClient.GetKey(ctx, id.BaseUri(), id.KeyName, "")
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return utils.Bool(resp.Key != nil), nil
 }
 
 func (r KeyVaultMHSMKeyTestResource) basic(data acceptance.TestData) string {

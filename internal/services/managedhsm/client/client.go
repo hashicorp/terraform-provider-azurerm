@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsmkeys"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
@@ -21,8 +20,7 @@ type Client struct {
 	// As such this separation on our side is intentional to avoid code reuse given these differences.
 
 	// Resource Manager
-	ManagedHsmClient    *managedhsms.ManagedHsmsClient
-	ManagedHsmKeyClient *managedhsmkeys.ManagedHsmKeysClient
+	ManagedHsmClient *managedhsms.ManagedHsmsClient
 
 	// Data Plane
 	DataPlaneClient                *dataplane.BaseClient
@@ -36,12 +34,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	managedHsmClient, err := managedhsms.NewManagedHsmsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ManagedHsms client: %+v", err)
-	}
-	o.Configure(managedHsmClient.Client, o.Authorizers.ResourceManager)
-
-	managedHsmKeyClient, err := managedhsmkeys.NewManagedHsmKeysClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building ManagedHsm Keys client: %+v", err)
 	}
 	o.Configure(managedHsmClient.Client, o.Authorizers.ResourceManager)
 
@@ -62,8 +54,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	return &Client{
 		// Resource Manger
-		ManagedHsmClient:    managedHsmClient,
-		ManagedHsmKeyClient: managedHsmKeyClient,
+		ManagedHsmClient: managedHsmClient,
 
 		// Data Plane
 		DataPlaneClient:                &managementClient,

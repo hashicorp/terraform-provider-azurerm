@@ -435,13 +435,8 @@ func (r KeyVaultMHSMKeyResource) Delete() sdk.ResourceFunc {
 				keyVaultUri: id.BaseUri(),
 				name:        id.KeyName,
 			}
-			if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
-				return err
-			}
 
-			client.DeleteKey(ctx, id.BaseUri(), id.KeyName)
-
-			return nil
+			return deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter)
 		},
 	}
 }
@@ -462,9 +457,5 @@ func flattenKeyVaultKeyOptions(input *[]string) []string {
 		return results
 	}
 
-	for _, option := range *input {
-		results = append(results, option)
-	}
-
-	return results
+	return append(results, *input...)
 }
