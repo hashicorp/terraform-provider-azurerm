@@ -111,10 +111,10 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 				if err != nil {
 					return err
 				}
-				if len(inventoryItems) == 0 {
+				if len(pointer.From(inventoryItems)) == 0 {
 					return fmt.Errorf("no inventory items were found for %s", scvmmServerId)
 				}
-				state.InventoryItems = inventoryItems
+				state.InventoryItems = pointer.From(inventoryItems)
 			}
 
 			metadata.ResourceData.SetId(scvmmServerId.ID())
@@ -124,10 +124,10 @@ func (l SystemCenterVirtualMachineManagerInventoryItemsDataSource) Read() sdk.Re
 	}
 }
 
-func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType string) ([]InventoryItem, error) {
+func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType string) (*[]InventoryItem, error) {
 	results := make([]InventoryItem, 0)
 	if input == nil {
-		return results, nil
+		return pointer.To(results), nil
 	}
 
 	for _, item := range *input {
@@ -186,5 +186,5 @@ func flattenInventoryItems(input *[]inventoryitems.InventoryItem, inventoryType 
 		}
 	}
 
-	return results, nil
+	return pointer.To(results), nil
 }
