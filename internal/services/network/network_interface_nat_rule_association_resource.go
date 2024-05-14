@@ -16,8 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -44,7 +42,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NetworkInterfaceID,
+				ValidateFunc: commonids.ValidateNetworkInterfaceID,
 			},
 
 			"ip_configuration_name": {
@@ -58,7 +56,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: loadBalancerValidate.LoadBalancerInboundNatRuleID,
+				ValidateFunc: loadbalancers.ValidateInboundNatRuleID,
 			},
 		},
 	}
@@ -107,7 +105,7 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 
 	config := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigId.IpConfigurationName)
 	if config == nil {
-		return fmt.Errorf("retrieving %s: IP Configuration %q was not found", networkInterfaceId, ipConfigId.IpConfigurationName)
+		return fmt.Errorf("IP Configuration %q was not found for %s", ipConfigId.IpConfigurationName, networkInterfaceId)
 	}
 
 	ipConfigProps := config.Properties
@@ -205,12 +203,12 @@ func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, m
 				d.SetId("")
 				return nil
 			}
-
-			d.Set("ip_configuration_name", id.First.IpConfigurationName)
-			d.Set("nat_rule_id", id.Second.ID())
-			d.Set("network_interface_id", networkInterfaceId.ID())
 		}
 	}
+
+	d.Set("ip_configuration_name", id.First.IpConfigurationName)
+	d.Set("nat_rule_id", id.Second.ID())
+	d.Set("network_interface_id", networkInterfaceId.ID())
 
 	return nil
 }
@@ -253,7 +251,7 @@ func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData,
 
 	config := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, id.First.IpConfigurationName)
 	if config == nil {
-		return fmt.Errorf("retrieving %s: IP Configuration %q was not found on", networkInterfaceId, id.First.IpConfigurationName)
+		return fmt.Errorf("IP Configuration %q was not found for %s", id.First.IpConfigurationName, networkInterfaceId)
 	}
 
 	ipConfigProps := config.Properties

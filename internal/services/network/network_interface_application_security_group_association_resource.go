@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -48,7 +47,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociation() *pluginsdk.Re
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NetworkInterfaceID,
+				ValidateFunc: commonids.ValidateNetworkInterfaceID,
 			},
 
 			"application_security_group_id": {
@@ -164,10 +163,10 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 			d.SetId("")
 			return nil
 		}
-
-		d.Set("application_security_group_id", id.Second.ID())
-		d.Set("network_interface_id", id.First.ID())
 	}
+
+	d.Set("application_security_group_id", id.Second.ID())
+	d.Set("network_interface_id", id.First.ID())
 
 	return nil
 }
@@ -200,7 +199,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *plugin
 
 	props := read.Model.Properties
 	if props == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil for %s", id.First)
+		return fmt.Errorf("retrieving %s: `properties` was nil", id.First)
 	}
 
 	if props.IPConfigurations == nil {

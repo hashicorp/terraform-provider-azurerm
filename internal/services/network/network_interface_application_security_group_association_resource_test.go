@@ -113,24 +113,20 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	if read.Model == nil {
-		return nil, fmt.Errorf("retrieving %s: `model` was nil", id.First)
-	}
-	if read.Model.Properties == nil {
-		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id.First)
-	}
-	if read.Model.Properties.IPConfigurations == nil {
-		return nil, fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", id.First)
-	}
-
 	found := false
-	for _, config := range *read.Model.Properties.IPConfigurations {
-		if props := config.Properties; props != nil {
-			if props.ApplicationSecurityGroups != nil {
-				for _, group := range *props.ApplicationSecurityGroups {
-					if *group.Id == id.Second.ID() {
-						found = true
-						break
+	if model := read.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.IPConfigurations != nil {
+				for _, config := range *props.IPConfigurations {
+					if ipConfigProps := config.Properties; ipConfigProps != nil {
+						if ipConfigProps.ApplicationSecurityGroups != nil {
+							for _, group := range *ipConfigProps.ApplicationSecurityGroups {
+								if *group.Id == id.Second.ID() {
+									found = true
+									break
+								}
+							}
+						}
 					}
 				}
 			}

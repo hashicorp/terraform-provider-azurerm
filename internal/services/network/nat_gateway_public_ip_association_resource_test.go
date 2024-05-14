@@ -96,7 +96,25 @@ func (t NatGatewayPublicAssociationResource) Exists(ctx context.Context, clients
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	found := false
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.PublicIPAddresses != nil {
+				for _, pip := range *props.PublicIPAddresses {
+					if pip.Id == nil {
+						continue
+					}
+
+					if strings.EqualFold(*pip.Id, id.Second.ID()) {
+						found = true
+						break
+					}
+				}
+			}
+		}
+	}
+
+	return pointer.To(found), nil
 }
 
 func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

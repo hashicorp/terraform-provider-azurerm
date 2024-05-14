@@ -16,8 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -44,7 +42,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NetworkInterfaceID,
+				ValidateFunc: commonids.ValidateNetworkInterfaceID,
 			},
 
 			"ip_configuration_name": {
@@ -58,7 +56,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociation() *pluginsdk.Resource
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: loadBalancerValidate.LoadBalancerBackendAddressPoolID,
+				ValidateFunc: loadbalancers.ValidateBackendAddressPoolID,
 			},
 		},
 	}
@@ -104,7 +102,7 @@ func resourceNetworkInterfaceBackendAddressPoolAssociationCreate(d *pluginsdk.Re
 
 	config := FindNetworkInterfaceIPConfiguration(read.Model.Properties.IPConfigurations, ipConfigId.IpConfigurationName)
 	if config == nil {
-		return fmt.Errorf("retrieving %s: IP Configuration %q was not found", ipConfigId.IpConfigurationName, networkInterfaceId)
+		return fmt.Errorf("IP Configuration %q was not found on %s", ipConfigId.IpConfigurationName, networkInterfaceId)
 	}
 
 	ipConfigProps := config.Properties

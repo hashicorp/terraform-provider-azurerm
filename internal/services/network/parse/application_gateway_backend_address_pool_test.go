@@ -114,7 +114,7 @@ func TestParseApplicationGatewayBackendAddressPoolID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := ParseApplicationGatewayBackendAddressPoolID(v.Input)
+		actual, err := ApplicationGatewayBackendAddressPoolID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

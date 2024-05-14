@@ -30,8 +30,8 @@ func NewApplicationGatewayBackendAddressPoolID(subscriptionId string, resourceGr
 	}
 }
 
-// ParseApplicationGatewayBackendAddressPoolID parses 'input' into a ApplicationGatewayBackendAddressPoolId
-func ParseApplicationGatewayBackendAddressPoolID(input string) (*ApplicationGatewayBackendAddressPoolId, error) {
+// ApplicationGatewayBackendAddressPoolID parses 'input' into a ApplicationGatewayBackendAddressPoolId
+func ApplicationGatewayBackendAddressPoolID(input string) (*ApplicationGatewayBackendAddressPoolId, error) {
 	parser := resourceids.NewParserFromResourceIdType(&ApplicationGatewayBackendAddressPoolId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
@@ -93,7 +93,7 @@ func ValidateApplicationGatewayBackendAddressPoolID(input interface{}, key strin
 		return
 	}
 
-	if _, err := ParseApplicationGatewayBackendAddressPoolID(v); err != nil {
+	if _, err := ApplicationGatewayBackendAddressPoolID(v); err != nil {
 		errors = append(errors, err)
 	}
 

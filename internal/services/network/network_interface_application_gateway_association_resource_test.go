@@ -113,7 +113,7 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 	if resp.Model.Properties.IPConfigurations == nil {
-		return nil, fmt.Errorf("retrieving %s: `properties.IPConfigurations` was nil", id)
+		return nil, fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", id)
 	}
 
 	config := network.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, id.First.IpConfigurationName)
@@ -141,36 +141,35 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 }
 
 func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := commonids.ParseNetworkInterfaceID(state.Attributes["network_interface_id"])
+	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceIPConfigurationId{}, &parse.ApplicationGatewayBackendAddressPoolId{})
 	if err != nil {
 		return err
 	}
 
-	backendAddressPoolId := state.Attributes["backend_address_pool_id"]
-	ipConfigurationName := state.Attributes["ip_configuration_name"]
+	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	resp, err := client.Network.Client.NetworkInterfaces.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
+	resp, err := client.Network.Client.NetworkInterfaces.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	config := network.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, ipConfigurationName)
+	config := network.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, id.First.IpConfigurationName)
 	if config == nil {
-		return fmt.Errorf("IP Configuration %q wasn't found for %s", ipConfigurationName, id)
+		return fmt.Errorf("IP Configuration %q wasn't found for %s", id.First.IpConfigurationName, id)
 	}
 
 	updatedPools := make([]networkinterfaces.ApplicationGatewayBackendAddressPool, 0)
 	if config.Properties.ApplicationGatewayBackendAddressPools != nil {
 		for _, pool := range *config.Properties.ApplicationGatewayBackendAddressPools {
-			if *pool.Id != backendAddressPoolId {
+			if *pool.Id != id.Second.ID() {
 				updatedPools = append(updatedPools, pool)
 			}
 		}
 	}
 	config.Properties.ApplicationGatewayBackendAddressPools = &updatedPools
 
-	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx, *id, *resp.Model); err != nil {
-		return fmt.Errorf("removing Application Gateway Backend Address Pool Association for %s: %+v", id, err)
+	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx, networkInterfaceId, *resp.Model); err != nil {
+		return fmt.Errorf("removing Application Gateway Backend Address Pool Association for %s: %+v", networkInterfaceId, err)
 	}
 
 	return nil

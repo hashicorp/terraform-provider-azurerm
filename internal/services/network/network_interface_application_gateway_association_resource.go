@@ -43,7 +43,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation() *
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NetworkInterfaceID,
+				ValidateFunc: commonids.ValidateNetworkInterfaceID,
 			},
 
 			"ip_configuration_name": {
@@ -94,7 +94,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 		return fmt.Errorf("retrieving %s: `properties` was nil", networkInterfaceId)
 	}
 	if resp.Model.Properties.IPConfigurations == nil {
-		return fmt.Errorf("retrieving %s: `properties.IPConfigurations` was nil", networkInterfaceId)
+		return fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", networkInterfaceId)
 	}
 	props := resp.Model.Properties
 
@@ -103,14 +103,14 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCrea
 		return fmt.Errorf("IP Configuration %q was not found on %s", ipConfigurationName, *networkInterfaceId)
 	}
 	if config.Properties == nil {
-		return fmt.Errorf("`IPConfiguration.properties` was nil for %s", *networkInterfaceId)
+		return fmt.Errorf("`retrieving %s: ipConfiguration.properties` was nil", *networkInterfaceId)
 	}
 	ipConfigProps := config.Properties
 
 	pools := make([]networkinterfaces.ApplicationGatewayBackendAddressPool, 0)
 
 	ipConfigId := commonids.NewNetworkInterfaceIPConfigurationID(networkInterfaceId.SubscriptionId, networkInterfaceId.ResourceGroupName, networkInterfaceId.NetworkInterfaceName, ipConfigurationName)
-	backendAddressPoolId, err := parse.ParseApplicationGatewayBackendAddressPoolID(d.Get("backend_address_pool_id").(string))
+	backendAddressPoolId, err := parse.ApplicationGatewayBackendAddressPoolID(d.Get("backend_address_pool_id").(string))
 	if err != nil {
 		return err
 	}
@@ -200,12 +200,13 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead
 				d.SetId("")
 				return nil
 			}
-
-			d.Set("backend_address_pool_id", id.Second.ID())
-			d.Set("ip_configuration_name", id.First.IpConfigurationName)
-			d.Set("network_interface_id", id.ID())
 		}
 	}
+
+	d.Set("backend_address_pool_id", id.Second.ID())
+	d.Set("ip_configuration_name", id.First.IpConfigurationName)
+	d.Set("network_interface_id", id.ID())
+
 	return nil
 }
 
