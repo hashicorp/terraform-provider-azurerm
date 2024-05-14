@@ -7,6 +7,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_container_app_job` - Allow `event_trigger_config.scale.min_executions` to be `0` [GH-25931]
+* `azurerm_data_factory_trigger_custom_event` - one of `subject_begins_with` and `subject_ends_with` dno longer need to be set [GH-25932]
 
 ## 3.103.1 (May 10, 2024)
 
