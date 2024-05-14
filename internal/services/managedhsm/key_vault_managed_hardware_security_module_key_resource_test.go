@@ -16,7 +16,7 @@ import (
 
 type KeyVaultMHSMKeyTestResource struct{}
 
-func TestAccKeyVaultMHSMKey_basic(t *testing.T) {
+func testAccKeyVaultMHSMKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
 	r := KeyVaultMHSMKeyTestResource{}
 
@@ -31,7 +31,7 @@ func TestAccKeyVaultMHSMKey_basic(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultMHSMKey_complete(t *testing.T) {
+func testAccKeyVaultMHSMKey_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
 	r := KeyVaultMHSMKeyTestResource{}
 
@@ -60,7 +60,7 @@ func TestAccKeyVaultMHSMKey_complete(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultHSMKey_purge(t *testing.T) {
+func testAccKeyVaultHSMKey_purge(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
 	r := KeyVaultMHSMKeyTestResource{}
 
@@ -78,7 +78,7 @@ func TestAccKeyVaultHSMKey_purge(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultHSMKey_softDeleteRecovery(t *testing.T) {
+func testAccKeyVaultHSMKey_softDeleteRecovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
 	r := KeyVaultMHSMKeyTestResource{}
 
