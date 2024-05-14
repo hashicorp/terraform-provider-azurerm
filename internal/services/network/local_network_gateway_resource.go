@@ -34,7 +34,7 @@ func resourceLocalNetworkGateway() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -150,7 +150,8 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 			}
 		}
 
-		if err := client.CreateOrUpdateThenPoll(ctx, id, gateway); err != nil {
+		// This can be switched back over to CreateOrUpdateThenPoll once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
+		if _, err := client.CreateOrUpdate(ctx, id, gateway); err != nil {
 			return fmt.Errorf("removing %s: %+v", id, err)
 		}
 	}
