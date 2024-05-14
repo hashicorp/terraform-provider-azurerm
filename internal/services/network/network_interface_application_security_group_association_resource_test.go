@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -142,7 +143,9 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 		return err
 	}
 
-	read, err := client.Network.Client.NetworkInterfaces.Get(ctx, *id.First, networkinterfaces.DefaultGetOperationOptions())
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	read, err := client.Network.Client.NetworkInterfaces.Get(ctx2, *id.First, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
@@ -171,7 +174,7 @@ func (NetworkInterfaceApplicationSecurityGroupAssociationResource) destroy(ctx c
 
 	read.Model.Properties.IPConfigurations = &configs
 
-	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx, *id.First, *read.Model); err != nil {
+	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, *id.First, *read.Model); err != nil {
 		return fmt.Errorf("removing Application Security Group Association for %s: %+v", id.First, err)
 	}
 

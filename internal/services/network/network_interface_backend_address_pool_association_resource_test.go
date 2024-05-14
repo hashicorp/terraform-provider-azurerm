@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -142,7 +143,9 @@ func (NetworkInterfaceBackendAddressPoolResource) destroy(ctx context.Context, c
 
 	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	read, err := client.Network.Client.NetworkInterfaces.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	read, err := client.Network.Client.NetworkInterfaces.Get(ctx2, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", networkInterfaceId, err)
 	}
@@ -162,7 +165,7 @@ func (NetworkInterfaceBackendAddressPoolResource) destroy(ctx context.Context, c
 	}
 	config.Properties.LoadBalancerBackendAddressPools = &updatedPools
 
-	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx, networkInterfaceId, *read.Model); err != nil {
+	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, networkInterfaceId, *read.Model); err != nil {
 		return fmt.Errorf("removing Backend Address Pool Association for %s: %+v", networkInterfaceId, err)
 	}
 

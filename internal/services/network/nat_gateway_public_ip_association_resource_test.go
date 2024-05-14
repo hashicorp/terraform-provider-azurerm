@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -123,7 +124,9 @@ func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *
 		return nil, err
 	}
 
-	resp, err := client.Network.Client.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	resp, err := client.Network.Client.NatGateways.Get(ctx2, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
@@ -145,7 +148,7 @@ func (NatGatewayPublicAssociationResource) Destroy(ctx context.Context, client *
 	}
 	resp.Model.Properties.PublicIPAddresses = &updatedAddresses
 
-	if err := client.Network.Client.NatGateways.CreateOrUpdateThenPoll(ctx, *id.First, *resp.Model); err != nil {
+	if err := client.Network.Client.NatGateways.CreateOrUpdateThenPoll(ctx2, *id.First, *resp.Model); err != nil {
 		return nil, fmt.Errorf("removing Association between %s and %s: %+v", id.First, id.Second, err)
 	}
 
