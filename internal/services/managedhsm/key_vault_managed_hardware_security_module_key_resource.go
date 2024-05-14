@@ -147,6 +147,22 @@ func (r KeyVaultMHSMKeyResource) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
+func (r KeyVaultMHSMKeyResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			diff := metadata.ResourceDiff
+
+			// if any value has changed, we need to SetNewComputed on versioned_id as any change to the key is a new version
+			if diff.HasChanges("key_opts", "not_before_date", "tags", "expiration_date") {
+				return diff.SetNewComputed("versioned_id")
+			}
+
+			return nil
+		},
+		Timeout: 5 * time.Minute,
+	}
+}
+
 func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -218,10 +234,6 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 				parameters.KeySize = pointer.To(int32(config.KeySize))
 			}
 
-			if _, err = client.CreateKey(ctx, endpoint.BaseURI(), config.Name, parameters); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
 			if config.NotBeforeDate != "" {
 				notBeforeDate, _ := time.Parse(time.RFC3339, config.NotBeforeDate) // validated by schema
 				notBeforeUnixTime := date.UnixTime(notBeforeDate)
@@ -232,6 +244,34 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 				expirationDate, _ := time.Parse(time.RFC3339, config.ExpirationDate) // validated by schema
 				expirationUnixTime := date.UnixTime(expirationDate)
 				parameters.KeyAttributes.Expires = &expirationUnixTime
+			}
+
+			if resp, err := client.CreateKey(ctx, endpoint.BaseURI(), config.Name, parameters); err != nil {
+				if metadata.Client.Features.KeyVault.RecoverSoftDeletedKeys && utils.ResponseWasConflict(resp.Response) {
+					recoveredKey, err := client.RecoverDeletedKey(ctx, endpoint.BaseURI(), config.Name)
+					if err != nil {
+						return err
+					}
+					log.Printf("[DEBUG] Recovering HSM Key %q with ID: %q", config.Name, *recoveredKey.Key.Kid)
+					if kid := recoveredKey.Key.Kid; kid != nil {
+						stateConf := &pluginsdk.StateChangeConf{
+							Pending:                   []string{"pending"},
+							Target:                    []string{"available"},
+							Refresh:                   keyVaultChildItemRefreshFunc(*kid),
+							Delay:                     30 * time.Second,
+							PollInterval:              10 * time.Second,
+							ContinuousTargetOccurence: 10,
+							Timeout:                   metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
+						}
+
+						if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+							return fmt.Errorf("waiting for HSM Key %q to become available: %s", config.Name, err)
+						}
+						log.Printf("[DEBUG] Key %q recovered with ID: %q", config.Name, *kid)
+					}
+				} else {
+					return fmt.Errorf("Creating Key: %+v", err)
+				}
 			}
 
 			metadata.SetID(id)

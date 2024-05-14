@@ -163,6 +163,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional:    true,
 						Default:     true,
 					},
+
+					"recover_soft_deleted_hardware_security_module_keys": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
 				},
 			},
 		},
@@ -459,6 +466,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_secrets"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedSecrets = v.(bool)
+			}
+			if v, ok := keyVaultRaw["recover_soft_deleted_hardware_security_module_keys"]; ok {
+				featuresMap.KeyVault.RecoverSoftDeletedHSMKeys = v.(bool)
 			}
 		}
 	}

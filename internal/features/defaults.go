@@ -31,6 +31,7 @@ func Default() UserFeatures {
 			RecoverSoftDeletedKeys:           true,
 			RecoverSoftDeletedCerts:          true,
 			RecoverSoftDeletedSecrets:        true,
+			RecoverSoftDeletedHSMKeys:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: true,

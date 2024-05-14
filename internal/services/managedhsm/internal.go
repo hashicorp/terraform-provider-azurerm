@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -104,4 +105,27 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	log.Printf("[DEBUG] Purged %s.", description)
 
 	return nil
+}
+
+func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
+
+		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
+
+		client := &http.Client{
+			Transport: PTransport,
+		}
+
+		conn, err := client.Get(secretUri)
+		if err != nil {
+			log.Printf("[DEBUG] Didn't find KeyVault secret at %q", secretUri)
+			return nil, "pending", fmt.Errorf("checking secret at %q: %s", secretUri, err)
+		}
+
+		defer conn.Body.Close()
+
+		log.Printf("[DEBUG] Found KeyVault Secret %q", secretUri)
+		return "available", "available", nil
+	}
 }

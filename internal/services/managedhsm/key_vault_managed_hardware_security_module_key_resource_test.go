@@ -60,7 +60,7 @@ func TestAccKeyVaultMHSMKey_complete(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultKey_purge(t *testing.T) {
+func TestAccKeyVaultHSMKey_purge(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
 	r := KeyVaultMHSMKeyTestResource{}
 
@@ -74,6 +74,39 @@ func TestAccKeyVaultKey_purge(t *testing.T) {
 		{
 			Config:  r.basic(data),
 			Destroy: true,
+		},
+	})
+}
+
+func TestAccKeyVaultHSMKey_softDeleteRecovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_key", "test")
+	r := KeyVaultMHSMKeyTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.softDeleteRecovery(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
+		},
+		data.ImportStep("key_size", "key_vault_id"),
+		{
+			Config:  r.softDeleteRecovery(data, false),
+			Destroy: true,
+		},
+		{
+			Config: r.softDeleteRecovery(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("not_before_date").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2021-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
 		},
 	})
 }
@@ -148,6 +181,40 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
   ]
 }
 `, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultMHSMKeyTestResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_deleted_hardware_security_module_keys_on_destroy = "%t"
+    }
+  }
+}
+
+%s
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[2]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "EC-HSM"
+  curve          = "P-521"
+  key_opts       = ["sign"]
+
+  not_before_date = "2020-01-01T01:02:03Z"
+  expiration_date = "2021-01-01T01:02:03Z"
+
+  tags = {
+    "hello" = "world"
+  }
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1
+  ]
+}
+`, purge, r.template(data), data.RandomString)
 }
 
 func (r KeyVaultMHSMKeyTestResource) template(data acceptance.TestData) string {
