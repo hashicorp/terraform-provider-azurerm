@@ -404,7 +404,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			appSettings := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			appSettingsProps := *appSettings.Properties
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
+				appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.FormatInt(webAppSlot.SiteConfig[0].HealthCheckEvictionTime, 10)
 				appSettings.Properties = &appSettingsProps
 			}
 			if appSettings != nil {
@@ -880,7 +880,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating Windows %s: %+v", *id, err)
 			}
 
-			// (@jackofallops) - Windows Web App Slots need the siteConfig sending individually to actually accept the `windowsFxVersion` value or it's set as `DOCKER|` only.
+			// Windows Web App Slots need the siteConfig sending individually to actually accept the `windowsFxVersion` value or it's set as `DOCKER|` only.
 			siteConfigUpdate := webapps.SiteConfigResource{
 				Properties: model.Properties.SiteConfig,
 			}
@@ -898,12 +898,12 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			updateLogs := false
 
-			// (@jackofallops) - App Settings can clobber logs configuration so must be updated before we send any Log updates
+			// App Settings can clobber logs configuration so must be updated before we send any Log updates
 			if metadata.ResourceData.HasChanges("app_settings", "site_config") {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(model.Properties.SiteConfig.AppSettings)
 				appSettingsProps := *appSettingsUpdate.Properties
 				if state.SiteConfig[0].HealthCheckEvictionTime != 0 {
-					appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(state.SiteConfig[0].HealthCheckEvictionTime))
+					appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.FormatInt(state.SiteConfig[0].HealthCheckEvictionTime, 10)
 					appSettingsUpdate.Properties = &appSettingsProps
 				} else {
 					delete(appSettingsProps, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES")

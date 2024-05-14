@@ -386,7 +386,7 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 			appSettings := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
 				props := *appSettings.Properties
-				props["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(webAppSlot.SiteConfig[0].HealthCheckEvictionTime))
+				props["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.FormatInt(webAppSlot.SiteConfig[0].HealthCheckEvictionTime, 10)
 				appSettings.Properties = &props
 			}
 
@@ -845,7 +845,7 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(model.Properties.SiteConfig.AppSettings)
 				appSettingsProps := *appSettingsUpdate.Properties
 				if state.SiteConfig[0].HealthCheckEvictionTime != 0 {
-					appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(state.SiteConfig[0].HealthCheckEvictionTime))
+					appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.FormatInt(state.SiteConfig[0].HealthCheckEvictionTime, 10)
 					appSettingsUpdate.Properties = &appSettingsProps
 				} else {
 					delete(appSettingsProps, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES")

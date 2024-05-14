@@ -419,7 +419,7 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 			appSettings := helpers.ExpandAppSettingsForUpdate(siteConfig.AppSettings)
 			appSettingsProps := *appSettings.Properties
 			if metadata.ResourceData.HasChange("site_config.0.health_check_eviction_time_in_min") {
-				appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(webApp.SiteConfig[0].HealthCheckEvictionTime))
+				appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.FormatInt(webApp.SiteConfig[0].HealthCheckEvictionTime, 10)
 				appSettings.Properties = &appSettingsProps
 			}
 
@@ -919,7 +919,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				appSettingsUpdate := helpers.ExpandAppSettingsForUpdate(model.Properties.SiteConfig.AppSettings)
 				appSettingsProps := *appSettingsUpdate.Properties
 				if state.SiteConfig[0].HealthCheckEvictionTime != 0 {
-					appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.Itoa(int(state.SiteConfig[0].HealthCheckEvictionTime))
+					appSettingsProps["WEBSITE_HEALTHCHECK_MAXPINGFAILURES"] = strconv.FormatInt(state.SiteConfig[0].HealthCheckEvictionTime, 10)
 					appSettingsUpdate.Properties = &appSettingsProps
 				} else {
 					delete(appSettingsProps, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES")

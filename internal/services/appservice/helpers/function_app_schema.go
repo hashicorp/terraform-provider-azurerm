@@ -5,13 +5,13 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -1567,7 +1567,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 
 	linuxSiteConfig := siteConfig[0]
 
-	v := strconv.Itoa(int(linuxSiteConfig.HealthCheckEvictionTime))
+	v := strconv.FormatInt(linuxSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || linuxSiteConfig.HealthCheckPath == "" {
 		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 	} else {
@@ -1837,7 +1837,7 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 
 	windowsSiteConfig := siteConfig[0]
 
-	v := strconv.Itoa(int(windowsSiteConfig.HealthCheckEvictionTime))
+	v := strconv.FormatInt(windowsSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || windowsSiteConfig.HealthCheckPath == "" {
 		appSettings = updateOrAppendAppSettings(appSettings, "WEBSITE_HEALTHCHECK_MAXPINGFAILURES", v, true)
 	} else {
