@@ -9,13 +9,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type NatGatewayPublicIpPrefixAssociationResource struct{}
@@ -86,50 +87,52 @@ func TestAccNatGatewayPublicIpPrefixAssociation_deleted(t *testing.T) {
 }
 
 func (t NatGatewayPublicIpPrefixAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NatGatewayPublicIPPrefixAssociationID(state.ID)
+	id, err := commonids.ParseCompositeResourceID(state.ID, &natgateways.NatGatewayId{}, &publicipprefixes.PublicIPPrefixId{})
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.NatGatewayClient.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
+	resp, err := clients.Network.Client.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Nat Gateway Public IP Prefix Association (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NatGatewayPublicIpPrefixAssociationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.NatGatewayPublicIPPrefixAssociationID(state.ID)
+	id, err := commonids.ParseCompositeResourceID(state.ID, &natgateways.NatGatewayId{}, &publicipprefixes.PublicIPPrefixId{})
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Network.NatGatewayClient.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
+	resp, err := client.Network.Client.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Nat Gateway Public IP Prefix Association (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	updatedPrefixes := make([]network.SubResource, 0)
-	if publicIpPrefixes := resp.PublicIPPrefixes; publicIpPrefixes != nil {
+	if resp.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id.First)
+	}
+	if resp.Model.Properties == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id.First)
+	}
+
+	updatedPrefixes := make([]natgateways.SubResource, 0)
+	if publicIpPrefixes := resp.Model.Properties.PublicIPPrefixes; publicIpPrefixes != nil {
 		for _, publicIpPrefix := range *publicIpPrefixes {
-			if !strings.EqualFold(*publicIpPrefix.ID, id.PublicIPPrefixID) {
+			if !strings.EqualFold(*publicIpPrefix.Id, id.Second.ID()) {
 				updatedPrefixes = append(updatedPrefixes, publicIpPrefix)
 			}
 		}
 	}
-	resp.PublicIPPrefixes = &updatedPrefixes
+	resp.Model.Properties.PublicIPPrefixes = &updatedPrefixes
 
-	future, err := client.Network.NatGatewayClient.CreateOrUpdate(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, resp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to remove Nat Gateway Public IP Prefix Association for Nat Gateway %q: %+v", id, err)
+	if err := client.Network.Client.NatGateways.CreateOrUpdateThenPoll(ctx, *id.First, *resp.Model); err != nil {
+		return nil, fmt.Errorf("deleting %s from %s: %+v", id.Second, id.First, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.NatGatewayClient.Client); err != nil {
-		return nil, fmt.Errorf("failed to wait for removal of Nat Gateway Public IP Prefix Association for Nat Gateway %q: %+v", id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r NatGatewayPublicIpPrefixAssociationResource) basic(data acceptance.TestData) string {
