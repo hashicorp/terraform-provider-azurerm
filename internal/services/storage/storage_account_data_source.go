@@ -599,7 +599,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if props := model.Properties; props != nil {
 			d.Set("access_tier", props.AccessTier)
 			d.Set("allow_nested_items_to_be_public", props.AllowBlobPublicAccess)
-			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(props.CustomDomain)); err != nil {
+			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
 				return fmt.Errorf("setting `custom_domain`: %+v", err)
 			}
 			d.Set("enable_https_traffic_only", props.SupportsHTTPSTrafficOnly)

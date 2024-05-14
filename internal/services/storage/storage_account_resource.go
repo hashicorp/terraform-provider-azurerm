@@ -13,15 +13,16 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -30,16 +31,13 @@ import (
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
 	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
+	legacyTags "github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -866,7 +864,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"large_file_share_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  false,
 			},
 
 			"local_user_enabled": {
@@ -1354,12 +1352,12 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			MinimumTLSVersion:            storage.MinimumTLSVersion(d.Get("min_tls_version").(string)),
 			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
 			PublicNetworkAccess:          publicNetworkAccess,
-			SasPolicy:                    expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{})),
+			SasPolicy:                    expandAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 		},
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: legacyTags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
@@ -1381,7 +1379,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if _, ok := d.GetOk("custom_domain"); ok {
-		parameters.CustomDomain = expandStorageAccountCustomDomain(d.Get("custom_domain").([]interface{}))
+		parameters.CustomDomain = expandAccountCustomDomain(d.Get("custom_domain").([]interface{}))
 	}
 
 	if v, ok := d.GetOk("immutability_policy"); ok {
@@ -1539,8 +1537,8 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
-	if err := resourceStorageAccountWaitForDataPlaneToBecomeAvailable(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
+	supportLevel := availableFunctionalityForAccountLegacy(accountKind, accountTier, replicationType)
+	if err := waitForDataPlaneToBecomeAvailableForAccount(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
 		return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
 	}
 
@@ -1786,11 +1784,11 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		params.Tags = legacyTags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	if d.HasChange("custom_domain") {
-		props.CustomDomain = expandStorageAccountCustomDomain(d.Get("custom_domain").([]interface{}))
+		props.CustomDomain = expandAccountCustomDomain(d.Get("custom_domain").([]interface{}))
 	}
 
 	if d.HasChange("identity") {
@@ -1853,7 +1851,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if d.HasChange("sas_policy") {
 		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
-		props.SasPolicy = expandStorageAccountSASPolicy(d.Get("sas_policy").([]interface{}))
+		props.SasPolicy = expandAccountSASPolicy(d.Get("sas_policy").([]interface{}))
 	}
 
 	if d.HasChange("allowed_copy_scope") {
@@ -1905,7 +1903,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// Followings are updates to the sub-services
-	supportLevel := resolveStorageAccountServiceSupportLevel(accountKind, accountTier, replicationType)
+	supportLevel := availableFunctionalityForAccountLegacy(accountKind, accountTier, replicationType)
 
 	if d.HasChange("blob_properties") {
 		if !supportLevel.supportBlob {
@@ -2035,7 +2033,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.AccountsClient
+	storageClient := meta.(*clients.Client).Storage
+	client := storageClient.ResourceManager.StorageAccounts
 	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -2050,234 +2049,17 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resp, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	resp, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// handle the user not having permissions to list the keys
-	d.Set("primary_connection_string", "")
-	d.Set("secondary_connection_string", "")
-	d.Set("primary_blob_connection_string", "")
-	d.Set("secondary_blob_connection_string", "")
-	d.Set("primary_access_key", "")
-	d.Set("secondary_access_key", "")
-
-	keys, err := client.ListKeys(ctx, id.ResourceGroupName, id.StorageAccountName, storage.ListKeyExpandKerb)
-	if err != nil {
-		// the API returns a 200 with an inner error of a 409..
-		var hasWriteLock bool
-		var doesntHavePermissions bool
-		if e, ok := err.(azautorest.DetailedError); ok {
-			if status, ok := e.StatusCode.(int); ok {
-				hasWriteLock = status == http.StatusConflict
-				doesntHavePermissions = (status == http.StatusUnauthorized || status == http.StatusForbidden)
-			}
-		}
-
-		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("listing Keys for %s: %s", *id, err)
-		}
-	}
-
-	d.Set("name", id.StorageAccountName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
-	d.Set("account_kind", resp.Kind)
-
-	if sku := resp.Sku; sku != nil {
-		d.Set("account_tier", sku.Tier)
-		d.Set("account_replication_type", strings.Split(fmt.Sprintf("%v", sku.Name), "_")[1])
-	}
-
-	if props := resp.AccountProperties; props != nil {
-		d.Set("access_tier", props.AccessTier)
-		if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthenticationLegacy(props.AzureFilesIdentityBasedAuthentication)); err != nil {
-			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
-		}
-		if err := d.Set("routing", flattenArmStorageAccountRouting(props.RoutingPreference)); err != nil {
-			return fmt.Errorf("setting `routing`: %+v", err)
-		}
-		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
-		d.Set("is_hns_enabled", props.IsHnsEnabled)
-		d.Set("nfsv3_enabled", props.EnableNfsV3)
-
-		publicNetworkAccessEnabled := true
-		if props.PublicNetworkAccess == storage.PublicNetworkAccessDisabled {
-			publicNetworkAccessEnabled = false
-		}
-		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-
-		// DNSEndpointType is null when unconfigured - therefore default this to Standard
-		dnsEndpointType := storage.DNSEndpointTypeStandard
-		if props.DNSEndpointType != "" {
-			// TODO: when this is ported over to `hashicorp/go-azure-sdk` this should be able to become != nil
-			dnsEndpointType = props.DNSEndpointType
-		}
-		d.Set("dns_endpoint_type", dnsEndpointType)
-
-		if crossTenantReplication := props.AllowCrossTenantReplication; crossTenantReplication != nil {
-			d.Set("cross_tenant_replication_enabled", crossTenantReplication)
-		}
-
-		// There is a certain edge case that could result in the Azure API returning a null value for AllowBLobPublicAccess.
-		// Since the field is a pointer, this gets marshalled to a nil value instead of a boolean.
-
-		allowBlobPublicAccess := true
-		if props.AllowBlobPublicAccess != nil {
-			allowBlobPublicAccess = *props.AllowBlobPublicAccess
-		}
-		// lintignore:R001
-		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
-
-		// For storage account created using old API, the response of GET call will not return "min_tls_version"
-		minTlsVersion := string(storage.MinimumTLSVersionTLS10)
-		if props.MinimumTLSVersion != "" {
-			minTlsVersion = string(props.MinimumTLSVersion)
-		}
-		d.Set("min_tls_version", minTlsVersion)
-
-		if err := d.Set("custom_domain", flattenStorageAccountCustomDomainLegacy(props.CustomDomain)); err != nil {
-			return fmt.Errorf("setting `custom_domain`: %+v", err)
-		}
-
-		if immutabilityPolicy := props.ImmutableStorageWithVersioning; immutabilityPolicy != nil && immutabilityPolicy.ImmutabilityPolicy != nil {
-			if err := d.Set("immutability_policy", flattenStorageAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
-				return fmt.Errorf("setting `immutability_policy`: %+v", err)
-			}
-		}
-
-		// Computed
-		d.Set("primary_location", props.PrimaryLocation)
-		d.Set("secondary_location", props.SecondaryLocation)
-
-		if accessKeys := keys.Keys; accessKeys != nil {
-			storageAccountKeys := *accessKeys
-			if len(storageAccountKeys) > 0 {
-				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[0].Value, *storageDomainSuffix)
-				d.Set("primary_connection_string", pcs)
-			}
-
-			if len(storageAccountKeys) > 1 {
-				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[1].Value, *storageDomainSuffix)
-				d.Set("secondary_connection_string", scs)
-			}
-		}
-
-		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints, resp.RoutingPreference); err != nil {
-			return fmt.Errorf("setting internet, microsoft primary endpoints and hosts for blob, queue, table and file: %+v", err)
-		}
-
-		if accessKeys := keys.Keys; accessKeys != nil {
-			storageAccountKeys := *accessKeys
-			var primaryBlobConnectStr string
-			if v := props.PrimaryEndpoints; v != nil {
-				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[0].Value)
-			}
-			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
-		}
-
-		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints, resp.RoutingPreference); err != nil {
-			return fmt.Errorf("setting internet, microsoft secondary endpoints and hosts for blob, queue, table: %+v", err)
-		}
-
-		if accessKeys := keys.Keys; accessKeys != nil {
-			storageAccountKeys := *accessKeys
-			var secondaryBlobConnectStr string
-			if v := props.SecondaryEndpoints; v != nil {
-				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[1].Value)
-			}
-			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
-		}
-
-		if err := d.Set("network_rules", flattenStorageAccountNetworkRules(props.NetworkRuleSet)); err != nil {
-			return fmt.Errorf("setting `network_rules`: %+v", err)
-		}
-
-		if props.LargeFileSharesState != "" {
-			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
-		}
-
-		// local_user_enabled defaults to true at service side when not specified in the API request.
-		isLocalEnabled := true
-		if props.IsLocalUserEnabled != nil {
-			isLocalEnabled = *props.IsLocalUserEnabled
-		}
-		d.Set("local_user_enabled", isLocalEnabled)
-
-		allowSharedKeyAccess := true
-		if props.AllowSharedKeyAccess != nil {
-			allowSharedKeyAccess = *props.AllowSharedKeyAccess
-		}
-		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
-
-		defaultToOAuthAuthentication := false
-		if props.DefaultToOAuthAuthentication != nil {
-			defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
-		}
-		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
-
-		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
-		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
-		var (
-			queueEncryptionKeyType = string(storage.KeyTypeService)
-			tableEncryptionKeyType = string(storage.KeyTypeService)
-		)
-		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
-			if encryption.Services.Queue != nil {
-				queueEncryptionKeyType = string(encryption.Services.Queue.KeyType)
-			}
-			if encryption.Services.Table != nil {
-				tableEncryptionKeyType = string(encryption.Services.Table.KeyType)
-			}
-		}
-		d.Set("table_encryption_key_type", tableEncryptionKeyType)
-		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
-
-		customerManagedKey, err := flattenStorageAccountCustomerManagedKey(id, props.Encryption, env)
-		if err != nil {
-			return err
-		}
-
-		if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
-			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
-		}
-
-		infrastructureEncryption := false
-		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
-			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
-		}
-		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
-
-		if err := d.Set("sas_policy", flattenStorageAccountSASPolicy(props.SasPolicy)); err != nil {
-			return fmt.Errorf("setting `sas_policy`: %+v", err)
-		}
-
-		d.Set("allowed_copy_scope", props.AllowedCopyScope)
-		d.Set("sftp_enabled", props.IsSftpEnabled)
-	}
-
-	if accessKeys := keys.Keys; accessKeys != nil {
-		storageAccountKeys := *accessKeys
-		d.Set("primary_access_key", storageAccountKeys[0].Value)
-		d.Set("secondary_access_key", storageAccountKeys[1].Value)
-	}
-
-	identity, err := flattenAzureRmStorageAccountIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
-
-	storageClient := meta.(*clients.Client).Storage
+	// we then need to find the storage account
 	account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -2286,23 +2068,208 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	var tier storage.SkuTier
-	if resp.Sku != nil {
-		tier = resp.Sku.Tier
+	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
+	listKeysOpts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
+	keys, err := client.ListKeys(ctx, *id, listKeysOpts)
+	if err != nil {
+		hasWriteLock := response.WasConflict(keys.HttpResponse)
+		doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
+		if !hasWriteLock && !doesntHavePermissions {
+			return fmt.Errorf("listing Keys for %s: %+v", id, err)
+		}
 	}
-	supportLevel := resolveStorageAccountServiceSupportLevel(resp.Kind, tier, d.Get("account_replication_type").(string))
 
+	d.Set("name", id.StorageAccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	supportLevel := storageAccountServiceSupportLevel{
+		supportBlob:          false,
+		supportQueue:         false,
+		supportShare:         false,
+		supportStaticWebsite: false,
+	}
+	var accountKind storageaccounts.Kind
+	var primaryEndpoints *storageaccounts.Endpoints
+	var secondaryEndpoints *storageaccounts.Endpoints
+	var routingPreference *storageaccounts.RoutingPreference
+	if model := resp.Model; model != nil {
+		if model.Kind != nil {
+			accountKind = *model.Kind
+		}
+		d.Set("account_kind", string(accountKind))
+
+		var accountTier storageaccounts.SkuTier
+		accountReplicationType := ""
+		if sku := model.Sku; sku != nil {
+			accountReplicationType = strings.Split(string(sku.Name), "_")[1]
+			if sku.Tier != nil {
+				accountTier = *sku.Tier
+			}
+		}
+		d.Set("account_tier", string(accountTier))
+		d.Set("account_replication_type", accountReplicationType)
+
+		edgeZone := ""
+		if model.ExtendedLocation != nil {
+			edgeZone = edgezones.Normalize(model.ExtendedLocation.Name)
+		}
+		d.Set("edge_zone", edgeZone)
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			primaryEndpoints = props.PrimaryEndpoints
+			routingPreference = props.RoutingPreference
+			secondaryEndpoints = props.SecondaryEndpoints
+
+			d.Set("access_tier", props.AccessTier)
+			d.Set("allowed_copy_scope", props.AllowedCopyScope)
+			if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
+			}
+			d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
+			d.Set("enable_https_traffic_only", props.SupportsHTTPSTrafficOnly)
+			d.Set("is_hns_enabled", props.IsHnsEnabled)
+			d.Set("nfsv3_enabled", props.IsNfsV3Enabled)
+			d.Set("primary_location", props.PrimaryLocation)
+			if err := d.Set("routing", flattenArmStorageAccountRouting(props.RoutingPreference)); err != nil {
+				return fmt.Errorf("setting `routing`: %+v", err)
+			}
+			d.Set("secondary_location", props.SecondaryLocation)
+			d.Set("sftp_enabled", props.IsSftpEnabled)
+
+			// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
+			// resources when a new field gets added - meaning we need to default the values below.
+			allowBlobPublicAccess := true
+			if props.AllowBlobPublicAccess != nil {
+				allowBlobPublicAccess = *props.AllowBlobPublicAccess
+			}
+			d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
+
+			defaultToOAuthAuthentication := false
+			if props.DefaultToOAuthAuthentication != nil {
+				defaultToOAuthAuthentication = pointer.From(props.DefaultToOAuthAuthentication)
+			}
+			d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
+
+			dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
+			if props.DnsEndpointType != nil {
+				dnsEndpointType = *props.DnsEndpointType
+			}
+			d.Set("dns_endpoint_type", dnsEndpointType)
+
+			isLocalEnabled := true
+			if props.IsLocalUserEnabled != nil {
+				isLocalEnabled = *props.IsLocalUserEnabled
+			}
+			d.Set("local_user_enabled", isLocalEnabled)
+
+			largeFileShareEnabled := false
+			if props.LargeFileSharesState != nil {
+				largeFileShareEnabled = *props.LargeFileSharesState == storageaccounts.LargeFileSharesStateEnabled
+			}
+			d.Set("large_file_share_enabled", largeFileShareEnabled)
+
+			minTlsVersion := string(storageaccounts.MinimumTlsVersionTLSOneZero)
+			if props.MinimumTlsVersion != nil {
+				minTlsVersion = string(*props.MinimumTlsVersion)
+			}
+			d.Set("min_tls_version", minTlsVersion)
+
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == storageaccounts.PublicNetworkAccessDisabled {
+				publicNetworkAccessEnabled = false
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			allowSharedKeyAccess := true
+			if props.AllowSharedKeyAccess != nil {
+				allowSharedKeyAccess = *props.AllowSharedKeyAccess
+			}
+			d.Set("shared_access_key_enabled", allowSharedKeyAccess)
+
+			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
+				return fmt.Errorf("setting `custom_domain`: %+v", err)
+			}
+			if err := d.Set("immutability_policy", flattenStorageAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
+				return fmt.Errorf("setting `immutability_policy`: %+v", err)
+			}
+			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(props.NetworkAcls)); err != nil {
+				return fmt.Errorf("setting `network_rules`: %+v", err)
+			}
+
+			// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
+			// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
+			infrastructureEncryption := false
+			queueEncryptionKeyType := string(storageaccounts.KeyTypeService)
+			tableEncryptionKeyType := string(storageaccounts.KeyTypeService)
+			if encryption := props.Encryption; encryption != nil {
+				infrastructureEncryption = pointer.From(encryption.RequireInfrastructureEncryption)
+				if encryption.Services != nil {
+					if encryption.Services.Queue != nil && encryption.Services.Queue.KeyType != nil {
+						queueEncryptionKeyType = string(*encryption.Services.Queue.KeyType)
+					}
+					if encryption.Services.Table != nil && encryption.Services.Table.KeyType != nil {
+						tableEncryptionKeyType = string(*encryption.Services.Table.KeyType)
+					}
+				}
+			}
+			d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+			d.Set("queue_encryption_key_type", queueEncryptionKeyType)
+			d.Set("table_encryption_key_type", tableEncryptionKeyType)
+
+			customerManagedKey := flattenStorageAccountCustomerManagedKey(props.Encryption, env)
+			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
+				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
+			}
+
+			if err := d.Set("sas_policy", flattenAccountSASPolicy(props.SasPolicy)); err != nil {
+				return fmt.Errorf("setting `sas_policy`: %+v", err)
+			}
+
+			supportLevel = availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
+		}
+
+		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+
+	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
+	if err := endpoints.flatten(d); err != nil {
+		return err
+	}
+
+	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
+	if keys.Model != nil && keys.Model.Keys != nil {
+		storageAccountKeys = *keys.Model.Keys
+	}
+	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
+	if err := keysAndConnectionStrings.flatten(d); err != nil {
+		return err
+	}
+
+	blobProperties := make([]interface{}, 0)
 	if supportLevel.supportBlob {
-		blobClient := storageClient.BlobServicesClient
-		blobProps, err := blobClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+		blobProps, err := storageClient.BlobServicesClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
 		}
-		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
-			return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
-		}
+
+		blobProperties = flattenBlobProperties(blobProps)
+	}
+	if err := d.Set("blob_properties", blobProperties); err != nil {
+		return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
 	}
 
+	queueProperties := make([]interface{}, 0)
 	if supportLevel.supportQueue {
 		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
@@ -2314,24 +2281,27 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
 		}
 
-		if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
-			return fmt.Errorf("setting `queue_properties`: %+v", err)
-		}
+		queueProperties = flattenQueueProperties(queueProps)
 	}
 
-	if supportLevel.supportShare {
-		fileServiceClient := storageClient.ResourceManager.FileService
+	if err := d.Set("queue_properties", queueProperties); err != nil {
+		return fmt.Errorf("setting `queue_properties`: %+v", err)
+	}
 
-		shareProps, err := fileServiceClient.GetServiceProperties(ctx, *id)
+	shareProperties := make([]interface{}, 0)
+	if supportLevel.supportShare {
+		shareProps, err := storageClient.ResourceManager.FileService.GetServiceProperties(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
 		}
 
-		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
-			return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
-		}
+		shareProperties = flattenShareProperties(shareProps)
+	}
+	if err := d.Set("share_properties", shareProperties); err != nil {
+		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
 	}
 
+	staticWebsiteProperties := make([]interface{}, 0)
 	if supportLevel.supportStaticWebsite {
 		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
@@ -2342,18 +2312,19 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
 		}
-		staticWebsite := flattenStaticWebsiteProperties(staticWebsiteProps)
-		if err := d.Set("static_website", staticWebsite); err != nil {
-			return fmt.Errorf("setting `static_website`: %+v", err)
-		}
+
+		staticWebsiteProperties = flattenStaticWebsiteProperties(staticWebsiteProps)
+	}
+	if err := d.Set("static_website", staticWebsiteProperties); err != nil {
+		return fmt.Errorf("setting `static_website`: %+v", err)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
-	client := storageClient.AccountsClient
+	client := storageClient.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -2365,31 +2336,23 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
-	read, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
-			return nil
-		}
-
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	// the networking api's only allow a single change to be made to a network layout at once, so let's lock to handle that
 	virtualNetworkNames := make([]string, 0)
-	if props := read.AccountProperties; props != nil {
-		if rules := props.NetworkRuleSet; rules != nil {
-			if vnr := rules.VirtualNetworkRules; vnr != nil {
+	if model := existing.Model; model != nil && model.Properties != nil {
+		if acls := model.Properties.NetworkAcls; acls != nil {
+			if vnr := acls.VirtualNetworkRules; vnr != nil {
 				for _, v := range *vnr {
-					if v.VirtualNetworkResourceID == nil {
-						continue
+					subnetId, err := commonids.ParseSubnetIDInsensitively(v.Id)
+					if err != nil {
+						return err
 					}
 
-					id, err2 := commonids.ParseSubnetID(*v.VirtualNetworkResourceID)
-					if err2 != nil {
-						return err2
-					}
-
-					networkName := id.VirtualNetworkName
+					networkName := subnetId.VirtualNetworkName
 					for _, virtualNetworkName := range virtualNetworkNames {
 						if networkName == virtualNetworkName {
 							continue
@@ -2404,11 +2367,8 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-	resp, err := client.Delete(ctx, id.ResourceGroupName, id.StorageAccountName)
-	if err != nil {
-		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("issuing delete request for %s: %+v", *id, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	// remove this from the cache
@@ -2417,61 +2377,7 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceStorageAccountWaitForDataPlaneToBecomeAvailable(ctx context.Context, client *client.Client, account *client.AccountDetails, supportLevel storageAccountServiceSupportLevel) error {
-	initialDelayDuration := 10 * time.Second
-
-	if supportLevel.supportBlob {
-		log.Printf("[DEBUG] waiting for the Blob Service to become available")
-		pollerType, err := custompollers.NewDataPlaneBlobContainersAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Blob Service Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Blob Service to become available: %+v", err)
-		}
-	}
-
-	if supportLevel.supportQueue {
-		log.Printf("[DEBUG] waiting for the Queues Service to become available")
-		pollerType, err := custompollers.NewDataPlaneQueuesAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Queues Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Queues Service to become available: %+v", err)
-		}
-	}
-
-	if supportLevel.supportShare {
-		log.Printf("[DEBUG] waiting for the File Service to become available")
-		pollerType, err := custompollers.NewDataPlaneFileShareAvailabilityPoller(client, account)
-		if err != nil {
-			return fmt.Errorf("building File Share Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the File Service to become available: %+v", err)
-		}
-	}
-
-	if supportLevel.supportStaticWebsite {
-		log.Printf("[DEBUG] waiting for the Static Website to become available")
-		pollerType, err := custompollers.NewDataPlaneStaticWebsiteAvailabilityPoller(ctx, client, account)
-		if err != nil {
-			return fmt.Errorf("building Static Website Poller: %+v", err)
-		}
-		poller := pollers.NewPoller(pollerType, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for the Static Website to become available: %+v", err)
-		}
-	}
-
-	return nil
-}
-
-func expandStorageAccountCustomDomain(input []interface{}) *storage.CustomDomain {
+func expandAccountCustomDomain(input []interface{}) *storage.CustomDomain {
 	if len(input) == 0 {
 		return &storage.CustomDomain{
 			Name: utils.String(""),
@@ -2487,7 +2393,7 @@ func expandStorageAccountCustomDomain(input []interface{}) *storage.CustomDomain
 	}
 }
 
-func flattenStorageAccountCustomDomain(input *storageaccounts.CustomDomain) []interface{} {
+func flattenAccountCustomDomain(input *storageaccounts.CustomDomain) []interface{} {
 	output := make([]interface{}, 0)
 	if input != nil {
 		output = append(output, map[string]interface{}{
@@ -2496,20 +2402,6 @@ func flattenStorageAccountCustomDomain(input *storageaccounts.CustomDomain) []in
 		})
 	}
 	return output
-}
-
-func flattenStorageAccountCustomDomainLegacy(input *storage.CustomDomain) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-	domain := make(map[string]interface{})
-
-	if v := input.Name; v != nil {
-		domain["name"] = *v
-	}
-
-	// use_subdomain isn't returned
-	return []interface{}{domain}
 }
 
 func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultClient.Client, subscriptionId string, input []interface{}) (*storage.Encryption, error) {
@@ -2601,6 +2493,26 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 	return encryption, nil
 }
 
+func flattenStorageAccountCustomerManagedKey(input *storageaccounts.Encryption, env environments.Environment) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil && input.KeySource != nil && *input.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
+		userAssignedIdentityId := ""
+		if props := input.Identity; props != nil {
+			userAssignedIdentityId = pointer.From(props.UserAssignedIdentity)
+		}
+
+		customerManagedKey := flattenCustomerManagedKey(input.Keyvaultproperties, env.ManagedHSM)
+		output = append(output, map[string]interface{}{
+			"key_vault_key_id":          customerManagedKey.keyVaultKeyId,
+			"managed_hsm_key_id":        customerManagedKey.managedHsmId,
+			"user_assigned_identity_id": userAssignedIdentityId,
+		})
+	}
+
+	return output
+}
+
 func expandStorageAccountImmutabilityPolicy(input []interface{}) *storage.ImmutableStorageAccount {
 	if len(input) == 0 {
 		return &storage.ImmutableStorageAccount{}
@@ -2620,7 +2532,7 @@ func expandStorageAccountImmutabilityPolicy(input []interface{}) *storage.Immuta
 	return &immutableStorageAccount
 }
 
-func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAccount) []interface{} {
+func flattenStorageAccountImmutabilityPolicy(policy *storageaccounts.ImmutableStorageAccount) []interface{} {
 	if policy == nil || policy.ImmutabilityPolicy == nil {
 		return make([]interface{}, 0)
 	}
@@ -2632,73 +2544,6 @@ func flattenStorageAccountImmutabilityPolicy(policy *storage.ImmutableStorageAcc
 			"allow_protected_append_writes": policy.ImmutabilityPolicy.AllowProtectedAppendWrites,
 		},
 	}
-}
-
-func flattenStorageAccountCustomerManagedKey(storageAccountId *commonids.StorageAccountId, input *storage.Encryption, env environments.Environment) ([]interface{}, error) {
-	if input == nil || input.KeySource == storage.KeySourceMicrosoftStorage {
-		return make([]interface{}, 0), nil
-	}
-
-	userAssignedIdentityId := ""
-	keyName := ""
-	keyVaultURI := ""
-	keyVersion := ""
-
-	if props := input.EncryptionIdentity; props != nil {
-		if props.EncryptionUserAssignedIdentity != nil {
-			userAssignedIdentityId = *props.EncryptionUserAssignedIdentity
-		}
-	}
-
-	if props := input.KeyVaultProperties; props != nil {
-		if props.KeyName != nil {
-			keyName = *props.KeyName
-		}
-		if props.KeyVaultURI != nil {
-			keyVaultURI = *props.KeyVaultURI
-		}
-		if props.KeyVersion != nil {
-			keyVersion = *props.KeyVersion
-		}
-	}
-
-	if keyVaultURI == "" {
-		return nil, fmt.Errorf("retrieving %s: `properties.encryption.keyVaultProperties.keyVaultURI` was nil", *storageAccountId)
-	}
-
-	ret := map[string]interface{}{
-		"user_assigned_identity_id": userAssignedIdentityId,
-	}
-
-	isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
-	if err != nil {
-		return nil, err
-	}
-
-	switch {
-	case isHSMURI && keyVersion == "":
-		{
-			keyId := managedHsmParse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName)
-			ret["managed_hsm_key_id"] = keyId.ID()
-		}
-	case isHSMURI && keyVersion != "":
-		{
-			keyId := managedHsmParse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion)
-			ret["managed_hsm_key_id"] = keyId.ID()
-		}
-	case !isHSMURI:
-		{
-			keyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
-			if err != nil {
-				return nil, err
-			}
-			ret["key_vault_key_id"] = keyId.ID()
-		}
-	}
-
-	return []interface{}{
-		ret,
-	}, nil
 }
 
 func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*storage.AzureFilesIdentityBasedAuthentication, error) {
@@ -3285,19 +3130,6 @@ func flattenAccountAzureFilesAuthentication(input *storageaccounts.AzureFilesIde
 	}
 }
 
-func flattenAccountAzureFilesAuthenticationLegacy(input *storage.AzureFilesIdentityBasedAuthentication) []interface{} {
-	if input == nil || input.DirectoryServiceOptions == storage.DirectoryServiceOptionsNone {
-		return make([]interface{}, 0)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"directory_type":   input.DirectoryServiceOptions,
-			"active_directory": flattenAccountActiveDirectoryPropertiesLegacy(input.ActiveDirectoryProperties),
-		},
-	}
-}
-
 func flattenAccountActiveDirectoryProperties(input *storageaccounts.ActiveDirectoryProperties) []interface{} {
 	output := make([]interface{}, 0)
 	if input != nil {
@@ -3313,117 +3145,39 @@ func flattenAccountActiveDirectoryProperties(input *storageaccounts.ActiveDirect
 	return output
 }
 
-func flattenAccountActiveDirectoryPropertiesLegacy(input *storage.ActiveDirectoryProperties) []interface{} {
+func flattenArmStorageAccountRouting(input *storageaccounts.RoutingPreference) []interface{} {
 	output := make([]interface{}, 0)
+
 	if input != nil {
+		routingChoice := ""
+		if input.RoutingChoice != nil {
+			routingChoice = string(*input.RoutingChoice)
+		}
+
 		output = append(output, map[string]interface{}{
-			"storage_sid":         pointer.From(input.AzureStorageSid),
-			"domain_guid":         input.DomainGUID,
-			"domain_name":         input.DomainName,
-			"domain_sid":          pointer.From(input.DomainSid),
-			"forest_name":         pointer.From(input.ForestName),
-			"netbios_domain_name": pointer.From(input.NetBiosDomainName),
+			"choice":                      routingChoice,
+			"publish_internet_endpoints":  pointer.From(input.PublishInternetEndpoints),
+			"publish_microsoft_endpoints": pointer.From(input.PublishMicrosoftEndpoints),
 		})
 	}
+
 	return output
 }
 
-func flattenArmStorageAccountRouting(input *storage.RoutingPreference) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
+func flattenStorageAccountNetworkRules(input *storageaccounts.NetworkRuleSet) []interface{} {
+	output := make([]interface{}, 0)
 
-	var publishInternetEndpoints bool
-	if input.PublishInternetEndpoints != nil {
-		publishInternetEndpoints = *input.PublishInternetEndpoints
-	}
-	var publishMicrosoftEndpoints bool
-	if input.PublishMicrosoftEndpoints != nil {
-		publishMicrosoftEndpoints = *input.PublishMicrosoftEndpoints
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"publish_internet_endpoints":  publishInternetEndpoints,
-			"publish_microsoft_endpoints": publishMicrosoftEndpoints,
-			"choice":                      input.RoutingChoice,
-		},
-	}
-}
-
-func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	networkRules := make(map[string]interface{})
-
-	networkRules["ip_rules"] = pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountIPRules(input.IPRules))
-	networkRules["virtual_network_subnet_ids"] = pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
-	networkRules["bypass"] = pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountBypass(input.Bypass))
-	networkRules["default_action"] = string(input.DefaultAction)
-	networkRules["private_link_access"] = flattenStorageAccountPrivateLinkAccess(input.ResourceAccessRules)
-
-	return []interface{}{networkRules}
-}
-
-func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	ipRules := make([]interface{}, 0)
-	for _, ipRule := range *input {
-		if ipRule.IPAddressOrRange == nil {
-			continue
-		}
-
-		ipRules = append(ipRules, *ipRule.IPAddressOrRange)
-	}
-
-	return ipRules
-}
-
-func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	virtualNetworks := make([]interface{}, 0)
-	for _, virtualNetwork := range *input {
-		if virtualNetwork.VirtualNetworkResourceID == nil {
-			continue
-		}
-
-		virtualNetworks = append(virtualNetworks, *virtualNetwork.VirtualNetworkResourceID)
-	}
-
-	return virtualNetworks
-}
-
-func flattenStorageAccountPrivateLinkAccess(inputs *[]storage.ResourceAccessRule) []interface{} {
-	if inputs == nil || len(*inputs) == 0 {
-		return []interface{}{}
-	}
-
-	accessRules := make([]interface{}, 0)
-	for _, input := range *inputs {
-		var resourceId, tenantId string
-		if input.ResourceID != nil {
-			resourceId = *input.ResourceID
-		}
-
-		if input.TenantID != nil {
-			tenantId = *input.TenantID
-		}
-
-		accessRules = append(accessRules, map[string]interface{}{
-			"endpoint_resource_id": resourceId,
-			"endpoint_tenant_id":   tenantId,
+	if input != nil {
+		output = append(output, map[string]interface{}{
+			"bypass":                     pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesBypass(input.Bypass)),
+			"default_action":             string(input.DefaultAction),
+			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesIPRules(input.IPRules)),
+			"private_link_access":        flattenStorageAccountNetworkRulesPrivateLinkAccess(input.ResourceAccessRules),
+			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesVirtualNetworkRules(input.VirtualNetworkRules)),
 		})
 	}
 
-	return accessRules
+	return output
 }
 
 func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
@@ -3795,49 +3549,27 @@ func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) [
 	return []interface{}{}
 }
 
-func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
-	bypassValues := strings.Split(string(input), ", ")
-	bypass := make([]interface{}, len(bypassValues))
-
-	for i, value := range bypassValues {
-		bypass[i] = value
-	}
-
-	return bypass
-}
-
-func expandStorageAccountSASPolicy(input []interface{}) *storage.SasPolicy {
+func expandAccountSASPolicy(input []interface{}) *storage.SasPolicy {
 	if len(input) == 0 {
 		return nil
 	}
 
-	e := input[0].(map[string]interface{})
-
+	raw := input[0].(map[string]interface{})
 	return &storage.SasPolicy{
-		ExpirationAction:    utils.String(e["expiration_action"].(string)),
-		SasExpirationPeriod: utils.String(e["expiration_period"].(string)),
+		ExpirationAction:    pointer.To(raw["expiration_action"].(string)),
+		SasExpirationPeriod: pointer.To(raw["expiration_period"].(string)),
 	}
 }
 
-func flattenStorageAccountSASPolicy(input *storage.SasPolicy) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenAccountSASPolicy(input *storageaccounts.SasPolicy) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		output = append(output, map[string]interface{}{
+			"expiration_action": string(input.ExpirationAction),
+			"expiration_period": input.SasExpirationPeriod,
+		})
 	}
 
-	var expirationAction string
-	if input.ExpirationAction != nil {
-		expirationAction = *input.ExpirationAction
-	}
-
-	var expirationPeriod string
-	if input.SasExpirationPeriod != nil {
-		expirationPeriod = *input.SasExpirationPeriod
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"expiration_action": expirationAction,
-			"expiration_period": expirationPeriod,
-		},
-	}
+	return output
 }

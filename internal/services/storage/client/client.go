@@ -25,7 +25,8 @@ type Client struct {
 	StorageDomainSuffix string
 
 	// NOTE: These SDK clients use `hashicorp/go-azure-sdk` and should be used going forwards
-	ResourceManager            *storage_v2023_01_01.Client
+	ResourceManager *storage_v2023_01_01.Client
+	// TODO: import the Storage Sync Meta Client and use that
 	SyncCloudEndpointsClient   *cloudendpointresource.CloudEndpointResourceClient
 	SyncGroupsClient           *syncgroupresource.SyncGroupResourceClient
 	SyncRegisteredServerClient *registeredserverresource.RegisteredServerResourceClient

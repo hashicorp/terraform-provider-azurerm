@@ -117,11 +117,13 @@ func expandStorageAccountNetworkRulesPrivateLinkAccess(input []interface{}, tena
 func flattenStorageAccountNetworkRulesPrivateLinkAccess(input *[]storageaccounts.ResourceAccessRule) []interface{} {
 	output := make([]interface{}, 0)
 
-	for _, item := range *input {
-		output = append(output, map[string]interface{}{
-			"endpoint_resource_id": pointer.From(item.ResourceId),
-			"endpoint_tenant_id":   pointer.From(item.TenantId),
-		})
+	if input != nil {
+		for _, item := range *input {
+			output = append(output, map[string]interface{}{
+				"endpoint_resource_id": pointer.From(item.ResourceId),
+				"endpoint_tenant_id":   pointer.From(item.TenantId),
+			})
+		}
 	}
 
 	return output
