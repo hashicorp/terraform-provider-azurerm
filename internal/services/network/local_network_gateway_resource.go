@@ -5,6 +5,8 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -139,6 +141,10 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 		gateway.Properties.Fqdn = &fqdn
 	}
 
+	// This custompoller can be removed once https://github.com/hashicorp/go-azure-sdk/issues/989 has been fixed
+	pollerType := custompollers.NewLocalNetworkGatewayPoller(client, id)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
 	// There is a bug in the provider where the address space ordering doesn't change as expected.
 	// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
 	if !d.IsNewResource() && d.HasChange("address_space") {
@@ -154,11 +160,18 @@ func resourceLocalNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 		if _, err := client.CreateOrUpdate(ctx, id, gateway); err != nil {
 			return fmt.Errorf("removing %s: %+v", id, err)
 		}
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return err
+		}
 	}
 	gateway.Properties.LocalNetworkAddressSpace = expandLocalNetworkGatewayAddressSpaces(d)
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, gateway); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, gateway); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
