@@ -430,7 +430,7 @@ func (PimEligibleRoleAssignmentResource) Delete() sdk.ResourceFunc {
 }
 
 func (PimEligibleRoleAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ValidatePimRoleAssignmentID
+	return validate.PimRoleAssignmentID
 }
 
 type PimEligibleRoleAssignmentResourceSchema struct {

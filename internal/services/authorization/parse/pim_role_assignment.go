@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleeligibilityschedules"
 )
 
@@ -59,24 +58,6 @@ func PimRoleAssignmentID(input string) (*PimRoleAssignmentId, error) {
 
 func (id PimRoleAssignmentId) ScopeID() commonids.ScopeId {
 	return commonids.NewScopeID(id.Scope)
-}
-
-func RoleAssignmentScheduleID(input string) (*string, error) {
-	re := regexp.MustCompile(`^.+/providers/Microsoft.Authorization/roleEligibilitySchedules/(.+)`)
-	matches := re.FindStringSubmatch(input)
-	if len(matches) != 2 {
-		return nil, fmt.Errorf("parsing %s", input)
-	}
-	return &matches[1], nil
-}
-
-func RoleAssignmentScheduleRequestIdFromSchedule(r *roleassignmentschedules.RoleAssignmentSchedule) (*string, error) {
-	re := regexp.MustCompile(`^.+/providers/Microsoft.Authorization/roleAssignmentScheduleRequests/(.+)`)
-	matches := re.FindStringSubmatch(*r.Properties.RoleAssignmentScheduleRequestId)
-	if len(matches) != 2 {
-		return nil, fmt.Errorf("parsing %s", *r.Properties.RoleAssignmentScheduleRequestId)
-	}
-	return &matches[1], nil
 }
 
 func RoleEligibilityScheduleRequestIdFromSchedule(r *roleeligibilityschedules.RoleEligibilitySchedule) (*string, error) {

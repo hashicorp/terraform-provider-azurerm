@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/roleassignmentschedules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -45,7 +46,7 @@ func TestAccPimActiveRoleAssignment_expirationByDurationHoursConfig(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.expirationByDurationHoursConfig(data),
+			Config: r.expirationByDurationHours(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -61,7 +62,7 @@ func TestAccPimActiveRoleAssignment_expirationByDurationDaysConfig(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.expirationByDurationDaysConfig(data),
+			Config: r.expirationByDurationDays(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -119,7 +120,7 @@ func TestAccPimActiveRoleAssignment_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.importTest(),
+			Config: r.importSetup(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -137,7 +138,7 @@ func TestAccPimActiveRoleAssignment_expirationByDateConfig(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.expirationByDateConfig(),
+			Config: r.expirationByDate(),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -150,29 +151,33 @@ func TestAccPimActiveRoleAssignment_expirationByDateConfig(t *testing.T) {
 func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PimRoleAssignmentID(state.ID)
 	if err != nil {
-		return utils.Bool(false), err
+		return nil, err
 	}
 
-	filter := &roleassignmentschedules.ListForScopeOperationOptions{
-		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
-	}
-
-	items, err := client.Authorization.RoleAssignmentSchedulesClient.ListForScopeComplete(ctx, id.ScopeID(), *filter)
+	scopeId, err := commonids.ParseScopeID(id.Scope)
 	if err != nil {
-		return nil, fmt.Errorf("listing role assignments on scope %s: %+v", id, err)
+		return nil, err
 	}
 
-	foundDirectAssignment := false
+	schedulesResult, err := client.Authorization.RoleAssignmentSchedulesClient.ListForScopeComplete(ctx, *scopeId, roleassignmentschedules.ListForScopeOperationOptions{
+		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("listing role assignments for %s: %+v", scopeId, err)
+	}
 
-	for _, i := range items.Items {
-		if *i.Properties.MemberType == roleassignmentschedules.MemberTypeDirect &&
-			strings.EqualFold(*i.Properties.RoleDefinitionId, id.RoleDefinitionId) {
-			foundDirectAssignment = true
-			break
+	for _, schedule := range schedulesResult.Items {
+		if props := schedule.Properties; props != nil {
+			if props.RoleDefinitionId != nil && strings.EqualFold(*props.RoleDefinitionId, id.RoleDefinitionId) &&
+				props.Scope != nil && strings.EqualFold(*props.Scope, scopeId.ID()) &&
+				props.PrincipalId != nil && strings.EqualFold(*props.PrincipalId, id.PrincipalId) &&
+				props.MemberType != nil && *props.MemberType == roleassignmentschedules.MemberTypeDirect {
+				return utils.Bool(true), nil
+			}
 		}
 	}
 
-	return utils.Bool(foundDirectAssignment), nil
+	return utils.Bool(false), nil
 }
 
 // func (PimActiveRoleAssignmentResource) noExpirationConfig() string {
@@ -200,7 +205,7 @@ func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *cli
 // `
 // }
 
-func (PimActiveRoleAssignmentResource) expirationByDurationHoursConfig(data acceptance.TestData) string {
+func (PimActiveRoleAssignmentResource) expirationByDurationHours(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 
@@ -239,7 +244,7 @@ resource "azurerm_pim_active_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (PimActiveRoleAssignmentResource) expirationByDurationDaysConfig(data acceptance.TestData) string {
+func (PimActiveRoleAssignmentResource) expirationByDurationDays(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 
@@ -284,7 +289,7 @@ resource "azurerm_pim_active_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (PimActiveRoleAssignmentResource) importTest() string {
+func (PimActiveRoleAssignmentResource) importSetup() string {
 	return `
 data "azurerm_subscription" "primary" {}
 
@@ -327,10 +332,10 @@ resource "azurerm_pim_active_role_assignment" "import" {
   role_definition_id = azurerm_pim_active_role_assignment.test.role_definition_id
   principal_id       = azurerm_pim_active_role_assignment.test.principal_id
 }
-`, r.importTest())
+`, r.importSetup())
 }
 
-func (PimActiveRoleAssignmentResource) expirationByDateConfig() string {
+func (PimActiveRoleAssignmentResource) expirationByDate() string {
 	return `
 data "azurerm_subscription" "primary" {}
 
@@ -428,7 +433,7 @@ resource "azurerm_pim_active_role_assignment" "test" {
   justification = "Expiration Duration Set"
 
   ticket {
-    number = "1"
+    number = "2"
     system = "example ticket system"
   }
 }
