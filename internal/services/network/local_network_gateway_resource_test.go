@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/localnetworkgateways"
@@ -250,7 +251,9 @@ func (LocalNetworkGatewayResource) Destroy(ctx context.Context, client *clients.
 		return nil, err
 	}
 
-	if err := client.Network.Client.LocalNetworkGateways.DeleteThenPoll(ctx, *id); err != nil {
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	if err := client.Network.Client.LocalNetworkGateways.DeleteThenPoll(ctx2, *id); err != nil {
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

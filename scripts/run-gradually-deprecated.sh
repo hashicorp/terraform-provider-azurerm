@@ -76,7 +76,6 @@ function runGraduallyDeprecatedFunctions {
     fi
 
     # exceptions to avoid false positives and legacy resources should have their original behaviour preserved
-    # TODO ip_group_cidr_resource.go should become a composite resource ID to remove this instance of d.Get() in the Delete
     exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go")
     toSkip=false
     for e in "${exceptions[@]}"; do
