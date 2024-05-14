@@ -205,7 +205,7 @@ func resourceNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead
 
 	d.Set("backend_address_pool_id", id.Second.ID())
 	d.Set("ip_configuration_name", id.First.IpConfigurationName)
-	d.Set("network_interface_id", id.ID())
+	d.Set("network_interface_id", networkInterfaceId.ID())
 
 	return nil
 }
