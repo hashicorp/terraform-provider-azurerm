@@ -40,8 +40,8 @@ resource "azurerm_vpn_gateway" "example" {
 }
 
 resource "azurerm_vpn_gateway_nat_rule" "example" {
-  name                = "example-vpngatewaynatrule"
-  vpn_gateway_id      = azurerm_vpn_gateway.example.id
+  name           = "example-vpngatewaynatrule"
+  vpn_gateway_id = azurerm_vpn_gateway.example.id
 
   external_mapping {
     address_space = "192.168.21.0/26"
