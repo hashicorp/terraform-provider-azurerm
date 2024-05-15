@@ -173,7 +173,7 @@ A `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `~12`, `~14`, `~16`, `~18` and `~20`.
 
-* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, and `7.2`.
+* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, `7.2`, and `7.4`.
 
 ~> **NOTE:** A value of `7` will provide the latest stable version. `7.2` is in preview at the time of writing.
 
