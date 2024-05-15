@@ -3,14 +3,18 @@
 ENHANCEMENTS:
 
 * `azurerm_databricks_workspace` - support for the `default_storage_firewall_enabled` property [GH-25919]
-* `azurerm_log_analytics_cluster` - support for the value `UserAssigned` in the `identity.type` property [GH-25940]
-* `azurerm_windows_function_app` - support for the PowerShell `7.4` [GH-25980]
 * `azurerm_linux_function_app` - support for the PowerShell `7.4` [GH-25980]
+* `azurerm_log_analytics_cluster` - support for the value `UserAssigned` in the `identity.type` property [GH-25940]
+* `azurerm_pim_active_role_assignment` - remove hard dependency on the `roleAssignmentScheduleRequests` API, so that role assignments will not become unmanageable over time [GH-25956]
+* `azurerm_pim_eligible_role_assignment` - remove hard dependency on the `roleEligibilityScheduleRequests` API, so that role assignments will not become unmanageable over time [GH-25956]
+* `azurerm_windows_function_app` - support for the PowerShell `7.4` [GH-25980]
 
 BUG FIXES:
 
 * `azurerm_container_app_job` - Allow `event_trigger_config.scale.min_executions` to be `0` [GH-25931]
 * `azurerm_data_factory_trigger_custom_event` - one of `subject_begins_with` and `subject_ends_with` no longer need to be set [GH-25932]
+* `azurerm_pim_active_role_assignment` - resolve a number of potential crashes [GH-25956]
+* `azurerm_pim_eligible_role_assignment` - resolve a number of potential crashes [GH-25956]
 
 ## 3.103.1 (May 10, 2024)
 
