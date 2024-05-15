@@ -106,27 +106,11 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"ticket": {
-			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
+		"justification": {
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "Ticket details relating to the eligible assignment",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"number": {
-						Optional:    true,
-						Type:        pluginsdk.TypeString,
-						Description: "User-supplied ticket number to be included with the request",
-					},
-
-					"system": {
-						Optional:    true,
-						Type:        pluginsdk.TypeString,
-						Description: "User-supplied ticket system name to be included with the request",
-					},
-				},
-			},
+			Description: "The justification for this eligible role assignment",
 		},
 
 		"schedule": {
@@ -193,11 +177,27 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"justification": {
-			Type:        pluginsdk.TypeString,
+		"ticket": {
+			Type:        pluginsdk.TypeList,
+			MaxItems:    1,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "The justification for this eligible role assignment",
+			Description: "Ticket details relating to the eligible assignment",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"number": {
+						Optional:    true,
+						Type:        pluginsdk.TypeString,
+						Description: "User-supplied ticket number to be included with the request",
+					},
+
+					"system": {
+						Optional:    true,
+						Type:        pluginsdk.TypeString,
+						Description: "User-supplied ticket system name to be included with the request",
+					},
+				},
+			},
 		},
 	}
 }

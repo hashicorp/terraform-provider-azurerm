@@ -105,27 +105,11 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"ticket": {
-			Type:        pluginsdk.TypeList,
-			MaxItems:    1,
+		"justification": {
+			Type:        pluginsdk.TypeString,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "Ticket details relating to the assignment",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"number": {
-						Optional:    true,
-						Type:        pluginsdk.TypeString,
-						Description: "User-supplied ticket number to be included with the request",
-					},
-
-					"system": {
-						Optional:    true,
-						Type:        pluginsdk.TypeString,
-						Description: "User-supplied ticket system name to be included with the request",
-					},
-				},
-			},
+			Description: "The justification for this role assignment",
 		},
 
 		"schedule": {
@@ -141,7 +125,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 						Computed:    true,
 						ForceNew:    true,
 						Type:        pluginsdk.TypeString,
-						Description: "The start date/time",
+						Description: "The start date/time of the role assignment",
 					},
 
 					"expiration": {
@@ -192,11 +176,27 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			},
 		},
 
-		"justification": {
-			Type:        pluginsdk.TypeString,
+		"ticket": {
+			Type:        pluginsdk.TypeList,
+			MaxItems:    1,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "The justification for this role assignment",
+			Description: "Ticket details relating to the assignment",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"number": {
+						Optional:    true,
+						Type:        pluginsdk.TypeString,
+						Description: "User-supplied ticket number to be included with the request",
+					},
+
+					"system": {
+						Optional:    true,
+						Type:        pluginsdk.TypeString,
+						Description: "User-supplied ticket system name to be included with the request",
+					},
+				},
+			},
 		},
 	}
 }
