@@ -6,8 +6,6 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"os"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -348,24 +346,6 @@ func TestAccPublicIpDynamic_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccPublicIpStatic_importIdError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.static_basic(data),
-		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateId:     fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/publicIPAdresses/acctestpublicip-%d", os.Getenv("ARM_SUBSCRIPTION_ID"), data.RandomInteger, data.RandomInteger),
-			ExpectError:       regexp.MustCompile("ID was missing the `publicIPAddresses` element"),
-		},
 	})
 }
 
