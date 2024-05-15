@@ -94,6 +94,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `upgrade_settings` block exports the following:
 
+* `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
+
 * `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
 ## Timeouts
