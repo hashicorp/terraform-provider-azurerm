@@ -47,6 +47,7 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_filtered(t *testing.T) {
 				acceptance.TestMatchResourceAttr(data.ResourceName, "versions.0", kvrx),
 				check.That(data.ResourceName).Key("latest_version").Exists(),
 				acceptance.TestMatchResourceAttr(data.ResourceName, "latest_version", kvrx),
+				check.That(data.ResourceName).Key("default_version").Exists(),
 			),
 		},
 	})
@@ -65,6 +66,7 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_nopreview(t *testing.T) {
 				acceptance.TestMatchResourceAttr(data.ResourceName, "versions.0", kvrx),
 				check.That(data.ResourceName).Key("latest_version").Exists(),
 				acceptance.TestMatchResourceAttr(data.ResourceName, "latest_version", kvrx),
+				check.That(data.ResourceName).Key("default_version").Exists(),
 			),
 		},
 	})
