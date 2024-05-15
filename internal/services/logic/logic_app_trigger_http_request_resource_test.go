@@ -91,7 +91,7 @@ func TestAccLogicAppTriggerHttpRequest_callbackUrl(t *testing.T) {
 			Config: r.method(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callback_url").Exists(),
+				check.That(data.ResourceName).Key("callback_url").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -243,6 +243,7 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
+  tags 	   = { Contact = "jimbo" }
 }
 
 resource "azurerm_logic_app_workflow" "test" {

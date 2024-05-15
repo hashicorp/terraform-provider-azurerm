@@ -31,6 +31,38 @@ func TestAccLogicAppTriggerCustom_basic(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppTriggerCustom_callbackUrl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")
+	r := LogicAppTriggerCustomResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callback_url").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppTriggerCustom_callbackUrl2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")
+	r := LogicAppTriggerCustomResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nonEmptyCallback(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("callback_url").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppTriggerCustom_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")
 	r := LogicAppTriggerCustomResource{}
@@ -76,6 +108,31 @@ BODY
 `, template, data.RandomInteger)
 }
 
+func (LogicAppTriggerCustomResource) nonEmptyCallback(data acceptance.TestData) string {
+	template := LogicAppTriggerCustomResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_trigger_custom" "test" {
+  name         = "request-%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+
+  body = <<BODY
+{
+  "inputs": {
+    "method": "POST",
+    "relativePath": "customers/{id}",
+	"schema": {}
+  },
+  "kind": "Http",
+  "type": "Request"
+}
+BODY
+
+}
+`, template, data.RandomInteger)
+}
+
 func (LogicAppTriggerCustomResource) requiresImport(data acceptance.TestData) string {
 	template := LogicAppTriggerCustomResource{}.basic(data)
 	return fmt.Sprintf(`
@@ -98,6 +155,7 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
+  tags 	   = { Contact = "jimbo" }
 }
 
 resource "azurerm_logic_app_workflow" "test" {

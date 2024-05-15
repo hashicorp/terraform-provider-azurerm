@@ -54,6 +54,10 @@ func resourceLogicAppTriggerCustom() *pluginsdk.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 			},
+			"callback_url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -88,9 +92,7 @@ func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	workflowId := workflows.NewWorkflowID(id.SubscriptionId, id.ResourceGroupName, id.WorkflowName)
-
-	t, app, err := retrieveLogicAppTrigger(d, meta, workflowId, id.TriggerName)
+	t, app, url, err := retrieveLogicAppTrigger(d, meta, *id)
 	if err != nil {
 		return err
 	}
@@ -101,16 +103,22 @@ func resourceLogicAppTriggerCustomRead(d *pluginsdk.ResourceData, meta interface
 		return nil
 	}
 
-	action := *t
+	trigger := *t
 
 	d.Set("name", id.TriggerName)
 	d.Set("logic_app_id", app.Id)
 
+	if url != nil {
+		d.Set("callback_url", url)
+	} else {
+		d.Set("callback_url", "")
+	}
+
 	// Azure returns an additional field called evaluatedRecurrence in the trigger body which
 	// is a copy of the recurrence specified in the body property and breaks the diff suppress logic
-	delete(action, "evaluatedRecurrence")
+	delete(trigger, "evaluatedRecurrence")
 
-	body, err := json.Marshal(action)
+	body, err := json.Marshal(trigger)
 	if err != nil {
 		return fmt.Errorf("serializing `body` for %s: %+v", id.ID(), err)
 	}
