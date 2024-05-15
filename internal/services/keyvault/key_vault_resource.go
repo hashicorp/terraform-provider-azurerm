@@ -30,11 +30,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault" // TODO: Remove in 4.0
+	dataplane "github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 var keyVaultResourceName = "azurerm_key_vault"
-var contactUpdateSuccessful bool
+
+// NOTE: Need to let the read function know if it can safely call
+// the data plane or not...
+var privateEndpointEnabled bool
 
 func resourceKeyVault() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -463,6 +466,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	update := vaults.VaultPatchParameters{}
+	isPublic := d.Get("public_network_access_enabled").(bool)
 
 	if d.HasChange("access_policy") {
 		if update.Properties == nil {
@@ -567,7 +571,6 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			update.Properties = &vaults.VaultPatchProperties{}
 		}
 
-		isPublic := d.Get("public_network_access_enabled").(bool)
 		if isPublic {
 			update.Properties.PublicNetworkAccess = utils.String("Enabled")
 		} else {
@@ -646,18 +649,17 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			resp, err = managementClient.SetCertificateContacts(ctx, vaultUri, contacts)
 		}
 
-		// NOTE: For legecy backwards compatibility, we need to ignore the Forbidden/Not Found response
-		// status codes here. Many of our customers will have already set up private endpoints so the above
-		// data plane calls would succeed...
-		if err != nil && !utils.ResponseWasForbidden(resp.Response) && !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("updating Contacts for %s: %+v", *id, err)
+		if err != nil {
+			var extendedErrorMsg string
+			if !isPublic && (utils.ResponseWasForbidden(resp.Response) || utils.ResponseWasNotFound(resp.Response)) {
+				extendedErrorMsg = "\n\nWARNING: public network access for this key vault has been disabled, access to the key vault is only allowed through private endpoints"
+			}
+			return fmt.Errorf("updating Contacts for %s: %+v %s", *id, err, extendedErrorMsg)
 		}
 
-		// Only set the 'contactUpdateSuccessful' flag if the call to the data plane was successful.
-		// If it was successful the read function should call the data plane to get the contact
-		// information, if it wasn't is should not call the data plane...
+		// Only set the 'privateEndpointEnabled' flag if the call to the data plane was successful.
 		if resp.Response.StatusCode >= 200 && resp.Response.StatusCode < 300 {
-			contactUpdateSuccessful = true
+			privateEndpointEnabled = true
 		}
 	}
 
@@ -702,6 +704,8 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("vault_uri", vaultUri)
 
+	publicNetworkAccessEnabled := true
+
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("tenant_id", model.Properties.TenantId)
@@ -710,7 +714,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_template_deployment", model.Properties.EnabledForTemplateDeployment)
 		d.Set("enable_rbac_authorization", model.Properties.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", model.Properties.EnablePurgeProtection)
-		publicNetworkAccessEnabled := true
+
 		if model.Properties.PublicNetworkAccess != nil {
 			publicNetworkAccessEnabled = strings.EqualFold(*model.Properties.PublicNetworkAccess, "Enabled")
 		}
@@ -727,7 +731,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("soft_delete_retention_days", softDeleteRetentionDays)
 
 		skuName := ""
-		// the Azure API is inconsistent here, so rewrite this into the casing we expect
+		// The Azure API is inconsistent here, so rewrite this into the casing we expect
 		// TODO: this can be removed when the new base layer is enabled?
 		for _, v := range vaults.PossibleValuesForSkuName() {
 			if strings.EqualFold(v, string(model.Properties.Sku.Name)) {
@@ -750,9 +754,9 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	// NOTE: Only call the data plane for the contact information if the update operation
-	// was successful...
-	if contactUpdateSuccessful {
+	// NOTE: Only call the data plane for the contact information if the key vault
+	// is public or if the update operation was successful...
+	if publicNetworkAccessEnabled || privateEndpointEnabled {
 		contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
 		if err != nil {
 			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
