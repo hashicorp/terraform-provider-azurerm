@@ -2208,14 +2208,9 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 	v := input[0].(map[string]interface{})
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = utils.String(maxSurgeRaw)
-		fmt.Println("Setting max surge to", maxSurgeRaw)
 	}
-	if drainTimeoutInMinutesRaw := int64(v["drain_timeout_in_minutes"].(int)); drainTimeoutInMinutesRaw != int64(0) {
-		setting.DrainTimeoutInMinutes = utils.Int64(drainTimeoutInMinutesRaw)
-		fmt.Println("Setting drain timeout in minutes to", drainTimeoutInMinutesRaw)
-	}
-	if drainTimeoutInMinutesRaw := int64(v["drain_timeout_in_minutes"].(int)); drainTimeoutInMinutesRaw != int64(0) {
-		setting.DrainTimeoutInMinutes = utils.Int64(drainTimeoutInMinutesRaw)
+	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int); drainTimeoutInMinutesRaw != 0 {
+		setting.DrainTimeoutInMinutes = utils.Int64(int64(drainTimeoutInMinutesRaw))
 	}
 	return setting
 }
