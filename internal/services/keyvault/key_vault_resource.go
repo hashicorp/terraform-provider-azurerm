@@ -755,7 +755,9 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
 	if err != nil {
 		if publicNetworkAccessEnabled {
-			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+			if !utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response) {
+				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+			}
 		}
 	}
 
