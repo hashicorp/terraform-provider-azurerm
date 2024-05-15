@@ -108,6 +108,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 		"justification": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "The justification for this role assignment",
 		},
@@ -185,14 +186,16 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"number": {
-						Optional:    true,
 						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 						Description: "User-supplied ticket number to be included with the request",
 					},
 
 					"system": {
-						Optional:    true,
 						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 						Description: "User-supplied ticket system name to be included with the request",
 					},
 				},

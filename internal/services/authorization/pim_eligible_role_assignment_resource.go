@@ -109,6 +109,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 		"justification": {
 			Type:        pluginsdk.TypeString,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "The justification for this eligible role assignment",
 		},
@@ -136,10 +137,10 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"duration_days": {
+									Type:     pluginsdk.TypeInt,
 									Optional: true,
 									Computed: true,
 									ForceNew: true,
-									Type:     pluginsdk.TypeInt,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_hours",
 										"schedule.0.expiration.0.end_date_time",
@@ -160,10 +161,10 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 								},
 
 								"end_date_time": {
+									Type:     pluginsdk.TypeString,
 									Optional: true,
 									Computed: true,
 									ForceNew: true,
-									Type:     pluginsdk.TypeString,
 									ConflictsWith: []string{
 										"schedule.0.expiration.0.duration_days",
 										"schedule.0.expiration.0.duration_hours",
@@ -186,14 +187,16 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"number": {
-						Optional:    true,
 						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 						Description: "User-supplied ticket number to be included with the request",
 					},
 
 					"system": {
-						Optional:    true,
 						Type:        pluginsdk.TypeString,
+						Optional:    true,
+						ForceNew:    true,
 						Description: "User-supplied ticket system name to be included with the request",
 					},
 				},

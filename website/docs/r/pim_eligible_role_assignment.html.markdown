@@ -122,9 +122,9 @@ A `schedule` block supports the following:
 
 A `ticket` block supports the following:
 
-* `number` - (Optional) User-supplied ticket number to be included with the request.
+* `number` - (Optional) User-supplied ticket number to be included with the request. Changing this forces a new resource to be created.
 
-* `system` - (Optional) User-supplied ticket system name to be included with the request.
+* `system` - (Optional) User-supplied ticket system name to be included with the request. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
