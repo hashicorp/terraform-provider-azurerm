@@ -163,7 +163,7 @@ func (r PimActiveRoleAssignmentResource) Exists(ctx context.Context, client *cli
 		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("listing role assignments for %s: %+v", scopeId, err)
+		return nil, fmt.Errorf("listing role assignment schedules for %s: %+v", scopeId, err)
 	}
 
 	for _, schedule := range schedulesResult.Items {
