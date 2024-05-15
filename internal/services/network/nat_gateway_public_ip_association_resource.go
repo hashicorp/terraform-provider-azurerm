@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -43,14 +42,14 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NatGatewayID,
+				ValidateFunc: natgateways.ValidateNatGatewayID,
 			},
 
 			"public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PublicIpAddressID,
+				ValidateFunc: commonids.ValidatePublicIPAddressID,
 			},
 		},
 	}
@@ -61,17 +60,15 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for NAT Gateway <-> Public IP Association creation.")
 	publicIpAddressId, err := commonids.ParsePublicIPAddressID(d.Get("public_ip_address_id").(string))
 	if err != nil {
 		return err
 	}
+
 	natGatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
 	if err != nil {
 		return err
 	}
-
-	id := commonids.NewCompositeResourceID(natGatewayId, publicIpAddressId)
 
 	locks.ByName(natGatewayId.NatGatewayName, natGatewayResourceName)
 	defer locks.UnlockByName(natGatewayId.NatGatewayName, natGatewayResourceName)
@@ -90,6 +87,8 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 	if natGateway.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", natGatewayId)
 	}
+
+	id := commonids.NewCompositeResourceID(natGatewayId, publicIpAddressId)
 
 	publicIpAddresses := make([]natgateways.SubResource, 0)
 	if natGateway.Model.Properties.PublicIPAddresses != nil {
@@ -159,6 +158,7 @@ func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta i
 					break
 				}
 			}
+
 			if publicIPAddressId == "" {
 				log.Printf("[DEBUG] Association between %s and %s was not found - removing from state", id.First, id.Second)
 				d.SetId("")

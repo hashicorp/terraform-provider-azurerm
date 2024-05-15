@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -97,7 +98,25 @@ func (t NatGatewayPublicIpPrefixAssociationResource) Exists(ctx context.Context,
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	found := false
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.PublicIPPrefixes != nil {
+				for _, pip := range *props.PublicIPPrefixes {
+					if pip.Id == nil {
+						continue
+					}
+
+					if strings.EqualFold(*pip.Id, id.Second.ID()) {
+						found = true
+						break
+					}
+				}
+			}
+		}
+	}
+
+	return pointer.To(found), nil
 }
 
 func (NatGatewayPublicIpPrefixAssociationResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -106,7 +125,9 @@ func (NatGatewayPublicIpPrefixAssociationResource) Destroy(ctx context.Context, 
 		return nil, err
 	}
 
-	resp, err := client.Network.Client.NatGateways.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	resp, err := client.Network.Client.NatGateways.Get(ctx2, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
@@ -128,8 +149,8 @@ func (NatGatewayPublicIpPrefixAssociationResource) Destroy(ctx context.Context, 
 	}
 	resp.Model.Properties.PublicIPPrefixes = &updatedPrefixes
 
-	if err := client.Network.Client.NatGateways.CreateOrUpdateThenPoll(ctx, *id.First, *resp.Model); err != nil {
-		return nil, fmt.Errorf("deleting %s from %s: %+v", id.Second, id.First, err)
+	if err := client.Network.Client.NatGateways.CreateOrUpdateThenPoll(ctx2, *id.First, *resp.Model); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return pointer.To(true), nil
