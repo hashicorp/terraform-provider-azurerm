@@ -811,6 +811,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewaySkuNameBasic),
 								string(applicationgateways.ApplicationGatewaySkuNameStandardSmall),
 								string(applicationgateways.ApplicationGatewaySkuNameStandardMedium),
 								string(applicationgateways.ApplicationGatewaySkuNameStandardLarge),
@@ -825,6 +826,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayTierBasic),
 								string(applicationgateways.ApplicationGatewayTierStandard),
 								string(applicationgateways.ApplicationGatewayTierStandardVTwo),
 								string(applicationgateways.ApplicationGatewayTierWAF),
@@ -4713,6 +4715,10 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)
+
+	if tier == "Basic" && (hasAutoscaleConfig || hasCapacity) {
+		return fmt.Errorf("The Application Gateway does not support `autoscale_configuration` blocks or `capacity` values for the selected SKU tier %q", tier)
+	}
 
 	if !hasAutoscaleConfig && !hasCapacity {
 		return fmt.Errorf("The Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
