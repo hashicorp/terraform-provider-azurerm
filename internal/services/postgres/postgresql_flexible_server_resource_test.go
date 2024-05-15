@@ -563,6 +563,23 @@ func TestAccPostgresqlFlexibleServer_updateOnlyWithStorageTier(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.updateStorageTierWithoutProperty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// the storage tier is not changed to the default value, because p10 is still valid.
+				check.That(data.ResourceName).Key("storage_tier").HasValue("P10"),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.updateOnlyWithStorageMb(data, "262144"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_tier").HasValue("P15"),
+			),
+		},
 	})
 }
 
@@ -609,6 +626,23 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger, storageTier)
+}
+
+func (r PostgresqlFlexibleServerResource) updateStorageTierWithoutProperty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 65536
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PostgresqlFlexibleServerResource) updateOnlyWithStorageMb(data acceptance.TestData, storageMb string) string {

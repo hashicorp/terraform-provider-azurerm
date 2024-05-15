@@ -400,13 +400,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			// storage_mb size...
 			storageTiers := storageTierMappings[newMb]
 
-			// set default tier for storage when there is now configuration available
-			if v := diff.GetRawConfig().AsValueMap()["storage_tier"]; v.IsNull() {
-				newTier = string(storageTiers.DefaultTier)
-				// set the new value that the update function will pickup and deploy new new storage tier.
-				diff.SetNew("storage_tier", newTier)
-			}
-
 			if newTier == "" {
 				newTier = string(storageTiers.DefaultTier)
 			}
@@ -421,6 +414,20 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			}
 
 			if !isValid {
+				if strings.EqualFold(oldTierRaw.(string), newTier) {
+					// The tier value did not change, so we need to determin if they are
+					// using the default value for the tier, or they actually defined the
+					// tier in the config or not... If they did not define
+					// the tier in the config we need to assign a new valid default
+					// tier for the newMb value. However, if the tier is in the config
+					// this is a valid error and should be returned...
+					if v := diff.GetRawConfig().AsValueMap()["storage_tier"]; v.IsNull() {
+						diff.SetNew("storage_tier", string(storageTiers.DefaultTier))
+						log.Printf("[DEBUG]: 'storage_tier' was not valid and was not in the config assigning new default 'storage_tier' %q -> %q\n", newTier, storageTiers.DefaultTier)
+						return nil
+					}
+				}
+
 				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
 			}
 
