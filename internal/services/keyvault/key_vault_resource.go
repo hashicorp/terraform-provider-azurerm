@@ -35,10 +35,6 @@ import (
 
 var keyVaultResourceName = "azurerm_key_vault"
 
-// NOTE: Need to let the read function know if it can safely call
-// the data plane or not...
-var privateEndpointEnabled bool
-
 func resourceKeyVault() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceKeyVaultCreate,
@@ -642,24 +638,18 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 
 		var err error
-		var resp dataplane.Contacts
 		if len(*contacts.ContactList) == 0 {
-			resp, err = managementClient.DeleteCertificateContacts(ctx, vaultUri)
+			_, err = managementClient.DeleteCertificateContacts(ctx, vaultUri)
 		} else {
-			resp, err = managementClient.SetCertificateContacts(ctx, vaultUri, contacts)
+			_, err = managementClient.SetCertificateContacts(ctx, vaultUri, contacts)
 		}
 
 		if err != nil {
 			var extendedErrorMsg string
-			if !isPublic && (utils.ResponseWasForbidden(resp.Response) || utils.ResponseWasNotFound(resp.Response)) {
+			if !isPublic {
 				extendedErrorMsg = "\n\nWARNING: public network access for this key vault has been disabled, access to the key vault is only allowed through private endpoints"
 			}
 			return fmt.Errorf("updating Contacts for %s: %+v %s", *id, err, extendedErrorMsg)
-		}
-
-		// Only set the 'privateEndpointEnabled' flag if the call to the data plane was successful.
-		if resp.Response.StatusCode >= 200 && resp.Response.StatusCode < 300 {
-			privateEndpointEnabled = true
 		}
 	}
 
@@ -754,17 +744,23 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	// NOTE: Only call the data plane for the contact information if the key vault
-	// is public or if the update operation was successful...
-	if publicNetworkAccessEnabled || privateEndpointEnabled {
-		contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
-		if err != nil {
+	// If publicNetworkAccessEnabled is true, the data plane call should succeed.
+	// If an error is returned from the data plane call we need to return that error.
+	//
+	// If publicNetworkAccessEnabled is false, the data plane call should fail unless
+	// there is a private endpoint connected to the key vault.
+	//
+	// We don't know if the private endpoint has been created yet, so we need
+	// to ignore the error if the data plane call fails.
+	contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
+	if err != nil {
+		if publicNetworkAccessEnabled {
 			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 		}
+	}
 
-		if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
-			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
-		}
+	if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
+		return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
 	}
 
 	return nil
