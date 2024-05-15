@@ -1137,6 +1137,10 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
+					"drain_timeout_in_minutes": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
 				},
 			},
 		}
@@ -1227,8 +1231,8 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = utils.String(maxSurgeRaw)
 	}
-	if drainTimeoutInMinutesRaw := int64(v["drain_timeout_in_minutes"].(int)); drainTimeoutInMinutesRaw != int64(0) {
-		setting.DrainTimeoutInMinutes = utils.Int64(drainTimeoutInMinutesRaw)
+	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int); drainTimeoutInMinutesRaw != 0 {
+		setting.DrainTimeoutInMinutes = utils.Int64(int64(drainTimeoutInMinutesRaw))
 	}
 	return setting
 }
