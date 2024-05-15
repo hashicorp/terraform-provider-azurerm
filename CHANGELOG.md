@@ -4,6 +4,8 @@ ENHANCEMENTS:
 
 * `azurerm_databricks_workspace` - support for the `default_storage_firewall_enabled` property [GH-25919]
 * `azurerm_log_analytics_cluster` - support for the value `UserAssigned` in the `identity.type` property [GH-25940]
+* `azurerm_windows_function_app` - support for the PowerShell `7.4` [GH-25980]
+* `azurerm_linux_function_app` - support for the PowerShell `7.4` [GH-25980]
 
 BUG FIXES:
 
