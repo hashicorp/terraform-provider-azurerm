@@ -6,17 +6,19 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/publicipaddresses"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PublicIPResource struct{}
@@ -452,35 +454,32 @@ func TestAccPublicIpStatic_edgeZone(t *testing.T) {
 }
 
 func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PublicIpAddressID(state.ID)
+	id, err := commonids.ParsePublicIPAddressID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.PublicIPsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.PublicIPAddresses.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Public IP %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PublicIpAddressID(state.ID)
+	id, err := commonids.ParsePublicIPAddressID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.PublicIPsClient.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return nil, fmt.Errorf("deleting Public IP %q: %+v", *id, err)
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	if err := client.Network.PublicIPAddresses.DeleteThenPoll(ctx2, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.PublicIPsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Public IP %s: %+v", *id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (PublicIPResource) static_basic(data acceptance.TestData) string {
