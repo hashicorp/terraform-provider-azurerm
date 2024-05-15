@@ -241,11 +241,7 @@ func IsCallbackType(tType string) bool {
 	valid := validation.StringInSlice(cTypes, false)
 	_, errors := valid(tType, "callback_url")
 
-	if len(errors) == 0 {
-		return true
-	}
-
-	return false
+	return len(errors) == 0
 }
 
 func retreiveLogicAppTriggerCallbackUrl(d *pluginsdk.ResourceData, meta interface{}, id workflowtriggers.TriggerId) (*string, error) {
