@@ -211,11 +211,22 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 						state.Name = id.CustomDomainName
 						state.ContainerAppId = containerAppId.ID()
 						if pointer.From(v.CertificateId) != "" {
-							certId, err := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
-							if err != nil {
-								return err
+							// The `v.CertificateId` returned from API has two possible values. when using an Azure created Managed Certificate,
+							// its format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/managedCertificates/%s",
+							// another format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/certificates/%s",
+							// both cases are handled here to avoid parsing error.
+							certificateId := ""
+							certId, err1 := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
+							if err1 != nil {
+								managedCertId, err2 := managedenvironments.ParseManagedCertificateID(pointer.From(v.CertificateId))
+								if err2 != nil {
+									return err1
+								}
+								certificateId = managedCertId.ID()
+							} else {
+								certificateId = certId.ID()
 							}
-							state.CertificateId = certId.ID()
+							state.CertificateId = certificateId
 						}
 
 						state.BindingType = string(pointer.From(v.BindingType))
