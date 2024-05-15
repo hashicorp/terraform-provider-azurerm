@@ -2201,7 +2201,6 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.AgentPoolUpgradeSettings {
 	setting := &managedclusters.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
-		fmt.Println("No upgrade settings found")
 		return setting
 	}
 
