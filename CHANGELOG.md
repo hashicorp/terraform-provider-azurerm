@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * Data Source - `azurerm_kubernetes_service_version` - support for the `default_version` property [GH-25953]
 * `network/applicationgateways` - update to use `hashicorp/go-azure-sdk` [GH-25844]
 * `dataprotection` - update API version to `2024-04-01` [GH-25882]
+* `databasemigration` - update API version to `2021-06-30` [GH-25997]
 * `network/ips` - update to use `hashicorp/go-azure-sdk` [GH-25905]
 * `network/localnetworkgateway` - update to use `hashicorp/go-azure-sdk` [GH-25905]
 * `network/natgateway` - update to use `hashicorp/go-azure-sdk` [GH-25905]
