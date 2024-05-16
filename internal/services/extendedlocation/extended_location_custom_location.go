@@ -6,12 +6,14 @@ package extendedlocation
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
+	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -50,10 +52,13 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"namespace": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9-.]{0,252}$"),
+				"namespace must be between 1 and 253 characters in length and may contain only letters, numbers, periods (.), hyphens (-), and must begin with a letter or number.",
+			),
 		},
 
 		"cluster_extension_ids": {
@@ -67,7 +72,16 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 		"host_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: arckubernetes.ValidateConnectedClusterID,
+		},
+
+		"host_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(customlocations.HostTypeKubernetes),
+			}, false),
 		},
 
 		"authentication": {
@@ -78,7 +92,7 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
@@ -95,14 +109,6 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"host_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(customlocations.HostTypeKubernetes),
-			}, false),
 		},
 	}
 }
@@ -217,7 +223,7 @@ func (r CustomLocationResource) Read() sdk.ResourceFunc {
 					state.Namespace = pointer.From(props.Namespace)
 				}
 
-				if props.Authentication != nil {
+				if props.Authentication != nil && props.Authentication.Type != nil && props.Authentication.Value != nil {
 					state.Authentication = []AuthModel{
 						{
 							Type:  pointer.From(props.Authentication.Type),
@@ -275,7 +281,7 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 			d := metadata.ResourceData
 
 			if d.HasChanges("authentication") {
-				if state.Authentication != nil && len(state.Authentication) > 0 {
+				if len(state.Authentication) > 0 {
 					auth := state.Authentication[0]
 					customLocationProps.Authentication = &customlocations.CustomLocationPropertiesAuthentication{
 						Type:  pointer.To(auth.Type),

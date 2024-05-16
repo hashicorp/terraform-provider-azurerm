@@ -185,9 +185,9 @@ def helm_install_release(chart_path, subscription_id, kubernetes_distro, kuberne
                             cloud_name),
                         "--set", "systemDefaultValues.clusterconnect-agent.enabled=true",
                         "--set", "systemDefaultValues.customLocations.enabled=true",
-                        # 51dfe1e8-70c6-4de5-a08e-e18aff23d815 is from: az ad sp show --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv
+                        # feb5d117-1f5e-486d-8aa7-0606b8056bda is from: az ad sp show --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv
                         # refs: https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/custom-locations#enable-custom-locations-on-your-cluster
-                        "--set", "systemDefaultValues.customLocations.oid={}".format("51dfe1e8-70c6-4de5-a08e-e18aff23d815"),
+                        "--set", "systemDefaultValues.customLocations.oid={}".format("feb5d117-1f5e-486d-8aa7-0606b8056bda"),
                         "--namespace", "{}".format("azure-arc-release"),
                         "--create-namespace",
                         "--output", "json"]

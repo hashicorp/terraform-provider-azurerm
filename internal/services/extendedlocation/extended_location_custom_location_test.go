@@ -59,6 +59,22 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 	})
 }
 
+func TestAccExtendedLocationCustomLocaitons_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
+	r := CustomLocationResource{}
+	credential, privateKey, publicKey := r.getCredentials(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data, credential, privateKey, publicKey),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
 	r := CustomLocationResource{}
@@ -74,13 +90,6 @@ func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data, credential, privateKey, publicKey),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data, credential, privateKey, publicKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -127,17 +136,35 @@ resource "azurerm_extended_custom_location" "test" {
 `, template, data.RandomInteger)
 }
 
+func (r CustomLocationResource) complete(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+	template := r.template(data, credential, publicKey, privateKey)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_extended_custom_location" "test" {
+  name                = "acctestcustomlocation%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  host_type           = "Kubernetes"
+  cluster_extension_ids = [
+    azurerm_arc_kubernetes_cluster_extension.test.id
+  ]
+  display_name     = "customlocationcomplete%[2]d"
+  namespace        = "namespace%[2]d"
+  host_resource_id = azurerm_arc_kubernetes_cluster.test.id
+}
+`, template, data.RandomInteger)
+}
+
 func (r CustomLocationResource) template(data acceptance.TestData, credential string, publicKey string, privateKey string) string {
 	data.Locations.Primary = "eastus"
 	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -224,8 +251,8 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
   source_image_reference {
     publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 }
@@ -259,10 +286,6 @@ resource "azurerm_arc_kubernetes_cluster_extension" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  depends_on = [
-    azurerm_linux_virtual_machine.test
-  ]
 }
 `, data.RandomInteger, data.Locations.Primary, credential, publicKey, provisionTemplate)
 }
@@ -313,11 +336,11 @@ connection {
 
 provisioner "file" {
  content = templatefile("testdata/install_agent.sh.tftpl", {
-   subscription_id     = "%[4]s"
+   subscription_id     = data.azurerm_client_config.current.subscription_id
    resource_group_name = azurerm_resource_group.test.name
    cluster_name        = "acctest-akcc-%[2]d"
    location            = azurerm_resource_group.test.location
-   tenant_id           = "%[5]s"
+   tenant_id           = data.azurerm_client_config.current.tenant_id
    working_dir         = "%[3]s"
  })
  destination = "%[3]s/install_agent.sh"
@@ -335,7 +358,7 @@ provisioner "file" {
 
 provisioner "file" {
  content     = <<EOT
-%[6]s
+%[4]s
 EOT
  destination = "%[3]s/private.pem"
 }
@@ -347,5 +370,5 @@ provisioner "remote-exec" {
    "bash %[3]s/install_agent.sh > %[3]s/agent_log",
  ]
 }
-`, credential, data.RandomInteger, "/home/adminuser", os.Getenv("ARM_SUBSCRIPTION_ID"), os.Getenv("ARM_TENANT_ID"), privateKey)
+`, credential, data.RandomInteger, "/home/adminuser", privateKey)
 }

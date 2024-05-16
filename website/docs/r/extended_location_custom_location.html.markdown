@@ -10,6 +10,8 @@ description: |-
 
 Manages a Custom Location within an Extended Location.
 
+-> **Note:** Installing and configuring the Azure Arc Agent on your Kubernetes Cluster to establish connectivity is outside the scope of this document. For more details refer to [Deploy agents to your cluster](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/conceptual-agent-overview#deploy-agents-to-your-cluster) and [Connect an existing Kubernetes Cluster](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/quickstart-connect-cluster?tabs=azure-cli#connect-an-existing-kubernetes-cluster). If you encounter issues connecting your Kubernetes Cluster to Azure Arc, we'd recommend opening a ticket with Microsoft Support.
+
 ## Example Usage
 
 ```hcl
@@ -62,7 +64,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure location where the Custom Location should exist. Changing this forces a new Custom Location to be created.
 
-* `namespace` - (Required) Specifies the namespace of the Custom Location.Changing this forces a new Custom Location to be created.
+* `namespace` - (Required) Specifies the namespace of the Custom Location. Changing this forces a new Custom Location to be created.
 
 * `cluster_extension_ids` - (Required) Specifies the list of Cluster Extension IDs.
 
