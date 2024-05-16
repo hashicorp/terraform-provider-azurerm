@@ -1,7 +1,21 @@
 ## 3.104.0 (Unreleased)
 
+FEATURES:
+
+* New Data Source: `azurerm_elastic_san` [GH-25719]
+
 ENHANCEMENTS:
 
+* Data Source: `azurerm_kubernetes_service_version` - support for the `default_version` property [GH-25953]
+* `network/applicationgateways` - update to use `hashicorp/go-azure-sdk` [GH-25844]
+* `dataprotection` - update API version to `2024-04-01` [GH-25882]
+* `network/ips` - update to use `hashicorp/go-azure-sdk` [GH-25905]
+* `network/localnetworkgateway` - update to use `hashicorp/go-azure-sdk` [GH-25905]
+* `network/natgateway` - update to use `hashicorp/go-azure-sdk` [GH-25905]
+* `network/networksecuritygroup` - update to use `hashicorp/go-azure-sdk` [GH-25971]
+* `network/publicips` - update to use `hashicorp/go-azure-sdk` [GH-25971]
+* `network/virtualwan` - update to use `hashicorp/go-azure-sdk` [GH-25971]
+* `network/vpn` - update to use `hashicorp/go-azure-sdk` [GH-25971]
 * `azurerm_databricks_workspace` - support for the `default_storage_firewall_enabled` property [GH-25919]
 * `azurerm_linux_function_app` - support for the PowerShell `7.4` [GH-25980]
 * `azurerm_log_analytics_cluster` - support for the value `UserAssigned` in the `identity.type` property [GH-25940]
@@ -16,6 +30,7 @@ BUG FIXES:
 * `azurerm_postgresql_flexible_server` - fix for default `storage_tier` value when `storage_mb` field has been changed [GH-25947]
 * `azurerm_pim_active_role_assignment` - resolve a number of potential crashes [GH-25956]
 * `azurerm_pim_eligible_role_assignment` - resolve a number of potential crashes [GH-25956]
+* `azurerm_sentinel_alert_rule_scheduled` - `alert_rule_template_version` is no longer `ForceNew` [GH-25688]
 * `azurerm_storage_sync_server_endpoint` - Removing `initial_upload_policy` from model to prevent a crash [GH-25968]
 * `azurerm_container_app_job` - update validation to allow the `replica_retry_limit` property to be set to `0` [GH-25984]
 
