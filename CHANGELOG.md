@@ -27,6 +27,7 @@ BUG FIXES:
 
 * `azurerm_container_app_job` - Allow `event_trigger_config.scale.min_executions` to be `0` [GH-25931]
 * `azurerm_data_factory_trigger_custom_event` - one of `subject_begins_with` and `subject_ends_with` no longer need to be set [GH-25932]
+* `kubernetes_cluster_node_pool` - prevent race condition by checking the virtual network status when creating a node pool with a subnet ID [GH-25888]
 * `azurerm_postgresql_flexible_server` - fix for default `storage_tier` value when `storage_mb` field has been changed [GH-25947]
 * `azurerm_pim_active_role_assignment` - resolve a number of potential crashes [GH-25956]
 * `azurerm_pim_eligible_role_assignment` - resolve a number of potential crashes [GH-25956]
