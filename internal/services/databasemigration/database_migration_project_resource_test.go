@@ -66,6 +66,22 @@ func TestAccDatabaseMigrationProject_basicMySQLToAzureDbForMySql(t *testing.T) {
 	})
 }
 
+func TestAccDatabaseMigrationProject_basicMongoDbToMongoDb(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "MongoDb", "MongoDb"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_platform").HasValue("MongoDb"),
+				check.That(data.ResourceName).Key("target_platform").HasValue("MongoDb"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDatabaseMigrationProject_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
 	r := DatabaseMigrationProjectResource{}
