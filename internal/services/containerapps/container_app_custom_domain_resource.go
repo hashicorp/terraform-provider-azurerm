@@ -254,14 +254,6 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			// attempt to lock the cert if we have the ID
-			if certIdRaw := metadata.ResourceData.Get("container_app_environment_certificate_id").(string); certIdRaw != "" {
-				if certId, err := managedenvironments.ParseCertificateID(certIdRaw); err == nil {
-					locks.ByID(certId.ID())
-					defer locks.UnlockByID(certId.ID())
-				}
-			}
-
 			containerAppId := containerapps.NewContainerAppID(id.SubscriptionId, id.ResourceGroupName, id.ContainerAppName)
 
 			containerApp, err := client.Get(ctx, containerAppId)
@@ -281,6 +273,13 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 				for _, v := range *customDomains {
 					if !strings.EqualFold(v.Name, id.CustomDomainName) {
 						updatedCustomDomains = append(updatedCustomDomains, v)
+					} else {
+						// attempt to lock the cert if we have the ID
+						certificateId := pointer.From(v.CertificateId)
+						if certificateId != "" {
+							locks.ByID(certificateId)
+							defer locks.UnlockByID(certificateId)
+						}
 					}
 				}
 			}
