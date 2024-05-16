@@ -4,24 +4,29 @@
 package features
 
 type UserFeatures struct {
-	ApiManagement            ApiManagementFeatures
-	AppConfiguration         AppConfigurationFeatures
-	ApplicationInsights      ApplicationInsightFeatures
-	CognitiveAccount         CognitiveAccountFeatures
-	VirtualMachine           VirtualMachineFeatures
-	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
-	KeyVault                 KeyVaultFeatures
-	TemplateDeployment       TemplateDeploymentFeatures
-	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
-	ResourceGroup            ResourceGroupFeatures
-	ManagedDisk              ManagedDiskFeatures
-	Subscription             SubscriptionFeatures
-	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
-	MachineLearning          MachineLearningFeatures
-	RecoveryService          RecoveryServiceFeatures
+	ApiManagement              ApiManagementFeatures
+	AppConfiguration           AppConfigurationFeatures
+	ApplicationInsights        ApplicationInsightFeatures
+	CognitiveAccount           CognitiveAccountFeatures
+	CognitiveAccountAIServices CognitiveAccountAIServicesFeatures
+	VirtualMachine             VirtualMachineFeatures
+	VirtualMachineScaleSet     VirtualMachineScaleSetFeatures
+	KeyVault                   KeyVaultFeatures
+	TemplateDeployment         TemplateDeploymentFeatures
+	LogAnalyticsWorkspace      LogAnalyticsWorkspaceFeatures
+	ResourceGroup              ResourceGroupFeatures
+	ManagedDisk                ManagedDiskFeatures
+	Subscription               SubscriptionFeatures
+	PostgresqlFlexibleServer   PostgresqlFlexibleServerFeatures
+	MachineLearning            MachineLearningFeatures
+	RecoveryService            RecoveryServiceFeatures
 }
 
 type CognitiveAccountFeatures struct {
+	PurgeSoftDeleteOnDestroy bool
+}
+
+type CognitiveAccountAIServicesFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
 }
 
