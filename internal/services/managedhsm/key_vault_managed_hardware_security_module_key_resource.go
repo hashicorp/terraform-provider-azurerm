@@ -168,7 +168,6 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedHSMs.DataPlaneKeysClient
-			// client := metadata.Client.ManagedHSMs.ManagedHsmKeyClient
 			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
 			if !ok {
 				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
@@ -197,6 +196,9 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewManagedHSMDataPlaneVersionlessKeyID(endpoint.ManagedHSMName, endpoint.DomainSuffix, config.Name)
 
+			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+
 			existing, err := client.GetKey(ctx, endpoint.BaseURI(), id.KeyName, "")
 			if err != nil {
 				if !utils.ResponseWasNotFound(existing.Response) {
@@ -206,9 +208,6 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
-
-			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
 
 			parameters := keyvault.KeyCreateParameters{
 				Kty:    keyvault.JSONWebKeyType(config.KeyType),
@@ -247,7 +246,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 			}
 
 			if resp, err := client.CreateKey(ctx, endpoint.BaseURI(), config.Name, parameters); err != nil {
-				if metadata.Client.Features.KeyVault.RecoverSoftDeletedKeys && utils.ResponseWasConflict(resp.Response) {
+				if metadata.Client.Features.KeyVault.RecoverSoftDeletedHSMKeys && utils.ResponseWasConflict(resp.Response) {
 					recoveredKey, err := client.RecoverDeletedKey(ctx, endpoint.BaseURI(), config.Name)
 					if err != nil {
 						return err
@@ -257,7 +256,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 						stateConf := &pluginsdk.StateChangeConf{
 							Pending:                   []string{"pending"},
 							Target:                    []string{"available"},
-							Refresh:                   keyVaultHSMChildItemRefreshFunc(*kid),
+							Refresh:                   managedHSMKeyRefreshFunc(*kid),
 							Delay:                     30 * time.Second,
 							PollInterval:              10 * time.Second,
 							ContinuousTargetOccurence: 10,
@@ -303,7 +302,7 @@ func (r KeyVaultMHSMKeyResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
 			}
 			if resourceManagerId == nil {
-				return fmt.Errorf("unable to determine the Resource Manager ID for %s", id)
+				return metadata.MarkAsGone(*id)
 			}
 
 			resp, err := client.GetKey(ctx, id.BaseUri(), id.KeyName, "")

@@ -107,9 +107,9 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	return nil
 }
 
-func keyVaultHSMChildItemRefreshFunc(childItemUri string) pluginsdk.StateRefreshFunc {
+func managedHSMKeyRefreshFunc(childItemUri string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if KeyHSMVault Child Item %q is available..", childItemUri)
+		log.Printf("[DEBUG] Checking to see if Managed HSM Key %q is available..", childItemUri)
 
 		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
 
@@ -119,13 +119,13 @@ func keyVaultHSMChildItemRefreshFunc(childItemUri string) pluginsdk.StateRefresh
 
 		conn, err := client.Get(childItemUri)
 		if err != nil {
-			log.Printf("[DEBUG] Didn't find KeyVault HSM Child Item at %q", childItemUri)
-			return nil, "pending", fmt.Errorf("checking Child Item at %q: %s", childItemUri, err)
+			log.Printf("[DEBUG] Didn't find Managed HSM Key at %q", childItemUri)
+			return nil, "pending", fmt.Errorf("checking Managed HSM Key at %q: %s", childItemUri, err)
 		}
 
 		defer conn.Body.Close()
 
-		log.Printf("[DEBUG] Found KeyVault HSM Child Item %q", childItemUri)
+		log.Printf("[DEBUG] Found Managed HSM Key %q", childItemUri)
 		return "available", "available", nil
 	}
 }
