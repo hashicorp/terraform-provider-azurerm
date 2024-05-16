@@ -243,7 +243,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
-  tags 	   = { Contact = "jimbo" }
 }
 
 resource "azurerm_logic_app_workflow" "test" {
