@@ -107,9 +107,9 @@ func deleteAndOptionallyPurge(ctx context.Context, description string, shouldPur
 	return nil
 }
 
-func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
+func keyVaultHSMChildItemRefreshFunc(childItemUri string) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
+		log.Printf("[DEBUG] Checking to see if KeyHSMVault Child Item %q is available..", childItemUri)
 
 		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
 
@@ -117,15 +117,15 @@ func keyVaultChildItemRefreshFunc(secretUri string) pluginsdk.StateRefreshFunc {
 			Transport: PTransport,
 		}
 
-		conn, err := client.Get(secretUri)
+		conn, err := client.Get(childItemUri)
 		if err != nil {
-			log.Printf("[DEBUG] Didn't find KeyVault secret at %q", secretUri)
-			return nil, "pending", fmt.Errorf("checking secret at %q: %s", secretUri, err)
+			log.Printf("[DEBUG] Didn't find KeyVault HSM Child Item at %q", childItemUri)
+			return nil, "pending", fmt.Errorf("checking Child Item at %q: %s", childItemUri, err)
 		}
 
 		defer conn.Body.Close()
 
-		log.Printf("[DEBUG] Found KeyVault Secret %q", secretUri)
+		log.Printf("[DEBUG] Found KeyVault HSM Child Item %q", childItemUri)
 		return "available", "available", nil
 	}
 }
