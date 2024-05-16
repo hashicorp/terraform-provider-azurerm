@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -245,6 +246,7 @@ func resourceKeyVault() *pluginsdk.Resource {
 
 func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	managementClient := meta.(*clients.Client).KeyVault.ManagementClient // TODO: Remove in 4.0
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,11 +261,14 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	isPublic := d.Get("public_network_access_enabled").(bool)
 	contactRaw := d.Get("contact").(*pluginsdk.Set).List()
+	contactCount := len(contactRaw)
 
-	// NOTE: Block the creation of net new key vault resources where
-	// the contact field has been defined...
-	if len(contactRaw) > 0 {
-		return fmt.Errorf("%s: The `contact` field is not supported for new key vaults", id)
+	// In v4.0 providers block creation of all key vaults if the configuration
+	// file contains a 'contact' field...
+	if features.FourPointOhBeta() {
+		if contactCount > 0 {
+			return fmt.Errorf("%s: The `contact` field is not supported for new key vaults", id)
+		}
 	}
 
 	// check for the presence of an existing, live one which should be imported into the state
@@ -427,6 +432,24 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for %s to become available: %s", id, err)
+		}
+	}
+
+	// In v3.x providers block the creation of new key vaults if the
+	// 'public_network_access_enabled' is set to 'false'...
+	if !features.FourPointOhBeta() {
+		if contactCount > 0 {
+			if !isPublic {
+				return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
+			}
+
+			contacts := dataplane.Contacts{
+				ContactList: expandKeyVaultCertificateContactList(contactRaw),
+			}
+
+			if _, err := managementClient.SetCertificateContacts(ctx, vaultUri, contacts); err != nil {
+				return fmt.Errorf("failed to set Contacts for %s: %+v", id, err)
+			}
 		}
 	}
 
@@ -745,19 +768,20 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	// If publicNetworkAccessEnabled is true, the data plane call should succeed.
+	// (if the caller has the 'ManageContacts' certificate permissions)
+	//
 	// If an error is returned from the data plane call we need to return that error.
 	//
 	// If publicNetworkAccessEnabled is false, the data plane call should fail unless
 	// there is a private endpoint connected to the key vault.
+	// (and the caller has the 'ManageContacts' certificate permissions)
 	//
 	// We don't know if the private endpoint has been created yet, so we need
 	// to ignore the error if the data plane call fails.
 	contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
 	if err != nil {
-		if publicNetworkAccessEnabled {
-			if !utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response) {
-				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
-			}
+		if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 		}
 	}
 
