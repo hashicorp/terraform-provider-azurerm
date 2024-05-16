@@ -174,10 +174,10 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	acls.DefaultAction = storageaccounts.DefaultAction(d.Get("default_action").(string))
-	acls.Bypass = expandStorageAccountNetworkRuleBypass(d.Get("bypass").(*pluginsdk.Set).List())
-	acls.IPRules = expandStorageAccountNetworkRuleIPRules(d.Get("ip_rules").(*pluginsdk.Set).List())
-	acls.VirtualNetworkRules = expandStorageAccountNetworkRuleVirtualRules(d.Get("virtual_network_subnet_ids").(*pluginsdk.Set).List())
-	acls.ResourceAccessRules = expandStorageAccountNetworkRulesPrivateLinkAccess(d.Get("private_link_access").([]interface{}), tenantId)
+	acls.Bypass = expandAccountNetworkRuleBypass(d.Get("bypass").(*pluginsdk.Set).List())
+	acls.IPRules = expandAccountNetworkRuleIPRules(d.Get("ip_rules").(*pluginsdk.Set).List())
+	acls.VirtualNetworkRules = expandAccountNetworkRuleVirtualNetworkRules(d.Get("virtual_network_subnet_ids").(*pluginsdk.Set).List())
+	acls.ResourceAccessRules = expandAccountNetworkRulePrivateLinkAccess(d.Get("private_link_access").([]interface{}), tenantId)
 
 	payload := storageaccounts.StorageAccountUpdateParameters{
 		Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
@@ -220,17 +220,17 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if rules := props.NetworkAcls; rules != nil {
-				if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesIPRules(rules.IPRules))); err != nil {
+				if err := d.Set("ip_rules", pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleIPRules(rules.IPRules))); err != nil {
 					return fmt.Errorf("setting `ip_rules`: %+v", err)
 				}
-				if err := d.Set("virtual_network_subnet_ids", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesVirtualNetworkRules(rules.VirtualNetworkRules))); err != nil {
+				if err := d.Set("virtual_network_subnet_ids", pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleVirtualNetworkRules(rules.VirtualNetworkRules))); err != nil {
 					return fmt.Errorf("setting `virtual_network_subnet_ids`: %+v", err)
 				}
-				if err := d.Set("bypass", pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesBypass(rules.Bypass))); err != nil {
+				if err := d.Set("bypass", pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleBypass(rules.Bypass))); err != nil {
 					return fmt.Errorf("setting `bypass`: %+v", err)
 				}
 				d.Set("default_action", string(rules.DefaultAction))
-				if err := d.Set("private_link_access", flattenStorageAccountNetworkRulesPrivateLinkAccess(rules.ResourceAccessRules)); err != nil {
+				if err := d.Set("private_link_access", flattenAccountNetworkRulePrivateLinkAccess(rules.ResourceAccessRules)); err != nil {
 					return fmt.Errorf("setting `private_link_access`: %+v", err)
 				}
 			}

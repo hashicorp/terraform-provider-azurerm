@@ -13,6 +13,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/custompollers"
 )
 
+type storageAccountServiceSupportLevel struct {
+	supportBlob          bool
+	supportQueue         bool
+	supportShare         bool
+	supportStaticWebsite bool
+}
+
 func availableFunctionalityForAccount(kind storageaccounts.Kind, tier storageaccounts.SkuTier, replicationType string) storageAccountServiceSupportLevel {
 	// FileStorage doesn't support blob
 	supportBlob := kind != storageaccounts.KindFileStorage

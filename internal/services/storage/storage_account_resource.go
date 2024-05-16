@@ -8,11 +8,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"slices"
+	"sort"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
@@ -37,7 +37,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	legacyTags "github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -48,42 +47,32 @@ import (
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
-	storageKindsSupportsSkuTier = []storage.Kind{
-		storage.KindBlobStorage,
-		storage.KindStorageV2,
-		storage.KindFileStorage,
+	storageKindsSupportsSkuTier = map[storageaccounts.Kind]struct{}{
+		storageaccounts.KindBlobStorage: {},
+		storageaccounts.KindFileStorage: {},
+		storageaccounts.KindStorageVTwo: {},
 	}
-	storageKindsSupportHns = []storage.Kind{
-		storage.KindBlobStorage,
-		storage.KindStorageV2,
-		storage.KindBlockBlobStorage,
+	storageKindsSupportHns = map[storageaccounts.Kind]struct{}{
+		storageaccounts.KindBlobStorage:      {},
+		storageaccounts.KindBlockBlobStorage: {},
+		storageaccounts.KindStorageVTwo:      {},
 	}
 )
 
-type storageAccountServiceSupportLevel struct {
-	supportBlob          bool
-	supportQueue         bool
-	supportShare         bool
-	supportStaticWebsite bool
-}
-
-func resourceStorageAccount() *pluginsdk.Resource {
-	upgraders := map[int]pluginsdk.StateUpgrade{
-		0: migration.AccountV0ToV1{},
-		1: migration.AccountV1ToV2{},
-		2: migration.AccountV2ToV3{},
-		3: migration.AccountV3ToV4{},
-	}
-	schemaVersion := 4
-
+func resourceAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStorageAccountCreate,
-		Read:   resourceStorageAccountRead,
-		Update: resourceStorageAccountUpdate,
-		Delete: resourceStorageAccountDelete,
+		Create: resourceAccountCreate,
+		Read:   resourceAccountRead,
+		Update: resourceAccountUpdate,
+		Delete: resourceAccountDelete,
 
-		SchemaVersion:  schemaVersion,
-		StateUpgraders: pluginsdk.StateUpgrades(upgraders),
+		SchemaVersion: 4,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.AccountV0ToV1{},
+			1: migration.AccountV1ToV2{},
+			2: migration.AccountV2ToV3{},
+			3: migration.AccountV3ToV4{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseStorageAccountID(id)
@@ -110,26 +99,17 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"account_kind": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.KindStorage),
-					string(storage.KindBlobStorage),
-					string(storage.KindBlockBlobStorage),
-					string(storage.KindFileStorage),
-					string(storage.KindStorageV2),
-				}, false),
-				Default: string(storage.KindStorageV2),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForKind(), false),
+				Default:      string(storageaccounts.KindStorageVTwo),
 			},
 
 			"account_tier": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.SkuTierStandard),
-					string(storage.SkuTierPremium),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForSkuTier(), false),
 			},
 
 			"account_replication_type": {
@@ -147,13 +127,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 
 			// Only valid for FileStorage, BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
 			"access_tier": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.AccessTierCool),
-					string(storage.AccessTierHot),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForAccessTier(), false), // TODO: docs for `Premium`
 			},
 
 			"azure_files_authentication": {
@@ -166,9 +143,9 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.DirectoryServiceOptionsAADDS),
-								string(storage.DirectoryServiceOptionsAD),
+								string(storageaccounts.DirectoryServiceOptionsAADDS),
 								string(storageaccounts.DirectoryServiceOptionsAADKERB),
+								string(storageaccounts.DirectoryServiceOptionsAD),
 							}, false),
 						},
 
@@ -220,6 +197,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
 			"cross_tenant_replication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -290,36 +268,28 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"allow_protected_append_writes": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
 						"period_since_creation_in_days": {
 							Type:     pluginsdk.TypeInt,
 							Required: true,
 						},
 						"state": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.AccountImmutabilityPolicyStateDisabled),
-								string(storage.AccountImmutabilityPolicyStateLocked),
-								string(storage.AccountImmutabilityPolicyStateUnlocked),
-							}, false),
-						},
-						"allow_protected_append_writes": {
-							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForAccountImmutabilityPolicyState(), false),
 						},
 					},
 				},
 			},
 
 			"min_tls_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(storage.MinimumTLSVersionTLS12),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.MinimumTLSVersionTLS10),
-					string(storage.MinimumTLSVersionTLS11),
-					string(storage.MinimumTLSVersionTLS12),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForMinimumTlsVersion(), false),
 			},
 
 			"is_hns_enabled": {
@@ -336,7 +306,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			// TODO: document this new field in 3.0
 			"allow_nested_items_to_be_public": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -358,12 +327,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"dns_endpoint_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.DNSEndpointTypeStandard),
-					string(storage.DNSEndpointTypeAzureDNSZone),
-				}, false),
-				Default:  string(storage.DNSEndpointTypeStandard),
 				ForceNew: true,
+				Default:  string(storageaccounts.DnsEndpointTypeStandard),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storageaccounts.DnsEndpointTypeStandard),
+					string(storageaccounts.DnsEndpointTypeAzureDnsZone),
+				}, false),
 			},
 
 			"default_to_oauth_authentication": {
@@ -384,13 +353,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(storage.BypassAzureServices),
-									string(storage.BypassLogging),
-									string(storage.BypassMetrics),
-									string(storage.BypassNone),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForBypass(), false),
 							},
 							Set: pluginsdk.HashString,
 						},
@@ -410,17 +374,16 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Computed: true,
-							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-							Set:      pluginsdk.HashString,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+							Set: pluginsdk.HashString,
 						},
 
 						"default_action": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.DefaultActionAllow),
-								string(storage.DefaultActionDeny),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForDefaultAction(), false),
 						},
 
 						"private_link_access": {
@@ -456,7 +419,43 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"change_feed_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"change_feed_retention_in_days": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 146000),
+						},
+
+						"container_delete_retention_policy": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"days": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+
 						"cors_rule": helpers.SchemaStorageAccountCorsRule(true),
+
+						"default_service_version": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
+						},
+
 						"delete_retention_policy": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -476,6 +475,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									},
 								},
 							},
+						},
+						"last_access_time_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 
 						"restore_policy": {
@@ -499,47 +503,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							Optional: true,
 							Default:  false,
 						},
-
-						"change_feed_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"change_feed_retention_in_days": {
-							Type:         pluginsdk.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 146000),
-						},
-
-						"default_service_version": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.BlobPropertiesDefaultServiceVersion,
-						},
-
-						"last_access_time_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"container_delete_retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										Default:      7,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
 					},
 				},
 			},
@@ -552,6 +515,35 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
+						"hour_metrics": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"version": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Required: true,
+									},
+									"include_apis": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+									},
+									"retention_policy_days": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
 						"logging": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
@@ -575,35 +567,6 @@ func resourceStorageAccount() *pluginsdk.Resource {
 									"write": {
 										Type:     pluginsdk.TypeBool,
 										Required: true,
-									},
-									"retention_policy_days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
-						"hour_metrics": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"version": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-									"include_apis": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
 									},
 									"retention_policy_days": {
 										Type:         pluginsdk.TypeInt,
@@ -666,13 +629,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 						},
 
 						"choice": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storage.RoutingChoiceMicrosoftRouting),
-								string(storage.RoutingChoiceInternetRouting),
-							}, false),
-							Default: string(storage.RoutingChoiceMicrosoftRouting),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForRoutingChoice(), false),
+							Default:      string(storageaccounts.RoutingChoiceMicrosoftRouting),
 						},
 					},
 				},
@@ -710,39 +670,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"versions": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"SMB2.1",
-												"SMB3.0",
-												"SMB3.1.1",
-											}, false),
-										},
-									},
-
 									"authentication_types": {
 										Type:     pluginsdk.TypeSet,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												"NTLMv2",
 												"Kerberos",
-											}, false),
-										},
-									},
-
-									"kerberos_ticket_encryption_type": {
-										Type:     pluginsdk.TypeSet,
-										Optional: true,
-										Elem: &pluginsdk.Schema{
-											Type: pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{
-												"RC4-HMAC",
-												"AES-256",
+												"NTLMv2",
 											}, false),
 										},
 									},
@@ -759,10 +694,36 @@ func resourceStorageAccount() *pluginsdk.Resource {
 											}, false),
 										},
 									},
+
+									"kerberos_ticket_encryption_type": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"AES-256",
+												"RC4-HMAC",
+											}, false),
+										},
+									},
+
 									"multichannel_enabled": {
 										Type:     pluginsdk.TypeBool,
 										Optional: true,
 										Default:  false,
+									},
+
+									"versions": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"SMB2.1",
+												"SMB3.0",
+												"SMB3.1.1",
+											}, false),
+										},
 									},
 								},
 							},
@@ -778,12 +739,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"index_document": {
+						"error_404_document": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"error_404_document": {
+						"index_document": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -793,25 +754,19 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"queue_encryption_key_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.KeyTypeService),
-					string(storage.KeyTypeAccount),
-				}, false),
-				Default: string(storage.KeyTypeService),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForKeyType(), false),
+				Default:      string(storageaccounts.KeyTypeService),
 			},
 
 			"table_encryption_key_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.KeyTypeService),
-					string(storage.KeyTypeAccount),
-				}, false),
-				Default: string(storage.KeyTypeService),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForKeyType(), false),
+				Default:      string(storageaccounts.KeyTypeService),
 			},
 
 			"infrastructure_encryption_enabled": {
@@ -828,31 +783,27 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"expiration_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(storageaccounts.ExpirationActionLog),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storageaccounts.ExpirationActionLog),
+							}, false),
+						},
 						"expiration_period": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"expiration_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  "Log",
-							ValidateFunc: validation.StringInSlice([]string{
-								// There is no definition of this enum in the Track1 SDK due to: https://github.com/Azure/azure-sdk-for-go/issues/14589
-								"Log",
-							}, false),
 						},
 					},
 				},
 			},
 
 			"allowed_copy_scope": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.AllowedCopyScopePrivateLink),
-					string(storage.AllowedCopyScopeAAD),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForAllowedCopyScope(), false),
 			},
 
 			"sftp_enabled": {
@@ -1240,6 +1191,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"tags": {
+				// TODO: introduce/refactor this to use a `commonschema.TagsOptionalWith(a, b, c)` to enable us to handle this in one place
 				Type:         pluginsdk.TypeMap,
 				Optional:     true,
 				ValidateFunc: validate.StorageAccountTags,
@@ -1253,11 +1205,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				if d.HasChange("account_kind") {
 					accountKind, changedKind := d.GetChange("account_kind")
 
-					if accountKind != string(storage.KindStorage) && changedKind != string(storage.KindStorageV2) {
-						log.Printf("[DEBUG] recreate storage account, could't be migrated from %s to %s", accountKind, changedKind)
+					if accountKind != string(storageaccounts.KindStorage) && changedKind != string(storageaccounts.KindStorageVTwo) {
+						log.Printf("[DEBUG] recreate storage account, could't be migrated from %q to %q", accountKind, changedKind)
 						d.ForceNew("account_kind")
 					} else {
-						log.Printf("[DEBUG] storage account can be upgraded from %s to %s", accountKind, changedKind)
+						log.Printf("[DEBUG] storage account can be upgraded from %q to %q", accountKind, changedKind)
 					}
 				}
 
@@ -1269,8 +1221,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}
 
 				if d.Get("access_tier") != "" {
-					if accountKind := storage.Kind(d.Get("account_kind").(string)); !slices.Contains(storageKindsSupportsSkuTier, accountKind) {
-						return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
+					accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
+					if _, ok := storageKindsSupportsSkuTier[accountKind]; !ok {
+						keys := sortedKeysFromSlice(storageKindsSupportsSkuTier)
+						return fmt.Errorf("`access_tier` is only available for accounts where `kind` is set to one of: %+v", strings.Join(keys, " / "))
 					}
 				}
 
@@ -1295,12 +1249,19 @@ func resourceStorageAccount() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+func sortedKeysFromSlice(input map[storageaccounts.Kind]struct{}) []string {
+	keys := make([]string, 0)
+	for key := range input {
+		keys = append(keys, string(key))
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func resourceAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-
-	storageAccountsClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
-	legacyClient := meta.(*clients.Client).Storage.AccountsClient
+	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	storageClient := meta.(*clients.Client).Storage
 	keyVaultClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -1310,215 +1271,168 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
-	existing, err := storageAccountsClient.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
+	existing, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %s", id, err)
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_storage_account", id.ID())
 	}
 
-	accountKind := storage.Kind(d.Get("account_kind").(string))
+	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
+	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
+	replicationType := d.Get("account_replication_type").(string)
+
+	publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
+	if d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
+	}
+	expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	dnsEndpointType := d.Get("dns_endpoint_type").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	nfsV3Enabled := d.Get("nfsv3_enabled").(bool)
-	defaultToOAuthAuthentication := d.Get("default_to_oauth_authentication").(bool)
-	publicNetworkAccess := storage.PublicNetworkAccessDisabled
-	if d.Get("public_network_access_enabled").(bool) {
-		publicNetworkAccess = storage.PublicNetworkAccessEnabled
-	}
-	dnsEndpointType := d.Get("dns_endpoint_type").(string)
-
-	accountTier := storage.SkuTier(d.Get("account_tier").(string))
-	replicationType := d.Get("account_replication_type").(string)
-	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-
-	parameters := storage.AccountCreateParameters{
+	payload := storageaccounts.StorageAccountCreateParameters{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Kind:             accountKind,
-		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
-		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
+		Identity:         expandedIdentity,
+		Location:         location.Normalize(d.Get("location").(string)),
+		Properties: &storageaccounts.StorageAccountPropertiesCreateParameters{
 			AllowBlobPublicAccess:        pointer.To(d.Get("allow_nested_items_to_be_public").(bool)),
 			AllowCrossTenantReplication:  pointer.To(d.Get("cross_tenant_replication_enabled").(bool)),
 			AllowSharedKeyAccess:         pointer.To(d.Get("shared_access_key_enabled").(bool)),
-			DNSEndpointType:              storage.DNSEndpointType(dnsEndpointType),
-			DefaultToOAuthAuthentication: pointer.To(defaultToOAuthAuthentication),
-			EnableHTTPSTrafficOnly:       pointer.To(d.Get("enable_https_traffic_only").(bool)),
-			EnableNfsV3:                  pointer.To(nfsV3Enabled),
+			DnsEndpointType:              pointer.To(storageaccounts.DnsEndpointType(dnsEndpointType)),
+			DefaultToOAuthAuthentication: pointer.To(d.Get("default_to_oauth_authentication").(bool)),
+			SupportsHTTPSTrafficOnly:     pointer.To(d.Get("enable_https_traffic_only").(bool)),
+			IsNfsV3Enabled:               pointer.To(nfsV3Enabled),
 			IsHnsEnabled:                 pointer.To(isHnsEnabled),
 			IsLocalUserEnabled:           pointer.To(d.Get("local_user_enabled").(bool)),
 			IsSftpEnabled:                pointer.To(d.Get("sftp_enabled").(bool)),
-			MinimumTLSVersion:            storage.MinimumTLSVersion(d.Get("min_tls_version").(string)),
-			NetworkRuleSet:               expandStorageAccountNetworkRules(d, tenantId),
-			PublicNetworkAccess:          publicNetworkAccess,
+			MinimumTlsVersion:            pointer.To(storageaccounts.MinimumTlsVersion(d.Get("min_tls_version").(string))),
+			NetworkAcls:                  expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId),
+			PublicNetworkAccess:          pointer.To(publicNetworkAccess),
 			SasPolicy:                    expandAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 		},
-		Sku: &storage.Sku{
-			Name: storage.SkuName(storageType),
+		Sku: storageaccounts.Sku{
+			Name: storageaccounts.SkuName(fmt.Sprintf("%s_%s", string(accountTier), replicationType)),
+			Tier: pointer.To(accountTier),
 		},
-		Tags: legacyTags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v := d.Get("allowed_copy_scope").(string); v != "" {
-		parameters.AccountPropertiesCreateParameters.AllowedCopyScope = storage.AllowedCopyScope(v)
+		payload.Properties.AllowedCopyScope = pointer.To(storageaccounts.AllowedCopyScope(v))
 	}
-
-	storageAccountIdentity, err := expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return err
-	}
-	parameters.Identity = storageAccountIdentity
-
 	if v, ok := d.GetOk("azure_files_authentication"); ok {
-		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesAuthentication(v.([]interface{}))
+		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("parsing `azure_files_authentication`: %v", err)
 		}
-		parameters.AzureFilesIdentityBasedAuthentication = expandAADFilesAuthentication
+		payload.Properties.AzureFilesIdentityBasedAuthentication = expandAADFilesAuthentication
 	}
-
 	if _, ok := d.GetOk("custom_domain"); ok {
-		parameters.CustomDomain = expandAccountCustomDomain(d.Get("custom_domain").([]interface{}))
+		payload.Properties.CustomDomain = expandAccountCustomDomain(d.Get("custom_domain").([]interface{}))
 	}
-
 	if v, ok := d.GetOk("immutability_policy"); ok {
-		parameters.ImmutableStorageWithVersioning = expandStorageAccountImmutabilityPolicy(v.([]interface{}))
+		payload.Properties.ImmutableStorageWithVersioning = expandAccountImmutabilityPolicy(v.([]interface{}))
 	}
 
 	// BlobStorage does not support ZRS
-	if accountKind == storage.KindBlobStorage {
-		if string(parameters.Sku.Name) == string(storage.SkuNameStandardZRS) {
-			return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
-		}
+	if accountKind == storageaccounts.KindBlobStorage && string(payload.Sku.Name) == string(storageaccounts.SkuNameStandardZRS) {
+		return fmt.Errorf("a `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 	}
 
-	accessTier, ok := d.GetOk("access_tier")
-	if slices.Contains(storageKindsSupportsSkuTier, accountKind) {
-		if !ok {
-			// default to "Hot"
-			accessTier = string(storage.AccessTierHot)
-		}
-		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else if ok {
+	accessTier, accessTierSetInConfig := d.GetOk("access_tier")
+	_, skuTierSupported := storageKindsSupportsSkuTier[accountKind]
+	if !skuTierSupported && accessTierSetInConfig {
 		return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
 	}
+	if skuTierSupported {
+		if !accessTierSetInConfig {
+			// default to "Hot"
+			accessTier = string(storageaccounts.AccessTierHot)
+		}
+		payload.Properties.AccessTier = pointer.To(storageaccounts.AccessTier(accessTier.(string)))
+	}
 
-	if isHnsEnabled && !slices.Contains(storageKindsSupportHns, accountKind) {
-		return fmt.Errorf("`is_hns_enabled` can only be used with account of kinds: %v", storageKindsSupportHns)
+	if _, supportsHns := storageKindsSupportHns[accountKind]; !supportsHns && isHnsEnabled {
+		keys := sortedKeysFromSlice(storageKindsSupportHns)
+		return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `kind` set to one of: %+v", strings.Join(keys, " / "))
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
 	// (https://docs.microsoft.com/en-us/azure/storage/blobs/network-file-system-protocol-support-how-to#step-5-create-and-configure-a-storage-account)
-	if nfsV3Enabled &&
-		!((accountTier == storage.SkuTierPremium && accountKind == storage.KindBlockBlobStorage) ||
-			(accountTier == storage.SkuTierStandard && accountKind == storage.KindStorageV2)) {
-		return fmt.Errorf("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
-	}
-	if nfsV3Enabled && !isHnsEnabled {
-		return fmt.Errorf("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
+	if nfsV3Enabled {
+		if !isHnsEnabled {
+			return fmt.Errorf("`nfsv3_enabled` can only be used when `is_hns_enabled` is `true`")
+		}
+
+		isPremiumTierAndBlockBlobStorageKind := accountTier == storageaccounts.SkuTierPremium && accountKind == storageaccounts.KindBlockBlobStorage
+		isStandardTierAndStorageV2Kind := accountTier == storageaccounts.SkuTierStandard && accountKind == storageaccounts.KindStorageVTwo
+		if !isPremiumTierAndBlockBlobStorageKind && !isStandardTierAndStorageV2Kind {
+			return fmt.Errorf("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
+		}
 	}
 
 	// AccountTier must be Premium for FileStorage
-	if accountKind == storage.KindFileStorage {
-		if string(parameters.Sku.Tier) == string(storage.SkuNameStandardLRS) {
-			return fmt.Errorf("a `account_tier` of `Standard` is not supported for FileStorage accounts")
-		}
+	if accountKind == storageaccounts.KindFileStorage && accountTier == storageaccounts.SkuTierPremium {
+		return fmt.Errorf("a `account_tier` of `Standard` is not supported for FileStorage accounts")
 	}
 
 	// nolint staticcheck
 	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
-		parameters.LargeFileSharesState = storage.LargeFileSharesStateDisabled
+		largeFileSharesState := storageaccounts.LargeFileSharesStateDisabled
 		if v.(bool) {
-			parameters.LargeFileSharesState = storage.LargeFileSharesStateEnabled
+			largeFileSharesState = storageaccounts.LargeFileSharesStateEnabled
 		}
+		payload.Properties.LargeFileSharesState = pointer.To(largeFileSharesState)
 	}
 
 	if v, ok := d.GetOk("routing"); ok {
-		parameters.RoutingPreference = expandArmStorageAccountRouting(v.([]interface{}))
+		payload.Properties.RoutingPreference = expandAccountRoutingPreference(v.([]interface{}))
 	}
 
-	// TODO 4.0
-	// look into standardizing this across resources that support CMK and at the very least look at improving the UX
+	// TODO 4.0: look into standardizing this across resources that support CMK and at the very least look at improving the UX
 	// for encryption of blob, file, table and queue
-	var encryption *storage.Encryption
-	if v, ok := d.GetOk("customer_managed_key"); ok {
-		if accountTier != storage.SkuTierPremium && accountKind != storage.KindStorageV2 {
-			return fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
-		}
-		if storageAccountIdentity.Type != storage.IdentityTypeUserAssigned && storageAccountIdentity.Type != storage.IdentityTypeSystemAssignedUserAssigned {
-			return fmt.Errorf("customer managed key can only be used with identity type `UserAssigned` or `SystemAssigned, UserAssigned`")
-		}
-		encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, v.([]interface{}))
-		if err != nil {
-			return err
-		}
-	}
-
+	//
 	// By default (by leaving empty), the table and queue encryption key type is set to "Service". While users can change it to "Account" so that
 	// they can further use CMK to encrypt table/queue data. Only the StorageV2 account kind supports the Account key type.
 	// Also noted that the blob and file are always using the "Account" key type.
 	// See: https://docs.microsoft.com/en-gb/azure/storage/common/account-encryption-key-create?tabs=portal
-	queueEncryptionKeyType := d.Get("queue_encryption_key_type").(string)
-	tableEncryptionKeyType := d.Get("table_encryption_key_type").(string)
-
-	if accountKind != storage.KindStorageV2 {
-		if queueEncryptionKeyType == string(storage.KeyTypeAccount) {
-			return fmt.Errorf("`queue_encryption_key_type = %q` can only be used with account kind `%q`", string(storage.KeyTypeAccount), string(storage.KindStorageV2))
-		}
-		if tableEncryptionKeyType == string(storage.KeyTypeAccount) {
-			return fmt.Errorf("`table_encryption_key_type = %q` can only be used with account kind `%q`", string(storage.KeyTypeAccount), string(storage.KindStorageV2))
-		}
-	}
-
-	// if CMK is not supplied then only set storage encryption for queue and table, otherwise add it to the existing encryption block for CMK
-	if encryption == nil {
-		encryption = &storage.Encryption{
-			KeySource: storage.KeySourceMicrosoftStorage,
-			Services: &storage.EncryptionServices{
-				Queue: &storage.EncryptionService{
-					KeyType: storage.KeyType(queueEncryptionKeyType),
-				},
-				Table: &storage.EncryptionService{
-					KeyType: storage.KeyType(tableEncryptionKeyType),
-				},
-			},
-		}
-	} else {
-		encryption.Services.Queue = &storage.EncryptionService{
-			KeyType: storage.KeyType(queueEncryptionKeyType),
-		}
-		encryption.Services.Table = &storage.EncryptionService{
-			KeyType: storage.KeyType(tableEncryptionKeyType),
-		}
+	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
+	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
+	encryptionRaw := d.Get("customer_managed_key").([]interface{})
+	encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+	if err != nil {
+		return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 	}
 
 	infrastructureEncryption := d.Get("infrastructure_encryption_enabled").(bool)
 
 	if infrastructureEncryption {
-		if !((accountTier == storage.SkuTierPremium && (accountKind == storage.KindBlockBlobStorage) || accountKind == storage.KindFileStorage) ||
-			(accountKind == storage.KindStorageV2)) {
+		validPremiumConfiguration := accountTier == storageaccounts.SkuTierPremium && (accountKind == storageaccounts.KindBlockBlobStorage) || accountKind == storageaccounts.KindFileStorage
+		validV2Configuration := accountKind == storageaccounts.KindStorageVTwo
+		if !(validPremiumConfiguration || validV2Configuration) {
 			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind is one of `BlockBlobStorage` or `FileStorage`")
 		}
 		encryption.RequireInfrastructureEncryption = &infrastructureEncryption
 	}
 
-	parameters.Encryption = encryption
+	payload.Properties.Encryption = encryption
 
-	// Create
-	future, err := legacyClient.Create(ctx, id.ResourceGroupName, id.StorageAccountName, parameters)
-	if err != nil {
+	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, legacyClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
 	// populate the cache
-	account, err := storageAccountsClient.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
+	account, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -1537,7 +1451,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	supportLevel := availableFunctionalityForAccountLegacy(accountKind, accountTier, replicationType)
+	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 	if err := waitForDataPlaneToBecomeAvailableForAccount(ctx, storageClient, dataPlaneAccount, supportLevel); err != nil {
 		return fmt.Errorf("waiting for the Data Plane for %s to become available: %+v", id, err)
 	}
@@ -1546,28 +1460,33 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !supportLevel.supportBlob {
 			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
-		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-		blobProperties, err := expandBlobProperties(accountKind, val.([]interface{}))
+		blobProperties, err := expandAccountBlobServiceProperties(accountKind, val.([]interface{}))
 		if err != nil {
 			return err
 		}
 
 		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#:~:text=Storage%20accounts%20with%20a%20hierarchical%20namespace%20enabled%20for%20use%20with%20Azure%20Data%20Lake%20Storage%20Gen2%20are%20not%20currently%20supported.
-		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && isHnsEnabled {
+		isVersioningEnabled := pointer.From(blobProperties.Properties.IsVersioningEnabled)
+		if isVersioningEnabled && isHnsEnabled {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
-		if blobProperties.IsVersioningEnabled != nil && !*blobProperties.IsVersioningEnabled {
-			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+		if !isVersioningEnabled {
+			if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 				// Otherwise, API returns: "Conflicting feature 'restorePolicy' is enabled. Please disable it and retry."
 				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `versioning_enabled` is false")
 			}
-			if account.Model.Properties != nil &&
-				account.Model.Properties.ImmutableStorageWithVersioning != nil &&
-				account.Model.Properties.ImmutableStorageWithVersioning.ImmutabilityPolicy != nil &&
-				account.Model.Properties.ImmutableStorageWithVersioning.Enabled != nil &&
-				*account.Model.Properties.ImmutableStorageWithVersioning.Enabled {
+
+			immutableStorageWithVersioningEnabled := false
+			if props := account.Model.Properties; props != nil {
+				if versioning := props.ImmutableStorageWithVersioning; versioning != nil {
+					if versioning.ImmutabilityPolicy != nil && versioning.Enabled != nil {
+						immutableStorageWithVersioningEnabled = *versioning.Enabled
+					}
+				}
+			}
+			if immutableStorageWithVersioningEnabled {
 				// Otherwise, API returns: "Conflicting feature 'Account level WORM' is enabled. Please disable it and retry."
 				// See: https://learn.microsoft.com/en-us/azure/storage/blobs/immutable-policy-configure-version-scope?tabs=azure-portal#prerequisites
 				return fmt.Errorf("`immutability_policy` can't be set when `versioning_enabled` is false")
@@ -1576,16 +1495,16 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		// TODO: This is a temporary limitation on Storage service. Remove this check once the API supports this scenario.
 		// See https://github.com/hashicorp/terraform-provider-azurerm/pull/25450#discussion_r1542471667 for the context.
-		if dnsEndpointType == string(storage.DNSEndpointTypeAzureDNSZone) {
-			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+		if dnsEndpointType == string(storageaccounts.DnsEndpointTypeAzureDnsZone) {
+			if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 				// Otherwise, API returns: "Required feature Global Dns is disabled"
 				// This is confirmed with the SRP team, where they said:
 				// > restorePolicy feature is incompatible with partitioned DNS
-				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storage.DNSEndpointTypeAzureDNSZone)
+				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
 			}
 		}
 
-		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
+		if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, id, *blobProperties); err != nil {
 			return fmt.Errorf("updating `blob_properties`: %+v", err)
 		}
 	}
@@ -1594,25 +1513,18 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !supportLevel.supportQueue {
 			return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
-		accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-		if accountDetails == nil {
-			return fmt.Errorf("unable to locate %q", id)
-		}
 
-		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *accountDetails, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		queueClient, err := storageClient.QueuesDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
 
-		queueProperties, err := expandQueueProperties(val.([]interface{}))
+		queueProperties, err := expandAccountQueueProperties(val.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `queue_properties`: %+v", err)
 		}
 
-		if err = queueClient.UpdateServiceProperties(ctx, queueProperties); err != nil {
+		if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
 			return fmt.Errorf("updating Queue Properties: %+v", err)
 		}
 	}
@@ -1621,26 +1533,25 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !supportLevel.supportShare {
 			return fmt.Errorf("`share_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
-		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-		shareProperties := expandShareProperties(val.([]interface{}))
+		sharePayload := expandAccountShareProperties(val.([]interface{}))
 
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
-		if accountTier != storage.SkuTierPremium && shareProperties.FileServicePropertiesProperties != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings != nil {
+		if accountTier != storageaccounts.SkuTierPremium && sharePayload.Properties != nil && sharePayload.Properties.ProtocolSettings != nil {
 			// Error if the user has tried to enable multichannel on a standard tier storage account
-			smb := shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb
+			smb := sharePayload.Properties.ProtocolSettings.Smb
 			if smb != nil && smb.Multichannel != nil {
 				if smb.Multichannel.Enabled != nil {
-					if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+					if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
 						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
 					}
 				}
 
-				shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+				sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
 			}
 		}
 
-		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
+		if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, id, sharePayload); err != nil {
 			return fmt.Errorf("updating `share_properties`: %+v", err)
 		}
 	}
@@ -1650,32 +1561,25 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
-		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-		if account == nil {
-			return fmt.Errorf("unable to locate %s", id)
-		}
-
-		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *dataPlaneAccount, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
 		if err != nil {
 			return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 		}
 
-		staticWebsiteProps := expandStaticWebsiteProperties(val.([]interface{}))
+		staticWebsiteProps := expandAccountStaticWebsiteProperties(val.([]interface{}))
 
 		if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("updating `static_website`: %+v", err)
 		}
 	}
 
-	return resourceStorageAccountRead(d, meta)
+	return resourceAccountRead(d, meta)
 }
 
-func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
-	client := meta.(*clients.Client).Storage.AccountsClient
+	storageClient := meta.(*clients.Client).Storage
+	client := storageClient.ResourceManager.StorageAccounts
 	keyVaultClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1688,62 +1592,87 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	locks.ByName(id.StorageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
-	accountTier := storage.SkuTier(d.Get("account_tier").(string))
+	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-	accountKind := storage.Kind(d.Get("account_kind").(string))
+	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 
-	if accountKind == storage.KindBlobStorage || accountKind == storage.KindStorage {
-		if storageType == string(storage.SkuNameStandardZRS) {
+	if accountKind == storageaccounts.KindBlobStorage || accountKind == storageaccounts.KindStorage {
+		if storageType == string(storageaccounts.SkuNameStandardZRS) {
 			return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 		}
 	}
 
-	existing, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		return fmt.Errorf("reading for %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if existing.AccountProperties == nil {
-		return fmt.Errorf("unexpected nil AccountProperties of %s", id)
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Kind == nil {
+		return fmt.Errorf("retrieving %s: `model.Kind` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
+	}
+	if existing.Model.Sku == nil {
+		return fmt.Errorf("retrieving %s: `model.Sku` was nil", id)
 	}
 
-	params := storage.AccountCreateParameters{
-		Sku:              existing.Sku,
-		Kind:             existing.Kind,
-		Location:         existing.Location,
-		ExtendedLocation: existing.ExtendedLocation,
-		Tags:             existing.Tags,
-		Identity:         existing.Identity,
-		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			AllowedCopyScope:                      existing.AccountProperties.AllowedCopyScope,
-			PublicNetworkAccess:                   existing.AccountProperties.PublicNetworkAccess,
-			SasPolicy:                             existing.AccountProperties.SasPolicy,
-			KeyPolicy:                             existing.AccountProperties.KeyPolicy,
-			CustomDomain:                          existing.AccountProperties.CustomDomain,
-			Encryption:                            existing.AccountProperties.Encryption,
-			NetworkRuleSet:                        existing.AccountProperties.NetworkRuleSet,
-			AccessTier:                            existing.AccountProperties.AccessTier,
-			AzureFilesIdentityBasedAuthentication: existing.AccountProperties.AzureFilesIdentityBasedAuthentication,
-			EnableHTTPSTrafficOnly:                existing.AccountProperties.EnableHTTPSTrafficOnly,
-			IsSftpEnabled:                         existing.AccountProperties.IsSftpEnabled,
-			IsLocalUserEnabled:                    existing.AccountProperties.IsLocalUserEnabled,
-			IsHnsEnabled:                          existing.AccountProperties.IsHnsEnabled,
-			LargeFileSharesState:                  existing.AccountProperties.LargeFileSharesState,
-			RoutingPreference:                     existing.AccountProperties.RoutingPreference,
-			AllowBlobPublicAccess:                 existing.AccountProperties.AllowBlobPublicAccess,
-			MinimumTLSVersion:                     existing.AccountProperties.MinimumTLSVersion,
-			AllowSharedKeyAccess:                  existing.AccountProperties.AllowSharedKeyAccess,
-			EnableNfsV3:                           existing.AccountProperties.EnableNfsV3,
-			AllowCrossTenantReplication:           existing.AccountProperties.AllowCrossTenantReplication,
-			DefaultToOAuthAuthentication:          existing.AccountProperties.DefaultToOAuthAuthentication,
-			ImmutableStorageWithVersioning:        existing.AccountProperties.ImmutableStorageWithVersioning,
-			DNSEndpointType:                       existing.AccountProperties.DNSEndpointType,
-		},
+	props := storageaccounts.StorageAccountPropertiesCreateParameters{
+		AccessTier:                            existing.Model.Properties.AccessTier,
+		AllowBlobPublicAccess:                 existing.Model.Properties.AllowBlobPublicAccess,
+		AllowedCopyScope:                      existing.Model.Properties.AllowedCopyScope,
+		AllowSharedKeyAccess:                  existing.Model.Properties.AllowSharedKeyAccess,
+		AllowCrossTenantReplication:           existing.Model.Properties.AllowCrossTenantReplication,
+		AzureFilesIdentityBasedAuthentication: existing.Model.Properties.AzureFilesIdentityBasedAuthentication,
+		CustomDomain:                          existing.Model.Properties.CustomDomain,
+		DefaultToOAuthAuthentication:          existing.Model.Properties.DefaultToOAuthAuthentication,
+		DnsEndpointType:                       existing.Model.Properties.DnsEndpointType,
+		Encryption:                            existing.Model.Properties.Encryption,
+		KeyPolicy:                             existing.Model.Properties.KeyPolicy,
+		ImmutableStorageWithVersioning:        existing.Model.Properties.ImmutableStorageWithVersioning,
+		IsNfsV3Enabled:                        existing.Model.Properties.IsNfsV3Enabled,
+		IsSftpEnabled:                         existing.Model.Properties.IsSftpEnabled,
+		IsLocalUserEnabled:                    existing.Model.Properties.IsLocalUserEnabled,
+		IsHnsEnabled:                          existing.Model.Properties.IsHnsEnabled,
+		LargeFileSharesState:                  existing.Model.Properties.LargeFileSharesState,
+		MinimumTlsVersion:                     existing.Model.Properties.MinimumTlsVersion,
+		NetworkAcls:                           existing.Model.Properties.NetworkAcls,
+		PublicNetworkAccess:                   existing.Model.Properties.PublicNetworkAccess,
+		RoutingPreference:                     existing.Model.Properties.RoutingPreference,
+		SasPolicy:                             existing.Model.Properties.SasPolicy,
+		SupportsHTTPSTrafficOnly:              existing.Model.Properties.SupportsHTTPSTrafficOnly,
 	}
 
-	props := params.AccountPropertiesCreateParameters
-
+	if d.HasChange("access_tier") {
+		props.AccessTier = pointer.To(storageaccounts.AccessTier(d.Get("access_tier").(string)))
+	}
+	if d.HasChange("allowed_copy_scope") {
+		props.AllowedCopyScope = pointer.To(storageaccounts.AllowedCopyScope(d.Get("allowed_copy_scope").(string)))
+	}
+	if d.HasChange("allow_nested_items_to_be_public") {
+		props.AllowBlobPublicAccess = pointer.To(d.Get("allow_nested_items_to_be_public").(bool))
+	}
+	if d.HasChange("cross_tenant_replication_enabled") {
+		props.AllowCrossTenantReplication = pointer.To(d.Get("cross_tenant_replication_enabled").(bool))
+	}
+	if d.HasChange("custom_domain") {
+		props.CustomDomain = expandAccountCustomDomain(d.Get("custom_domain").([]interface{}))
+	}
+	if d.HasChange("customer_managed_key") {
+		queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
+		tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
+		currentIdentity := existing.Model.Identity
+		encryptionRaw := d.Get("customer_managed_key").([]interface{})
+		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *currentIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+		if err != nil {
+			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+		}
+		props.Encryption = encryption
+	}
 	if d.HasChange("shared_access_key_enabled") {
 		props.AllowSharedKeyAccess = pointer.To(d.Get("shared_access_key_enabled").(bool))
 	} else {
@@ -1759,164 +1688,127 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			props.AllowSharedKeyAccess = pointer.To(true)
 		}
 	}
-
 	if d.HasChange("default_to_oauth_authentication") {
 		props.DefaultToOAuthAuthentication = pointer.To(d.Get("default_to_oauth_authentication").(bool))
 	}
-
-	if d.HasChange("cross_tenant_replication_enabled") {
-		props.AllowCrossTenantReplication = pointer.To(d.Get("cross_tenant_replication_enabled").(bool))
+	if d.HasChange("enable_https_traffic_only") {
+		props.SupportsHTTPSTrafficOnly = pointer.To(d.Get("enable_https_traffic_only").(bool))
 	}
-
-	if d.HasChange("account_replication_type") {
-		// storageType is derived from "account_replication_type" and "account_tier" (force-new)
-		params.Sku = &storage.Sku{
-			Name: storage.SkuName(storageType),
+	if d.HasChange("large_file_share_enabled") {
+		isEnabled := storageaccounts.LargeFileSharesStateDisabled
+		if v := d.Get("large_file_share_enabled").(bool); v {
+			isEnabled = storageaccounts.LargeFileSharesStateEnabled
 		}
+		props.LargeFileSharesState = pointer.To(isEnabled)
 	}
-
-	if d.HasChange("account_kind") {
-		params.Kind = accountKind
-	}
-
-	if d.HasChange("access_tier") {
-		props.AccessTier = storage.AccessTier(d.Get("access_tier").(string))
-	}
-
-	if d.HasChange("tags") {
-		params.Tags = legacyTags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	if d.HasChange("custom_domain") {
-		props.CustomDomain = expandAccountCustomDomain(d.Get("custom_domain").([]interface{}))
-	}
-
-	if d.HasChange("identity") {
-		params.Identity, err = expandAzureRmStorageAccountIdentity(d.Get("identity").([]interface{}))
-		if err != nil {
-			return err
-		}
-	}
-
-	if d.HasChange("customer_managed_key") {
-		props.Encryption, err = expandStorageAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, d.Get("customer_managed_key").([]interface{}))
-		if err != nil {
-			return err
-		}
-	}
-
 	if d.HasChange("local_user_enabled") {
 		props.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
 	}
-
-	if d.HasChange("sftp_enabled") {
-		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
-	}
-
-	if d.HasChange("enable_https_traffic_only") {
-		props.EnableHTTPSTrafficOnly = pointer.To(d.Get("enable_https_traffic_only").(bool))
-	}
-
 	if d.HasChange("min_tls_version") {
-		props.MinimumTLSVersion = storage.MinimumTLSVersion(d.Get("min_tls_version").(string))
+		props.MinimumTlsVersion = pointer.To(storageaccounts.MinimumTlsVersion(d.Get("min_tls_version").(string)))
 	}
-
-	if d.HasChange("allow_nested_items_to_be_public") {
-		props.AllowBlobPublicAccess = pointer.To(d.Get("allow_nested_items_to_be_public").(bool))
-	}
-
-	if d.HasChange("public_network_access_enabled") {
-		publicNetworkAccess := storage.PublicNetworkAccessDisabled
-		if d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccess = storage.PublicNetworkAccessEnabled
-		}
-		props.PublicNetworkAccess = publicNetworkAccess
-	}
-
 	if d.HasChange("network_rules") {
-		props.NetworkRuleSet = expandStorageAccountNetworkRules(d, tenantId)
+		props.NetworkAcls = expandAccountNetworkRules(d.Get("network_rules").([]interface{}), tenantId)
 	}
-
-	if d.HasChange("large_file_share_enabled") {
-		isEnabled := storage.LargeFileSharesStateDisabled
-		if v := d.Get("large_file_share_enabled").(bool); v {
-			isEnabled = storage.LargeFileSharesStateEnabled
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = storageaccounts.PublicNetworkAccessEnabled
 		}
-		props.LargeFileSharesState = isEnabled
+		props.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
-
 	if d.HasChange("routing") {
-		props.RoutingPreference = expandArmStorageAccountRouting(d.Get("routing").([]interface{}))
+		props.RoutingPreference = expandAccountRoutingPreference(d.Get("routing").([]interface{}))
 	}
-
 	if d.HasChange("sas_policy") {
 		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `sas_policy` can not be disabled once enabled.
 		props.SasPolicy = expandAccountSASPolicy(d.Get("sas_policy").([]interface{}))
 	}
-
-	if d.HasChange("allowed_copy_scope") {
-		// TODO: Currently, due to Track1 SDK has no way to represent a `null` value in the payload - instead it will be omitted, `allowed_copy_scope` can not be disabled once enabled.
-		props.AllowedCopyScope = storage.AllowedCopyScope(d.Get("allowed_copy_scope").(string))
+	if d.HasChange("sftp_enabled") {
+		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
 	}
 
-	// Update (via PUT) for the above changes
-	future, err := client.Create(ctx, id.ResourceGroupName, id.StorageAccountName, params)
-	if err != nil {
+	payload := storageaccounts.StorageAccountCreateParameters{
+		ExtendedLocation: existing.Model.ExtendedLocation,
+		Kind:             *existing.Model.Kind,
+		Location:         existing.Model.Location,
+		Identity:         existing.Model.Identity,
+		Properties:       &props,
+		Sku:              *existing.Model.Sku,
+		Tags:             existing.Model.Tags,
+	}
+
+	// ensure any top-level properties are updated
+	if d.HasChange("account_kind") {
+		payload.Kind = accountKind
+	}
+	if d.HasChange("account_replication_type") {
+		// storageType is derived from "account_replication_type" and "account_tier" (force-new)
+		payload.Sku = storageaccounts.Sku{
+			Name: storageaccounts.SkuName(storageType),
+		}
+	}
+	if d.HasChange("identity") {
+		payload.Identity, err = identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+	}
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 
 	// azure_files_authentication must be the last to be updated, cause it'll occupy the storage account for several minutes after receiving the response 200 OK. Issue: https://github.com/Azure/azure-rest-api-specs/issues/11272
 	if d.HasChange("azure_files_authentication") {
 		// due to service issue: https://github.com/Azure/azure-rest-api-specs/issues/12473, we need to update to None before changing its DirectoryServiceOptions
 		old, new := d.GetChange("azure_files_authentication.0.directory_type")
-		if old != new && new != string(storage.DirectoryServiceOptionsNone) {
+		if old != new && new != string(storageaccounts.DirectoryServiceOptionsNone) {
 			log.Print("[DEBUG] Disabling AzureFilesIdentityBasedAuthentication prior to changing DirectoryServiceOptions")
-			dsNone := storage.AccountUpdateParameters{
-				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-					AzureFilesIdentityBasedAuthentication: &storage.AzureFilesIdentityBasedAuthentication{
-						DirectoryServiceOptions: storage.DirectoryServiceOptionsNone,
+			dsNone := storageaccounts.StorageAccountUpdateParameters{
+				Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
+					AzureFilesIdentityBasedAuthentication: &storageaccounts.AzureFilesIdentityBasedAuthentication{
+						DirectoryServiceOptions: storageaccounts.DirectoryServiceOptionsNone,
 					},
 				},
 			}
-			if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, dsNone); err != nil {
+			if _, err := client.Update(ctx, *id, dsNone); err != nil {
 				return fmt.Errorf("updating `azure_files_authentication` for %s: %+v", *id, err)
 			}
 		}
 
-		expandAADFilesAuthentication, err := expandArmStorageAccountAzureFilesAuthentication(d.Get("azure_files_authentication").([]interface{}))
+		expandAADFilesAuthentication, err := expandAccountAzureFilesAuthentication(d.Get("azure_files_authentication").([]interface{}))
 		if err != nil {
-			return err
+			return fmt.Errorf("expanding `azure_files_authentication`: %+v", err)
 		}
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+		opts := storageaccounts.StorageAccountUpdateParameters{
+			Properties: &storageaccounts.StorageAccountPropertiesUpdateParameters{
 				AzureFilesIdentityBasedAuthentication: expandAADFilesAuthentication,
 			},
 		}
 
-		if _, err := client.Update(ctx, id.ResourceGroupName, id.StorageAccountName, opts); err != nil {
+		if _, err := client.Update(ctx, *id, opts); err != nil {
 			return fmt.Errorf("updating `azure_files_authentication` for %s: %+v", *id, err)
 		}
 	}
 
 	// Followings are updates to the sub-services
-	supportLevel := availableFunctionalityForAccountLegacy(accountKind, accountTier, replicationType)
+	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 
 	if d.HasChange("blob_properties") {
 		if !supportLevel.supportBlob {
 			return fmt.Errorf("`blob_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
-		blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-		blobProperties, err := expandBlobProperties(accountKind, d.Get("blob_properties").([]interface{}))
+		blobProperties, err := expandAccountBlobServiceProperties(accountKind, d.Get("blob_properties").([]interface{}))
 		if err != nil {
 			return err
 		}
 
-		if blobProperties.IsVersioningEnabled != nil && *blobProperties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
+		if blobProperties.Properties.IsVersioningEnabled != nil && *blobProperties.Properties.IsVersioningEnabled && d.Get("is_hns_enabled").(bool) {
 			return fmt.Errorf("`versioning_enabled` can't be true when `is_hns_enabled` is true")
 		}
 
@@ -1924,26 +1816,26 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		// Issue : https://github.com/Azure/azure-rest-api-specs/issues/11237
 		if v := d.Get("blob_properties.0.restore_policy"); d.HasChange("blob_properties.0.restore_policy") && len(v.([]interface{})) == 0 {
 			log.Print("[DEBUG] Disabling RestorePolicy prior to changing DeleteRetentionPolicy")
-			props := storage.BlobServiceProperties{
-				BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
-					RestorePolicy: expandBlobPropertiesRestorePolicy(v.([]interface{})),
+			blobPayload := blobservice.BlobServiceProperties{
+				Properties: &blobservice.BlobServicePropertiesProperties{
+					RestorePolicy: expandAccountBlobPropertiesRestorePolicy(v.([]interface{})),
 				},
 			}
-			if _, err := blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, props); err != nil {
+			if _, err := storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, blobPayload); err != nil {
 				return fmt.Errorf("updating Azure Storage Account blob restore policy %q: %+v", id.StorageAccountName, err)
 			}
 		}
 
-		if d.Get("dns_endpoint_type").(string) == string(storage.DNSEndpointTypeAzureDNSZone) {
-			if blobProperties.RestorePolicy != nil && blobProperties.RestorePolicy.Enabled != nil && *blobProperties.RestorePolicy.Enabled {
+		if d.Get("dns_endpoint_type").(string) == string(storageaccounts.DnsEndpointTypeAzureDnsZone) {
+			if blobProperties.Properties.RestorePolicy != nil && blobProperties.Properties.RestorePolicy.Enabled {
 				// Otherwise, API returns: "Required feature Global Dns is disabled"
 				// This is confirmed with the SRP team, where they said:
 				// > restorePolicy feature is incompatible with partitioned DNS
-				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storage.DNSEndpointTypeAzureDNSZone)
+				return fmt.Errorf("`blob_properties.restore_policy` can't be set when `dns_endpoint_type` is set to `%s`", storageaccounts.DnsEndpointTypeAzureDnsZone)
 			}
 		}
 
-		if _, err = blobClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, *blobProperties); err != nil {
+		if _, err = storageClient.ResourceManager.BlobService.SetServiceProperties(ctx, *id, *blobProperties); err != nil {
 			return fmt.Errorf("updating `blob_properties` for %s: %+v", *id, err)
 		}
 	}
@@ -1953,7 +1845,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
-		storageClient := meta.(*clients.Client).Storage
 		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -1967,12 +1858,12 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("building Queues Client: %s", err)
 		}
 
-		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
+		queueProperties, err := expandAccountQueueProperties(d.Get("queue_properties").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `queue_properties` for %s: %+v", *id, err)
 		}
 
-		if err = queueClient.UpdateServiceProperties(ctx, queueProperties); err != nil {
+		if err = queueClient.UpdateServiceProperties(ctx, *queueProperties); err != nil {
 			return fmt.Errorf("updating Queue Properties for %s: %+v", *id, err)
 		}
 	}
@@ -1982,22 +1873,20 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("`share_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
 
-		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
-
-		shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
+		sharePayload := expandAccountShareProperties(d.Get("share_properties").([]interface{}))
 		// The API complains if any multichannel info is sent on non premium fileshares. Even if multichannel is set to false
-		if accountTier != storage.SkuTierPremium {
+		if accountTier != storageaccounts.SkuTierPremium {
 			// Error if the user has tried to enable multichannel on a standard tier storage account
-			if shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel != nil && shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
-				if *shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel.Enabled {
+			if sharePayload.Properties.ProtocolSettings.Smb.Multichannel != nil && sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled != nil {
+				if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
 					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
 				}
 			}
 
-			shareProperties.FileServicePropertiesProperties.ProtocolSettings.Smb.Multichannel = nil
+			sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
 		}
 
-		if _, err = fileServiceClient.SetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName, shareProperties); err != nil {
+		if _, err = storageClient.ResourceManager.FileService.SetServiceProperties(ctx, *id, sharePayload); err != nil {
 			return fmt.Errorf("updating File Share Properties for %s: %+v", *id, err)
 		}
 	}
@@ -2006,8 +1895,6 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !supportLevel.supportStaticWebsite {
 			return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 		}
-
-		storageClient := meta.(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
@@ -2022,17 +1909,17 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("building Data Plane client for %s: %+v", *id, err)
 		}
 
-		staticWebsiteProps := expandStaticWebsiteProperties(d.Get("static_website").([]interface{}))
+		staticWebsiteProps := expandAccountStaticWebsiteProperties(d.Get("static_website").([]interface{}))
 
 		if _, err = accountsClient.SetServiceProperties(ctx, id.StorageAccountName, staticWebsiteProps); err != nil {
 			return fmt.Errorf("updating `static_website` for %s: %+v", *id, err)
 		}
 	}
 
-	return resourceStorageAccountRead(d, meta)
+	return resourceAccountRead(d, meta)
 }
 
-func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	env := meta.(*clients.Client).Account.Environment
@@ -2109,11 +1996,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("account_tier", string(accountTier))
 		d.Set("account_replication_type", accountReplicationType)
 
-		edgeZone := ""
-		if model.ExtendedLocation != nil {
-			edgeZone = edgezones.Normalize(model.ExtendedLocation.Name)
-		}
-		d.Set("edge_zone", edgeZone)
+		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -2131,7 +2014,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("is_hns_enabled", props.IsHnsEnabled)
 			d.Set("nfsv3_enabled", props.IsNfsV3Enabled)
 			d.Set("primary_location", props.PrimaryLocation)
-			if err := d.Set("routing", flattenArmStorageAccountRouting(props.RoutingPreference)); err != nil {
+			if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {
 				return fmt.Errorf("setting `routing`: %+v", err)
 			}
 			d.Set("secondary_location", props.SecondaryLocation)
@@ -2190,10 +2073,10 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
 				return fmt.Errorf("setting `custom_domain`: %+v", err)
 			}
-			if err := d.Set("immutability_policy", flattenStorageAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
+			if err := d.Set("immutability_policy", flattenAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
 				return fmt.Errorf("setting `immutability_policy`: %+v", err)
 			}
-			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(props.NetworkAcls)); err != nil {
+			if err := d.Set("network_rules", flattenAccountNetworkRules(props.NetworkAcls)); err != nil {
 				return fmt.Errorf("setting `network_rules`: %+v", err)
 			}
 
@@ -2217,7 +2100,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 			d.Set("table_encryption_key_type", tableEncryptionKeyType)
 
-			customerManagedKey := flattenStorageAccountCustomerManagedKey(props.Encryption, env)
+			customerManagedKey := flattenAccountCustomerManagedKey(props.Encryption, env)
 			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
@@ -2258,12 +2141,12 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	blobProperties := make([]interface{}, 0)
 	if supportLevel.supportBlob {
-		blobProps, err := storageClient.BlobServicesClient.GetServiceProperties(ctx, id.ResourceGroupName, id.StorageAccountName)
+		blobProps, err := storageClient.ResourceManager.BlobService.GetServiceProperties(ctx, *id)
 		if err != nil {
 			return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
 		}
 
-		blobProperties = flattenBlobProperties(blobProps)
+		blobProperties = flattenAccountBlobServiceProperties(blobProps.Model)
 	}
 	if err := d.Set("blob_properties", blobProperties); err != nil {
 		return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
@@ -2281,7 +2164,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
 		}
 
-		queueProperties = flattenQueueProperties(queueProps)
+		queueProperties = flattenAccountQueueProperties(queueProps)
 	}
 
 	if err := d.Set("queue_properties", queueProperties); err != nil {
@@ -2295,7 +2178,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
 		}
 
-		shareProperties = flattenShareProperties(shareProps)
+		shareProperties = flattenAccountShareProperties(shareProps.Model)
 	}
 	if err := d.Set("share_properties", shareProperties); err != nil {
 		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
@@ -2313,7 +2196,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
 		}
 
-		staticWebsiteProperties = flattenStaticWebsiteProperties(staticWebsiteProps)
+		staticWebsiteProperties = flattenAccountStaticWebsiteProperties(staticWebsiteProps)
 	}
 	if err := d.Set("static_website", staticWebsiteProperties); err != nil {
 		return fmt.Errorf("setting `static_website`: %+v", err)
@@ -2322,7 +2205,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -2377,19 +2260,17 @@ func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandAccountCustomDomain(input []interface{}) *storage.CustomDomain {
+func expandAccountCustomDomain(input []interface{}) *storageaccounts.CustomDomain {
 	if len(input) == 0 {
-		return &storage.CustomDomain{
-			Name: utils.String(""),
+		return &storageaccounts.CustomDomain{
+			Name: "",
 		}
 	}
 
 	domain := input[0].(map[string]interface{})
-	name := domain["name"].(string)
-	useSubDomain := domain["use_subdomain"].(bool)
-	return &storage.CustomDomain{
-		Name:             utils.String(name),
-		UseSubDomainName: utils.Bool(useSubDomain),
+	return &storageaccounts.CustomDomain{
+		Name:             domain["name"].(string),
+		UseSubDomainName: pointer.To(domain["use_subdomain"].(bool)),
 	}
 }
 
@@ -2404,9 +2285,35 @@ func flattenAccountCustomDomain(input *storageaccounts.CustomDomain) []interface
 	return output
 }
 
-func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultClient.Client, subscriptionId string, input []interface{}) (*storage.Encryption, error) {
+func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultClient.Client, subscriptionId string, input []interface{}, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
+	if accountKind != storageaccounts.KindStorageVTwo {
+		if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {
+			return nil, fmt.Errorf("`queue_encryption_key_type = %q` can only be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorageVTwo))
+		}
+		if tableEncryptionKeyType == storageaccounts.KeyTypeAccount {
+			return nil, fmt.Errorf("`table_encryption_key_type = %q` can only be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorageVTwo))
+		}
+	}
 	if len(input) == 0 {
-		return &storage.Encryption{}, nil
+		return &storageaccounts.Encryption{
+			KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointStorage),
+			Services: &storageaccounts.EncryptionServices{
+				Queue: &storageaccounts.EncryptionService{
+					KeyType: pointer.To(queueEncryptionKeyType),
+				},
+				Table: &storageaccounts.EncryptionService{
+					KeyType: pointer.To(tableEncryptionKeyType),
+				},
+			},
+		}, nil
+	}
+
+	if accountTier != storageaccounts.SkuTierPremium && accountKind != storageaccounts.KindStorageVTwo {
+		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
+	}
+
+	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned {
+		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `UserAssigned` or `SystemAssigned, UserAssigned` managed identity")
 	}
 
 	v := input[0].(map[string]interface{})
@@ -2451,14 +2358,14 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 			return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultId)
 		}
 
-		keyName = utils.String(keyId.Name)
-		keyVersion = utils.String(keyId.Version)
-		keyVaultURI = utils.String(keyId.KeyVaultBaseUrl)
+		keyName = pointer.To(keyId.Name)
+		keyVersion = pointer.To(keyId.Version)
+		keyVaultURI = pointer.To(keyId.KeyVaultBaseUrl)
 	} else if managedHSMKeyId, ok := v["managed_hsm_key_id"]; ok && managedHSMKeyId != "" {
 		if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
-			keyName = utils.String(keyId.KeyName)
-			keyVersion = utils.String(keyId.KeyVersion)
-			keyVaultURI = utils.String(keyId.BaseUri())
+			keyName = pointer.To(keyId.KeyName)
+			keyVersion = pointer.To(keyId.KeyVersion)
+			keyVaultURI = pointer.To(keyId.BaseUri())
 		} else if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
 			keyName = utils.String(keyId.KeyName)
 			keyVersion = utils.String("")
@@ -2468,32 +2375,38 @@ func expandStorageAccountCustomerManagedKey(ctx context.Context, keyVaultClient 
 		}
 	}
 
-	encryption := &storage.Encryption{
-		Services: &storage.EncryptionServices{
-			Blob: &storage.EncryptionService{
-				Enabled: utils.Bool(true),
-				KeyType: storage.KeyTypeAccount,
+	encryption := &storageaccounts.Encryption{
+		Services: &storageaccounts.EncryptionServices{
+			Blob: &storageaccounts.EncryptionService{
+				Enabled: pointer.To(true),
+				KeyType: pointer.To(storageaccounts.KeyTypeAccount),
 			},
-			File: &storage.EncryptionService{
-				Enabled: utils.Bool(true),
-				KeyType: storage.KeyTypeAccount,
+			File: &storageaccounts.EncryptionService{
+				Enabled: pointer.To(true),
+				KeyType: pointer.To(storageaccounts.KeyTypeAccount),
+			},
+			Queue: &storageaccounts.EncryptionService{
+				KeyType: pointer.To(queueEncryptionKeyType),
+			},
+			Table: &storageaccounts.EncryptionService{
+				KeyType: pointer.To(tableEncryptionKeyType),
 			},
 		},
-		EncryptionIdentity: &storage.EncryptionIdentity{
-			EncryptionUserAssignedIdentity: utils.String(v["user_assigned_identity_id"].(string)),
+		Identity: &storageaccounts.EncryptionIdentity{
+			UserAssignedIdentity: utils.String(v["user_assigned_identity_id"].(string)),
 		},
-		KeySource: storage.KeySourceMicrosoftKeyvault,
-		KeyVaultProperties: &storage.KeyVaultProperties{
-			KeyName:     keyName,
-			KeyVersion:  keyVersion,
-			KeyVaultURI: keyVaultURI,
+		KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
+		Keyvaultproperties: &storageaccounts.KeyVaultProperties{
+			Keyname:     keyName,
+			Keyversion:  keyVersion,
+			Keyvaulturi: keyVaultURI,
 		},
 	}
 
 	return encryption, nil
 }
 
-func flattenStorageAccountCustomerManagedKey(input *storageaccounts.Encryption, env environments.Environment) []interface{} {
+func flattenAccountCustomerManagedKey(input *storageaccounts.Encryption, env environments.Environment) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil && input.KeySource != nil && *input.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
@@ -2513,85 +2426,45 @@ func flattenStorageAccountCustomerManagedKey(input *storageaccounts.Encryption, 
 	return output
 }
 
-func expandStorageAccountImmutabilityPolicy(input []interface{}) *storage.ImmutableStorageAccount {
+func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.ImmutableStorageAccount {
 	if len(input) == 0 {
-		return &storage.ImmutableStorageAccount{}
+		return &storageaccounts.ImmutableStorageAccount{}
 	}
 
 	v := input[0].(map[string]interface{})
-
-	immutableStorageAccount := storage.ImmutableStorageAccount{
+	return &storageaccounts.ImmutableStorageAccount{
 		Enabled: utils.Bool(true),
-		ImmutabilityPolicy: &storage.AccountImmutabilityPolicyProperties{
-			AllowProtectedAppendWrites:            utils.Bool(v["allow_protected_append_writes"].(bool)),
-			State:                                 storage.AccountImmutabilityPolicyState(v["state"].(string)),
-			ImmutabilityPeriodSinceCreationInDays: utils.Int32(int32(v["period_since_creation_in_days"].(int))),
+		ImmutabilityPolicy: &storageaccounts.AccountImmutabilityPolicyProperties{
+			AllowProtectedAppendWrites:            pointer.To(v["allow_protected_append_writes"].(bool)),
+			State:                                 pointer.To(storageaccounts.AccountImmutabilityPolicyState(v["state"].(string))),
+			ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(v["period_since_creation_in_days"].(int))),
 		},
 	}
-
-	return &immutableStorageAccount
 }
 
-func flattenStorageAccountImmutabilityPolicy(policy *storageaccounts.ImmutableStorageAccount) []interface{} {
-	if policy == nil || policy.ImmutabilityPolicy == nil {
+func flattenAccountImmutabilityPolicy(input *storageaccounts.ImmutableStorageAccount) []interface{} {
+	if input == nil || input.ImmutabilityPolicy == nil {
 		return make([]interface{}, 0)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"period_since_creation_in_days": policy.ImmutabilityPolicy.ImmutabilityPeriodSinceCreationInDays,
-			"state":                         policy.ImmutabilityPolicy.State,
-			"allow_protected_append_writes": policy.ImmutabilityPolicy.AllowProtectedAppendWrites,
+			"period_since_creation_in_days": input.ImmutabilityPolicy.ImmutabilityPeriodSinceCreationInDays,
+			"state":                         input.ImmutabilityPolicy.State,
+			"allow_protected_append_writes": input.ImmutabilityPolicy.AllowProtectedAppendWrites,
 		},
 	}
 }
 
-func expandArmStorageAccountAzureFilesAuthentication(input []interface{}) (*storage.AzureFilesIdentityBasedAuthentication, error) {
-	if len(input) == 0 {
-		return &storage.AzureFilesIdentityBasedAuthentication{
-			DirectoryServiceOptions: storage.DirectoryServiceOptionsNone,
-		}, nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	ad := expandArmStorageAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
-
-	directoryOption := storage.DirectoryServiceOptions(v["directory_type"].(string))
-
-	if directoryOption == storage.DirectoryServiceOptionsAD {
-		if ad == nil {
-			return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
-		}
-		if ad.AzureStorageSid == nil {
-			return nil, fmt.Errorf("`active_directory.0.storage_sid` is required when `directory_type` is `AD`")
-		}
-		if ad.DomainSid == nil {
-			return nil, fmt.Errorf("`active_directory.0.domain_sid` is required when `directory_type` is `AD`")
-		}
-		if ad.ForestName == nil {
-			return nil, fmt.Errorf("`active_directory.0.forest_name` is required when `directory_type` is `AD`")
-		}
-		if ad.NetBiosDomainName == nil {
-			return nil, fmt.Errorf("`active_directory.0.netbios_domain_name` is required when `directory_type` is `AD`")
-		}
-	}
-
-	return &storage.AzureFilesIdentityBasedAuthentication{
-		DirectoryServiceOptions:   directoryOption,
-		ActiveDirectoryProperties: ad,
-	}, nil
-}
-
-func expandArmStorageAccountActiveDirectoryProperties(input []interface{}) *storage.ActiveDirectoryProperties {
+func expandAccountActiveDirectoryProperties(input []interface{}) *storageaccounts.ActiveDirectoryProperties {
 	if len(input) == 0 {
 		return nil
 	}
 	m := input[0].(map[string]interface{})
 
-	output := &storage.ActiveDirectoryProperties{
-		DomainGUID: utils.String(m["domain_guid"].(string)),
-		DomainName: utils.String(m["domain_name"].(string)),
+	output := &storageaccounts.ActiveDirectoryProperties{
+		DomainGuid: m["domain_guid"].(string),
+		DomainName: m["domain_name"].(string),
 	}
 	if v := m["storage_sid"]; v != "" {
 		output.AzureStorageSid = utils.String(v.(string))
@@ -2606,528 +2479,6 @@ func expandArmStorageAccountActiveDirectoryProperties(input []interface{}) *stor
 		output.NetBiosDomainName = utils.String(v.(string))
 	}
 	return output
-}
-
-func expandArmStorageAccountRouting(input []interface{}) *storage.RoutingPreference {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &storage.RoutingPreference{
-		RoutingChoice:             storage.RoutingChoice(v["choice"].(string)),
-		PublishMicrosoftEndpoints: utils.Bool(v["publish_microsoft_endpoints"].(bool)),
-		PublishInternetEndpoints:  utils.Bool(v["publish_internet_endpoints"].(bool)),
-	}
-}
-
-func expandStorageAccountNetworkRules(d *pluginsdk.ResourceData, tenantId string) *storage.NetworkRuleSet {
-	networkRules := d.Get("network_rules").([]interface{})
-	if len(networkRules) == 0 {
-		// Default access is enabled when no network rules are set.
-		return &storage.NetworkRuleSet{DefaultAction: storage.DefaultActionAllow}
-	}
-
-	networkRule := networkRules[0].(map[string]interface{})
-	networkRuleSet := &storage.NetworkRuleSet{
-		IPRules:             expandStorageAccountIPRules(networkRule),
-		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
-		Bypass:              expandStorageAccountBypass(networkRule),
-		ResourceAccessRules: expandStorageAccountPrivateLinkAccess(networkRule["private_link_access"].([]interface{}), tenantId),
-	}
-
-	if v := networkRule["default_action"]; v != nil {
-		networkRuleSet.DefaultAction = storage.DefaultAction(v.(string))
-	}
-
-	return networkRuleSet
-}
-
-func expandStorageAccountIPRules(networkRule map[string]interface{}) *[]storage.IPRule {
-	ipRulesInfo := networkRule["ip_rules"].(*pluginsdk.Set).List()
-	ipRules := make([]storage.IPRule, len(ipRulesInfo))
-
-	for i, ipRuleConfig := range ipRulesInfo {
-		attrs := ipRuleConfig.(string)
-		ipRule := storage.IPRule{
-			IPAddressOrRange: utils.String(attrs),
-			Action:           storage.ActionAllow,
-		}
-		ipRules[i] = ipRule
-	}
-
-	return &ipRules
-}
-
-func expandStorageAccountVirtualNetworks(networkRule map[string]interface{}) *[]storage.VirtualNetworkRule {
-	virtualNetworkInfo := networkRule["virtual_network_subnet_ids"].(*pluginsdk.Set).List()
-	virtualNetworks := make([]storage.VirtualNetworkRule, len(virtualNetworkInfo))
-
-	for i, virtualNetworkConfig := range virtualNetworkInfo {
-		attrs := virtualNetworkConfig.(string)
-		virtualNetwork := storage.VirtualNetworkRule{
-			VirtualNetworkResourceID: utils.String(attrs),
-			Action:                   storage.ActionAllow,
-		}
-		virtualNetworks[i] = virtualNetwork
-	}
-
-	return &virtualNetworks
-}
-
-func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypass {
-	bypassInfo := networkRule["bypass"].(*pluginsdk.Set).List()
-
-	var bypassValues []string
-	for _, bypassConfig := range bypassInfo {
-		bypassValues = append(bypassValues, bypassConfig.(string))
-	}
-
-	return storage.Bypass(strings.Join(bypassValues, ", "))
-}
-
-func expandStorageAccountPrivateLinkAccess(inputs []interface{}, tenantId string) *[]storage.ResourceAccessRule {
-	privateLinkAccess := make([]storage.ResourceAccessRule, 0)
-	if len(inputs) == 0 {
-		return &privateLinkAccess
-	}
-	for _, input := range inputs {
-		accessRule := input.(map[string]interface{})
-		if v := accessRule["endpoint_tenant_id"].(string); v != "" {
-			tenantId = v
-		}
-		privateLinkAccess = append(privateLinkAccess, storage.ResourceAccessRule{
-			TenantID:   utils.String(tenantId),
-			ResourceID: utils.String(accessRule["endpoint_resource_id"].(string)),
-		})
-	}
-
-	return &privateLinkAccess
-}
-
-func expandBlobProperties(kind storage.Kind, input []interface{}) (*storage.BlobServiceProperties, error) {
-	props := storage.BlobServiceProperties{
-		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
-			Cors: &storage.CorsRules{
-				CorsRules: &[]storage.CorsRule{},
-			},
-			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
-				Enabled: utils.Bool(false),
-			},
-		},
-	}
-
-	// `Storage` (v1) kind doesn't support:
-	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
-	// - ChangeFeed: See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
-	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
-	// - Restore Policy: See https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
-	if kind != storage.KindStorage {
-		props.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-			Enable: utils.Bool(false),
-		}
-		props.ChangeFeed = &storage.ChangeFeed{
-			Enabled: utils.Bool(false),
-		}
-		props.IsVersioningEnabled = utils.Bool(false)
-	}
-
-	if len(input) == 0 || input[0] == nil {
-		return &props, nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
-
-	containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesContainerDeleteRetentionPolicyWithoutPermDeleteOption(containerDeletePolicyRaw)
-
-	corsRaw := v["cors_rule"].([]interface{})
-	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
-
-	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
-
-	if version, ok := v["default_service_version"].(string); ok && version != "" {
-		props.DefaultServiceVersion = utils.String(version)
-	}
-
-	// `Storage` (v1) kind doesn't support:
-	// - LastAccessTimeTrackingPolicy
-	// - ChangeFeed
-	// - Versioning
-	// - RestorePolicy
-	lastAccessTimeEnabled := v["last_access_time_enabled"].(bool)
-	changeFeedEnabled := v["change_feed_enabled"].(bool)
-	changeFeedRetentionInDays := v["change_feed_retention_in_days"].(int)
-	restorePolicyRaw := v["restore_policy"].([]interface{})
-	versioningEnabled := v["versioning_enabled"].(bool)
-	if kind != storage.KindStorage {
-		props.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy = &storage.LastAccessTimeTrackingPolicy{
-			Enable: utils.Bool(lastAccessTimeEnabled),
-		}
-		props.BlobServicePropertiesProperties.ChangeFeed = &storage.ChangeFeed{
-			Enabled: utils.Bool(changeFeedEnabled),
-		}
-		if changeFeedRetentionInDays != 0 {
-			props.BlobServicePropertiesProperties.ChangeFeed.RetentionInDays = utils.Int32(int32(changeFeedRetentionInDays))
-		}
-		props.BlobServicePropertiesProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(restorePolicyRaw)
-		props.BlobServicePropertiesProperties.IsVersioningEnabled = &versioningEnabled
-	} else {
-		if lastAccessTimeEnabled {
-			return nil, fmt.Errorf("`last_access_time_enabled` can not be configured when `kind` is set to `Storage` (v1)")
-		}
-		if changeFeedEnabled {
-			return nil, fmt.Errorf("`change_feed_enabled` can not be configured when `kind` is set to `Storage` (v1)")
-		}
-		if changeFeedRetentionInDays != 0 {
-			return nil, fmt.Errorf("`change_feed_retention_in_days` can not be configured when `kind` is set to `Storage` (v1)")
-		}
-		if len(restorePolicyRaw) != 0 {
-			return nil, fmt.Errorf("`restore_policy` can not be configured when `kind` is set to `Storage` (v1)")
-		}
-		if versioningEnabled {
-			return nil, fmt.Errorf("`versioning_enabled` can not be configured when `kind` is set to `Storage` (v1)")
-		}
-	}
-
-	// Sanity check for the prerequisites of restore_policy
-	// Ref: https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
-	if p := props.BlobServicePropertiesProperties.RestorePolicy; p != nil && p.Enabled != nil && *p.Enabled {
-		if props.ChangeFeed == nil || props.ChangeFeed.Enabled == nil || !*props.ChangeFeed.Enabled {
-			return nil, fmt.Errorf("`change_feed_enabled` must be `true` when `restore_policy` is set")
-		}
-		if props.IsVersioningEnabled == nil || !*props.IsVersioningEnabled {
-			return nil, fmt.Errorf("`versioning_enabled` must be `true` when `restore_policy` is set")
-		}
-	}
-
-	return &props, nil
-}
-
-func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
-	result := storage.DeleteRetentionPolicy{
-		Enabled: utils.Bool(false),
-	}
-	if len(input) == 0 || input[0] == nil {
-		return &result
-	}
-
-	policy := input[0].(map[string]interface{})
-
-	return &storage.DeleteRetentionPolicy{
-		Enabled:              utils.Bool(true),
-		Days:                 utils.Int32(int32(policy["days"].(int))),
-		AllowPermanentDelete: utils.Bool(policy["permanent_delete_enabled"].(bool)),
-	}
-}
-
-func expandBlobPropertiesContainerDeleteRetentionPolicyWithoutPermDeleteOption(input []interface{}) *storage.DeleteRetentionPolicy {
-	result := storage.DeleteRetentionPolicy{
-		Enabled: utils.Bool(false),
-	}
-	if len(input) == 0 || input[0] == nil {
-		return &result
-	}
-
-	policy := input[0].(map[string]interface{})
-
-	return &storage.DeleteRetentionPolicy{
-		Enabled: utils.Bool(true),
-		Days:    utils.Int32(int32(policy["days"].(int))),
-	}
-}
-
-func expandBlobPropertiesRestorePolicy(input []interface{}) *storage.RestorePolicyProperties {
-	result := storage.RestorePolicyProperties{
-		Enabled: utils.Bool(false),
-	}
-	if len(input) == 0 || input[0] == nil {
-		return &result
-	}
-
-	policy := input[0].(map[string]interface{})
-
-	return &storage.RestorePolicyProperties{
-		Enabled: utils.Bool(true),
-		Days:    utils.Int32(int32(policy["days"].(int))),
-	}
-}
-
-func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
-	blobCorsRules := storage.CorsRules{}
-
-	if len(input) == 0 {
-		return &blobCorsRules
-	}
-
-	corsRules := make([]storage.CorsRule, 0)
-	for _, attr := range input {
-		corsRuleAttr := attr.(map[string]interface{})
-		corsRule := storage.CorsRule{}
-
-		allowedOrigins := *utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{}))
-		allowedHeaders := *utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{}))
-		allowedMethods := *utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{}))
-		exposedHeaders := *utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{}))
-		maxAgeInSeconds := int32(corsRuleAttr["max_age_in_seconds"].(int))
-
-		corsRule.AllowedOrigins = &allowedOrigins
-		corsRule.AllowedHeaders = &allowedHeaders
-		corsRule.AllowedMethods = &allowedMethods
-		corsRule.ExposedHeaders = &exposedHeaders
-		corsRule.MaxAgeInSeconds = &maxAgeInSeconds
-
-		corsRules = append(corsRules, corsRule)
-	}
-
-	blobCorsRules.CorsRules = &corsRules
-
-	return &blobCorsRules
-}
-
-func expandShareProperties(input []interface{}) storage.FileServiceProperties {
-	props := storage.FileServiceProperties{
-		FileServicePropertiesProperties: &storage.FileServicePropertiesProperties{
-			Cors: &storage.CorsRules{
-				CorsRules: &[]storage.CorsRule{},
-			},
-			ShareDeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
-				Enabled: utils.Bool(false),
-			},
-		},
-	}
-
-	if len(input) == 0 || input[0] == nil {
-		return props
-	}
-
-	v := input[0].(map[string]interface{})
-
-	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesContainerDeleteRetentionPolicyWithoutPermDeleteOption(v["retention_policy"].([]interface{}))
-
-	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(v["cors_rule"].([]interface{}))
-
-	props.ProtocolSettings = &storage.ProtocolSettings{
-		Smb: expandSharePropertiesSMB(v["smb"].([]interface{})),
-	}
-
-	return props
-}
-
-func expandSharePropertiesSMB(input []interface{}) *storage.SmbSetting {
-	if len(input) == 0 || input[0] == nil {
-		return &storage.SmbSetting{
-			Versions:                 utils.String(""),
-			AuthenticationMethods:    utils.String(""),
-			KerberosTicketEncryption: utils.String(""),
-			ChannelEncryption:        utils.String(""),
-		}
-	}
-
-	v := input[0].(map[string]interface{})
-
-	return &storage.SmbSetting{
-		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
-		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
-		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
-		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
-		Multichannel: &storage.Multichannel{
-			Enabled: utils.Bool(v["multichannel_enabled"].(bool)),
-		},
-	}
-}
-
-func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
-	var err error
-	properties := queues.StorageServiceProperties{
-		Cors: &queues.Cors{
-			CorsRule: []queues.CorsRule{},
-		},
-		HourMetrics: &queues.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
-		},
-		MinuteMetrics: &queues.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
-		},
-		Logging: &queues.LoggingConfig{
-			Version: "1.0",
-			Delete:  false,
-			Read:    false,
-			Write:   false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
-		},
-	}
-	if len(input) == 0 {
-		return properties, nil
-	}
-
-	attrs := input[0].(map[string]interface{})
-
-	properties.Cors = expandQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
-	properties.Logging = expandQueuePropertiesLogging(attrs["logging"].([]interface{}))
-	properties.MinuteMetrics, err = expandQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
-	if err != nil {
-		return properties, fmt.Errorf("expanding `minute_metrics`: %+v", err)
-	}
-	properties.HourMetrics, err = expandQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
-	if err != nil {
-		return properties, fmt.Errorf("expanding `hour_metrics`: %+v", err)
-	}
-
-	return properties, nil
-}
-
-func expandQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, error) {
-	if len(input) == 0 {
-		return &queues.MetricsConfig{
-			Version: "1.0",
-			Enabled: false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
-		}, nil
-	}
-
-	metricsAttr := input[0].(map[string]interface{})
-
-	metrics := &queues.MetricsConfig{
-		Version: metricsAttr["version"].(string),
-		Enabled: metricsAttr["enabled"].(bool),
-	}
-
-	if v, ok := metricsAttr["retention_policy_days"]; ok {
-		if days := v.(int); days > 0 {
-			metrics.RetentionPolicy = queues.RetentionPolicy{
-				Days:    days,
-				Enabled: true,
-			}
-		}
-	}
-
-	if v, ok := metricsAttr["include_apis"]; ok {
-		includeAPIs := v.(bool)
-		if metrics.Enabled {
-			metrics.IncludeAPIs = &includeAPIs
-		} else if includeAPIs {
-			return nil, fmt.Errorf("`include_apis` may only be set when `enabled` is true")
-		}
-	}
-
-	return metrics, nil
-}
-
-func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
-	if len(input) == 0 {
-		return &queues.LoggingConfig{
-			Version: "1.0",
-			Delete:  false,
-			Read:    false,
-			Write:   false,
-			RetentionPolicy: queues.RetentionPolicy{
-				Enabled: false,
-			},
-		}
-	}
-
-	loggingAttr := input[0].(map[string]interface{})
-	logging := &queues.LoggingConfig{
-		Version: loggingAttr["version"].(string),
-		Delete:  loggingAttr["delete"].(bool),
-		Read:    loggingAttr["read"].(bool),
-		Write:   loggingAttr["write"].(bool),
-	}
-
-	if v, ok := loggingAttr["retention_policy_days"]; ok {
-		if days := v.(int); days > 0 {
-			logging.RetentionPolicy = queues.RetentionPolicy{
-				Days:    days,
-				Enabled: true,
-			}
-		}
-	}
-
-	return logging
-}
-
-func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
-	if len(input) == 0 {
-		return &queues.Cors{}
-	}
-
-	corsRules := make([]queues.CorsRule, 0)
-	for _, attr := range input {
-		corsRuleAttr := attr.(map[string]interface{})
-		corsRule := queues.CorsRule{}
-
-		corsRule.AllowedOrigins = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ",")
-		corsRule.ExposedHeaders = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ",")
-		corsRule.AllowedHeaders = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ",")
-		corsRule.AllowedMethods = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ",")
-		corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
-
-		corsRules = append(corsRules, corsRule)
-	}
-
-	cors := &queues.Cors{
-		CorsRule: corsRules,
-	}
-	return cors
-}
-
-func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceProperties {
-	properties := accounts.StorageServiceProperties{
-		StaticWebsite: &accounts.StaticWebsite{
-			Enabled: false,
-		},
-	}
-	if len(input) == 0 {
-		return properties
-	}
-
-	properties.StaticWebsite.Enabled = true
-
-	// @tombuildsstuff: this looks weird, doesn't it?
-	// Since the presence of this block signifies the website's enabled however all fields within it are optional
-	// TF Core returns a nil object when there's no keys defined within the block, rather than an empty map. As
-	// such this hack allows us to have a Static Website block with only Enabled configured, without the optional
-	// inner properties.
-	if val := input[0]; val != nil {
-		attr := val.(map[string]interface{})
-		if v, ok := attr["index_document"]; ok {
-			properties.StaticWebsite.IndexDocument = v.(string)
-		}
-
-		if v, ok := attr["error_404_document"]; ok {
-			properties.StaticWebsite.ErrorDocument404Path = v.(string)
-		}
-	}
-
-	return properties
-}
-
-func flattenAccountAzureFilesAuthentication(input *storageaccounts.AzureFilesIdentityBasedAuthentication) []interface{} {
-	if input == nil || input.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsNone {
-		return make([]interface{}, 0)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"directory_type":   input.DirectoryServiceOptions,
-			"active_directory": flattenAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
-		},
-	}
 }
 
 func flattenAccountActiveDirectoryProperties(input *storageaccounts.ActiveDirectoryProperties) []interface{} {
@@ -3145,7 +2496,67 @@ func flattenAccountActiveDirectoryProperties(input *storageaccounts.ActiveDirect
 	return output
 }
 
-func flattenArmStorageAccountRouting(input *storageaccounts.RoutingPreference) []interface{} {
+func expandAccountAzureFilesAuthentication(input []interface{}) (*storageaccounts.AzureFilesIdentityBasedAuthentication, error) {
+	if len(input) == 0 {
+		return &storageaccounts.AzureFilesIdentityBasedAuthentication{
+			DirectoryServiceOptions: storageaccounts.DirectoryServiceOptionsNone,
+		}, nil
+	}
+
+	v := input[0].(map[string]interface{})
+	output := storageaccounts.AzureFilesIdentityBasedAuthentication{
+		DirectoryServiceOptions: storageaccounts.DirectoryServiceOptions(v["directory_type"].(string)),
+	}
+	if output.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsAD {
+		ad := expandAccountActiveDirectoryProperties(v["active_directory"].([]interface{}))
+		if ad == nil {
+			return nil, fmt.Errorf("`active_directory` is required when `directory_type` is `AD`")
+		}
+		if ad.AzureStorageSid == nil {
+			return nil, fmt.Errorf("`active_directory.0.storage_sid` is required when `directory_type` is `AD`")
+		}
+		if ad.DomainSid == nil {
+			return nil, fmt.Errorf("`active_directory.0.domain_sid` is required when `directory_type` is `AD`")
+		}
+		if ad.ForestName == nil {
+			return nil, fmt.Errorf("`active_directory.0.forest_name` is required when `directory_type` is `AD`")
+		}
+		if ad.NetBiosDomainName == nil {
+			return nil, fmt.Errorf("`active_directory.0.netbios_domain_name` is required when `directory_type` is `AD`")
+		}
+
+		output.ActiveDirectoryProperties = ad
+	}
+
+	return &output, nil
+}
+
+func flattenAccountAzureFilesAuthentication(input *storageaccounts.AzureFilesIdentityBasedAuthentication) []interface{} {
+	if input == nil || input.DirectoryServiceOptions == storageaccounts.DirectoryServiceOptionsNone {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"directory_type":   input.DirectoryServiceOptions,
+			"active_directory": flattenAccountActiveDirectoryProperties(input.ActiveDirectoryProperties),
+		},
+	}
+}
+
+func expandAccountRoutingPreference(input []interface{}) *storageaccounts.RoutingPreference {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &storageaccounts.RoutingPreference{
+		RoutingChoice:             pointer.To(storageaccounts.RoutingChoice(v["choice"].(string))),
+		PublishMicrosoftEndpoints: pointer.To(v["publish_microsoft_endpoints"].(bool)),
+		PublishInternetEndpoints:  pointer.To(v["publish_internet_endpoints"].(bool)),
+	}
+}
+
+func flattenAccountRoutingPreference(input *storageaccounts.RoutingPreference) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil {
@@ -3164,53 +2575,137 @@ func flattenArmStorageAccountRouting(input *storageaccounts.RoutingPreference) [
 	return output
 }
 
-func flattenStorageAccountNetworkRules(input *storageaccounts.NetworkRuleSet) []interface{} {
-	output := make([]interface{}, 0)
-
-	if input != nil {
-		output = append(output, map[string]interface{}{
-			"bypass":                     pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesBypass(input.Bypass)),
-			"default_action":             string(input.DefaultAction),
-			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesIPRules(input.IPRules)),
-			"private_link_access":        flattenStorageAccountNetworkRulesPrivateLinkAccess(input.ResourceAccessRules),
-			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, flattenStorageAccountNetworkRulesVirtualNetworkRules(input.VirtualNetworkRules)),
-		})
+func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []interface{}) (*blobservice.BlobServiceProperties, error) {
+	props := blobservice.BlobServicePropertiesProperties{
+		Cors: &blobservice.CorsRules{
+			CorsRules: &[]blobservice.CorsRule{},
+		},
+		DeleteRetentionPolicy: &blobservice.DeleteRetentionPolicy{
+			Enabled: utils.Bool(false),
+		},
 	}
 
-	return output
+	// `Storage` (v1) kind doesn't support:
+	// - LastAccessTimeTrackingPolicy: Confirmed by SRP.
+	// - ChangeFeed: See https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed?tabs=azure-portal#enable-and-disable-the-change-feed.
+	// - Versioning: See https://learn.microsoft.com/en-us/azure/storage/blobs/versioning-overview#how-blob-versioning-works
+	// - Restore Policy: See https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+	if kind != storageaccounts.KindStorage {
+		props.LastAccessTimeTrackingPolicy = &blobservice.LastAccessTimeTrackingPolicy{
+			Enable: false,
+		}
+		props.ChangeFeed = &blobservice.ChangeFeed{
+			Enabled: pointer.To(false),
+		}
+		props.IsVersioningEnabled = pointer.To(false)
+	}
+
+	if len(input) > 0 {
+		v := input[0].(map[string]interface{})
+
+		deletePolicyRaw := v["delete_retention_policy"].([]interface{})
+		props.DeleteRetentionPolicy = expandAccountBlobDeleteRetentionPolicy(deletePolicyRaw)
+
+		containerDeletePolicyRaw := v["container_delete_retention_policy"].([]interface{})
+		props.ContainerDeleteRetentionPolicy = expandAccountBlobContainerDeleteRetentionPolicy(containerDeletePolicyRaw)
+
+		corsRaw := v["cors_rule"].([]interface{})
+		props.Cors = expandAccountBlobPropertiesCors(corsRaw)
+
+		props.IsVersioningEnabled = pointer.To(v["versioning_enabled"].(bool))
+
+		if version, ok := v["default_service_version"].(string); ok && version != "" {
+			props.DefaultServiceVersion = pointer.To(version)
+		}
+
+		// `Storage` (v1) kind doesn't support:
+		// - LastAccessTimeTrackingPolicy
+		// - ChangeFeed
+		// - Versioning
+		// - RestorePolicy
+		lastAccessTimeEnabled := v["last_access_time_enabled"].(bool)
+		changeFeedEnabled := v["change_feed_enabled"].(bool)
+		changeFeedRetentionInDays := v["change_feed_retention_in_days"].(int)
+		restorePolicyRaw := v["restore_policy"].([]interface{})
+		versioningEnabled := v["versioning_enabled"].(bool)
+		if kind != storageaccounts.KindStorage {
+			props.LastAccessTimeTrackingPolicy = &blobservice.LastAccessTimeTrackingPolicy{
+				Enable: lastAccessTimeEnabled,
+			}
+			props.ChangeFeed = &blobservice.ChangeFeed{
+				Enabled: pointer.To(changeFeedEnabled),
+			}
+			if changeFeedRetentionInDays != 0 {
+				props.ChangeFeed.RetentionInDays = pointer.To(int64(changeFeedRetentionInDays))
+			}
+			props.RestorePolicy = expandAccountBlobPropertiesRestorePolicy(restorePolicyRaw)
+			props.IsVersioningEnabled = &versioningEnabled
+		} else {
+			if lastAccessTimeEnabled {
+				return nil, fmt.Errorf("`last_access_time_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+			}
+			if changeFeedEnabled {
+				return nil, fmt.Errorf("`change_feed_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+			}
+			if changeFeedRetentionInDays != 0 {
+				return nil, fmt.Errorf("`change_feed_retention_in_days` can not be configured when `kind` is set to `Storage` (v1)")
+			}
+			if len(restorePolicyRaw) != 0 {
+				return nil, fmt.Errorf("`restore_policy` can not be configured when `kind` is set to `Storage` (v1)")
+			}
+			if versioningEnabled {
+				return nil, fmt.Errorf("`versioning_enabled` can not be configured when `kind` is set to `Storage` (v1)")
+			}
+		}
+
+		// Sanity check for the prerequisites of restore_policy
+		// Ref: https://learn.microsoft.com/en-us/azure/storage/blobs/point-in-time-restore-overview#prerequisites-for-point-in-time-restore
+		if p := props.RestorePolicy; p != nil && p.Enabled {
+			if props.ChangeFeed == nil || props.ChangeFeed.Enabled == nil || !*props.ChangeFeed.Enabled {
+				return nil, fmt.Errorf("`change_feed_enabled` must be `true` when `restore_policy` is set")
+			}
+			if props.IsVersioningEnabled == nil || !*props.IsVersioningEnabled {
+				return nil, fmt.Errorf("`versioning_enabled` must be `true` when `restore_policy` is set")
+			}
+		}
+	}
+
+	return &blobservice.BlobServiceProperties{
+		Properties: &props,
+	}, nil
 }
 
-func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
-	if input.BlobServicePropertiesProperties == nil {
+func flattenAccountBlobServiceProperties(input *blobservice.BlobServiceProperties) []interface{} {
+	if input == nil || input.Properties == nil {
 		return []interface{}{}
 	}
 
 	flattenedCorsRules := make([]interface{}, 0)
-	if corsRules := input.BlobServicePropertiesProperties.Cors; corsRules != nil {
-		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
+	if corsRules := input.Properties.Cors; corsRules != nil {
+		flattenedCorsRules = flattenAccountBlobPropertiesCorsRule(corsRules)
 	}
 
 	flattenedDeletePolicy := make([]interface{}, 0)
-	if deletePolicy := input.BlobServicePropertiesProperties.DeleteRetentionPolicy; deletePolicy != nil {
-		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
+	if deletePolicy := input.Properties.DeleteRetentionPolicy; deletePolicy != nil {
+		flattenedDeletePolicy = flattenAccountBlobDeleteRetentionPolicy(deletePolicy)
 	}
 
 	flattenedRestorePolicy := make([]interface{}, 0)
-	if restorePolicy := input.BlobServicePropertiesProperties.RestorePolicy; restorePolicy != nil {
-		flattenedRestorePolicy = flattenBlobPropertiesRestorePolicy(restorePolicy)
+	if restorePolicy := input.Properties.RestorePolicy; restorePolicy != nil {
+		flattenedRestorePolicy = flattenAccountBlobPropertiesRestorePolicy(restorePolicy)
 	}
 
 	flattenedContainerDeletePolicy := make([]interface{}, 0)
-	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
-		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicyWithoutPermDeleteOption(containerDeletePolicy)
+	if containerDeletePolicy := input.Properties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
+		flattenedContainerDeletePolicy = flattenAccountBlobContainerDeleteRetentionPolicy(containerDeletePolicy)
 	}
 
 	versioning, changeFeedEnabled, changeFeedRetentionInDays := false, false, 0
-	if input.BlobServicePropertiesProperties.IsVersioningEnabled != nil {
-		versioning = *input.BlobServicePropertiesProperties.IsVersioningEnabled
+	if input.Properties.IsVersioningEnabled != nil {
+		versioning = *input.Properties.IsVersioningEnabled
 	}
 
-	if v := input.BlobServicePropertiesProperties.ChangeFeed; v != nil {
+	if v := input.Properties.ChangeFeed; v != nil {
 		if v.Enabled != nil {
 			changeFeedEnabled = *v.Enabled
 		}
@@ -3220,13 +2715,13 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 	}
 
 	var defaultServiceVersion string
-	if input.BlobServicePropertiesProperties.DefaultServiceVersion != nil {
-		defaultServiceVersion = *input.BlobServicePropertiesProperties.DefaultServiceVersion
+	if input.Properties.DefaultServiceVersion != nil {
+		defaultServiceVersion = *input.Properties.DefaultServiceVersion
 	}
 
 	var LastAccessTimeTrackingPolicy bool
-	if v := input.BlobServicePropertiesProperties.LastAccessTimeTrackingPolicy; v != nil && v.Enable != nil {
-		LastAccessTimeTrackingPolicy = *v.Enable
+	if v := input.Properties.LastAccessTimeTrackingPolicy; v != nil {
+		LastAccessTimeTrackingPolicy = v.Enable
 	}
 
 	return []interface{}{
@@ -3244,27 +2739,24 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 	}
 }
 
-func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
-	corsRules := make([]interface{}, 0)
-
-	if input == nil || input.CorsRules == nil {
-		return corsRules
+func expandAccountBlobDeleteRetentionPolicy(input []interface{}) *blobservice.DeleteRetentionPolicy {
+	result := blobservice.DeleteRetentionPolicy{
+		Enabled: pointer.To(false),
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &result
 	}
 
-	for _, corsRule := range *input.CorsRules {
-		corsRules = append(corsRules, map[string]interface{}{
-			"allowed_headers":    corsRule.AllowedHeaders,
-			"allowed_origins":    corsRule.AllowedOrigins,
-			"allowed_methods":    corsRule.AllowedMethods,
-			"exposed_headers":    corsRule.ExposedHeaders,
-			"max_age_in_seconds": int(*corsRule.MaxAgeInSeconds),
-		})
-	}
+	policy := input[0].(map[string]interface{})
 
-	return corsRules
+	return &blobservice.DeleteRetentionPolicy{
+		Enabled:              pointer.To(true),
+		Days:                 pointer.To(int64(policy["days"].(int))),
+		AllowPermanentDelete: pointer.To(policy["permanent_delete_enabled"].(bool)),
+	}
 }
 
-func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPolicy) []interface{} {
+func flattenAccountBlobDeleteRetentionPolicy(input *blobservice.DeleteRetentionPolicy) []interface{} {
 	deleteRetentionPolicy := make([]interface{}, 0)
 
 	if input == nil {
@@ -3291,7 +2783,23 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	return deleteRetentionPolicy
 }
 
-func flattenBlobPropertiesDeleteRetentionPolicyWithoutPermDeleteOption(input *storage.DeleteRetentionPolicy) []interface{} {
+func expandAccountBlobContainerDeleteRetentionPolicy(input []interface{}) *blobservice.DeleteRetentionPolicy {
+	result := blobservice.DeleteRetentionPolicy{
+		Enabled: pointer.To(false),
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &result
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &blobservice.DeleteRetentionPolicy{
+		Enabled: pointer.To(true),
+		Days:    pointer.To(int64(policy["days"].(int))),
+	}
+}
+
+func flattenAccountBlobContainerDeleteRetentionPolicy(input *blobservice.DeleteRetentionPolicy) []interface{} {
 	deleteRetentionPolicy := make([]interface{}, 0)
 
 	if input == nil {
@@ -3312,14 +2820,30 @@ func flattenBlobPropertiesDeleteRetentionPolicyWithoutPermDeleteOption(input *st
 	return deleteRetentionPolicy
 }
 
-func flattenBlobPropertiesRestorePolicy(input *storage.RestorePolicyProperties) []interface{} {
+func expandAccountBlobPropertiesRestorePolicy(input []interface{}) *blobservice.RestorePolicyProperties {
+	result := blobservice.RestorePolicyProperties{
+		Enabled: false,
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &result
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &blobservice.RestorePolicyProperties{
+		Enabled: true,
+		Days:    pointer.To(int64(policy["days"].(int))),
+	}
+}
+
+func flattenAccountBlobPropertiesRestorePolicy(input *blobservice.RestorePolicyProperties) []interface{} {
 	restorePolicy := make([]interface{}, 0)
 
 	if input == nil {
 		return restorePolicy
 	}
 
-	if enabled := input.Enabled; enabled != nil && *enabled {
+	if enabled := input.Enabled; enabled {
 		days := 0
 		if input.Days != nil {
 			days = int(*input.Days)
@@ -3333,107 +2857,32 @@ func flattenBlobPropertiesRestorePolicy(input *storage.RestorePolicyProperties) 
 	return restorePolicy
 }
 
-func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
+func expandAccountBlobPropertiesCors(input []interface{}) *blobservice.CorsRules {
+	blobCorsRules := blobservice.CorsRules{}
 
-	queueProperties := make(map[string]interface{})
+	if len(input) > 0 {
+		corsRules := make([]blobservice.CorsRule, 0)
+		for _, raw := range input {
+			item := raw.(map[string]interface{})
 
-	if cors := input.Cors; cors != nil {
-		if len(cors.CorsRule) > 0 {
-			if cors.CorsRule[0].AllowedOrigins != "" {
-				queueProperties["cors_rule"] = flattenQueuePropertiesCorsRule(input.Cors.CorsRule)
+			allowedMethods := make([]blobservice.AllowedMethods, 0)
+			for _, val := range expandStringSlice(item["allowed_methods"].([]interface{})) {
+				allowedMethods = append(allowedMethods, blobservice.AllowedMethods(val))
 			}
+			corsRules = append(corsRules, blobservice.CorsRule{
+				AllowedHeaders:  expandStringSlice(item["allowed_headers"].([]interface{})),
+				AllowedOrigins:  expandStringSlice(item["allowed_origins"].([]interface{})),
+				AllowedMethods:  allowedMethods,
+				ExposedHeaders:  expandStringSlice(item["exposed_headers"].([]interface{})),
+				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
+			})
 		}
+		blobCorsRules.CorsRules = &corsRules
 	}
-
-	if logging := input.Logging; logging != nil {
-		if logging.Version != "" {
-			queueProperties["logging"] = flattenQueuePropertiesLogging(*logging)
-		}
-	}
-
-	if hourMetrics := input.HourMetrics; hourMetrics != nil {
-		if hourMetrics.Version != "" {
-			queueProperties["hour_metrics"] = flattenQueuePropertiesMetrics(*hourMetrics)
-		}
-	}
-
-	if minuteMetrics := input.MinuteMetrics; minuteMetrics != nil {
-		if minuteMetrics.Version != "" {
-			queueProperties["minute_metrics"] = flattenQueuePropertiesMetrics(*minuteMetrics)
-		}
-	}
-
-	if len(queueProperties) == 0 {
-		return []interface{}{}
-	}
-	return []interface{}{queueProperties}
+	return &blobCorsRules
 }
 
-func flattenQueuePropertiesMetrics(input queues.MetricsConfig) []interface{} {
-	metrics := make(map[string]interface{})
-
-	metrics["version"] = input.Version
-	metrics["enabled"] = input.Enabled
-
-	if input.IncludeAPIs != nil {
-		metrics["include_apis"] = *input.IncludeAPIs
-	}
-
-	if input.RetentionPolicy.Enabled {
-		metrics["retention_policy_days"] = input.RetentionPolicy.Days
-	}
-
-	return []interface{}{metrics}
-}
-
-func flattenQueuePropertiesCorsRule(input []queues.CorsRule) []interface{} {
-	corsRules := make([]interface{}, 0)
-
-	for _, corsRule := range input {
-		attr := make(map[string]interface{})
-
-		attr["allowed_origins"] = flattenCorsProperty(corsRule.AllowedOrigins)
-		attr["allowed_methods"] = flattenCorsProperty(corsRule.AllowedMethods)
-		attr["allowed_headers"] = flattenCorsProperty(corsRule.AllowedHeaders)
-		attr["exposed_headers"] = flattenCorsProperty(corsRule.ExposedHeaders)
-		attr["max_age_in_seconds"] = corsRule.MaxAgeInSeconds
-
-		corsRules = append(corsRules, attr)
-	}
-
-	return corsRules
-}
-
-func flattenQueuePropertiesLogging(input queues.LoggingConfig) []interface{} {
-	logging := make(map[string]interface{})
-
-	logging["version"] = input.Version
-	logging["delete"] = input.Delete
-	logging["read"] = input.Read
-	logging["write"] = input.Write
-
-	if input.RetentionPolicy.Enabled {
-		logging["retention_policy_days"] = input.RetentionPolicy.Days
-	}
-
-	return []interface{}{logging}
-}
-
-func flattenCorsProperty(input string) []interface{} {
-	results := make([]interface{}, 0, len(input))
-
-	origins := strings.Split(input, ",")
-	for _, origin := range origins {
-		results = append(results, origin)
-	}
-
-	return results
-}
-
-func flattenSharePropertiesCorsRule(input *fileservice.CorsRules) []interface{} {
+func flattenAccountBlobPropertiesCorsRule(input *blobservice.CorsRules) []interface{} {
 	corsRules := make([]interface{}, 0)
 
 	if input == nil || input.CorsRules == nil {
@@ -3453,15 +2902,44 @@ func flattenSharePropertiesCorsRule(input *fileservice.CorsRules) []interface{} 
 	return corsRules
 }
 
-func flattenShareProperties(input fileservice.GetServicePropertiesOperationResponse) []interface{} {
+func expandAccountShareProperties(input []interface{}) fileservice.FileServiceProperties {
+	props := fileservice.FileServiceProperties{
+		Properties: &fileservice.FileServicePropertiesProperties{
+			Cors: &fileservice.CorsRules{
+				CorsRules: &[]fileservice.CorsRule{},
+			},
+			ShareDeleteRetentionPolicy: &fileservice.DeleteRetentionPolicy{
+				Enabled: pointer.To(false),
+			},
+		},
+	}
+
+	if len(input) == 0 || input[0] == nil {
+		return props
+	}
+
+	v := input[0].(map[string]interface{})
+
+	props.Properties.ShareDeleteRetentionPolicy = expandAccountShareDeleteRetentionPolicy(v["retention_policy"].([]interface{}))
+
+	props.Properties.Cors = expandAccountSharePropertiesCorsRule(v["cors_rule"].([]interface{}))
+
+	props.Properties.ProtocolSettings = &fileservice.ProtocolSettings{
+		Smb: expandAccountSharePropertiesSMB(v["smb"].([]interface{})),
+	}
+
+	return props
+}
+
+func flattenAccountShareProperties(input *fileservice.FileServiceProperties) []interface{} {
 	output := make([]interface{}, 0)
 
-	if model := input.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if input != nil {
+		if props := input.Properties; props != nil {
 			output = append(output, map[string]interface{}{
-				"cors_rule":        flattenSharePropertiesCorsRule(props.Cors),
-				"retention_policy": flattenSharePropertiesDeleteRetentionPolicyWithoutPermDeleteOption(props.ShareDeleteRetentionPolicy),
-				"smb":              flattenedSharePropertiesSMB(props.ProtocolSettings),
+				"cors_rule":        flattenAccountSharePropertiesCorsRule(props.Cors),
+				"retention_policy": flattenAccountShareDeleteRetentionPolicy(props.ShareDeleteRetentionPolicy),
+				"smb":              flattenAccountSharePropertiesSMB(props.ProtocolSettings),
 			})
 		}
 	}
@@ -3469,7 +2947,68 @@ func flattenShareProperties(input fileservice.GetServicePropertiesOperationRespo
 	return output
 }
 
-func flattenSharePropertiesDeleteRetentionPolicyWithoutPermDeleteOption(input *fileservice.DeleteRetentionPolicy) []interface{} {
+func expandAccountSharePropertiesCorsRule(input []interface{}) *fileservice.CorsRules {
+	blobCorsRules := fileservice.CorsRules{}
+
+	if len(input) > 0 {
+		corsRules := make([]fileservice.CorsRule, 0)
+		for _, raw := range input {
+			item := raw.(map[string]interface{})
+
+			allowedMethods := make([]fileservice.AllowedMethods, 0)
+			for _, val := range expandStringSlice(item["allowed_methods"].([]interface{})) {
+				allowedMethods = append(allowedMethods, fileservice.AllowedMethods(val))
+			}
+			corsRules = append(corsRules, fileservice.CorsRule{
+				AllowedHeaders:  expandStringSlice(item["allowed_headers"].([]interface{})),
+				AllowedOrigins:  expandStringSlice(item["allowed_origins"].([]interface{})),
+				AllowedMethods:  allowedMethods,
+				ExposedHeaders:  expandStringSlice(item["exposed_headers"].([]interface{})),
+				MaxAgeInSeconds: int64(item["max_age_in_seconds"].(int)),
+			})
+		}
+		blobCorsRules.CorsRules = &corsRules
+	}
+	return &blobCorsRules
+}
+
+func flattenAccountSharePropertiesCorsRule(input *fileservice.CorsRules) []interface{} {
+	corsRules := make([]interface{}, 0)
+
+	if input == nil || input.CorsRules == nil {
+		return corsRules
+	}
+
+	for _, corsRule := range *input.CorsRules {
+		corsRules = append(corsRules, map[string]interface{}{
+			"allowed_headers":    corsRule.AllowedHeaders,
+			"allowed_origins":    corsRule.AllowedOrigins,
+			"allowed_methods":    corsRule.AllowedMethods,
+			"exposed_headers":    corsRule.ExposedHeaders,
+			"max_age_in_seconds": int(corsRule.MaxAgeInSeconds),
+		})
+	}
+
+	return corsRules
+}
+
+func expandAccountShareDeleteRetentionPolicy(input []interface{}) *fileservice.DeleteRetentionPolicy {
+	result := fileservice.DeleteRetentionPolicy{
+		Enabled: pointer.To(false),
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &result
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &fileservice.DeleteRetentionPolicy{
+		Enabled: pointer.To(true),
+		Days:    pointer.To(int64(policy["days"].(int))),
+	}
+}
+
+func flattenAccountShareDeleteRetentionPolicy(input *fileservice.DeleteRetentionPolicy) []interface{} {
 	output := make([]interface{}, 0)
 
 	if input != nil {
@@ -3488,7 +3027,30 @@ func flattenSharePropertiesDeleteRetentionPolicyWithoutPermDeleteOption(input *f
 	return output
 }
 
-func flattenedSharePropertiesSMB(input *fileservice.ProtocolSettings) []interface{} {
+func expandAccountSharePropertiesSMB(input []interface{}) *fileservice.SmbSetting {
+	if len(input) == 0 || input[0] == nil {
+		return &fileservice.SmbSetting{
+			Versions:                 pointer.To(""),
+			AuthenticationMethods:    pointer.To(""),
+			KerberosTicketEncryption: pointer.To(""),
+			ChannelEncryption:        pointer.To(""),
+		}
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &fileservice.SmbSetting{
+		Versions:                 utils.ExpandStringSliceWithDelimiter(v["versions"].(*pluginsdk.Set).List(), ";"),
+		AuthenticationMethods:    utils.ExpandStringSliceWithDelimiter(v["authentication_types"].(*pluginsdk.Set).List(), ";"),
+		KerberosTicketEncryption: utils.ExpandStringSliceWithDelimiter(v["kerberos_ticket_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		ChannelEncryption:        utils.ExpandStringSliceWithDelimiter(v["channel_encryption_type"].(*pluginsdk.Set).List(), ";"),
+		Multichannel: &fileservice.Multichannel{
+			Enabled: pointer.To(v["multichannel_enabled"].(bool)),
+		},
+	}
+}
+
+func flattenAccountSharePropertiesSMB(input *fileservice.ProtocolSettings) []interface{} {
 	if input == nil || input.Smb == nil {
 		return []interface{}{}
 	}
@@ -3533,7 +3095,279 @@ func flattenedSharePropertiesSMB(input *fileservice.ProtocolSettings) []interfac
 	}
 }
 
-func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) []interface{} {
+func expandAccountQueueProperties(input []interface{}) (*queues.StorageServiceProperties, error) {
+	var err error
+	properties := queues.StorageServiceProperties{
+		Cors: &queues.Cors{
+			CorsRule: []queues.CorsRule{},
+		},
+		HourMetrics: &queues.MetricsConfig{
+			Version: "1.0",
+			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		},
+		MinuteMetrics: &queues.MetricsConfig{
+			Version: "1.0",
+			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		},
+		Logging: &queues.LoggingConfig{
+			Version: "1.0",
+			Delete:  false,
+			Read:    false,
+			Write:   false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		},
+	}
+	if len(input) == 0 {
+		return &properties, nil
+	}
+
+	attrs := input[0].(map[string]interface{})
+
+	properties.Cors = expandAccountQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
+	properties.Logging = expandAccountQueuePropertiesLogging(attrs["logging"].([]interface{}))
+	properties.MinuteMetrics, err = expandAccountQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
+	if err != nil {
+		return nil, fmt.Errorf("expanding `minute_metrics`: %+v", err)
+	}
+	properties.HourMetrics, err = expandAccountQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
+	if err != nil {
+		return nil, fmt.Errorf("expanding `hour_metrics`: %+v", err)
+	}
+
+	return &properties, nil
+}
+
+func flattenAccountQueueProperties(input *queues.StorageServiceProperties) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		corsRules := flattenAccountQueuePropertiesCors(input.Cors)
+		logging := flattenAccountQueuePropertiesLogging(input.Logging)
+		hourMetrics := flattenAccountQueuePropertiesMetrics(input.HourMetrics)
+		minuteMetrics := flattenAccountQueuePropertiesMetrics(input.MinuteMetrics)
+
+		if len(corsRules) > 0 || len(logging) > 0 || len(hourMetrics) > 0 || len(minuteMetrics) > 0 {
+			output = append(output, map[string]interface{}{
+				"cors_rule":      corsRules,
+				"hour_metrics":   hourMetrics,
+				"logging":        logging,
+				"minute_metrics": minuteMetrics,
+			})
+		}
+	}
+
+	return output
+}
+
+func expandAccountQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
+	if len(input) == 0 {
+		return &queues.LoggingConfig{
+			Version: "1.0",
+			Delete:  false,
+			Read:    false,
+			Write:   false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		}
+	}
+
+	loggingAttr := input[0].(map[string]interface{})
+	logging := &queues.LoggingConfig{
+		Version: loggingAttr["version"].(string),
+		Delete:  loggingAttr["delete"].(bool),
+		Read:    loggingAttr["read"].(bool),
+		Write:   loggingAttr["write"].(bool),
+	}
+
+	if v, ok := loggingAttr["retention_policy_days"]; ok {
+		if days := v.(int); days > 0 {
+			logging.RetentionPolicy = queues.RetentionPolicy{
+				Days:    days,
+				Enabled: true,
+			}
+		}
+	}
+
+	return logging
+}
+
+func flattenAccountQueuePropertiesLogging(input *queues.LoggingConfig) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	retentionPolicyDays := 0
+	if input.RetentionPolicy.Enabled {
+		retentionPolicyDays = input.RetentionPolicy.Days
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"delete":                input.Delete,
+			"read":                  input.Read,
+			"retention_policy_days": retentionPolicyDays,
+			"version":               input.Version,
+			"write":                 input.Write,
+		},
+	}
+}
+
+func expandAccountQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, error) {
+	if len(input) == 0 {
+		return &queues.MetricsConfig{
+			Version: "1.0",
+			Enabled: false,
+			RetentionPolicy: queues.RetentionPolicy{
+				Enabled: false,
+			},
+		}, nil
+	}
+
+	metricsAttr := input[0].(map[string]interface{})
+
+	metrics := &queues.MetricsConfig{
+		Version: metricsAttr["version"].(string),
+		Enabled: metricsAttr["enabled"].(bool),
+	}
+
+	if v, ok := metricsAttr["retention_policy_days"]; ok {
+		if days := v.(int); days > 0 {
+			metrics.RetentionPolicy = queues.RetentionPolicy{
+				Days:    days,
+				Enabled: true,
+			}
+		}
+	}
+
+	if v, ok := metricsAttr["include_apis"]; ok {
+		includeAPIs := v.(bool)
+		if metrics.Enabled {
+			metrics.IncludeAPIs = &includeAPIs
+		} else if includeAPIs {
+			return nil, fmt.Errorf("`include_apis` may only be set when `enabled` is true")
+		}
+	}
+
+	return metrics, nil
+}
+
+func flattenAccountQueuePropertiesMetrics(input *queues.MetricsConfig) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil && input.Version != "" {
+		retentionPolicyDays := 0
+		if input.RetentionPolicy.Enabled {
+			retentionPolicyDays = input.RetentionPolicy.Days
+		}
+
+		output = append(output, map[string]interface{}{
+			"enabled":               input.Enabled,
+			"include_apis":          pointer.From(input.IncludeAPIs),
+			"retention_policy_days": retentionPolicyDays,
+			"version":               input.Version,
+		})
+	}
+
+	return output
+}
+
+func expandAccountQueuePropertiesCors(input []interface{}) *queues.Cors {
+	if len(input) == 0 {
+		return &queues.Cors{}
+	}
+
+	corsRules := make([]queues.CorsRule, 0)
+	for _, attr := range input {
+		corsRuleAttr := attr.(map[string]interface{})
+		corsRule := queues.CorsRule{}
+
+		corsRule.AllowedOrigins = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ",")
+		corsRule.ExposedHeaders = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ",")
+		corsRule.AllowedHeaders = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ",")
+		corsRule.AllowedMethods = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ",")
+		corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
+
+		corsRules = append(corsRules, corsRule)
+	}
+
+	cors := &queues.Cors{
+		CorsRule: corsRules,
+	}
+	return cors
+}
+
+func flattenAccountQueuePropertiesCors(input *queues.Cors) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input == nil || len(input.CorsRule) == 0 || input.CorsRule[0].AllowedOrigins == "" {
+		return output
+	}
+
+	for _, item := range input.CorsRule {
+		output = append(output, map[string]interface{}{
+			"allowed_headers":    flattenAccountQueuePropertiesCorsRule(item.AllowedHeaders),
+			"allowed_origins":    flattenAccountQueuePropertiesCorsRule(item.AllowedOrigins),
+			"allowed_methods":    flattenAccountQueuePropertiesCorsRule(item.AllowedMethods),
+			"exposed_headers":    flattenAccountQueuePropertiesCorsRule(item.ExposedHeaders),
+			"max_age_in_seconds": item.MaxAgeInSeconds,
+		})
+	}
+
+	return output
+}
+
+func flattenAccountQueuePropertiesCorsRule(input string) []interface{} {
+	results := make([]interface{}, 0)
+
+	components := strings.Split(input, ",")
+	for _, item := range components {
+		results = append(results, item)
+	}
+
+	return results
+}
+
+func expandAccountStaticWebsiteProperties(input []interface{}) accounts.StorageServiceProperties {
+	properties := accounts.StorageServiceProperties{
+		StaticWebsite: &accounts.StaticWebsite{
+			Enabled: false,
+		},
+	}
+	if len(input) == 0 {
+		return properties
+	}
+
+	properties.StaticWebsite.Enabled = true
+
+	// @tombuildsstuff: this looks weird, doesn't it?
+	// Since the presence of this block signifies the website's enabled however all fields within it are optional
+	// TF Core returns a nil object when there's no keys defined within the block, rather than an empty map. As
+	// such this hack allows us to have a Static Website block with only Enabled configured, without the optional
+	// inner properties.
+	if val := input[0]; val != nil {
+		attr := val.(map[string]interface{})
+		if v, ok := attr["index_document"]; ok {
+			properties.StaticWebsite.IndexDocument = v.(string)
+		}
+
+		if v, ok := attr["error_404_document"]; ok {
+			properties.StaticWebsite.ErrorDocument404Path = v.(string)
+		}
+	}
+
+	return properties
+}
+
+func flattenAccountStaticWebsiteProperties(input accounts.GetServicePropertiesResult) []interface{} {
 	if staticWebsite := input.StaticWebsite; staticWebsite != nil {
 		if !staticWebsite.Enabled {
 			return []interface{}{}
@@ -3549,15 +3383,15 @@ func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) [
 	return []interface{}{}
 }
 
-func expandAccountSASPolicy(input []interface{}) *storage.SasPolicy {
+func expandAccountSASPolicy(input []interface{}) *storageaccounts.SasPolicy {
 	if len(input) == 0 {
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
-	return &storage.SasPolicy{
-		ExpirationAction:    pointer.To(raw["expiration_action"].(string)),
-		SasExpirationPeriod: pointer.To(raw["expiration_period"].(string)),
+	return &storageaccounts.SasPolicy{
+		ExpirationAction:    storageaccounts.ExpirationAction(raw["expiration_action"].(string)),
+		SasExpirationPeriod: raw["expiration_period"].(string),
 	}
 }
 
@@ -3571,5 +3405,24 @@ func flattenAccountSASPolicy(input *storageaccounts.SasPolicy) []interface{} {
 		})
 	}
 
+	return output
+}
+
+func expandEdgeZone(input string) *edgezones.Model {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &edgezones.Model{
+		Name: normalized,
+	}
+}
+
+func flattenEdgeZone(input *edgezones.Model) string {
+	output := ""
+	if input != nil {
+		output = edgezones.Normalize(input.Name)
+	}
 	return output
 }

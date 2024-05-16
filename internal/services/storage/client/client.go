@@ -6,7 +6,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
 	storage_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
@@ -24,7 +23,6 @@ var StorageDomainSuffix *string
 type Client struct {
 	StorageDomainSuffix string
 
-	// NOTE: These SDK clients use `hashicorp/go-azure-sdk` and should be used going forwards
 	ResourceManager *storage_v2023_01_01.Client
 	// TODO: import the Storage Sync Meta Client and use that
 	SyncCloudEndpointsClient   *cloudendpointresource.CloudEndpointResourceClient
@@ -32,12 +30,6 @@ type Client struct {
 	SyncRegisteredServerClient *registeredserverresource.RegisteredServerResourceClient
 	SyncServerEndpointsClient  *serverendpointresource.ServerEndpointResourceClient
 	SyncServiceClient          *storagesyncservicesresource.StorageSyncServicesResourceClient
-
-	// NOTE: these SDK clients use the legacy `Azure/azure-sdk-for-go` and should no longer be used
-	// for new functionality - please instead use the `hashicorp/go-azure-sdk` clients above.
-	AccountsClient     *storage.AccountsClient
-	BlobServicesClient *storage.BlobServicesClient
-	FileServicesClient *storage.FileServicesClient
 
 	authConfigForAzureAD *auth.Credentials
 }
@@ -50,15 +42,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	// Set global variable for post-configure validation
 	StorageDomainSuffix = storageSuffix
-
-	accountsClient := storage.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&accountsClient.Client, o.ResourceManagerAuthorizer)
-
-	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&blobServicesClient.Client, o.ResourceManagerAuthorizer)
-
-	fileServicesClient := storage.NewFileServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&fileServicesClient.Client, o.ResourceManagerAuthorizer)
 
 	resourceManager, err := storage_v2023_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
@@ -100,9 +83,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
-		AccountsClient:             &accountsClient,
-		BlobServicesClient:         &blobServicesClient,
-		FileServicesClient:         &fileServicesClient,
 		ResourceManager:            resourceManager,
 		SyncCloudEndpointsClient:   syncCloudEndpointsClient,
 		SyncRegisteredServerClient: syncRegisteredServersClient,

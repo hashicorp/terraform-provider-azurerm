@@ -10,6 +10,8 @@ import (
 	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 )
 
+// TODO: this wants splitting out into a separate package
+
 type accountKeyDetails struct {
 	keyVaultKeyId string
 	managedHsmId  string
