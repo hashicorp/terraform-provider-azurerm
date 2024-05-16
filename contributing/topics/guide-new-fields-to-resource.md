@@ -60,7 +60,7 @@ props := machinelearning.Workspace{
 
 ```go
 if d.HasChange("public_network_access_enabled") {
-	existing.Model.Properties.PublicNetworkAccess = utils.Bool(d.Get("public_network_access_enabled").(bool))
+	existing.Model.Properties.PublicNetworkAccess = pointer.From(d.Get("public_network_access_enabled").(bool))
 }
 ```
 
