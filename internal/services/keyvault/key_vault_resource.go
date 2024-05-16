@@ -263,11 +263,17 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	contactRaw := d.Get("contact").(*pluginsdk.Set).List()
 	contactCount := len(contactRaw)
 
-	// In v4.0 providers block creation of all key vaults if the configuration
-	// file contains a 'contact' field...
-	if features.FourPointOhBeta() {
-		if contactCount > 0 {
+	if contactCount > 0 {
+		if features.FourPointOhBeta() {
+			// In v4.0 providers block creation of all key vaults if the configuration
+			// file contains a 'contact' field...
 			return fmt.Errorf("%s: The `contact` field is not supported for new key vaults", id)
+		} else {
+			// In v3.x providers block creation of key vaults if 'public_network_access_enabled'
+			// is 'false'...
+			if !isPublic {
+				return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
+			}
 		}
 	}
 
@@ -435,21 +441,14 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	// In v3.x providers block the creation of new key vaults if the
-	// 'public_network_access_enabled' is set to 'false'...
-	if !features.FourPointOhBeta() {
-		if contactCount > 0 {
-			if !isPublic {
-				return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
-			}
+	// Only call the data plane if the 'contact' field has been defined...
+	if contactCount > 0 {
+		contacts := dataplane.Contacts{
+			ContactList: expandKeyVaultCertificateContactList(contactRaw),
+		}
 
-			contacts := dataplane.Contacts{
-				ContactList: expandKeyVaultCertificateContactList(contactRaw),
-			}
-
-			if _, err := managementClient.SetCertificateContacts(ctx, vaultUri, contacts); err != nil {
-				return fmt.Errorf("failed to set Contacts for %s: %+v", id, err)
-			}
+		if _, err := managementClient.SetCertificateContacts(ctx, vaultUri, contacts); err != nil {
+			return fmt.Errorf("failed to set Contacts for %s: %+v", id, err)
 		}
 	}
 
