@@ -91,6 +91,11 @@ func resourceSnapshot() *pluginsdk.Resource {
 				Default:      string(snapshots.NetworkAccessPolicyAllowAll),
 			},
 
+			"disk_access_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -188,6 +193,10 @@ func resourceSnapshotCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		properties.Properties.NetworkAccessPolicy = pointer.To(snapshots.NetworkAccessPolicy(v.(string)))
 	}
 
+	if v, ok := d.GetOk("disk_access_id"); ok {
+		properties.Properties.DiskAccessId = utils.String(v.(string))
+	}
+
 	properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccessEnabled)
 	if !d.Get("public_network_access_enabled").(bool) {
 		properties.Properties.PublicNetworkAccess = pointer.To(snapshots.PublicNetworkAccessDisabled)
@@ -240,6 +249,12 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			data := props.CreationData
 			d.Set("create_option", string(data.CreateOption))
 			d.Set("storage_account_id", data.StorageAccountId)
+
+			diskAccessID := ""
+			if props.DiskAccessId != nil {
+				diskAccessID = *props.DiskAccessId
+			}
+			d.Set("disk_access_id", diskAccessID)
 
 			diskSizeGb := 0
 			if props.DiskSizeGB != nil {
