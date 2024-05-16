@@ -129,6 +129,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Default:     true,
 					},
 
+					"purge_soft_deleted_hardware_security_module_keys_on_destroy": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
 					"recover_soft_deleted_certificates": {
 						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones",
 						Type:        pluginsdk.TypeBool,
@@ -152,6 +159,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 
 					"recover_soft_deleted_secrets": {
 						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"recover_soft_deleted_hardware_security_module_keys": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -453,6 +467,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := keyVaultRaw["purge_soft_deleted_hardware_security_modules_on_destroy"]; ok {
 				featuresMap.KeyVault.PurgeSoftDeletedHSMsOnDestroy = v.(bool)
 			}
+			if v, ok := keyVaultRaw["purge_soft_deleted_hardware_security_module_keys_on_destroy"]; ok {
+				featuresMap.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy = v.(bool)
+			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
 			}
@@ -464,6 +481,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_secrets"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedSecrets = v.(bool)
+			}
+			if v, ok := keyVaultRaw["recover_soft_deleted_hardware_security_module_keys"]; ok {
+				featuresMap.KeyVault.RecoverSoftDeletedHSMKeys = v.(bool)
 			}
 		}
 	}

@@ -85,3 +85,14 @@ func (id ManagedHSMDataPlaneVersionedKeyId) BaseUri() string {
 func (id ManagedHSMDataPlaneVersionedKeyId) ID() string {
 	return fmt.Sprintf("https://%s.%s/keys/%s/%s", id.ManagedHSMName, id.DomainSuffix, id.KeyName, id.KeyVersion)
 }
+
+// String returns a human-readable description of this Managed HSM Key ID
+func (id ManagedHSMDataPlaneVersionedKeyId) String() string {
+	components := []string{
+		fmt.Sprintf("Managed HSM Name: %q", id.ManagedHSMName),
+		fmt.Sprintf("Domain Suffix: %q", id.DomainSuffix),
+		fmt.Sprintf("Key Name: %q", id.KeyName),
+		fmt.Sprintf("Key Version: %q", id.KeyVersion),
+	}
+	return fmt.Sprintf("Managed HSM Key (%s)", strings.Join(components, "\n"))
+}
