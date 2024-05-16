@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/projectresource` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource` Documentation
 
-The `projectresource` SDK allows for interaction with the Azure Resource Manager Service `datamigration` (API Version `2018-04-19`).
+The `projectresource` SDK allows for interaction with the Azure Resource Manager Service `datamigration` (API Version `2021-06-30`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/projectresource"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource"
 ```
 
 
@@ -73,14 +73,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `ProjectResourceClient.ProjectsListByResourceGroup`
+### Example Usage: `ProjectResourceClient.ProjectsList`
 
 ```go
 ctx := context.TODO()
 id := projectresource.NewServiceID("12345678-1234-9876-4563-123456789012", "resourceGroupValue", "serviceValue")
 
-// alternatively `client.ProjectsListByResourceGroup(ctx, id)` can be used to do batched pagination
-items, err := client.ProjectsListByResourceGroupComplete(ctx, id)
+// alternatively `client.ProjectsList(ctx, id)` can be used to do batched pagination
+items, err := client.ProjectsListComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

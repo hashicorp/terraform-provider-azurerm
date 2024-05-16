@@ -53,12 +53,18 @@ func parseProjectProvisioningState(input string) (*ProjectProvisioningState, err
 type ProjectSourcePlatform string
 
 const (
-	ProjectSourcePlatformSQL     ProjectSourcePlatform = "SQL"
-	ProjectSourcePlatformUnknown ProjectSourcePlatform = "Unknown"
+	ProjectSourcePlatformMongoDb    ProjectSourcePlatform = "MongoDb"
+	ProjectSourcePlatformMySQL      ProjectSourcePlatform = "MySQL"
+	ProjectSourcePlatformPostgreSql ProjectSourcePlatform = "PostgreSql"
+	ProjectSourcePlatformSQL        ProjectSourcePlatform = "SQL"
+	ProjectSourcePlatformUnknown    ProjectSourcePlatform = "Unknown"
 )
 
 func PossibleValuesForProjectSourcePlatform() []string {
 	return []string{
+		string(ProjectSourcePlatformMongoDb),
+		string(ProjectSourcePlatformMySQL),
+		string(ProjectSourcePlatformPostgreSql),
 		string(ProjectSourcePlatformSQL),
 		string(ProjectSourcePlatformUnknown),
 	}
@@ -79,8 +85,11 @@ func (s *ProjectSourcePlatform) UnmarshalJSON(bytes []byte) error {
 
 func parseProjectSourcePlatform(input string) (*ProjectSourcePlatform, error) {
 	vals := map[string]ProjectSourcePlatform{
-		"sql":     ProjectSourcePlatformSQL,
-		"unknown": ProjectSourcePlatformUnknown,
+		"mongodb":    ProjectSourcePlatformMongoDb,
+		"mysql":      ProjectSourcePlatformMySQL,
+		"postgresql": ProjectSourcePlatformPostgreSql,
+		"sql":        ProjectSourcePlatformSQL,
+		"unknown":    ProjectSourcePlatformUnknown,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -94,13 +103,21 @@ func parseProjectSourcePlatform(input string) (*ProjectSourcePlatform, error) {
 type ProjectTargetPlatform string
 
 const (
-	ProjectTargetPlatformSQLDB   ProjectTargetPlatform = "SQLDB"
-	ProjectTargetPlatformUnknown ProjectTargetPlatform = "Unknown"
+	ProjectTargetPlatformAzureDbForMySql      ProjectTargetPlatform = "AzureDbForMySql"
+	ProjectTargetPlatformAzureDbForPostgreSql ProjectTargetPlatform = "AzureDbForPostgreSql"
+	ProjectTargetPlatformMongoDb              ProjectTargetPlatform = "MongoDb"
+	ProjectTargetPlatformSQLDB                ProjectTargetPlatform = "SQLDB"
+	ProjectTargetPlatformSQLMI                ProjectTargetPlatform = "SQLMI"
+	ProjectTargetPlatformUnknown              ProjectTargetPlatform = "Unknown"
 )
 
 func PossibleValuesForProjectTargetPlatform() []string {
 	return []string{
+		string(ProjectTargetPlatformAzureDbForMySql),
+		string(ProjectTargetPlatformAzureDbForPostgreSql),
+		string(ProjectTargetPlatformMongoDb),
 		string(ProjectTargetPlatformSQLDB),
+		string(ProjectTargetPlatformSQLMI),
 		string(ProjectTargetPlatformUnknown),
 	}
 }
@@ -120,8 +137,12 @@ func (s *ProjectTargetPlatform) UnmarshalJSON(bytes []byte) error {
 
 func parseProjectTargetPlatform(input string) (*ProjectTargetPlatform, error) {
 	vals := map[string]ProjectTargetPlatform{
-		"sqldb":   ProjectTargetPlatformSQLDB,
-		"unknown": ProjectTargetPlatformUnknown,
+		"azuredbformysql":      ProjectTargetPlatformAzureDbForMySql,
+		"azuredbforpostgresql": ProjectTargetPlatformAzureDbForPostgreSql,
+		"mongodb":              ProjectTargetPlatformMongoDb,
+		"sqldb":                ProjectTargetPlatformSQLDB,
+		"sqlmi":                ProjectTargetPlatformSQLMI,
+		"unknown":              ProjectTargetPlatformUnknown,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

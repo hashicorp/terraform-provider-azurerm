@@ -6,5 +6,6 @@ package serviceresource
 type DataMigrationServiceProperties struct {
 	ProvisioningState *ServiceProvisioningState `json:"provisioningState,omitempty"`
 	PublicKey         *string                   `json:"publicKey,omitempty"`
+	VirtualNicId      *string                   `json:"virtualNicId,omitempty"`
 	VirtualSubnetId   string                    `json:"virtualSubnetId"`
 }
