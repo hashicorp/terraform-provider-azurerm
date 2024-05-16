@@ -44,10 +44,16 @@ func (ResourceGroupExampleDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 ```go
 publicNetworkAccess := true
-if v := props.WorkspaceProperties.PublicNetworkAccess; v != nil {
+if v := props.PublicNetworkAccess; v != nil {
 	publicNetworkAccess = *v
 }
 d.Set("public_network_access_enabled", publicNetworkAccess)
+```
+
+* For simple types we can use the helper function `pointer.From` to condense the nil check.
+
+```go
+d.Set("a_simple_string_property", pointer.From(props.AStringPointer))
 ```
 
 ## Tests
