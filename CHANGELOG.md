@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `network/virtualwan` - update to use `hashicorp/go-azure-sdk` [GH-25971]
 * `network/vpn` - update to use `hashicorp/go-azure-sdk` [GH-25971]
 * `azurerm_databricks_workspace` - support for the `default_storage_firewall_enabled` property [GH-25919]
+* `azurerm_key_vault` - allow previously existing key vaults to continue to manage the `contact` field prior to the `v3.93.0` conditional polling change [GH-25777]
 * `azurerm_linux_function_app` - support for the PowerShell `7.4` [GH-25980]
 * `azurerm_log_analytics_cluster` - support for the value `UserAssigned` in the `identity.type` property [GH-25940]
 * `azurerm_pim_active_role_assignment` - remove hard dependency on the `roleAssignmentScheduleRequests` API, so that role assignments will not become unmanageable over time [GH-25956]
