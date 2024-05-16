@@ -6,7 +6,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_kubernetes_service_version` - support for the `default_version` property [GH-25953]
+* New Resource - `azurerm_key_vault_managed_hardware_security_module_key` [GH-25935]
+* Data Source - `azurerm_kubernetes_service_version` - support for the `default_version` property [GH-25953]
 * `network/applicationgateways` - update to use `hashicorp/go-azure-sdk` [GH-25844]
 * `dataprotection` - update API version to `2024-04-01` [GH-25882]
 * `network/ips` - update to use `hashicorp/go-azure-sdk` [GH-25905]
