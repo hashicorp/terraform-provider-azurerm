@@ -270,7 +270,6 @@ resource "azurerm_container_app_environment" "test" {
 
   internal_load_balancer_enabled = true
   zone_redundancy_enabled        = true
-  mutual_tls_enabled             = false
 
   tags = {
     Foo    = "Bar"
@@ -319,7 +318,6 @@ resource "azurerm_container_app_environment" "test" {
 
   internal_load_balancer_enabled = true
   zone_redundancy_enabled        = true
-  mutual_tls_enabled             = false
 
   workload_profile {
     maximum_count         = 2
@@ -354,7 +352,6 @@ resource "azurerm_container_app_environment" "test" {
 
   internal_load_balancer_enabled = true
   zone_redundancy_enabled        = true
-  mutual_tls_enabled             = false
 
   workload_profile {
     maximum_count         = 2
@@ -402,7 +399,6 @@ resource "azurerm_container_app_environment" "test" {
   infrastructure_subnet_id       = azurerm_subnet.control.id
   zone_redundancy_enabled        = true
   internal_load_balancer_enabled = true
-  mutual_tls_enabled             = false
 
   tags = {
     Foo    = "Bar"
