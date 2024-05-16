@@ -2,7 +2,7 @@
 
 Resource IDs are an essential component of all resources and data sources within the provider and are required in order to interact with the corresponding API and to be tracked in state correctly by Terraform.
 
-Due to their fundamental importance in the provider, resource IDs can and should be handled through the use of various helper functions that are available.
+Due to their fundamental importance in the provider, resource IDs should be handled through the use of various helper functions that are available.
 
 ## Resource ID Parsers and Validators in `hashicorp/go-azure-sdk`
 
