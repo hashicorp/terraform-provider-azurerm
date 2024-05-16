@@ -13,7 +13,7 @@ BUG FIXES:
 
 * `azurerm_container_app_job` - Allow `event_trigger_config.scale.min_executions` to be `0` [GH-25931]
 * `azurerm_data_factory_trigger_custom_event` - one of `subject_begins_with` and `subject_ends_with` no longer need to be set [GH-25932]
-* `azurerm_postgresql_flexible_server` - fix for default `storage_tier` value when `storage_mb` field has been changed and `storage_tier` does not exist in the configuration file [GH-25947]
+* `azurerm_postgresql_flexible_server` - fix for default `storage_tier` value when `storage_mb` field has been changed [GH-25947]
 * `azurerm_pim_active_role_assignment` - resolve a number of potential crashes [GH-25956]
 * `azurerm_pim_eligible_role_assignment` - resolve a number of potential crashes [GH-25956]
 * `azurerm_storage_sync_server_endpoint` - Removing `initial_upload_policy` from model to prevent a crash [GH-25968]
