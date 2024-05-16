@@ -267,11 +267,11 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if features.FourPointOhBeta() {
 			// In v4.0 providers block creation of all key vaults if the configuration
 			// file contains a 'contact' field...
-			return fmt.Errorf("%s: The `contact` field is not supported for new key vaults", id)
+			return fmt.Errorf("%s: `contact` field is not supported for new key vaults", id)
 		} else if !isPublic {
 			// In v3.x providers block creation of key vaults if 'public_network_access_enabled'
 			// is 'false'...
-			return fmt.Errorf("`contact` cannot be specified when `public_network_access_enabled` is set to `false`")
+			return fmt.Errorf("%s: `contact` cannot be specified when `public_network_access_enabled` is set to `false`", id)
 		}
 	}
 
