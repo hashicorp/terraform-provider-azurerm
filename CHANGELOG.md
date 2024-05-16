@@ -17,6 +17,7 @@ BUG FIXES:
 * `azurerm_pim_active_role_assignment` - resolve a number of potential crashes [GH-25956]
 * `azurerm_pim_eligible_role_assignment` - resolve a number of potential crashes [GH-25956]
 * `azurerm_storage_sync_server_endpoint` - Removing `initial_upload_policy` from model to prevent a crash [GH-25968]
+* `azurerm_container_app_job` - update validation to allow the `replica_retry_limit` property to be set to `0` [GH-25984]
 
 ## 3.103.1 (May 10, 2024)
 
