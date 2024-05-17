@@ -311,6 +311,8 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 	var targetResourceId string
 	if !features.FivePointOh() {
 		targetResourceId = d.Get("network_security_group_id").(string)
+	} else {
+		targetResourceId = d.Get("target_resource_id").(string)
 	}
 	targetResourceId = d.Get("target_resource_id").(string)
 
