@@ -72,12 +72,10 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.Any(
-					validate.VirtualNetworkID,
-				),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"storage_account_id": {
@@ -175,6 +173,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
 			Required:      true,
 			ForceNew:      true,
 			ValidateFunc:  azure.ValidateResourceID,
