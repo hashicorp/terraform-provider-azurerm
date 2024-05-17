@@ -150,7 +150,7 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// Service team confirmed that the sync would definitely be completed within ten minutes. So we only need to set a timeout of 10 minutes and check the inventory quantity continuously every minute for 10 times. If the quantity doesn't change, then we consider the sync to be complete.
+			// After System Center Virtual Machine Manager Server is created, it needs some time to sync the Inventory Items. And service team confirmed that the sync would definitely be completed within ten minutes. So we only need to set a timeout of 10 minutes and check the inventory quantity continuously every minute for 10 times. If the quantity doesn't change, then we consider the sync to be complete.
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:        5 * time.Second,
 				Pending:      []string{"SyncNotCompleted"},
