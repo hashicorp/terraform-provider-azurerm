@@ -5,14 +5,15 @@ package client
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/certificates"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerappsrevisions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedcertificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -22,6 +23,7 @@ type Client struct {
 	ContainerAppRevisionClient *containerappsrevisions.ContainerAppsRevisionsClient
 	DaprComponentsClient       *daprcomponents.DaprComponentsClient
 	ManagedEnvironmentClient   *managedenvironments.ManagedEnvironmentsClient
+	ManagedCertificatesClient  *managedcertificates.ManagedCertificatesClient
 	StorageClient              *managedenvironmentsstorages.ManagedEnvironmentsStoragesClient
 	JobClient                  *jobs.JobsClient
 }
