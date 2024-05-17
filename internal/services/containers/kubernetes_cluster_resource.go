@@ -1642,12 +1642,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					"vertical_pod_autoscaler_update_mode": {
 						Type:       pluginsdk.TypeString,
 						Computed:   true,
-						Deprecated: "The AKS API has removed support for this field on 2023-07-02-preview and is no longer possible to export this value.",
+						Deprecated: "The AKS API has removed support for this field on 2023-07-02-preview and is no longer possible to export this value. This property will be removed in v4.0 of the AzureRM provider.",
 					},
 					"vertical_pod_autoscaler_controlled_values": {
 						Type:       pluginsdk.TypeString,
 						Computed:   true,
-						Deprecated: "The AKS API has removed support for this field on 2023-07-02-preview and is no longer possible to export this value.",
+						Deprecated: "The AKS API has removed support for this field on 2023-07-02-preview and is no longer possible to export this value. This property will be removed in v4.0 of the AzureRM provider.",
 					},
 				},
 			},
