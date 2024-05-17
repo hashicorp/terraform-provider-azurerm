@@ -942,8 +942,8 @@ resource "azurerm_private_endpoint" "test" {
   subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
-    name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = true
+    name                 = azurerm_private_link_service.test.name
+    is_manual_connection = true
     %s
   }
 }
