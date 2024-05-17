@@ -4,23 +4,23 @@
 package features
 
 type UserFeatures struct {
-	ApiManagement            ApiManagementFeatures
-	AppConfiguration         AppConfigurationFeatures
-	ApplicationInsights      ApplicationInsightFeatures
-	CognitiveAccount         CognitiveAccountFeatures
+	ApiManagement              ApiManagementFeatures
+	AppConfiguration           AppConfigurationFeatures
+	ApplicationInsights        ApplicationInsightFeatures
+	CognitiveAccount           CognitiveAccountFeatures
 	CognitiveAccountAIServices CognitiveAccountAIServicesFeatures
-	VirtualMachine           VirtualMachineFeatures
-	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
-	KeyVault                 KeyVaultFeatures
-	TemplateDeployment       TemplateDeploymentFeatures
-	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
-	ResourceGroup            ResourceGroupFeatures
-	RecoveryServicesVault    RecoveryServicesVault
-	ManagedDisk              ManagedDiskFeatures
-	Subscription             SubscriptionFeatures
-	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
-	MachineLearning          MachineLearningFeatures
-	RecoveryService          RecoveryServiceFeatures
+	VirtualMachine             VirtualMachineFeatures
+	VirtualMachineScaleSet     VirtualMachineScaleSetFeatures
+	KeyVault                   KeyVaultFeatures
+	TemplateDeployment         TemplateDeploymentFeatures
+	LogAnalyticsWorkspace      LogAnalyticsWorkspaceFeatures
+	ResourceGroup              ResourceGroupFeatures
+	RecoveryServicesVault      RecoveryServicesVault
+	ManagedDisk                ManagedDiskFeatures
+	Subscription               SubscriptionFeatures
+	PostgresqlFlexibleServer   PostgresqlFlexibleServerFeatures
+	MachineLearning            MachineLearningFeatures
+	RecoveryService            RecoveryServiceFeatures
 }
 
 type CognitiveAccountFeatures struct {
