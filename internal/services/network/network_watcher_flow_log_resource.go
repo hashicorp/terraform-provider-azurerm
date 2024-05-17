@@ -75,13 +75,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NetworkSecurityGroupID,
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"isolated_network_enabled"}
-					}
-					return []string{}
-				}(),
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"storage_account_id": {
@@ -179,11 +173,11 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 	if !features.FourPointOhBeta() {
 		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
-			Required:      true,
-			ForceNew:      true,
-			ValidateFunc:  azure.ValidateResourceID,
-			Deprecated:    "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"target_resource_id"},
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.NetworkSecurityGroupID,
+			Deprecated:   "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 4.0 of the AzureRM Provider.",
 		}
 	}
 
