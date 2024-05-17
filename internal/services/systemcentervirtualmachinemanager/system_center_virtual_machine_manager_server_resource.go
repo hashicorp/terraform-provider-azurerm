@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
@@ -149,6 +150,20 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// Service team confirmed that the sync would definitely be completed within ten minutes. So we only need to set a timeout of 10 minutes and check the inventory quantity continuously every minute for 10 times. If the quantity doesn't change, then we consider the sync to be complete.
+			stateConf := &pluginsdk.StateChangeConf{
+				Delay:        5 * time.Second,
+				Pending:      []string{"SyncNotCompleted"},
+				Target:       []string{"SyncCompleted"},
+				Refresh:      systemCenterVirtualMachineManagerServerStateRefreshFunc(ctx, metadata, id),
+				PollInterval: 1 * time.Minute,
+				Timeout:      5 * time.Minute,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %s", id, err)
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -242,5 +257,38 @@ func (r SystemCenterVirtualMachineManagerServerResource) Delete() sdk.ResourceFu
 
 			return nil
 		},
+	}
+}
+
+func systemCenterVirtualMachineManagerServerStateRefreshFunc(ctx context.Context, metadata sdk.ResourceMetaData, id vmmservers.VMmServerId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		client := metadata.Client.SystemCenterVirtualMachineManager.InventoryItems
+		scvmmServerId := inventoryitems.NewVMmServerID(id.SubscriptionId, id.ResourceGroupName, id.VmmServerName)
+		checkTimes := 10
+		lastInventoryItemCount := 0
+
+		for i := 0; i < checkTimes; i++ {
+			resp, err := client.ListByVMMServer(ctx, scvmmServerId)
+			if err != nil {
+				return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
+			}
+
+			if model := resp.Model; model != nil {
+				currentInventoryItemCount := len(pointer.From(model))
+
+				if i == 0 {
+					lastInventoryItemCount = currentInventoryItemCount
+					continue
+				}
+
+				if currentInventoryItemCount != lastInventoryItemCount {
+					return "SyncNotCompleted", "SyncNotCompleted", nil
+				}
+
+				time.Sleep(1 * time.Second) // avoid checking too quickly
+			}
+		}
+
+		return "SyncCompleted", "SyncCompleted", nil
 	}
 }
