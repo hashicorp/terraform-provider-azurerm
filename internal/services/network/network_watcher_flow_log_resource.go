@@ -76,6 +76,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
+				ExactlyOneOf: []string{"network_security_group_id", "target_resource_id"},
 			},
 
 			"storage_account_id": {
@@ -173,12 +174,12 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Required:      true,
-			ForceNew:      true,
-			ValidateFunc:  azure.ValidateResourceID,
-			Deprecated:    "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 5.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"target_resource_id"},
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateResourceID,
+			Deprecated:   "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 5.0 of the AzureRM Provider.",
+			ExactlyOneOf: []string{"network_security_group_id", "target_resource_id"},
 		}
 	}
 
@@ -205,9 +206,14 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 
 	id := flowlogs.NewFlowLogID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
 
-	var targetResourceId string
+	targetResourceId := ""
+
 	if !features.FivePointOh() {
 		if v, ok := d.GetOk("network_security_group_id"); ok {
+			targetResourceId = v.(string)
+		}
+	} else {
+		if v, ok := d.GetOk("target_resource_id"); ok {
 			targetResourceId = v.(string)
 		}
 	}
