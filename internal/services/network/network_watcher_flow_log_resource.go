@@ -76,6 +76,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
+				ExactlyOneOf: []string{"network_security_group_id", "target_resource_id"},
 			},
 
 			"storage_account_id": {
@@ -178,6 +179,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			ForceNew:     true,
 			ValidateFunc: validate.NetworkSecurityGroupID,
 			Deprecated:   "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 4.0 of the AzureRM Provider.",
+			ExactlyOneOf: []string{"network_security_group_id", "target_resource_id"},
 		}
 	}
 
@@ -204,15 +206,17 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 
 	id := flowlogs.NewFlowLogID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
 
-	var targetResourceId string
+	targetResourceId := ""
 
 	if !features.FourPointOhBeta() {
 		if v, ok := d.GetOk("network_security_group_id"); ok {
 			targetResourceId = v.(string)
 		}
+	} else {
+		if v, ok := d.GetOk("target_resource_id"); ok {
+			targetResourceId = v.(string)
+		}
 	}
-
-	targetResourceId = d.Get("target_resource_id").(string)
 
 	// For newly created resources, the "name" is required, it is set as Optional and Computed is merely for the existing ones for the sake of backward compatibility.
 	if id.NetworkWatcherName == "" {
