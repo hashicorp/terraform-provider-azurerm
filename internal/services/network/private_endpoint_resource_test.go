@@ -321,7 +321,26 @@ func TestAccPrivateEndpoint_multipleInstances(t *testing.T) {
 		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
 	}
 
-	config := r.multipleInstances(data, instanceCount)
+	config := r.multipleInstances(data, instanceCount, false)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: config,
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
+		},
+	})
+}
+
+func TestAccPrivateEndpoint_multipleInstancesWithLinkAlias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	instanceCount := 5
+	var checks []pluginsdk.TestCheckFunc
+	for i := 0; i < instanceCount; i++ {
+		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
+	}
+
+	config := r.multipleInstances(data, instanceCount, true)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: config,
@@ -905,7 +924,13 @@ resource "azurerm_private_endpoint" "test" {
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger, tags)
 }
 
-func (r PrivateEndpointResource) multipleInstances(data acceptance.TestData, count int) string {
+func (r PrivateEndpointResource) multipleInstances(data acceptance.TestData, count int, useAlias bool) string {
+	privateConnectionAssignment := "private_connection_resource_id = azurerm_private_link_service.test.id"
+	if useAlias {
+		privateConnectionAssignment = `private_connection_resource_alias = azurerm_private_link_service.test.alias
+                                       request_message                   = "test"`
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -918,11 +943,11 @@ resource "azurerm_private_endpoint" "test" {
 
   private_service_connection {
     name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
-    private_connection_resource_id = azurerm_private_link_service.test.id
+    is_manual_connection           = true
+    %s
   }
 }
-`, r.template(data, r.serviceAutoApprove(data)), count, data.RandomInteger)
+`, r.template(data, r.serviceAutoApprove(data)), count, data.RandomInteger, privateConnectionAssignment)
 }
 
 func (r PrivateEndpointResource) recoveryServiceVaultWithMultiIpConfig(data acceptance.TestData) string {
