@@ -28,10 +28,11 @@ type ContainerAppCustomDomainResource struct{}
 var _ sdk.Resource = ContainerAppCustomDomainResource{}
 
 type ContainerAppCustomDomainResourceModel struct {
-	Name           string `tfschema:"name"`
-	ContainerAppId string `tfschema:"container_app_id"`
-	CertificateId  string `tfschema:"container_app_environment_certificate_id"`
-	BindingType    string `tfschema:"certificate_binding_type"`
+	Name                 string `tfschema:"name"`
+	ContainerAppId       string `tfschema:"container_app_id"`
+	CertificateId        string `tfschema:"container_app_environment_certificate_id"`
+	BindingType          string `tfschema:"certificate_binding_type"`
+	ManagedCertificateId string `tfschema:"container_app_environment_managed_certificate_id"`
 }
 
 func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Schema {
@@ -70,7 +71,12 @@ func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Sche
 }
 
 func (a ContainerAppCustomDomainResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"container_app_environment_managed_certificate_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (a ContainerAppCustomDomainResource) ModelObject() interface{} {
@@ -215,18 +221,16 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 							// its format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/managedCertificates/%s",
 							// another format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/certificates/%s",
 							// both cases are handled here to avoid parsing error.
-							certificateId := ""
 							certId, err1 := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
 							if err1 != nil {
 								managedCertId, err2 := managedenvironments.ParseManagedCertificateID(pointer.From(v.CertificateId))
 								if err2 != nil {
 									return err1
 								}
-								certificateId = managedCertId.ID()
+								state.ManagedCertificateId = managedCertId.ID()
 							} else {
-								certificateId = certId.ID()
+								state.CertificateId = certId.ID()
 							}
-							state.CertificateId = certificateId
 						}
 
 						state.BindingType = string(pointer.From(v.BindingType))
