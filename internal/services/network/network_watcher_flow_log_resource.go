@@ -311,9 +311,9 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if !features.FourPointOhBeta() {
 		targetResourceId = d.Get("network_security_group_id").(string)
+	} else {
+		targetResourceId = d.Get("target_resource_id").(string)
 	}
-
-	targetResourceId = d.Get("target_resource_id").(string)
 
 	locks.ByID(targetResourceId)
 	defer locks.UnlockByID(targetResourceId)
