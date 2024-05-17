@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -30,7 +30,7 @@ import (
 )
 
 func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceNetworkWatcherFlowLogCreate,
 		Read:   resourceNetworkWatcherFlowLogRead,
 		Update: resourceNetworkWatcherFlowLogUpdate,
@@ -63,7 +63,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			//lintignore: S013
+			// lintignore: S013
 			"name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -71,11 +71,17 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 				ValidateFunc: validate.NetworkWatcherFlowLogName,
 			},
 
-			"network_security_group_id": {
+			"target_resource_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.NetworkSecurityGroupID,
+				ConflictsWith: func() []string {
+					if !features.FourPointOhBeta() {
+						return []string{"isolated_network_enabled"}
+					}
+					return []string{}
+				}(),
 			},
 
 			"storage_account_id": {
@@ -170,6 +176,18 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
+			Required:      true,
+			ForceNew:      true,
+			ValidateFunc:  azure.ValidateResourceID,
+			Deprecated:    "The property `network_security_group_id` has been superseded by `target_resource_id` and will be removed in version 4.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"target_resource_id"},
+		}
+	}
+
+	return resource
 }
 
 func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(_, old, _ string, d *pluginsdk.ResourceData) bool {
@@ -191,10 +209,16 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	id := flowlogs.NewFlowLogID(subscriptionId, d.Get("resource_group_name").(string), d.Get("network_watcher_name").(string), d.Get("name").(string))
-	nsgId, err := parse.NetworkSecurityGroupID(d.Get("network_security_group_id").(string))
-	if err != nil {
-		return err
+
+	var targetResourceId string
+
+	if !features.FourPointOhBeta() {
+		if v, ok := d.GetOk("network_security_group_id"); ok {
+			targetResourceId = v.(string)
+		}
 	}
+
+	targetResourceId = d.Get("target_resource_id").(string)
 
 	// For newly created resources, the "name" is required, it is set as Optional and Computed is merely for the existing ones for the sake of backward compatibility.
 	if id.NetworkWatcherName == "" {
@@ -212,8 +236,8 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_network_watcher_flow_log", id.ID())
 	}
 
-	locks.ByID(nsgId.ID())
-	defer locks.UnlockByID(nsgId.ID())
+	locks.ByID(targetResourceId)
+	defer locks.UnlockByID(targetResourceId)
 
 	loc := d.Get("location").(string)
 	if loc == "" {
@@ -232,7 +256,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 	parameters := flowlogs.FlowLog{
 		Location: utils.String(location.Normalize(loc)),
 		Properties: &flowlogs.FlowLogPropertiesFormat{
-			TargetResourceId: nsgId.ID(),
+			TargetResourceId: targetResourceId,
 			StorageId:        d.Get("storage_account_id").(string),
 			Enabled:          pointer.To(d.Get("enabled").(bool)),
 			RetentionPolicy:  expandNetworkWatcherFlowLogRetentionPolicy(d.Get("retention_policy").([]interface{})),
@@ -285,12 +309,16 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	payload := existing.Model
 
-	nsgId, err := parse.NetworkSecurityGroupID(d.Get("network_security_group_id").(string))
-	if err != nil {
-		return err
+	var targetResourceId string
+
+	if !features.FourPointOhBeta() {
+		targetResourceId = d.Get("network_security_group_id").(string)
 	}
-	locks.ByID(nsgId.ID())
-	defer locks.UnlockByID(nsgId.ID())
+
+	targetResourceId = d.Get("target_resource_id").(string)
+
+	locks.ByID(targetResourceId)
+	defer locks.UnlockByID(targetResourceId)
 
 	if d.HasChange("storage_account_id") {
 		payload.Properties.StorageId = d.Get("storage_account_id").(string)
@@ -373,12 +401,12 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("storage_account_id", props.StorageId)
 			}
 
-			networkSecurityGroupId := ""
-			nsgId, err := parse.NetworkSecurityGroupIDInsensitively(props.TargetResourceId)
-			if err == nil {
-				networkSecurityGroupId = nsgId.ID()
+			targetResourceId := ""
+			if !features.FourPointOhBeta() {
+				d.Set("network_security_group_id", targetResourceId)
 			}
-			d.Set("network_security_group_id", networkSecurityGroupId)
+
+			d.Set("target_resource_id", targetResourceId)
 
 			if err := d.Set("retention_policy", flattenNetworkWatcherFlowLogRetentionPolicy(props.RetentionPolicy)); err != nil {
 				return fmt.Errorf("setting `retention_policy`: %+v", err)
@@ -409,13 +437,10 @@ func resourceNetworkWatcherFlowLogDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retreiving %s: `properties` or `properties.TargetResourceID` was nil", id)
 	}
 
-	networkSecurityGroupId, err := parse.NetworkSecurityGroupIDInsensitively(resp.Model.Properties.TargetResourceId)
-	if err != nil {
-		return fmt.Errorf("parsing %q as a Network Security Group ID: %+v", resp.Model.Properties.TargetResourceId, err)
-	}
+	targetResourceId := resp.Model.Properties.TargetResourceId
 
-	locks.ByID(networkSecurityGroupId.ID())
-	defer locks.UnlockByID(networkSecurityGroupId.ID())
+	locks.ByID(targetResourceId)
+	defer locks.UnlockByID(targetResourceId)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %v", id, err)
