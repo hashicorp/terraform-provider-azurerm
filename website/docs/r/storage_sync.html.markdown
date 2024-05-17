@@ -51,6 +51,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Storage Sync.
 
+* `registered_servers` - A list of registered servers owned by this Storage Sync.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

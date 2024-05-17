@@ -64,8 +64,6 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindAzureSecurityCenter
 	case securityinsight.MCASDataConnector:
 		kind = securityinsight.DataConnectorKindMicrosoftCloudAppSecurity
-	case securityinsight.TIDataConnector:
-		kind = securityinsight.DataConnectorKindThreatIntelligence
 	case securityinsight.MTPDataConnector:
 		kind = securityinsight.DataConnectorKindMicrosoftThreatProtection
 	case securityinsight.IoTDataConnector:
@@ -88,8 +86,12 @@ func assertDataConnectorKind(dc securityinsight.BasicDataConnector, expectKind s
 		kind = securityinsight.DataConnectorKindMicrosoftDefenderAdvancedThreatProtection
 	case securityinsight.AwsS3DataConnector:
 		kind = securityinsight.DataConnectorKindAmazonWebServicesS3
+	case securityinsight.TiTaxiiDataConnector:
+		kind = securityinsight.DataConnectorKindThreatIntelligenceTaxii
 	case azuresdkhacks.TiTaxiiDataConnector:
 		kind = securityinsight.DataConnectorKindThreatIntelligenceTaxii
+	case securityinsight.TIDataConnector:
+		kind = securityinsight.DataConnectorKindThreatIntelligence
 	case azuresdkhacks.TIDataConnector:
 		kind = securityinsight.DataConnectorKindThreatIntelligence
 	}

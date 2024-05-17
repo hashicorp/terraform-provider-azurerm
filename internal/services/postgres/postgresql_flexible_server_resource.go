@@ -169,6 +169,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeGeoRestore),
 					string(servers.CreateModeUpdate),
 				}, false),
 			},
@@ -413,6 +414,20 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			}
 
 			if !isValid {
+				if strings.EqualFold(oldTierRaw.(string), newTier) {
+					// The tier value did not change, so we need to determin if they are
+					// using the default value for the tier, or they actually defined the
+					// tier in the config or not... If they did not define
+					// the tier in the config we need to assign a new valid default
+					// tier for the newMb value. However, if the tier is in the config
+					// this is a valid error and should be returned...
+					if v := diff.GetRawConfig().AsValueMap()["storage_tier"]; v.IsNull() {
+						diff.SetNew("storage_tier", string(storageTiers.DefaultTier))
+						log.Printf("[DEBUG]: 'storage_tier' was not valid and was not in the config assigning new default 'storage_tier' %q -> %q\n", newTier, storageTiers.DefaultTier)
+						return nil
+					}
+				}
+
 				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
 			}
 
@@ -449,12 +464,12 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("`replication_role` cannot be set while creating")
 	}
 
-	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore {
+	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore || servers.CreateMode(createMode) == servers.CreateModeGeoRestore {
 		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is  %s", createMode)
 		}
 		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
-			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
+			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is  %s", createMode)
 		}
 	}
 

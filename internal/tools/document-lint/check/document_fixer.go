@@ -96,6 +96,10 @@ func (f *Fixer) TryFix() (err error) {
 	if len(f.Diff) == 0 {
 		return
 	}
+	if d, ok := f.Diff[0].(diffWithMessage); ok {
+		log.Printf("%s: %s", f.ResourceType, d.msg)
+		return
+	}
 	content, err := os.ReadFile(f.MDFile)
 	if err != nil {
 		log.Printf("open %s: %v", f.MDFile, err)

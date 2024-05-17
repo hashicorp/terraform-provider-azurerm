@@ -72,6 +72,8 @@ The following arguments are supported:
 
 ~> **NOTE:** `personal_desktop_assignment_type` is required if the `type` of your Virtual Desktop Host Pool is `Personal`
 
+* `public_network_access` - (Optional) Whether public network access is allowed for the Virtual Desktop Host Pool. Possible values are `Enabled`, `Disabled`, `EnabledForClientsOnly` and `EnabledForSessionHostsOnly`. Defaults to `Enabled`.
+
 * `maximum_sessions_allowed` - (Optional) A valid integer value from 0 to 999999 for the maximum number of users that have concurrent sessions on a session host.
     Should only be set if the `type` of your Virtual Desktop Host Pool is `Pooled`.
 
@@ -95,7 +97,6 @@ A `scheduled_agent_updates` block supports the following:
 * `use_session_host_timezone` - (Optional) Specifies whether scheduled agent updates should be applied based on the timezone of the affected session host. If configured then this setting overrides `timezone`. Default is `false`.
 * `schedule` - (Optional) A `schedule` block as defined below. A maximum of two blocks can be added.
 
----
 ---
 
 A `schedule` block supports the following:

@@ -88,7 +88,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				transparentDataEncryption := d.Get("transparent_data_encryption_enabled").(bool)
 				skuName := d.Get("sku_name").(string)
 
-				if !strings.HasPrefix(skuName, "DW") && !transparentDataEncryption {
+				if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !transparentDataEncryption {
 					return fmt.Errorf("transparent data encryption can only be disabled on Data Warehouse SKUs")
 				}
 
@@ -96,6 +96,18 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				if d.Get("enclave_type").(string) == string(databases.AlwaysEncryptedEnclaveTypeVBS) {
 					if strings.HasPrefix(strings.ToLower(skuName), "dw") || strings.Contains(strings.ToLower(skuName), "_dc_") {
 						return fmt.Errorf("virtualization based security (VBS) enclaves are not supported for the %q sku", skuName)
+					}
+				}
+
+				if strings.HasPrefix(strings.ToLower(skuName), "dw") {
+					// NOTE: Got `PerDatabaseCMKDWNotSupported` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_vault_key_id` is specified
+					keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
+					if keyVaultKeyId != "" {
+						return fmt.Errorf("database-level CMK is not supported for Data Warehouse SKUs")
+					}
+					// NOTE: Got `InternalServerError` error from API when `sku_name` is set to `DW100c` and `transparent_data_encryption_key_automatic_rotation_enabled` is specified
+					if d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool) {
+						return fmt.Errorf("transparent_data_encryption_key_automatic_rotation_enabled should not be specified when using Data Warehouse SKUs")
 					}
 				}
 
@@ -259,6 +271,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	// Determine whether the SKU is for SQL Data Warehouse
+	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
+
 	// NOTE: If the database is being added to an elastic pool, we need to GET the elastic pool and check
 	// if the 'enclave_type' matches. If they don't we need to raise an error stating that they must match.
 	elasticPoolId := d.Get("elastic_pool_id").(string)
@@ -296,7 +311,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
 			ZoneRedundant:                    pointer.To(d.Get("zone_redundant").(bool)),
 			IsLedgerOn:                       pointer.To(ledgerEnabled),
-			EncryptionProtectorAutoRotation:  pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool)),
 			SecondaryType:                    pointer.To(databases.SecondaryType(d.Get("secondary_type").(string))),
 		},
 
@@ -306,6 +320,13 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
 	if !strings.HasPrefix(strings.ToLower(skuName), "dw") && !strings.Contains(strings.ToLower(skuName), "_dc_") && enclaveType != "" {
 		input.Properties.PreferredEnclaveType = pointer.To(enclaveType)
+	}
+
+	v, ok := d.GetOk("transparent_data_encryption_key_automatic_rotation_enabled")
+	if ok && !v.(bool) && isDwSku {
+		input.Properties.EncryptionProtectorAutoRotation = nil
+	} else if !isDwSku {
+		input.Properties.EncryptionProtectorAutoRotation = pointer.To(v.(bool))
 	}
 
 	createMode := d.Get("create_mode").(string)
@@ -426,8 +447,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		input.Properties.EncryptionProtector = pointer.To(keyId.ID())
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, input)
-	if err != nil {
+	if err = client.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -500,8 +520,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				},
 			}
 
-			err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input)
-			if err != nil {
+			if err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
 				return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 			}
 
@@ -530,16 +549,16 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if _, ok := d.GetOk("import"); ok {
 		importParameters := expandMsSqlServerImport(d)
-		err := client.ImportThenPoll(ctx, id, importParameters)
-		if err != nil {
+
+		if err := client.ImportThenPoll(ctx, id, importParameters); err != nil {
 			return fmt.Errorf("while import bacpac into the new database %s: %+v", id, err)
 		}
 	}
 
 	d.SetId(id.ID())
 
-	// For datawarehouse SKUs only
-	if strings.HasPrefix(skuName, "DW") {
+	// For Data Warehouse SKUs only
+	if isDwSku {
 		enabled := d.Get("geo_backup_enabled").(bool)
 
 		// The default geo backup policy configuration for a new resource is 'enabled', so we don't need to set it in that scenario
@@ -576,13 +595,12 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if securityAlertPolicyProps != nil {
 		securityAlertPolicyPayload := longtermretentionpolicies.LongTermRetentionPolicy{}
 
-		// DataWarehouse SKU's do not support LRP currently
-		if !strings.HasPrefix(skuName, "DW") {
+		// DataWarehouse SKUs do not support LRP currently
+		if !isDwSku {
 			securityAlertPolicyPayload.Properties = securityAlertPolicyProps
 		}
 
-		err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload)
-		if err != nil {
+		if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
 			return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 		}
 	}
@@ -591,7 +609,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if shortTermSecurityAlertPolicyProps != nil {
 		securityAlertPolicyPayload := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
-		if !strings.HasPrefix(skuName, "DW") {
+		if !isDwSku {
 			securityAlertPolicyPayload.Properties = shortTermSecurityAlertPolicyProps
 		}
 
@@ -599,8 +617,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			securityAlertPolicyPayload.Properties.DiffBackupIntervalInHours = nil
 		}
 
-		err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload)
-		if err != nil {
+		if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, securityAlertPolicyPayload); err != nil {
 			return fmt.Errorf("setting Short Term Retention Policies for %s: %+v", id, err)
 		}
 	}
@@ -630,6 +647,9 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	elasticPoolId := d.Get("elastic_pool_id").(string)
 	createMode := d.Get("create_mode").(string)
 	restorePointInTime := d.Get("restore_point_in_time").(string)
+
+	// Determine whether the SKU is for SQL Data Warehouse
+	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
 	if strings.HasPrefix(skuName, "GP_S_") && d.Get("license_type").(string) != "" {
 		return fmt.Errorf("serverless databases do not support license type")
@@ -869,7 +889,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("transparent_data_encryption_key_vault_key_id") {
-		keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
+		keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
 
 		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
 		if err != nil {
@@ -880,7 +900,12 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("transparent_data_encryption_key_automatic_rotation_enabled") {
-		props.EncryptionProtectorAutoRotation = pointer.To(d.Get("transparent_data_encryption_key_automatic_rotation_enabled").(bool))
+		v, ok := d.GetOk("transparent_data_encryption_key_automatic_rotation_enabled")
+		if ok && !v.(bool) && isDwSku {
+			props.EncryptionProtectorAutoRotation = nil
+		} else if !isDwSku {
+			props.EncryptionProtectorAutoRotation = pointer.To(v.(bool))
+		}
 	}
 
 	payload.Properties = pointer.To(props)
@@ -947,8 +972,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				}),
 			}
 
-			err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input)
-			if err != nil {
+			if err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
 				return fmt.Errorf("while updating Transparent Data Encryption state for %s: %+v", id, err)
 			}
 
@@ -975,15 +999,14 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if _, ok := d.GetOk("import"); ok {
 			importParameters := expandMsSqlServerImport(d)
 
-			err := client.ImportThenPoll(ctx, id, importParameters)
-			if err != nil {
+			if err := client.ImportThenPoll(ctx, id, importParameters); err != nil {
 				return fmt.Errorf("while importing the BACPAC file into the new database %s: %+v", id.ID(), err)
 			}
 		}
 	}
 
 	// For datawarehouse SKUs only
-	if strings.HasPrefix(skuName, "DW") && d.HasChange("geo_backup_enabled") {
+	if isDwSku && d.HasChange("geo_backup_enabled") {
 		isEnabled := d.Get("geo_backup_enabled").(bool)
 		var geoBackupPolicyState geobackuppolicies.GeoBackupPolicyState
 
@@ -1025,13 +1048,12 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := longtermretentionpolicies.LongTermRetentionPolicy{}
 
-			// DataWarehouse SKU's do not support LRP currently
-			if !strings.HasPrefix(skuName, "DW") {
+			// DataWarehouse SKUs do not support LRP currently
+			if !isDwSku {
 				longTermRetentionPolicy.Properties = longTermRetentionProps
 			}
 
-			err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy)
-			if err != nil {
+			if err := longTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, longTermRetentionPolicy); err != nil {
 				return fmt.Errorf("setting Long Term Retention Policies for %s: %+v", id, err)
 			}
 		}
@@ -1043,7 +1065,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		if backupShortTermPolicyProps != nil {
 			backupShortTermPolicy := backupshorttermretentionpolicies.BackupShortTermRetentionPolicy{}
 
-			if !strings.HasPrefix(skuName, "DW") {
+			if !isDwSku {
 				backupShortTermPolicy.Properties = backupShortTermPolicyProps
 			}
 
@@ -1051,8 +1073,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				backupShortTermPolicy.Properties.DiffBackupIntervalInHours = nil
 			}
 
-			err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, backupShortTermPolicy)
-			if err != nil {
+			if err := shortTermRetentionClient.CreateOrUpdateThenPoll(ctx, id, backupShortTermPolicy); err != nil {
 				return fmt.Errorf("setting Short Term Retention Policies for %s: %+v", id, err)
 			}
 		}
@@ -1183,27 +1204,29 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		// DW SKU's do not currently support LRP and do not honour normal SRP operations
-		if !strings.HasPrefix(skuName, "DW") {
+		// Determine whether the SKU is for SQL Data Warehouse
+		isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
+
+		// DW SKUs do not currently support LRP and do not honour normal SRP operations
+		if !isDwSku {
 			longTermPolicy, err := longTermRetentionClient.Get(ctx, pointer.From(id))
 			if err != nil {
 				return fmt.Errorf("retrieving Long Term Retention Policies for %s: %+v", id, err)
 			}
 
-			if model := longTermPolicy.Model; model != nil {
-				if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(model)); err != nil {
+			if longTermPolicyModel := longTermPolicy.Model; longTermPolicyModel != nil {
+				if err := d.Set("long_term_retention_policy", helper.FlattenLongTermRetentionPolicy(longTermPolicyModel)); err != nil {
 					return fmt.Errorf("setting `long_term_retention_policy`: %+v", err)
 				}
 			}
 
 			shortTermPolicy, err := shortTermRetentionClient.Get(ctx, pointer.From(id))
+			if err != nil {
+				return fmt.Errorf("retrieving Short Term Retention Policies for %s: %+v", id, err)
+			}
 
-			if model := shortTermPolicy.Model; model != nil {
-				if err != nil {
-					return fmt.Errorf("retrieving Short Term Retention Policies for %s: %+v", id, err)
-				}
-
-				if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(model)); err != nil {
+			if shortTermPolicyModel := shortTermPolicy.Model; shortTermPolicyModel != nil {
+				if err := d.Set("short_term_retention_policy", helper.FlattenShortTermRetentionPolicy(shortTermPolicyModel)); err != nil {
 					return fmt.Errorf("setting `short_term_retention_policy`: %+v", err)
 				}
 			}
@@ -1224,8 +1247,8 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 
 			// For Datawarehouse SKUs, set the geo-backup policy setting
-			if model := geoPoliciesResponse.Model; model != nil {
-				if strings.HasPrefix(skuName, "DW") && model.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
+			if geoPolicyModel := geoPoliciesResponse.Model; geoPolicyModel != nil {
+				if isDwSku && geoPolicyModel.Properties.State == geobackuppolicies.GeoBackupPolicyStateDisabled {
 					geoBackupPolicy = false
 				}
 			}

@@ -117,10 +117,12 @@ func (c Client) ListBlobs(ctx context.Context, containerName string, input ListB
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		err = resp.Unmarshal(&result)
-		if err != nil {
-			err = fmt.Errorf("unmarshalling response: %+v", err)
-			return
+		if err == nil {
+			err = resp.Unmarshal(&result)
+			if err != nil {
+				err = fmt.Errorf("unmarshalling response: %+v", err)
+				return
+			}
 		}
 	}
 	if err != nil {

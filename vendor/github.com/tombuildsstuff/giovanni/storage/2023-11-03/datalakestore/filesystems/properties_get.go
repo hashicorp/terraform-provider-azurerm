@@ -53,18 +53,20 @@ func (c Client) GetProperties(ctx context.Context, fileSystemName string) (resul
 	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			result.DefaultEncryptionScope = resp.Header.Get("x-ms-default-encryption-scope")
+		if err == nil {
+			if resp.Header != nil {
+				result.DefaultEncryptionScope = resp.Header.Get("x-ms-default-encryption-scope")
 
-			propertiesRaw := resp.Header.Get("x-ms-properties")
-			var properties *map[string]string
-			properties, err = parseProperties(propertiesRaw)
-			if err != nil {
-				return
+				propertiesRaw := resp.Header.Get("x-ms-properties")
+				var properties *map[string]string
+				properties, err = parseProperties(propertiesRaw)
+				if err != nil {
+					return
+				}
+
+				result.Properties = *properties
+				result.NamespaceEnabled = strings.EqualFold(resp.Header.Get("x-ms-namespace-enabled"), "true")
 			}
-
-			result.Properties = *properties
-			result.NamespaceEnabled = strings.EqualFold(resp.Header.Get("x-ms-namespace-enabled"), "true")
 		}
 	}
 	if err != nil {

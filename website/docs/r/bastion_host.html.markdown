@@ -82,6 +82,10 @@ The following arguments are supported:
 
 ~> **Note:** `ip_connect_enabled` is only supported when `sku` is `Standard`.
 
+* `kerberos_enabled` - (Optional) Is Kerberos authentication feature enabled for the Bastion Host. Defaults to `false`.
+
+~> **Note:** `kerberos_enabled` is only supported when `sku` is `Standard`.
+
 * `scale_units` - (Optional) The number of scale units with which to provision the Bastion Host. Possible values are between `2` and `50`. Defaults to `2`.
 
 ~> **Note:** `scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`.

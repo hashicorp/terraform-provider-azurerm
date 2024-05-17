@@ -244,6 +244,11 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 
 			// StorageSync@2020-03-01 returns `validateInput` rather than `InProgress` during creation/update (https://github.com/hashicorp/go-azure-sdk/issues/565)
 			"validateInput": pollers.PollingStatusInProgress,
+
+			// StreamAnalytics@2020-03-01 introduced "CreatingVirtualMachines", "ConfiguringNetworking", and "SettingUpStreamingRuntime" as undocumented granular statuses on 2024-04-09
+			"CreatingVirtualMachines":   pollers.PollingStatusInProgress,
+			"ConfiguringNetworking":     pollers.PollingStatusInProgress,
+			"SettingUpStreamingRuntime": pollers.PollingStatusInProgress,
 		}
 		for k, v := range statuses {
 			if strings.EqualFold(string(op.Properties.ProvisioningState), string(k)) {

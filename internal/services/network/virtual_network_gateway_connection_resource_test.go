@@ -65,6 +65,36 @@ func TestAccVirtualNetworkGatewayConnection_sitetositeWithoutSharedKey(t *testin
 	})
 }
 
+func TestAccVirtualNetworkGatewayConnection_expressroute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.expressroute(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_key"),
+	})
+}
+
+func TestAccVirtualNetworkGatewayConnection_expressrouteWithFastPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
+	r := VirtualNetworkGatewayConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.expressrouteWithFastPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_key"),
+	})
+}
+
 func TestAccVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 	data1 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_1")
 	data2 := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test_2")
@@ -426,6 +456,222 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   local_network_gateway_id   = azurerm_local_network_gateway.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (VirtualNetworkGatewayConnectionResource) expressroute(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+variable "random" {
+  default = "%d"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-${var.random}"
+  location = "%s"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+
+resource "azurerm_express_route_circuit_authorization" "test" {
+  name                       = "acctestauth%d"
+  express_route_circuit_name = azurerm_express_route_circuit.test.name
+  resource_group_name        = azurerm_resource_group.test.name
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctest-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type                        = "ExpressRoute"
+  sku                         = "UltraPerformance"
+  vpn_type                    = "PolicyBased"
+  enable_bgp                  = false
+  remote_vnet_traffic_enabled = true
+  virtual_wan_traffic_enabled = true
+
+  ip_configuration {
+    name                          = "vnetGatewayConfig"
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctest-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  gateway_address = "168.62.225.23"
+  address_space   = ["10.1.1.0/24"]
+}
+
+resource "azurerm_virtual_network_gateway_connection" "test" {
+  lifecycle {
+    ignore_changes = ["authorization_key"]
+  }
+  name                = "acctest-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type = "ExpressRoute"
+
+  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
+  express_route_circuit_id   = azurerm_express_route_circuit.test.id
+  authorization_key          = azurerm_express_route_circuit_authorization.test.authorization_key
+  routing_weight             = "0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkGatewayConnectionResource) expressrouteWithFastPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+variable "random" {
+  default = "%d"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-${var.random}"
+  location = "%s"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+
+resource "azurerm_express_route_circuit_authorization" "test" {
+  name                       = "acctestauth%d"
+  express_route_circuit_name = azurerm_express_route_circuit.test.name
+  resource_group_name        = azurerm_resource_group.test.name
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctest-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type                        = "ExpressRoute"
+  sku                         = "UltraPerformance"
+  vpn_type                    = "PolicyBased"
+  enable_bgp                  = false
+  remote_vnet_traffic_enabled = true
+  virtual_wan_traffic_enabled = true
+
+  ip_configuration {
+    name                          = "vnetGatewayConfig"
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctest-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  gateway_address = "168.62.225.23"
+  address_space   = ["10.1.1.0/24"]
+}
+
+resource "azurerm_virtual_network_gateway_connection" "test" {
+  lifecycle {
+    ignore_changes = ["authorization_key"]
+  }
+  name                = "acctest-${var.random}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type = "ExpressRoute"
+
+  virtual_network_gateway_id     = azurerm_virtual_network_gateway.test.id
+  express_route_circuit_id       = azurerm_express_route_circuit.test.id
+  authorization_key              = azurerm_express_route_circuit_authorization.test.authorization_key
+  routing_weight                 = "0"
+  express_route_gateway_bypass   = true
+  private_link_fast_path_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r VirtualNetworkGatewayConnectionResource) requiresImport(data acceptance.TestData) string {

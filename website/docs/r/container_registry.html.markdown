@@ -243,8 +243,6 @@ An `identity` block supports the following:
 
 The `encryption` block supports the following:
 
-* `enabled` - (Optional) Boolean value that indicates whether encryption is enabled.
-
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key.
 
 * `identity_client_id` - (Required) The client ID of the managed identity associated with the encryption key.

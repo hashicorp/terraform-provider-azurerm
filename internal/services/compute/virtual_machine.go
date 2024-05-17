@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
@@ -38,6 +37,13 @@ func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"hibernation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					ForceNew: true,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
@@ -50,6 +56,8 @@ func expandVirtualMachineAdditionalCapabilities(input []interface{}) *virtualmac
 		raw := input[0].(map[string]interface{})
 
 		capabilities.UltraSSDEnabled = pointer.To(raw["ultra_ssd_enabled"].(bool))
+
+		capabilities.HibernationEnabled = pointer.To(raw["hibernation_enabled"].(bool))
 	}
 
 	return &capabilities
@@ -66,9 +74,15 @@ func flattenVirtualMachineAdditionalCapabilities(input *virtualmachines.Addition
 		ultraSsdEnabled = *input.UltraSSDEnabled
 	}
 
+	hibernationEnabled := false
+	if input.HibernationEnabled != nil {
+		hibernationEnabled = *input.HibernationEnabled
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"ultra_ssd_enabled": ultraSsdEnabled,
+			"ultra_ssd_enabled":   ultraSsdEnabled,
+			"hibernation_enabled": hibernationEnabled,
 		},
 	}
 }
@@ -117,9 +131,9 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.CachingTypesNone),
-						string(compute.CachingTypesReadOnly),
-						string(compute.CachingTypesReadWrite),
+						string(virtualmachines.CachingTypesNone),
+						string(virtualmachines.CachingTypesReadOnly),
+						string(virtualmachines.CachingTypesReadWrite),
 					}, false),
 				},
 				"storage_account_type": {
@@ -130,11 +144,11 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// note: OS Disks don't support Ultra SSDs or PremiumV2_LRS
-						string(compute.StorageAccountTypesPremiumLRS),
-						string(compute.StorageAccountTypesStandardLRS),
-						string(compute.StorageAccountTypesStandardSSDLRS),
-						string(compute.StorageAccountTypesStandardSSDZRS),
-						string(compute.StorageAccountTypesPremiumZRS),
+						string(virtualmachines.StorageAccountTypesPremiumLRS),
+						string(virtualmachines.StorageAccountTypesStandardLRS),
+						string(virtualmachines.StorageAccountTypesStandardSSDLRS),
+						string(virtualmachines.StorageAccountTypesStandardSSDZRS),
+						string(virtualmachines.StorageAccountTypesPremiumZRS),
 					}, false),
 				},
 
@@ -151,17 +165,17 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 								Required: true,
 								ForceNew: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.DiffDiskOptionsLocal),
+									string(virtualmachines.DiffDiskOptionsLocal),
 								}, false),
 							},
 							"placement": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
 								ForceNew: true,
-								Default:  string(compute.DiffDiskPlacementCacheDisk),
+								Default:  string(virtualmachines.DiffDiskPlacementCacheDisk),
 								ValidateFunc: validation.StringInSlice([]string{
-									string(compute.DiffDiskPlacementCacheDisk),
-									string(compute.DiffDiskPlacementResourceDisk),
+									string(virtualmachines.DiffDiskPlacementCacheDisk),
+									string(virtualmachines.DiffDiskPlacementResourceDisk),
 								}, false),
 							},
 						},
@@ -204,8 +218,8 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(compute.SecurityEncryptionTypesVMGuestStateOnly),
-						string(compute.SecurityEncryptionTypesDiskWithVMGuestState),
+						string(virtualmachines.SecurityEncryptionTypesVMGuestStateOnly),
+						string(virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState),
 					}, false),
 				},
 

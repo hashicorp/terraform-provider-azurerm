@@ -206,6 +206,8 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		computeClusterAmlComputeProperties.Subnet = &machinelearningcomputes.ResourceId{Id: subnetId.(string)}
 	}
 
+	// NOTE: The 'AmlCompute' 'ComputeLocation' field should always point
+	// to configuration files 'location' field...
 	computeClusterProperties := machinelearningcomputes.AmlCompute{
 		Properties:       &computeClusterAmlComputeProperties,
 		ComputeLocation:  utils.String(d.Get("location").(string)),
@@ -213,10 +215,23 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
 	}
 
-	// Get SKU from Workspace
+	// Get the Machine Learning Workspace...
 	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
 	if err != nil {
 		return err
+	}
+
+	workspaceModel := workspace.Model
+	if workspaceModel == nil {
+		return fmt.Errorf("machine learning %s Workspace: model was nil", id)
+	}
+
+	if workspaceModel.Sku == nil || workspaceModel.Sku.Tier == nil || workspaceModel.Sku.Name == "" {
+		return fmt.Errorf("machine learning %s Workspace: `SKU` was nil or empty", id)
+	}
+
+	if workspaceModel.Location == nil {
+		return fmt.Errorf("machine learning %s Workspace: `Location` was nil", id)
 	}
 
 	identity, err := expandIdentity(d.Get("identity").([]interface{}))
@@ -224,14 +239,16 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
+	// NOTE: The 'ComputeResource' 'Location' field should always point
+	// to the workspace's 'location'...
 	computeClusterParameters := machinelearningcomputes.ComputeResource{
 		Properties: computeClusterProperties,
 		Identity:   identity,
-		Location:   computeClusterProperties.ComputeLocation,
+		Location:   workspaceModel.Location,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 		Sku: &machinelearningcomputes.Sku{
-			Name: workspace.Model.Sku.Name,
-			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspace.Model.Sku.Tier)),
+			Name: workspaceModel.Sku.Name,
+			Tier: pointer.To(machinelearningcomputes.SkuTier(*workspaceModel.Sku.Tier)),
 		},
 	}
 

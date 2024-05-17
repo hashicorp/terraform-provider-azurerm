@@ -657,6 +657,7 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	id := parse.NewVirtualNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
+	var existingVNetGateway network.VirtualNetworkGateway
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
@@ -668,12 +669,18 @@ func resourceVirtualNetworkGatewayCreateUpdate(d *pluginsdk.ResourceData, meta i
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_virtual_network_gateway", id.ID())
 		}
+	} else {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return err
+		}
+		existingVNetGateway = existing
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	properties, err := getVirtualNetworkGatewayProperties(id, d)
+	properties, err := getVirtualNetworkGatewayProperties(id, d, existingVNetGateway)
 	if err != nil {
 		return err
 	}
@@ -802,7 +809,7 @@ func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *pluginsdk.ResourceData) (*network.VirtualNetworkGatewayPropertiesFormat, error) {
+func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *pluginsdk.ResourceData, existingVNetGateway network.VirtualNetworkGateway) (*network.VirtualNetworkGatewayPropertiesFormat, error) {
 	gatewayType := network.VirtualNetworkGatewayType(d.Get("type").(string))
 	vpnType := network.VpnType(d.Get("vpn_type").(string))
 	enableBgp := d.Get("enable_bgp").(bool)
@@ -855,6 +862,10 @@ func getVirtualNetworkGatewayProperties(id parse.VirtualNetworkGatewayId, d *plu
 			return nil, err
 		}
 		props.BgpSettings = bgpSettings
+	}
+
+	if existingVNetGateway.VirtualNetworkGatewayPropertiesFormat != nil && existingVNetGateway.VirtualNetworkGatewayPropertiesFormat.NatRules != nil {
+		props.NatRules = existingVNetGateway.VirtualNetworkGatewayPropertiesFormat.NatRules
 	}
 
 	// Sku validation for policy-based VPN gateways
