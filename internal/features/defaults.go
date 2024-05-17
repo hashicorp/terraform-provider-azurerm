@@ -28,11 +28,15 @@ func Default() UserFeatures {
 			PurgeSoftDeletedKeysOnDestroy:    true,
 			PurgeSoftDeletedCertsOnDestroy:   true,
 			PurgeSoftDeletedSecretsOnDestroy: true,
-			PurgeSoftDeletedHSMsOnDestroy:    true,
 			RecoverSoftDeletedKeyVaults:      true,
 			RecoverSoftDeletedKeys:           true,
 			RecoverSoftDeletedCerts:          true,
 			RecoverSoftDeletedSecrets:        true,
+
+			// todo 4.0 move all HSM flags into their own features HSMFeatures block
+			PurgeSoftDeletedHSMsOnDestroy:    true,
+			PurgeSoftDeletedHSMKeysOnDestroy: true,
+			RecoverSoftDeletedHSMKeys:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
 			PermanentlyDeleteOnDestroy: true,
@@ -42,6 +46,9 @@ func Default() UserFeatures {
 		},
 		ResourceGroup: ResourceGroupFeatures{
 			PreventDeletionIfContainsResources: true,
+		},
+		RecoveryServicesVault: RecoveryServicesVault{
+			RecoverSoftDeletedBackupProtectedVM: true,
 		},
 		TemplateDeployment: TemplateDeploymentFeatures{
 			DeleteNestedItemsDuringDeletion: true,

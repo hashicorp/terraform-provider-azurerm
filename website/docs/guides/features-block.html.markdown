@@ -79,6 +79,10 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = true
     }
 
+    recovery_services_vault {
+      recover_soft_deleted_backup_protected_vm = true
+    }
+
     subscription {
       prevent_cancellation_on_destroy = false
     }
@@ -127,6 +131,8 @@ The `features` block supports the following:
 * `recovery_service` - (Optional) A `recovery_service` block as defined below.
 
 * `resource_group` - (Optional) A `resource_group` block as defined below.
+
+* `recovery_services_vault` - (Optional) A `recovery_services_vault` block as defined below.
 
 * `template_deployment` - (Optional) A `template_deployment` block as defined below.
 
@@ -184,13 +190,17 @@ The `key_vault` block supports the following:
 
 * `purge_soft_deleted_hardware_security_modules_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
+* `purge_soft_deleted_hardware_security_module_keys_on_destroy` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module_key` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
 * `recover_soft_deleted_certificates` - (Optional) Should the `azurerm_key_vault_certificate` resource recover a Soft-Deleted Certificate? Defaults to `true`.
 
 * `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Soft-Deleted Key Vault? Defaults to `true`.
 
 * `recover_soft_deleted_keys` - (Optional) Should the `azurerm_key_vault_key` resource recover a Soft-Deleted Key? Defaults to `true`.
 
-* `recover_soft_deleted_secrets` - (Optional) Should the `azurerm_key_vault_secret` resource recover a Soft-Deleted Secret? Defaults to `true`.
+* `recover_soft_deleted_secrets` - (Optional) Should the `azurerm_key_vault_secret` resource recover a Soft-Deleted Secret? Defaults to `true`
+
+* `recover_soft_deleted_hardware_security_module_keys` - (Optional) Should the `azurerm_key_vault_managed_hardware_security_module_key` resource recover a Soft-Deleted Key? Defaults to `true`.
 
 ~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
 
@@ -235,6 +245,12 @@ The `recovery_service` block supports the following:
 The `resource_group` block supports the following:
 
 * `prevent_deletion_if_contains_resources` - (Optional) Should the `azurerm_resource_group` resource check that there are no Resources within the Resource Group during deletion? This means that all Resources within the Resource Group must be deleted prior to deleting the Resource Group. Defaults to `true`.
+
+---
+
+The `recovery_services_vault` block supports the following:
+
+* `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
 
 ---
 

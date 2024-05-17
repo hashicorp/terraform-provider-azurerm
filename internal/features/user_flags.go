@@ -4,22 +4,23 @@
 package features
 
 type UserFeatures struct {
-	ApiManagement              ApiManagementFeatures
-	AppConfiguration           AppConfigurationFeatures
-	ApplicationInsights        ApplicationInsightFeatures
-	CognitiveAccount           CognitiveAccountFeatures
+	ApiManagement            ApiManagementFeatures
+	AppConfiguration         AppConfigurationFeatures
+	ApplicationInsights      ApplicationInsightFeatures
+	CognitiveAccount         CognitiveAccountFeatures
 	CognitiveAccountAIServices CognitiveAccountAIServicesFeatures
-	VirtualMachine             VirtualMachineFeatures
-	VirtualMachineScaleSet     VirtualMachineScaleSetFeatures
-	KeyVault                   KeyVaultFeatures
-	TemplateDeployment         TemplateDeploymentFeatures
-	LogAnalyticsWorkspace      LogAnalyticsWorkspaceFeatures
-	ResourceGroup              ResourceGroupFeatures
-	ManagedDisk                ManagedDiskFeatures
-	Subscription               SubscriptionFeatures
-	PostgresqlFlexibleServer   PostgresqlFlexibleServerFeatures
-	MachineLearning            MachineLearningFeatures
-	RecoveryService            RecoveryServiceFeatures
+	VirtualMachine           VirtualMachineFeatures
+	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
+	KeyVault                 KeyVaultFeatures
+	TemplateDeployment       TemplateDeploymentFeatures
+	LogAnalyticsWorkspace    LogAnalyticsWorkspaceFeatures
+	ResourceGroup            ResourceGroupFeatures
+	RecoveryServicesVault    RecoveryServicesVault
+	ManagedDisk              ManagedDiskFeatures
+	Subscription             SubscriptionFeatures
+	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
+	MachineLearning          MachineLearningFeatures
+	RecoveryService          RecoveryServiceFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -49,10 +50,12 @@ type KeyVaultFeatures struct {
 	PurgeSoftDeletedCertsOnDestroy   bool
 	PurgeSoftDeletedSecretsOnDestroy bool
 	PurgeSoftDeletedHSMsOnDestroy    bool
+	PurgeSoftDeletedHSMKeysOnDestroy bool
 	RecoverSoftDeletedKeyVaults      bool
 	RecoverSoftDeletedKeys           bool
 	RecoverSoftDeletedCerts          bool
 	RecoverSoftDeletedSecrets        bool
+	RecoverSoftDeletedHSMKeys        bool
 }
 
 type TemplateDeploymentFeatures struct {
@@ -87,6 +90,10 @@ type AppConfigurationFeatures struct {
 
 type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
+}
+
+type RecoveryServicesVault struct {
+	RecoverSoftDeletedBackupProtectedVM bool
 }
 
 type PostgresqlFlexibleServerFeatures struct {

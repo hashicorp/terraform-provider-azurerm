@@ -45,3 +45,22 @@ func flattenEdgeZoneModel(input *edgezones.Model) string {
 	}
 	return edgezones.Normalize(input.Name)
 }
+
+// These will be renamed to expandEdgeZone when all calls to the former expandEdgeZone have been removed
+func expandEdgeZoneNew(input string) *edgezones.Model {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &edgezones.Model{
+		Name: normalized,
+	}
+}
+
+func flattenEdgeZoneNew(input *edgezones.Model) string {
+	if input == nil || input.Name == "" {
+		return ""
+	}
+	return edgezones.Normalize(input.Name)
+}

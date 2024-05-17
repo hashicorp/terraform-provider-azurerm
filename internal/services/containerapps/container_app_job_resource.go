@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containerapps
 
 import (
@@ -94,7 +97,7 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 		"replica_retry_limit": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			ValidateFunc: validation.IntAtLeast(0),
 		},
 
 		"registries": helpers.ContainerAppRegistrySchema(),
