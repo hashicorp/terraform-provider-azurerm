@@ -166,7 +166,7 @@ The `cognitive_account` block supports the following:
 
 The `cognitive_account_ai_services` block supports the following:
 
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_cognitive_ai_services_account` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_cognitive_account_ai_services` resources be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ---
 

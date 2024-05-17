@@ -262,7 +262,7 @@ func (AIServicesAccountResource) ModelObject() interface{} {
 }
 
 func (AIServicesAccountResource) ResourceType() string {
-	return "azurerm_cognitive_ai_services_account"
+	return "azurerm_cognitive_account_ai_services"
 }
 
 func (AIServicesAccountResource) Create() sdk.ResourceFunc {
@@ -286,7 +286,7 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_cognitive_ai_services_account", id.ID())
+				return tf.ImportAsExistsError("azurerm_cognitive_account_ai_services", id.ID())
 			}
 
 			networkACLs, subnetIds := expandAIServicesAccountNetworkACLs(model.NetworkACLs)

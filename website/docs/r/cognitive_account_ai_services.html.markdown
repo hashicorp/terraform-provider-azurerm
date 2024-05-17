@@ -1,12 +1,12 @@
 ---
 subcategory: "Cognitive Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cognitive_ai_services_account"
+page_title: "Azure Resource Manager: azurerm_cognitive_account_ai_services"
 description: |-
   Manages a Cognitive AI Services Account.
 ---
 
-# azurerm_cognitive_ai_services_account
+# azurerm_cognitive_account_ai_services
 
 Manages a Cognitive AI Services Account.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_cognitive_ai_services_account" "example" {
+resource "azurerm_cognitive_account_ai_services" "example" {
   name                = "example-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -144,5 +144,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Cognitive AI Service Accounts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_ai_services_account.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1
+terraform import azurerm_cognitive_account_ai_services.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1
 ```

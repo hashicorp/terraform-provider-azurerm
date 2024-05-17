@@ -19,7 +19,7 @@ import (
 type CognitiveAIServicesAccountResource struct{}
 
 func TestAccCognitiveAIServicesAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_ai_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -37,7 +37,7 @@ func TestAccCognitiveAIServicesAccount_basic(t *testing.T) {
 }
 
 func TestAccCognitiveAIServicesAccount_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_ai_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,13 +49,13 @@ func TestAccCognitiveAIServicesAccount_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_cognitive_ai_services_account"),
+			ExpectError: acceptance.RequiresImportError("azurerm_cognitive_account_ai_services"),
 		},
 	})
 }
 
 func TestAccCognitiveAIServicesAccount_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_ai_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -74,7 +74,7 @@ func TestAccCognitiveAIServicesAccount_complete(t *testing.T) {
 }
 
 func TestAccCognitiveAIServicesAccount_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_ai_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -101,7 +101,7 @@ func TestAccCognitiveAIServicesAccount_update(t *testing.T) {
 }
 
 func TestAccCognitiveAIServicesAccount_networkACLsVirtualNetworkRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_ai_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -123,7 +123,7 @@ func TestAccCognitiveAIServicesAccount_networkACLsVirtualNetworkRules(t *testing
 }
 
 func TestAccCognitiveAIServicesAccount_networkACLs(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_ai_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -145,7 +145,7 @@ func TestAccCognitiveAIServicesAccount_networkACLs(t *testing.T) {
 }
 
 func TestAccCognitiveAIServicesAccount_identity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_ai_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -185,7 +185,7 @@ func TestAccCognitiveAIServicesAccount_identity(t *testing.T) {
 }
 
 func TestAccCognitiveAIServicesAccount_customerManagedKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_ai_services_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_ai_services", "test")
 	r := CognitiveAIServicesAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -226,7 +226,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                = "acctestcogacc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -246,7 +246,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                = "acctestcogacc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -275,7 +275,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                = "acctestcogacc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -307,7 +307,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                = "acctestcogacc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -327,10 +327,10 @@ func (CognitiveAIServicesAccountResource) requiresImport(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cognitive_ai_services_account" "import" {
-  name                = azurerm_cognitive_ai_services_account.test.name
-  location            = azurerm_cognitive_ai_services_account.test.location
-  resource_group_name = azurerm_cognitive_ai_services_account.test.resource_group_name
+resource "azurerm_cognitive_account_ai_services" "import" {
+  name                = azurerm_cognitive_account_ai_services.test.name
+  location            = azurerm_cognitive_account_ai_services.test.location
+  resource_group_name = azurerm_cognitive_account_ai_services.test.resource_group_name
   sku_name            = "S0"
 }
 `, template)
@@ -417,7 +417,7 @@ resource "azurerm_subnet" "test_b" {
   service_endpoints    = ["Microsoft.CognitiveServices"]
 }
 
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                               = "acctestcogacc-%[1]d"
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
@@ -460,7 +460,7 @@ func (r CognitiveAIServicesAccountResource) networkACLs(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -483,7 +483,7 @@ resource "azurerm_cognitive_ai_services_account" "test" {
 func (r CognitiveAIServicesAccountResource) networkACLsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -508,7 +508,7 @@ func (r CognitiveAIServicesAccountResource) networkACLsVirtualNetworkRules(data 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -533,7 +533,7 @@ resource "azurerm_cognitive_ai_services_account" "test" {
 func (r CognitiveAIServicesAccountResource) networkACLsVirtualNetworkRulesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                  = "acctestcogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
@@ -654,7 +654,7 @@ resource "azurerm_key_vault_key" "test" {
   key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 }
 
-resource "azurerm_cognitive_ai_services_account" "test" {
+resource "azurerm_cognitive_account_ai_services" "test" {
   name                  = "acctest-cogacc-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
