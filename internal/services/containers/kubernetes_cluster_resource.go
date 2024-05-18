@@ -4721,7 +4721,6 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 
 	return []interface{}{
 		map[string]interface{}{
-			"dns_zone_id":              dnsZoneId,
 			"web_app_routing_identity": webAppRoutingIdentity,
 		},
 	}
