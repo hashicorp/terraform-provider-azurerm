@@ -1186,6 +1186,9 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		if upgradeSettingsNodePool.DrainTimeoutInMinutes != nil && *upgradeSettingsNodePool.DrainTimeoutInMinutes != int64(0) {
 			agentpool.Properties.UpgradeSettings.DrainTimeoutInMinutes = upgradeSettingsNodePool.DrainTimeoutInMinutes
 		}
+		if upgradeSettingsNodePool.NodeSoakDurationInMinutes != nil && *upgradeSettingsNodePool.NodeSoakDurationInMinutes != int64(0) {
+			agentpool.Properties.UpgradeSettings.NodeSoakDurationInMinutes = upgradeSettingsNodePool.NodeSoakDurationInMinutes
+		}
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
 		agentpool.Properties.WorkloadRuntime = pointer.To(agentpools.WorkloadRuntime(string(*workloadRuntimeNodePool)))
@@ -1840,11 +1843,11 @@ func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgra
 		values["max_surge"] = *input.MaxSurge
 	}
 
-	if input != nil && input.DrainTimeoutInMinutes != nil && *input.DrainTimeoutInMinutes != 0 {
+	if input != nil && input.DrainTimeoutInMinutes != nil {
 		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
-	if input != nil && input.NodeSoakDurationInMinutes != nil && *input.NodeSoakDurationInMinutes != 0 {
+	if input != nil && input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
 	}
 
@@ -2214,6 +2217,9 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 	}
 	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int); drainTimeoutInMinutesRaw != 0 {
 		setting.DrainTimeoutInMinutes = utils.Int64(int64(drainTimeoutInMinutesRaw))
+	}
+	if nodeSoakDurationInMinutesRaw := v["drain_timeout_in_minutes"].(int); nodeSoakDurationInMinutesRaw != 0 {
+		setting.NodeSoakDurationInMinutes = utils.Int64(int64(nodeSoakDurationInMinutesRaw))
 	}
 	return setting
 }

@@ -279,32 +279,77 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data, "2", 40),
+			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
+				"max_surge":                "2",
+				"drain_timeout_in_minutes": 40,
+			}),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").HasValue("40"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.node_soak_duration_in_minutes").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, "10%", 35),
+			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
+				"max_surge":                "10%",
+				"drain_timeout_in_minutes": 35,
+			}),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("10%"),
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").HasValue("35"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.node_soak_duration_in_minutes").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, "2", 30),
+			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
+				"drain_timeout_in_minutes": 0,
+			}),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").DoesNotExist(),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").HasValue("0"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.node_soak_duration_in_minutes").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
+				"node_soak_duration_in_minutes": 45,
+			}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").DoesNotExist(),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").DoesNotExist(),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.node_soak_duration_in_minutes").HasValue("45"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
+				"node_soak_duration_in_minutes": 0,
+			}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").DoesNotExist(),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").DoesNotExist(),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.node_soak_duration_in_minutes").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeSettingsConfig(data, map[string]interface{}{}),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),

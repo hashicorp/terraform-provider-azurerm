@@ -1239,10 +1239,10 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = utils.String(maxSurgeRaw)
 	}
-	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int); drainTimeoutInMinutesRaw != 0 {
+	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int); {
 		setting.DrainTimeoutInMinutes = utils.Int64(int64(drainTimeoutInMinutesRaw))
 	}
-	if nodeSoakDurationInMinutesRaw := v["node_soak_duration_in_minutes"].(int); nodeSoakDurationInMinutesRaw != 0 {
+	if nodeSoakDurationInMinutesRaw := v["node_soak_duration_in_minutes"].(int); {
 		setting.NodeSoakDurationInMinutes = utils.Int64(int64(nodeSoakDurationInMinutesRaw))
 	}
 	return setting
@@ -1255,11 +1255,11 @@ func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings)
 		values["max_surge"] = *input.MaxSurge
 	}
 
-	if input != nil && input.DrainTimeoutInMinutes != nil && *input.DrainTimeoutInMinutes != 0 {
+	if input != nil && input.DrainTimeoutInMinutes != nil {
 		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
-	if input != nil && input.NodeSoakDurationInMinutes != nil && *input.NodeSoakDurationInMinutes != 0 {
+	if input != nil && input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
 	}
 

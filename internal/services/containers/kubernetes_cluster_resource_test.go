@@ -707,13 +707,27 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
 }
 
-func (r KubernetesClusterResource) upgradeSettingsConfig(data acceptance.TestData, maxSurge string, drainTimeoutInMinutes int) string {
-	if maxSurge != "" {
-		maxSurge = fmt.Sprintf(`upgrade_settings {
-    max_surge                = %q
-    drain_timeout_in_minutes = %d
-  }`, maxSurge, drainTimeoutInMinutes)
-	}
+func (r KubernetesClusterResource) upgradeSettingsConfig(data acceptance.TestData, nodePoolConfig map[string]interface{}) string {
+  var upgradeSettingsTemplate string
+
+  keys := []string{"max_surge", "drain_timeout_in_minutes", "node_soak_duration_in_minutes"}
+
+  for _, key := range keys {
+    if value, ok := nodePoolConfig[key]; ok {
+      switch v := value.(type) {
+      case string:
+        if v != "" {
+          upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %q", key, v)
+        }
+      case int:
+        upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %d", key, v)
+      }
+    }
+  }
+
+  if upgradeSettingsTemplate != "" {
+    upgradeSettingsTemplate = fmt.Sprintf(`upgrade_settings {%s\n  }`, upgradeSettingsTemplate)
+  }
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -742,7 +756,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, maxSurge)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, upgradeSettingsTemplate)
 }
 
 func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
