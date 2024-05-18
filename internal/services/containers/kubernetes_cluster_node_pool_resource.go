@@ -1239,10 +1239,10 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = utils.String(maxSurgeRaw)
 	}
-	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int); {
+	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
 		setting.DrainTimeoutInMinutes = utils.Int64(int64(drainTimeoutInMinutesRaw))
 	}
-	if nodeSoakDurationInMinutesRaw := v["node_soak_duration_in_minutes"].(int); {
+	if nodeSoakDurationInMinutesRaw, ok := v["node_soak_duration_in_minutes"].(int); ok {
 		setting.NodeSoakDurationInMinutes = utils.Int64(int64(nodeSoakDurationInMinutesRaw))
 	}
 	return setting
