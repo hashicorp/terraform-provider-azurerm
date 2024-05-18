@@ -708,26 +708,26 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (r KubernetesClusterResource) upgradeSettingsConfig(data acceptance.TestData, nodePoolConfig map[string]interface{}) string {
-  var upgradeSettingsTemplate string
+	var upgradeSettingsTemplate string
 
-  keys := []string{"max_surge", "drain_timeout_in_minutes", "node_soak_duration_in_minutes"}
+	keys := []string{"max_surge", "drain_timeout_in_minutes", "node_soak_duration_in_minutes"}
 
-  for _, key := range keys {
-    if value, ok := nodePoolConfig[key]; ok {
-      switch v := value.(type) {
-      case string:
-        if v != "" {
-          upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %q", key, v)
-        }
-      case int:
-        upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %d", key, v)
-      }
-    }
-  }
+	for _, key := range keys {
+		if value, ok := nodePoolConfig[key]; ok {
+			switch v := value.(type) {
+			case string:
+				if v != "" {
+					upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %q", key, v)
+				}
+			case int:
+				upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %d", key, v)
+			}
+		}
+	}
 
-  if upgradeSettingsTemplate != "" {
-    upgradeSettingsTemplate = fmt.Sprintf(`upgrade_settings {%s\n  }`, upgradeSettingsTemplate)
-  }
+	if upgradeSettingsTemplate != "" {
+		upgradeSettingsTemplate = fmt.Sprintf(`upgrade_settings {%s\n  }`, upgradeSettingsTemplate)
+	}
 
 	return fmt.Sprintf(`
 provider "azurerm" {
