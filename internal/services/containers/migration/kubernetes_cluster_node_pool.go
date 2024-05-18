@@ -459,6 +459,10 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
+					"node_soak_duration_in_minutes": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
 				},
 			},
 		},

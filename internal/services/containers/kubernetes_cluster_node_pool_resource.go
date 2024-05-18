@@ -1141,6 +1141,10 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
+					"node_soak_duration_in_minutes": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
 				},
 			},
 		}
@@ -1157,6 +1161,10 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 					Default:  "10%",
 				},
 				"drain_timeout_in_minutes": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+				"node_soak_duration_in_minutes": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 				},
@@ -1234,6 +1242,9 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int); drainTimeoutInMinutesRaw != 0 {
 		setting.DrainTimeoutInMinutes = utils.Int64(int64(drainTimeoutInMinutesRaw))
 	}
+	if nodeSoakDurationInMinutesRaw := v["node_soak_duration_in_minutes"].(int); nodeSoakDurationInMinutesRaw != 0 {
+		setting.NodeSoakDurationInMinutes = utils.Int64(int64(nodeSoakDurationInMinutesRaw))
+	}
 	return setting
 }
 
@@ -1246,6 +1257,10 @@ func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings)
 
 	if input != nil && input.DrainTimeoutInMinutes != nil && *input.DrainTimeoutInMinutes != 0 {
 		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
+	}
+
+	if input != nil && input.NodeSoakDurationInMinutes != nil && *input.NodeSoakDurationInMinutes != 0 {
+		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
 	}
 
 	return []interface{}{values}

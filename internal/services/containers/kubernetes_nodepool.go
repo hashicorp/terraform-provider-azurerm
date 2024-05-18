@@ -1844,6 +1844,10 @@ func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgra
 		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
+	if input != nil && input.NodeSoakDurationInMinutes != nil && *input.NodeSoakDurationInMinutes != 0 {
+		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
 	return []interface{}{values}
 }
 
