@@ -566,7 +566,7 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"max_surge": "2",
+				"max_surge":                "2",
 				"drain_timeout_in_minutes": 35,
 			}),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -580,7 +580,7 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"max_surge": "4",
+				"max_surge":                "4",
 				"drain_timeout_in_minutes": 40,
 			}),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -594,7 +594,7 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"max_surge": "10%",
+				"max_surge":                "10%",
 				"drain_timeout_in_minutes": 35,
 			}),
 
@@ -2112,11 +2112,11 @@ func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance
 		if value, ok := nodePoolConfig[key]; ok {
 			switch v := value.(type) {
 			case string:
-			if v != "" {
-				upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %q", key, v)
-			}
+				if v != "" {
+					upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %q", key, v)
+				}
 			case int:
-			upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %d", key, v)
+				upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %d", key, v)
 			}
 		}
 	}
