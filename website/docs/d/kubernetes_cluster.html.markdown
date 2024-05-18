@@ -185,6 +185,8 @@ A `upgrade_settings` block exports the following:
 
 * `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
 
+* `node_soak_duration_in_minutes` - The amount of time (in minutes) to wait after draining a node and before reimaging it and moving on to next node. If not specified, the default is 0 minutes.
+
 * `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
 
 ---
@@ -265,7 +267,7 @@ A `network_profile` block exports the following:
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 
 * `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
-  
+
 * `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
@@ -280,7 +282,7 @@ An `oms_agent` block exports the following:
 
 * `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
-* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
+* `oms_agent_identity` - An `oms_agent_identity` block as defined below.
 
 ---
 
@@ -304,7 +306,7 @@ An `ingress_application_gateway` block supports the following:
 
 * `subnet_id` - The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. This attribute is only set when `subnet_id` is specified when configuring the `ingress_application_gateway` addon.
 
-* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block as defined below.  
+* `ingress_application_gateway_identity` - An `ingress_application_gateway_identity` block as defined below.
 
 ---
 
