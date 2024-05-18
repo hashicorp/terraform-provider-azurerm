@@ -1,5 +1,10 @@
 ## 3.105.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_kubernetes_cluster` `azurerm_kubernetes_cluster_node_pool` - adding `node_soak_duration_in_minutes` and `drain_timeout_in_minutes` to the node pool `upgrade_settings` block
+* update `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice` to version `2023-09-02-preview`
+
 BUG FIXES:
 
 * `azurerm_container_app_job` - updating the validation for the `name` field [GH-26049]
@@ -199,7 +204,7 @@ DEPRECATIONS:
 
 ## 3.99.0 (April 11, 2024)
 
-BREAKING CHANGE: 
+BREAKING CHANGE:
 
 * `azurerm_linux_web_app` - `site_config.0.application_stack.0.java_version` must be specified with `java_server` and `java_server_version` ([#25553](https://github.com/hashicorp/terraform-provider-azurerm/issues/25553))
 
@@ -625,7 +630,7 @@ BUG FIXES:
 UPGRADE NOTES:
 
 * provider - The provider will now automatically register the `AppConfiguration`, `DataFactory`, and `SignalRService` Resource Providers. When running Terraform with limited permissions, note that you [must disable automatic Resource Provider Registration and ensure that any Resource Providers Terraform requires are registered]([XXX](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#skip_provider_registration)). ([#24645](https://github.com/hashicorp/terraform-provider-azurerm/issues/24645))
-  
+
 FEATURES:
 
 * **New Data Source**: `azurerm_nginx_configuration` ([#24642](https://github.com/hashicorp/terraform-provider-azurerm/issues/24642))
@@ -1101,7 +1106,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20231025.1113325` of `github.com/hashicorp/go-azure-sdk` ([#23684](https://github.com/hashicorp/terraform-provider-azurerm/issues/23684))
 * dependencies: updating to `v1.58.3` of `google.golang.org/grpc` ([#23691](https://github.com/hashicorp/terraform-provider-azurerm/issues/23691))
-* dependencies: updating search service from `2022-09-01` to `2023-11-01` ([#23698](https://github.com/hashicorp/terraform-provider-azurerm/issues/23698)) 
+* dependencies: updating search service from `2022-09-01` to `2023-11-01` ([#23698](https://github.com/hashicorp/terraform-provider-azurerm/issues/23698))
 * Data Source: `azurerm_monitor_workspace` - export `query_endpoint` ([#23629](https://github.com/hashicorp/terraform-provider-azurerm/issues/23629))
 * `azurerm_express_route_port` - support for `macsec_sci_enabled` ([#23625](https://github.com/hashicorp/terraform-provider-azurerm/issues/23625))
 * `azurerm_eventhub_namespace_customer_managed_key` - support for the `user_assigned_identity_id` property ([#23635](https://github.com/hashicorp/terraform-provider-azurerm/issues/23635))
