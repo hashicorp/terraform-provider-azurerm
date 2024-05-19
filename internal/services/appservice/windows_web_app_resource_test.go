@@ -3651,7 +3651,7 @@ resource "azurerm_windows_web_app" "test" {
     connection_string_names    = ["First", "Third", "Special chars: !@#$%%^&*()_+-=' \";/?"]
   }
 }
-`, r.templateWithStorageAccount2_stickySettings(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) stickySettingsRemoved(data acceptance.TestData) string {
@@ -3721,7 +3721,7 @@ resource "azurerm_windows_web_app" "test" {
     mount_path   = "/mounts/third"
   }
 }
-`, r.templateWithStorageAccount2_stickySettings(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) stickySettingsUpdate(data acceptance.TestData) string {
@@ -3797,7 +3797,7 @@ resource "azurerm_windows_web_app" "test" {
     connection_string_names    = ["First", "Second", "Third"]
   }
 }
-`, r.templateWithStorageAccount2_stickySettings(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r WindowsWebAppResource) zipDeploy(data acceptance.TestData) string {
@@ -3977,7 +3977,7 @@ data "azurerm_storage_account_sas" "test" {
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)
 }
 
-func (r WindowsWebAppResource) templateWithStorageAccount2_stickySettings(data acceptance.TestData) string {
+func (r WindowsWebAppResource) templateWithStorageAccount_stickySettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s

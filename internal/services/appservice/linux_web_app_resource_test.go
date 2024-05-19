@@ -2344,7 +2344,7 @@ resource "azurerm_linux_web_app" "test" {
     connection_string_names    = ["First", "Third"]
   }
 }
-`, r.templateWithStorageAccount2(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) stickySettingsRemoved(data acceptance.TestData) string {
@@ -2423,7 +2423,7 @@ resource "azurerm_linux_web_app" "test" {
     mount_path   = "/fourth"
   }
 }
-`, r.templateWithStorageAccount2(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) stickySettingsUpdate(data acceptance.TestData) string {
@@ -2507,7 +2507,7 @@ resource "azurerm_linux_web_app" "test" {
     azure_storage_config_names = ["First", "Second", "Third", "Fourth"]
   }
 }
-`, r.templateWithStorageAccount2(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) secondServicePlan(data acceptance.TestData) string {
@@ -3829,7 +3829,7 @@ data "azurerm_storage_account_sas" "test" {
 `, r.standardPlanTemplate(data), data.RandomInteger, data.RandomString)
 }
 
-func (r LinuxWebAppResource) templateWithStorageAccount2(data acceptance.TestData) string {
+func (r LinuxWebAppResource) templateWithStorageAccount_stickySettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
