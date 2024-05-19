@@ -1,3 +1,9 @@
+## 3.105.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_linux_function_app_slot` - fixed panic when planning from a version older than 3.88.0 [GH-25838]
+
 ## 3.104.0 (May 16, 2024)
 
 FEATURES:
