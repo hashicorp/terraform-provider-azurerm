@@ -19,7 +19,8 @@ type ListOperationResponse struct {
 }
 
 type ListCompleteResult struct {
-	Items []CacheRule
+	LatestHttpResponse *http.Response
+	Items              []CacheRule
 }
 
 // List ...
@@ -83,7 +84,8 @@ func (c CacheRulesClient) ListCompleteMatchingPredicate(ctx context.Context, id 
 	}
 
 	result = ListCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

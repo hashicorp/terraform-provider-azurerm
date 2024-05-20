@@ -43,7 +43,10 @@ func (c CacheRulesClient) Get(ctx context.Context, id CacheRuleId) (result GetOp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model CacheRule
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
