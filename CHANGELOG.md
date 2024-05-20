@@ -1,9 +1,9 @@
-## 3.104.1 (Unreleased)
+## 3.104.1 (May 20, 2024)
 
 BUG FIXES:
 
-* `azurerm_pim_active_role_assignment` - fix a regression where roles assignments could not be created with no expiration [GH-26029]
-* `azurerm_pim_eligible_role_assignment` - fix a regression where roles assignments could not be created with no expiration [GH-26029]
+* `azurerm_pim_active_role_assignment` - fix a regression where roles assignments could not be created with no expiration ([#26029](https://github.com/hashicorp/terraform-provider-azurerm/issues/26029))
+* `azurerm_pim_eligible_role_assignment` - fix a regression where roles assignments could not be created with no expiration ([#26029](https://github.com/hashicorp/terraform-provider-azurerm/issues/26029))
 
 ## 3.104.0 (May 16, 2024)
 
