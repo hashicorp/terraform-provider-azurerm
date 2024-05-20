@@ -127,7 +127,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "imp
   name                            = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.name
   vault_id                        = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.vault_id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  
+
   default_retention_rule {
     life_cycle {
       duration        = "P4M"
