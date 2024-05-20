@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -82,11 +81,10 @@ resource "azurerm_container_registry" "test" {
 }
 
 resource "azurerm_container_registry_cache_rule" "test" {
-  name                = "testacc-cr-cache-rule-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  registry            = azurerm_container_registry.test.name
-  target_repo         = "target"
-  source_repo         = "docker.io/hello-world"
+  name                  = "testacc-cr-cache-rule-%d"
+  container_registry_id = azurerm_container_registry.test.name
+  target_repo           = "target"
+  source_repo           = "docker.io/hello-world"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
