@@ -1,3 +1,7 @@
+## 3.104.2 (Unreleased)
+
+NOTE: This is a re-release of `v3.104.1` to include missing changes, please refer to the changelog entries for `v3.104.1`.
+
 ## 3.104.1 (May 20, 2024)
 
 BUG FIXES:
