@@ -2795,7 +2795,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     max_unhealthy_upgraded_instance_percent = %d
     pause_time_between_batches              = "%s"
     prioritize_unhealthy_instances_enabled  = %t
-    maximum_surge_instances                 = %t
+    maximum_surge_instances_enabled         = %t
   }
 
   source_image_reference {

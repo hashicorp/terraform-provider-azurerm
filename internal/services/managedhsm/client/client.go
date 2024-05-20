@@ -23,7 +23,7 @@ type Client struct {
 	ManagedHsmClient *managedhsms.ManagedHsmsClient
 
 	// Data Plane
-	DataPlaneClient                *dataplane.BaseClient
+	DataPlaneKeysClient            *dataplane.BaseClient
 	DataPlaneRoleAssignmentsClient *dataplane.RoleAssignmentsClient
 	DataPlaneRoleDefinitionsClient *dataplane.RoleDefinitionsClient
 	DataPlaneSecurityDomainsClient *dataplane.HSMSecurityDomainClient
@@ -36,8 +36,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(managedHsmClient.Client, o.Authorizers.ResourceManager)
 
-	managementClient := dataplane.New()
-	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
+	managementKeysClient := dataplane.New()
+	o.ConfigureClient(&managementKeysClient.Client, o.ManagedHSMAuthorizer)
 
 	securityDomainClient := dataplane.NewHSMSecurityDomainClient()
 	o.ConfigureClient(&securityDomainClient.Client, o.ManagedHSMAuthorizer)
@@ -53,7 +53,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ManagedHsmClient: managedHsmClient,
 
 		// Data Plane
-		DataPlaneClient:                &managementClient,
+		DataPlaneKeysClient:            &managementKeysClient,
 		DataPlaneSecurityDomainsClient: &securityDomainClient,
 		DataPlaneRoleDefinitionsClient: &roleDefinitionsClient,
 		DataPlaneRoleAssignmentsClient: &roleAssignmentsClient,

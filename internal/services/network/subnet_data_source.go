@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -70,8 +71,8 @@ func dataSourceSubnet() *pluginsdk.Resource {
 					Type: pluginsdk.TypeString,
 				},
 			},
-			"private_endpoint_network_policies_enabled": {
-				Type:     pluginsdk.TypeBool,
+			"private_endpoint_network_policies": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -83,6 +84,12 @@ func dataSourceSubnet() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "This property has been superseded by `private_endpoint_network_policies` and will be removed in v4.0 of the AzureRM Provider.",
+		}
+
 		resource.Schema["enforce_private_link_endpoint_network_policies"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -132,10 +139,11 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if !features.FourPointOhBeta() {
 				d.Set("enforce_private_link_endpoint_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
+				d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
 				d.Set("enforce_private_link_service_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 			}
 
-			d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
+			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 
 			networkSecurityGroupId := ""

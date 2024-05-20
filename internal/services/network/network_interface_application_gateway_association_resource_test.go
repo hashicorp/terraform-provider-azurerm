@@ -6,17 +6,18 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	network2 "github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource struct{}
@@ -94,48 +95,42 @@ func TestAccNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_upda
 }
 
 func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	splitId := strings.Split(state.ID, "|")
-	if len(splitId) != 2 {
-		return nil, fmt.Errorf("expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId} but got %q", state.ID)
-	}
-
-	id, err := parse.NetworkInterfaceIpConfigurationID(splitId[0])
+	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceIPConfigurationId{}, &parse.ApplicationGatewayBackendAddressPoolId{})
 	if err != nil {
 		return nil, err
 	}
 
-	backendAddressPoolId := splitId[1]
+	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	read, err := clients.Network.InterfacesClient.Get(ctx, id.ResourceGroup, id.NetworkInterfaceName, "")
+	resp, err := clients.Network.Client.NetworkInterfaces.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading NetworkInterfaceApplicationGatewayBackendAddressPoolAssociation (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	nicProps := read.InterfacePropertiesFormat
-	if nicProps == nil {
-		return nil, fmt.Errorf("`properties` was nil for (%s): %+v", id, err)
+	if resp.Model == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if resp.Model.Properties == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+	if resp.Model.Properties.IPConfigurations == nil {
+		return nil, fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", id)
 	}
 
-	ipConfigs := nicProps.IPConfigurations
-	if ipConfigs == nil {
-		return nil, fmt.Errorf("`properties.IPConfigurations` was nil for  (%s): %+v", id, err)
+	config := network.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, id.First.IpConfigurationName)
+	if config == nil {
+		return nil, fmt.Errorf("IP configuration was nil for %s: %+v", id, err)
 	}
-
-	c := network2.FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, id.IpConfigurationName)
-	if c == nil {
-		return nil, fmt.Errorf("IP configuration was nil for (%s): %+v", id, err)
-	}
-	config := *c
 
 	found := false
-	if props := config.InterfaceIPConfigurationPropertiesFormat; props != nil {
+	if props := config.Properties; props != nil {
 		if backendPools := props.ApplicationGatewayBackendAddressPools; backendPools != nil {
 			for _, pool := range *backendPools {
-				if pool.ID == nil {
+				if pool.Id == nil {
 					continue
 				}
 
-				if *pool.ID == backendAddressPoolId {
+				if *pool.Id == id.Second.ID() {
 					found = true
 					break
 				}
@@ -143,46 +138,41 @@ func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) E
 		}
 	}
 
-	return utils.Bool(found), nil
+	return pointer.To(found), nil
 }
 
 func (NetworkInterfaceApplicationGatewayBackendAddressPoolAssociationResource) destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	nicID, err := parse.NetworkInterfaceID(state.Attributes["network_interface_id"])
+	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceIPConfigurationId{}, &parse.ApplicationGatewayBackendAddressPoolId{})
 	if err != nil {
 		return err
 	}
 
-	backendAddressPoolId := state.Attributes["backend_address_pool_id"]
-	ipConfigurationName := state.Attributes["ip_configuration_name"]
+	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	read, err := client.Network.InterfacesClient.Get(ctx, nicID.ResourceGroup, nicID.Name, "")
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	resp, err := client.Network.Client.NetworkInterfaces.Get(ctx2, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", nicID, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	c := network2.FindNetworkInterfaceIPConfiguration(read.InterfacePropertiesFormat.IPConfigurations, ipConfigurationName)
-	if c == nil {
-		return fmt.Errorf("IP Configuration %q wasn't found for %s", ipConfigurationName, nicID)
+	config := network.FindNetworkInterfaceIPConfiguration(resp.Model.Properties.IPConfigurations, id.First.IpConfigurationName)
+	if config == nil {
+		return fmt.Errorf("IP Configuration %q wasn't found for %s", id.First.IpConfigurationName, id)
 	}
-	config := *c
 
-	updatedPools := make([]network.ApplicationGatewayBackendAddressPool, 0)
-	if config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools != nil {
-		for _, pool := range *config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools {
-			if *pool.ID != backendAddressPoolId {
+	updatedPools := make([]networkinterfaces.ApplicationGatewayBackendAddressPool, 0)
+	if config.Properties.ApplicationGatewayBackendAddressPools != nil {
+		for _, pool := range *config.Properties.ApplicationGatewayBackendAddressPools {
+			if *pool.Id != id.Second.ID() {
 				updatedPools = append(updatedPools, pool)
 			}
 		}
 	}
-	config.InterfaceIPConfigurationPropertiesFormat.ApplicationGatewayBackendAddressPools = &updatedPools
+	config.Properties.ApplicationGatewayBackendAddressPools = &updatedPools
 
-	future, err := client.Network.InterfacesClient.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.Name, read)
-	if err != nil {
-		return fmt.Errorf("removing Application Gateway Backend Address Pool Association for %s: %+v", nicID, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Network.InterfacesClient.Client); err != nil {
-		return fmt.Errorf("waiting for removal of Application Gateway Backend Address Pool Association for %s: %+v", nicID, err)
+	if err := client.Network.Client.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, networkInterfaceId, *resp.Model); err != nil {
+		return fmt.Errorf("removing Application Gateway Backend Address Pool Association for %s: %+v", networkInterfaceId, err)
 	}
 
 	return nil

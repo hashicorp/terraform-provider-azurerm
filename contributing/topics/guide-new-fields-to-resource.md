@@ -48,8 +48,8 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
 ```go
 props := machinelearning.Workspace{
-	WorkspaceProperties: &machinelearning.WorkspaceProperties{
-		PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool))
+	Properties: &machinelearning.WorkspaceProperties{
+		PublicNetworkAccess: pointer.To(d.Get("public_network_access_enabled").(bool))
     }
 }
 ```
@@ -60,7 +60,7 @@ props := machinelearning.Workspace{
 
 ```go
 if d.HasChange("public_network_access_enabled") {
-	props.WorkspaceProperties.PublicNetworkAccess = utils.Bool(d.Get("public_network_access_enabled").(bool))
+	existing.Model.Properties.PublicNetworkAccess = pointer.From(d.Get("public_network_access_enabled").(bool))
 }
 ```
 
@@ -72,7 +72,7 @@ if d.HasChange("public_network_access_enabled") {
 
 ```go
 publicNetworkAccess := true
-if v := props.WorkspaceProperties.PublicNetworkAccess; v != nil {
+if v := props.PublicNetworkAccess; v != nil {
 	publicNetworkAccess = *v
 }
 d.Set("public_network_access_enabled", publicNetworkAccess)

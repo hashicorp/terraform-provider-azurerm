@@ -178,7 +178,6 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "ano
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -189,11 +188,10 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   server_id        = azurerm_postgresql_flexible_server.test.id
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,11 +202,10 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "i
   server_id        = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.server_id
   backup_policy_id = azurerm_data_protection_backup_instance_postgresql_flexible_server.test.backup_policy_id
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -219,5 +216,5 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
   server_id        = azurerm_postgresql_flexible_server.test.id
   backup_policy_id = azurerm_data_protection_backup_policy_postgresql_flexible_server.another.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

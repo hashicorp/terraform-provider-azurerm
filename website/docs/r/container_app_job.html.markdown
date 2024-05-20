@@ -394,7 +394,7 @@ A `authentication` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Optional) The type of identity used for the Container App Job. Possible values are `SystemAssigned` and `None`. Defaults to `None`.
+* `type` - (Optional) The type of identity used for the Container App Job. Possible values are `SystemAssigned`, `UserAssigned` and `None`. Defaults to `None`.
 
 * `identity_ids` - (Optional) A list of Managed Identity IDs to assign to the Container App Job.
 
