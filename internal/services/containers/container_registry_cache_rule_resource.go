@@ -210,5 +210,5 @@ func (ContainerRegistryCacheRule) Delete() sdk.ResourceFunc {
 }
 
 func (ContainerRegistryCacheRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ContainerRegistryCacheRuleID
+        return cacherules.ValidateCacheRuleID
 }
