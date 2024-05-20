@@ -352,8 +352,10 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 				if err := d.Set("operational_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesOperationalStore)); err != nil {
 					return fmt.Errorf("setting `operational_default_retention_duration`: %+v", err)
 				}
-				if err := d.Set("retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesOperationalStore)); err != nil {
-					return fmt.Errorf("setting `retention_duration`: %+v", err)
+				if !features.FourPointOhBeta() {
+					if err := d.Set("retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesOperationalStore)); err != nil {
+						return fmt.Errorf("setting `retention_duration`: %+v", err)
+					}
 				}
 				d.Set("time_zone", flattenBackupPolicyBlobStorageVaultBackupTimeZone(&props.PolicyRules))
 				if err := d.Set("vault_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesVaultStore)); err != nil {
