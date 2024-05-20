@@ -52,7 +52,7 @@ func (l LogAnalyticsClusterResource) Arguments() map[string]*schema.Schema {
 
 		"location": commonschema.Location(),
 
-		"identity": commonschema.SystemAssignedIdentityRequiredForceNew(),
+		"identity": commonschema.SystemOrUserAssignedIdentityRequiredForceNew(),
 
 		"size_gb": {
 			Type:     pluginsdk.TypeInt,

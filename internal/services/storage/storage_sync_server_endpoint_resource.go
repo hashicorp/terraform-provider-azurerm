@@ -34,7 +34,6 @@ type StorageSyncServerEndpointResourceSchema struct {
 	VolumeFreeSpacePercent int64  `tfschema:"volume_free_space_percent"`
 	TierFilesOlderThanDays int64  `tfschema:"tier_files_older_than_days"`
 	InitialDownloadPolicy  string `tfschema:"initial_download_policy"`
-	InitialUploadPolicy    string `tfschema:"initial_upload_policy"`
 	LocalCacheMode         string `tfschema:"local_cache_mode"`
 }
 

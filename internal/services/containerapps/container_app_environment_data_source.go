@@ -33,6 +33,8 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
 
+	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
+
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
 	PlatformReservedCidr  string `tfschema:"platform_reserved_cidr"`
@@ -86,6 +88,12 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 		},
 
 		"tags": commonschema.TagsDataSource(),
+
+		"custom_domain_verification_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
+		},
 
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
@@ -167,6 +175,7 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 
 					environment.StaticIP = pointer.From(props.StaticIP)
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
+					environment.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 				}
 			}
 

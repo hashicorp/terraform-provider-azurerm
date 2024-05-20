@@ -633,7 +633,7 @@ An `application_stack` block supports the following:
 
 * `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16`, `~18` and `~20`.
 
-* `powershell_core_version` - (Optional) The PowerShell Core version to use. Possible values are `7`, and `7.2`.
+* `powershell_core_version` - (Optional) The PowerShell Core version to use. Possible values are `7`, `7.2`, and `7.4`.
 
 * `use_custom_runtime` - (Optional) Does the Function App use a custom Application Stack?
 
@@ -666,6 +666,7 @@ An `ip_restriction` block supports the following:
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
+
 ---
 
 A `scm_ip_restriction` block supports the following:
@@ -687,6 +688,7 @@ A `scm_ip_restriction` block supports the following:
 ~> **NOTE:** Exactly one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
+
 ---
 
 A `headers` block supports the following:

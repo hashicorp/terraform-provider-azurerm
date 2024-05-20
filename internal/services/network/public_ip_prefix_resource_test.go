@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,32 +20,27 @@ import (
 type PublicIPPrefixResource struct{}
 
 func (t PublicIPPrefixResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PublicIpPrefixID(state.ID)
+	id, err := publicipprefixes.ParsePublicIPPrefixID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.PublicIPPrefixesClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.PublicIPPrefixes.Get(ctx, *id, publicipprefixes.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Public IP Prefix (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PublicIPPrefixResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PublicIpPrefixID(state.ID)
+	id, err := publicipprefixes.ParsePublicIPPrefixID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.PublicIPPrefixesClient.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return nil, fmt.Errorf("deleting Public IP Prefix %q: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Network.PublicIPPrefixesClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Public IP Prefix %q: %+v", id, err)
+	if err := client.Network.PublicIPPrefixes.DeleteThenPoll(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return utils.Bool(true), nil

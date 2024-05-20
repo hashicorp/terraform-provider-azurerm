@@ -64,35 +64,6 @@ func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_complete(t *testi
 	})
 }
 
-func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
-	r := DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
@@ -130,7 +101,6 @@ resource "azurerm_data_protection_backup_vault" "test" {
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -146,17 +116,16 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "import" {
   name                            = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.name
-  vault_id                        = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.id
+  vault_id                        = azurerm_data_protection_backup_policy_postgresql_flexible_server.test.vault_id
   backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
   
   default_retention_rule {
@@ -166,11 +135,10 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "imp
     }
   }
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -193,7 +161,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
 
     life_cycle {
       duration        = "P6M"
-      data_store_type = "OperationalStore"
+      data_store_type = "VaultStore"
     }
 
     criteria {
@@ -207,7 +175,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
 
     life_cycle {
       duration        = "P1W"
-      data_store_type = "OperationalStore"
+      data_store_type = "VaultStore"
     }
 
     criteria {
@@ -223,7 +191,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
 
     life_cycle {
       duration        = "P1D"
-      data_store_type = "OperationalStore"
+      data_store_type = "VaultStore"
     }
 
     criteria {
@@ -233,5 +201,5 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

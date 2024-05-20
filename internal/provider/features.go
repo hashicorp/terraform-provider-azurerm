@@ -15,7 +15,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
-		//lintignore:XS003
+		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -129,6 +129,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Default:     true,
 					},
 
+					"purge_soft_deleted_hardware_security_module_keys_on_destroy": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
 					"recover_soft_deleted_certificates": {
 						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones",
 						Type:        pluginsdk.TypeBool,
@@ -152,6 +159,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 
 					"recover_soft_deleted_secrets": {
 						Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
+					"recover_soft_deleted_hardware_security_module_keys": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
@@ -189,7 +203,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"virtual_machine": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -255,6 +269,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  os.Getenv("TF_ACC") == "",
+					},
+				},
+			},
+		},
+
+		"recovery_services_vaults": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"recover_soft_deleted_backup_protected_vm": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -438,6 +467,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := keyVaultRaw["purge_soft_deleted_hardware_security_modules_on_destroy"]; ok {
 				featuresMap.KeyVault.PurgeSoftDeletedHSMsOnDestroy = v.(bool)
 			}
+			if v, ok := keyVaultRaw["purge_soft_deleted_hardware_security_module_keys_on_destroy"]; ok {
+				featuresMap.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy = v.(bool)
+			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
 			}
@@ -449,6 +481,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_secrets"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedSecrets = v.(bool)
+			}
+			if v, ok := keyVaultRaw["recover_soft_deleted_hardware_security_module_keys"]; ok {
+				featuresMap.KeyVault.RecoverSoftDeletedHSMKeys = v.(bool)
 			}
 		}
 	}
@@ -514,6 +549,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			resourceGroupRaw := items[0].(map[string]interface{})
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
 				featuresMap.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["recovery_services_vaults"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			appConfRaw := items[0].(map[string]interface{})
+			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm"]; ok {
+				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM = v.(bool)
 			}
 		}
 	}

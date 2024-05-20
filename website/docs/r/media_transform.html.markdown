@@ -454,7 +454,8 @@ A `copy_audio` block supports the following:
 
 A `copy_video` block supports the following:
 
-* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior. 
+* `label` - (Optional) Specifies the label for the codec. The label can be used to control muxing behavior.
+
 ---
 
 A `crop_rectangle` block supports the following:
@@ -478,7 +479,7 @@ A `custom_preset` block supports the following:
 * `experimental_options` - (Optional) Dictionary containing key value pairs for parameters not exposed in the preset itself.
 
 * `filter` - (Optional) A `filter` block as defined below.
- 
+
 ---
 
 A `dd_audio` block supports the following:
