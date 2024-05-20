@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -72,9 +73,27 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 			defer cancel()
 			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule creation.")
 
+			registryId := metadata.ResourceData.Get("container_registry_id").(string)
+
+			// Split the registryId into its components
+			parts := strings.Split(registryId, "/")
+
+			// Initialize variables for resource group and registry name
+			var resourceGroup, registryName string
+
+			// Iterate through the parts and find the resource group and registry name
+			for i, part := range parts {
+				if part == "resourceGroups" && i+1 < len(parts) {
+					resourceGroup = parts[i+1]
+				}
+				if part == "registries" && i+1 < len(parts) {
+					registryName = parts[i+1]
+				}
+			}
+
 			id := cacherules.NewCacheRuleID(subscriptionId,
-				metadata.ResourceData.Get("resource_group_name").(string),
-				metadata.ResourceData.Get("registry").(string),
+				resourceGroup,
+				registryName,
 				metadata.ResourceData.Get("name").(string),
 			)
 
@@ -130,6 +149,12 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			resourceGroupName := id.ResourceGroupName
+			registryName := id.RegistryName
+
+			registryId := registries.NewRegistryID(subscriptionId, resourceGroupName, registryName)
+
 			resp, err := cacheRulesClient.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -141,7 +166,7 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 			}
 
 			metadata.ResourceData.Set("name", id.CacheRuleName)
-			metadata.ResourceData.Set("registry", id.RegistryName)
+			metadata.ResourceData.Set("container_registry_id", registryId.ID())
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
@@ -169,7 +194,6 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
 			// TODO: You can only update the credential set. To be implemented
 			parameters := cacherules.CacheRuleUpdateParameters{
 				Properties: &cacherules.CacheRuleUpdateProperties{},

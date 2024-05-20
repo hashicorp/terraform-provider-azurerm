@@ -63,6 +63,13 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		return nil, err
 	}
 
+	containerRegistryClient_v2023_07_01, err := containerregistry_v2023_07_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	// AKS
 	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -121,6 +128,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
+		ContainerRegistryClient_v2023_07_01:         containerRegistryClient_v2023_07_01,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,

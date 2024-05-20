@@ -82,7 +82,7 @@ resource "azurerm_container_registry" "test" {
 
 resource "azurerm_container_registry_cache_rule" "test" {
   name                  = "testacc-cr-cache-rule-%d"
-  container_registry_id = azurerm_container_registry.test.name
+  container_registry_id = azurerm_container_registry.test.id
   target_repo           = "target"
   source_repo           = "docker.io/hello-world"
 }
@@ -94,8 +94,10 @@ func (r ContainerRegistryCacheRuleResource) requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_container_registry_cache_rule" "import" {
-  name                = azurerm_container_registry_cache_rule.test.name
-  resource_group_name = azurerm_container_registry_cache_rule.test.resource_group_name
+  name                  = azurerm_container_registry_cache_rule.test.name
+  container_registry_id = azurerm_container_registry_cache_rule.test.container_registry_id
+  target_repo           = azurerm_container_registry_cache_rule.test.target_repo
+  source_repo           = azurerm_container_registry_cache_rule.test.source_repo
 }
 `, r.basic(data))
 }
