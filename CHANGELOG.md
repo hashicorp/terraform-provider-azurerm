@@ -1,3 +1,10 @@
+## 3.104.1 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_pim_active_role_assignment` - fix a regression where roles assignments could not be created with no expiration [GH-26029]
+* `azurerm_pim_eligible_role_assignment` - fix a regression where roles assignments could not be created with no expiration [GH-26029]
+
 ## 3.104.0 (May 16, 2024)
 
 FEATURES:
