@@ -29,7 +29,7 @@ resource "azurerm_container_registry" "acr" {
   sku                 = "Basic"
 }
 
-resource "azurerm_container_cache_rule" "cache_rule" {
+resource "azurerm_container_registry_cache_rule" "cache_rule" {
   name                  = "cacherule"
   container_registry_id = azurerm_container_registry.acr.id
   target_repo           = "target"
