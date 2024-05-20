@@ -30,14 +30,12 @@ func (ContainerRegistryCacheRule) Arguments() map[string]*pluginsdk.Schema {
 			Required:    true,
 			Description: "The name of the cache rule.",
 		},
-
-		"registry": {
+		"container_registry_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			Description:  "The name of the container registry.",
-			ValidateFunc: containerValidate.ContainerRegistryName,
+			ForceNew:     true,
+			ValidateFunc: registries.ValidateRegistryID,
 		},
-
 		"source_repo": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
