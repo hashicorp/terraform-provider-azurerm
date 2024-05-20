@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -73,23 +72,13 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 			defer cancel()
 			log.Printf("[INFO] preparing arguments for Container Registry Cache Rule creation.")
 
-			registryId := metadata.ResourceData.Get("container_registry_id").(string)
-
-			// Split the registryId into its components
-			parts := strings.Split(registryId, "/")
-
-			// Initialize variables for resource group and registry name
-			var resourceGroup, registryName string
-
-			// Iterate through the parts and find the resource group and registry name
-			for i, part := range parts {
-				if part == "resourceGroups" && i+1 < len(parts) {
-					resourceGroup = parts[i+1]
-				}
-				if part == "registries" && i+1 < len(parts) {
-					registryName = parts[i+1]
-				}
+			registryId, err := registries.ParseRegistryID(metadata.ResourceData.Get("container_registry_id").(string))
+			if err != nil {
+				return err
 			}
+
+			resourceGroup := registryId.ResourceGroupName
+			registryName := registryId.RegistryName
 
 			id := cacherules.NewCacheRuleID(subscriptionId,
 				resourceGroup,
