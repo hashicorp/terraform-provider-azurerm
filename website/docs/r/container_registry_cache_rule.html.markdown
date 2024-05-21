@@ -7,9 +7,9 @@ description: |-
 
 ---
 
-# azurerm_container_registry
+# azurerm_container_registry_cache_rule
 
-Manages an Azure Container Registry.
+Manages an Azure Container Registry Cache Rule.
 
 ~> **Note:** All arguments including the access key will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -64,10 +64,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
-* `update` - (Defaults to 30 minutes) Used when updating the Container Registry.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry.
+* `create` - (Defaults to 30 minutes) Used when creating the Container Registry Cache Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Registry Cache Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Cache Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry Cache Rule.
 
 ## Import
 
