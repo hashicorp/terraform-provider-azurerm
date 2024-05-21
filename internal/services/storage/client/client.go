@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	storage_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01"
+	storage_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
@@ -25,7 +25,7 @@ type Client struct {
 	StorageDomainSuffix string
 
 	// NOTE: These SDK clients use `hashicorp/go-azure-sdk` and should be used going forwards
-	ResourceManager            *storage_v2023_01_01.Client
+	ResourceManager            *storage_2023_05_01.Client
 	SyncCloudEndpointsClient   *cloudendpointresource.CloudEndpointResourceClient
 	SyncGroupsClient           *syncgroupresource.SyncGroupResourceClient
 	SyncRegisteredServerClient *registeredserverresource.RegisteredServerResourceClient
@@ -59,7 +59,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	fileServicesClient := storage.NewFileServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&fileServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	resourceManager, err := storage_v2023_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	resourceManager, err := storage_2023_05_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
