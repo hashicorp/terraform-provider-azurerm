@@ -27,6 +27,7 @@ func (ContainerRegistryCacheRule) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
+			ForceNew:    true,
 			Description: "The name of the cache rule.",
 		},
 		"container_registry_id": {
@@ -35,15 +36,22 @@ func (ContainerRegistryCacheRule) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: registries.ValidateRegistryID,
 		},
+		"credential_set_id": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "The ARM resource ID of the credential store which is associated with the cache rule.",
+		},
 		"source_repo": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
+			ForceNew:    true,
 			Description: "The full source repository path such as 'docker.io/library/ubuntu'.",
 		},
 
 		"target_repo": {
 			Type:        pluginsdk.TypeString,
 			Required:    true,
+			ForceNew:    true,
 			Description: "The target repository namespace such as 'ubuntu'.",
 		},
 	}
@@ -105,12 +113,19 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				// TODO: validate the source repo.
 				sourceRepo := metadata.ResourceData.Get("source_repo").(string)
 
+				credentialSetId := metadata.ResourceData.Get("credential_set_id").(string)
+
 				parameters := cacherules.CacheRule{
 					Name: &id.CacheRuleName,
 					Properties: &cacherules.CacheRuleProperties{
 						SourceRepository: &sourceRepo,
 						TargetRepository: &targetRepo,
 					},
+				}
+
+				// Conditionally add CredentialSetResourceId if credentialSetId is not empty
+				if credentialSetId != "" {
+					parameters.Properties.CredentialSetResourceId = &credentialSetId
 				}
 
 				if err := cacheRulesClient.CreateThenPoll(ctx, id, parameters); err != nil {
@@ -161,6 +176,7 @@ func (ContainerRegistryCacheRule) Read() sdk.ResourceFunc {
 				if properties := model.Properties; properties != nil {
 					metadata.ResourceData.Set("source_repo", properties.SourceRepository)
 					metadata.ResourceData.Set("target_repo", properties.TargetRepository)
+					metadata.ResourceData.Set("credential_set_id", properties.CredentialSetResourceId)
 				}
 			}
 
@@ -183,9 +199,17 @@ func (r ContainerRegistryCacheRule) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			// TODO: You can only update the credential set. To be implemented
-			parameters := cacherules.CacheRuleUpdateParameters{
-				Properties: &cacherules.CacheRuleUpdateProperties{},
+
+			parameters := cacherules.CacheRuleUpdateParameters{}
+			credentialSetId := metadata.ResourceData.Get("credential_set_id").(string)
+
+			if credentialSetId != "" {
+				parameters = cacherules.CacheRuleUpdateParameters{
+					Properties: &cacherules.CacheRuleUpdateProperties{CredentialSetResourceId: &credentialSetId},
+				}
+			} else {
+				//This is due to an issue with the Azure CacheRule API that prevents removing credentials
+				return fmt.Errorf("Error on update: credential_set_id must not be empty: %s", id)
 			}
 
 			if err := cacheRulesClient.UpdateThenPoll(ctx, *id, parameters); err != nil {

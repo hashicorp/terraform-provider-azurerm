@@ -34,6 +34,7 @@ resource "azurerm_container_registry_cache_rule" "cache_rule" {
   container_registry_id = azurerm_container_registry.acr.id
   target_repo           = "target"
   source_repo           = "docker.io/hello-world"
+  credential_set_id     = "${azurerm_container_registry.id}/credentialSets/example"
 }
 ```
 
@@ -48,6 +49,8 @@ The following arguments are supported:
 * `source_repo` - (Required) The name of the source repository path. Changing this forces a new resource to be created. 
 
 * `target_repo` - (Required) The name of the new repository path to store artifacts. Changing this forces a new resource to be created.
+
+* `credential_set_id` - (Optional) The ARM resource ID of the credential store which is associated with the cache rule.
 
 ## Attributes Reference
 
