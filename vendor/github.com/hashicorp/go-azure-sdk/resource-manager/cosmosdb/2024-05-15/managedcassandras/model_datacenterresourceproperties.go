@@ -15,6 +15,7 @@ type DataCenterResourceProperties struct {
 	DiskSku                            *string                             `json:"diskSku,omitempty"`
 	ManagedDiskCustomerKeyUri          *string                             `json:"managedDiskCustomerKeyUri,omitempty"`
 	NodeCount                          *int64                              `json:"nodeCount,omitempty"`
+	PrivateEndpointIPAddress           *string                             `json:"privateEndpointIpAddress,omitempty"`
 	ProvisionError                     *CassandraError                     `json:"provisionError,omitempty"`
 	ProvisioningState                  *ManagedCassandraProvisioningState  `json:"provisioningState,omitempty"`
 	SeedNodes                          *[]SeedNode                         `json:"seedNodes,omitempty"`

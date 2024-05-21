@@ -5,6 +5,7 @@ package managedcassandras
 
 type ClusterResourceProperties struct {
 	AuthenticationMethod          *AuthenticationMethod              `json:"authenticationMethod,omitempty"`
+	AzureConnectionMethod         *AzureConnectionType               `json:"azureConnectionMethod,omitempty"`
 	CassandraAuditLoggingEnabled  *bool                              `json:"cassandraAuditLoggingEnabled,omitempty"`
 	CassandraVersion              *string                            `json:"cassandraVersion,omitempty"`
 	ClientCertificates            *[]Certificate                     `json:"clientCertificates,omitempty"`
@@ -16,6 +17,7 @@ type ClusterResourceProperties struct {
 	GossipCertificates            *[]Certificate                     `json:"gossipCertificates,omitempty"`
 	HoursBetweenBackups           *int64                             `json:"hoursBetweenBackups,omitempty"`
 	InitialCassandraAdminPassword *string                            `json:"initialCassandraAdminPassword,omitempty"`
+	PrivateLinkResourceId         *string                            `json:"privateLinkResourceId,omitempty"`
 	PrometheusEndpoint            *SeedNode                          `json:"prometheusEndpoint,omitempty"`
 	ProvisionError                *CassandraError                    `json:"provisionError,omitempty"`
 	ProvisioningState             *ManagedCassandraProvisioningState `json:"provisioningState,omitempty"`

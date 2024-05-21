@@ -53,6 +53,47 @@ func parseAuthenticationMethod(input string) (*AuthenticationMethod, error) {
 	return &out, nil
 }
 
+type AzureConnectionType string
+
+const (
+	AzureConnectionTypeNone AzureConnectionType = "None"
+	AzureConnectionTypeVPN  AzureConnectionType = "VPN"
+)
+
+func PossibleValuesForAzureConnectionType() []string {
+	return []string{
+		string(AzureConnectionTypeNone),
+		string(AzureConnectionTypeVPN),
+	}
+}
+
+func (s *AzureConnectionType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAzureConnectionType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAzureConnectionType(input string) (*AzureConnectionType, error) {
+	vals := map[string]AzureConnectionType{
+		"none": AzureConnectionTypeNone,
+		"vpn":  AzureConnectionTypeVPN,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AzureConnectionType(input)
+	return &out, nil
+}
+
 type ConnectionState string
 
 const (

@@ -1018,16 +1018,20 @@ func parseRestoreMode(input string) (*RestoreMode, error) {
 type ServerVersion string
 
 const (
+	ServerVersionFivePointZero ServerVersion = "5.0"
 	ServerVersionFourPointTwo  ServerVersion = "4.2"
 	ServerVersionFourPointZero ServerVersion = "4.0"
+	ServerVersionSixPointZero  ServerVersion = "6.0"
 	ServerVersionThreePointSix ServerVersion = "3.6"
 	ServerVersionThreePointTwo ServerVersion = "3.2"
 )
 
 func PossibleValuesForServerVersion() []string {
 	return []string{
+		string(ServerVersionFivePointZero),
 		string(ServerVersionFourPointTwo),
 		string(ServerVersionFourPointZero),
+		string(ServerVersionSixPointZero),
 		string(ServerVersionThreePointSix),
 		string(ServerVersionThreePointTwo),
 	}
@@ -1048,8 +1052,10 @@ func (s *ServerVersion) UnmarshalJSON(bytes []byte) error {
 
 func parseServerVersion(input string) (*ServerVersion, error) {
 	vals := map[string]ServerVersion{
+		"5.0": ServerVersionFivePointZero,
 		"4.2": ServerVersionFourPointTwo,
 		"4.0": ServerVersionFourPointZero,
+		"6.0": ServerVersionSixPointZero,
 		"3.6": ServerVersionThreePointSix,
 		"3.2": ServerVersionThreePointTwo,
 	}

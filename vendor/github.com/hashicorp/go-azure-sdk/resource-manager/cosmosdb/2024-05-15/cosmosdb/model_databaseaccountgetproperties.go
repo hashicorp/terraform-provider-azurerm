@@ -18,6 +18,7 @@ type DatabaseAccountGetProperties struct {
 	ConsistencyPolicy                  *ConsistencyPolicy              `json:"consistencyPolicy,omitempty"`
 	Cors                               *[]CorsPolicy                   `json:"cors,omitempty"`
 	CreateMode                         *CreateMode                     `json:"createMode,omitempty"`
+	CustomerManagedKeyStatus           *string                         `json:"customerManagedKeyStatus,omitempty"`
 	DatabaseAccountOfferType           *DatabaseAccountOfferType       `json:"databaseAccountOfferType,omitempty"`
 	DefaultIdentity                    *string                         `json:"defaultIdentity,omitempty"`
 	DisableKeyBasedMetadataWriteAccess *bool                           `json:"disableKeyBasedMetadataWriteAccess,omitempty"`
@@ -25,6 +26,7 @@ type DatabaseAccountGetProperties struct {
 	DocumentEndpoint                   *string                         `json:"documentEndpoint,omitempty"`
 	EnableAnalyticalStorage            *bool                           `json:"enableAnalyticalStorage,omitempty"`
 	EnableAutomaticFailover            *bool                           `json:"enableAutomaticFailover,omitempty"`
+	EnableBurstCapacity                *bool                           `json:"enableBurstCapacity,omitempty"`
 	EnableCassandraConnector           *bool                           `json:"enableCassandraConnector,omitempty"`
 	EnableFreeTier                     *bool                           `json:"enableFreeTier,omitempty"`
 	EnableMultipleWriteLocations       *bool                           `json:"enableMultipleWriteLocations,omitempty"`
@@ -65,6 +67,7 @@ func (s *DatabaseAccountGetProperties) UnmarshalJSON(bytes []byte) error {
 	s.ConsistencyPolicy = decoded.ConsistencyPolicy
 	s.Cors = decoded.Cors
 	s.CreateMode = decoded.CreateMode
+	s.CustomerManagedKeyStatus = decoded.CustomerManagedKeyStatus
 	s.DatabaseAccountOfferType = decoded.DatabaseAccountOfferType
 	s.DefaultIdentity = decoded.DefaultIdentity
 	s.DisableKeyBasedMetadataWriteAccess = decoded.DisableKeyBasedMetadataWriteAccess
@@ -72,6 +75,7 @@ func (s *DatabaseAccountGetProperties) UnmarshalJSON(bytes []byte) error {
 	s.DocumentEndpoint = decoded.DocumentEndpoint
 	s.EnableAnalyticalStorage = decoded.EnableAnalyticalStorage
 	s.EnableAutomaticFailover = decoded.EnableAutomaticFailover
+	s.EnableBurstCapacity = decoded.EnableBurstCapacity
 	s.EnableCassandraConnector = decoded.EnableCassandraConnector
 	s.EnableFreeTier = decoded.EnableFreeTier
 	s.EnableMultipleWriteLocations = decoded.EnableMultipleWriteLocations
