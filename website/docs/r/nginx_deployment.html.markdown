@@ -143,7 +143,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the NGINX Deployment should exist. Changing this forces a new NGINX Deployment to be created.
 
-* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values include `standard_Monthly`. Changing this forces a new resource to be created.
+* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standard_Monthly` and `basic_Monthly`. Changing this forces a new resource to be created.
+
+-> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you should use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
 * `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new NGINX Deployment to be created.
 
