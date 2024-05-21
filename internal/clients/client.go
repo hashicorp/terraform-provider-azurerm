@@ -88,6 +88,7 @@ import (
 	labservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
+	loadtestservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 	loganalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	logic "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
 	logz "github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/client"
@@ -224,6 +225,7 @@ type Client struct {
 	LabService                        *labservice.Client
 	Lighthouse                        *lighthouse.Client
 	LoadBalancers                     *loadbalancers.Client
+	LoadTestService                   *loadtestservice.AutoClient
 	LogAnalytics                      *loganalytics.Client
 	Logic                             *logic.Client
 	Logz                              *logz.Client
@@ -480,11 +482,17 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.LabService, err = labservice.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LabService: %+v", err)
 	}
+	if client.Lighthouse, err = lighthouse.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Lighthouse: %+v", err)
+	}
 	if client.LogAnalytics, err = loganalytics.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LogAnalytics: %+v", err)
 	}
 	if client.LoadBalancers, err = loadbalancers.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LoadBalancers: %+v", err)
+	}
+	if client.LoadTestService, err = loadtestservice.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for LoadTestService: %+v", err)
 	}
 	if client.Logic, err = logic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Logic: %+v", err)

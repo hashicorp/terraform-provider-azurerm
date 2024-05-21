@@ -461,6 +461,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = %d
     vm_size        = "%s"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {
@@ -560,6 +563,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count     = %d
     vm_size        = "%s"
     vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

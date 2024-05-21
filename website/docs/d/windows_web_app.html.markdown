@@ -257,7 +257,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - The ID of the Client used to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
 * `client_secret_setting_name` - The App Setting name that contains the client secret of the Client.
 
@@ -655,7 +655,21 @@ A `slow_request` block exports the following:
 
 * `path` - The App Path for which this rule applies.
 
+~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
+
 * `time_taken` - The amount of time that qualifies as slow for this rule.
+
+---
+
+A `slow_request_with_path` block supports the following:
+
+* `count` - (Required) The number of Slow Requests in the time `interval` to trigger this rule.
+
+* `interval` - (Required) The time interval in the form `hh:mm:ss`.
+
+* `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
+
+* `path` - (Optional) The path for which this slow request rule applies.
 
 ---
 
@@ -706,6 +720,8 @@ A `trigger` block exports the following:
 * `requests` - A `requests` block as defined above.
 
 * `slow_request` - A `slow_request` block as defined above.
+
+* `slow_request_with_path` - (Optional) One or more `slow_request_with_path` blocks as defined above.
 
 * `status_code` - A `status_code` block as defined above.
 

@@ -165,7 +165,7 @@ func resourceWebPubsubNetworkACLCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	if defaultAction == webpubsub.ACLActionAllow && networkACL.PublicNetwork.Allow != nil && len(*networkACL.PublicNetwork.Allow) != 0 {
 		return fmt.Errorf("when `default_action` is `Allow` for `public_network`, `allowed_request_types` cannot be specified")
-	} else if defaultAction == webpubsub.ACLActionDeny && len(*networkACL.PublicNetwork.Deny) != 0 {
+	} else if defaultAction == webpubsub.ACLActionDeny && networkACL.PublicNetwork.Deny != nil && len(*networkACL.PublicNetwork.Deny) != 0 {
 		return fmt.Errorf("when `default_action` is `Deny` for `public_network`, `denied_request_types` cannot be specified")
 	}
 

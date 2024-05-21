@@ -148,7 +148,6 @@ func resourceSubnet() *pluginsdk.Resource {
 			"service_endpoint_policy_ids": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				MinItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validate.SubnetServiceEndpointStoragePolicyID,
@@ -201,8 +200,8 @@ func resourceSubnet() *pluginsdk.Resource {
 				},
 			},
 
-			"private_endpoint_network_policies_enabled": {
-				Type: pluginsdk.TypeBool,
+			"private_endpoint_network_policies": {
+				Type: pluginsdk.TypeString,
 				Computed: func() bool {
 					return !features.FourPointOh()
 				}(),
@@ -211,11 +210,12 @@ func resourceSubnet() *pluginsdk.Resource {
 					if !features.FourPointOh() {
 						return nil
 					}
-					return !features.FourPointOh()
+					return string(subnets.VirtualNetworkPrivateEndpointNetworkPoliciesDisabled)
 				}(),
+				ValidateFunc: validation.StringInSlice(subnets.PossibleValuesForVirtualNetworkPrivateEndpointNetworkPolicies(), false),
 				ConflictsWith: func() []string {
 					if !features.FourPointOhBeta() {
-						return []string{"enforce_private_link_endpoint_network_policies"}
+						return []string{"enforce_private_link_endpoint_network_policies", "private_endpoint_network_policies_enabled"}
 					}
 					return []string{}
 				}(),
@@ -244,12 +244,20 @@ func resourceSubnet() *pluginsdk.Resource {
 	}
 
 	if !features.FourPointOhBeta() {
+		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Computed:      true,
+			Optional:      true,
+			Deprecated:    "`private_endpoint_network_policies_enabled` will be removed in favour of the property `private_endpoint_network_policies` in version 4.0 of the AzureRM Provider",
+			ConflictsWith: []string{"enforce_private_link_endpoint_network_policies", "private_endpoint_network_policies"},
+		}
+
 		resource.Schema["enforce_private_link_endpoint_network_policies"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Computed:      true,
 			Optional:      true,
-			Deprecated:    "`enforce_private_link_endpoint_network_policies` will be removed in favour of the property `private_endpoint_network_policies_enabled` in version 4.0 of the AzureRM Provider",
-			ConflictsWith: []string{"private_endpoint_network_policies_enabled"},
+			Deprecated:    "`enforce_private_link_endpoint_network_policies` will be removed in favour of the property `private_endpoint_network_policies` in version 4.0 of the AzureRM Provider",
+			ConflictsWith: []string{"private_endpoint_network_policies_enabled", "private_endpoint_network_policies"},
 		}
 
 		resource.Schema["enforce_private_link_service_network_policies"] = &pluginsdk.Schema{
@@ -308,20 +316,22 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	var privateLinkServiceNetworkPolicies subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies
 
 	if features.FourPointOhBeta() {
-		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
+		privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies").(string)
 		privateLinkServiceNetworkPoliciesRaw := d.Get("private_link_service_network_policies_enabled").(bool)
 
-		privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
+		privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesRaw)
 		privateLinkServiceNetworkPolicies = subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies(expandSubnetNetworkPolicy(privateLinkServiceNetworkPoliciesRaw))
 	} else {
 		var enforceOk bool
 		var enforceServiceOk bool
 		var enableOk bool
 		var enableServiceOk bool
+		var privateEndpointNetworkPoliciesOk bool
 		var enforcePrivateEndpointNetworkPoliciesRaw bool
 		var enforcePrivateLinkServiceNetworkPoliciesRaw bool
 		var privateEndpointNetworkPoliciesRaw bool
 		var privateLinkServiceNetworkPoliciesRaw bool
+		var privateEndpointNetworkPoliciesStringRaw string
 
 		// Set the legacy default value since they are now computed optional
 		privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPoliciesEnabled
@@ -349,13 +359,21 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			privateLinkServiceNetworkPoliciesRaw = d.Get("private_link_service_network_policies_enabled").(bool)
 		}
 
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "private_endpoint_network_policies") {
+			privateEndpointNetworkPoliciesOk = true
+			privateEndpointNetworkPoliciesStringRaw = d.Get("private_endpoint_network_policies").(string)
+		}
+
 		// Only one of these values can be set since they conflict with each other
 		// if neither of them are set use the default values
-		if enforceOk || enableOk {
-			if enforceOk {
+		if enforceOk || enableOk || privateEndpointNetworkPoliciesOk {
+			switch {
+			case enforceOk:
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
-			} else if enableOk {
+			case enableOk:
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
+			case privateEndpointNetworkPoliciesOk:
+				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesStringRaw)
 			}
 		}
 
@@ -475,9 +493,9 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if features.FourPointOhBeta() {
-		if d.HasChange("private_endpoint_network_policies_enabled") {
-			v := d.Get("private_endpoint_network_policies_enabled").(bool)
-			props.PrivateEndpointNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(v)))
+		if d.HasChange("private_endpoint_network_policies") {
+			v := d.Get("private_endpoint_network_policies").(string)
+			props.PrivateEndpointNetworkPolicies = pointer.To(subnets.VirtualNetworkPrivateEndpointNetworkPolicies(v))
 		}
 
 		if d.HasChange("private_link_service_network_policies_enabled") {
@@ -493,14 +511,18 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		var privateEndpointNetworkPolicies subnets.VirtualNetworkPrivateEndpointNetworkPolicies
 		var privateLinkServiceNetworkPolicies subnets.VirtualNetworkPrivateLinkServiceNetworkPolicies
 
-		if d.HasChange("enforce_private_link_endpoint_network_policies") || d.HasChange("private_endpoint_network_policies_enabled") {
+		if d.HasChange("enforce_private_link_endpoint_network_policies") || d.HasChange("private_endpoint_network_policies_enabled") || d.HasChange("private_endpoint_network_policies") {
 			enforcePrivateEndpointNetworkPoliciesRaw := d.Get("enforce_private_link_endpoint_network_policies").(bool)
 			privateEndpointNetworkPoliciesRaw := d.Get("private_endpoint_network_policies_enabled").(bool)
+			privateEndpointNetworkPoliciesStringRaw := d.Get("private_endpoint_network_policies").(string)
 
-			if d.HasChange("enforce_private_link_endpoint_network_policies") {
+			switch {
+			case d.HasChange("enforce_private_link_endpoint_network_policies"):
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandEnforceSubnetNetworkPolicy(enforcePrivateEndpointNetworkPoliciesRaw))
-			} else if d.HasChange("private_endpoint_network_policies_enabled") {
+			case d.HasChange("private_endpoint_network_policies_enabled"):
 				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(expandSubnetNetworkPolicy(privateEndpointNetworkPoliciesRaw))
+			case d.HasChange("private_endpoint_network_policies"):
+				privateEndpointNetworkPolicies = subnets.VirtualNetworkPrivateEndpointNetworkPolicies(privateEndpointNetworkPoliciesStringRaw)
 			}
 
 			props.PrivateEndpointNetworkPolicies = pointer.To(privateEndpointNetworkPolicies)
@@ -610,10 +632,11 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if !features.FourPointOhBeta() {
 				d.Set("enforce_private_link_endpoint_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
+				d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
 				d.Set("enforce_private_link_service_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 			}
 
-			d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
+			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 
 			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)

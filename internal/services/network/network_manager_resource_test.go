@@ -67,6 +67,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":          testAccNetworkManagerConnectivityConfiguration_complete,
 			"update":            testAccNetworkManagerConnectivityConfiguration_update,
 			"requiresImport":    testAccNetworkManagerConnectivityConfiguration_requiresImport,
+			"dataSource":        testAccNetworkManagerConnectivityConfigurationDataSource_basic,
 		},
 		"SecurityAdminConfiguration": {
 			"basic":          testAccNetworkManagerSecurityAdminConfiguration_basic,
