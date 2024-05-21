@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -294,7 +295,9 @@ func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clien
 
 func checkVirtualHubConnectionDoesNotExist(id virtualwans.HubVirtualNetworkConnectionId) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		if resp, err := clients.Network.VirtualWANs.HubVirtualNetworkConnectionsGet(ctx, id); err != nil {
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		if resp, err := clients.Network.VirtualWANs.HubVirtualNetworkConnectionsGet(ctx2, id); err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return nil
 			}
