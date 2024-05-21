@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	network_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01"
+	network_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -14,7 +14,7 @@ import (
 )
 
 type Client struct {
-	*network_2023_09_01.Client
+	*network_2023_11_01.Client
 
 	// TODO 4.0 application gateways should be updated to use 2023-09-01 just prior to releasing 4.0
 	ApplicationGatewaysClient *applicationgateways.ApplicationGatewaysClient
@@ -178,7 +178,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	ResourceNavigationLinkClient := network.NewResourceNavigationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ResourceNavigationLinkClient.Client, o.ResourceManagerAuthorizer)
 
-	client, err := network_2023_09_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	client, err := network_2023_11_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
