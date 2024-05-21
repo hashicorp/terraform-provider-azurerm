@@ -41,10 +41,12 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedSecretsOnDestroy: true,
 					PurgeSoftDeleteOnDestroy:         true,
 					PurgeSoftDeletedHSMsOnDestroy:    true,
+					PurgeSoftDeletedHSMKeysOnDestroy: true,
 					RecoverSoftDeletedCerts:          true,
 					RecoverSoftDeletedKeys:           true,
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
+					RecoverSoftDeletedHSMKeys:        true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
@@ -68,6 +70,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
+				},
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -112,15 +117,17 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_deleted_certificates_on_destroy":              true,
-							"purge_soft_deleted_keys_on_destroy":                      true,
-							"purge_soft_deleted_secrets_on_destroy":                   true,
-							"purge_soft_deleted_hardware_security_modules_on_destroy": true,
-							"purge_soft_delete_on_destroy":                            true,
-							"recover_soft_deleted_certificates":                       true,
-							"recover_soft_deleted_keys":                               true,
-							"recover_soft_deleted_key_vaults":                         true,
-							"recover_soft_deleted_secrets":                            true,
+							"purge_soft_deleted_certificates_on_destroy":                  true,
+							"purge_soft_deleted_keys_on_destroy":                          true,
+							"purge_soft_deleted_secrets_on_destroy":                       true,
+							"purge_soft_deleted_hardware_security_modules_on_destroy":     true,
+							"purge_soft_deleted_hardware_security_module_keys_on_destroy": true,
+							"purge_soft_delete_on_destroy":                                true,
+							"recover_soft_deleted_certificates":                           true,
+							"recover_soft_deleted_keys":                                   true,
+							"recover_soft_deleted_key_vaults":                             true,
+							"recover_soft_deleted_secrets":                                true,
+							"recover_soft_deleted_hardware_security_module_keys":          true,
 						},
 					},
 					"log_analytics_workspace": []interface{}{
@@ -141,6 +148,11 @@ func TestExpandFeatures(t *testing.T) {
 					"resource_group": []interface{}{
 						map[string]interface{}{
 							"prevent_deletion_if_contains_resources": true,
+						},
+					},
+					"recovery_services_vaults": []interface{}{
+						map[string]interface{}{
+							"recover_soft_deleted_backup_protected_vm": true,
 						},
 					},
 					"subscription": []interface{}{
@@ -202,10 +214,12 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedSecretsOnDestroy: true,
 					PurgeSoftDeleteOnDestroy:         true,
 					PurgeSoftDeletedHSMsOnDestroy:    true,
+					PurgeSoftDeletedHSMKeysOnDestroy: true,
 					RecoverSoftDeletedCerts:          true,
 					RecoverSoftDeletedKeys:           true,
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
+					RecoverSoftDeletedHSMKeys:        true,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: true,
@@ -215,6 +229,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
+				},
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
@@ -273,15 +290,17 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_deleted_certificates_on_destroy":              false,
-							"purge_soft_deleted_keys_on_destroy":                      false,
-							"purge_soft_deleted_secrets_on_destroy":                   false,
-							"purge_soft_deleted_hardware_security_modules_on_destroy": false,
-							"purge_soft_delete_on_destroy":                            false,
-							"recover_soft_deleted_certificates":                       false,
-							"recover_soft_deleted_keys":                               false,
-							"recover_soft_deleted_key_vaults":                         false,
-							"recover_soft_deleted_secrets":                            false,
+							"purge_soft_deleted_certificates_on_destroy":                  false,
+							"purge_soft_deleted_keys_on_destroy":                          false,
+							"purge_soft_deleted_secrets_on_destroy":                       false,
+							"purge_soft_deleted_hardware_security_modules_on_destroy":     false,
+							"purge_soft_deleted_hardware_security_module_keys_on_destroy": false,
+							"purge_soft_delete_on_destroy":                                false,
+							"recover_soft_deleted_certificates":                           false,
+							"recover_soft_deleted_keys":                                   false,
+							"recover_soft_deleted_key_vaults":                             false,
+							"recover_soft_deleted_secrets":                                false,
+							"recover_soft_deleted_hardware_security_module_keys":          false,
 						},
 					},
 					"log_analytics_workspace": []interface{}{
@@ -302,6 +321,11 @@ func TestExpandFeatures(t *testing.T) {
 					"resource_group": []interface{}{
 						map[string]interface{}{
 							"prevent_deletion_if_contains_resources": false,
+						},
+					},
+					"recovery_services_vaults": []interface{}{
+						map[string]interface{}{
+							"recover_soft_deleted_backup_protected_vm": false,
 						},
 					},
 					"subscription": []interface{}{
@@ -362,11 +386,13 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedKeysOnDestroy:    false,
 					PurgeSoftDeletedSecretsOnDestroy: false,
 					PurgeSoftDeletedHSMsOnDestroy:    false,
+					PurgeSoftDeletedHSMKeysOnDestroy: false,
 					PurgeSoftDeleteOnDestroy:         false,
 					RecoverSoftDeletedCerts:          false,
 					RecoverSoftDeletedKeys:           false,
 					RecoverSoftDeletedKeyVaults:      false,
 					RecoverSoftDeletedSecrets:        false,
+					RecoverSoftDeletedHSMKeys:        false,
 				},
 				LogAnalyticsWorkspace: features.LogAnalyticsWorkspaceFeatures{
 					PermanentlyDeleteOnDestroy: false,
@@ -376,6 +402,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
+				},
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -708,10 +737,12 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 					PurgeSoftDeletedSecretsOnDestroy: true,
 					PurgeSoftDeleteOnDestroy:         true,
 					PurgeSoftDeletedHSMsOnDestroy:    true,
+					PurgeSoftDeletedHSMKeysOnDestroy: true,
 					RecoverSoftDeletedCerts:          true,
 					RecoverSoftDeletedKeys:           true,
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
+					RecoverSoftDeletedHSMKeys:        true,
 				},
 			},
 		},
@@ -721,15 +752,17 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 				map[string]interface{}{
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_deleted_certificates_on_destroy":              true,
-							"purge_soft_deleted_keys_on_destroy":                      true,
-							"purge_soft_deleted_secrets_on_destroy":                   true,
-							"purge_soft_deleted_hardware_security_modules_on_destroy": true,
-							"purge_soft_delete_on_destroy":                            true,
-							"recover_soft_deleted_certificates":                       true,
-							"recover_soft_deleted_keys":                               true,
-							"recover_soft_deleted_key_vaults":                         true,
-							"recover_soft_deleted_secrets":                            true,
+							"purge_soft_deleted_certificates_on_destroy":                  true,
+							"purge_soft_deleted_keys_on_destroy":                          true,
+							"purge_soft_deleted_secrets_on_destroy":                       true,
+							"purge_soft_deleted_hardware_security_modules_on_destroy":     true,
+							"purge_soft_deleted_hardware_security_module_keys_on_destroy": true,
+							"purge_soft_delete_on_destroy":                                true,
+							"recover_soft_deleted_certificates":                           true,
+							"recover_soft_deleted_keys":                                   true,
+							"recover_soft_deleted_key_vaults":                             true,
+							"recover_soft_deleted_secrets":                                true,
+							"recover_soft_deleted_hardware_security_module_keys":          true,
 						},
 					},
 				},
@@ -740,11 +773,13 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 					PurgeSoftDeletedKeysOnDestroy:    true,
 					PurgeSoftDeletedSecretsOnDestroy: true,
 					PurgeSoftDeletedHSMsOnDestroy:    true,
+					PurgeSoftDeletedHSMKeysOnDestroy: true,
 					PurgeSoftDeleteOnDestroy:         true,
 					RecoverSoftDeletedCerts:          true,
 					RecoverSoftDeletedKeys:           true,
 					RecoverSoftDeletedKeyVaults:      true,
 					RecoverSoftDeletedSecrets:        true,
+					RecoverSoftDeletedHSMKeys:        true,
 				},
 			},
 		},
@@ -754,15 +789,17 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 				map[string]interface{}{
 					"key_vault": []interface{}{
 						map[string]interface{}{
-							"purge_soft_deleted_certificates_on_destroy":              false,
-							"purge_soft_deleted_keys_on_destroy":                      false,
-							"purge_soft_deleted_secrets_on_destroy":                   false,
-							"purge_soft_deleted_hardware_security_modules_on_destroy": false,
-							"purge_soft_delete_on_destroy":                            false,
-							"recover_soft_deleted_certificates":                       false,
-							"recover_soft_deleted_keys":                               false,
-							"recover_soft_deleted_key_vaults":                         false,
-							"recover_soft_deleted_secrets":                            false,
+							"purge_soft_deleted_certificates_on_destroy":                  false,
+							"purge_soft_deleted_keys_on_destroy":                          false,
+							"purge_soft_deleted_secrets_on_destroy":                       false,
+							"purge_soft_deleted_hardware_security_modules_on_destroy":     false,
+							"purge_soft_deleted_hardware_security_module_keys_on_destroy": false,
+							"purge_soft_delete_on_destroy":                                false,
+							"recover_soft_deleted_certificates":                           false,
+							"recover_soft_deleted_keys":                                   false,
+							"recover_soft_deleted_key_vaults":                             false,
+							"recover_soft_deleted_secrets":                                false,
+							"recover_soft_deleted_hardware_security_module_keys":          false,
 						},
 					},
 				},
@@ -774,10 +811,12 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 					PurgeSoftDeletedSecretsOnDestroy: false,
 					PurgeSoftDeleteOnDestroy:         false,
 					PurgeSoftDeletedHSMsOnDestroy:    false,
+					PurgeSoftDeletedHSMKeysOnDestroy: false,
 					RecoverSoftDeletedCerts:          false,
 					RecoverSoftDeletedKeyVaults:      false,
 					RecoverSoftDeletedKeys:           false,
 					RecoverSoftDeletedSecrets:        false,
+					RecoverSoftDeletedHSMKeys:        false,
 				},
 			},
 		},
@@ -1220,6 +1259,71 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ResourceGroup, testCase.Expected.ResourceGroup) {
 			t.Fatalf("Expected %+v but got %+v", result.ResourceGroup, testCase.Expected.ResourceGroup)
+		}
+	}
+}
+
+func TestExpandFeaturesRecoveryServicesVault(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_services_vaults": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: true,
+				},
+			},
+		},
+		{
+			Name: "Recover Soft Deleted Protected VM Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_services_vaults": []interface{}{
+						map[string]interface{}{
+							"recover_soft_deleted_backup_protected_vm": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: true,
+				},
+			},
+		},
+		{
+			Name: "Recover Soft Deleted Protected VM Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"recovery_services_vaults": []interface{}{
+						map[string]interface{}{
+							"recover_soft_deleted_backup_protected_vm": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				RecoveryServicesVault: features.RecoveryServicesVault{
+					RecoverSoftDeletedBackupProtectedVM: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.RecoveryServicesVault, testCase.Expected.RecoveryServicesVault) {
+			t.Fatalf("Expected %+v but got %+v", testCase.Expected.RecoveryServicesVault, result.RecoveryServicesVault)
 		}
 	}
 }

@@ -2266,7 +2266,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
-			existing.Model.Properties.NetworkProfile.OutboundType = pointer.To(managedclusters.OutboundType(d.Get(key).(string)))
+			outboundType := managedclusters.OutboundType(d.Get(key).(string))
+			existing.Model.Properties.NetworkProfile.OutboundType = pointer.To(outboundType)
+			if outboundType != managedclusters.OutboundTypeLoadBalancer {
+				existing.Model.Properties.NetworkProfile.LoadBalancerProfile = nil
+			}
+			if outboundType != managedclusters.OutboundTypeManagedNATGateway && outboundType != managedclusters.OutboundTypeUserAssignedNATGateway {
+				existing.Model.Properties.NetworkProfile.NatGatewayProfile = nil
+			}
 		}
 	}
 	if d.HasChange("service_mesh_profile") {
