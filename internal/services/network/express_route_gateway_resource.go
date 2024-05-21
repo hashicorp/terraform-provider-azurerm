@@ -5,23 +5,24 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressrouteconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutegateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceExpressRouteGateway() *pluginsdk.Resource {
@@ -31,7 +32,7 @@ func resourceExpressRouteGateway() *pluginsdk.Resource {
 		Update: resourceExpressRouteGatewayCreateUpdate,
 		Delete: resourceExpressRouteGatewayDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ExpressRouteGatewayID(id)
+			_, err := expressroutegateways.ParseExpressRouteGatewayID(id)
 			return err
 		}),
 
@@ -58,7 +59,7 @@ func resourceExpressRouteGateway() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualHubID,
+				ValidateFunc: virtualwans.ValidateVirtualHubID,
 			},
 
 			"scale_units": {
@@ -73,73 +74,96 @@ func resourceExpressRouteGateway() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
+	client := meta.(*clients.Client).Network.ExpressRouteGateways
+	connectionsClient := meta.(*clients.Client).Network.ExpressRouteConnections
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Println("[INFO] preparing arguments for ExpressRoute Gateway creation.")
 
-	id := parse.NewExpressRouteGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := expressroutegateways.NewExpressRouteGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 			}
 		}
-		if resp.ID != nil && *resp.ID != "" {
-			return tf.ImportAsExistsError("azurerm_express_route_gateway", *resp.ID)
+		if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
+			return tf.ImportAsExistsError("azurerm_express_route_gateway", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	virtualHubId := d.Get("virtual_hub_id").(string)
-	t := d.Get("tags").(map[string]interface{})
+	gatewayId := expressrouteconnections.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteGatewayName)
 
-	minScaleUnits := int32(d.Get("scale_units").(int))
-
-	erConnectionsClient := meta.(*clients.Client).Network.ExpressRouteConnectionsClient
-	erConnections, err := erConnectionsClient.List(ctx, id.ResourceGroup, id.Name)
+	respConnections, err := connectionsClient.List(ctx, gatewayId)
 	if err != nil {
 		// service will return 404 error if Gateway not exist
 		if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusNotFound {
 			log.Printf("[Debug]: Gateway connection not found. HTTP Code 404.")
 		} else {
-			return fmt.Errorf(" get Gateway Connections error %s: %+v", id, err)
+			return fmt.Errorf("retrieving %s: %+v", gatewayId, err)
 		}
 	}
 
-	parameters := network.ExpressRouteGateway{
-		Location: utils.String(location),
-		ExpressRouteGatewayProperties: &network.ExpressRouteGatewayProperties{
-			AllowNonVirtualWanTraffic: utils.Bool(d.Get("allow_non_virtual_wan_traffic").(bool)),
-			AutoScaleConfiguration: &network.ExpressRouteGatewayPropertiesAutoScaleConfiguration{
-				Bounds: &network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
-					Min: &minScaleUnits,
-				},
-			},
-			VirtualHub: &network.VirtualHubID{
-				ID: &virtualHubId,
-			},
-			ExpressRouteConnections: erConnections.Value,
-		},
-		Tags: tags.Expand(t),
+	connections := make([]expressroutegateways.ExpressRouteConnection, 0)
+
+	if model := respConnections.Model; model != nil {
+		if model.Value != nil {
+			for _, c := range *model.Value {
+				connections = append(connections, expressroutegateways.ExpressRouteConnection{
+					Id:   c.Id,
+					Name: c.Name,
+					Properties: &expressroutegateways.ExpressRouteConnectionProperties{
+						AuthorizationKey:          c.Properties.AuthorizationKey,
+						EnableInternetSecurity:    c.Properties.EnableInternetSecurity,
+						EnablePrivateLinkFastPath: c.Properties.EnablePrivateLinkFastPath,
+						ExpressRouteCircuitPeering: expressroutegateways.ExpressRouteCircuitPeeringId{
+							Id: c.Properties.ExpressRouteCircuitPeering.Id,
+						},
+						ExpressRouteGatewayBypass: c.Properties.ExpressRouteGatewayBypass,
+						ProvisioningState:         pointer.To(expressroutegateways.ProvisioningState(pointer.From(c.Properties.ProvisioningState))),
+						RoutingConfiguration: &expressroutegateways.RoutingConfiguration{
+							AssociatedRouteTable:  c.Properties.RoutingConfiguration.AssociatedRouteTable,
+							InboundRouteMap:       c.Properties.RoutingConfiguration.InboundRouteMap,
+							OutboundRouteMap:      c.Properties.RoutingConfiguration.OutboundRouteMap,
+							PropagatedRouteTables: c.Properties.RoutingConfiguration.PropagatedRouteTables,
+							VnetRoutes:            c.Properties.RoutingConfiguration.VnetRoutes,
+						},
+						RoutingWeight: c.Properties.RoutingWeight,
+					},
+				})
+			}
+		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	parameters := expressroutegateways.ExpressRouteGateway{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: &expressroutegateways.ExpressRouteGatewayProperties{
+			AllowNonVirtualWanTraffic: pointer.To(d.Get("allow_non_virtual_wan_traffic").(bool)),
+			AutoScaleConfiguration: &expressroutegateways.ExpressRouteGatewayPropertiesAutoScaleConfiguration{
+				Bounds: &expressroutegateways.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
+					Min: pointer.To(int64(d.Get("scale_units").(int))),
+				},
+			},
+			VirtualHub: expressroutegateways.VirtualHubId{
+				Id: pointer.To(d.Get("virtual_hub_id").(string)),
+			},
+			ExpressRouteConnections: pointer.To(connections),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -148,66 +172,58 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceExpressRouteGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
+	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteGatewayID(d.Id())
+	id, err := expressroutegateways.ParseExpressRouteGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] ExpressRoute Gateway %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.ExpressRouteGatewayName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ExpressRouteGatewayProperties; props != nil {
-		virtualHubId := ""
-		if props.VirtualHub != nil && props.VirtualHub.ID != nil {
-			virtualHubId = *props.VirtualHub.ID
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("virtual_hub_id", pointer.From(props.VirtualHub.Id))
+			d.Set("allow_non_virtual_wan_traffic", props.AllowNonVirtualWanTraffic)
+
+			scaleUnits := 0
+			if props.AutoScaleConfiguration != nil && props.AutoScaleConfiguration.Bounds != nil && props.AutoScaleConfiguration.Bounds.Min != nil {
+				scaleUnits = int(*props.AutoScaleConfiguration.Bounds.Min)
+			}
+			d.Set("scale_units", scaleUnits)
 		}
-		d.Set("virtual_hub_id", virtualHubId)
-		d.Set("allow_non_virtual_wan_traffic", props.AllowNonVirtualWanTraffic)
-
-		scaleUnits := 0
-		if props.AutoScaleConfiguration != nil && props.AutoScaleConfiguration.Bounds != nil && props.AutoScaleConfiguration.Bounds.Min != nil {
-			scaleUnits = int(*props.AutoScaleConfiguration.Bounds.Min)
-		}
-		d.Set("scale_units", scaleUnits)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceExpressRouteGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteGatewaysClient
+	client := meta.(*clients.Client).Network.ExpressRouteGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteGatewayID(d.Id())
+	id, err := expressroutegateways.ParseExpressRouteGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

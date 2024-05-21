@@ -21,7 +21,7 @@ type ExpressRoutePortResource struct{}
 
 const ARMTestExpressRoutePortAdminState = "ARM_TEST_EXPRESS_ROUTE_PORT_ADMIN_STATE"
 
-func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
+func TestAccExpressRoutePort_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -52,7 +52,7 @@ func TestAccAzureRMExpressRoutePort_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
+func TestAccExpressRoutePort_adminState(t *testing.T) {
 	if _, ok := os.LookupEnv(ARMTestExpressRoutePortAdminState); !ok {
 		t.Skipf("Enabling admin state will cause high cost, please set environment variable %q if you want to test it.", ARMTestExpressRoutePortAdminState)
 	}
@@ -70,7 +70,7 @@ func TestAccAzureRMExpressRoutePort_adminState(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_requiresImport(t *testing.T) {
+func TestAccExpressRoutePort_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -85,7 +85,7 @@ func TestAccAzureRMExpressRoutePort_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_userAssignedIdentity(t *testing.T) {
+func TestAccExpressRoutePort_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 
@@ -100,7 +100,7 @@ func TestAccAzureRMExpressRoutePort_userAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRoutePort_linkCipher(t *testing.T) {
+func TestAccExpressRoutePort_linkCipher(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
 

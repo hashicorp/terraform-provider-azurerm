@@ -6,14 +6,14 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressrouteconnections"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExpressRouteConnectionResource struct{}
@@ -99,22 +99,17 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 }
 
 func (r ExpressRouteConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	expressRouteConnectionClient := client.Network.ExpressRouteConnectionsClient
-	id, err := parse.ExpressRouteConnectionID(state.ID)
+	id, err := expressrouteconnections.ParseExpressRouteConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := expressRouteConnectionClient.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
+	resp, err := client.Network.ExpressRouteConnections.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-
-		return nil, fmt.Errorf("retrieving Express Route Connection %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ExpressRouteConnectionProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ExpressRouteConnectionResource) basic(data acceptance.TestData) string {
