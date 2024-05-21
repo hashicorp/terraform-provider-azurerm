@@ -3,6 +3,7 @@ package azurestackhci
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -812,7 +813,21 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			if metadata.Client.Features.AzureStackHci.DeleteCustomLocationOnDestroy {
+			if metadata.Client.Features.AzureStackHci.DeleteArcBridgeOnDestroy && !response.WasNotFound(resp.HttpResponse) {
+				applianceName := fmt.Sprintf("%s-arcbridge", id.ClusterName)
+				applianceId := appliances.NewApplianceID(id.SubscriptionId, id.ResourceGroupName, applianceName)
+
+				log.Printf("[DEBUG] Deleting Arc Resource Bridge Appliance %s generated during deployment", applianceId.ID())
+
+				applianceClient := metadata.Client.ArcResourceBridge.AppliancesClient
+				if err := applianceClient.DeleteThenPoll(ctx, applianceId); err != nil {
+					return fmt.Errorf("deleting %s: %+v", applianceId, err)
+				}
+			}
+
+			if metadata.Client.Features.AzureStackHci.DeleteCustomLocationOnDestroy && !response.WasNotFound(resp.HttpResponse) {
+				log.Printf("[DEBUG] Deleting Custom Location and Storage Containers generated during deployment")
+
 				var customLocationName string
 				if resp.Model != nil && resp.Model.Properties != nil &&
 					len(resp.Model.Properties.DeploymentConfiguration.ScaleUnits) > 0 &&
@@ -820,11 +835,11 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 					customLocationName = pointer.From(resp.Model.Properties.DeploymentConfiguration.ScaleUnits[0].DeploymentData.OptionalServices.CustomLocation)
 				}
 
-				// try to delete the Custom Location generated during deployment
 				if customLocationName != "" {
 					customLocationId := customlocations.NewCustomLocationID(id.SubscriptionId, id.ResourceGroupName, customLocationName)
 
-					// try to delete the HCI Staroge Containers generated during deployment in the Custom Location
+					log.Printf("[DEBUG] Deleting Storage Containers under Custom Location %s", customLocationId.ID())
+
 					storageContainerClient := metadata.Client.AzureStackHCI.StorageContainers
 					resourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)
 					storageContainers, err := storageContainerClient.ListComplete(ctx, resourceGroupId)
@@ -832,7 +847,7 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 						return fmt.Errorf("retrieving Stack HCI Storage Containers under %s: %+v", resourceGroupId.ID(), err)
 					}
 
-					// find all Storage Containers under the Custom Location
+					// match Storage Containers under the Custom Location
 					storageContainerNamePattern := regexp.MustCompile(`UserStorage[0-9]+-[a-z0-9]{32}`)
 					for _, v := range storageContainers.Items {
 						if v.Id != nil && v.ExtendedLocation != nil && v.ExtendedLocation.Name != nil && strings.EqualFold(*v.ExtendedLocation.Name, customLocationId.ID()) && v.Name != nil && storageContainerNamePattern.Match([]byte(*v.Name)) {
@@ -851,16 +866,6 @@ func (StackHCIDeploymentSettingResource) Delete() sdk.ResourceFunc {
 					if err := customLocationsClient.DeleteThenPoll(ctx, customLocationId); err != nil {
 						return fmt.Errorf("deleting %s: %+v", customLocationId, err)
 					}
-				}
-			}
-
-			if metadata.Client.Features.AzureStackHci.DeleteArcBridgeOnDestroy {
-				// try to delete the Arc Resource Bridge Appliance generated during deployment
-				applianceName := fmt.Sprintf("%s-arcbridge", id.ClusterName)
-				applianceId := appliances.NewApplianceID(id.SubscriptionId, id.ResourceGroupName, applianceName)
-				applianceClient := metadata.Client.ArcResourceBridge.AppliancesClient
-				if err := applianceClient.DeleteThenPoll(ctx, applianceId); err != nil {
-					return fmt.Errorf("deleting %s: %+v", applianceId, err)
 				}
 			}
 

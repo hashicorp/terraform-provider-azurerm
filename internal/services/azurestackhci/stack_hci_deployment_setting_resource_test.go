@@ -112,6 +112,9 @@ func (r StackHCIDeploymentSettingResource) basic(data acceptance.TestData) strin
 
 provider "azurerm" {
   features {
+	resource_group {
+      prevent_deletion_if_contains_resources = true
+	}
     azure_stack_hci {
       delete_arc_bridge_on_destroy      = true
       delete_custom_location_on_destroy = true
@@ -232,6 +235,9 @@ func (r StackHCIDeploymentSettingResource) requiresImport(data acceptance.TestDa
 
 provider "azurerm" {
   features {
+	resource_group {			
+	  prevent_deletion_if_contains_resources = true
+	}
     azure_stack_hci {
       delete_arc_bridge_on_destroy      = true
       delete_custom_location_on_destroy = true
@@ -255,6 +261,9 @@ func (r StackHCIDeploymentSettingResource) complete(data acceptance.TestData) st
 
 provider "azurerm" {
   features {
+	resource_group {
+      prevent_deletion_if_contains_resources = true
+	}
     azure_stack_hci {
       delete_arc_bridge_on_destroy      = true
       delete_custom_location_on_destroy = true
