@@ -31,7 +31,7 @@ jobs:
           fi
 
   provider-tests:
-    runs-on: [custom, linux, large]
+    runs-on: custom-linux-large
     needs: [secrets-check]
     if: needs.secrets-check.outputs.available == 'true'
     steps:

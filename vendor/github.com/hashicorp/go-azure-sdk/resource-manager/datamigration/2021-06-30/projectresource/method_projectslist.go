@@ -12,19 +12,19 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ProjectsListByResourceGroupOperationResponse struct {
+type ProjectsListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]Project
 }
 
-type ProjectsListByResourceGroupCompleteResult struct {
+type ProjectsListCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []Project
 }
 
-// ProjectsListByResourceGroup ...
-func (c ProjectResourceClient) ProjectsListByResourceGroup(ctx context.Context, id ServiceId) (result ProjectsListByResourceGroupOperationResponse, err error) {
+// ProjectsList ...
+func (c ProjectResourceClient) ProjectsList(ctx context.Context, id ServiceId) (result ProjectsListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,16 +61,16 @@ func (c ProjectResourceClient) ProjectsListByResourceGroup(ctx context.Context, 
 	return
 }
 
-// ProjectsListByResourceGroupComplete retrieves all the results into a single object
-func (c ProjectResourceClient) ProjectsListByResourceGroupComplete(ctx context.Context, id ServiceId) (ProjectsListByResourceGroupCompleteResult, error) {
-	return c.ProjectsListByResourceGroupCompleteMatchingPredicate(ctx, id, ProjectOperationPredicate{})
+// ProjectsListComplete retrieves all the results into a single object
+func (c ProjectResourceClient) ProjectsListComplete(ctx context.Context, id ServiceId) (ProjectsListCompleteResult, error) {
+	return c.ProjectsListCompleteMatchingPredicate(ctx, id, ProjectOperationPredicate{})
 }
 
-// ProjectsListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ProjectResourceClient) ProjectsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id ServiceId, predicate ProjectOperationPredicate) (result ProjectsListByResourceGroupCompleteResult, err error) {
+// ProjectsListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ProjectResourceClient) ProjectsListCompleteMatchingPredicate(ctx context.Context, id ServiceId, predicate ProjectOperationPredicate) (result ProjectsListCompleteResult, err error) {
 	items := make([]Project, 0)
 
-	resp, err := c.ProjectsListByResourceGroup(ctx, id)
+	resp, err := c.ProjectsList(ctx, id)
 	if err != nil {
 		err = fmt.Errorf("loading results: %+v", err)
 		return
@@ -83,7 +83,7 @@ func (c ProjectResourceClient) ProjectsListByResourceGroupCompleteMatchingPredic
 		}
 	}
 
-	result = ProjectsListByResourceGroupCompleteResult{
+	result = ProjectsListCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}
