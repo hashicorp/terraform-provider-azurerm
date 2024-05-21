@@ -135,11 +135,11 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 	}
 
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
-	userAssignedIdentityId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentity)
-	if err != nil {
-		return err
-	}
 	if userAssignedIdentity != "" && keyVaultProps != nil {
+		userAssignedIdentityId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentity)
+		if err != nil {
+			return err
+		}
 
 		// this provides a more helpful error message than the API response
 		if namespace.Identity == nil {
