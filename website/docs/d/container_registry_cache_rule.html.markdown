@@ -15,7 +15,7 @@ Use this data source to access information about an existing Container Registry 
 
 ```hcl
 data "azurerm_container_registry" "example" {
-  name                 = "testacr"
+  name                  = "testacr"
   container_registry_id = "test"
 }
 
