@@ -91,7 +91,12 @@ This is a breaking change as Terraform should not trigger a plan between minor v
     "spark_version": {
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  "2.4", // TODO: make this field Required in 4.0 since the default value changes over time
+		Default: func() string {
+					if !features.FourPointOh() {
+						return "2.4"
+					}
+					return "3.4"
+				}(),
 		ValidateFunc: validation.StringInSlice([]string{
 			"2.4",
 			"3.1",
@@ -100,7 +105,6 @@ This is a breaking change as Terraform should not trigger a plan between minor v
 			"3.4", 
 		}, false),
 	},
-```
 
 ## Adding a new property with a default value
 
