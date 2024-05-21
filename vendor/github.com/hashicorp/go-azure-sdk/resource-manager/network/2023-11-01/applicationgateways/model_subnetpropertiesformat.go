@@ -6,7 +6,8 @@ package applicationgateways
 type SubnetPropertiesFormat struct {
 	AddressPrefix                      *string                                          `json:"addressPrefix,omitempty"`
 	AddressPrefixes                    *[]string                                        `json:"addressPrefixes,omitempty"`
-	ApplicationGatewayIPConfigurations *[]ApplicationGatewayIPConfiguration             `json:"applicationGatewayIpConfigurations,omitempty"`
+	ApplicationGatewayIPConfigurations *[]ApplicationGatewayIPConfiguration             `json:"applicationGatewayIPConfigurations,omitempty"`
+	DefaultOutboundAccess              *bool                                            `json:"defaultOutboundAccess,omitempty"`
 	Delegations                        *[]Delegation                                    `json:"delegations,omitempty"`
 	IPAllocations                      *[]SubResource                                   `json:"ipAllocations,omitempty"`
 	IPConfigurationProfiles            *[]IPConfigurationProfile                        `json:"ipConfigurationProfiles,omitempty"`
@@ -23,4 +24,5 @@ type SubnetPropertiesFormat struct {
 	ServiceAssociationLinks            *[]ServiceAssociationLink                        `json:"serviceAssociationLinks,omitempty"`
 	ServiceEndpointPolicies            *[]ServiceEndpointPolicy                         `json:"serviceEndpointPolicies,omitempty"`
 	ServiceEndpoints                   *[]ServiceEndpointPropertiesFormat               `json:"serviceEndpoints,omitempty"`
+	SharingScope                       *SharingScope                                    `json:"sharingScope,omitempty"`
 }

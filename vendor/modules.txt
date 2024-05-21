@@ -707,7 +707,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumegroup
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumequotarules
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes
 github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication
-github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/adminrulecollections
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/adminrules
@@ -816,6 +815,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vpnserverc
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vpnsites
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/webapplicationfirewallpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/webcategories
+github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways
 github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/azuretrafficcollectors
 github.com/hashicorp/go-azure-sdk/resource-manager/networkfunction/2022-11-01/collectorpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors

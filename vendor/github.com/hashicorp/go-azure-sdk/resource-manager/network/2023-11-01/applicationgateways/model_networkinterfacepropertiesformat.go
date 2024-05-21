@@ -5,6 +5,7 @@ package applicationgateways
 
 type NetworkInterfacePropertiesFormat struct {
 	AuxiliaryMode               *NetworkInterfaceAuxiliaryMode      `json:"auxiliaryMode,omitempty"`
+	AuxiliarySku                *NetworkInterfaceAuxiliarySku       `json:"auxiliarySku,omitempty"`
 	DisableTcpStateTracking     *bool                               `json:"disableTcpStateTracking,omitempty"`
 	DnsSettings                 *NetworkInterfaceDnsSettings        `json:"dnsSettings,omitempty"`
 	DscpConfiguration           *SubResource                        `json:"dscpConfiguration,omitempty"`

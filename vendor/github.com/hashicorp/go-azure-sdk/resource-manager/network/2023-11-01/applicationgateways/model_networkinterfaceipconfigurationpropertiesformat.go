@@ -11,6 +11,7 @@ type NetworkInterfaceIPConfigurationPropertiesFormat struct {
 	LoadBalancerInboundNatRules           *[]InboundNatRule                                               `json:"loadBalancerInboundNatRules,omitempty"`
 	Primary                               *bool                                                           `json:"primary,omitempty"`
 	PrivateIPAddress                      *string                                                         `json:"privateIPAddress,omitempty"`
+	PrivateIPAddressPrefixLength          *int64                                                          `json:"privateIPAddressPrefixLength,omitempty"`
 	PrivateIPAddressVersion               *IPVersion                                                      `json:"privateIPAddressVersion,omitempty"`
 	PrivateIPAllocationMethod             *IPAllocationMethod                                             `json:"privateIPAllocationMethod,omitempty"`
 	PrivateLinkConnectionProperties       *NetworkInterfaceIPConfigurationPrivateLinkConnectionProperties `json:"privateLinkConnectionProperties,omitempty"`

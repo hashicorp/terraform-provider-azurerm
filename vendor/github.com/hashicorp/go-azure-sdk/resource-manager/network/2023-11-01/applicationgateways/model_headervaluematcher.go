@@ -1,12 +1,10 @@
 package applicationgateways
 
-import "fmt"
-
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-const defaultApiVersion = "2022-07-01"
-
-func userAgent() string {
-	return fmt.Sprintf("hashicorp/go-azure-sdk/applicationgateways/%s", defaultApiVersion)
+type HeaderValueMatcher struct {
+	IgnoreCase *bool   `json:"ignoreCase,omitempty"`
+	Negate     *bool   `json:"negate,omitempty"`
+	Pattern    *string `json:"pattern,omitempty"`
 }

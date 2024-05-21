@@ -4,6 +4,7 @@ package applicationgateways
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ApplicationGatewayHeaderConfiguration struct {
-	HeaderName  *string `json:"headerName,omitempty"`
-	HeaderValue *string `json:"headerValue,omitempty"`
+	HeaderName         *string             `json:"headerName,omitempty"`
+	HeaderValue        *string             `json:"headerValue,omitempty"`
+	HeaderValueMatcher *HeaderValueMatcher `json:"headerValueMatcher,omitempty"`
 }

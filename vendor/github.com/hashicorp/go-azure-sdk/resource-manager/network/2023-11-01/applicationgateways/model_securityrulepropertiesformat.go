@@ -12,7 +12,7 @@ type SecurityRulePropertiesFormat struct {
 	DestinationPortRange                 *string                     `json:"destinationPortRange,omitempty"`
 	DestinationPortRanges                *[]string                   `json:"destinationPortRanges,omitempty"`
 	Direction                            SecurityRuleDirection       `json:"direction"`
-	Priority                             *int64                      `json:"priority,omitempty"`
+	Priority                             int64                       `json:"priority"`
 	Protocol                             SecurityRuleProtocol        `json:"protocol"`
 	ProvisioningState                    *ProvisioningState          `json:"provisioningState,omitempty"`
 	SourceAddressPrefix                  *string                     `json:"sourceAddressPrefix,omitempty"`

@@ -144,13 +144,27 @@ func parseApplicationGatewayCookieBasedAffinity(input string) (*ApplicationGatew
 type ApplicationGatewayCustomErrorStatusCode string
 
 const (
+	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveHundred   ApplicationGatewayCustomErrorStatusCode = "HttpStatus500"
+	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroFour  ApplicationGatewayCustomErrorStatusCode = "HttpStatus504"
+	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroThree ApplicationGatewayCustomErrorStatusCode = "HttpStatus503"
 	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroTwo   ApplicationGatewayCustomErrorStatusCode = "HttpStatus502"
+	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourHundred   ApplicationGatewayCustomErrorStatusCode = "HttpStatus400"
+	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroEight ApplicationGatewayCustomErrorStatusCode = "HttpStatus408"
+	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroFive  ApplicationGatewayCustomErrorStatusCode = "HttpStatus405"
+	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroFour  ApplicationGatewayCustomErrorStatusCode = "HttpStatus404"
 	ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroThree ApplicationGatewayCustomErrorStatusCode = "HttpStatus403"
 )
 
 func PossibleValuesForApplicationGatewayCustomErrorStatusCode() []string {
 	return []string{
+		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveHundred),
+		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroFour),
+		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroThree),
 		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroTwo),
+		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourHundred),
+		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroEight),
+		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroFive),
+		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroFour),
 		string(ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroThree),
 	}
 }
@@ -170,7 +184,14 @@ func (s *ApplicationGatewayCustomErrorStatusCode) UnmarshalJSON(bytes []byte) er
 
 func parseApplicationGatewayCustomErrorStatusCode(input string) (*ApplicationGatewayCustomErrorStatusCode, error) {
 	vals := map[string]ApplicationGatewayCustomErrorStatusCode{
+		"httpstatus500": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveHundred,
+		"httpstatus504": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroFour,
+		"httpstatus503": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroThree,
 		"httpstatus502": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroTwo,
+		"httpstatus400": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourHundred,
+		"httpstatus408": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroEight,
+		"httpstatus405": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroFive,
+		"httpstatus404": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroFour,
 		"httpstatus403": ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroThree,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -449,9 +470,51 @@ func parseApplicationGatewayRequestRoutingRuleType(input string) (*ApplicationGa
 	return &out, nil
 }
 
+type ApplicationGatewaySkuFamily string
+
+const (
+	ApplicationGatewaySkuFamilyGenerationOne ApplicationGatewaySkuFamily = "Generation_1"
+	ApplicationGatewaySkuFamilyGenerationTwo ApplicationGatewaySkuFamily = "Generation_2"
+)
+
+func PossibleValuesForApplicationGatewaySkuFamily() []string {
+	return []string{
+		string(ApplicationGatewaySkuFamilyGenerationOne),
+		string(ApplicationGatewaySkuFamilyGenerationTwo),
+	}
+}
+
+func (s *ApplicationGatewaySkuFamily) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseApplicationGatewaySkuFamily(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseApplicationGatewaySkuFamily(input string) (*ApplicationGatewaySkuFamily, error) {
+	vals := map[string]ApplicationGatewaySkuFamily{
+		"generation_1": ApplicationGatewaySkuFamilyGenerationOne,
+		"generation_2": ApplicationGatewaySkuFamilyGenerationTwo,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ApplicationGatewaySkuFamily(input)
+	return &out, nil
+}
+
 type ApplicationGatewaySkuName string
 
 const (
+	ApplicationGatewaySkuNameBasic          ApplicationGatewaySkuName = "Basic"
 	ApplicationGatewaySkuNameStandardLarge  ApplicationGatewaySkuName = "Standard_Large"
 	ApplicationGatewaySkuNameStandardMedium ApplicationGatewaySkuName = "Standard_Medium"
 	ApplicationGatewaySkuNameStandardSmall  ApplicationGatewaySkuName = "Standard_Small"
@@ -463,6 +526,7 @@ const (
 
 func PossibleValuesForApplicationGatewaySkuName() []string {
 	return []string{
+		string(ApplicationGatewaySkuNameBasic),
 		string(ApplicationGatewaySkuNameStandardLarge),
 		string(ApplicationGatewaySkuNameStandardMedium),
 		string(ApplicationGatewaySkuNameStandardSmall),
@@ -488,6 +552,7 @@ func (s *ApplicationGatewaySkuName) UnmarshalJSON(bytes []byte) error {
 
 func parseApplicationGatewaySkuName(input string) (*ApplicationGatewaySkuName, error) {
 	vals := map[string]ApplicationGatewaySkuName{
+		"basic":           ApplicationGatewaySkuNameBasic,
 		"standard_large":  ApplicationGatewaySkuNameStandardLarge,
 		"standard_medium": ApplicationGatewaySkuNameStandardMedium,
 		"standard_small":  ApplicationGatewaySkuNameStandardSmall,
@@ -768,6 +833,7 @@ func parseApplicationGatewaySslProtocol(input string) (*ApplicationGatewaySslPro
 type ApplicationGatewayTier string
 
 const (
+	ApplicationGatewayTierBasic        ApplicationGatewayTier = "Basic"
 	ApplicationGatewayTierStandard     ApplicationGatewayTier = "Standard"
 	ApplicationGatewayTierStandardVTwo ApplicationGatewayTier = "Standard_v2"
 	ApplicationGatewayTierWAF          ApplicationGatewayTier = "WAF"
@@ -776,6 +842,7 @@ const (
 
 func PossibleValuesForApplicationGatewayTier() []string {
 	return []string{
+		string(ApplicationGatewayTierBasic),
 		string(ApplicationGatewayTierStandard),
 		string(ApplicationGatewayTierStandardVTwo),
 		string(ApplicationGatewayTierWAF),
@@ -798,6 +865,7 @@ func (s *ApplicationGatewayTier) UnmarshalJSON(bytes []byte) error {
 
 func parseApplicationGatewayTier(input string) (*ApplicationGatewayTier, error) {
 	vals := map[string]ApplicationGatewayTier{
+		"basic":       ApplicationGatewayTierBasic,
 		"standard":    ApplicationGatewayTierStandard,
 		"standard_v2": ApplicationGatewayTierStandardVTwo,
 		"waf":         ApplicationGatewayTierWAF,
@@ -1246,16 +1314,14 @@ func parseIPVersion(input string) (*IPVersion, error) {
 type LoadBalancerBackendAddressAdminState string
 
 const (
-	LoadBalancerBackendAddressAdminStateDown  LoadBalancerBackendAddressAdminState = "Down"
-	LoadBalancerBackendAddressAdminStateDrain LoadBalancerBackendAddressAdminState = "Drain"
-	LoadBalancerBackendAddressAdminStateNone  LoadBalancerBackendAddressAdminState = "None"
-	LoadBalancerBackendAddressAdminStateUp    LoadBalancerBackendAddressAdminState = "Up"
+	LoadBalancerBackendAddressAdminStateDown LoadBalancerBackendAddressAdminState = "Down"
+	LoadBalancerBackendAddressAdminStateNone LoadBalancerBackendAddressAdminState = "None"
+	LoadBalancerBackendAddressAdminStateUp   LoadBalancerBackendAddressAdminState = "Up"
 )
 
 func PossibleValuesForLoadBalancerBackendAddressAdminState() []string {
 	return []string{
 		string(LoadBalancerBackendAddressAdminStateDown),
-		string(LoadBalancerBackendAddressAdminStateDrain),
 		string(LoadBalancerBackendAddressAdminStateNone),
 		string(LoadBalancerBackendAddressAdminStateUp),
 	}
@@ -1276,10 +1342,9 @@ func (s *LoadBalancerBackendAddressAdminState) UnmarshalJSON(bytes []byte) error
 
 func parseLoadBalancerBackendAddressAdminState(input string) (*LoadBalancerBackendAddressAdminState, error) {
 	vals := map[string]LoadBalancerBackendAddressAdminState{
-		"down":  LoadBalancerBackendAddressAdminStateDown,
-		"drain": LoadBalancerBackendAddressAdminStateDrain,
-		"none":  LoadBalancerBackendAddressAdminStateNone,
-		"up":    LoadBalancerBackendAddressAdminStateUp,
+		"down": LoadBalancerBackendAddressAdminStateDown,
+		"none": LoadBalancerBackendAddressAdminStateNone,
+		"up":   LoadBalancerBackendAddressAdminStateUp,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -1331,13 +1396,15 @@ func parseNatGatewaySkuName(input string) (*NatGatewaySkuName, error) {
 type NetworkInterfaceAuxiliaryMode string
 
 const (
-	NetworkInterfaceAuxiliaryModeFloating       NetworkInterfaceAuxiliaryMode = "Floating"
-	NetworkInterfaceAuxiliaryModeMaxConnections NetworkInterfaceAuxiliaryMode = "MaxConnections"
-	NetworkInterfaceAuxiliaryModeNone           NetworkInterfaceAuxiliaryMode = "None"
+	NetworkInterfaceAuxiliaryModeAcceleratedConnections NetworkInterfaceAuxiliaryMode = "AcceleratedConnections"
+	NetworkInterfaceAuxiliaryModeFloating               NetworkInterfaceAuxiliaryMode = "Floating"
+	NetworkInterfaceAuxiliaryModeMaxConnections         NetworkInterfaceAuxiliaryMode = "MaxConnections"
+	NetworkInterfaceAuxiliaryModeNone                   NetworkInterfaceAuxiliaryMode = "None"
 )
 
 func PossibleValuesForNetworkInterfaceAuxiliaryMode() []string {
 	return []string{
+		string(NetworkInterfaceAuxiliaryModeAcceleratedConnections),
 		string(NetworkInterfaceAuxiliaryModeFloating),
 		string(NetworkInterfaceAuxiliaryModeMaxConnections),
 		string(NetworkInterfaceAuxiliaryModeNone),
@@ -1359,9 +1426,10 @@ func (s *NetworkInterfaceAuxiliaryMode) UnmarshalJSON(bytes []byte) error {
 
 func parseNetworkInterfaceAuxiliaryMode(input string) (*NetworkInterfaceAuxiliaryMode, error) {
 	vals := map[string]NetworkInterfaceAuxiliaryMode{
-		"floating":       NetworkInterfaceAuxiliaryModeFloating,
-		"maxconnections": NetworkInterfaceAuxiliaryModeMaxConnections,
-		"none":           NetworkInterfaceAuxiliaryModeNone,
+		"acceleratedconnections": NetworkInterfaceAuxiliaryModeAcceleratedConnections,
+		"floating":               NetworkInterfaceAuxiliaryModeFloating,
+		"maxconnections":         NetworkInterfaceAuxiliaryModeMaxConnections,
+		"none":                   NetworkInterfaceAuxiliaryModeNone,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -1369,6 +1437,56 @@ func parseNetworkInterfaceAuxiliaryMode(input string) (*NetworkInterfaceAuxiliar
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := NetworkInterfaceAuxiliaryMode(input)
+	return &out, nil
+}
+
+type NetworkInterfaceAuxiliarySku string
+
+const (
+	NetworkInterfaceAuxiliarySkuAEight NetworkInterfaceAuxiliarySku = "A8"
+	NetworkInterfaceAuxiliarySkuAFour  NetworkInterfaceAuxiliarySku = "A4"
+	NetworkInterfaceAuxiliarySkuAOne   NetworkInterfaceAuxiliarySku = "A1"
+	NetworkInterfaceAuxiliarySkuATwo   NetworkInterfaceAuxiliarySku = "A2"
+	NetworkInterfaceAuxiliarySkuNone   NetworkInterfaceAuxiliarySku = "None"
+)
+
+func PossibleValuesForNetworkInterfaceAuxiliarySku() []string {
+	return []string{
+		string(NetworkInterfaceAuxiliarySkuAEight),
+		string(NetworkInterfaceAuxiliarySkuAFour),
+		string(NetworkInterfaceAuxiliarySkuAOne),
+		string(NetworkInterfaceAuxiliarySkuATwo),
+		string(NetworkInterfaceAuxiliarySkuNone),
+	}
+}
+
+func (s *NetworkInterfaceAuxiliarySku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNetworkInterfaceAuxiliarySku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseNetworkInterfaceAuxiliarySku(input string) (*NetworkInterfaceAuxiliarySku, error) {
+	vals := map[string]NetworkInterfaceAuxiliarySku{
+		"a8":   NetworkInterfaceAuxiliarySkuAEight,
+		"a4":   NetworkInterfaceAuxiliarySkuAFour,
+		"a1":   NetworkInterfaceAuxiliarySkuAOne,
+		"a2":   NetworkInterfaceAuxiliarySkuATwo,
+		"none": NetworkInterfaceAuxiliarySkuNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := NetworkInterfaceAuxiliarySku(input)
 	return &out, nil
 }
 
@@ -1507,6 +1625,53 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ProvisioningState(input)
+	return &out, nil
+}
+
+type PublicIPAddressDnsSettingsDomainNameLabelScope string
+
+const (
+	PublicIPAddressDnsSettingsDomainNameLabelScopeNoReuse            PublicIPAddressDnsSettingsDomainNameLabelScope = "NoReuse"
+	PublicIPAddressDnsSettingsDomainNameLabelScopeResourceGroupReuse PublicIPAddressDnsSettingsDomainNameLabelScope = "ResourceGroupReuse"
+	PublicIPAddressDnsSettingsDomainNameLabelScopeSubscriptionReuse  PublicIPAddressDnsSettingsDomainNameLabelScope = "SubscriptionReuse"
+	PublicIPAddressDnsSettingsDomainNameLabelScopeTenantReuse        PublicIPAddressDnsSettingsDomainNameLabelScope = "TenantReuse"
+)
+
+func PossibleValuesForPublicIPAddressDnsSettingsDomainNameLabelScope() []string {
+	return []string{
+		string(PublicIPAddressDnsSettingsDomainNameLabelScopeNoReuse),
+		string(PublicIPAddressDnsSettingsDomainNameLabelScopeResourceGroupReuse),
+		string(PublicIPAddressDnsSettingsDomainNameLabelScopeSubscriptionReuse),
+		string(PublicIPAddressDnsSettingsDomainNameLabelScopeTenantReuse),
+	}
+}
+
+func (s *PublicIPAddressDnsSettingsDomainNameLabelScope) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePublicIPAddressDnsSettingsDomainNameLabelScope(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePublicIPAddressDnsSettingsDomainNameLabelScope(input string) (*PublicIPAddressDnsSettingsDomainNameLabelScope, error) {
+	vals := map[string]PublicIPAddressDnsSettingsDomainNameLabelScope{
+		"noreuse":            PublicIPAddressDnsSettingsDomainNameLabelScopeNoReuse,
+		"resourcegroupreuse": PublicIPAddressDnsSettingsDomainNameLabelScopeResourceGroupReuse,
+		"subscriptionreuse":  PublicIPAddressDnsSettingsDomainNameLabelScopeSubscriptionReuse,
+		"tenantreuse":        PublicIPAddressDnsSettingsDomainNameLabelScopeTenantReuse,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PublicIPAddressDnsSettingsDomainNameLabelScope(input)
 	return &out, nil
 }
 
@@ -1827,6 +1992,88 @@ func parseSecurityRuleProtocol(input string) (*SecurityRuleProtocol, error) {
 	return &out, nil
 }
 
+type SharingScope string
+
+const (
+	SharingScopeDelegatedServices SharingScope = "DelegatedServices"
+	SharingScopeTenant            SharingScope = "Tenant"
+)
+
+func PossibleValuesForSharingScope() []string {
+	return []string{
+		string(SharingScopeDelegatedServices),
+		string(SharingScopeTenant),
+	}
+}
+
+func (s *SharingScope) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSharingScope(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSharingScope(input string) (*SharingScope, error) {
+	vals := map[string]SharingScope{
+		"delegatedservices": SharingScopeDelegatedServices,
+		"tenant":            SharingScopeTenant,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SharingScope(input)
+	return &out, nil
+}
+
+type SyncMode string
+
+const (
+	SyncModeAutomatic SyncMode = "Automatic"
+	SyncModeManual    SyncMode = "Manual"
+)
+
+func PossibleValuesForSyncMode() []string {
+	return []string{
+		string(SyncModeAutomatic),
+		string(SyncModeManual),
+	}
+}
+
+func (s *SyncMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSyncMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSyncMode(input string) (*SyncMode, error) {
+	vals := map[string]SyncMode{
+		"automatic": SyncModeAutomatic,
+		"manual":    SyncModeManual,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SyncMode(input)
+	return &out, nil
+}
+
 type TransportProtocol string
 
 const (
@@ -1874,14 +2121,18 @@ func parseTransportProtocol(input string) (*TransportProtocol, error) {
 type VirtualNetworkPrivateEndpointNetworkPolicies string
 
 const (
-	VirtualNetworkPrivateEndpointNetworkPoliciesDisabled VirtualNetworkPrivateEndpointNetworkPolicies = "Disabled"
-	VirtualNetworkPrivateEndpointNetworkPoliciesEnabled  VirtualNetworkPrivateEndpointNetworkPolicies = "Enabled"
+	VirtualNetworkPrivateEndpointNetworkPoliciesDisabled                    VirtualNetworkPrivateEndpointNetworkPolicies = "Disabled"
+	VirtualNetworkPrivateEndpointNetworkPoliciesEnabled                     VirtualNetworkPrivateEndpointNetworkPolicies = "Enabled"
+	VirtualNetworkPrivateEndpointNetworkPoliciesNetworkSecurityGroupEnabled VirtualNetworkPrivateEndpointNetworkPolicies = "NetworkSecurityGroupEnabled"
+	VirtualNetworkPrivateEndpointNetworkPoliciesRouteTableEnabled           VirtualNetworkPrivateEndpointNetworkPolicies = "RouteTableEnabled"
 )
 
 func PossibleValuesForVirtualNetworkPrivateEndpointNetworkPolicies() []string {
 	return []string{
 		string(VirtualNetworkPrivateEndpointNetworkPoliciesDisabled),
 		string(VirtualNetworkPrivateEndpointNetworkPoliciesEnabled),
+		string(VirtualNetworkPrivateEndpointNetworkPoliciesNetworkSecurityGroupEnabled),
+		string(VirtualNetworkPrivateEndpointNetworkPoliciesRouteTableEnabled),
 	}
 }
 
@@ -1900,8 +2151,10 @@ func (s *VirtualNetworkPrivateEndpointNetworkPolicies) UnmarshalJSON(bytes []byt
 
 func parseVirtualNetworkPrivateEndpointNetworkPolicies(input string) (*VirtualNetworkPrivateEndpointNetworkPolicies, error) {
 	vals := map[string]VirtualNetworkPrivateEndpointNetworkPolicies{
-		"disabled": VirtualNetworkPrivateEndpointNetworkPoliciesDisabled,
-		"enabled":  VirtualNetworkPrivateEndpointNetworkPoliciesEnabled,
+		"disabled":                    VirtualNetworkPrivateEndpointNetworkPoliciesDisabled,
+		"enabled":                     VirtualNetworkPrivateEndpointNetworkPoliciesEnabled,
+		"networksecuritygroupenabled": VirtualNetworkPrivateEndpointNetworkPoliciesNetworkSecurityGroupEnabled,
+		"routetableenabled":           VirtualNetworkPrivateEndpointNetworkPoliciesRouteTableEnabled,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

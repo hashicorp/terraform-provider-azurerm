@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways` Documentation
 
-The `applicationgateways` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2022-07-01`).
+The `applicationgateways` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 ```
 
 
