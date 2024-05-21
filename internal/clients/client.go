@@ -475,7 +475,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.IoTTimeSeriesInsights, err = timeseriesinsights.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for IoT TimeSeries Insights: %+v", err)
 	}
-	client.KeyVault = keyvault.NewClient(o)
+	if client.KeyVault, err = keyvault.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Key Vault: %+v", err)
+	}
 	if client.Kusto, err = kusto.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Kusto: %+v", err)
 	}
