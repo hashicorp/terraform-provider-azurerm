@@ -214,7 +214,7 @@ func resourceVirtualHubConnectionCreateOrUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	connection := virtualwans.HubVirtualNetworkConnection{
-		Name: pointer.To(id.VirtualHubName),
+		Name: pointer.To(id.HubVirtualNetworkConnectionName),
 		Properties: &virtualwans.HubVirtualNetworkConnectionProperties{
 			RemoteVirtualNetwork: &virtualwans.SubResource{
 				Id: pointer.To(remoteVirtualNetworkId.ID()),
@@ -269,7 +269,7 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.VirtualHubName)
+	d.Set("name", id.HubVirtualNetworkConnectionName)
 	d.Set("virtual_hub_id", virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName).ID())
 
 	if model := resp.Model; model != nil {
@@ -439,7 +439,7 @@ func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration)
 
 	staticVnetLocalRouteOverrideCriteria := ""
 	if input.VnetRoutes != nil && input.VnetRoutes.StaticRoutesConfig != nil && input.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria != nil {
-		staticVnetLocalRouteOverrideCriteria = string(pointer.From(input.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria))
+		staticVnetLocalRouteOverrideCriteria = string(*input.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria)
 	}
 
 	return []interface{}{
