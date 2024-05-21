@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -25,10 +26,11 @@ type ContainerRegistryCacheRule struct{}
 func (ContainerRegistryCacheRule) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
-			Description: "The name of the cache rule.",
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			Description:  "The name of the cache rule.",
+			ValidateFunc: validate.ContainerRegistryCacheRuleName,
 		},
 		"container_registry_id": {
 			Type:         pluginsdk.TypeString,
