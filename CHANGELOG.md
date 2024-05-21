@@ -3,6 +3,8 @@
 BUG FIXES:
 
 * `azurerm_linux_function_app_slot` - fixed panic when planning from a version older than 3.88.0 [GH-25838]
+* `azurerm_windows_function_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot [GH-25634]
+* `azurerm_windows_web_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot [GH-25634]
 
 ## 3.104.2 (May 20, 2024)
 
