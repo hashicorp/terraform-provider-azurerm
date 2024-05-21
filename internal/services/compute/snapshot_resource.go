@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -94,6 +95,10 @@ func resourceSnapshot() *pluginsdk.Resource {
 			"disk_access_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// TODO:
+				// the snapshot API is broken and returns the Resource Group name in UPPERCASE
+				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/29187
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"public_network_access_enabled": {
@@ -250,11 +255,10 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("create_option", string(data.CreateOption))
 			d.Set("storage_account_id", data.StorageAccountId)
 
-			diskAccessID := ""
 			if props.DiskAccessId != nil {
-				diskAccessID = *props.DiskAccessId
+				diskAccessID := *props.DiskAccessId
+				d.Set("disk_access_id", diskAccessID)
 			}
-			d.Set("disk_access_id", diskAccessID)
 
 			diskSizeGb := 0
 			if props.DiskSizeGB != nil {

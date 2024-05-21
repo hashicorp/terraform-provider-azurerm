@@ -784,7 +784,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_disk_access" "test" {
-  name                = "acctestDA=%d"
+  name                = "acctestDA-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%s"
 }
@@ -802,12 +802,12 @@ resource "azurerm_snapshot" "test" {
   name                  = "acctestss_%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-	disk_access_id        = azurerm_disk_access.test.id
+  disk_access_id        = azurerm_disk_access.test.id
   create_option         = "Copy"
   source_uri            = azurerm_managed_disk.test.id
   network_access_policy = "AllowPrivate"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (SnapshotResource) publicNetworkAccess(data acceptance.TestData) string {
