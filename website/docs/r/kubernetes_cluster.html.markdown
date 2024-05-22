@@ -1136,14 +1136,6 @@ The `web_app_routing_identity` block exports the following:
 
 ---
 
-A `workload_autoscaler_profile` block exports the following:
-
-* `vertical_pod_autoscaler_controlled_values` - Which resources values should be controlled.
-
-* `vertical_pod_autoscaler_update_mode` - How the autoscaler applies changes to pod resources.
-
----
-
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
