@@ -28,7 +28,7 @@ func TestAccPimEligibleRoleAssignment_noExpiration(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.noExpirationConfig(data),
+			Config: r.noExpiration(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -38,7 +38,7 @@ func TestAccPimEligibleRoleAssignment_noExpiration(t *testing.T) {
 	})
 }
 
-func TestAccPimEligibleRoleAssignment_expirationByDurationHoursConfig(t *testing.T) {
+func TestAccPimEligibleRoleAssignment_expirationByDurationHours(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
 	r := PimEligibleRoleAssignmentResource{}
 
@@ -55,7 +55,7 @@ func TestAccPimEligibleRoleAssignment_expirationByDurationHoursConfig(t *testing
 	})
 }
 
-func TestAccPimEligibleRoleAssignment_expirationByDurationDaysConfig(t *testing.T) {
+func TestAccPimEligibleRoleAssignment_expirationByDurationDays(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
 	r := PimEligibleRoleAssignmentResource{}
 
@@ -105,7 +105,7 @@ func TestAccPimEligibleRoleAssignment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPimEligibleRoleAssignment_expirationByDateConfig(t *testing.T) {
+func TestAccPimEligibleRoleAssignment_expirationByDate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
 	r := PimEligibleRoleAssignmentResource{}
 
@@ -173,7 +173,7 @@ resource "azuread_group" "test" {
 `, data.RandomInteger, data.RandomString)
 }
 
-func (r PimEligibleRoleAssignmentResource) noExpirationConfig(data acceptance.TestData) string {
+func (r PimEligibleRoleAssignmentResource) noExpiration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "primary" {}
 
@@ -308,8 +308,7 @@ resource "time_offset" "test" {
 resource "azurerm_pim_eligible_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
-
-  principal_id = azuread_group.test.object_id
+  principal_id       = azuread_group.test.object_id
 
   schedule {
     start_date_time = time_static.test.rfc3339
