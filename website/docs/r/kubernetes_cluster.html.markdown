@@ -153,6 +153,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** If deploying Managed Prometheus, the `monitor_metrics` properties are required to configure the cluster for metrics collection. If no value is needed, set properties to `null`.
 
+* `metrics_profile` - (Optional) A `metrics_profile` block as defined below.
+
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
 
 -> **Note:** If `network_profile` is not defined, `kubenet` profile will be used by default.
@@ -658,6 +660,12 @@ A `not_allowed` block supports the following:
 A `microsoft_defender` block supports the following:
 
 * `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Workspace where the audit logs collected by Microsoft Defender should be sent to.
+
+---
+
+A `metrics_profile` block supports the following:
+
+* `cost_analysis_enabled` - (Optional) Should cost analysis be enabled for this Kubernetes Cluster? Defaults to `false`. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.
 
 ---
 
