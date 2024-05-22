@@ -385,6 +385,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.KeyVault.PurgeSoftDeletedHSMsOnDestroy = feature[0].PurgeSoftDeletedHardwareSecurityModulesOnDestroy.ValueBool()
 			}
 
+			f.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy = true
+			if !feature[0].PurgeSoftDeletedHardwareSecurityModulesKeysOnDestroy.IsNull() && !feature[0].PurgeSoftDeletedHardwareSecurityModulesKeysOnDestroy.IsUnknown() {
+				f.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy = feature[0].PurgeSoftDeletedHardwareSecurityModulesKeysOnDestroy.ValueBool()
+			}
+
 			f.KeyVault.RecoverSoftDeletedCerts = true
 			if !feature[0].RecoverSoftDeletedCertificates.IsNull() && !feature[0].RecoverSoftDeletedCertificates.IsUnknown() {
 				f.KeyVault.RecoverSoftDeletedCerts = feature[0].RecoverSoftDeletedCertificates.ValueBool()
@@ -410,6 +415,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.KeyVault.PurgeSoftDeletedKeysOnDestroy = true
 			f.KeyVault.PurgeSoftDeletedSecretsOnDestroy = true
 			f.KeyVault.PurgeSoftDeletedHSMsOnDestroy = true
+			f.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy = true
 			f.KeyVault.RecoverSoftDeletedCerts = true
 			f.KeyVault.RecoverSoftDeletedKeyVaults = true
 			f.KeyVault.RecoverSoftDeletedKeys = true

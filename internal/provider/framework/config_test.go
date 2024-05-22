@@ -110,6 +110,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected key_vault.purge_soft_deleted_hardware_security_modules_on_destroy to be true")
 	}
 
+	if !features.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy {
+		t.Errorf("expected key_vault.purge_soft_deleted_hardware_security_module_keys_on_destroy to be true")
+	}
+
 	if !features.KeyVault.RecoverSoftDeletedCerts {
 		t.Errorf("expected key_vault.recover_soft_deleted_certificates to be true")
 	}

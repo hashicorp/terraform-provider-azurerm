@@ -112,27 +112,29 @@ var CognitiveAccountAttributes = map[string]attr.Type{
 }
 
 type KeyVault struct {
-	PurgeSoftDeleteOnDestroy                         types.Bool `tfsdk:"purge_soft_delete_on_destroy"`
-	PurgeSoftDeletedCertificatesOnDestroy            types.Bool `tfsdk:"purge_soft_deleted_certificates_on_destroy"`
-	PurgeSoftDeletedKeysOnDestroy                    types.Bool `tfsdk:"purge_soft_deleted_keys_on_destroy"`
-	PurgeSoftDeletedSecretsOnDestroy                 types.Bool `tfsdk:"purge_soft_deleted_secrets_on_destroy"`
-	PurgeSoftDeletedHardwareSecurityModulesOnDestroy types.Bool `tfsdk:"purge_soft_deleted_hardware_security_modules_on_destroy"`
-	RecoverSoftDeletedCertificates                   types.Bool `tfsdk:"recover_soft_deleted_certificates"`
-	RecoverSoftDeletedKeyVaults                      types.Bool `tfsdk:"recover_soft_deleted_key_vaults"`
-	RecoverSoftDeletedKeys                           types.Bool `tfsdk:"recover_soft_deleted_keys"`
-	RecoverSoftDeletedSecrets                        types.Bool `tfsdk:"recover_soft_deleted_secrets"`
+	PurgeSoftDeleteOnDestroy                             types.Bool `tfsdk:"purge_soft_delete_on_destroy"`
+	PurgeSoftDeletedCertificatesOnDestroy                types.Bool `tfsdk:"purge_soft_deleted_certificates_on_destroy"`
+	PurgeSoftDeletedKeysOnDestroy                        types.Bool `tfsdk:"purge_soft_deleted_keys_on_destroy"`
+	PurgeSoftDeletedSecretsOnDestroy                     types.Bool `tfsdk:"purge_soft_deleted_secrets_on_destroy"`
+	PurgeSoftDeletedHardwareSecurityModulesOnDestroy     types.Bool `tfsdk:"purge_soft_deleted_hardware_security_modules_on_destroy"`
+	PurgeSoftDeletedHardwareSecurityModulesKeysOnDestroy types.Bool `tfsdk:"purge_soft_deleted_hardware_security_module_keys_on_destroy"`
+	RecoverSoftDeletedCertificates                       types.Bool `tfsdk:"recover_soft_deleted_certificates"`
+	RecoverSoftDeletedKeyVaults                          types.Bool `tfsdk:"recover_soft_deleted_key_vaults"`
+	RecoverSoftDeletedKeys                               types.Bool `tfsdk:"recover_soft_deleted_keys"`
+	RecoverSoftDeletedSecrets                            types.Bool `tfsdk:"recover_soft_deleted_secrets"`
 }
 
 var KeyVaultAttributes = map[string]attr.Type{
-	"purge_soft_delete_on_destroy":                            types.BoolType,
-	"purge_soft_deleted_certificates_on_destroy":              types.BoolType,
-	"purge_soft_deleted_keys_on_destroy":                      types.BoolType,
-	"purge_soft_deleted_secrets_on_destroy":                   types.BoolType,
-	"purge_soft_deleted_hardware_security_modules_on_destroy": types.BoolType,
-	"recover_soft_deleted_certificates":                       types.BoolType,
-	"recover_soft_deleted_key_vaults":                         types.BoolType,
-	"recover_soft_deleted_keys":                               types.BoolType,
-	"recover_soft_deleted_secrets":                            types.BoolType,
+	"purge_soft_delete_on_destroy":                                types.BoolType,
+	"purge_soft_deleted_certificates_on_destroy":                  types.BoolType,
+	"purge_soft_deleted_keys_on_destroy":                          types.BoolType,
+	"purge_soft_deleted_secrets_on_destroy":                       types.BoolType,
+	"purge_soft_deleted_hardware_security_modules_on_destroy":     types.BoolType,
+	"purge_soft_deleted_hardware_security_module_keys_on_destroy": types.BoolType,
+	"recover_soft_deleted_certificates":                           types.BoolType,
+	"recover_soft_deleted_key_vaults":                             types.BoolType,
+	"recover_soft_deleted_keys":                                   types.BoolType,
+	"recover_soft_deleted_secrets":                                types.BoolType,
 }
 
 type LogAnalyticsWorkspace struct {
