@@ -25,7 +25,7 @@ resource "azurerm_hdinsight_cluster_pool" "example" {
   managed_resource_group_name = "test-rg"
 
   cluster_pool_profile {
-    cluster_pool_version = "1.1"
+    version = "1.1"
   }
   compute_profile {
     vm_size = "Standard_F4s_v2"
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `cluster_pool_profile` - (Required) The profile of the HDInsight Cluster Pool. A `cluster_pool_profile` block supports the following:
 
-  * `cluster_pool_version` - (Required) The version of the HDInsight Cluster Pool. Changing this forces a new resource to be created.
+  * `version` - (Required) The version of the HDInsight Cluster Pool. Changing this forces a new resource to be created.
 
 * `compute_profile` - (Required) The compute profile of the HDInsight Cluster Pool. Chaning this forces a new resource to be created. A `compute_profile` block supports the following:
     
@@ -62,7 +62,7 @@ The following arguments are supported:
 
 A `log_analytics_profile` block supports the following:
 
-* `log_analytics_profile_enabled` - (Required) Specifies whether the Log Analytics is enabled.
+* `enabled` - (Required) Specifies whether the Log Analytics is enabled.
 
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace.
 
@@ -72,7 +72,7 @@ A `network_profile` block supports the following:
 
 * `subnet_id` - (Required) The cluster pool subnet ID.
 
-* `private_api_server_enabled` - (Optional) Specifies whether the private API server is enabled.
+* `private_link_enabled` - (Optional) Specifies whether the private API server is enabled.
 
 * `outbound_type` - (Optional) The outbound type of the HDInsight Cluster Pool. Possible values are `loadBalancer` and `userDefinedRouting`.
 

@@ -118,7 +118,7 @@ resource "azurerm_hdinsight_cluster_pool" "test" {
   managed_resource_group_name = "df433rg"
 
   cluster_pool_profile {
-    cluster_pool_version = "1.1"
+    version = "1.1"
   }
   compute_profile {
     vm_size = "Standard_F4s_v2"
@@ -153,14 +153,14 @@ resource "azurerm_hdinsight_cluster_pool" "test" {
   managed_resource_group_name = "df433rg"
 
   cluster_pool_profile {
-    cluster_pool_version = "1.1"
+    version = "1.1"
   }
   compute_profile {
     vm_size = "Standard_F4s_v2"
   }
   log_analytics_profile {
-    log_analytics_profile_enabled = true
-    workspace_id                  = azurerm_log_analytics_workspace.test.id
+    enabled      = true
+    workspace_id = azurerm_log_analytics_workspace.test.id
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomString)
@@ -208,16 +208,16 @@ resource "azurerm_hdinsight_cluster_pool" "test" {
     vm_size = "Standard_D4a_v4"
   }
   cluster_pool_profile {
-    cluster_pool_version = "1.1"
+    version = "1.1"
   }
   log_analytics_profile {
-    log_analytics_profile_enabled = true
-    workspace_id                  = azurerm_log_analytics_workspace.test.id
+    enabled      = true
+    workspace_id = azurerm_log_analytics_workspace.test.id
   }
   network_profile {
-    subnet_id                  = azurerm_subnet.test.id
-    outbound_type              = "loadBalancer"
-    private_api_server_enabled = true
+    subnet_id            = azurerm_subnet.test.id
+    outbound_type        = "loadBalancer"
+    private_link_enabled = true
   }
   managed_resource_group_name = "df423rg"
 }
@@ -236,7 +236,7 @@ resource "azurerm_hdinsight_cluster_pool" "import" {
   managed_resource_group_name = "df433rg"
 
   cluster_pool_profile {
-    cluster_pool_version = "1.1"
+    version = "1.1"
   }
 
   compute_profile {

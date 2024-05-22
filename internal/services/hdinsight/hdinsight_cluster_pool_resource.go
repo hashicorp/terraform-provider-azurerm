@@ -35,7 +35,7 @@ type ClusterPoolModel struct {
 }
 
 type ClusterPoolProfile struct {
-	ClusterPoolVersion string `tfschema:"cluster_pool_version"`
+	ClusterPoolVersion string `tfschema:"version"`
 }
 
 type ComputeProfile struct {
@@ -43,12 +43,12 @@ type ComputeProfile struct {
 }
 
 type LogAnalyticsProfile struct {
-	LogAnalyticsProfileEnabled bool   `tfschema:"log_analytics_profile_enabled"`
+	LogAnalyticsProfileEnabled bool   `tfschema:"enabled"`
 	WorkspaceId                string `tfschema:"workspace_id"`
 }
 
 type NetworkProfile struct {
-	PrivateApiServerEnabled bool   `tfschema:"private_api_server_enabled"`
+	PrivateApiServerEnabled bool   `tfschema:"private_link_enabled"`
 	OutboundType            string `tfschema:"outbound_type"`
 	SubnetId                string `tfschema:"subnet_id"`
 }
@@ -94,6 +94,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"vm_size": {
@@ -115,9 +116,10 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"cluster_pool_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"cluster_pool_version": {
+					"version": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
@@ -130,9 +132,10 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"log_analytics_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"log_analytics_profile_enabled": {
+					"enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
@@ -148,6 +151,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"network_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
@@ -157,7 +161,7 @@ func (r ClusterPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
-					"private_api_server_enabled": {
+					"private_link_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
@@ -254,6 +258,9 @@ func (r ClusterPoolResource) Update() sdk.ResourceFunc {
 			}
 
 			model := existing.Model
+			if model == nil {
+				return fmt.Errorf("%s model was `nil`", *id)
+			}
 
 			if model.Properties == nil {
 				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
