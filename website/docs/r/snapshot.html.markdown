@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `network_access_policy` - (Optional) Policy for accessing the disk via network. Possible values are `AllowAll`, `AllowPrivate`, or `DenyAll`. Defaults to `AllowAll`.
 
-* `disk_access_id` - (Optional) The ID of an `azurerm_disk_access` resource. This is used in conjunction with setting `network_access_policy` to `AllowPrivate`.
+* `disk_access_id` - (Optional) Specifies the ID of the Disk Access which should be used for this Snapshot. This is used in conjunction with setting `network_access_policy` to `AllowPrivate`.
 
 * `public_network_access_enabled` - (Optional) Policy for controlling export on the disk. Possible values are `true` or `false`. Defaults to `true`.
 

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -93,8 +94,9 @@ func resourceSnapshot() *pluginsdk.Resource {
 			},
 
 			"disk_access_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: diskaccesses.ValidateDiskAccessID,
 				// TODO:
 				// the snapshot API is broken and returns the Resource Group name in UPPERCASE
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/29187
@@ -254,11 +256,7 @@ func resourceSnapshotRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			data := props.CreationData
 			d.Set("create_option", string(data.CreateOption))
 			d.Set("storage_account_id", data.StorageAccountId)
-
-			if props.DiskAccessId != nil {
-				diskAccessID := *props.DiskAccessId
-				d.Set("disk_access_id", diskAccessID)
-			}
+			d.Set("disk_access_id", pointer.From(props.DiskAccessId))
 
 			diskSizeGb := 0
 			if props.DiskSizeGB != nil {
