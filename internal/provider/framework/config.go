@@ -409,6 +409,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			if !feature[0].RecoverSoftDeletedSecrets.IsNull() && !feature[0].RecoverSoftDeletedSecrets.IsUnknown() {
 				f.KeyVault.RecoverSoftDeletedSecrets = feature[0].RecoverSoftDeletedSecrets.ValueBool()
 			}
+
+			f.KeyVault.RecoverSoftDeletedHSMKeys = true
+			if !feature[0].RecoverSoftDeletedHSMKeys.IsNull() && !feature[0].RecoverSoftDeletedHSMKeys.IsUnknown() {
+				f.KeyVault.RecoverSoftDeletedHSMKeys = feature[0].RecoverSoftDeletedHSMKeys.ValueBool()
+			}
 		} else {
 			f.KeyVault.PurgeSoftDeleteOnDestroy = true
 			f.KeyVault.PurgeSoftDeletedCertsOnDestroy = true
@@ -420,6 +425,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.KeyVault.RecoverSoftDeletedKeyVaults = true
 			f.KeyVault.RecoverSoftDeletedKeys = true
 			f.KeyVault.RecoverSoftDeletedSecrets = true
+			f.KeyVault.RecoverSoftDeletedHSMKeys = true
 		}
 
 		if !features.LogAnalyticsWorkspace.IsNull() && !features.LogAnalyticsWorkspace.IsUnknown() {

@@ -130,6 +130,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected key_vault.recover_soft_deleted_secrets to be true")
 	}
 
+	if !features.KeyVault.RecoverSoftDeletedHSMKeys {
+		t.Errorf("expected key_vault.recover_soft_deleted_hsm_keys to be true")
+	}
+
 	if !features.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy {
 		t.Errorf("expected log_analytics_workspace.permanently_delete_on_destroy to be true")
 	}
