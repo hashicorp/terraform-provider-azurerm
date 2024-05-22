@@ -247,9 +247,9 @@ func (VirtualMachineImplicitDataDiskFromSourceResource) Destroy(ctx context.Cont
 				return nil, fmt.Errorf("deleting implicit data disk %s: %+v", *id, err)
 			}
 
-			// delete data disk if delete_option is set to delete
-			if toBeDeletedDisk != nil && pointer.From(toBeDeletedDisk.DeleteOption) == virtualmachines.DiskDeleteOptionTypesDelete &&
-				toBeDeletedDisk.ManagedDisk != nil && toBeDeletedDisk.ManagedDisk.Id != nil {
+			// delete the data disk which was created by Azure Service when creating this resource
+			detachDataDisk := client.Features.VirtualMachine.DetachImplicitDataDiskOnDeletion
+			if !detachDataDisk && toBeDeletedDisk != nil && toBeDeletedDisk.ManagedDisk != nil && toBeDeletedDisk.ManagedDisk.Id != nil {
 				diskClient := client.Compute.DisksClient
 				diskId, err := commonids.ParseManagedDiskID(*toBeDeletedDisk.ManagedDisk.Id)
 				if err != nil {
@@ -276,7 +276,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.test.id
 }
@@ -292,7 +291,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "import" {
   virtual_machine_id = azurerm_virtual_machine_implicit_data_disk_from_source.test.virtual_machine_id
   lun                = azurerm_virtual_machine_implicit_data_disk_from_source.test.lun
   create_option      = azurerm_virtual_machine_implicit_data_disk_from_source.test.create_option
-  delete_option      = azurerm_virtual_machine_implicit_data_disk_from_source.test.delete_option
   disk_size_gb       = azurerm_virtual_machine_implicit_data_disk_from_source.test.disk_size_gb
   source_resource_id = azurerm_virtual_machine_implicit_data_disk_from_source.test.source_resource_id
 }
@@ -391,7 +389,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_managed_disk.test.id
 }
@@ -407,7 +404,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "first" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.test.id
 }
@@ -435,7 +431,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "second" {
   lun                = "20"
   caching            = "ReadOnly"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.second.id
 }
@@ -452,7 +447,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   lun                = "0"
   caching            = "ReadOnly"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.test.id
 }
@@ -469,7 +463,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   lun                = "0"
   caching            = "ReadWrite"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.test.id
 }
@@ -572,7 +565,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   virtual_machine_id        = azurerm_virtual_machine.test.id
   lun                       = "0"
   create_option             = "Copy"
-  delete_option             = "Delete"
   disk_size_gb              = 20
   source_resource_id        = azurerm_snapshot.test.id
   write_accelerator_enabled = %t
@@ -807,7 +799,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   lun                = "11"
   caching            = "ReadWrite"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.test.id
 }
@@ -984,7 +975,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   lun                = "11"
   caching            = "ReadWrite"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.test.id
 }

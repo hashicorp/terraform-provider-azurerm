@@ -10,6 +10,8 @@ description: |-
 
 Manages an implicit Data Disk of a Virtual Machine.
 
+~> **Note:** The Implicit Data Disk will be deleted instantly after this resource is destroyed. If you want to detach this disk only, you may set `detach_implicit_data_disk_on_deletion` field to `true` within the `virtual_machine` block in the provider `features` block.
+
 ## Example Usage
 
 ```hcl
@@ -107,7 +109,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "example" {
   lun                = "0"
   caching            = "None"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.test.id
 }
@@ -124,10 +125,6 @@ The following arguments are supported:
 * `lun` - (Required) The Logical Unit Number of the Data Disk, which needs to be unique within the Virtual Machine. Changing this forces a new resource to be created.
 
 * `create_option` - (Required) Specifies the Create Option of the Data Disk. The only possible value is `Copy`. Changing this forces a new resource to be created.
-
-* `delete_option` - (Required) Specifies the Delete Option of the Data Disk. Possible values are `Delete` and `Detach`.
-
--> **Note:** The Managed Data Disk will be deleted instantly after this resource is destroyed if `delete_option` was set to `Delete`.
 
 * `disk_size_gb` - (Required) Specifies the size of the Data Disk in gigabytes. Changing this forces a new resource to be created.
 

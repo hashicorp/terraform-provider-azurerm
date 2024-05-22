@@ -35,7 +35,6 @@ type VirtualMachineImplicitDataDiskFromSourceResourceModel struct {
 	Lun                     int64  `tfschema:"lun"`
 	Caching                 string `tfschema:"caching"`
 	CreateOption            string `tfschema:"create_option"`
-	DeleteOption            string `tfschema:"delete_option"`
 	DiskSizeGb              int64  `tfschema:"disk_size_gb"`
 	SourceResourceId        string `tfschema:"source_resource_id"`
 	WriteAcceleratorEnabled bool   `tfschema:"write_accelerator_enabled"`
@@ -79,12 +78,6 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Arguments() map[string
 			ValidateFunc: validation.StringInSlice([]string{
 				string(virtualmachines.DiskCreateOptionTypesCopy),
 			}, false),
-		},
-
-		"delete_option": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForDiskDeleteOptionTypes(), false),
 		},
 
 		"disk_size_gb": {
@@ -158,7 +151,6 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Create() sdk.ResourceF
 				Name:         pointer.To(config.Name),
 				Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
 				CreateOption: virtualmachines.DiskCreateOptionTypes(config.CreateOption),
-				DeleteOption: pointer.To(virtualmachines.DiskDeleteOptionTypes(config.DeleteOption)),
 				DiskSizeGB:   pointer.To(config.DiskSizeGb),
 				Lun:          config.Lun,
 				SourceResource: &virtualmachines.ApiEntityReference{
@@ -260,7 +252,6 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Read() sdk.ResourceFun
 			}
 
 			schema.CreateOption = string(disk.CreateOption)
-			schema.DeleteOption = string(pointer.From(disk.DeleteOption))
 			schema.DiskSizeGb = pointer.From(disk.DiskSizeGB)
 			if disk.SourceResource != nil {
 				schema.SourceResourceId = pointer.From(disk.SourceResource.Id)
@@ -323,9 +314,9 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Delete() sdk.ResourceF
 							return fmt.Errorf("deleting %s: %+v", id, err)
 						}
 
-						// delete data disk if delete_option is set to delete
-						if toBeDeletedDisk != nil && pointer.From(toBeDeletedDisk.DeleteOption) == virtualmachines.DiskDeleteOptionTypesDelete &&
-							toBeDeletedDisk.ManagedDisk != nil && toBeDeletedDisk.ManagedDisk.Id != nil {
+						// delete the data disk which was created by Azure Service when creating this resource
+						detachDataDisk := metadata.Client.Features.VirtualMachine.DetachImplicitDataDiskOnDeletion
+						if !detachDataDisk && toBeDeletedDisk != nil && toBeDeletedDisk.ManagedDisk != nil && toBeDeletedDisk.ManagedDisk.Id != nil {
 							diskClient := metadata.Client.Compute.DisksClient
 							diskId, err := commonids.ParseManagedDiskID(*toBeDeletedDisk.ManagedDisk.Id)
 							if err != nil {
@@ -396,10 +387,6 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Update() sdk.ResourceF
 								}
 
 								expandedDisk.Caching = pointer.To(virtualmachines.CachingTypes(caching))
-							}
-
-							if metadata.ResourceData.HasChange("delete_option") {
-								expandedDisk.DeleteOption = pointer.To(virtualmachines.DiskDeleteOptionTypes(config.DeleteOption))
 							}
 
 							if metadata.ResourceData.HasChange("disk_size_gb") {

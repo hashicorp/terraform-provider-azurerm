@@ -1031,7 +1031,6 @@ resource "azurerm_virtual_machine_implicit_data_disk_from_source" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   lun                = "0"
   create_option      = "Copy"
-  delete_option      = "Delete"
   disk_size_gb       = 20
   source_resource_id = azurerm_snapshot.test.id
 }

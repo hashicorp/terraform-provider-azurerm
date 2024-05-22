@@ -44,9 +44,10 @@ func Default() UserFeatures {
 			DeleteNestedItemsDuringDeletion: true,
 		},
 		VirtualMachine: VirtualMachineFeatures{
-			DeleteOSDiskOnDeletion:     true,
-			GracefulShutdown:           false,
-			SkipShutdownAndForceDelete: false,
+			DetachImplicitDataDiskOnDeletion: false,
+			DeleteOSDiskOnDeletion:           true,
+			GracefulShutdown:                 false,
+			SkipShutdownAndForceDelete:       false,
 		},
 		VirtualMachineScaleSet: VirtualMachineScaleSetFeatures{
 			ForceDelete:               false,

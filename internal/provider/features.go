@@ -196,6 +196,11 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"detach_implicit_data_disk_on_deletion": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 					"delete_os_disk_on_deletion": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
@@ -477,6 +482,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 && items[0] != nil {
 			virtualMachinesRaw := items[0].(map[string]interface{})
+			if v, ok := virtualMachinesRaw["detach_implicit_data_disk_on_deletion"]; ok {
+				featuresMap.VirtualMachine.DetachImplicitDataDiskOnDeletion = v.(bool)
+			}
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
 			}
