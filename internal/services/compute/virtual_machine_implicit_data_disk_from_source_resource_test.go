@@ -3,13 +3,17 @@ package compute_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -179,6 +183,145 @@ func TestAccVirtualMachineImplicitDataDiskFromSource_virtualMachineApplication(t
 			),
 		},
 	})
+}
+
+func TestAccVirtualMachineImplicitDataDiskFromSource_detachImplicitDataDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_implicit_data_disk_from_source", "test")
+	r := VirtualMachineImplicitDataDiskFromSourceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+		},
+		{
+			Config: r.detachImplicitDataDisk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				func(state *terraform.State) error {
+					client, err := testclient.Build()
+					if err != nil {
+						return fmt.Errorf("building client: %+v", err)
+					}
+
+					ctx, cancel := context.WithDeadline(client.StopContext, time.Now().Add(5*time.Minute))
+					defer cancel()
+
+					diskClient := client.Compute.DisksClient
+
+					id, err := commonids.ParseManagedDiskID(fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Compute/disks/acctestVMIDD-%d", os.Getenv("ARM_SUBSCRIPTION_ID"), data.RandomInteger, data.RandomInteger))
+					if err != nil {
+						return err
+					}
+
+					_, err = diskClient.Get(ctx, *id)
+					if err != nil {
+						return fmt.Errorf("retrieving %s: %+v", id, err)
+					}
+
+					return nil
+				},
+			),
+		},
+	})
+}
+
+func (r VirtualMachineImplicitDataDiskFromSourceResource) detachImplicitDataDisk(data acceptance.TestData) string {
+	// currently only supported in "eastus2" and "westus2".
+	location := "westus2"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+
+    virtual_machine {
+      detach_implicit_data_disk_on_deletion = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                  = "acctvm-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
+  vm_size               = "Standard_F2"
+
+  delete_os_disk_on_termination = true
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hn%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "%d-disk1"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_snapshot" "test" {
+  name                = "acctestss-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  create_option       = "Copy"
+  source_uri          = azurerm_managed_disk.test.id
+}
+`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (t VirtualMachineImplicitDataDiskFromSourceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
