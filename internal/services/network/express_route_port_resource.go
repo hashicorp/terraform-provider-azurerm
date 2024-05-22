@@ -5,16 +5,16 @@ package network
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressrouteports"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -291,8 +291,8 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("peering_location", props.PeeringLocation)
 			d.Set("bandwidth_in_gbps", props.BandwidthInGbps)
-			d.Set("encapsulation", props.Encapsulation)
-			d.Set("billing_type", props.BillingType)
+			d.Set("encapsulation", string(pointer.From(props.Encapsulation)))
+			d.Set("billing_type", string(pointer.From(props.BillingType)))
 			link1, link2, err := flattenExpressRoutePortLinks(props.Links)
 			if err != nil {
 				return fmt.Errorf("flattening links: %v", err)

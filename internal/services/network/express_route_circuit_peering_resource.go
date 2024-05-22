@@ -5,17 +5,18 @@ package network
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuitpeerings"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuitconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuitpeerings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routefilters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -265,13 +266,10 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	sharedKey := d.Get("shared_key").(string)
 	primaryPeerAddressPrefix := d.Get("primary_peer_address_prefix").(string)
 	secondaryPeerAddressPrefix := d.Get("secondary_peer_address_prefix").(string)
-	vlanId := d.Get("vlan_id").(int)
-	azureASN := d.Get("azure_asn").(int)
-	peerASN := d.Get("peer_asn").(int)
-	route_filter_id := d.Get("route_filter_id").(string)
+
+	routeFilterId := d.Get("routeFilterId").(string)
 
 	circuitConnClient := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	circuitConnectionId := commonids.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName, id.PeeringName)
@@ -284,15 +282,20 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
+	var connection *[]expressroutecircuitpeerings.ExpressRouteCircuitConnection
+	if model := connResp.Model; model != nil {
+		connection = convertCircuitConnectionsToPeeringConnections(model)
+	}
+
 	parameters := expressroutecircuitpeerings.ExpressRouteCircuitPeering{
 		Properties: &expressroutecircuitpeerings.ExpressRouteCircuitPeeringPropertiesFormat{
 			PeeringType:        pointer.To(expressroutecircuitpeerings.ExpressRoutePeeringType(id.PeeringName)),
-			SharedKey:          pointer.To(sharedKey),
-			AzureASN:           pointer.To(int64(azureASN)),
-			PeerASN:            pointer.To(int64(peerASN)),
-			VlanId:             pointer.To(int64(vlanId)),
+			SharedKey:          pointer.To(d.Get("shared_key").(string)),
+			AzureASN:           pointer.To(int64(d.Get("azure_asn").(int))),
+			PeerASN:            pointer.To(int64(d.Get("peer_asn").(int))),
+			VlanId:             pointer.To(int64(d.Get("vlan_id").(int))),
 			GatewayManagerEtag: pointer.To(d.Get("gateway_manager_etag").(string)),
-			Connections:        connResp.Model,
+			Connections:        connection,
 		},
 	}
 
@@ -324,13 +327,13 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 		peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
 		parameters.Properties.MicrosoftPeeringConfig = peeringConfig
 
-		if route_filter_id != "" {
+		if routeFilterId != "" {
 			parameters.Properties.RouteFilter = &expressroutecircuitpeerings.SubResource{
-				Id: pointer.To(route_filter_id),
+				Id: pointer.To(routeFilterId),
 			}
 		}
-	} else if route_filter_id != "" {
-		return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
+	} else if routeFilterId != "" {
+		return fmt.Errorf("`routeFilterId` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 	}
 
 	ipv6Peering := d.Get("ipv6").([]interface{})
@@ -434,25 +437,20 @@ func expandExpressRouteCircuitPeeringMicrosoftConfig(input []interface{}) *expre
 	peering := input[0].(map[string]interface{})
 
 	prefixes := make([]string, 0)
-	inputPrefixes := peering["advertised_public_prefixes"].([]interface{})
-	inputCustomerASN := int64(peering["customer_asn"].(int))
-	inputRoutingRegistryName := peering["routing_registry_name"].(string)
-
-	for _, v := range inputPrefixes {
+	for _, v := range peering["advertised_public_prefixes"].([]interface{}) {
 		prefixes = append(prefixes, v.(string))
 	}
 
 	advertisedCommunities := make([]string, 0)
-	advertisedCommunitiesRaw := peering["advertised_communities"].([]interface{})
-	for _, v := range advertisedCommunitiesRaw {
+	for _, v := range peering["advertised_communities"].([]interface{}) {
 		advertisedCommunities = append(advertisedCommunities, v.(string))
 	}
 
 	return &expressroutecircuitpeerings.ExpressRouteCircuitPeeringConfig{
-		AdvertisedPublicPrefixes: &prefixes,
-		CustomerASN:              &inputCustomerASN,
-		RoutingRegistryName:      &inputRoutingRegistryName,
-		AdvertisedCommunities:    &advertisedCommunities,
+		AdvertisedPublicPrefixes: pointer.To(prefixes),
+		CustomerASN:              pointer.To(int64(peering["customer_asn"].(int))),
+		RoutingRegistryName:      pointer.To(peering["routing_registry_name"].(string)),
+		AdvertisedCommunities:    pointer.To(advertisedCommunities),
 	}
 }
 
@@ -544,4 +542,42 @@ func flattenExpressRouteCircuitIpv6PeeringConfig(input *expressroutecircuitpeeri
 			"enabled":                       pointer.From(input.State) == expressroutecircuitpeerings.ExpressRouteCircuitPeeringStateEnabled,
 		},
 	}
+}
+
+func convertCircuitConnectionsToPeeringConnections(input *[]expressroutecircuitconnections.ExpressRouteCircuitConnection) *[]expressroutecircuitpeerings.ExpressRouteCircuitConnection {
+	output := make([]expressroutecircuitpeerings.ExpressRouteCircuitConnection, 0)
+
+	if input == nil || len(*input) == 0 {
+		return &output
+	}
+
+	for _, i := range *input {
+		o := expressroutecircuitpeerings.ExpressRouteCircuitConnection{
+			Etag: i.Etag,
+			Id:   i.Id,
+			Name: i.Name,
+			Type: i.Type,
+		}
+
+		if props := i.Properties; props != nil {
+			o.Properties = &expressroutecircuitpeerings.ExpressRouteCircuitConnectionPropertiesFormat{
+				AddressPrefix:           props.AddressPrefix,
+				AuthorizationKey:        props.AuthorizationKey,
+				CircuitConnectionStatus: (*expressroutecircuitpeerings.CircuitConnectionStatus)(props.CircuitConnectionStatus),
+				ExpressRouteCircuitPeering: &expressroutecircuitpeerings.SubResource{
+					Id: props.ExpressRouteCircuitPeering.Id,
+				},
+				IPv6CircuitConnectionConfig: &expressroutecircuitpeerings.IPv6CircuitConnectionConfig{
+					AddressPrefix:           props.IPv6CircuitConnectionConfig.AddressPrefix,
+					CircuitConnectionStatus: (*expressroutecircuitpeerings.CircuitConnectionStatus)(props.IPv6CircuitConnectionConfig.CircuitConnectionStatus),
+				},
+				PeerExpressRouteCircuitPeering: &expressroutecircuitpeerings.SubResource{
+					Id: props.PeerExpressRouteCircuitPeering.Id,
+				},
+				ProvisioningState: (*expressroutecircuitpeerings.ProvisioningState)(props.ProvisioningState),
+			}
+		}
+		output = append(output, o)
+	}
+	return &output
 }

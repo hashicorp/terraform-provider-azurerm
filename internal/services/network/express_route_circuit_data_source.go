@@ -5,13 +5,13 @@ package network
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuits"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -157,7 +157,7 @@ func dataSourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			d.Set("service_key", props.ServiceKey)
-			d.Set("service_provider_provisioning_state", props.ServiceProviderProvisioningState)
+			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
 
 			if serviceProviderProperties := flattenExpressRouteCircuitServiceProviderProperties(props.ServiceProviderProperties); serviceProviderProperties != nil {
 				if err := d.Set("service_provider_properties", serviceProviderProperties); err != nil {

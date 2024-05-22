@@ -5,14 +5,14 @@ package network
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuitconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/expressroutecircuits"
-	"log"
-	"time"
-
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
