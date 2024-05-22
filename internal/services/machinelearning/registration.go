@@ -67,6 +67,7 @@ func (r Registration) Resources() []sdk.Resource {
 		WorkspaceNetworkOutboundRuleFqdn{},
 		WorkspaceNetworkOutboundRulePrivateEndpoint{},
 		WorkspaceNetworkOutboundRuleServiceTag{},
+		MachineLearningRegistry{},
 	}
 }
 
