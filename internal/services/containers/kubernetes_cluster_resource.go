@@ -3620,6 +3620,11 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	networkPolicy := ""
 	if profile.NetworkPolicy != nil {
 		networkPolicy = string(*profile.NetworkPolicy)
+
+		// convert "none" network policy to "", because "none" is only supported in preview api-version
+		if networkPolicy == "none" {
+			networkPolicy = ""
+		}
 	}
 
 	outboundType := ""
