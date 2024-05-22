@@ -47,7 +47,7 @@ func testOutputMultiple(cases map[string][]string) string {
 		outputs += fmt.Sprintf(`
 
 output "%s" {
-  value = provider::azurerm::format_resource_id("%s")
+  value = provider::azurerm::normalise_resource_id("%s")
 }
 
 `, k, v[0])

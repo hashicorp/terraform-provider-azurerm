@@ -266,6 +266,11 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 										Optional:    true,
 									},
 
+									"purge_soft_deleted_hardware_security_module_keys_on_destroy": schema.BoolAttribute{
+										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g purged), when destroyed",
+										Optional:    true,
+									},
+
 									"recover_soft_deleted_certificates": schema.BoolAttribute{
 										Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones",
 										Optional:    true,
@@ -283,6 +288,11 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 
 									"recover_soft_deleted_secrets": schema.BoolAttribute{
 										Description: "When enabled soft-deleted `azurerm_key_vault_secret` resources will be restored, instead of creating new ones",
+										Optional:    true,
+									},
+
+									"recover_soft_deleted_hardware_security_module_keys": schema.BoolAttribute{
+										Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
 										Optional:    true,
 									},
 								},
