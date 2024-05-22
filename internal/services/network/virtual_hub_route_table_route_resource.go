@@ -149,7 +149,7 @@ func resourceVirtualHubRouteTableRouteCreateUpdate(d *pluginsdk.ResourceData, me
 		routes = append(routes, result)
 
 	} else {
-		routes := *props.Routes
+		routes = *props.Routes
 		for i := range routes {
 			if routes[i].Name == name {
 				routes[i].DestinationType = d.Get("destinations_type").(string)
