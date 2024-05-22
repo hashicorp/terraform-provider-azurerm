@@ -1,5 +1,9 @@
 ## 3.105.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_machine_learning_compute_cluster` - add validation for `name` [GH-26060]
+
 BUG FIXES:
 
 * `azurerm_container_app_job` - updating the validation for the `name` field [GH-26049]
