@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -171,8 +170,31 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-
+	// Get the Machine Learning Workspace...
 	id := machinelearningcomputes.NewComputeID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, d.Get("name").(string))
+
+	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
+	if err != nil {
+		return err
+	}
+
+	workspaceModel := workspace.Model
+	if workspaceModel == nil {
+		return fmt.Errorf("machine learning %s Workspace: model was nil", id)
+	}
+
+	if workspaceModel.Sku == nil || workspaceModel.Sku.Tier == nil || workspaceModel.Sku.Name == "" {
+		return fmt.Errorf("machine learning %s Workspace: `SKU` was nil or empty", id)
+	}
+
+	if workspaceModel.Location == nil {
+		return fmt.Errorf("machine learning %s Workspace: `Location` was nil", id)
+	}
+
+	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
 
 	existing, err := client.ComputeGet(ctx, id)
 	if err != nil {
@@ -180,12 +202,9 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
-	}
 
-	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && *workspaceModel.Properties.ManagedNetwork.Status.Status != workspaces.ManagedNetworkStatusActive {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` if the workspace is not in a managed network")
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
@@ -213,30 +232,6 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		ComputeLocation:  utils.String(d.Get("location").(string)),
 		Description:      utils.String(d.Get("description").(string)),
 		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
-	}
-
-	// Get the Machine Learning Workspace...
-	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
-	if err != nil {
-		return err
-	}
-
-	workspaceModel := workspace.Model
-	if workspaceModel == nil {
-		return fmt.Errorf("machine learning %s Workspace: model was nil", id)
-	}
-
-	if workspaceModel.Sku == nil || workspaceModel.Sku.Tier == nil || workspaceModel.Sku.Name == "" {
-		return fmt.Errorf("machine learning %s Workspace: `SKU` was nil or empty", id)
-	}
-
-	if workspaceModel.Location == nil {
-		return fmt.Errorf("machine learning %s Workspace: `Location` was nil", id)
-	}
-
-	identity, err := expandIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	// NOTE: The 'ComputeResource' 'Location' field should always point
