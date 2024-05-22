@@ -2,9 +2,13 @@
 
 BUG FIXES:
 
+* `azurerm_container_app_job` - updating the validation for the `name` field [GH-26049]
+* `azurerm_container_app_job` - updating the validation for the `name` field within the `custom_scale_rule` block [GH-26049]
+* `azurerm_container_app_job` - updating the validation for the `name` field within the `rules` block [GH-26049]
 * `azurerm_linux_function_app_slot` - fixed panic when planning from a version older than 3.88.0 [GH-25838]
 * `azurerm_windows_function_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot [GH-25634]
 * `azurerm_windows_web_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot [GH-25634]
+
 
 ## 3.104.2 (May 20, 2024)
 
