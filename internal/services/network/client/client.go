@@ -55,7 +55,6 @@ type Client struct {
 	VnetGatewayNatRuleClient               *network.VirtualNetworkGatewayNatRulesClient
 	VnetGatewayClient                      *network.VirtualNetworkGatewaysClient
 	VnetClient                             *network.VirtualNetworksClient
-	VnetPeeringsClient                     *network.VirtualNetworkPeeringsClient
 	VirtualWanClient                       *network.VirtualWansClient
 	VirtualHubClient                       *network.VirtualHubsClient
 }
@@ -117,9 +116,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	VnetClient := network.NewVirtualNetworksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetClient.Client, o.ResourceManagerAuthorizer)
-
-	VnetPeeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
 
 	PublicIPsClient := network.NewPublicIPAddressesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PublicIPsClient.Client, o.ResourceManagerAuthorizer)
@@ -219,7 +215,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		VnetGatewayNatRuleClient:               &VnetGatewayNatRuleClient,
 		VnetGatewayClient:                      &VnetGatewayClient,
 		VnetClient:                             &VnetClient,
-		VnetPeeringsClient:                     &VnetPeeringsClient,
 		VirtualWanClient:                       &VirtualWanClient,
 		VirtualHubClient:                       &VirtualHubClient,
 		PrivateDnsZoneGroupClient:              &PrivateDnsZoneGroupClient,
