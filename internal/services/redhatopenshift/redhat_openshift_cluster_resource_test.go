@@ -108,6 +108,21 @@ func TestAccOpenShiftCluster_encryptionAtHost(t *testing.T) {
 	})
 }
 
+func TestAccOpenShiftCluster_preconfiguredNSG(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redhat_openshift_cluster", "test")
+	r := OpenShiftClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.preconfiguredNSG(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+	})
+}
+
 func TestAccOpenShiftCluster_pullSecret(t *testing.T) {
 	// the pull secret can be generated from https://console.redhat.com/openshift/install/pull-secret
 	pullSecret := os.Getenv("ARM_TEST_ARO_PULL_SECRET")
@@ -530,6 +545,103 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   network_profile {
     pod_cidr     = "10.128.0.0/14"
     service_cidr = "172.30.0.0/16"
+  }
+
+  api_server_profile {
+    visibility = "Public"
+  }
+
+  ingress_profile {
+    visibility = "Public"
+  }
+
+  main_profile {
+    vm_size   = "Standard_D8s_v3"
+    subnet_id = azurerm_subnet.main_subnet.id
+  }
+
+  worker_profile {
+    vm_size      = "Standard_D4s_v3"
+    disk_size_gb = 128
+    node_count   = 3
+    subnet_id    = azurerm_subnet.worker_subnet.id
+  }
+
+  service_principal {
+    client_id     = azuread_application.test.application_id
+    client_secret = azuread_service_principal_password.test.value
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
+  ]
+}
+  `, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r OpenShiftClusterResource) preconfiguredNSG(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_network_security_group" "test" {
+  name                = "test-nsg"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_security_rule" "test_allow_all_inbound" {
+  name                        = "test_allow_all_inbound"
+  resource_group_name         = azurerm_resource_group.test.name
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "*"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_security_rule" "test_allow_all_outbound" {
+  name                        = "test_allow_all_outbound"
+  resource_group_name         = azurerm_resource_group.test.name
+  priority                    = 100
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "*"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "test_main" {
+  subnet_id                 = azurerm_subnet.main_subnet.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "test_worker" {
+  subnet_id                 = azurerm_subnet.worker_subnet.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_redhat_openshift_cluster" "test" {
+  name                = "acctestaro%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  cluster_profile {
+    domain       = "aro-%[3]s.com"
+    version      = "4.13.23"
+  }
+
+  network_profile {
+    pod_cidr                  = "10.128.0.0/14"
+    service_cidr              = "172.30.0.0/16"
+    preconfigured_nsg_enabled = true
   }
 
   api_server_profile {

@@ -217,6 +217,8 @@ A `network_profile` block supports the following:
 
 * `outbound_type` - (Optional) The outbound (egress) routing method. Possible values are `Loadbalancer` and `UserDefinedRouting`. Defaults to `Loadbalancer`. Changing this forces a new resource to be created.
 
+* `preconfigured_nsg_enabled` - (Optional) Whether a preconfigured network security group is being used on the subnets.  Defaults to `false`.  Changing this forces a new resource to be created.
+
 ---
 
 A `api_server_profile` block supports the following:
