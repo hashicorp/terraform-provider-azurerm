@@ -576,6 +576,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-04-03/azuremoni
 github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms
+github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions
 github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations
@@ -931,6 +932,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2023-10-01-pr
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/resourceconnector/2022-10-27/appliances
+github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink
