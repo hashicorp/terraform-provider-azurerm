@@ -70,6 +70,7 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"managed_resource_group": {
+			// TODO: rename this to `managed_resource_group_name` in 4.0
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
