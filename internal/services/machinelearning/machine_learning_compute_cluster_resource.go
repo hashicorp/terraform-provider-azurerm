@@ -175,7 +175,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v, workspaceID", err)
+		return fmt.Errorf("retrieving %s: %+v", workspaceID, err)
 	}
 
 	workspaceModel := workspace.Model
