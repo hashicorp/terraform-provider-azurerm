@@ -1,0 +1,3 @@
+<fragment>
+  <json-to-xml apply="always" consider-accept-header="false" />
+</fragment>

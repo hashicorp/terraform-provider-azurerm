@@ -86,9 +86,9 @@ import (
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	labservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/labservice/client"
-	legacy "github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
 	loadbalancers "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/client"
+	loadtestservice "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadtestservice/client"
 	loganalytics "github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/client"
 	logic "github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/client"
 	logz "github.com/hashicorp/terraform-provider-azurerm/internal/services/logz/client"
@@ -223,9 +223,9 @@ type Client struct {
 	KeyVault                          *keyvault.Client
 	Kusto                             *kusto.Client
 	LabService                        *labservice.Client
-	Legacy                            *legacy.Client
 	Lighthouse                        *lighthouse.Client
 	LoadBalancers                     *loadbalancers.Client
+	LoadTestService                   *loadtestservice.AutoClient
 	LogAnalytics                      *loganalytics.Client
 	Logic                             *logic.Client
 	Logz                              *logz.Client
@@ -482,7 +482,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.LabService, err = labservice.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LabService: %+v", err)
 	}
-	client.Legacy = legacy.NewClient(o)
 	if client.Lighthouse, err = lighthouse.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Lighthouse: %+v", err)
 	}
@@ -491,6 +490,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.LoadBalancers, err = loadbalancers.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for LoadBalancers: %+v", err)
+	}
+	if client.LoadTestService, err = loadtestservice.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for LoadTestService: %+v", err)
 	}
 	if client.Logic, err = logic.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Logic: %+v", err)

@@ -2948,7 +2948,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validate.LowerCaseAlphaNumericWithHyphensAndPeriods,
 				},
 
 				"metadata": {

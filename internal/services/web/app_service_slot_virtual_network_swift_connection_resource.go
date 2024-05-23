@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -64,7 +65,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 
 func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
-	subnetClient := meta.(*clients.Client).Network.SubnetsClient
+	subnetClient := meta.(*clients.Client).Network.Client.Subnets
 	vnetClient := meta.(*clients.Client).Network.VnetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +158,13 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsd
 	if err != nil {
 		return fmt.Errorf("retrieving App Service Slot VNet association between %q (App Service %q / Resource Group %q) and Virtual Network %q: %s", slotName, name, resourceGroup, virtualNetworkName, err)
 	}
-	d.SetId(*read.ID)
+
+	slotSwiftVirtualNetworkId, err := parse.SlotVirtualNetworkSwiftConnectionID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(slotSwiftVirtualNetworkId.ID())
 
 	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
 }
@@ -222,19 +229,6 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	subnetID, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
-	if err != nil {
-		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
-	}
-	subnetName := subnetID.SubnetName
-	virtualNetworkName := subnetID.VirtualNetworkName
-
-	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
-
-	locks.ByName(subnetName, network.SubnetResourceName)
-	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
-
 	read, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		return fmt.Errorf("making read request on virtual network properties (Slot Name %q / App Service %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
@@ -248,6 +242,19 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Reso
 		// assume deleted
 		return nil
 	}
+
+	subnetID, err := commonids.ParseSubnetID(pointer.From(subnet))
+	if err != nil {
+		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
+	}
+	subnetName := subnetID.SubnetName
+	virtualNetworkName := subnetID.VirtualNetworkName
+
+	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
+
+	locks.ByName(subnetName, network.SubnetResourceName)
+	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 
 	resp, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {

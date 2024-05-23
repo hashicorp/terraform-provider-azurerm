@@ -1738,12 +1738,16 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
+				"maximum_surge_instances_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 			},
 		},
 	}
 }
 
-func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal bool) (*virtualmachinescalesets.RollingUpgradePolicy, error) {
+func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal, overProvision bool) (*virtualmachinescalesets.RollingUpgradePolicy, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1756,6 +1760,7 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 		MaxUnhealthyUpgradedInstancePercent: pointer.To(int64(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             pointer.To(raw["pause_time_between_batches"].(string)),
 		PrioritizeUnhealthyInstances:        pointer.To(raw["prioritize_unhealthy_instances_enabled"].(bool)),
+		MaxSurge:                            pointer.To(raw["maximum_surge_instances_enabled"].(bool)),
 	}
 
 	enableCrossZoneUpgrade := raw["cross_zone_upgrades_enabled"].(bool)
@@ -1764,6 +1769,12 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 		rollingUpgradePolicy.EnableCrossZoneUpgrade = pointer.To(enableCrossZoneUpgrade)
 	} else if enableCrossZoneUpgrade {
 		return nil, fmt.Errorf("`rolling_upgrade_policy.0.cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified")
+	}
+
+	maxSurge := raw["maximum_surge_instances_enabled"].(bool)
+	if overProvision && maxSurge {
+		// MaxSurge can only be set when overprovision is set to false
+		return nil, fmt.Errorf("`rolling_upgrade_policy.0.maximum_surge_instances_enabled` can only be set to `true` when `overprovision` is disabled (set to `false`)")
 	}
 
 	return rollingUpgradePolicy, nil
@@ -1804,6 +1815,11 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 		prioritizeUnhealthyInstances = *input.PrioritizeUnhealthyInstances
 	}
 
+	maxSurge := false
+	if input.MaxSurge != nil {
+		maxSurge = *input.MaxSurge
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"cross_zone_upgrades_enabled":             enableCrossZoneUpgrade,
@@ -1812,6 +1828,7 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 			"max_unhealthy_upgraded_instance_percent": maxUnhealthyUpgradedInstancePercent,
 			"pause_time_between_batches":              pauseTimeBetweenBatches,
 			"prioritize_unhealthy_instances_enabled":  prioritizeUnhealthyInstances,
+			"maximum_surge_instances_enabled":         maxSurge,
 		},
 	}
 }

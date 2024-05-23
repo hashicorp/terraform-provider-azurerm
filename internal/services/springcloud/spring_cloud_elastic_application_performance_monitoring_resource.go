@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -251,7 +252,7 @@ func (s SpringCloudElasticApplicationPerformanceMonitoringResource) Read() sdk.R
 			if result.Model != nil && result.Model.Value != nil {
 				for _, value := range *result.Model.Value {
 					apmId, err := appplatform.ParseApmIDInsensitively(value)
-					if err == nil && apmId.ID() == id.ID() {
+					if err == nil && resourceids.Match(apmId, id) {
 						globallyEnabled = true
 						break
 					}

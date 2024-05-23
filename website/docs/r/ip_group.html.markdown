@@ -4,7 +4,6 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ip_group"
 description: |-
   Manages an IP group which contains a list of CIDRs and/or IP addresses.
-  
 ---
 
 # azurerm_ip_group

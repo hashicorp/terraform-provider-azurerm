@@ -16,6 +16,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -50,24 +53,29 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 			},
 
 			"key_vault_id": {
-				// TODO: should this be split into two resources, since Key Vault and Managed HSM behave subtly differently in places already
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
-					// Storage Account Customer Managed Keys support both Key Vault and Key Vault Managed HSM keys:
-					// https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview
+					// TODO 4.0: revert to only accepting key vault IDs as there is an explicit attribute for managed HSMs
 					commonids.ValidateKeyVaultID,
 					managedhsms.ValidateManagedHSMID,
 				),
-				ExactlyOneOf: []string{"key_vault_id", "key_vault_uri"},
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri"},
 			},
 
 			"key_vault_uri": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.IsURLWithHTTPS,
-				ExactlyOneOf: []string{"key_vault_id", "key_vault_uri"},
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri"},
 				Computed:     true,
+			},
+
+			"managed_hsm_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.Any(validate.ManagedHSMDataPlaneVersionedKeyID, validate.ManagedHSMDataPlaneVersionlessKeyID),
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id", "key_vault_uri"},
 			},
 
 			"key_name": {
@@ -133,10 +141,15 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 		}
 	}
 
+	keyName := ""
+	keyVersion := ""
 	keyVaultURI := ""
+
 	if keyVaultURIRaw := d.Get("key_vault_uri").(string); keyVaultURIRaw != "" {
+		keyName = d.Get("key_name").(string)
+		keyVersion = d.Get("key_version").(string)
 		keyVaultURI = keyVaultURIRaw
-	} else {
+	} else if _, ok := d.GetOk("key_vault_id"); ok {
 		keyVaultID, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
 		if err != nil {
 			return err
@@ -166,11 +179,23 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
 		}
 
+		keyName = d.Get("key_name").(string)
+		keyVersion = d.Get("key_version").(string)
 		keyVaultURI = *keyVaultBaseURL
+	} else if managedHSMKeyId, ok := d.GetOk("managed_hsm_key_id"); ok {
+		if keyId, err := parse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
+			keyName = keyId.KeyName
+			keyVersion = keyId.KeyVersion
+			keyVaultURI = keyId.BaseUri()
+		} else if keyId, err := parse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
+			keyName = keyId.KeyName
+			keyVersion = ""
+			keyVaultURI = keyId.BaseUri()
+		} else {
+			return fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId)
+		}
 	}
 
-	keyName := d.Get("key_name").(string)
-	keyVersion := d.Get("key_version").(string)
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
 	federatedIdentityClientID := d.Get("federated_identity_client_id").(string)
 
@@ -212,6 +237,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -237,7 +263,6 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		if props := model.Properties; props != nil {
 			if encryption := props.Encryption; encryption != nil && encryption.KeySource != nil && *encryption.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
 				enabled = true
-
 				keyName := ""
 				keyVaultURI := ""
 				keyVersion := ""
@@ -257,20 +282,40 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 					userAssignedIdentity = pointer.From(identityProps.UserAssignedIdentity)
 				}
 
-				// now we have the key vault uri we can look up the ID
-				// we can't look up the ID when using federated identity as the key will be under different tenant
-				keyVaultID := ""
-				if federatedIdentityClientID == "" {
-					subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-					tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
-					if err != nil {
-						return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
-					}
-					keyVaultID = pointer.From(tmpKeyVaultID)
+				isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+				if err != nil {
+					return err
 				}
 
-				d.Set("key_vault_id", keyVaultID)
-				d.Set("key_vault_uri", keyVaultURI)
+				switch {
+				case isHSMURI && keyVersion == "":
+					{
+						keyId := parse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName)
+						d.Set("managed_hsm_key_id", keyId.ID())
+					}
+				case isHSMURI && keyVersion != "":
+					{
+						keyId := parse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion)
+						d.Set("managed_hsm_key_id", keyId.ID())
+					}
+				case !isHSMURI:
+					{
+						d.Set("key_vault_uri", keyVaultURI)
+						// now we have the key vault uri we can look up the ID
+						// we can't look up the ID when using federated identity as the key will be under different tenant
+						keyVaultID := ""
+						if federatedIdentityClientID == "" {
+							subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+							tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
+							if err != nil {
+								return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+							}
+							keyVaultID = pointer.From(tmpKeyVaultID)
+						}
+						d.Set("key_vault_id", keyVaultID)
+					}
+				}
+
 				d.Set("key_name", keyName)
 				d.Set("key_version", keyVersion)
 				d.Set("user_assigned_identity_id", userAssignedIdentity)

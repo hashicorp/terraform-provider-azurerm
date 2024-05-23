@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/custompollers"
 	managedHSMValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -179,14 +178,13 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	kvClient := meta.(*clients.Client).ManagedHSMs
-	hsmClient := kvClient.ManagedHsmClient
+	client := meta.(*clients.Client).ManagedHSMs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := managedhsms.NewManagedHSMID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := hsmClient.Get(ctx, id)
+	existing, err := client.ManagedHsmClient.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -221,20 +219,35 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		hsm.Properties.TenantId = pointer.To(tenantId)
 	}
 
-	if err := hsmClient.CreateOrUpdateThenPoll(ctx, id, hsm); err != nil {
+	if err := client.ManagedHsmClient.CreateOrUpdateThenPoll(ctx, id, hsm); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
+	dataPlaneUri := ""
+	resp, err := client.ManagedHsmClient.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	if model := resp.Model; model != nil && model.Properties != nil && model.Properties.HsmUri != nil {
+		dataPlaneUri = *model.Properties.HsmUri
+	}
+	if dataPlaneUri == "" {
+		return fmt.Errorf("retrieving %s: `properties.HsmUri` was nil", id)
+	}
+	client.AddToCache(id, dataPlaneUri)
+
 	// security domain download to activate this module
 	if ok := d.HasChange("security_domain_key_vault_certificate_ids"); ok {
 		// get hsm uri
-		resp, err := hsmClient.Get(ctx, id)
+		resp, err := client.ManagedHsmClient.Get(ctx, id)
 		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
 			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
-		encData, err := securityDomainDownload(ctx, kvClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+
+		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+		encData, err := securityDomainDownload(ctx, client.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
@@ -284,7 +297,9 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		if err != nil || resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.HsmUri == nil {
 			return fmt.Errorf("got nil HSMUri for %s: %+v", id, err)
 		}
-		encData, err := securityDomainDownload(ctx, kvClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
+
+		keyVaultClient := meta.(*clients.Client).KeyVault.ManagementClient
+		encData, err := securityDomainDownload(ctx, kvClient.DataPlaneSecurityDomainsClient, *keyVaultClient, *resp.Model.Properties.HsmUri, d.Get("security_domain_key_vault_certificate_ids").([]interface{}), d.Get("security_domain_quorum").(int))
 		if err != nil {
 			return fmt.Errorf("downloading security domain for %q: %+v", id, err)
 		}
@@ -358,7 +373,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleRead(d *pluginsdk.ResourceD
 }
 
 func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	hsmClient := meta.(*clients.Client).ManagedHSMs.ManagedHsmClient
+	client := meta.(*clients.Client).ManagedHSMs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -367,8 +382,8 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		return err
 	}
 
-	// We need to grab the keyvault hsm to see if purge protection is enabled prior to deletion
-	resp, err := hsmClient.Get(ctx, *id)
+	// We need to grab the managed hsm to see if purge protection is enabled prior to deletion
+	resp, err := client.ManagedHsmClient.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -382,7 +397,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 		}
 	}
 
-	if err := hsmClient.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.ManagedHsmClient.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
@@ -397,15 +412,17 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleDelete(d *pluginsdk.Resourc
 	// try to purge again if managed HSM still exists after 1 minute
 	// for API issue: https://github.com/Azure/azure-rest-api-specs/issues/27138
 	purgeId := managedhsms.NewDeletedManagedHSMID(id.SubscriptionId, loc, id.ManagedHSMName)
-	if _, err := hsmClient.PurgeDeleted(ctx, purgeId); err != nil {
+	if _, err := client.ManagedHsmClient.PurgeDeleted(ctx, purgeId); err != nil {
 		return fmt.Errorf("purging %s: %+v", id, err)
 	}
 
-	purgePoller := custompollers.NewHSMPurgePoller(hsmClient, purgeId)
+	purgePoller := custompollers.NewHSMPurgePoller(client.ManagedHsmClient, purgeId)
 	poller := pollers.NewPoller(purgePoller, time.Second*30, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be purged: %+v", id, err)
 	}
+
+	client.Purge(*id)
 
 	return nil
 }
@@ -444,10 +461,7 @@ func flattenMHSMNetworkAcls(acl *managedhsms.MHSMNetworkRuleSet) []interface{} {
 	}
 }
 
-func securityDomainDownload(ctx context.Context, cli *client.Client, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
-	sdClient := cli.DataPlaneSecurityDomainsClient
-	keyClient := cli.DataPlaneClient
-
+func securityDomainDownload(ctx context.Context, sdClient *kv74.HSMSecurityDomainClient, keyClient kv74.BaseClient, vaultBaseUrl string, certIds []interface{}, quorum int) (encDataStr string, err error) {
 	var param kv74.CertificateInfoObject
 
 	param.Required = utils.Int32(int32(quorum))
