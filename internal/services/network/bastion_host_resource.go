@@ -171,7 +171,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 			}),
 
 			pluginsdk.ForceNewIf("ip_configuration", func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) bool {
-				// `ip_configuration` can be changed while SKU is `Developer` or `Developer` SKU is upgraded to other SKUs.
+				// `ip_configuration` can be changed when `Developer` SKU is upgraded to other SKUs.
 				if d.HasChange("ip_configuration") {
 					old, new := d.GetChange("sku")
 					if old.(string) != "" && new.(string) != "" && skuWeight[old.(string)] == 1 && skuWeight[old.(string)] <= skuWeight[new.(string)] {

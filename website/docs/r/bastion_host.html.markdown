@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
-~> **Note:** `ip_configuration` can be changed without re-creation only when SKU is `Developer` or `Developer` SKU is upgraded to other SKUs.
+~> **Note:** `ip_configuration` can be changed without re-creation only when `Developer` SKU is upgraded to other SKUs.
 
 * `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host. Defaults to `false`.
 
