@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -202,10 +203,10 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	
+
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
-
+	}
 	nodePublicIPEnabled, ok := d.Get("node_public_ip_enabled").(bool)
 	if !ok {
 		return fmt.Errorf("unable to assert type for `node_public_ip_enabled`")
