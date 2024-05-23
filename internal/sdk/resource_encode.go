@@ -65,6 +65,11 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 				continue
 			}
 
+			if structTags.addedInNextMajorVersion && !features.FourPointOh() {
+				debugLogger.Infof("The HCL Path %q is marked as not yet present - skipping", structTags.hclPath)
+				continue
+			}
+
 			switch field.Type.Kind() {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				iv := fieldVal.Int()

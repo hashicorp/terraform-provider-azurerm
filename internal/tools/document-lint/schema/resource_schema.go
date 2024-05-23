@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package schema
 
 import (
@@ -101,4 +104,14 @@ func (r *Resource) HasPathFor(path []string) bool {
 		}
 	}
 	return true
+}
+
+func (r *Resource) IsDeprecated() bool {
+	if r.Schema != nil {
+		return r.Schema.DeprecationMessage != ""
+	} else if _, ok := r.SDKResource.(sdk.ResourceWithDeprecationReplacedBy); ok {
+		return true
+	}
+
+	return false
 }

@@ -9,22 +9,23 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/publicipaddresses"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourcePublicIp() *pluginsdk.Resource {
@@ -35,7 +36,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 		Delete: resourcePublicIpDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PublicIpAddressID(id)
+			_, err := commonids.ParsePublicIPAddressID(id)
 			return err
 		}),
 
@@ -62,8 +63,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPAllocationMethodStatic),
-					string(network.IPAllocationMethodDynamic),
+					string(publicipaddresses.IPAllocationMethodStatic),
+					string(publicipaddresses.IPAllocationMethodDynamic),
 				}, false),
 			},
 
@@ -72,11 +73,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.DdosSettingsProtectionModeDisabled),
-					string(network.DdosSettingsProtectionModeEnabled),
-					string(network.DdosSettingsProtectionModeVirtualNetworkInherited),
+					string(publicipaddresses.DdosSettingsProtectionModeDisabled),
+					string(publicipaddresses.DdosSettingsProtectionModeEnabled),
+					string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
 				}, false),
-				Default: string(network.DdosSettingsProtectionModeVirtualNetworkInherited),
+				Default: string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited),
 			},
 
 			"ddos_protection_plan_id": {
@@ -90,11 +91,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"ip_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.IPVersionIPv4),
+				Default:  string(publicipaddresses.IPVersionIPvFour),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPVersionIPv4),
-					string(network.IPVersionIPv6),
+					string(publicipaddresses.IPVersionIPvFour),
+					string(publicipaddresses.IPVersionIPvSix),
 				}, false),
 			},
 
@@ -102,21 +103,27 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(network.PublicIPAddressSkuNameBasic),
+				Default: func() interface{} {
+					// https://azure.microsoft.com/en-us/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/
+					if !features.FourPointOhBeta() {
+						return string(publicipaddresses.PublicIPAddressSkuNameBasic)
+					}
+					return string(publicipaddresses.PublicIPAddressSkuNameStandard)
+				}(),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.PublicIPAddressSkuNameBasic),
-					string(network.PublicIPAddressSkuNameStandard),
+					string(publicipaddresses.PublicIPAddressSkuNameBasic),
+					string(publicipaddresses.PublicIPAddressSkuNameStandard),
 				}, false),
 			},
 
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.PublicIPAddressSkuTierRegional),
+				Default:  string(publicipaddresses.PublicIPAddressSkuTierRegional),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.PublicIPAddressSkuTierGlobal),
-					string(network.PublicIPAddressSkuTierRegional),
+					string(publicipaddresses.PublicIPAddressSkuTierGlobal),
+					string(publicipaddresses.PublicIPAddressSkuTierRegional),
 				}, false),
 			},
 
@@ -166,40 +173,34 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPsClient
+	client := meta.(*clients.Client).Network.PublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
 
-	id := parse.NewPublicIpAddressID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewPublicIPAddressID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		existing, err := client.Get(ctx, id, publicipaddresses.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_public_ip", id.ID())
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
-	skuTier := d.Get("sku_tier").(string)
-	t := d.Get("tags").(map[string]interface{})
-
-	idleTimeout := d.Get("idle_timeout_in_minutes").(int)
-	ipVersion := network.IPVersion(d.Get("ip_version").(string))
 	ipAllocationMethod := d.Get("allocation_method").(string)
 
 	if strings.EqualFold(sku, "standard") {
@@ -210,31 +211,32 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	ddosProtectionMode := d.Get("ddos_protection_mode").(string)
 
-	publicIp := network.PublicIPAddress{
-		Name:             utils.String(id.Name),
-		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
-		Location:         &location,
-		Sku: &network.PublicIPAddressSku{
-			Name: network.PublicIPAddressSkuName(sku),
-			Tier: network.PublicIPAddressSkuTier(skuTier),
+	publicIp := publicipaddresses.PublicIPAddress{
+		Name:             pointer.To(id.PublicIPAddressesName),
+		ExtendedLocation: expandEdgeZoneNew(d.Get("edge_zone").(string)),
+		Location:         pointer.To(location.Normalize(d.Get("location").(string))),
+		Sku: &publicipaddresses.PublicIPAddressSku{
+			Name: pointer.To(publicipaddresses.PublicIPAddressSkuName(sku)),
+			Tier: pointer.To(publicipaddresses.PublicIPAddressSkuTier(d.Get("sku_tier").(string))),
 		},
-		PublicIPAddressPropertiesFormat: &network.PublicIPAddressPropertiesFormat{
-			PublicIPAllocationMethod: network.IPAllocationMethod(ipAllocationMethod),
-			PublicIPAddressVersion:   ipVersion,
-			IdleTimeoutInMinutes:     utils.Int32(int32(idleTimeout)),
-			DdosSettings: &network.DdosSettings{
-				ProtectionMode: network.DdosSettingsProtectionMode(ddosProtectionMode),
+		Properties: &publicipaddresses.PublicIPAddressPropertiesFormat{
+			PublicIPAllocationMethod: pointer.To(publicipaddresses.IPAllocationMethod(ipAllocationMethod)),
+			PublicIPAddressVersion:   pointer.To(publicipaddresses.IPVersion(d.Get("ip_version").(string))),
+			IdleTimeoutInMinutes:     pointer.To(int64(d.Get("idle_timeout_in_minutes").(int))),
+			DdosSettings: &publicipaddresses.DdosSettings{
+				ProtectionMode: pointer.To(publicipaddresses.DdosSettingsProtectionMode(ddosProtectionMode)),
 			},
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
 	ddosProtectionPlanId, planOk := d.GetOk("ddos_protection_plan_id")
 	if planOk {
 		if !strings.EqualFold(ddosProtectionMode, "enabled") {
 			return fmt.Errorf("ddos protection plan id can only be set when ddos protection is enabled")
 		}
-		publicIp.PublicIPAddressPropertiesFormat.DdosSettings.DdosProtectionPlan = &network.SubResource{
-			ID: utils.String(ddosProtectionPlanId.(string)),
+		publicIp.Properties.DdosSettings.DdosProtectionPlan = &publicipaddresses.SubResource{
+			Id: pointer.To(ddosProtectionPlanId.(string)),
 		}
 	}
 
@@ -246,50 +248,45 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	publicIpPrefixId, publicIpPrefixIdOk := d.GetOk("public_ip_prefix_id")
 
 	if publicIpPrefixIdOk {
-		publicIpPrefix := network.SubResource{}
-		publicIpPrefix.ID = utils.String(publicIpPrefixId.(string))
-		publicIp.PublicIPAddressPropertiesFormat.PublicIPPrefix = &publicIpPrefix
+		publicIpPrefix := publicipaddresses.SubResource{}
+		publicIpPrefix.Id = pointer.To(publicIpPrefixId.(string))
+		publicIp.Properties.PublicIPPrefix = &publicIpPrefix
 	}
 
 	dnl, dnlOk := d.GetOk("domain_name_label")
 	rfqdn, rfqdnOk := d.GetOk("reverse_fqdn")
 
 	if dnlOk || rfqdnOk {
-		dnsSettings := network.PublicIPAddressDNSSettings{}
+		dnsSettings := publicipaddresses.PublicIPAddressDnsSettings{}
 
 		if rfqdnOk {
-			dnsSettings.ReverseFqdn = utils.String(rfqdn.(string))
+			dnsSettings.ReverseFqdn = pointer.To(rfqdn.(string))
 		}
 
 		if dnlOk {
-			dnsSettings.DomainNameLabel = utils.String(dnl.(string))
+			dnsSettings.DomainNameLabel = pointer.To(dnl.(string))
 		}
 
-		publicIp.PublicIPAddressPropertiesFormat.DNSSettings = &dnsSettings
+		publicIp.Properties.DnsSettings = &dnsSettings
 	}
 
 	if v, ok := d.GetOk("ip_tags"); ok {
 		ipTags := v.(map[string]interface{})
-		newIpTags := []network.IPTag{}
+		newIpTags := []publicipaddresses.IPTag{}
 
 		for key, val := range ipTags {
-			ipTag := network.IPTag{
-				IPTagType: utils.String(key),
-				Tag:       utils.String(val.(string)),
+			ipTag := publicipaddresses.IPTag{
+				IPTagType: pointer.To(key),
+				Tag:       pointer.To(val.(string)),
 			}
 			newIpTags = append(newIpTags, ipTag)
 		}
 
-		publicIp.PublicIPAddressPropertiesFormat.IPTags = &newIpTags
+		publicIp.Properties.IPTags = &newIpTags
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, publicIp)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, publicIp); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -297,18 +294,18 @@ func resourcePublicIpCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPsClient
+	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PublicIpAddressID(d.Id())
+	id, err := commonids.ParsePublicIPAddressID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -316,72 +313,69 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("edge_zone", flattenEdgeZone(resp.ExtendedLocation))
-	d.Set("zones", zones.FlattenUntyped(resp.Zones))
+	d.Set("name", id.PublicIPAddressesName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", string(sku.Name))
-		d.Set("sku_tier", string(sku.Tier))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("edge_zone", flattenEdgeZoneNew(model.ExtendedLocation))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
-		d.Set("allocation_method", string(props.PublicIPAllocationMethod))
-		d.Set("ip_version", string(props.PublicIPAddressVersion))
-
-		if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
-			d.Set("public_ip_prefix_id", publicIpPrefix.ID)
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", string(pointer.From(sku.Name)))
+			d.Set("sku_tier", string(pointer.From(sku.Tier)))
 		}
+		if props := model.Properties; props != nil {
+			d.Set("allocation_method", string(pointer.From(props.PublicIPAllocationMethod)))
+			d.Set("ip_version", string(pointer.From(props.PublicIPAddressVersion)))
 
-		if settings := props.DNSSettings; settings != nil {
-			d.Set("fqdn", settings.Fqdn)
-			d.Set("reverse_fqdn", settings.ReverseFqdn)
-			d.Set("domain_name_label", settings.DomainNameLabel)
-		}
-
-		ddosProtectionMode := string(network.DdosSettingsProtectionModeVirtualNetworkInherited)
-		if ddosSetting := props.DdosSettings; ddosSetting != nil {
-			ddosProtectionMode = string(ddosSetting.ProtectionMode)
-			if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
-				d.Set("ddos_protection_plan_id", subResource.ID)
+			if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
+				d.Set("public_ip_prefix_id", publicIpPrefix.Id)
 			}
+
+			if settings := props.DnsSettings; settings != nil {
+				d.Set("fqdn", settings.Fqdn)
+				d.Set("reverse_fqdn", settings.ReverseFqdn)
+				d.Set("domain_name_label", settings.DomainNameLabel)
+			}
+
+			ddosProtectionMode := string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited)
+			if ddosSetting := props.DdosSettings; ddosSetting != nil {
+				ddosProtectionMode = string(pointer.From(ddosSetting.ProtectionMode))
+				if subResource := ddosSetting.DdosProtectionPlan; subResource != nil {
+					d.Set("ddos_protection_plan_id", subResource.Id)
+				}
+			}
+			d.Set("ddos_protection_mode", ddosProtectionMode)
+
+			d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
+
+			d.Set("ip_address", props.IPAddress)
+			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		}
-		d.Set("ddos_protection_mode", ddosProtectionMode)
-
-		d.Set("ip_tags", flattenPublicIpPropsIpTags(props.IPTags))
-
-		d.Set("ip_address", props.IPAddress)
-		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPsClient
+	client := meta.(*clients.Client).Network.PublicIPAddresses
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PublicIpAddressID(d.Id())
+	id, err := commonids.ParsePublicIPAddressID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func flattenPublicIpPropsIpTags(input *[]network.IPTag) map[string]interface{} {
+func flattenPublicIpPropsIpTags(input *[]publicipaddresses.IPTag) map[string]interface{} {
 	out := make(map[string]interface{})
 
 	if input != nil {

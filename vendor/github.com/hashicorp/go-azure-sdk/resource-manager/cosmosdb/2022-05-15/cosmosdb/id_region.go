@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RegionId{}
+func init() {
+	recaser.RegisterResourceId(&RegionId{})
+}
+
+var _ resourceids.ResourceId = &RegionId{}
 
 // RegionId is a struct representing the Resource ID for a Region
 type RegionId struct {
@@ -32,7 +37,7 @@ func NewRegionID(subscriptionId string, resourceGroupName string, databaseAccoun
 
 // ParseRegionID parses 'input' into a RegionId
 func ParseRegionID(input string) (*RegionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RegionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RegionId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseRegionID(input string) (*RegionId, error) {
 // ParseRegionIDInsensitively parses 'input' case-insensitively into a RegionId
 // note: this method should only be used for API response data and not user input
 func ParseRegionIDInsensitively(input string) (*RegionId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RegionId{})
+	parser := resourceids.NewParserFromResourceIdType(&RegionId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

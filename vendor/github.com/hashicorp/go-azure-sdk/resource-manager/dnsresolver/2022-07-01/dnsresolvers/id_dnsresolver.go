@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DnsResolverId{}
+func init() {
+	recaser.RegisterResourceId(&DnsResolverId{})
+}
+
+var _ resourceids.ResourceId = &DnsResolverId{}
 
 // DnsResolverId is a struct representing the Resource ID for a Dns Resolver
 type DnsResolverId struct {
@@ -30,7 +35,7 @@ func NewDnsResolverID(subscriptionId string, resourceGroupName string, dnsResolv
 
 // ParseDnsResolverID parses 'input' into a DnsResolverId
 func ParseDnsResolverID(input string) (*DnsResolverId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DnsResolverId{})
+	parser := resourceids.NewParserFromResourceIdType(&DnsResolverId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseDnsResolverID(input string) (*DnsResolverId, error) {
 // ParseDnsResolverIDInsensitively parses 'input' case-insensitively into a DnsResolverId
 // note: this method should only be used for API response data and not user input
 func ParseDnsResolverIDInsensitively(input string) (*DnsResolverId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DnsResolverId{})
+	parser := resourceids.NewParserFromResourceIdType(&DnsResolverId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

@@ -15,8 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
-	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,8 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -89,18 +89,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"managed_services_cmk_key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
-			},
-
-			"managed_disk_cmk_key_vault_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
-			},
-
 			"managed_disk_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -126,12 +114,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				},
 			},
 
-			"managed_disk_cmk_rotation_to_latest_version_enabled": {
-				Type:         pluginsdk.TypeBool,
-				Optional:     true,
-				RequiredWith: []string{"managed_disk_cmk_key_vault_key_id"},
-			},
-
 			"infrastructure_encryption_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
@@ -143,6 +125,18 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"default_storage_firewall_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				RequiredWith: []string{"access_connector_id"},
+			},
+
+			"access_connector_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				RequiredWith: []string{"default_storage_firewall_enabled"},
 			},
 
 			"network_security_group_rules_required": {
@@ -160,7 +154,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: loadBalancerValidate.LoadBalancerBackendAddressPoolID,
+				ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
 			},
 
 			"custom_parameters": {
@@ -281,6 +275,35 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"managed_services_cmk_key_vault_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+			},
+
+			"managed_services_cmk_key_vault_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateKeyVaultID,
+			},
+
+			"managed_disk_cmk_key_vault_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+			},
+			"managed_disk_cmk_key_vault_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateKeyVaultID,
+			},
+
+			"managed_disk_cmk_rotation_to_latest_version_enabled": {
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				RequiredWith: []string{"managed_disk_cmk_key_vault_key_id"},
+			},
+
 			"disk_encryption_set_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -316,6 +339,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			_, customerEncryptionEnabled := d.GetChange("customer_managed_key_enabled")
+			_, defaultStorageFirewallEnabled := d.GetChange("default_storage_firewall_enabled")
 			_, infrastructureEncryptionEnabled := d.GetChange("infrastructure_encryption_enabled")
 			_, publicNetworkAccess := d.GetChange("public_network_access_enabled")
 			_, requireNsgRules := d.GetChange("network_security_group_rules_required")
@@ -347,8 +371,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				}
 			}
 
-			if (customerEncryptionEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
-				return fmt.Errorf("'customer_managed_key_enabled', 'infrastructure_encryption_enabled', 'managed_disk_cmk_key_vault_key_id' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
+			if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
+				return fmt.Errorf("'customer_managed_key_enabled', 'default_storage_firewall_enabled', 'infrastructure_encryption_enabled', 'managed_disk_cmk_key_vault_key_id' and 'managed_services_cmk_key_vault_key_id' are only available with a 'premium' workspace 'sku', got %q", newSku)
 			}
 
 			return nil
@@ -358,6 +382,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
+	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -386,13 +411,13 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
 	if backendPool != "" {
-		backendPoolId, err := loadBalancerParse.LoadBalancerBackendAddressPoolID(backendPool)
+		backendPoolId, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(backendPool)
 		if err != nil {
 			return err
 		}
 
 		// Generate the load balancer ID from the Backend Address Pool Id...
-		lbId := loadBalancerParse.NewLoadBalancerID(backendPoolId.SubscriptionId, backendPoolId.ResourceGroup, backendPoolId.LoadBalancerName)
+		lbId := loadbalancers.NewLoadBalancerID(backendPoolId.SubscriptionId, backendPoolId.ResourceGroupName, backendPoolId.LoadBalancerName)
 
 		backendPoolName = backendPoolId.BackendAddressPoolName
 		loadBalancerId = lbId.ID()
@@ -404,12 +429,13 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		defer locks.UnlockByID(lbId.ID())
 
 		// check to make sure the load balancer exists as referred to by the Backend Address Pool...
-		lb, err := lbClient.Get(ctx, lbId.ResourceGroup, lbId.Name, "")
+		plbId := loadbalancers.ProviderLoadBalancerId{SubscriptionId: backendPoolId.SubscriptionId, ResourceGroupName: backendPoolId.ResourceGroupName, LoadBalancerName: backendPoolId.LoadBalancerName}
+		lb, err := lbClient.Get(ctx, plbId, loadbalancers.GetOperationOptions{})
 		if err != nil {
-			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("load balancer %q for Backend Address Pool %q was not found", lbId, backendPoolId)
+			if response.WasNotFound(lb.HttpResponse) {
+				return fmt.Errorf("%s was not found", lbId)
 			}
-			return fmt.Errorf("failed to retrieve Load Balancer %q for Backend Address Pool %q: %+v", lbId, backendPoolId, err)
+			return fmt.Errorf("retrieving %s: %+v", lbId, err)
 		}
 	}
 
@@ -422,6 +448,11 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	managedResourceGroupID := resourcesParse.NewResourceGroupID(subscriptionId, managedResourceGroupName).ID()
 	customerEncryptionEnabled := d.Get("customer_managed_key_enabled").(bool)
 	infrastructureEncryptionEnabled := d.Get("infrastructure_encryption_enabled").(bool)
+	defaultStorageFirewallEnabledRaw := d.Get("default_storage_firewall_enabled").(bool)
+	defaultStorageFirewallEnabled := workspaces.DefaultStorageFirewallDisabled
+	if defaultStorageFirewallEnabledRaw {
+		defaultStorageFirewallEnabled = workspaces.DefaultStorageFirewallEnabled
+	}
 	publicNetowrkAccessRaw := d.Get("public_network_access_enabled").(bool)
 	publicNetworkAccess := workspaces.PublicNetworkAccessDisabled
 	if publicNetowrkAccessRaw {
@@ -454,23 +485,57 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	setEncrypt := false
 	encrypt := &workspaces.WorkspacePropertiesEncryption{}
 	encrypt.Entities = workspaces.EncryptionEntitiesDefinition{}
-	servicesKeyIdRaw := d.Get("managed_services_cmk_key_vault_key_id").(string)
-	if servicesKeyIdRaw != "" {
+
+	var servicesKeyId string
+	var servicesKeyVaultId string
+	var diskKeyId string
+	var diskKeyVaultId string
+
+	if v, ok := d.GetOk("managed_services_cmk_key_vault_key_id"); ok {
+		servicesKeyId = v.(string)
+	}
+
+	if v, ok := d.GetOk("managed_services_cmk_key_vault_id"); ok {
+		servicesKeyVaultId = v.(string)
+	}
+
+	if v, ok := d.GetOk("managed_disk_cmk_key_vault_key_id"); ok {
+		diskKeyId = v.(string)
+	}
+
+	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
+		diskKeyVaultId = v.(string)
+	}
+
+	// set default subscription as current subscription for key vault look-up...
+	servicesResourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+	diskResourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+
+	if servicesKeyVaultId != "" {
+		// If they passed the 'managed_cmk_key_vault_id' parse the Key Vault ID
+		// to extract the correct key vault subscription for the exists call...
+		v, err := commonids.ParseKeyVaultID(servicesKeyVaultId)
+		if err != nil {
+			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", servicesKeyVaultId, err)
+		}
+
+		servicesResourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
+	}
+
+	if servicesKeyId != "" {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(servicesKeyIdRaw)
+		key, err := keyVaultParse.ParseNestedItemID(servicesKeyId)
 		if err != nil {
 			return err
 		}
 
 		// make sure the key vault exists
-		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, key.KeyVaultBaseUrl)
-		if err != nil || keyVaultIdRaw == nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
+		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl)
+		if err != nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseUrl, err)
 		}
 
 		encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
-			// There is only one valid source for this field at this point in time so I have hardcoded the value
 			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
 			KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
 				KeyName:     key.Name,
@@ -480,23 +545,31 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	diskKeyIdRaw := d.Get("managed_disk_cmk_key_vault_key_id").(string)
-	if diskKeyIdRaw != "" {
+	if diskKeyVaultId != "" {
+		// If they passed the 'managed_disk_cmk_key_vault_id' parse the Key Vault ID
+		// to extract the correct key vault subscription for the exists call...
+		v, err := commonids.ParseKeyVaultID(diskKeyVaultId)
+		if err != nil {
+			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", diskKeyVaultId, err)
+		}
+
+		diskResourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
+	}
+
+	if diskKeyId != "" {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(diskKeyIdRaw)
+		key, err := keyVaultParse.ParseNestedItemID(diskKeyId)
 		if err != nil {
 			return err
 		}
 
 		// make sure the key vault exists
-		subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-		keyVaultIdRaw, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, key.KeyVaultBaseUrl)
-		if err != nil || keyVaultIdRaw == nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault at URL %q: %+v", key.KeyVaultBaseUrl, err)
+		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl)
+		if err != nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseUrl, err)
 		}
 
 		encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
-			// There is only one valid source for this field at this point in time so I have hardcoded the value
 			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
 			KeyVaultProperties: workspaces.ManagedDiskEncryptionKeyVaultProperties{
 				KeyName:     key.Name,
@@ -504,11 +577,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 				KeyVaultUri: key.KeyVaultBaseUrl,
 			},
 		}
+	}
 
-		rotationEnabled := d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool)
-		if rotationEnabled {
-			encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = utils.Bool(rotationEnabled)
-		}
+	if rotationEnabled := d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool); rotationEnabled {
+		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = utils.Bool(rotationEnabled)
 	}
 
 	// Including the Tags in the workspace parameters will update the tags on
@@ -524,6 +596,41 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 			Parameters:             customParams,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if defaultStorageFirewallEnabledRaw {
+		accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
+		accessConnectorIdRaw := d.Get("access_connector_id").(string)
+		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
+
+		if err != nil {
+			return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
+		}
+
+		accessConnector, err := acClient.Get(ctx, *accessConnectorId)
+		if err != nil {
+			return fmt.Errorf("retrieving Access Connector %s: %+v", accessConnectorId.AccessConnectorName, err)
+		}
+
+		if accessConnector.Model.Identity != nil {
+
+			accIdentityId := ""
+			for raw := range accessConnector.Model.Identity.IdentityIds {
+				id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+				if err != nil {
+					return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)
+				}
+				accIdentityId = id.ID()
+				break
+			}
+
+			accessConnectorProperties.Id = *accessConnector.Model.Id
+			accessConnectorProperties.IdentityType = workspaces.IdentityType(accessConnector.Model.Identity.Type)
+			accessConnectorProperties.UserAssignedIdentityId = &accIdentityId
+		}
+
+		workspace.Properties.AccessConnector = &accessConnectorProperties
+		workspace.Properties.DefaultStorageFirewall = &defaultStorageFirewallEnabled
 	}
 
 	if requireNsgRules != "" {
@@ -566,13 +673,12 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
 	}
 
-	if encrypt != nil && servicesKeyIdRaw != "" {
-		d.Set("managed_services_cmk_key_vault_key_id", servicesKeyIdRaw)
-	}
-
-	if encrypt != nil && diskKeyIdRaw != "" {
-		d.Set("managed_disk_cmk_key_vault_key_id", diskKeyIdRaw)
-	}
+	// Always set these even if they are empty to keep the state file
+	// consistent with the configuration file...
+	d.Set("managed_services_cmk_key_vault_key_id", servicesKeyId)
+	d.Set("managed_disk_cmk_key_vault_key_id", diskKeyId)
+	d.Set("managed_services_cmk_key_vault_id", servicesKeyVaultId)
+	d.Set("managed_disk_cmk_key_vault_id", diskKeyVaultId)
 
 	return resourceDatabricksWorkspaceRead(d, meta)
 }
@@ -585,6 +691,17 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	var encryptDiskRotationEnabled bool
+	var servicesKeyVaultId string
+	if v, ok := d.GetOk("managed_services_cmk_key_vault_id"); ok {
+		servicesKeyVaultId = v.(string)
+	}
+
+	var diskKeyVaultId string
+	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
+		diskKeyVaultId = v.(string)
 	}
 
 	resp, err := client.Get(ctx, *id)
@@ -614,6 +731,11 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
+
+		if defaultStorageFirewall := model.Properties.DefaultStorageFirewall; defaultStorageFirewall != nil {
+			d.Set("default_storage_firewall_enabled", *defaultStorageFirewall != workspaces.DefaultStorageFirewallDisabled)
+			d.Set("access_connector_id", model.Properties.AccessConnector.Id)
+		}
 
 		publicNetworkAccess := model.Properties.PublicNetworkAccess
 		if publicNetworkAccess != nil {
@@ -658,57 +780,59 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
 
+		var workspaceUrl string
 		if model.Properties.WorkspaceUrl != nil {
-			d.Set("workspace_url", model.Properties.WorkspaceUrl)
+			workspaceUrl = *model.Properties.WorkspaceUrl
 		}
+		d.Set("workspace_url", workspaceUrl)
 
+		var workspaceId string
 		if model.Properties.WorkspaceId != nil {
-			d.Set("workspace_id", model.Properties.WorkspaceId)
+			workspaceId = *model.Properties.WorkspaceId
 		}
+		d.Set("workspace_id", workspaceId)
 
 		// customer managed key for managed services
-		encryptKeyName := ""
-		encryptKeyVersion := ""
-		encryptKeyVaultURI := ""
-
+		var servicesKeyId string
 		if encryption := model.Properties.Encryption; encryption != nil {
 			if encryptionProps := encryption.Entities.ManagedServices; encryptionProps != nil {
-				encryptKeyName = encryptionProps.KeyVaultProperties.KeyName
-				encryptKeyVersion = encryptionProps.KeyVaultProperties.KeyVersion
-				encryptKeyVaultURI = encryptionProps.KeyVaultProperties.KeyVaultUri
+				if encryptionProps.KeyVaultProperties.KeyVaultUri != "" {
+					key, err := keyVaultParse.NewNestedItemID(encryptionProps.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProps.KeyVaultProperties.KeyName, encryptionProps.KeyVaultProperties.KeyVersion)
+					if err == nil {
+						servicesKeyId = key.ID()
+					}
+				}
 			}
 		}
 
-		if encryptKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptKeyName, encryptKeyVersion)
-			if err == nil {
-				d.Set("managed_services_cmk_key_vault_key_id", key.ID())
-			}
-		}
 		// customer managed key for managed disk
-		encryptDiskKeyName := ""
-		encryptDiskKeyVersion := ""
-		encryptDiskKeyVaultURI := ""
-		encryptDiskRotationEnabled := false
-
+		var diskKeyId string
 		if encryption := model.Properties.Encryption; encryption != nil {
 			if encryptionProps := encryption.Entities.ManagedDisk; encryptionProps != nil {
-				encryptDiskKeyName = encryptionProps.KeyVaultProperties.KeyName
-				encryptDiskKeyVersion = encryptionProps.KeyVaultProperties.KeyVersion
-				encryptDiskKeyVaultURI = encryptionProps.KeyVaultProperties.KeyVaultUri
+				if encryptionProps.KeyVaultProperties.KeyVaultUri != "" {
+					key, err := keyVaultParse.NewNestedItemID(encryptionProps.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProps.KeyVaultProperties.KeyName, encryptionProps.KeyVaultProperties.KeyVersion)
+					if err == nil {
+						diskKeyId = key.ID()
+					}
+				}
+
 				encryptDiskRotationEnabled = *encryptionProps.RotationToLatestKeyVersionEnabled
 			}
-
 		}
 
-		if encryptDiskKeyVaultURI != "" {
-			key, err := keyVaultParse.NewNestedItemID(encryptDiskKeyVaultURI, keyVaultParse.NestedItemTypeKey, encryptDiskKeyName, encryptDiskKeyVersion)
-			if err == nil {
-				d.Set("managed_disk_cmk_key_vault_key_id", key.ID())
-			}
-			d.Set("managed_disk_cmk_rotation_to_latest_version_enabled", encryptDiskRotationEnabled)
-			d.Set("disk_encryption_set_id", model.Properties.DiskEncryptionSetId)
+		var encryptDiskEncryptionSetId string
+		if model.Properties.DiskEncryptionSetId != nil {
+			encryptDiskEncryptionSetId = *model.Properties.DiskEncryptionSetId
 		}
+		d.Set("disk_encryption_set_id", encryptDiskEncryptionSetId)
+
+		// Always set these even if they are empty to keep the state file
+		// consistent with the configuration file...
+		d.Set("managed_services_cmk_key_vault_key_id", servicesKeyId)
+		d.Set("managed_services_cmk_key_vault_id", servicesKeyVaultId)
+		d.Set("managed_disk_cmk_key_vault_key_id", diskKeyId)
+		d.Set("managed_disk_cmk_key_vault_id", diskKeyVaultId)
+		d.Set("managed_disk_cmk_rotation_to_latest_version_enabled", encryptDiskRotationEnabled)
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}
@@ -726,7 +850,7 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+	if err = client.DeleteThenPoll(ctx, *id, workspaces.DeleteOperationOptions{}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -740,26 +864,20 @@ func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfigurat
 
 	e := make(map[string]interface{})
 
-	if v := input; v != nil {
-		if t := v.PrincipalId; t != nil {
-			if t != nil {
-				e["principal_id"] = *t
-			}
-		}
+	if t := input.PrincipalId; t != nil {
+		e["principal_id"] = *t
+	}
 
-		if t := v.TenantId; t != nil {
-			e["tenant_id"] = *t
-		}
+	if t := input.TenantId; t != nil {
+		e["tenant_id"] = *t
+	}
 
-		if t := v.Type; t != nil {
-			if t != nil {
-				e["type"] = *t
-			}
-		}
+	if t := input.Type; t != nil {
+		e["type"] = *t
+	}
 
-		if len(e) != 0 {
-			return []interface{}{e}
-		}
+	if len(e) != 0 {
+		return []interface{}{e}
 	}
 
 	return []interface{}{e}
@@ -829,10 +947,10 @@ func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameter
 		parameters["virtual_network_id"] = v.Value
 	}
 
-	lbId, err := loadBalancerParse.LoadBalancerIDInsensitively(loadBalancerId)
+	lbId, err := loadbalancers.ParseLoadBalancerIDInsensitively(loadBalancerId)
 
 	if err == nil {
-		backendId := loadBalancerParse.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroup, lbId.Name, backendName)
+		backendId := loadbalancers.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroupName, lbId.LoadBalancerName, backendName)
 		backendAddressPoolId = backendId.ID()
 	}
 
@@ -918,7 +1036,7 @@ func expandWorkspaceCustomParameters(input []interface{}, customerManagedKeyEnab
 	}
 
 	if v, ok := config["no_public_ip"].(bool); ok {
-		parameters.EnableNoPublicIP = &workspaces.WorkspaceCustomBooleanParameter{
+		parameters.EnableNoPublicIP = &workspaces.WorkspaceNoPublicIPBooleanParameter{
 			Value: v,
 		}
 	}

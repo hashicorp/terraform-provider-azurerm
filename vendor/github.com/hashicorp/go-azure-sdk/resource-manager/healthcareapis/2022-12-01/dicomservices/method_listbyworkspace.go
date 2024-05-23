@@ -19,7 +19,8 @@ type ListByWorkspaceOperationResponse struct {
 }
 
 type ListByWorkspaceCompleteResult struct {
-	Items []DicomService
+	LatestHttpResponse *http.Response
+	Items              []DicomService
 }
 
 // ListByWorkspace ...
@@ -83,7 +84,8 @@ func (c DicomServicesClient) ListByWorkspaceCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByWorkspaceCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

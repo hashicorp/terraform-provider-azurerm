@@ -703,6 +703,26 @@ func TestAccBatchPool_extensions(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_extensionsWithEmptySettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.extensionsWithEmptySettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("extensions.0.name").HasValue("OmsAgentForLinux"),
+				check.That(data.ResourceName).Key("extensions.0.publisher").HasValue("Microsoft.EnterpriseCloud.Monitoring"),
+				check.That(data.ResourceName).Key("extensions.0.type").HasValue("OmsAgentForLinux"),
+				check.That(data.ResourceName).Key("extensions.0.type_handler_version").HasValue("1.17"),
+				check.That(data.ResourceName).Key("extensions.0.auto_upgrade_minor_version").HasValue("true"),
+				check.That(data.ResourceName).Key("extensions.0.automatic_upgrade_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("extensions.0.settings_json").HasValue("{}"),
+			),
+		},
+	})
+}
+
 func TestAccBatchPool_interNodeCommunicationWithTaskSchedulingPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -2376,6 +2396,53 @@ resource "azurerm_batch_pool" "test" {
     name                       = "OmsAgentForLinux"
     publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
     settings_json              = jsonencode({ "workspaceId" = "${azurerm_log_analytics_workspace.test.id}", "skipDockerProviderInstall" = true })
+    protected_settings         = jsonencode({ "workspaceKey" = "${azurerm_log_analytics_workspace.test.primary_shared_key}" })
+    type                       = "OmsAgentForLinux"
+    type_handler_version       = "1.17"
+    auto_upgrade_minor_version = true
+    automatic_upgrade_enabled  = true
+  }
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, template, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) extensionsWithEmptySettings(data acceptance.TestData) string {
+	template := BatchPoolResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "testaccloganalytics%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
+  vm_size             = "Standard_A1"
+  extensions {
+    name                       = "OmsAgentForLinux"
+    publisher                  = "Microsoft.EnterpriseCloud.Monitoring"
+    settings_json              = jsonencode({})
     protected_settings         = jsonencode({ "workspaceKey" = "${azurerm_log_analytics_workspace.test.primary_shared_key}" })
     type                       = "OmsAgentForLinux"
     type_handler_version       = "1.17"

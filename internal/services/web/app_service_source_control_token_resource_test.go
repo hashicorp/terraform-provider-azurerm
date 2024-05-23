@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AppServiceSourceControlResource struct{}
+type AppServiceSourceControlTokenResource struct{}
 
 func TestAccAppServiceSourceControlToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_token", "test")
-	r := AppServiceSourceControlResource{}
+	r := AppServiceSourceControlTokenResource{}
 	token := strings.ToLower(acceptance.RandString(41))
 	tokenSecret := strings.ToLower(acceptance.RandString(41))
 
@@ -37,7 +37,7 @@ func TestAccAppServiceSourceControlToken(t *testing.T) {
 	})
 }
 
-func (r AppServiceSourceControlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r AppServiceSourceControlTokenResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	resp, err := client.Web.BaseClient.GetSourceControl(ctx, state.ID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

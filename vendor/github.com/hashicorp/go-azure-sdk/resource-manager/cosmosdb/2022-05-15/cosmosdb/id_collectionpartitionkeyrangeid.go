@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CollectionPartitionKeyRangeIdId{}
+func init() {
+	recaser.RegisterResourceId(&CollectionPartitionKeyRangeIdId{})
+}
+
+var _ resourceids.ResourceId = &CollectionPartitionKeyRangeIdId{}
 
 // CollectionPartitionKeyRangeIdId is a struct representing the Resource ID for a Collection Partition Key Range Id
 type CollectionPartitionKeyRangeIdId struct {
@@ -38,7 +43,7 @@ func NewCollectionPartitionKeyRangeIdID(subscriptionId string, resourceGroupName
 
 // ParseCollectionPartitionKeyRangeIdID parses 'input' into a CollectionPartitionKeyRangeIdId
 func ParseCollectionPartitionKeyRangeIdID(input string) (*CollectionPartitionKeyRangeIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CollectionPartitionKeyRangeIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&CollectionPartitionKeyRangeIdId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -55,7 +60,7 @@ func ParseCollectionPartitionKeyRangeIdID(input string) (*CollectionPartitionKey
 // ParseCollectionPartitionKeyRangeIdIDInsensitively parses 'input' case-insensitively into a CollectionPartitionKeyRangeIdId
 // note: this method should only be used for API response data and not user input
 func ParseCollectionPartitionKeyRangeIdIDInsensitively(input string) (*CollectionPartitionKeyRangeIdId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CollectionPartitionKeyRangeIdId{})
+	parser := resourceids.NewParserFromResourceIdType(&CollectionPartitionKeyRangeIdId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

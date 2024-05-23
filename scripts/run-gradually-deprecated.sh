@@ -6,7 +6,7 @@
 function runGraduallyDeprecatedFunctions {
   echo "==> Checking for use of gradually deprecated functions..."
 
-  IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only)
+  IFS=$'\n' read -r -d '' -a flist < <(git diff --diff-filter=AMRC origin/main --name-only --merge-base)
 
   for f in "${flist[@]}"; do
     # require resources to be imported is now hard-coded on - but only checking for additions
@@ -75,9 +75,16 @@ function runGraduallyDeprecatedFunctions {
       }
     fi
 
-    # avoid false positives
-    isThisScript=$(echo "$f" | grep "run-gradually-deprecated")
-    if [ "$isThisScript" == "" ];
+    # exceptions to avoid false positives and legacy resources should have their original behaviour preserved
+    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go")
+    toSkip=false
+    for e in "${exceptions[@]}"; do
+      isThisException=$(echo "$f" | grep "$e")
+      if [ "$isThisException" != "" ] ; then
+        toSkip=true
+      fi
+    done
+    if [ "$toSkip" = false ];
     then
       # check for d.Get inside Delete
       deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")
@@ -109,6 +116,62 @@ function runGraduallyDeprecatedFunctions {
             echo "The Azure SDK (track1 & kermit) clients should be created with the function NewFoosClientWithBaseURI() "
             echo "that has the resource manager endpoint explicitly specified. These can be found in:"
             echo "* $f"
+            exit 1
+        }
+
+        # Resource IDs shouldn't be compared by using a.ID() == b.ID() - but instead use the resourceids.Match method
+        grep -H -n ".ID() ==" "$f" && {
+            echo "Resource IDs should not be compared by using a.ID() == b.ID(), but instead use 'resourceids.Match(a, b)"
+            echo "which can be found in the Go package 'github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids'."
+            echo "These can be found in:"
+            echo "* $f"
+            exit 1
+        }
+
+        # The case-aware comparisons feature flag is problematic until the rollout is completed
+        grep -H -n "\.TreatUserSpecifiedSegmentsAsCaseInsensitive =" "$f" && {
+            echo "The case-aware comparisons feature is not ready for usage and should not be configured/exposed at this time."
+            echo "There's a substantial number of dependencies required for this to not cause more problems then it solves"
+            echo "and as such this is not supported in any form at this point-in-time."
+            echo "Please remove the assignment to 'features.TreatUserSpecifiedSegmentsAsCaseInsensitive', which can be found in:"
+            echo "* $f"
+            exit 1
+        }
+
+        ## Test Configurations should NOT use os.GetEnv to load credentials and use these in tests
+        ## Instead a User Assigned Identity should be created as a part of the Test Configuration with as
+        ## minimal permissions as possible - which can then be cleaned up as a part of the test.
+
+        # Ensure the Test Configuration doesn't use the Client ID
+        grep -H -n "os.Getenv(\"ARM_CLIENT_ID\")" "$f" && {
+            echo "A usage of 'os.Getenv('ARM_CLIENT_ID') has been detected in:"
+            echo "* $f"
+            echo ""
+            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
+            exit 1
+        }
+
+        # Ensure the Test Configuration doesn't use the Client Secret
+        grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET\")" "$f" && {
+            echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET') has been detected in:"
+            echo "* $f"
+            echo ""
+            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
+            exit 1
+        }
+
+        # Ensure the Test Configuration doesn't use the Client Secret
+        grep -H -n "os.Getenv(\"ARM_CLIENT_SECRET_ALT\")" "$f" && {
+            echo "A usage of 'os.Getenv('ARM_CLIENT_SECRET_ALT') has been detected in:"
+            echo "* $f"
+            echo ""
+            echo "Test Configurations should NOT use 'os.Getenv' to obtain credentials, instead these should"
+            echo "create a User Assigned Identity using the 'azurerm_user_assigned_identity' resource, grant"
+            echo "it permissions as required - and use that instead of reusing the credentials used for testing purposes."
             exit 1
         }
     fi

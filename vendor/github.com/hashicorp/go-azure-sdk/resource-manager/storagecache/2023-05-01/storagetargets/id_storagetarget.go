@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = StorageTargetId{}
+func init() {
+	recaser.RegisterResourceId(&StorageTargetId{})
+}
+
+var _ resourceids.ResourceId = &StorageTargetId{}
 
 // StorageTargetId is a struct representing the Resource ID for a Storage Target
 type StorageTargetId struct {
@@ -32,7 +37,7 @@ func NewStorageTargetID(subscriptionId string, resourceGroupName string, cacheNa
 
 // ParseStorageTargetID parses 'input' into a StorageTargetId
 func ParseStorageTargetID(input string) (*StorageTargetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageTargetId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageTargetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseStorageTargetID(input string) (*StorageTargetId, error) {
 // ParseStorageTargetIDInsensitively parses 'input' case-insensitively into a StorageTargetId
 // note: this method should only be used for API response data and not user input
 func ParseStorageTargetIDInsensitively(input string) (*StorageTargetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(StorageTargetId{})
+	parser := resourceids.NewParserFromResourceIdType(&StorageTargetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

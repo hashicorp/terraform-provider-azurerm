@@ -5,9 +5,7 @@ package provider
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -38,18 +36,6 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	//  * a valid UUID prefixed with "pid-"
 	//  * a valid UUID prefixed with "pid-" and suffixed with "-partnercenter"
 
-	debugLog := func(f string, v ...interface{}) {
-		if os.Getenv("TF_LOG") == "" {
-			return
-		}
-
-		if os.Getenv("TF_ACC") != "" {
-			return
-		}
-
-		log.Printf(f, v...)
-	}
-
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -68,7 +54,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 			return nil, []error{fmt.Errorf("expected %q to contain a valid UUID", v)}
 		}
 
-		debugLog("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
+		logEntry("[DEBUG] %q partner_id matches pid-<GUID>-partnercenter...", v)
 		return nil, nil
 	}
 
@@ -80,7 +66,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 			return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
 		}
 
-		debugLog("[DEBUG] %q partner_id matches pid-<GUID>...", v)
+		logEntry("[DEBUG] %q partner_id matches pid-<GUID>...", v)
 		return nil, nil
 	}
 
@@ -88,31 +74,18 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	if _, err := validation.IsUUID(v, ""); err != nil {
 		return nil, []error{fmt.Errorf("expected %q to be a valid UUID", k)}
 	} else {
-		debugLog("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
+		logEntry("[DEBUG] %q partner_id is an un-prefixed UUID...", v)
 		return nil, nil
 	}
 }
 
 func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
-	// avoids this showing up in test output
-	debugLog := func(f string, v ...interface{}) {
-		if os.Getenv("TF_LOG") == "" {
-			return
-		}
-
-		if os.Getenv("TF_ACC") != "" {
-			return
-		}
-
-		log.Printf(f, v...)
-	}
-
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
 
 	// first handle the typed services
 	for _, service := range SupportedTypedServices() {
-		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
+		logEntry("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for _, ds := range service.DataSources() {
 			key := ds.ResourceType()
 			if existing := dataSources[key]; existing != nil {
@@ -128,7 +101,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			dataSources[key] = dataSource
 		}
 
-		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
+		logEntry("[DEBUG] Registering Resources for %q..", service.Name())
 		for _, r := range service.Resources() {
 			key := r.ResourceType()
 			if existing := resources[key]; existing != nil {
@@ -146,7 +119,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 
 	// then handle the untyped services
 	for _, service := range SupportedUntypedServices() {
-		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
+		logEntry("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
 			if existing := dataSources[k]; existing != nil {
 				panic(fmt.Sprintf("An existing Data Source exists for %q", k))
@@ -155,7 +128,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			dataSources[k] = v
 		}
 
-		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
+		logEntry("[DEBUG] Registering Resources for %q..", service.Name())
 		for k, v := range service.SupportedResources() {
 			if existing := resources[k]; existing != nil {
 				panic(fmt.Sprintf("An existing Resource exists for %q", k))
@@ -208,7 +181,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
-				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public.",
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, and china. Defaults to public. Not used and should not be specified when `metadata_host` is specified.",
 			},
 
 			"metadata_host": {
@@ -421,11 +394,15 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		)
 
 		if metadataHost != "" {
-			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost), envName); err != nil {
+			logEntry("[DEBUG] Configuring cloud environment from Metadata Service at %q", metadataHost)
+			if env, err = environments.FromEndpoint(ctx, fmt.Sprintf("https://%s", metadataHost)); err != nil {
 				return nil, diag.FromErr(err)
 			}
-		} else if env, err = environments.FromName(envName); err != nil {
-			return nil, diag.FromErr(err)
+		} else {
+			logEntry("[DEBUG] Configuring built-in cloud environment by name: %q", envName)
+			if env, err = environments.FromName(envName); err != nil {
+				return nil, diag.FromErr(err)
+			}
 		}
 
 		var (
@@ -508,124 +485,6 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 
 	return client, nil
-}
-
-func decodeCertificate(clientCertificate string) ([]byte, error) {
-	var pfx []byte
-	if clientCertificate != "" {
-		out := make([]byte, base64.StdEncoding.DecodedLen(len(clientCertificate)))
-		n, err := base64.StdEncoding.Decode(out, []byte(clientCertificate))
-		if err != nil {
-			return pfx, fmt.Errorf("could not decode client certificate data: %v", err)
-		}
-		pfx = out[:n]
-	}
-	return pfx, nil
-}
-
-func getOidcToken(d *schema.ResourceData) (*string, error) {
-	idToken := strings.TrimSpace(d.Get("oidc_token").(string))
-
-	if path := d.Get("oidc_token_file_path").(string); path != "" {
-		fileTokenRaw, err := os.ReadFile(path)
-
-		if err != nil {
-			return nil, fmt.Errorf("reading OIDC Token from file %q: %v", path, err)
-		}
-
-		fileToken := strings.TrimSpace(string(fileTokenRaw))
-
-		if idToken != "" && idToken != fileToken {
-			return nil, fmt.Errorf("mismatch between supplied OIDC token and supplied OIDC token file contents - please either remove one or ensure they match")
-		}
-
-		idToken = fileToken
-	}
-
-	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_FEDERATED_TOKEN_FILE") != "" {
-		path := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
-		fileTokenRaw, err := os.ReadFile(os.Getenv("AZURE_FEDERATED_TOKEN_FILE"))
-
-		if err != nil {
-			return nil, fmt.Errorf("reading OIDC Token from file %q provided by AKS Workload Identity: %v", path, err)
-		}
-
-		fileToken := strings.TrimSpace(string(fileTokenRaw))
-
-		if idToken != "" && idToken != fileToken {
-			return nil, fmt.Errorf("mismatch between supplied OIDC token and OIDC token file contents provided by AKS Workload Identity - please either remove one, ensure they match, or disable use_aks_workload_identity")
-		}
-
-		idToken = fileToken
-	}
-
-	return &idToken, nil
-}
-
-func getClientId(d *schema.ResourceData) (*string, error) {
-	clientId := strings.TrimSpace(d.Get("client_id").(string))
-
-	if path := d.Get("client_id_file_path").(string); path != "" {
-		fileClientIdRaw, err := os.ReadFile(path)
-
-		if err != nil {
-			return nil, fmt.Errorf("reading Client ID from file %q: %v", path, err)
-		}
-
-		fileClientId := strings.TrimSpace(string(fileClientIdRaw))
-
-		if clientId != "" && clientId != fileClientId {
-			return nil, fmt.Errorf("mismatch between supplied Client ID and supplied Client ID file contents - please either remove one or ensure they match")
-		}
-
-		clientId = fileClientId
-	}
-
-	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_CLIENT_ID") != "" {
-		aksClientId := os.Getenv("AZURE_CLIENT_ID")
-		if clientId != "" && clientId != aksClientId {
-			return nil, fmt.Errorf("mismatch between supplied Client ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
-		}
-		clientId = aksClientId
-	}
-
-	return &clientId, nil
-}
-
-func getClientSecret(d *schema.ResourceData) (*string, error) {
-	clientSecret := strings.TrimSpace(d.Get("client_secret").(string))
-
-	if path := d.Get("client_secret_file_path").(string); path != "" {
-		fileSecretRaw, err := os.ReadFile(path)
-
-		if err != nil {
-			return nil, fmt.Errorf("reading Client Secret from file %q: %v", path, err)
-		}
-
-		fileSecret := strings.TrimSpace(string(fileSecretRaw))
-
-		if clientSecret != "" && clientSecret != fileSecret {
-			return nil, fmt.Errorf("mismatch between supplied Client Secret and supplied Client Secret file contents - please either remove one or ensure they match")
-		}
-
-		clientSecret = fileSecret
-	}
-
-	return &clientSecret, nil
-}
-
-func getTenantId(d *schema.ResourceData) (*string, error) {
-	tenantId := strings.TrimSpace(d.Get("tenant_id").(string))
-
-	if d.Get("use_aks_workload_identity").(bool) && os.Getenv("AZURE_TENANT_ID") != "" {
-		aksTenantId := os.Getenv("AZURE_TENANT_ID")
-		if tenantId != "" && tenantId != aksTenantId {
-			return nil, fmt.Errorf("mismatch between supplied Tenant ID and that provided by AKS Workload Identity - please remove, ensure they match, or disable use_aks_workload_identity")
-		}
-		tenantId = aksTenantId
-	}
-
-	return &tenantId, nil
 }
 
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.

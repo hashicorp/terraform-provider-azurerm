@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package validate
 
 import (
@@ -8,7 +11,7 @@ import (
 func ElasticSanName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't!", k))
+		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't", k))
 		return
 	}
 

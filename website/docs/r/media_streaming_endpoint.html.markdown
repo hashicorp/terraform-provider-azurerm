@@ -195,7 +195,7 @@ A `sku` block supports the following:
 * `name` - The sku name of Streaming Endpoint.
 
 * `capacity` - The sku capacity of Streaming Endpoint.
- 
+
 ---
 
 ## Timeouts

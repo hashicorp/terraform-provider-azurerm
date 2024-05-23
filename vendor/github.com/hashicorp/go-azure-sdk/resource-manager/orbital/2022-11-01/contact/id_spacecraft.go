@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = SpacecraftId{}
+func init() {
+	recaser.RegisterResourceId(&SpacecraftId{})
+}
+
+var _ resourceids.ResourceId = &SpacecraftId{}
 
 // SpacecraftId is a struct representing the Resource ID for a Spacecraft
 type SpacecraftId struct {
@@ -30,7 +35,7 @@ func NewSpacecraftID(subscriptionId string, resourceGroupName string, spacecraft
 
 // ParseSpacecraftID parses 'input' into a SpacecraftId
 func ParseSpacecraftID(input string) (*SpacecraftId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SpacecraftId{})
+	parser := resourceids.NewParserFromResourceIdType(&SpacecraftId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseSpacecraftID(input string) (*SpacecraftId, error) {
 // ParseSpacecraftIDInsensitively parses 'input' case-insensitively into a SpacecraftId
 // note: this method should only be used for API response data and not user input
 func ParseSpacecraftIDInsensitively(input string) (*SpacecraftId, error) {
-	parser := resourceids.NewParserFromResourceIdType(SpacecraftId{})
+	parser := resourceids.NewParserFromResourceIdType(&SpacecraftId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

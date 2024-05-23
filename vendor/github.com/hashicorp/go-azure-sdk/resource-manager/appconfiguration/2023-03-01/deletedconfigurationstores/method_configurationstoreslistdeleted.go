@@ -20,7 +20,8 @@ type ConfigurationStoresListDeletedOperationResponse struct {
 }
 
 type ConfigurationStoresListDeletedCompleteResult struct {
-	Items []DeletedConfigurationStore
+	LatestHttpResponse *http.Response
+	Items              []DeletedConfigurationStore
 }
 
 // ConfigurationStoresListDeleted ...
@@ -84,7 +85,8 @@ func (c DeletedConfigurationStoresClient) ConfigurationStoresListDeletedComplete
 	}
 
 	result = ConfigurationStoresListDeletedCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

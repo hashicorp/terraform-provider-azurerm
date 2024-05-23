@@ -19,7 +19,8 @@ type ListDeploymentsAtManagementGroupOperationResponse struct {
 }
 
 type ListDeploymentsAtManagementGroupCompleteResult struct {
-	Items []RemediationDeployment
+	LatestHttpResponse *http.Response
+	Items              []RemediationDeployment
 }
 
 type ListDeploymentsAtManagementGroupOperationOptions struct {
@@ -111,7 +112,8 @@ func (c RemediationsClient) ListDeploymentsAtManagementGroupCompleteMatchingPred
 	}
 
 	result = ListDeploymentsAtManagementGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -191,13 +190,18 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("invalid registry config for %s: %+v", id, err)
 			}
 
+			secrets, err := helpers.ExpandContainerSecrets(app.Secrets)
+			if err != nil {
+				return fmt.Errorf("invalid secrets config for %s: %+v", id, err)
+			}
+
 			containerApp := containerapps.ContainerApp{
 				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
 					Configuration: &containerapps.Configuration{
 						Ingress:    helpers.ExpandContainerAppIngress(app.Ingress, id.ContainerAppName),
 						Dapr:       helpers.ExpandContainerAppDapr(app.Dapr),
-						Secrets:    helpers.ExpandContainerSecrets(app.Secrets),
+						Secrets:    secrets,
 						Registries: registries,
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
@@ -387,7 +391,10 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("secret") {
-				model.Properties.Configuration.Secrets = helpers.ExpandContainerSecrets(state.Secrets)
+				model.Properties.Configuration.Secrets, err = helpers.ExpandContainerSecrets(state.Secrets)
+				if err != nil {
+					return fmt.Errorf("invalid secrets config for %s: %+v", id, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -421,28 +428,56 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.ResourceDiff != nil && metadata.ResourceDiff.HasChange("secret") {
-				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secret")
-				stateSecrets := stateSecretsRaw.(*schema.Set).List()
-				configSecrets := configSecretsRaw.(*schema.Set).List()
-				// Check there's not less
-				if len(configSecrets) < len(stateSecrets) {
-					return fmt.Errorf("cannot remove secrets from Container Apps at this time due to a limitation in the Container Apps Service. Please see `https://github.com/microsoft/azure-container-apps/issues/395` for more details")
-				}
-				// Check secrets names in state are all present in config, the values don't matter
-				if len(stateSecrets) > 0 {
-					for _, s := range stateSecrets {
-						found := false
-						for _, c := range configSecrets {
-							if s.(map[string]interface{})["name"] == c.(map[string]interface{})["name"] {
-								found = true
-								break
-							}
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+			var app ContainerAppModel
+			if err := metadata.DecodeDiff(&app); err != nil {
+				return err
+			}
+			// Ingress traffic weight validations
+			if len(app.Ingress) != 0 {
+				ingress := app.Ingress[0]
+				if metadata.ResourceDiff.HasChange("name") {
+					// Validation for create time
+					// (Above is a trick to tell whether this is for a new create apply, as the "name" is a force new property)
+					if len(ingress.TrafficWeights) != 0 {
+						if len(ingress.TrafficWeights) > 1 {
+							return fmt.Errorf("at most one `ingress.0.traffic_weight` can be specified during creation")
 						}
-						if !found {
-							return fmt.Errorf("previously configured secret %q was removed. Removing secrets is not supported by the Container Apps Service at this time, see `https://github.com/microsoft/azure-container-apps/issues/395` for more details", s.(map[string]interface{})["name"])
+						tw := ingress.TrafficWeights[0]
+						if !tw.LatestRevision {
+							return fmt.Errorf("`ingress.0.traffic_weight.0.latest_revision` must be set to true during creation")
+						}
+						if tw.RevisionSuffix != "" {
+							return fmt.Errorf("`ingress.0.traffic_weight.0.revision_suffix` must not be set during creation")
 						}
 					}
+				} else {
+					// Validation for update time
+					var latestRevCount int
+					for i, tw := range ingress.TrafficWeights {
+						if tw.LatestRevision {
+							latestRevCount++
+							if tw.RevisionSuffix != "" {
+								return fmt.Errorf("`ingress.0.traffic_weight.%[1]d.revision_suffix` conflicts with `ingress.0.traffic_weight.%[1]d.latest_revision`", i)
+							}
+						} else if tw.RevisionSuffix == "" {
+							return fmt.Errorf("`ingress.0.traffic_weight.%[1]d.revision_suffix` is not specified", i)
+						}
+					}
+					if latestRevCount > 1 {
+						return fmt.Errorf("more than one `ingress.0.traffic_weight` has `latest_revision` set to `true`")
+					}
+				}
+			}
+
+			for _, s := range app.Secrets {
+				if s.KeyVaultSecretId != "" && s.Identity == "" {
+					return fmt.Errorf("secret %s must supply identity for key vault secret id", s.Name)
+				}
+				if s.KeyVaultSecretId == "" && s.Identity != "" {
+					return fmt.Errorf("secret %s must supply key vault secret id when specifying identity", s.Name)
 				}
 			}
 			return nil

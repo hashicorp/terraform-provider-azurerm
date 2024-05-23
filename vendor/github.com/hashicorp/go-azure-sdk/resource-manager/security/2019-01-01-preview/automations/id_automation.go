@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AutomationId{}
+func init() {
+	recaser.RegisterResourceId(&AutomationId{})
+}
+
+var _ resourceids.ResourceId = &AutomationId{}
 
 // AutomationId is a struct representing the Resource ID for a Automation
 type AutomationId struct {
@@ -30,7 +35,7 @@ func NewAutomationID(subscriptionId string, resourceGroupName string, automation
 
 // ParseAutomationID parses 'input' into a AutomationId
 func ParseAutomationID(input string) (*AutomationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AutomationId{})
+	parser := resourceids.NewParserFromResourceIdType(&AutomationId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseAutomationID(input string) (*AutomationId, error) {
 // ParseAutomationIDInsensitively parses 'input' case-insensitively into a AutomationId
 // note: this method should only be used for API response data and not user input
 func ParseAutomationIDInsensitively(input string) (*AutomationId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AutomationId{})
+	parser := resourceids.NewParserFromResourceIdType(&AutomationId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

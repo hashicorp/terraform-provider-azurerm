@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DeletedVaultId{}
+func init() {
+	recaser.RegisterResourceId(&DeletedVaultId{})
+}
+
+var _ resourceids.ResourceId = &DeletedVaultId{}
 
 // DeletedVaultId is a struct representing the Resource ID for a Deleted Vault
 type DeletedVaultId struct {
@@ -30,7 +35,7 @@ func NewDeletedVaultID(subscriptionId string, locationName string, deletedVaultN
 
 // ParseDeletedVaultID parses 'input' into a DeletedVaultId
 func ParseDeletedVaultID(input string) (*DeletedVaultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedVaultId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedVaultId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseDeletedVaultID(input string) (*DeletedVaultId, error) {
 // ParseDeletedVaultIDInsensitively parses 'input' case-insensitively into a DeletedVaultId
 // note: this method should only be used for API response data and not user input
 func ParseDeletedVaultIDInsensitively(input string) (*DeletedVaultId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DeletedVaultId{})
+	parser := resourceids.NewParserFromResourceIdType(&DeletedVaultId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

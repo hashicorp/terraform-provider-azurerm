@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = WatchlistItemId{}
+func init() {
+	recaser.RegisterResourceId(&WatchlistItemId{})
+}
+
+var _ resourceids.ResourceId = &WatchlistItemId{}
 
 // WatchlistItemId is a struct representing the Resource ID for a Watchlist Item
 type WatchlistItemId struct {
@@ -34,7 +39,7 @@ func NewWatchlistItemID(subscriptionId string, resourceGroupName string, workspa
 
 // ParseWatchlistItemID parses 'input' into a WatchlistItemId
 func ParseWatchlistItemID(input string) (*WatchlistItemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WatchlistItemId{})
+	parser := resourceids.NewParserFromResourceIdType(&WatchlistItemId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseWatchlistItemID(input string) (*WatchlistItemId, error) {
 // ParseWatchlistItemIDInsensitively parses 'input' case-insensitively into a WatchlistItemId
 // note: this method should only be used for API response data and not user input
 func ParseWatchlistItemIDInsensitively(input string) (*WatchlistItemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(WatchlistItemId{})
+	parser := resourceids.NewParserFromResourceIdType(&WatchlistItemId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

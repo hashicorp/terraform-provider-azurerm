@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ReferenceDataSetId{}
+func init() {
+	recaser.RegisterResourceId(&ReferenceDataSetId{})
+}
+
+var _ resourceids.ResourceId = &ReferenceDataSetId{}
 
 // ReferenceDataSetId is a struct representing the Resource ID for a Reference Data Set
 type ReferenceDataSetId struct {
@@ -32,7 +37,7 @@ func NewReferenceDataSetID(subscriptionId string, resourceGroupName string, envi
 
 // ParseReferenceDataSetID parses 'input' into a ReferenceDataSetId
 func ParseReferenceDataSetID(input string) (*ReferenceDataSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReferenceDataSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReferenceDataSetId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseReferenceDataSetID(input string) (*ReferenceDataSetId, error) {
 // ParseReferenceDataSetIDInsensitively parses 'input' case-insensitively into a ReferenceDataSetId
 // note: this method should only be used for API response data and not user input
 func ParseReferenceDataSetIDInsensitively(input string) (*ReferenceDataSetId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ReferenceDataSetId{})
+	parser := resourceids.NewParserFromResourceIdType(&ReferenceDataSetId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

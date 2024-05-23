@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = AmlFilesystemId{}
+func init() {
+	recaser.RegisterResourceId(&AmlFilesystemId{})
+}
+
+var _ resourceids.ResourceId = &AmlFilesystemId{}
 
 // AmlFilesystemId is a struct representing the Resource ID for a Aml Filesystem
 type AmlFilesystemId struct {
@@ -30,7 +35,7 @@ func NewAmlFilesystemID(subscriptionId string, resourceGroupName string, amlFile
 
 // ParseAmlFilesystemID parses 'input' into a AmlFilesystemId
 func ParseAmlFilesystemID(input string) (*AmlFilesystemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AmlFilesystemId{})
+	parser := resourceids.NewParserFromResourceIdType(&AmlFilesystemId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -47,7 +52,7 @@ func ParseAmlFilesystemID(input string) (*AmlFilesystemId, error) {
 // ParseAmlFilesystemIDInsensitively parses 'input' case-insensitively into a AmlFilesystemId
 // note: this method should only be used for API response data and not user input
 func ParseAmlFilesystemIDInsensitively(input string) (*AmlFilesystemId, error) {
-	parser := resourceids.NewParserFromResourceIdType(AmlFilesystemId{})
+	parser := resourceids.NewParserFromResourceIdType(&AmlFilesystemId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

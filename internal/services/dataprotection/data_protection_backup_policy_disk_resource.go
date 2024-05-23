@@ -10,12 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -121,6 +123,13 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 					},
 				},
 			},
+
+			"time_zone": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
@@ -147,7 +156,7 @@ func resourceDataProtectionBackupPolicyDiskCreate(d *schema.ResourceData, meta i
 
 	taggingCriteria := expandBackupPolicyDiskTaggingCriteriaArray(d.Get("retention_rule").([]interface{}))
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
-	policyRules = append(policyRules, expandBackupPolicyDiskAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), taggingCriteria)...)
+	policyRules = append(policyRules, expandBackupPolicyDiskAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
 	policyRules = append(policyRules, expandBackupPolicyDiskDefaultAzureRetentionRule(d.Get("default_retention_duration")))
 	policyRules = append(policyRules, expandBackupPolicyDiskAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
 	parameters := backuppolicies.BaseBackupPolicyResource{
@@ -199,6 +208,7 @@ func resourceDataProtectionBackupPolicyDiskRead(d *schema.ResourceData, meta int
 				if err := d.Set("retention_rule", flattenBackupPolicyDiskRetentionRuleArray(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `retention_rule`: %+v", err)
 				}
+				d.Set("time_zone", flattenBackupPolicyDiskBackupTimeZone(&props.PolicyRules))
 			}
 		}
 	}
@@ -225,7 +235,7 @@ func resourceDataProtectionBackupPolicyDiskDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func expandBackupPolicyDiskAzureBackupRuleArray(input []interface{}, taggingCriteria *[]backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
+func expandBackupPolicyDiskAzureBackupRuleArray(input []interface{}, timeZone string, taggingCriteria *[]backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
 	results := make([]backuppolicies.BasePolicyRule, 0)
 
 	results = append(results, backuppolicies.AzureBackupRule{
@@ -240,6 +250,7 @@ func expandBackupPolicyDiskAzureBackupRuleArray(input []interface{}, taggingCrit
 		Trigger: backuppolicies.ScheduleBasedTriggerContext{
 			Schedule: backuppolicies.BackupSchedule{
 				RepeatingTimeIntervals: *utils.ExpandStringSlice(input),
+				TimeZone:               pointer.To(timeZone),
 			},
 			TaggingCriteria: *taggingCriteria,
 		},
@@ -346,6 +357,22 @@ func flattenBackupPolicyDiskBackupRuleArray(input *[]backuppolicies.BasePolicyRu
 		}
 	}
 	return make([]interface{}, 0)
+}
+
+func flattenBackupPolicyDiskBackupTimeZone(input *[]backuppolicies.BasePolicyRule) string {
+	if input == nil {
+		return ""
+	}
+	for _, item := range *input {
+		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
+			if backupRule.Trigger != nil {
+				if scheduleBasedTrigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+					return pointer.From(scheduleBasedTrigger.Schedule.TimeZone)
+				}
+			}
+		}
+	}
+	return ""
 }
 
 func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]backuppolicies.BasePolicyRule) interface{} {

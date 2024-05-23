@@ -8,11 +8,13 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -147,14 +149,15 @@ func FlattenContainerAppRegistries(input *[]containerapps.RegistryCredentials) [
 }
 
 type Ingress struct {
-	AllowInsecure  bool            `tfschema:"allow_insecure_connections"`
-	CustomDomains  []CustomDomain  `tfschema:"custom_domain"`
-	IsExternal     bool            `tfschema:"external_enabled"`
-	FQDN           string          `tfschema:"fqdn"`
-	TargetPort     int             `tfschema:"target_port"`
-	ExposedPort    int             `tfschema:"exposed_port"`
-	TrafficWeights []TrafficWeight `tfschema:"traffic_weight"`
-	Transport      string          `tfschema:"transport"`
+	AllowInsecure          bool                    `tfschema:"allow_insecure_connections"`
+	CustomDomains          []CustomDomain          `tfschema:"custom_domain"`
+	IsExternal             bool                    `tfschema:"external_enabled"`
+	FQDN                   string                  `tfschema:"fqdn"`
+	TargetPort             int                     `tfschema:"target_port"`
+	ExposedPort            int                     `tfschema:"exposed_port"`
+	TrafficWeights         []TrafficWeight         `tfschema:"traffic_weight"`
+	Transport              string                  `tfschema:"transport"`
+	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -185,6 +188,8 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The FQDN of the ingress.",
 				},
+
+				"ip_security_restriction": ContainerAppIngressIpSecurityRestriction(),
 
 				"target_port": {
 					Type:         pluginsdk.TypeInt,
@@ -240,6 +245,8 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 					Description: "The FQDN of the ingress.",
 				},
 
+				"ip_security_restriction": ContainerAppIngressIpSecurityRestrictionComputed(),
+
 				"target_port": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
@@ -271,13 +278,14 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 
 	ingress := input[0]
 	result := &containerapps.Ingress{
-		AllowInsecure: pointer.To(ingress.AllowInsecure),
-		CustomDomains: expandContainerAppIngressCustomDomain(ingress.CustomDomains),
-		External:      pointer.To(ingress.IsExternal),
-		Fqdn:          pointer.To(ingress.FQDN),
-		TargetPort:    pointer.To(int64(ingress.TargetPort)),
-		ExposedPort:   pointer.To(int64(ingress.ExposedPort)),
-		Traffic:       expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
+		AllowInsecure:          pointer.To(ingress.AllowInsecure),
+		CustomDomains:          expandContainerAppIngressCustomDomain(ingress.CustomDomains),
+		External:               pointer.To(ingress.IsExternal),
+		Fqdn:                   pointer.To(ingress.FQDN),
+		TargetPort:             pointer.To(int64(ingress.TargetPort)),
+		ExposedPort:            pointer.To(int64(ingress.ExposedPort)),
+		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
+		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
@@ -292,13 +300,14 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	ingress := *input
 	result := Ingress{
-		AllowInsecure:  pointer.From(ingress.AllowInsecure),
-		CustomDomains:  flattenContainerAppIngressCustomDomain(ingress.CustomDomains),
-		IsExternal:     pointer.From(ingress.External),
-		FQDN:           pointer.From(ingress.Fqdn),
-		TargetPort:     int(pointer.From(ingress.TargetPort)),
-		ExposedPort:    int(pointer.From(ingress.ExposedPort)),
-		TrafficWeights: flattenContainerAppIngressTraffic(ingress.Traffic, appName),
+		AllowInsecure:          pointer.From(ingress.AllowInsecure),
+		CustomDomains:          flattenContainerAppIngressCustomDomain(ingress.CustomDomains),
+		IsExternal:             pointer.From(ingress.External),
+		FQDN:                   pointer.From(ingress.Fqdn),
+		TargetPort:             int(pointer.From(ingress.TargetPort)),
+		ExposedPort:            int(pointer.From(ingress.ExposedPort)),
+		TrafficWeights:         flattenContainerAppIngressTraffic(ingress.Traffic, appName),
+		IpSecurityRestrictions: flattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
 	}
 
 	if ingress.Transport != nil {
@@ -316,9 +325,11 @@ type CustomDomain struct {
 
 func ContainerAppIngressCustomDomainSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:       pluginsdk.TypeList,
+		Optional:   true,
+		Computed:   true,
+		MaxItems:   1,
+		Deprecated: "This property is deprecated in favour of the new `azurerm_container_app_custom_domain` resource and will become computed only in a future release.",
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"certificate_binding_type": {
@@ -417,11 +428,109 @@ func flattenContainerAppIngressCustomDomain(input *[]containerapps.CustomDomain)
 	return result
 }
 
+func flattenContainerAppIngressIpSecurityRestrictions(input *[]containerapps.IPSecurityRestrictionRule) []IpSecurityRestriction {
+	if input == nil {
+		return []IpSecurityRestriction{}
+	}
+
+	result := make([]IpSecurityRestriction, 0)
+	for _, v := range *input {
+		ipSecurityRestriction := IpSecurityRestriction{
+			Description:    pointer.From(v.Description),
+			IpAddressRange: v.IPAddressRange,
+			Action:         string(v.Action),
+			Name:           v.Name,
+		}
+
+		result = append(result, ipSecurityRestriction)
+	}
+
+	return result
+}
+
 type TrafficWeight struct {
 	Label          string `tfschema:"label"`
 	LatestRevision bool   `tfschema:"latest_revision"`
 	RevisionSuffix string `tfschema:"revision_suffix"`
 	Weight         int    `tfschema:"percentage"`
+}
+
+type IpSecurityRestriction struct {
+	Action         string `tfschema:"action"`
+	Description    string `tfschema:"description"`
+	IpAddressRange string `tfschema:"ip_address_range"`
+	Name           string `tfschema:"name"`
+}
+
+func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"action": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForAction(), false),
+					Description:  "The action. Allow or Deny.",
+				},
+
+				"description": {
+					Type:        pluginsdk.TypeString,
+					Optional:    true,
+					Description: "Describe the IP restriction rule that is being sent to the container-app.",
+				},
+
+				"ip_address_range": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.Any(validation.IsCIDR, validation.IsIPAddress),
+					Description:  "The incoming IP address or range of IP addresses (in CIDR notation).",
+				},
+
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Name for the IP restriction rule.",
+				},
+			},
+		},
+	}
+}
+
+func ContainerAppIngressIpSecurityRestrictionComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"action": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The action. Allow or Deny.",
+				},
+
+				"description": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "Describe the IP restriction rule that is being sent to the container-app.",
+				},
+
+				"ip_address_range": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "CIDR notation to match incoming IP address.",
+				},
+
+				"name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "Name for the IP restriction rule.",
+				},
+			},
+		},
+	}
 }
 
 func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
@@ -540,6 +649,25 @@ func flattenContainerAppIngressTraffic(input *[]containerapps.TrafficWeight, app
 	}
 
 	return result
+}
+
+func expandIpSecurityRestrictions(input []IpSecurityRestriction) *[]containerapps.IPSecurityRestrictionRule {
+	if input == nil {
+		return &[]containerapps.IPSecurityRestrictionRule{}
+	}
+
+	result := make([]containerapps.IPSecurityRestrictionRule, 0)
+	for _, v := range input {
+		ipSecurityRestrictionRule := containerapps.IPSecurityRestrictionRule{
+			Action:         containerapps.Action(v.Action),
+			Name:           v.Name,
+			IPAddressRange: v.IpAddressRange,
+			Description:    pointer.To(v.Description),
+		}
+		result = append(result, ipSecurityRestrictionRule)
+	}
+
+	return &result
 }
 
 type Dapr struct {
@@ -888,24 +1016,15 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 				"cpu": {
 					Type:         pluginsdk.TypeFloat,
 					Required:     true,
-					ValidateFunc: validate.ContainerCpu,
-					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+					ValidateFunc: validation.FloatAtLeast(0.1),
+					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`. When there's a workload profile specified, there's no such constraint.",
 				},
 
 				"memory": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"0.5Gi",
-						"1Gi",
-						"1.5Gi",
-						"2Gi",
-						"2.5Gi",
-						"3Gi",
-						"3.5Gi",
-						"4Gi",
-					}, false),
-					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`. When there's a workload profile specified, there's no such constraint.",
 				},
 
 				"ephemeral_storage": {
@@ -1050,24 +1169,15 @@ func InitContainerAppContainerSchema() *pluginsdk.Schema {
 				"cpu": {
 					Type:         pluginsdk.TypeFloat,
 					Optional:     true,
-					ValidateFunc: validate.ContainerCpu,
-					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+					ValidateFunc: validation.FloatAtLeast(0.1),
+					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`. When there's a workload profile specified, there's no such constraint.",
 				},
 
 				"memory": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"0.5Gi",
-						"1Gi",
-						"1.5Gi",
-						"2Gi",
-						"2.5Gi",
-						"3Gi",
-						"3.5Gi",
-						"4Gi",
-					}, false),
-					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`. When there's a workload profile specified, there's no such constraint.",
 				},
 
 				"ephemeral_storage": {
@@ -2439,8 +2549,10 @@ func expandContainerProbes(input Container) *[]containerapps.ContainerAppProbe {
 }
 
 type Secret struct {
-	Name  string `tfschema:"name"`
-	Value string `tfschema:"value"`
+	Identity         string `tfschema:"identity"`
+	KeyVaultSecretId string `tfschema:"key_vault_secret_id"`
+	Name             string `tfschema:"name"`
+	Value            string `tfschema:"value"`
 }
 
 func SecretsSchema() *pluginsdk.Schema {
@@ -2450,17 +2562,33 @@ func SecretsSchema() *pluginsdk.Schema {
 		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"identity": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.Any(
+						commonids.ValidateUserAssignedIdentityID,
+						validation.StringInSlice([]string{"System"}, false),
+					),
+					Description: "The identity to use for accessing key vault reference.",
+				},
+
+				"key_vault_secret_id": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					Description:  "The Key Vault Secret ID. Could be either one of `id` or `versionless_id`.",
+				},
+
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validate.SecretName,
-					Sensitive:    true,
-					Description:  "The Secret name.",
+					Description:  "The secret name.",
 				},
 
 				"value": {
 					Type:        pluginsdk.TypeString,
-					Required:    true,
+					Optional:    true,
 					Sensitive:   true,
 					Description: "The value for this secret.",
 				},
@@ -2471,15 +2599,27 @@ func SecretsSchema() *pluginsdk.Schema {
 
 func SecretsDataSourceSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:      pluginsdk.TypeList,
+		Type:      pluginsdk.TypeSet,
 		Computed:  true,
 		Sensitive: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
+				"identity": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The identity to use for accessing key vault reference.",
+				},
+
+				"key_vault_secret_id": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The id of the key vault secret.",
+				},
+
 				"name": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The Secret name.",
+					Description: "The secret name.",
 				},
 
 				"value": {
@@ -2493,21 +2633,23 @@ func SecretsDataSourceSchema() *pluginsdk.Schema {
 	}
 }
 
-func ExpandContainerSecrets(input []Secret) *[]containerapps.Secret {
+func ExpandContainerSecrets(input []Secret) (*[]containerapps.Secret, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	result := make([]containerapps.Secret, 0)
 
 	for _, v := range input {
 		result = append(result, containerapps.Secret{
-			Name:  pointer.To(v.Name),
-			Value: pointer.To(v.Value),
+			Identity:    pointer.To(v.Identity),
+			KeyVaultUrl: pointer.To(v.KeyVaultSecretId),
+			Name:        pointer.To(v.Name),
+			Value:       pointer.To(v.Value),
 		})
 	}
 
-	return &result
+	return &result, nil
 }
 
 func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapps.Secret {
@@ -2518,8 +2660,10 @@ func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapp
 		for _, secret := range secrets {
 			if v, ok := secret.(map[string]interface{}); ok {
 				result = append(result, containerapps.Secret{
-					Name:  pointer.To(v["name"].(string)),
-					Value: pointer.To(v["value"].(string)),
+					Identity:    pointer.To(v["Identity"].(string)),
+					KeyVaultUrl: pointer.To(v["KeyVaultUrl"].(string)),
+					Name:        pointer.To(v["name"].(string)),
+					Value:       pointer.To(v["value"].(string)),
 				})
 			}
 		}
@@ -2549,7 +2693,6 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 	result := make([]daprcomponents.Secret, 0)
 	for _, v := range input.Value {
 		result = append(result, daprcomponents.Secret{
-			// TODO: add support for Identity & KeyVaultUrl
 			Name:  v.Name,
 			Value: v.Value,
 		})
@@ -2558,7 +2701,61 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 	return &result
 }
 
-func ExpandDaprSecrets(input []Secret) *[]daprcomponents.Secret {
+type DaprSecret struct {
+	Name  string `tfschema:"name"`
+	Value string `tfschema:"value"`
+}
+
+func DaprSecretsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:      pluginsdk.TypeSet,
+		Optional:  true,
+		Sensitive: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validate.SecretName,
+					Description:  "The secret name.",
+				},
+
+				"value": {
+					Type:        pluginsdk.TypeString,
+					Required:    true,
+					Sensitive:   true,
+					Description: "The value for this secret.",
+				},
+			},
+		},
+	}
+}
+
+func DaprSecretsDataSourceSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:      pluginsdk.TypeList,
+		Computed:  true,
+		Sensitive: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The secret name.",
+				},
+
+				"value": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Sensitive:   true,
+					Description: "The value for this secret.",
+				},
+			},
+		},
+	}
+}
+
+func ExpandDaprSecrets(input []DaprSecret) *[]daprcomponents.Secret {
 	if len(input) == 0 {
 		return nil
 	}
@@ -2575,49 +2772,33 @@ func ExpandDaprSecrets(input []Secret) *[]daprcomponents.Secret {
 	return &result
 }
 
-func FlattenSecrets(input []interface{}) []Secret {
-	secrets := make([]Secret, 0)
-	for _, s := range input {
-		secret := s.(map[string]interface{})
-		name, ok := secret["name"].(string)
-		if !ok {
-			continue
-		}
-		value := ""
-		if val, ok := secret["value"].(string); ok {
-			value = val
-		}
-		secrets = append(secrets, Secret{
-			Name:  name,
-			Value: value,
-		})
-	}
-
-	return secrets
-}
-
 func FlattenContainerAppSecrets(input *containerapps.SecretsCollection) []Secret {
 	if input == nil || input.Value == nil {
 		return []Secret{}
 	}
 	result := make([]Secret, 0)
 	for _, v := range input.Value {
-		result = append(result, Secret{
-			Name:  pointer.From(v.Name),
-			Value: pointer.From(v.Value),
-		})
+		secret := Secret{
+			Identity:         pointer.From(v.Identity),
+			KeyVaultSecretId: pointer.From(v.KeyVaultUrl),
+			Name:             pointer.From(v.Name),
+		}
+		if v.KeyVaultUrl == nil {
+			secret.Value = pointer.From(v.Value)
+		}
+		result = append(result, secret)
 	}
 
 	return result
 }
 
-func FlattenContainerAppDaprSecrets(input *daprcomponents.DaprSecretsCollection) []Secret {
+func FlattenContainerAppDaprSecrets(input *daprcomponents.DaprSecretsCollection) []DaprSecret {
 	if input == nil || input.Value == nil {
-		return []Secret{}
+		return []DaprSecret{}
 	}
-	result := make([]Secret, 0)
+	result := make([]DaprSecret, 0)
 	for _, v := range input.Value {
-		result = append(result, Secret{
+		result = append(result, DaprSecret{
 			Name:  pointer.From(v.Name),
 			Value: pointer.From(v.Value),
 		})
@@ -2767,7 +2948,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validate.LowerCaseAlphaNumericWithHyphensAndPeriods,
 				},
 
 				"metadata": {
@@ -3079,7 +3260,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 		r := containerapps.ScaleRule{
 			Name: pointer.To(v.Name),
 			Custom: &containerapps.CustomScaleRule{
-				Metadata: &v.Metadata,
+				Metadata: pointer.To(v.Metadata),
 				Type:     pointer.To(v.CustomRuleType),
 			},
 		}

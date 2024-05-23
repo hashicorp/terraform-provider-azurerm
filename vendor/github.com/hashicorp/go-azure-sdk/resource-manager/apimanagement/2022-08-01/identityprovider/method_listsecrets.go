@@ -44,7 +44,10 @@ func (c IdentityProviderClient) ListSecrets(ctx context.Context, id IdentityProv
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model ClientSecretContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

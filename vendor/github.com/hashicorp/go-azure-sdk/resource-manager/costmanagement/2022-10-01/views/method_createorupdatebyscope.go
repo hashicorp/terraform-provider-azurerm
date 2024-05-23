@@ -48,7 +48,10 @@ func (c ViewsClient) CreateOrUpdateByScope(ctx context.Context, id ScopedViewId,
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model View
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

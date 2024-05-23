@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -133,6 +134,25 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
+			"storage_tier": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.AzureManagedDiskPerformanceTiersPFour),
+					string(servers.AzureManagedDiskPerformanceTiersPSix),
+					string(servers.AzureManagedDiskPerformanceTiersPOneZero),
+					string(servers.AzureManagedDiskPerformanceTiersPOneFive),
+					string(servers.AzureManagedDiskPerformanceTiersPTwoZero),
+					string(servers.AzureManagedDiskPerformanceTiersPThreeZero),
+					string(servers.AzureManagedDiskPerformanceTiersPFourZero),
+					string(servers.AzureManagedDiskPerformanceTiersPFiveZero),
+					string(servers.AzureManagedDiskPerformanceTiersPSixZero),
+					string(servers.AzureManagedDiskPerformanceTiersPSevenZero),
+					string(servers.AzureManagedDiskPerformanceTiersPEightZero),
+				}, false),
+			},
+
 			"version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -149,6 +169,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeGeoRestore),
 					string(servers.CreateModeUpdate),
 				}, false),
 			},
@@ -279,7 +300,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
@@ -345,6 +366,72 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				diff.ForceNew("administrator_login")
 			}
 			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
+			var newTier string
+			var newMb int
+			var isValid bool
+
+			oldStorageMbRaw, newStorageMbRaw := diff.GetChange("storage_mb")
+			oldTierRaw, newTierRaw := diff.GetChange("storage_tier")
+
+			if oldStorageMbRaw.(int) == 0 && oldTierRaw.(string) == "" && newStorageMbRaw.(int) == 0 && newTierRaw.(string) == "" {
+				// This is a new resource without any values in the state
+				// or config, default values will be set in create...
+				return nil
+			}
+
+			newMb = newStorageMbRaw.(int)
+			newTier = newTierRaw.(string)
+
+			// storage_mb can only be scaled up...
+			if newMb < oldStorageMbRaw.(int) {
+				return fmt.Errorf("'storage_mb' can only be scaled up, expected the new 'storage_mb' value (%d) to be larger than the previous 'storage_mb' value (%d)", newMb, oldStorageMbRaw.(int))
+			}
+
+			// if newMb or newTier values are empty,
+			// assign the default values that will
+			// be assigned in the create func...
+			if newMb == 0 {
+				newMb = 32768
+			}
+
+			// get the valid mappings for the passed
+			// storage_mb size...
+			storageTiers := storageTierMappings[newMb]
+
+			if newTier == "" {
+				newTier = string(storageTiers.DefaultTier)
+			}
+
+			// verify that the storage_tier is valid
+			// for the given storage_mb...
+			for _, tier := range *storageTiers.ValidTiers {
+				if newTier == tier {
+					isValid = true
+					break
+				}
+			}
+
+			if !isValid {
+				if strings.EqualFold(oldTierRaw.(string), newTier) {
+					// The tier value did not change, so we need to determin if they are
+					// using the default value for the tier, or they actually defined the
+					// tier in the config or not... If they did not define
+					// the tier in the config we need to assign a new valid default
+					// tier for the newMb value. However, if the tier is in the config
+					// this is a valid error and should be returned...
+					if v := diff.GetRawConfig().AsValueMap()["storage_tier"]; v.IsNull() {
+						diff.SetNew("storage_tier", string(storageTiers.DefaultTier))
+						log.Printf("[DEBUG]: 'storage_tier' was not valid and was not in the config assigning new default 'storage_tier' %q -> %q\n", newTier, storageTiers.DefaultTier)
+						return nil
+					}
+				}
+
+				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+			}
+
+			return nil
 		},
 		),
 	}
@@ -377,12 +464,12 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("`replication_role` cannot be set while creating")
 	}
 
-	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore {
+	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore || servers.CreateMode(createMode) == servers.CreateModeGeoRestore {
 		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is  %s", createMode)
 		}
 		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
-			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
+			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is  %s", createMode)
 		}
 	}
 
@@ -408,6 +495,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			if !adminLoginSet {
 				return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
+
 			if !adminPwdSet {
 				return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
@@ -418,11 +506,9 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
 		}
+
 		if _, ok := d.GetOk("version"); !ok {
 			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
-		}
-		if _, ok := d.GetOk("storage_mb"); !ok {
-			return fmt.Errorf("`storage_mb` is required when `create_mode` is `Default`")
 		}
 	}
 
@@ -431,11 +517,32 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
+	storage := expandArmServerStorage(d)
+	var storageMb int
+
+	if storage.StorageSizeGB == nil || *storage.StorageSizeGB == 0 {
+		// set the default value for storage_mb...
+		storageMb = 32768
+		storage.StorageSizeGB = pointer.FromInt64(int64(32))
+		log.Printf("[DEBUG]: Default 'storage_mb' Set -> %d\n", storageMb)
+	} else {
+		storageMb = int(*storage.StorageSizeGB) * 1024
+	}
+
+	if storage.Tier == nil || *storage.Tier == "" {
+		// determine the correct default storage_tier based
+		// on the defined storage_mb...
+		storageTierMappings := validate.InitializeFlexibleServerStorageTierDefaults()
+		storageTiers := storageTierMappings[storageMb]
+		storage.Tier = pointer.To(storageTiers.DefaultTier)
+		log.Printf("[DEBUG]: Default 'storage_tier' Set -> %q\n", storageTiers.DefaultTier)
+	}
+
 	parameters := servers.Server{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &servers.ServerProperties{
 			Network:          expandArmServerNetwork(d),
-			Storage:          expandArmServerStorage(d),
+			Storage:          storage,
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
 			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
@@ -572,6 +679,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 				if storage.StorageSizeGB != nil {
 					d.Set("storage_mb", (*storage.StorageSizeGB * 1024))
+				}
+
+				if storage.Tier != nil {
+					d.Set("storage_tier", string(*storage.Tier))
 				}
 			}
 
@@ -741,7 +852,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") {
+	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
@@ -898,7 +1009,11 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage.AutoGrow = &autoGrow
 
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageSizeGB = utils.Int64(int64(v.(int) / 1024))
+		storage.StorageSizeGB = pointer.FromInt64(int64(v.(int) / 1024))
+	}
+
+	if v, ok := d.GetOk("storage_tier"); ok {
+		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
 	}
 
 	return &storage

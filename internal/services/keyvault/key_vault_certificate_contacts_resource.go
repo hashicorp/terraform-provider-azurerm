@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -39,10 +40,38 @@ type Contact struct {
 }
 
 func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(commonids.KeyVaultId{}),
+	schema := map[string]*pluginsdk.Schema{
+		"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
+	}
 
-		"contact": {
+	if features.FourPointOhBeta() {
+		schema["contact"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"email": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"phone": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
+	} else {
+		schema["contact"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
@@ -67,8 +96,10 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 					},
 				},
 			},
-		},
+		}
 	}
+
+	return schema
 }
 
 func (r KeyVaultCertificateContactsResource) Attributes() map[string]*pluginsdk.Schema {
@@ -132,8 +163,20 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
-				return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+			if features.FourPointOhBeta() {
+				if len(*contacts.ContactList) == 0 {
+					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					}
+				} else {
+					if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+						return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+					}
+				}
+			} else {
+				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -216,8 +259,20 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				existing.ContactList = expandKeyVaultCertificateContactsContact(state.Contact)
 			}
 
-			if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
-				return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
+			if features.FourPointOhBeta() {
+				if len(*existing.ContactList) == 0 {
+					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					}
+				} else {
+					if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
+						return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
+					}
+				}
+			} else {
+				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
+					return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
+				}
 			}
 
 			return nil

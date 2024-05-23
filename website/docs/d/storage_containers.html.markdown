@@ -18,7 +18,7 @@ data "azurerm_storage_containers" "example" {
 }
 
 output "container_id" {
-  value = data.azurerm_storage_containers.example.containers.0.resource_manager_id
+  value = data.azurerm_storage_containers.example.containers[0].resource_manager_id
 }
 ```
 

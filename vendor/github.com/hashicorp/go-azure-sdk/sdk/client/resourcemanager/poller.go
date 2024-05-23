@@ -20,15 +20,14 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 
 	originalRequestUri := response.Request.URL.String()
 
-	// If this is a LRO we should either have a 201/202 with a Polling URI header
-	isLroStatus := response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted
+	// If this is a LRO we should either have a 200/201/202 with a Polling URI header
+	isLroStatus := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted
 	methodIsDelete := strings.EqualFold(response.Request.Method, "DELETE")
 	lroPollingUri := pollingUriForLongRunningOperation(response)
 	lroIsSelfReference := isLROSelfReference(lroPollingUri, originalRequestUri)
 	if isLroStatus && lroPollingUri != "" && !methodIsDelete && !lroIsSelfReference {
 		lro, lroErr := longRunningOperationPollerFromResponse(response, client.Client)
 		if lroErr != nil {
-			err = lroErr
 			return pollers.Poller{}, fmt.Errorf("building long-running-operation poller: %+v", lroErr)
 		}
 		return pollers.NewPoller(lro, lro.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
@@ -48,7 +47,6 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 	if statusCodesToCheckProvisioningState && contentTypeMatchesForProvisioningStateCheck && methodIsApplicable {
 		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, lroIsSelfReference, client, DefaultPollingInterval)
 		if provisioningStateErr != nil {
-			err = provisioningStateErr
 			return pollers.Poller{}, fmt.Errorf("building provisioningState poller: %+v", provisioningStateErr)
 		}
 		return pollers.NewPoller(provisioningState, provisioningState.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil
@@ -59,7 +57,6 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 	if methodIsDelete && statusCodesToCheckDelete {
 		deletePoller, deletePollerErr := deletePollerFromResponse(response, client, DefaultPollingInterval)
 		if deletePollerErr != nil {
-			err = deletePollerErr
 			return pollers.Poller{}, fmt.Errorf("building delete poller: %+v", deletePollerErr)
 		}
 		return pollers.NewPoller(deletePoller, deletePoller.initialRetryDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow), nil

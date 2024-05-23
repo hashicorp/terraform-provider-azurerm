@@ -44,7 +44,10 @@ func (c VolumeGroupsClient) ListByNetAppAccount(ctx context.Context, id NetAppAc
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model VolumeGroupList
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

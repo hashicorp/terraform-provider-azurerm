@@ -20,7 +20,8 @@ type ListForResourceGroupOperationResponse struct {
 }
 
 type ListForResourceGroupCompleteResult struct {
-	Items []Remediation
+	LatestHttpResponse *http.Response
+	Items              []Remediation
 }
 
 type ListForResourceGroupOperationOptions struct {
@@ -116,7 +117,8 @@ func (c RemediationsClient) ListForResourceGroupCompleteMatchingPredicate(ctx co
 	}
 
 	result = ListForResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

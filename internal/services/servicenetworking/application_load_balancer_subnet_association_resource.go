@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package servicenetworking
 
 import (
@@ -37,9 +40,9 @@ func (t ApplicationLoadBalancerSubnetAssociationResource) Arguments() map[string
 			ValidateFunc: validate.ApplicationLoadBalancerSubnetAssociationName(),
 		},
 
-		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(associationsinterface.TrafficControllerId{}),
+		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&associationsinterface.TrafficControllerId{}),
 
-		"subnet_id": commonschema.ResourceIDReferenceRequired(commonids.SubnetId{}),
+		"subnet_id": commonschema.ResourceIDReferenceRequired(&commonids.SubnetId{}),
 
 		"tags": commonschema.Tags(),
 	}

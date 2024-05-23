@@ -6,13 +6,15 @@ package network
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-06-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -106,6 +108,9 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 
 			normalizedLocation := azure.NormalizeLocation(state.Location)
 			id := parse.NewNetworkManagerDeploymentID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, normalizedLocation, state.ScopeAccess)
+
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
 
 			metadata.Logger.Infof("creating %s", *id)
 
@@ -213,6 +218,9 @@ func (r ManagerDeploymentResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
+
 			metadata.Logger.Infof("updating %s..", *id)
 			client := metadata.Client.Network.NetworkManagers
 
@@ -293,6 +301,9 @@ func (r ManagerDeploymentResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(id.ID())
+			defer locks.UnlockByID(id.ID())
+
 			metadata.Logger.Infof("deleting %s..", *id)
 			input := networkmanagers.NetworkManagerCommit{
 				ConfigurationIds: &[]string{},
@@ -334,7 +345,7 @@ func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networ
 
 	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for the Deployment %s: %+v", *managerDeploymentId, err)
+		return fmt.Errorf("waiting for the %s: %+v", *managerDeploymentId, err)
 	}
 
 	return nil
@@ -342,17 +353,26 @@ func resourceManagerDeploymentWaitForDeleted(ctx context.Context, client *networ
 
 func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *networkmanagers.NetworkManagersClient, managerDeploymentId *parse.ManagerDeploymentId, d time.Duration) error {
 	state := &pluginsdk.StateChangeConf{
-		MinTimeout: 30 * time.Second,
-		Delay:      10 * time.Second,
-		Pending:    []string{"NotStarted", "Deploying"},
-		Target:     []string{"Deployed"},
-		Refresh:    resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId),
-		Timeout:    d,
+		MinTimeout:     30 * time.Second,
+		Delay:          10 * time.Second,
+		Pending:        []string{"NotStarted", "Deploying"},
+		Target:         []string{"Deployed"},
+		NotFoundChecks: 20,
+		Timeout:        d,
+		Refresh: func() (interface{}, string, error) {
+			result, state, err := resourceManagerDeploymentResultRefreshFunc(ctx, client, managerDeploymentId)()
+			if state == "NotFound" {
+				// the deployment might not found after initial commit, https://github.com/Azure/azure-rest-api-specs/issues/27327
+				// to serve NotFoundChecks, return nil result
+				return nil, state, err
+			}
+			return result, state, err
+		},
 	}
 
 	_, err := state.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for the Deployment %s: %+v", *managerDeploymentId, err)
+		return fmt.Errorf("waiting for the %s: %+v", *managerDeploymentId, err)
 	}
 
 	return nil
@@ -380,6 +400,7 @@ func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *net
 		}
 
 		if resp.Model.Value == nil || len(*resp.Model.Value) == 0 || *(*resp.Model.Value)[0].ConfigurationIds == nil || len(*(*resp.Model.Value)[0].ConfigurationIds) == 0 {
+			log.Printf("[DEBUG] retrieving %s: listing deployments succeeds however the specific deployment was not found", *id)
 			return resp, "NotFound", nil
 		}
 

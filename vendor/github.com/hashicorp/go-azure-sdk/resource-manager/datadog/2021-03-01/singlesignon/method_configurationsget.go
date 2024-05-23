@@ -43,7 +43,10 @@ func (c SingleSignOnClient) ConfigurationsGet(ctx context.Context, id SingleSign
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model DatadogSingleSignOnResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

@@ -42,11 +42,12 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := softwareupdateconfigurationmachinerun.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue")
 
-read, err := client.List(ctx, id, softwareupdateconfigurationmachinerun.DefaultListOperationOptions())
+// alternatively `client.List(ctx, id, softwareupdateconfigurationmachinerun.DefaultListOperationOptions())` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id, softwareupdateconfigurationmachinerun.DefaultListOperationOptions())
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```

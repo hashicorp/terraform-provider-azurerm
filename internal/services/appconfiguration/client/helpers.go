@@ -36,8 +36,8 @@ func (c *Client) AddToCache(configurationStoreId configurationstores.Configurati
 	keysmith.Unlock()
 }
 
-func (c *Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, subscriptionId commonids.SubscriptionId, configurationStoreEndpoint string) (*string, error) {
-	configurationStoreName, err := c.parseNameFromEndpoint(configurationStoreEndpoint)
+func (c *Client) ConfigurationStoreIDFromEndpoint(ctx context.Context, subscriptionId commonids.SubscriptionId, configurationStoreEndpoint, domainSuffix string) (*string, error) {
+	configurationStoreName, err := c.parseNameFromEndpoint(configurationStoreEndpoint, domainSuffix)
 	if err != nil {
 		return nil, err
 	}
@@ -160,17 +160,19 @@ func (c *Client) cacheKeyForConfigurationStore(name string) string {
 	return strings.ToLower(name)
 }
 
-func (c *Client) parseNameFromEndpoint(input string) (*string, error) {
+func (c *Client) parseNameFromEndpoint(input, domainSuffix string) (*string, error) {
 	uri, err := url.ParseRequestURI(input)
 	if err != nil {
 		return nil, err
 	}
 
 	// https://the-appconfiguration.azconfig.io
+	// https://the-appconfiguration.azconfig.azure.cn
+	// https://the-appconfiguration.azconfig.azure.us
+	if !strings.HasSuffix(uri.Host, domainSuffix) {
+		return nil, fmt.Errorf("expected a URI in the format `https://somename.%s` but got %q", domainSuffix, uri.Host)
+	}
 
 	segments := strings.Split(uri.Host, ".")
-	if len(segments) < 3 || segments[1] != "azconfig" || segments[2] != "io" {
-		return nil, fmt.Errorf("expected a URI in the format `https://the-appconfiguration.azconfig.io` but got %q", uri.Host)
-	}
 	return &segments[0], nil
 }

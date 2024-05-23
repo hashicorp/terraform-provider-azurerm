@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = ObjectReplicationPolicyId{}
+func init() {
+	recaser.RegisterResourceId(&ObjectReplicationPolicyId{})
+}
+
+var _ resourceids.ResourceId = &ObjectReplicationPolicyId{}
 
 // ObjectReplicationPolicyId is a struct representing the Resource ID for a Object Replication Policy
 type ObjectReplicationPolicyId struct {
@@ -32,7 +37,7 @@ func NewObjectReplicationPolicyID(subscriptionId string, resourceGroupName strin
 
 // ParseObjectReplicationPolicyID parses 'input' into a ObjectReplicationPolicyId
 func ParseObjectReplicationPolicyID(input string) (*ObjectReplicationPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ObjectReplicationPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ObjectReplicationPolicyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseObjectReplicationPolicyID(input string) (*ObjectReplicationPolicyId, e
 // ParseObjectReplicationPolicyIDInsensitively parses 'input' case-insensitively into a ObjectReplicationPolicyId
 // note: this method should only be used for API response data and not user input
 func ParseObjectReplicationPolicyIDInsensitively(input string) (*ObjectReplicationPolicyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(ObjectReplicationPolicyId{})
+	parser := resourceids.NewParserFromResourceIdType(&ObjectReplicationPolicyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

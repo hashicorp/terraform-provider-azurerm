@@ -20,7 +20,8 @@ type AvailableGroundStationsListByCapabilityOperationResponse struct {
 }
 
 type AvailableGroundStationsListByCapabilityCompleteResult struct {
-	Items []AvailableGroundStation
+	LatestHttpResponse *http.Response
+	Items              []AvailableGroundStation
 }
 
 type AvailableGroundStationsListByCapabilityOperationOptions struct {
@@ -112,7 +113,8 @@ func (c GroundStationClient) AvailableGroundStationsListByCapabilityCompleteMatc
 	}
 
 	result = AvailableGroundStationsListByCapabilityCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceApplicationInsights() *pluginsdk.Resource {
@@ -88,36 +88,40 @@ func dataSourceArmApplicationInsightsRead(d *pluginsdk.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.ComponentsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Application Insights %q (Resource Group %q) was not found", name, resGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-
-		return fmt.Errorf("retrieving Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(parse.NewComponentID(subscriptionId, resGroup, name).ID())
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	if props := resp.ApplicationInsightsComponentProperties; props != nil {
-		d.Set("app_id", props.AppID)
-		d.Set("application_type", props.ApplicationType)
-		d.Set("connection_string", props.ConnectionString)
-		d.Set("instrumentation_key", props.InstrumentationKey)
-		retentionInDays := 0
-		if props.RetentionInDays != nil {
-			retentionInDays = int(*props.RetentionInDays)
-		}
-		d.Set("retention_in_days", retentionInDays)
+	d.SetId(id.ID())
 
-		workspaceId := ""
-		if props.WorkspaceResourceID != nil {
-			workspaceId = *props.WorkspaceResourceID
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
 		}
-		d.Set("workspace_id", workspaceId)
+		if props := model.Properties; props != nil {
+			d.Set("app_id", props.AppId)
+			d.Set("application_type", props.ApplicationType)
+			d.Set("connection_string", props.ConnectionString)
+			d.Set("instrumentation_key", props.InstrumentationKey)
+			retentionInDays := 0
+			if props.RetentionInDays != nil {
+				retentionInDays = int(*props.RetentionInDays)
+			}
+			d.Set("retention_in_days", retentionInDays)
+
+			workspaceId := ""
+			if props.WorkspaceResourceId != nil {
+				workspaceId = *props.WorkspaceResourceId
+			}
+			d.Set("workspace_id", workspaceId)
+		}
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

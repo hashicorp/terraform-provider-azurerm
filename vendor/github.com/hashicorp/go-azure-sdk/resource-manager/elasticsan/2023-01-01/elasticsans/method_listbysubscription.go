@@ -20,7 +20,8 @@ type ListBySubscriptionOperationResponse struct {
 }
 
 type ListBySubscriptionCompleteResult struct {
-	Items []ElasticSan
+	LatestHttpResponse *http.Response
+	Items              []ElasticSan
 }
 
 // ListBySubscription ...
@@ -84,7 +85,8 @@ func (c ElasticSansClient) ListBySubscriptionCompleteMatchingPredicate(ctx conte
 	}
 
 	result = ListBySubscriptionCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = EncryptionScopeId{}
+func init() {
+	recaser.RegisterResourceId(&EncryptionScopeId{})
+}
+
+var _ resourceids.ResourceId = &EncryptionScopeId{}
 
 // EncryptionScopeId is a struct representing the Resource ID for a Encryption Scope
 type EncryptionScopeId struct {
@@ -32,7 +37,7 @@ func NewEncryptionScopeID(subscriptionId string, resourceGroupName string, stora
 
 // ParseEncryptionScopeID parses 'input' into a EncryptionScopeId
 func ParseEncryptionScopeID(input string) (*EncryptionScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EncryptionScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&EncryptionScopeId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseEncryptionScopeID(input string) (*EncryptionScopeId, error) {
 // ParseEncryptionScopeIDInsensitively parses 'input' case-insensitively into a EncryptionScopeId
 // note: this method should only be used for API response data and not user input
 func ParseEncryptionScopeIDInsensitively(input string) (*EncryptionScopeId, error) {
-	parser := resourceids.NewParserFromResourceIdType(EncryptionScopeId{})
+	parser := resourceids.NewParserFromResourceIdType(&EncryptionScopeId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

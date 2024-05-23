@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = DetectorId{}
+func init() {
+	recaser.RegisterResourceId(&DetectorId{})
+}
+
+var _ resourceids.ResourceId = &DetectorId{}
 
 // DetectorId is a struct representing the Resource ID for a Detector
 type DetectorId struct {
@@ -32,7 +37,7 @@ func NewDetectorID(subscriptionId string, resourceGroupName string, containerApp
 
 // ParseDetectorID parses 'input' into a DetectorId
 func ParseDetectorID(input string) (*DetectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DetectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&DetectorId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseDetectorID(input string) (*DetectorId, error) {
 // ParseDetectorIDInsensitively parses 'input' case-insensitively into a DetectorId
 // note: this method should only be used for API response data and not user input
 func ParseDetectorIDInsensitively(input string) (*DetectorId, error) {
-	parser := resourceids.NewParserFromResourceIdType(DetectorId{})
+	parser := resourceids.NewParserFromResourceIdType(&DetectorId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

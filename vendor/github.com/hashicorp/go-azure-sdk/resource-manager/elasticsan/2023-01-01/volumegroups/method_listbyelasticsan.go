@@ -19,7 +19,8 @@ type ListByElasticSanOperationResponse struct {
 }
 
 type ListByElasticSanCompleteResult struct {
-	Items []VolumeGroup
+	LatestHttpResponse *http.Response
+	Items              []VolumeGroup
 }
 
 // ListByElasticSan ...
@@ -83,7 +84,8 @@ func (c VolumeGroupsClient) ListByElasticSanCompleteMatchingPredicate(ctx contex
 	}
 
 	result = ListByElasticSanCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

@@ -43,7 +43,10 @@ func (c EventSubscriptionsClient) SystemTopicEventSubscriptionsGet(ctx context.C
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model EventSubscription
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

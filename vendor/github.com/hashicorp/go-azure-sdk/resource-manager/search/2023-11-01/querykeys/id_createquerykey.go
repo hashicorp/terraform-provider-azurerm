@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = CreateQueryKeyId{}
+func init() {
+	recaser.RegisterResourceId(&CreateQueryKeyId{})
+}
+
+var _ resourceids.ResourceId = &CreateQueryKeyId{}
 
 // CreateQueryKeyId is a struct representing the Resource ID for a Create Query Key
 type CreateQueryKeyId struct {
@@ -32,7 +37,7 @@ func NewCreateQueryKeyID(subscriptionId string, resourceGroupName string, search
 
 // ParseCreateQueryKeyID parses 'input' into a CreateQueryKeyId
 func ParseCreateQueryKeyID(input string) (*CreateQueryKeyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CreateQueryKeyId{})
+	parser := resourceids.NewParserFromResourceIdType(&CreateQueryKeyId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -49,7 +54,7 @@ func ParseCreateQueryKeyID(input string) (*CreateQueryKeyId, error) {
 // ParseCreateQueryKeyIDInsensitively parses 'input' case-insensitively into a CreateQueryKeyId
 // note: this method should only be used for API response data and not user input
 func ParseCreateQueryKeyIDInsensitively(input string) (*CreateQueryKeyId, error) {
-	parser := resourceids.NewParserFromResourceIdType(CreateQueryKeyId{})
+	parser := resourceids.NewParserFromResourceIdType(&CreateQueryKeyId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

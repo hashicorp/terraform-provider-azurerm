@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
@@ -35,6 +38,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: false,
 			},
 		},
@@ -43,6 +47,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello,removedInNextMajorVersion"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: true,
 			},
 		},
@@ -51,6 +56,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello, removedInNextMajorVersion"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: true,
 			},
 		},
@@ -62,6 +68,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello ,removedInNextMajorVersion"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: true,
 			},
 		},
@@ -73,8 +80,30 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello , removedInNextMajorVersion"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: true,
 			},
+		},
+		{
+			// valid, with addedInNextMajorVersion and a space before the comma
+			input: `tfschema:"hello, addedInNextMajorVersion"`,
+			expected: &decodedStructTags{
+				hclPath:                   "hello",
+				addedInNextMajorVersion:   true,
+				removedInNextMajorVersion: false,
+			},
+		},
+		{
+			// valid, with addedInNextMajorVersion and a space before the comma
+			input:    `tfschema:"hello, removedInNextMajorVersion, addedInNextMajorVersion"`,
+			expected: nil,
+			error:    pointer.To("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together"),
+		},
+		{
+			// valid, with addedInNextMajorVersion and a space before the comma
+			input:    `tfschema:"hello, addedInNextMajorVersion, removedInNextMajorVersion"`,
+			expected: nil,
+			error:    pointer.To("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together"),
 		},
 		{
 			// invalid, unknown struct tags

@@ -20,7 +20,8 @@ type ListByResourceGroupOperationResponse struct {
 }
 
 type ListByResourceGroupCompleteResult struct {
-	Items []RedisResource
+	LatestHttpResponse *http.Response
+	Items              []RedisResource
 }
 
 // ListByResourceGroup ...
@@ -84,7 +85,8 @@ func (c RedisClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Co
 	}
 
 	result = ListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

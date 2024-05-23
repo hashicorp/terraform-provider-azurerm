@@ -19,7 +19,8 @@ type MonitorsListHostsOperationResponse struct {
 }
 
 type MonitorsListHostsCompleteResult struct {
-	Items []DatadogHost
+	LatestHttpResponse *http.Response
+	Items              []DatadogHost
 }
 
 // MonitorsListHosts ...
@@ -83,7 +84,8 @@ func (c HostsClient) MonitorsListHostsCompleteMatchingPredicate(ctx context.Cont
 	}
 
 	result = MonitorsListHostsCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }

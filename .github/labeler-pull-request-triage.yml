@@ -354,6 +354,11 @@ service/managed-apps:
   - any-glob-to-any-file:
     - internal/services/managedapplications/**/*
 
+service/managed-hsm:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/managedhsm/**/*
+
 service/management-groups:
 - changed-files:
   - any-glob-to-any-file:
@@ -474,6 +479,11 @@ service/recovery-services:
   - any-glob-to-any-file:
     - internal/services/recoveryservices/**/*
 
+service/redhatopenshift:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/redhatopenshift/**/*
+
 service/redis:
 - changed-files:
   - any-glob-to-any-file:
@@ -565,6 +575,11 @@ service/synapse:
   - any-glob-to-any-file:
     - internal/services/synapse/**/*
 
+service/systemcentervirtualmachinemanager:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/systemcentervirtualmachinemanager/**/*
+
 service/traffic-manager:
 - changed-files:
   - any-glob-to-any-file:
@@ -584,3 +599,8 @@ service/vmware:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/vmware/**/*
+
+service/workloads:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/workloads/**/*

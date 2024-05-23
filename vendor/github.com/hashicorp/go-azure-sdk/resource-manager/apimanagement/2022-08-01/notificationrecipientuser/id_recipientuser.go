@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-var _ resourceids.ResourceId = RecipientUserId{}
+func init() {
+	recaser.RegisterResourceId(&RecipientUserId{})
+}
+
+var _ resourceids.ResourceId = &RecipientUserId{}
 
 // RecipientUserId is a struct representing the Resource ID for a Recipient User
 type RecipientUserId struct {
@@ -34,7 +39,7 @@ func NewRecipientUserID(subscriptionId string, resourceGroupName string, service
 
 // ParseRecipientUserID parses 'input' into a RecipientUserId
 func ParseRecipientUserID(input string) (*RecipientUserId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RecipientUserId{})
+	parser := resourceids.NewParserFromResourceIdType(&RecipientUserId{})
 	parsed, err := parser.Parse(input, false)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
@@ -51,7 +56,7 @@ func ParseRecipientUserID(input string) (*RecipientUserId, error) {
 // ParseRecipientUserIDInsensitively parses 'input' case-insensitively into a RecipientUserId
 // note: this method should only be used for API response data and not user input
 func ParseRecipientUserIDInsensitively(input string) (*RecipientUserId, error) {
-	parser := resourceids.NewParserFromResourceIdType(RecipientUserId{})
+	parser := resourceids.NewParserFromResourceIdType(&RecipientUserId{})
 	parsed, err := parser.Parse(input, true)
 	if err != nil {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)

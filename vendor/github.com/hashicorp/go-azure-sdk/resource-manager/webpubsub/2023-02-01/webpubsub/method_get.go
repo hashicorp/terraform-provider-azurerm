@@ -43,7 +43,10 @@ func (c WebPubSubClient) Get(ctx context.Context, id WebPubSubId) (result GetOpe
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model WebPubSubResource
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

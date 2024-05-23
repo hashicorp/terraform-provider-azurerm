@@ -15,7 +15,12 @@ import (
 type ListByNotificationOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *RecipientEmailCollection
+	Model        *[]RecipientEmailContract
+}
+
+type ListByNotificationCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []RecipientEmailContract
 }
 
 // ListByNotification ...
@@ -35,7 +40,7 @@ func (c NotificationRecipientEmailClient) ListByNotification(ctx context.Context
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,9 +49,43 @@ func (c NotificationRecipientEmailClient) ListByNotification(ctx context.Context
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var values struct {
+		Values *[]RecipientEmailContract `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByNotificationComplete retrieves all the results into a single object
+func (c NotificationRecipientEmailClient) ListByNotificationComplete(ctx context.Context, id NotificationId) (ListByNotificationCompleteResult, error) {
+	return c.ListByNotificationCompleteMatchingPredicate(ctx, id, RecipientEmailContractOperationPredicate{})
+}
+
+// ListByNotificationCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c NotificationRecipientEmailClient) ListByNotificationCompleteMatchingPredicate(ctx context.Context, id NotificationId, predicate RecipientEmailContractOperationPredicate) (result ListByNotificationCompleteResult, err error) {
+	items := make([]RecipientEmailContract, 0)
+
+	resp, err := c.ListByNotification(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByNotificationCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

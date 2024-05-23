@@ -83,7 +83,10 @@ func (c SubscriptionClient) Update(ctx context.Context, id Subscriptions2Id, inp
 		return
 	}
 
-	if err = resp.Unmarshal(&result.Model); err != nil {
+	var model SubscriptionContract
+	result.Model = &model
+
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

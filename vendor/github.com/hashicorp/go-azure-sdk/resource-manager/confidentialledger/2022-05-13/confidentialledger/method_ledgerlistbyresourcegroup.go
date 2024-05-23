@@ -20,7 +20,8 @@ type LedgerListByResourceGroupOperationResponse struct {
 }
 
 type LedgerListByResourceGroupCompleteResult struct {
-	Items []ConfidentialLedger
+	LatestHttpResponse *http.Response
+	Items              []ConfidentialLedger
 }
 
 type LedgerListByResourceGroupOperationOptions struct {
@@ -112,7 +113,8 @@ func (c ConfidentialLedgerClient) LedgerListByResourceGroupCompleteMatchingPredi
 	}
 
 	result = LedgerListByResourceGroupCompleteResult{
-		Items: items,
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
 	}
 	return
 }
