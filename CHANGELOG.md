@@ -10,7 +10,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: `containerservice` - updating to use version `2023-09-02-preview` [GH-25663]
+* dependencies: updating to `v0.20240522.1080424` of `github.com/hashicorp/go-azure-sdk` [GH-26069]
+* `containerservice`: updating to use API Version `2023-09-02-preview` [GH-25663]
 * `azurerm_machine_learning_compute_cluster` - add validation for `name` [GH-26060]
 
 BUG FIXES:
