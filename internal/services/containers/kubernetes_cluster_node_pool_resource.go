@@ -1143,8 +1143,8 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 						Default:  30,
 					},
 					"node_soak_duration_in_minutes": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
 						ValidateFunc: validation.IntBetween(0, 30),
 					},
 				},
@@ -1168,8 +1168,8 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 					Default:  30,
 				},
 				"node_soak_duration_in_minutes": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 30),
 				},
 			},
