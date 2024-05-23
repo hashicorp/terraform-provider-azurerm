@@ -93,6 +93,7 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 
 		"template": helpers.JobTemplateSchema(),
 
+		// TODO rename `secrets` to `secrets` in 4.0
 		"secrets": helpers.SecretsSchema(),
 
 		"replica_retry_limit": {
@@ -101,6 +102,7 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.IntAtLeast(0),
 		},
 
+		// TODO rename `registries` to `registry` in 4.0
 		"registries": helpers.ContainerAppRegistrySchema(),
 
 		"event_trigger_config": {
