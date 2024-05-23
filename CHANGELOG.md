@@ -1,10 +1,5 @@
 ## 3.105.0 (Unreleased)
 
-ENHANCEMENTS:
-
-* `azurerm_kubernetes_cluster` `azurerm_kubernetes_cluster_node_pool` - adding `node_soak_duration_in_minutes` and `drain_timeout_in_minutes` to the node pool `upgrade_settings` block
-* update `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice` to version `2023-09-02-preview`
-
 BUG FIXES:
 
 * `azurerm_container_app_job` - updating the validation for the `name` field [GH-26049]
