@@ -1837,17 +1837,21 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	values := make(map[string]interface{})
 
-	if input != nil && input.MaxSurge != nil && *input.MaxSurge != "" {
+	if input.MaxSurge != nil && *input.MaxSurge != "" {
 		values["max_surge"] = *input.MaxSurge
 	}
 
-	if input != nil && input.DrainTimeoutInMinutes != nil {
+	if input.DrainTimeoutInMinutes != nil {
 		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
-	if input != nil && input.NodeSoakDurationInMinutes != nil {
+	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
 	}
 
