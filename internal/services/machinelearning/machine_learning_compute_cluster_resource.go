@@ -175,7 +175,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v, workspaceID, err)
+		return fmt.Errorf("retrieving %s: %+v, workspaceID", err)
 	}
 
 	workspaceModel := workspace.Model
@@ -203,7 +203,26 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && *workspaceModel.Properties.ManagedNetwork.Status.Status != workspaces.ManagedNetworkStatusActive {
+	nodePublicIPEnabled, ok := d.Get("node_public_ip_enabled").(bool)
+	if !ok {
+		return fmt.Errorf("unable to assert type for `node_public_ip_enabled`")
+	}
+
+	subnetResourceID, ok := d.Get("subnet_resource_id").(string)
+	if !ok {
+		return fmt.Errorf("unable to assert type for `subnet_resource_id`")
+	}
+
+	workspaceInManagedVnet := false
+
+	if workspaceModel.Properties != nil &&
+		workspaceModel.Properties.ManagedNetwork != nil &&
+		workspaceModel.Properties.ManagedNetwork.Status != nil &&
+		workspaceModel.Properties.ManagedNetwork.Status.Status != nil {
+		workspaceInManagedVnet = *workspaceModel.Properties.ManagedNetwork.Status.Status == workspaces.ManagedNetworkStatusActive
+	}
+
+	if !nodePublicIPEnabled && subnetResourceID == "" && !workspaceInManagedVnet {
 		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` or the workspace is not in a managed network")
 	}
 
