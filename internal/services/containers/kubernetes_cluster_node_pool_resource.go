@@ -1189,13 +1189,11 @@ func upgradeSettingsForDataSourceSchema() *pluginsdk.Schema {
 				},
 				"drain_timeout_in_minutes": {
 					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  "30",
+					Computed: true,
 				},
 				"node_soak_duration_in_minutes": {
 					Type:     pluginsdk.TypeInt,
-					Optional: true,
-					Default:  0,
+					Computed: true,
 				},
 			},
 		},
