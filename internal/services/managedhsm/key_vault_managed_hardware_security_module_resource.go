@@ -116,7 +116,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"network_acls": {
@@ -283,6 +282,14 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 	if d.HasChange("network_acls") {
 		hasUpdate = true
 		model.Properties.NetworkAcls = expandMHSMNetworkAcls(d.Get("network_acls").([]interface{}))
+	}
+	if d.HasChange("public_network_access_enabled") {
+		hasUpdate = true
+		publicNetworkAccessEnabled := managedhsms.PublicNetworkAccessEnabled
+		if !d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
+		}
+		model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 	}
 	if hasUpdate {
 		if err := hsmClient.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
