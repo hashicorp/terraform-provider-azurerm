@@ -200,6 +200,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/noti
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientuser
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/openidconnectprovider
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policyfragment
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productapi
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productgroup
