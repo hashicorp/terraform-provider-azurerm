@@ -269,7 +269,7 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 	primaryPeerAddressPrefix := d.Get("primary_peer_address_prefix").(string)
 	secondaryPeerAddressPrefix := d.Get("secondary_peer_address_prefix").(string)
 
-	routeFilterId := d.Get("routeFilterId").(string)
+	routeFilterId := d.Get("route_filter_id").(string)
 
 	circuitConnClient := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	circuitConnectionId := commonids.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName, id.PeeringName)

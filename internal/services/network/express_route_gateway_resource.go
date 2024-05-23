@@ -6,10 +6,8 @@ package network
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -94,7 +92,7 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 		resp, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 		if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
@@ -105,13 +103,10 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	gatewayId := expressrouteconnections.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteGatewayName)
 
 	respConnections, err := connectionsClient.List(ctx, gatewayId)
-	if err != nil {
-		// service will return 404 error if Gateway not exist
-		if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusNotFound {
-			log.Printf("[Debug]: Gateway connection not found. HTTP Code 404.")
-		} else {
-			return fmt.Errorf("retrieving %s: %+v", gatewayId, err)
-		}
+	if err != nil && response.WasNotFound(respConnections.HttpResponse) {
+		log.Printf("[Debug]: Gateway connection not found. HTTP Code 404.")
+	} else {
+		return fmt.Errorf("retrieving %s: %+v", gatewayId, err)
 	}
 
 	var connections *[]expressroutegateways.ExpressRouteConnection
