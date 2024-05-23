@@ -103,9 +103,7 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	gatewayId := expressrouteconnections.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteGatewayName)
 
 	respConnections, err := connectionsClient.List(ctx, gatewayId)
-	if err != nil && response.WasNotFound(respConnections.HttpResponse) {
-		log.Printf("[Debug]: Gateway connection not found. HTTP Code 404.")
-	} else {
+	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", gatewayId, err)
 	}
 
