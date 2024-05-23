@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `format` - (Required) The format of the Policy Fragment. Possible values are `xml` or `rawxml`.
 
+~> **NOTE:** The `value` property will be updated to reflect the corresponding format when `format` is updated.
+
 * `value` - (Required) The value of the Policy Fragment.
 
 ~> **NOTE:** Be aware of the two format possibilities. If the `value` is not applied and continues to cause a diff the format could be wrong.

@@ -174,6 +174,8 @@ func resourceApiManagementPolicyFragmentUpdate(d *pluginsdk.ResourceData, meta i
 
 	if d.HasChange("format") {
 		payload.Properties.Format = pointer.To(format)
+		// on format change we send the value also because it might be interpreted differently because of the changed format
+		payload.Properties.Value = d.Get("value").(string)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload, policyfragment.DefaultCreateOrUpdateOperationOptions()); err != nil {
