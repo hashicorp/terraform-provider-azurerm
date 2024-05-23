@@ -107,6 +107,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			if step.Destroy {
 				opts = append(opts, tfexec.Destroy(true))
 			}
+
+			if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
+				opts = append(opts, tfexec.AllowDeferral(true))
+			}
+
 			return wd.CreatePlan(ctx, opts...)
 		}, wd, providers)
 		if err != nil {
@@ -168,7 +173,13 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 
 		// Apply the diff, creating real resources
 		err = runProviderCommand(ctx, t, func() error {
-			return wd.Apply(ctx)
+			var opts []tfexec.ApplyOption
+
+			if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Apply.AllowDeferral {
+				opts = append(opts, tfexec.AllowDeferral(true))
+			}
+
+			return wd.Apply(ctx, opts...)
 		}, wd, providers)
 		if err != nil {
 			if step.Destroy {
@@ -238,6 +249,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 		if step.Destroy {
 			opts = append(opts, tfexec.Destroy(true))
 		}
+
+		if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
+			opts = append(opts, tfexec.AllowDeferral(true))
+		}
+
 		return wd.CreatePlan(ctx, opts...)
 	}, wd, providers)
 	if err != nil {
@@ -302,6 +318,11 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 				opts = append(opts, tfexec.Refresh(false))
 			}
 		}
+
+		if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
+			opts = append(opts, tfexec.AllowDeferral(true))
+		}
+
 		return wd.CreatePlan(ctx, opts...)
 	}, wd, providers)
 	if err != nil {

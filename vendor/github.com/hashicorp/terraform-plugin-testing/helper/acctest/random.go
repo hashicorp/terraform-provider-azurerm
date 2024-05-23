@@ -122,10 +122,8 @@ func RandTLSCert(orgName string) (string, string, error) {
 }
 
 // RandIpAddress returns a random IP address in the specified CIDR block.
-// The prefix length must be less than 31.
 func RandIpAddress(s string) (string, error) {
 	prefix, err := netip.ParsePrefix(s)
-
 	if err != nil {
 		return "", err
 	}
@@ -134,47 +132,36 @@ func RandIpAddress(s string) (string, error) {
 		return prefix.Addr().String(), nil
 	}
 
-	prefixSizeExponent := uint(prefix.Addr().BitLen() - prefix.Bits())
-
-	if prefix.Addr().Is4() && prefixSizeExponent > 31 {
-		return "", fmt.Errorf("CIDR range is too large: %d", prefixSizeExponent)
+	// base address as byte slice
+	prefixBytes, err := prefix.Masked().Addr().MarshalBinary()
+	if err != nil {
+		return "", err
 	}
 
-	// Prevent panics with rand.Int63n().
-	if prefix.Addr().Is6() && prefixSizeExponent > 63 {
-		return "", fmt.Errorf("CIDR range is too large: %d", prefixSizeExponent)
+	// inverse mask (ones in the host bits) as byte slice
+	inverseMaskBytes, err := inverseMask(prefix.Bits(), len(prefixBytes))
+	if err != nil {
+		return "", err
 	}
 
-	// Calculate max random integer based on the prefix.
-	// Bit shift 1<<size and subtract 1 to not overflow.
-	// e.g. 1<<8 - 1 = 256 - 1 = 255 for 192.168.0.0/24
-	randIntMax := big.NewInt(1)
-	randIntMax.Lsh(randIntMax, prefixSizeExponent)
-	randIntMax.Sub(randIntMax, big.NewInt(1))
-
-	// Prevent panics with rand.Int63n().
-	if randIntMax.Cmp(big.NewInt(0)) <= 0 {
-		return prefix.Addr().String(), nil
+	// the result starts life as 4 or 16 bytes of random data
+	resultBytes := make([]byte, len(inverseMaskBytes))
+	_, err = crand.Read(resultBytes)
+	if err != nil {
+		return "", err
 	}
 
-	randInt := rand.Int63n(randIntMax.Int64())
-
-	if randInt == 0 {
-		return prefix.Addr().String(), nil
+	// use the prefix and inverse mask to restore the network bits
+	for i := range inverseMaskBytes {
+		resultBytes[i] = (resultBytes[i] & inverseMaskBytes[i]) + prefixBytes[i]
 	}
 
-	// Calculate random address by taking prefix address and adding the random
-	// integer.
-	randAddrInt := new(big.Int).SetBytes(prefix.Addr().AsSlice())
-	randAddrInt.Add(randAddrInt, big.NewInt(randInt))
-
-	randAddr, ok := netip.AddrFromSlice(randAddrInt.Bytes())
-
+	result, ok := netip.AddrFromSlice(resultBytes)
 	if !ok {
-		return "", fmt.Errorf("unable to create random address from bytes: %#v", randAddrInt.Bytes())
+		return "", fmt.Errorf("unable to create random address from bytes: %#v", resultBytes)
 	}
 
-	return randAddr.String(), nil
+	return result.String(), nil
 }
 
 func genPrivateKey() (*rsa.PrivateKey, string, error) {
@@ -199,6 +186,22 @@ func pemEncode(b []byte, block string) (string, error) {
 	}
 
 	return buf.String(), nil
+}
+
+func inverseMask(bits, byteLen int) ([]byte, error) {
+	if bits > byteLen*8 {
+		return nil, fmt.Errorf("cannot fit a %d-bit mask into %d bytes", bits, byteLen)
+	}
+
+	iBits := (byteLen * 8) - bits
+	var result []byte
+	for iBits > 0 {
+		b := uint8((1 << iBits) - 1)
+		result = append([]byte{b}, result...)
+		iBits -= 8
+	}
+
+	return append(make([]byte, byteLen-len(result)), result...), nil
 }
 
 const (

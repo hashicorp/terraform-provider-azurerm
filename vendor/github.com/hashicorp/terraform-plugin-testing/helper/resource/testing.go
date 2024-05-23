@@ -441,6 +441,10 @@ type TestCase struct {
 	// set to "1", to persist any working directory files. Otherwise, this directory is
 	// automatically cleaned up at the end of the TestCase.
 	WorkingDir string
+
+	// AdditionalCLIOptions allows an intentionally limited set of options to be passed
+	// to the Terraform CLI when executing test steps.
+	AdditionalCLIOptions *AdditionalCLIOptions
 }
 
 // ExternalProvider holds information about third-party providers that should
