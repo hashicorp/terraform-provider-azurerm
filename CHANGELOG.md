@@ -1,7 +1,16 @@
 ## 3.105.0 (Unreleased)
 
+BREAKING CHANGE:
+
+* `azurerm_kubernetes_cluster` - the properties `workload_autoscaler_profile.vertical_pod_autoscaler_update_mode` and `workload_autoscaler_profile.vertical_pod_autoscaler_controlled_values` are no longer populated since they're not exported in API version `2023-09-02-preview` [GH-25663]
+
+FEATURES:
+
+* New Resource: `azurerm_api_management_policy_fragment` [GH-24968]
+
 ENHANCEMENTS:
 
+* dependencies: `containerservice` - updating to use version `2023-09-02-preview` [GH-25663]
 * `azurerm_machine_learning_compute_cluster` - add validation for `name` [GH-26060]
 
 BUG FIXES:
