@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var skuWeight = map[string]int8{
@@ -258,32 +257,32 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v := !d.Get("copy_paste_enabled").(bool); v {
-		parameters.Properties.DisableCopyPaste = utils.Bool(v)
+		parameters.Properties.DisableCopyPaste = pointer.To(v)
 	}
 
 	if fileCopyEnabled {
-		parameters.Properties.EnableFileCopy = utils.Bool(fileCopyEnabled)
+		parameters.Properties.EnableFileCopy = pointer.To(fileCopyEnabled)
 	}
 
 	if ipConnectEnabled {
-		parameters.Properties.EnableIPConnect = utils.Bool(ipConnectEnabled)
+		parameters.Properties.EnableIPConnect = pointer.To(ipConnectEnabled)
 	}
 
 	if kerberosEnabled {
-		parameters.Properties.EnableKerberos = utils.Bool(kerberosEnabled)
+		parameters.Properties.EnableKerberos = pointer.To(kerberosEnabled)
 	}
 
 	if shareableLinkEnabled {
-		parameters.Properties.EnableShareableLink = utils.Bool(shareableLinkEnabled)
+		parameters.Properties.EnableShareableLink = pointer.To(shareableLinkEnabled)
 	}
 
 	if tunnelingEnabled {
-		parameters.Properties.EnableTunneling = utils.Bool(tunnelingEnabled)
+		parameters.Properties.EnableTunneling = pointer.To(tunnelingEnabled)
 	}
 
 	if v, ok := d.GetOk("virtual_network_id"); ok {
 		parameters.Properties.VirtualNetwork = &bastionhosts.SubResource{
-			Id: utils.String(v.(string)),
+			Id: pointer.To(v.(string)),
 		}
 	} else if sku == bastionhosts.BastionHostSkuNameDeveloper {
 		return fmt.Errorf("`virtual_network_id` is required when `sku` is `Developer`")
@@ -380,7 +379,7 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("virtual_network_id") {
 		payload.Properties.VirtualNetwork = &bastionhosts.SubResource{
-			Id: utils.String(d.Get("virtual_network_id").(string)),
+			Id: pointer.To(d.Get("virtual_network_id").(string)),
 		}
 	}
 
