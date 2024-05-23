@@ -76,22 +76,26 @@ func resourceBastionHost() *pluginsdk.Resource {
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.BastionIPConfigName,
 						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.BastionSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validate.PublicIpAddressID,
 						},
 					},
@@ -139,6 +143,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 			"virtual_network_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: commonids.ValidateVirtualNetworkID,
 			},
 
@@ -157,28 +162,6 @@ func resourceBastionHost() *pluginsdk.Resource {
 					return skuWeight[old.(string)] > skuWeight[new.(string)]
 				}
 				return false
-			}),
-
-			pluginsdk.ForceNewIf("virtual_network_id", func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) bool {
-				// `virtual_network_id` cannot be changed when `sku` is `Developer`.
-				if d.HasChange("virtual_network_id") {
-					old, new := d.GetChange("sku")
-					if old.(string) != "" && new.(string) != "" && skuWeight[old.(string)] == 1 && skuWeight[new.(string)] == 1 {
-						return true
-					}
-				}
-				return false
-			}),
-
-			pluginsdk.ForceNewIf("ip_configuration", func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) bool {
-				// `ip_configuration` can be changed when `Developer` SKU is upgraded to other SKUs.
-				if d.HasChange("ip_configuration") {
-					old, new := d.GetChange("sku")
-					if old.(string) != "" && new.(string) != "" && skuWeight[old.(string)] == 1 && skuWeight[old.(string)] <= skuWeight[new.(string)] {
-						return false
-					}
-				}
-				return true
 			}),
 		),
 	}
