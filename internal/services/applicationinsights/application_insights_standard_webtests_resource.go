@@ -161,7 +161,7 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 						Optional: true,
 						Default:  "GET",
 						ValidateFunc: validation.StringInSlice([]string{
-							"GET", "POST", "PUT", "PATCH", "DELETE",
+							"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"
 						}, false),
 					},
 
