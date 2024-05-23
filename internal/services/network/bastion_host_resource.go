@@ -166,10 +166,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 				// `virtual_network_id` cannot be changed when `sku` is `Developer`.
 				if d.HasChange("virtual_network_id") {
 					old, new := d.GetChange("sku")
-					if old.(string) != "" && new.(string) != "" {
-						if skuWeight[old.(string)] == 1 && skuWeight[new.(string)] == 1 {
-							return true
-						}
+					if old.(string) != "" && new.(string) != "" && skuWeight[old.(string)] == 1 && skuWeight[new.(string)] == 1 {
+						return true
 					}
 				}
 				return false
@@ -179,10 +177,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 				// `ip_configuration` can be changed while upgrading `Developer` SKU to other SKUs.
 				if d.HasChange("ip_configuration") {
 					old, new := d.GetChange("sku")
-					if old.(string) != "" && new.(string) != "" {
-						if skuWeight[old.(string)] == 1 && skuWeight[old.(string)] <= skuWeight[new.(string)] {
-							return false
-						}
+					if old.(string) != "" && new.(string) != "" && skuWeight[old.(string)] == 1 && skuWeight[old.(string)] <= skuWeight[new.(string)] {
+						return false
 					}
 				}
 				return true
