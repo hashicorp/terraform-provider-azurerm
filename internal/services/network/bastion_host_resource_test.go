@@ -219,7 +219,7 @@ resource "azurerm_bastion_host" "test" {
 
   depends_on = [azurerm_subnet.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString)
 }
 
 func (BastionHostResource) complete(data acceptance.TestData) string {
