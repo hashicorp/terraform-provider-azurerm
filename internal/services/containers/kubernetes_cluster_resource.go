@@ -329,6 +329,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"cost_analysis_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"custom_ca_trust_certificates_base64": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -941,20 +946,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: workspaces.ValidateWorkspaceID,
-						},
-					},
-				},
-			},
-
-			"metrics_profile": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*schema.Schema{
-						"cost_analysis_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
 						},
 					},
 				},
@@ -1774,7 +1765,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	metricsProfile := expandKubernetesClusterMetricsProfile(d.Get("metrics_profile").([]interface{}))
+	metricsProfile := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool))
 
 	var azureADProfile *managedclusters.ManagedClusterAADProfile
 	if v, ok := d.GetOk("azure_active_directory_role_based_access_control"); ok {
@@ -2184,7 +2175,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("metrics_profile") {
 		updateCluster = true
-		metricsProfile := expandKubernetesClusterMetricsProfile(d.Get("metrics_profile").([]interface{}))
+		metricsProfile := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool))
 		existing.Model.Properties.MetricsProfile = metricsProfile
 	}
 
@@ -2915,9 +2906,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `network_profile`: %+v", err)
 			}
 
-			metricsProfile := flattenKubernetesClusterMetricsProfile(props.MetricsProfile)
-			if err := d.Set("metrics_profile", metricsProfile); err != nil {
-				return fmt.Errorf("setting `metrics_profile`: %+v", err)
+			costAnalysisEnabled := flattenKubernetesClusterMetricsProfile(props.MetricsProfile)
+			if err := d.Set("cost_analysis_enabled", costAnalysisEnabled); err != nil {
+				return fmt.Errorf("setting `cost_analysis_enabled`: %+v", err)
 			}
 
 			rbacEnabled := true
@@ -4838,27 +4829,19 @@ func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedC
 	}
 }
 
-func expandKubernetesClusterMetricsProfile(input []interface{}) *managedclusters.ManagedClusterMetricsProfile {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-	config := input[0].(map[string]interface{})
+func expandKubernetesClusterMetricsProfile(input bool) *managedclusters.ManagedClusterMetricsProfile {
 	return &managedclusters.ManagedClusterMetricsProfile{
 		CostAnalysis: &managedclusters.ManagedClusterCostAnalysis{
-			Enabled: pointer.To(config["cost_analysis_enabled"].(bool)),
+			Enabled: pointer.To(input),
 		},
 	}
 }
 
-func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedClusterMetricsProfile) []interface{} {
+func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedClusterMetricsProfile) bool {
 	if input == nil || input.CostAnalysis == nil {
-		return nil
+		return false
 	}
-	return []interface{}{
-		map[string]interface{}{
-			"cost_analysis_enabled": pointer.From(input.CostAnalysis.Enabled),
-		},
-	}
+	return pointer.From(input.CostAnalysis.Enabled)
 }
 
 func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {

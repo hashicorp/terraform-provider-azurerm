@@ -3654,11 +3654,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
-  metrics_profile {
-    cost_analysis_enabled = %[3]t
-  }
-  sku_tier     = "Premium"
-  support_plan = "AKSLongTermSupport"
+  cost_analysis_enabled = %[3]t
+  sku_tier              = "Premium"
+  support_plan          = "AKSLongTermSupport"
 }
 `, data.Locations.Primary, data.RandomInteger, enabled)
 }

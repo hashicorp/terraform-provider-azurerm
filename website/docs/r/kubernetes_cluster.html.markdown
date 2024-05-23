@@ -99,6 +99,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
 
+* `cost_analysis_enabled` - (Optional) Should cost analysis be enabled for this Kubernetes Cluster? Defaults to `false`. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.
+
 * `custom_ca_trust_certificates_base64` - (Optional) A list of up to 10 base64 encoded CAs that will be added to the trust store on nodes with the `custom_ca_trust_enabled` feature enabled.
 
 -> **Note:** Removing `custom_ca_trust_certificates_base64` after it has been set forces a new resource to be created.
@@ -152,8 +154,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `monitor_metrics` - (Optional) Specifies a Prometheus add-on profile for the Kubernetes Cluster. A `monitor_metrics` block as defined below.
 
 -> **Note:** If deploying Managed Prometheus, the `monitor_metrics` properties are required to configure the cluster for metrics collection. If no value is needed, set properties to `null`.
-
-* `metrics_profile` - (Optional) A `metrics_profile` block as defined below.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
 
@@ -660,12 +660,6 @@ A `not_allowed` block supports the following:
 A `microsoft_defender` block supports the following:
 
 * `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Workspace where the audit logs collected by Microsoft Defender should be sent to.
-
----
-
-A `metrics_profile` block supports the following:
-
-* `cost_analysis_enabled` - (Optional) Should cost analysis be enabled for this Kubernetes Cluster? Defaults to `false`. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.
 
 ---
 
