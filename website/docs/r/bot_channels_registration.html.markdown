@@ -65,8 +65,6 @@ The following arguments are supported:
 
 * `icon_url` - (Optional) The icon URL to visually identify the Bot Channels Registration.
 
--> **NOTE:** In v4.0 of the provider the `icon_url` will have a default value of `https://docs.botframework.com/static/devportal/client/images/bot-framework-default.png`.
-
 * `streaming_endpoint_enabled` - (Optional) Is the streaming endpoint enabled for the Bot Channels Registration. Defaults to `false`.
 
 * `isolated_network_enabled` - (Optional) Is the Bot Channels Registration in an isolated network?
