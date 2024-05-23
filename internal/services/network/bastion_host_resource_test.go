@@ -442,7 +442,6 @@ resource "azurerm_bastion_host" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Developer"
   virtual_network_id  = azurerm_virtual_network.test.id
-  copy_paste_enabled  = false
 }
 `, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString)
 }
