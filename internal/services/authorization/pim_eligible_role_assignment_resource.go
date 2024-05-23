@@ -183,6 +183,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "Ticket details relating to the eligible assignment",
 			Elem: &pluginsdk.Resource{
