@@ -167,7 +167,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 				if d.HasChange("virtual_network_id") {
 					old, new := d.GetChange("sku")
 					if old.(string) != "" && new.(string) != "" {
-						if skuWeight[old.(string)] == 1 && skuWeight[old.(string)] == skuWeight[new.(string)] {
+						if skuWeight[old.(string)] == 1 && skuWeight[new.(string)] == 1 {
 							return true
 						}
 					}
