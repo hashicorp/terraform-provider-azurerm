@@ -1145,7 +1145,7 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 					"node_soak_duration_in_minutes": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Default:  0,
+						ValidateFunc: validation.IntBetween(0, 30),
 					},
 				},
 			},
