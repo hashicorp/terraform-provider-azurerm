@@ -371,8 +371,12 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("virtual_network_id") {
-		payload.Properties.VirtualNetwork = &bastionhosts.SubResource{
-			Id: pointer.To(d.Get("virtual_network_id").(string)),
+		if v, ok := d.GetOk("virtual_network_id"); ok {
+			payload.Properties.VirtualNetwork = &bastionhosts.SubResource{
+				Id: pointer.To(v.(string)),
+			}
+		} else {
+			payload.Properties.VirtualNetwork = nil
 		}
 	}
 
