@@ -175,20 +175,20 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	workspace, err := mlWorkspacesClient.Get(ctx, *workspaceID)
 	if err != nil {
-		return err
+		return fmt.Errorf("retrieving %s: %+v, workspaceID, err)
 	}
 
 	workspaceModel := workspace.Model
 	if workspaceModel == nil {
-		return fmt.Errorf("machine learning %s Workspace: model was nil", id)
+		return fmt.Errorf("retrieving %s: `model` was nil", workspaceID)
 	}
 
 	if workspaceModel.Sku == nil || workspaceModel.Sku.Tier == nil || workspaceModel.Sku.Name == "" {
-		return fmt.Errorf("machine learning %s Workspace: `SKU` was nil or empty", id)
+		return fmt.Errorf("retrieving %s: `sku` was nil or empty", workspaceID)
 	}
 
 	if workspaceModel.Location == nil {
-		return fmt.Errorf("machine learning %s Workspace: `Location` was nil", id)
+		return fmt.Errorf("retrieving %s: `location` was nil", workspaceID)
 	}
 
 	identity, err := expandIdentity(d.Get("identity").([]interface{}))
@@ -204,7 +204,7 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && *workspaceModel.Properties.ManagedNetwork.Status.Status != workspaces.ManagedNetworkStatusActive {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` if the workspace is not in a managed network")
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` or the workspace is not in a managed network")
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
