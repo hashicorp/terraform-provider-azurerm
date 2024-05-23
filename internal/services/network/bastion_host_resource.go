@@ -257,6 +257,10 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("virtual_network_id"); ok {
+		if sku != bastionhosts.BastionHostSkuNameDeveloper {
+			return fmt.Errorf("`virtual_network_id` only supports `Developer` SKU")
+		}
+
 		parameters.Properties.VirtualNetwork = &bastionhosts.SubResource{
 			Id: pointer.To(v.(string)),
 		}
@@ -351,16 +355,6 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			return fmt.Errorf("`tunneling_enabled` is only supported when `sku` is `Standard`")
 		}
 		payload.Properties.EnableTunneling = pointer.To(tunnelingEnabled)
-	}
-
-	if d.HasChange("virtual_network_id") {
-		if v, ok := d.GetOk("virtual_network_id"); ok {
-			payload.Properties.VirtualNetwork = &bastionhosts.SubResource{
-				Id: pointer.To(v.(string)),
-			}
-		} else {
-			payload.Properties.VirtualNetwork = nil
-		}
 	}
 
 	if d.HasChange("tags") {

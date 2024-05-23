@@ -98,7 +98,7 @@ The following arguments are supported:
 
 ~> **Note:** `tunneling_enabled` is only supported when `sku` is `Standard`.
 
-* `virtual_network_id` - (Optional) The ID of the Virtual Network for the Bastion Host. Changing this forces a new resource to be created.
+* `virtual_network_id` - (Optional) The ID of the Virtual Network for the Developer Bastion Host. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
