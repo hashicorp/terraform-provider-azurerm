@@ -269,6 +269,10 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		parameters.Properties.EnableIPConnect = utils.Bool(ipConnectEnabled)
 	}
 
+	if kerberosEnabled {
+		parameters.Properties.EnableKerberos = utils.Bool(kerberosEnabled)
+	}
+
 	if shareableLinkEnabled {
 		parameters.Properties.EnableShareableLink = utils.Bool(shareableLinkEnabled)
 	}
