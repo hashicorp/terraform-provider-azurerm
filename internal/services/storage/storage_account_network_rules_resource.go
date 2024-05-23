@@ -22,12 +22,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
+func resourceAccountNetworkRules() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceStorageAccountNetworkRulesCreateUpdate,
-		Read:   resourceStorageAccountNetworkRulesRead,
-		Update: resourceStorageAccountNetworkRulesCreateUpdate,
-		Delete: resourceStorageAccountNetworkRulesDelete,
+		Create: resourceAccountNetworkRulesCreateUpdate,
+		Read:   resourceAccountNetworkRulesRead,
+		Update: resourceAccountNetworkRulesCreateUpdate,
+		Delete: resourceAccountNetworkRulesDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseStorageAccountID(id)
@@ -124,10 +124,10 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 	}
 }
 
-func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
@@ -192,10 +192,10 @@ func resourceStorageAccountNetworkRulesCreateUpdate(d *pluginsdk.ResourceData, m
 		d.SetId(id.ID())
 	}
 
-	return resourceStorageAccountNetworkRulesRead(d, meta)
+	return resourceAccountNetworkRulesRead(d, meta)
 }
 
-func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +240,7 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 	return nil
 }
 
-func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

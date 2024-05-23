@@ -50,8 +50,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		"azurerm_storage_account":                      resourceAccount(),
-		"azurerm_storage_account_customer_managed_key": resourceStorageAccountCustomerManagedKey(),
-		"azurerm_storage_account_network_rules":        resourceStorageAccountNetworkRules(),
+		"azurerm_storage_account_customer_managed_key": resourceAccountCustomerManagedKey(),
+		"azurerm_storage_account_network_rules":        resourceAccountNetworkRules(),
 		"azurerm_storage_blob":                         resourceStorageBlob(),
 		"azurerm_storage_blob_inventory_policy":        resourceStorageBlobInventoryPolicy(),
 		"azurerm_storage_container":                    resourceStorageContainer(),

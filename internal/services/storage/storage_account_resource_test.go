@@ -910,12 +910,16 @@ func TestAccStorageAccount_largeFileShare(t *testing.T) {
 			Config: r.largeFileShareEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("large_file_share_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.largeFileShareDisabled(data),
-			ExpectError: regexp.MustCompile("`large_file_share_enabled` cannot be disabled once it's been enabled"),
+			Config: r.largeFileShareDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("large_file_share_enabled").HasValue("false"),
+			),
 		},
 	})
 }
@@ -1678,7 +1682,7 @@ func TestAccStorageAccount_invalidAccountKindForAccessTier(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidAccountKindForAccessTier(data),
-			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts of kind: \\[BlobStorage StorageV2 FileStorage\\]"),
+			ExpectError: regexp.MustCompile("`access_tier` is only available for accounts where `kind` is set to one of: BlobStorage / FileStorage / StorageV2"),
 		},
 	})
 }
@@ -4113,6 +4117,7 @@ resource "azurerm_storage_account" "test" {
   account_tier                      = "Premium"
   account_replication_type          = "LRS"
   infrastructure_encryption_enabled = true
+  large_file_share_enabled          = true # defaulted on the API side
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -4602,6 +4607,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Premium"
   account_kind             = "FileStorage"
   account_replication_type = "ZRS"
+  large_file_share_enabled = true # defaulted in the API when FileStorage & Premium
 
   share_properties {
     smb {

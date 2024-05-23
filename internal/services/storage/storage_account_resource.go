@@ -57,6 +57,10 @@ var (
 		storageaccounts.KindBlockBlobStorage: {},
 		storageaccounts.KindStorageVTwo:      {},
 	}
+	storageKindsSupportLargeFileShares = map[storageaccounts.Kind]struct{}{
+		storageaccounts.KindFileStorage: {},
+		storageaccounts.KindStorageVTwo: {},
+	}
 )
 
 func resourceAccount() *pluginsdk.Resource {
@@ -1216,7 +1220,7 @@ func resourceAccount() *pluginsdk.Resource {
 				if d.HasChange("large_file_share_enabled") {
 					lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
 					if lfsEnabled.(bool) && !changedEnabled.(bool) {
-						return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+						d.ForceNew("large_file_share_enabled")
 					}
 				}
 
@@ -1350,7 +1354,8 @@ func resourceAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	accessTier, accessTierSetInConfig := d.GetOk("access_tier")
 	_, skuTierSupported := storageKindsSupportsSkuTier[accountKind]
 	if !skuTierSupported && accessTierSetInConfig {
-		return fmt.Errorf("`access_tier` is only available for accounts of kind: %v", storageKindsSupportsSkuTier)
+		keys := sortedKeysFromSlice(storageKindsSupportHns)
+		return fmt.Errorf("`access_tier` is only available for accounts of kind set to one of: %+v", strings.Join(keys, " / "))
 	}
 	if skuTierSupported {
 		if !accessTierSetInConfig {
@@ -1380,17 +1385,24 @@ func resourceAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	// AccountTier must be Premium for FileStorage
-	if accountKind == storageaccounts.KindFileStorage && accountTier == storageaccounts.SkuTierPremium {
+	if accountKind == storageaccounts.KindFileStorage && accountTier == storageaccounts.SkuTierStandard {
 		return fmt.Errorf("a `account_tier` of `Standard` is not supported for FileStorage accounts")
 	}
 
 	// nolint staticcheck
 	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
-		largeFileSharesState := storageaccounts.LargeFileSharesStateDisabled
+		// @tombuildsstuff: we can't set this to `false` because the API returns:
+		//
+		// performing Create: unexpected status 400 (400 Bad Request) with error: InvalidRequestPropertyValue: The
+		// value 'Disabled' is not allowed for property largeFileSharesState. For more information, see -
+		// https://aka.ms/storageaccountlargefilesharestate
 		if v.(bool) {
-			largeFileSharesState = storageaccounts.LargeFileSharesStateEnabled
+			if _, ok := storageKindsSupportLargeFileShares[accountKind]; !ok {
+				keys := sortedKeysFromSlice(storageKindsSupportLargeFileShares)
+				return fmt.Errorf("`large_file_shares_enabled` can only be set to `true` with `account_kind` set to one of: %+v", strings.Join(keys, " / "))
+			}
+			payload.Properties.LargeFileSharesState = pointer.To(storageaccounts.LargeFileSharesStateEnabled)
 		}
-		payload.Properties.LargeFileSharesState = pointer.To(largeFileSharesState)
 	}
 
 	if v, ok := d.GetOk("routing"); ok {
@@ -1638,13 +1650,25 @@ func resourceAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		IsSftpEnabled:                         existing.Model.Properties.IsSftpEnabled,
 		IsLocalUserEnabled:                    existing.Model.Properties.IsLocalUserEnabled,
 		IsHnsEnabled:                          existing.Model.Properties.IsHnsEnabled,
-		LargeFileSharesState:                  existing.Model.Properties.LargeFileSharesState,
 		MinimumTlsVersion:                     existing.Model.Properties.MinimumTlsVersion,
 		NetworkAcls:                           existing.Model.Properties.NetworkAcls,
 		PublicNetworkAccess:                   existing.Model.Properties.PublicNetworkAccess,
 		RoutingPreference:                     existing.Model.Properties.RoutingPreference,
 		SasPolicy:                             existing.Model.Properties.SasPolicy,
 		SupportsHTTPSTrafficOnly:              existing.Model.Properties.SupportsHTTPSTrafficOnly,
+	}
+
+	if existing.Model.Properties.LargeFileSharesState != nil && *existing.Model.Properties.LargeFileSharesState == storageaccounts.LargeFileSharesStateEnabled {
+		// We can only set this if it's Enabled, else the API complains during Update that we're sending Disabled, even if it's always been off
+		props.LargeFileSharesState = existing.Model.Properties.LargeFileSharesState
+	}
+
+	expandedIdentity := existing.Model.Identity
+	if d.HasChange("identity") {
+		expandedIdentity, err = identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
 	}
 
 	if d.HasChange("access_tier") {
@@ -1665,9 +1689,8 @@ func resourceAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	if d.HasChange("customer_managed_key") {
 		queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 		tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
-		currentIdentity := existing.Model.Identity
 		encryptionRaw := d.Get("customer_managed_key").([]interface{})
-		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *currentIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
@@ -1695,11 +1718,17 @@ func resourceAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		props.SupportsHTTPSTrafficOnly = pointer.To(d.Get("enable_https_traffic_only").(bool))
 	}
 	if d.HasChange("large_file_share_enabled") {
-		isEnabled := storageaccounts.LargeFileSharesStateDisabled
-		if v := d.Get("large_file_share_enabled").(bool); v {
-			isEnabled = storageaccounts.LargeFileSharesStateEnabled
+		// largeFileSharesState can only be set to `Enabled` and not `Disabled`, even if it is currently `Disabled`
+		oldValue, newValue := d.GetChange("large_file_share_enabled")
+		if oldValue.(bool) && !newValue.(bool) {
+			return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
 		}
-		props.LargeFileSharesState = pointer.To(isEnabled)
+
+		if _, ok := storageKindsSupportLargeFileShares[accountKind]; !ok {
+			keys := sortedKeysFromSlice(storageKindsSupportLargeFileShares)
+			return fmt.Errorf("`large_file_shares_enabled` can only be set to `true` with `account_kind` set to one of: %+v", strings.Join(keys, " / "))
+		}
+		props.LargeFileSharesState = pointer.To(storageaccounts.LargeFileSharesStateEnabled)
 	}
 	if d.HasChange("local_user_enabled") {
 		props.IsLocalUserEnabled = pointer.To(d.Get("local_user_enabled").(bool))
@@ -1749,10 +1778,7 @@ func resourceAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 	if d.HasChange("identity") {
-		payload.Identity, err = identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
+		payload.Identity = expandedIdentity
 	}
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
@@ -2313,7 +2339,7 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 	}
 
 	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned {
-		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `UserAssigned` or `SystemAssigned, UserAssigned` managed identity")
+		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
 	}
 
 	v := input[0].(map[string]interface{})
@@ -2331,7 +2357,7 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 			return nil, err
 		}
 		if keyVaultIdRaw == nil {
-			return nil, fmt.Errorf("unexpected nil Key Vault ID retrieved at URL %s", keyId.KeyVaultBaseUrl)
+			return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyId.KeyVaultBaseUrl, subscriptionResourceId)
 		}
 		keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 		if err != nil {
@@ -2415,10 +2441,10 @@ func flattenAccountCustomerManagedKey(input *storageaccounts.Encryption, env env
 			userAssignedIdentityId = pointer.From(props.UserAssignedIdentity)
 		}
 
-		customerManagedKey := flattenCustomerManagedKey(input.Keyvaultproperties, env.ManagedHSM)
+		customerManagedKey := flattenCustomerManagedKey(input.Keyvaultproperties, env.KeyVault, env.ManagedHSM)
 		output = append(output, map[string]interface{}{
-			"key_vault_key_id":          customerManagedKey.keyVaultKeyId,
-			"managed_hsm_key_id":        customerManagedKey.managedHsmId,
+			"key_vault_key_id":          customerManagedKey.keyVaultKeyUri,
+			"managed_hsm_key_id":        customerManagedKey.managedHsmKeyUri,
 			"user_assigned_identity_id": userAssignedIdentityId,
 		})
 	}

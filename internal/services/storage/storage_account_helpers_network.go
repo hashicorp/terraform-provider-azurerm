@@ -12,7 +12,11 @@ func expandAccountNetworkRules(input []interface{}, tenantId string) *storageacc
 	if len(input) == 0 {
 		// Default access is enabled when no network rules are set.
 		return &storageaccounts.NetworkRuleSet{
-			DefaultAction: storageaccounts.DefaultActionAllow,
+			Bypass:              pointer.To(storageaccounts.BypassAzureServices),
+			DefaultAction:       storageaccounts.DefaultActionAllow,
+			IPRules:             &[]storageaccounts.IPRule{},
+			ResourceAccessRules: &[]storageaccounts.ResourceAccessRule{},
+			VirtualNetworkRules: &[]storageaccounts.VirtualNetworkRule{},
 		}
 	}
 
@@ -30,6 +34,11 @@ func flattenAccountNetworkRules(input *storageaccounts.NetworkRuleSet) []interfa
 	output := make([]interface{}, 0)
 
 	if input != nil {
+		// ignore the default values
+		if input.DefaultAction == storageaccounts.DefaultActionAllow && pointer.From(input.Bypass) == storageaccounts.BypassAzureServices {
+			return output
+		}
+
 		output = append(output, map[string]interface{}{
 			"bypass":                     pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleBypass(input.Bypass)),
 			"default_action":             string(input.DefaultAction),
