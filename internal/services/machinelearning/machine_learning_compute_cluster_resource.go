@@ -202,6 +202,9 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
+	
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
 
 	nodePublicIPEnabled, ok := d.Get("node_public_ip_enabled").(bool)
 	if !ok {
