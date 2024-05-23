@@ -75,8 +75,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 
 			"ip_configuration": {
 				Type:     pluginsdk.TypeList,
-				Optional: true,
 				ForceNew: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -223,37 +223,19 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	parameters := bastionhosts.BastionHost{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &bastionhosts.BastionHostPropertiesFormat{
-			IPConfigurations: expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
-			ScaleUnits:       pointer.To(int64(d.Get("scale_units").(int))),
+			DisableCopyPaste:    pointer.To(!d.Get("copy_paste_enabled").(bool)),
+			EnableFileCopy:      pointer.To(fileCopyEnabled),
+			EnableIPConnect:     pointer.To(ipConnectEnabled),
+			EnableKerberos:      pointer.To(kerberosEnabled),
+			EnableShareableLink: pointer.To(shareableLinkEnabled),
+			EnableTunneling:     pointer.To(tunnelingEnabled),
+			IPConfigurations:    expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
+			ScaleUnits:          pointer.To(int64(d.Get("scale_units").(int))),
 		},
 		Sku: &bastionhosts.Sku{
 			Name: pointer.To(sku),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if v := !d.Get("copy_paste_enabled").(bool); v {
-		parameters.Properties.DisableCopyPaste = pointer.To(v)
-	}
-
-	if fileCopyEnabled {
-		parameters.Properties.EnableFileCopy = pointer.To(fileCopyEnabled)
-	}
-
-	if ipConnectEnabled {
-		parameters.Properties.EnableIPConnect = pointer.To(ipConnectEnabled)
-	}
-
-	if kerberosEnabled {
-		parameters.Properties.EnableKerberos = pointer.To(kerberosEnabled)
-	}
-
-	if shareableLinkEnabled {
-		parameters.Properties.EnableShareableLink = pointer.To(shareableLinkEnabled)
-	}
-
-	if tunnelingEnabled {
-		parameters.Properties.EnableTunneling = pointer.To(tunnelingEnabled)
 	}
 
 	if v, ok := d.GetOk("virtual_network_id"); ok {
@@ -307,10 +289,6 @@ func resourceBastionHostUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		payload.Sku = &bastionhosts.Sku{
 			Name: pointer.To(sku),
 		}
-	}
-
-	if d.HasChange("ip_configuration") {
-		payload.Properties.IPConfigurations = expandBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{}))
 	}
 
 	if d.HasChange("copy_paste_enabled") {
