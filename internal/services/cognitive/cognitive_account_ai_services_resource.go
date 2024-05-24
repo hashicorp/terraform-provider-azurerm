@@ -337,8 +337,7 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			err = future.Poller.PollUntilDone(ctx)
-			if err != nil {
+			if err := future.Poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for creating of %s: %+v", id, err)
 			}
 
@@ -500,8 +499,7 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			err = future.Poller.PollUntilDone(ctx)
-			if err != nil {
+			if err := future.Poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for updating of %s: %+v", id, err)
 			}
 
