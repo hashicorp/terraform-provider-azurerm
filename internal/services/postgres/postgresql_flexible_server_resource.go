@@ -278,7 +278,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"replication_role": {
@@ -781,7 +782,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if d.HasChange("private_dns_zone_id") {
+	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
 		parameters.Properties.Network = expandArmServerNetwork(d)
 	}
 
@@ -977,6 +978,12 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
 		network.PrivateDnsZoneArmResourceId = utils.String(v.(string))
 	}
+
+	publicNetworkAccessEnabled := servers.ServerPublicNetworkAccessStateEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = servers.ServerPublicNetworkAccessStateDisabled
+	}
+	network.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 
 	return &network
 }
