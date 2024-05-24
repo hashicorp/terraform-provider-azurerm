@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_linux_function_app_slot` - fixed panic when planning from a version older than 3.88.0 [GH-25838]
 * `azurerm_pim_active_role_assignment` - fix a persistent diff when `ticket` is not specified [GH-26059]
 * `azurerm_pim_eligible_role_assignment` - fix a persistent diff when `ticket` is not specified [GH-26059]
+* `azurerm_policy_definition` - recreate the resource if the `parameters` property is updated to include fewer items [GH-26083] 
 * `azurerm_windows_function_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot [GH-25634]
 * `azurerm_windows_web_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot [GH-25634]
 
