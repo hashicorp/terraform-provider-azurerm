@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
@@ -99,7 +99,7 @@ func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `metadata`: %v", err)
 	}
 
-	resourceManagerId := commonids.NewStorageContainerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, queueName)
+	resourceManagerId := parse.NewStorageQueueResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", queueName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
