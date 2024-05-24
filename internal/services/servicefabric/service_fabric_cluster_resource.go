@@ -516,7 +516,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"application_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: !features.FourPointOhBeta(),
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -535,7 +535,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"ephemeral_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: !features.FourPointOhBeta(),
+							Computed: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
