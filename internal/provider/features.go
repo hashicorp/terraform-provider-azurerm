@@ -88,21 +88,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		"cognitive_account_ai_services": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"purge_soft_delete_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
-					},
-				},
-			},
-		},
-
 		"key_vault": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -459,16 +444,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			cognitiveRaw := items[0].(map[string]interface{})
 			if v, ok := cognitiveRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.CognitiveAccount.PurgeSoftDeleteOnDestroy = v.(bool)
-			}
-		}
-	}
-
-	if raw, ok := val["cognitive_account_ai_services"]; ok {
-		items := raw.([]interface{})
-		if len(items) > 0 && items[0] != nil {
-			cognitiveAIServicesRaw := items[0].(map[string]interface{})
-			if v, ok := cognitiveAIServicesRaw["purge_soft_delete_on_destroy"]; ok {
-				featuresMap.CognitiveAccountAIServices.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
 		}
 	}

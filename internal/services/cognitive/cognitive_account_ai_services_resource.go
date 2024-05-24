@@ -178,9 +178,8 @@ func (AIServicesAccountResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"virtual_network_rules": {
-						Type:       pluginsdk.TypeSet,
-						Optional:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAuto,
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"subnet_id": {
@@ -294,7 +293,7 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 			// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 			virtualNetworkNames := make([]string, 0)
 			for _, v := range subnetIds {
-				subnetId, err := commonids.ParseSubnetIDInsensitively(v)
+				subnetId, err := commonids.ParseSubnetID(v)
 				if err != nil {
 					return err
 				}
@@ -333,20 +332,14 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 			}
 			props.Identity = expandIdentity
 
-			if _, err = client.AccountsCreate(ctx, id, props); err != nil {
+			future, err := client.AccountsCreate(ctx, id, props)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Accepted", "Creating"},
-				Target:     []string{"Succeeded"},
-				Refresh:    aiServicesAccountStateRefreshFunc(ctx, client, id),
-				MinTimeout: 15 * time.Second,
-				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
+			err = future.Poller.PollUntilDone(ctx)
+			if err != nil {
+				return fmt.Errorf("waiting for creating of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -457,6 +450,8 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 			id := cognitiveservicesaccounts.NewAccountID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			networkACLs, subnetIds := expandAIServicesAccountNetworkACLs(model.NetworkACLs)
+			locks.MultipleByName(&subnetIds, network.VirtualNetworkResourceName)
+			defer locks.UnlockMultipleByName(&subnetIds, network.VirtualNetworkResourceName)
 
 			// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 			virtualNetworkNames := make([]string, 0)
@@ -500,20 +495,14 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 			}
 			props.Identity = expandIdentity
 
-			if _, err = client.AccountsUpdate(ctx, id, props); err != nil {
+			future, err := client.AccountsUpdate(ctx, id, props)
+			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Accepted"},
-				Target:     []string{"Succeeded"},
-				Refresh:    aiServicesAccountStateRefreshFunc(ctx, client, id),
-				MinTimeout: 15 * time.Second,
-				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutUpdate),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for update of %s: %+v", id, err)
+			err = future.Poller.PollUntilDone(ctx)
+			if err != nil {
+				return fmt.Errorf("waiting for updating of %s: %+v", id, err)
 			}
 
 			return nil
@@ -547,7 +536,7 @@ func (AIServicesAccountResource) Delete() sdk.ResourceFunc {
 			if err := client.AccountsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
-			if metadata.Client.Features.CognitiveAccountAIServices.PurgeSoftDeleteOnDestroy {
+			if metadata.Client.Features.CognitiveAccount.PurgeSoftDeleteOnDestroy {
 				log.Printf("[DEBUG] Purging %s..", *id)
 				if err := client.DeletedAccountsPurgeThenPoll(ctx, deletedAccountId); err != nil {
 					return fmt.Errorf("purging %s: %+v", *id, err)
@@ -563,20 +552,6 @@ func (AIServicesAccountResource) Delete() sdk.ResourceFunc {
 
 func (AIServicesAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cognitiveservicesaccounts.ValidateAccountID
-}
-
-func aiServicesAccountStateRefreshFunc(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, id cognitiveservicesaccounts.AccountId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.AccountsGet(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
-		}
-
-		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
-			return res, string(*res.Model.Properties.ProvisioningState), nil
-		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
-	}
 }
 
 func expandAIServicesAccountCustomerManagedKey(input []AIServicesAccountCustomerManagedKey) *cognitiveservicesaccounts.Encryption {

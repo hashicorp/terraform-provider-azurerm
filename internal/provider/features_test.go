@@ -35,9 +35,6 @@ func TestExpandFeatures(t *testing.T) {
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
-				CognitiveAccountAIServices: features.CognitiveAccountAIServicesFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
@@ -114,11 +111,6 @@ func TestExpandFeatures(t *testing.T) {
 						},
 					},
 					"cognitive_account": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": true,
-						},
-					},
-					"cognitive_account_ai_services": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": true,
 						},
@@ -216,9 +208,6 @@ func TestExpandFeatures(t *testing.T) {
 				CognitiveAccount: features.CognitiveAccountFeatures{
 					PurgeSoftDeleteOnDestroy: true,
 				},
-				CognitiveAccountAIServices: features.CognitiveAccountAIServicesFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
 				KeyVault: features.KeyVaultFeatures{
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
@@ -295,11 +284,6 @@ func TestExpandFeatures(t *testing.T) {
 						},
 					},
 					"cognitive_account": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": false,
-						},
-					},
-					"cognitive_account_ai_services": []interface{}{
 						map[string]interface{}{
 							"purge_soft_delete_on_destroy": false,
 						},
@@ -395,9 +379,6 @@ func TestExpandFeatures(t *testing.T) {
 					DisableGeneratedRule: false,
 				},
 				CognitiveAccount: features.CognitiveAccountFeatures{
-					PurgeSoftDeleteOnDestroy: false,
-				},
-				CognitiveAccountAIServices: features.CognitiveAccountAIServicesFeatures{
 					PurgeSoftDeleteOnDestroy: false,
 				},
 				KeyVault: features.KeyVaultFeatures{
@@ -731,71 +712,6 @@ func TestExpandFeaturesCognitiveServices(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.CognitiveAccount, testCase.Expected.CognitiveAccount) {
 			t.Fatalf("Expected %+v but got %+v", result.CognitiveAccount, testCase.Expected.CognitiveAccount)
-		}
-	}
-}
-
-func TestExpandFeaturesCognitiveAIServicesAccount(t *testing.T) {
-	testData := []struct {
-		Name     string
-		Input    []interface{}
-		EnvVars  map[string]interface{}
-		Expected features.UserFeatures
-	}{
-		{
-			Name: "Empty Block",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account_ai_services": []interface{}{},
-				},
-			},
-			Expected: features.UserFeatures{
-				CognitiveAccountAIServices: features.CognitiveAccountAIServicesFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
-			},
-		},
-		{
-			Name: "Purge on Destroy Enabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account_ai_services": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": true,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				CognitiveAccountAIServices: features.CognitiveAccountAIServicesFeatures{
-					PurgeSoftDeleteOnDestroy: true,
-				},
-			},
-		},
-		{
-			Name: "Purge on Destroy Disabled",
-			Input: []interface{}{
-				map[string]interface{}{
-					"cognitive_account_ai_services": []interface{}{
-						map[string]interface{}{
-							"purge_soft_delete_on_destroy": false,
-						},
-					},
-				},
-			},
-			Expected: features.UserFeatures{
-				CognitiveAccountAIServices: features.CognitiveAccountAIServicesFeatures{
-					PurgeSoftDeleteOnDestroy: false,
-				},
-			},
-		},
-	}
-
-	for _, testCase := range testData {
-		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
-		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.CognitiveAccountAIServices, testCase.Expected.CognitiveAccountAIServices) {
-			t.Fatalf("Expected %+v but got %+v", result.CognitiveAccountAIServices, testCase.Expected.CognitiveAccountAIServices)
 		}
 	}
 }
