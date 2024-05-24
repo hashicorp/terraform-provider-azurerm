@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `signup_policy` - (Required) Signup Policy Name.
 
+* `client_library` - (Optional) The client library to be used in the Azure AD B2C Identity Provider.
+
 ---
 
 * `password_reset_policy` - (Optional) Password reset Policy Name.
