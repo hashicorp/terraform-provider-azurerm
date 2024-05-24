@@ -1,8 +1,22 @@
 ## 3.105.0 (Unreleased)
 
+BREAKING CHANGE:
+
+* `azurerm_kubernetes_cluster` - the properties `workload_autoscaler_profile.vertical_pod_autoscaler_update_mode` and `workload_autoscaler_profile.vertical_pod_autoscaler_controlled_values` are no longer populated since they're not exported in API version `2023-09-02-preview` [GH-25663]
+
+FEATURES:
+
+* New Resource: `azurerm_api_management_policy_fragment` [GH-24968]
+
 ENHANCEMENTS:
 
+* dependencies: updating to `v0.20240522.1080424` of `github.com/hashicorp/go-azure-sdk` [GH-26069]
+* `containerservice`: updating to use API Version `2023-09-02-preview` [GH-25663]
+* `azurerm_linux_web_app` - normalising the value for `virtual_network_subnet_id` [GH-25885]
 * `azurerm_machine_learning_compute_cluster` - add validation for `name` [GH-26060]
+* `azurerm_machine_learning_compute_cluster` - improve validation to allow an empty `subnet_resource_id` when the Workspace is using a managed Virtual Network [GH-26073]
+* `azurerm_snapshot` - support for `disk_access_id` [GH-25996]
+* `azurerm_windows_web_app` - normalising the value for `virtual_network_subnet_id` [GH-25885]
 
 BUG FIXES:
 

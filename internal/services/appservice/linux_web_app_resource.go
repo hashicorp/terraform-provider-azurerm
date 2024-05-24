@@ -645,7 +645,12 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 					}
 
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
-						state.VirtualNetworkSubnetID = subnetId
+						// some users have provisioned these without a prefixed `/` - as such we need to normalize these
+						parsed, err := commonids.ParseSubnetIDInsensitively(subnetId)
+						if err != nil {
+							return err
+						}
+						state.VirtualNetworkSubnetID = parsed.ID()
 					}
 				}
 
