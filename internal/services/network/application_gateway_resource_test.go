@@ -13,13 +13,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2022-07-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ApplicationGatewayResource struct{}
@@ -1322,17 +1321,17 @@ func TestAccApplicationGateway_removeFirewallPolicy(t *testing.T) {
 }
 
 func (t ApplicationGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationGatewayID(state.ID)
+	id, err := applicationgateways.ParseApplicationGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Application Gateway (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ApplicationGatewayResource) basic(data acceptance.TestData) string {
@@ -5094,12 +5093,21 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 		ctx, cancel := context.WithTimeout(ctx, time.Minute*90)
 		defer cancel()
 
-		gatewayName := state.Attributes["name"]
-		resourceGroup := state.Attributes["resource_group_name"]
-
-		agw, err := clients.Network.ApplicationGatewaysClient.Get(ctx, resourceGroup, gatewayName)
+		id, err := applicationgateways.ParseApplicationGatewayID(state.Attributes["id"])
 		if err != nil {
-			return fmt.Errorf("Bad: Get on ApplicationGatewaysClient: %+v", err)
+			return err
+		}
+
+		agw, err := clients.Network.ApplicationGatewaysClient.Get(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if agw.Model == nil {
+			return fmt.Errorf("retrieving %s: `model` was nil", id)
+		}
+		if agw.Model.Properties == nil {
+			return fmt.Errorf("retrieving %s: `properties` was nil", id)
 		}
 
 		certPfx, err := os.ReadFile("testdata/application_gateway_test.pfx")
@@ -5108,26 +5116,21 @@ func (ApplicationGatewayResource) changeCert(certificateName string) acceptance.
 		}
 		certB64 := base64.StdEncoding.EncodeToString(certPfx)
 
-		newSslCertificates := make([]network.ApplicationGatewaySslCertificate, 1)
-		newSslCertificates[0] = network.ApplicationGatewaySslCertificate{
-			Name: utils.String(certificateName),
-			Etag: utils.String("*"),
+		newSslCertificates := make([]applicationgateways.ApplicationGatewaySslCertificate, 1)
+		newSslCertificates[0] = applicationgateways.ApplicationGatewaySslCertificate{
+			Name: pointer.To(certificateName),
+			Etag: pointer.To("*"),
 
-			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
-				Data:     utils.String(certB64),
-				Password: utils.String("terraform"),
+			Properties: &applicationgateways.ApplicationGatewaySslCertificatePropertiesFormat{
+				Data:     pointer.To(certB64),
+				Password: pointer.To("terraform"),
 			},
 		}
 
-		agw.SslCertificates = &newSslCertificates
+		agw.Model.Properties.SslCertificates = &newSslCertificates
 
-		future, err := clients.Network.ApplicationGatewaysClient.CreateOrUpdate(ctx, resourceGroup, gatewayName, agw)
-		if err != nil {
-			return fmt.Errorf("Bad: updating AGW: %+v", err)
-		}
-
-		if err := future.WaitForCompletionRef(ctx, clients.Network.ApplicationGatewaysClient.Client); err != nil {
-			return fmt.Errorf("Bad: waiting for update of AGW: %+v", err)
+		if err := clients.Network.ApplicationGatewaysClient.CreateOrUpdateThenPoll(ctx, *id, *agw.Model); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 
 		return nil

@@ -75,9 +75,16 @@ function runGraduallyDeprecatedFunctions {
       }
     fi
 
-    # avoid false positives
-    isThisScript=$(echo "$f" | grep "run-gradually-deprecated")
-    if [ "$isThisScript" == "" ];
+    # exceptions to avoid false positives and legacy resources should have their original behaviour preserved
+    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go")
+    toSkip=false
+    for e in "${exceptions[@]}"; do
+      isThisException=$(echo "$f" | grep "$e")
+      if [ "$isThisException" != "" ] ; then
+        toSkip=true
+      fi
+    done
+    if [ "$toSkip" = false ];
     then
       # check for d.Get inside Delete
       deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")

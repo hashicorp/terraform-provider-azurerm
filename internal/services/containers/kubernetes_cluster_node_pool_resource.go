@@ -19,17 +19,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -423,16 +426,34 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 
 	return s
 }
+
 func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
+	subnetClient := meta.(*clients.Client).Network.Client.Subnets
+	vnetClient := meta.(*clients.Client).Network.VnetClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	clusterId, err := commonids.ParseKubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
+	}
+
+	var subnetID *commonids.SubnetId
+	if subnetIDValue, ok := d.GetOk("vnet_subnet_id"); ok {
+		subnetID, err = commonids.ParseSubnetID(subnetIDValue.(string))
+		if err != nil {
+			return err
+		}
+
+		locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
+		defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
+
+		locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
 	}
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
@@ -602,8 +623,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.PodSubnetID = utils.String(podSubnetID)
 	}
 
-	if vnetSubnetID := d.Get("vnet_subnet_id").(string); vnetSubnetID != "" {
-		profile.VnetSubnetID = utils.String(vnetSubnetID)
+	if subnetID != nil {
+		profile.VnetSubnetID = utils.String(subnetID.ID())
 	}
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
@@ -675,6 +696,38 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if subnetID != nil {
+		// Wait for vnet to come back to Succeeded before releasing any locks
+		timeout, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+
+		// TODO: refactor this into a `custompoller` within the `network` package
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
+			Target:     []string{string(subnets.ProvisioningStateSucceeded)},
+			Refresh:    network.SubnetProvisioningStateRefreshFunc(ctx, subnetClient, *subnetID),
+			MinTimeout: 1 * time.Minute,
+			Timeout:    time.Until(timeout),
+		}
+		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *subnetID, err)
+		}
+
+		vnetId := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
+		vnetStateConf := &pluginsdk.StateChangeConf{
+			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
+			Target:     []string{string(subnets.ProvisioningStateSucceeded)},
+			Refresh:    network.VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
+			MinTimeout: 1 * time.Minute,
+			Timeout:    time.Until(timeout),
+		}
+		if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for provisioning state of virtual network for AKS Node Pool creation %s: %+v", vnetId, err)
+		}
 	}
 
 	d.SetId(id.ID())
