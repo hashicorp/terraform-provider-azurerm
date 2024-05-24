@@ -440,3 +440,32 @@ func flattenExpressRouteConnectionPropagatedRouteTable(input *network.Propagated
 		},
 	}
 }
+
+func expandIDsToSubResources(input []interface{}) *[]network.SubResource {
+	ids := make([]network.SubResource, 0)
+
+	for _, v := range input {
+		ids = append(ids, network.SubResource{
+			ID: pointer.To(v.(string)),
+		})
+	}
+
+	return &ids
+}
+
+func flattenSubResourcesToIDs(input *[]network.SubResource) []interface{} {
+	ids := make([]interface{}, 0)
+	if input == nil {
+		return ids
+	}
+
+	for _, v := range *input {
+		if v.ID == nil {
+			continue
+		}
+
+		ids = append(ids, *v.ID)
+	}
+
+	return ids
+}
