@@ -813,6 +813,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, count)
 }
@@ -851,6 +855,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = false
     client_endpoint_port = 2020
     http_endpoint_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports, node_type.1.application_ports, node_type.1.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, count, secondary_count)
@@ -908,6 +916,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, clusterCodeVersion)
 }
@@ -939,6 +951,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -983,6 +999,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1034,6 +1054,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     http_endpoint_port          = 80
     reverse_proxy_endpoint_port = 19081
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1082,6 +1106,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1142,6 +1170,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1198,6 +1230,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1252,6 +1288,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1298,6 +1338,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1353,6 +1397,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1478,6 +1526,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 19000
     http_endpoint_port   = 19080
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -1524,6 +1576,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = true
     client_endpoint_port = 19000
     http_endpoint_port   = 19080
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1572,6 +1628,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -1611,6 +1671,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -1649,6 +1713,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = true
     client_endpoint_port = 2020
     http_endpoint_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1691,6 +1759,10 @@ resource "azurerm_service_fabric_cluster" "test" {
       end_port   = 39999
     }
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1729,6 +1801,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     is_primary           = false
     client_endpoint_port = 2121
     http_endpoint_port   = 81
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports, node_type.1.application_ports, node_type.1.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1775,6 +1851,10 @@ resource "azurerm_service_fabric_cluster" "test" {
   tags = {
     Hello = "World"
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1809,6 +1889,10 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   tags = {
     Hello = "World"
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1870,6 +1954,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -1921,6 +2009,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2020
     http_endpoint_port   = 80
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -1961,6 +2053,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port = 2121
     http_endpoint_port   = 81
   }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports, node_type.1.application_ports, node_type.1.ephemeral_ports]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1994,6 +2090,10 @@ resource "azurerm_service_fabric_cluster" "test" {
     client_endpoint_port        = 2020
     http_endpoint_port          = 80
     multiple_availability_zones = true
+  }
+
+  lifecycle {
+    ignore_changes = [cluster_code_version, node_type.0.application_ports, node_type.0.ephemeral_ports]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

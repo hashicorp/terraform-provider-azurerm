@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	serviceFabricValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicefabric/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -96,7 +97,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 			"cluster_code_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Computed: !features.FourPointOhBeta(),
 			},
 
 			"management_endpoint": {
@@ -515,7 +516,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"application_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: !features.FourPointOhBeta(),
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -534,7 +535,7 @@ func resourceServiceFabricCluster() *pluginsdk.Resource {
 						"ephemeral_ports": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
-							Computed: true,
+							Computed: !features.FourPointOhBeta(),
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
