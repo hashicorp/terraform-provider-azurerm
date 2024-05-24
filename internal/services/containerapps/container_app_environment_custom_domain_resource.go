@@ -318,7 +318,7 @@ func findLogAnalyticsWorkspaceSecret(ctx context.Context, client *workspaces.Wor
 
 	for _, law := range *resp.Model.Value {
 		if law.Properties != nil && law.Properties.CustomerId != nil && *law.Properties.CustomerId == targetCustomerId && law.Id != nil {
-			id, err := workspaces.ParseWorkspaceID(*law.Id)
+			id, err := workspaces.ParseWorkspaceIDInsensitively(*law.Id)
 			if err != nil {
 				return "", fmt.Errorf("parsing ID or %s: %+v", *law.Id, err)
 			}
