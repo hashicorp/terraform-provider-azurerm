@@ -96,6 +96,27 @@ func TestAccDNSResolverInboundEndpoint_static(t *testing.T) {
 	})
 }
 
+func TestAccDNSResolverInboundEndpoint_staticToDynamic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_resolver_inbound_endpoint", "test")
+	r := DNSResolverInboundEndpointResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.static(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DNSResolverInboundEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := inboundendpoints.ParseInboundEndpointID(state.ID)
 	if err != nil {
@@ -168,6 +189,10 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   ip_configurations {
     subnet_id = azurerm_subnet.test.id
   }
+
+  lifecycle {
+    ignore_changes = [ip_configurations.0.private_ip_address]
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -183,6 +208,10 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "import" {
   location                = azurerm_private_dns_resolver_inbound_endpoint.test.location
   ip_configurations {
     subnet_id = azurerm_subnet.test.id
+  }
+
+  lifecycle {
+    ignore_changes = [ip_configurations.0.private_ip_address]
   }
 }
 `, config)
@@ -203,6 +232,10 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   }
   tags = {
     key = "value"
+  }
+
+  lifecycle {
+    ignore_changes = [ip_configurations.0.private_ip_address]
   }
 }
 `, template, data.RandomInteger)
@@ -236,6 +269,10 @@ resource "azurerm_private_dns_resolver_inbound_endpoint" "test" {
   }
   tags = {
     key = "updated value"
+  }
+
+  lifecycle {
+    ignore_changes = [ip_configurations.0.private_ip_address]
   }
 }
 `, template, data.RandomInteger)

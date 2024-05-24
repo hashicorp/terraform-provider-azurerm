@@ -6,6 +6,7 @@ package privatednsresolver
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"time"
 
@@ -80,7 +81,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Computed: true,
+						Computed: !features.FourPointOhBeta(),
 					},
 
 					"private_ip_allocation_method": {
