@@ -21,6 +21,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_container_app_environment_custom_domain`: parsing the Log Analytics Workspace ID insensitively to workaround the API returning this inconsistently [GH-26074]
 * `azurerm_container_app_job` - updating the validation for the `name` field [GH-26049]
 * `azurerm_container_app_job` - updating the validation for the `name` field within the `custom_scale_rule` block [GH-26049]
 * `azurerm_container_app_job` - updating the validation for the `name` field within the `rules` block [GH-26049]
