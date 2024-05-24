@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `auto_scale_profile` - (Optional) An `auto_scale_profile` block as defined below.
 
-* `diagnose_support_enabled` - (Optional) Should the diagnosis support be enabled?
+* `diagnose_support_enabled` - (Optional) Should the metrics be exported to Azure Monitor?
 
 * `email` - (Optional) Specify the preferred support contact email address for receiving alerts and notifications.
 
