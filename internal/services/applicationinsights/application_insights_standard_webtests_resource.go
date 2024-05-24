@@ -22,8 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = ApplicationInsightsStandardWebTestResource{}
-var _ sdk.ResourceWithCustomizeDiff = ApplicationInsightsStandardWebTestResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ApplicationInsightsStandardWebTestResource{}
+	_ sdk.ResourceWithCustomizeDiff = ApplicationInsightsStandardWebTestResource{}
+)
 
 type ApplicationInsightsStandardWebTestResource struct{}
 
@@ -161,7 +163,7 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 						Optional: true,
 						Default:  "GET",
 						ValidateFunc: validation.StringInSlice([]string{
-							"GET", "POST", "PUT", "PATCH", "DELETE",
+							"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
 						}, false),
 					},
 
