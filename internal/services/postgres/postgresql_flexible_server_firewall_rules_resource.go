@@ -283,7 +283,7 @@ func resourcePostgresqlFlexibleServerFirewallRulesDelete(d *pluginsdk.ResourceDa
 	for _, rule := range listFirewallRulesResult.Items {
 		poller, err := firewall_rules_client.Delete(ctx, firewallrules.NewFirewallRuleID(subscriptionId, flexibleServerId.ResourceGroupName, flexibleServerId.FlexibleServerName, *rule.Name))
 		if err != nil {
-			return fmt.Errorf("deleting %q: %+v", rule.Name, err)
+			return fmt.Errorf("deleting %q: %+v", *rule.Name, err)
 		}
 		pollers = append(pollers, poller.Poller)
 	}
