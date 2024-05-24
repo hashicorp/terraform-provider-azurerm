@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 * dependencies: updating to `v0.20240522.1080424` of `github.com/hashicorp/go-azure-sdk` [GH-26069]
 * `containerservice`: updating to use API Version `2023-09-02-preview` [GH-25663]
+* `azurerm_application_insights_standard_web_test` - `http_verb` can now be set to `HEAD` and `OPTIONS` [GH-26077]
 * `azurerm_linux_web_app` - normalising the value for `virtual_network_subnet_id` [GH-25885]
 * `azurerm_machine_learning_compute_cluster` - add validation for `name` [GH-26060]
 * `azurerm_machine_learning_compute_cluster` - improve validation to allow an empty `subnet_resource_id` when the Workspace is using a managed Virtual Network [GH-26073]
