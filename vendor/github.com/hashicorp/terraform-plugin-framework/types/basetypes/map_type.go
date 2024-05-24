@@ -7,11 +7,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var _ MapTypable = MapType{}
@@ -174,6 +175,7 @@ func (m MapType) Validate(ctx context.Context, in tftypes.Value, path path.Path)
 		return diags
 	}
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	validatableType, isValidatable := m.ElementType().(xattr.TypeWithValidate)
 	if !isValidatable {
 		return diags

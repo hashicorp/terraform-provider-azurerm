@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // build a slice of elements, matching the type of `target`, and fill it with
@@ -185,14 +186,6 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 	if val.IsNil() {
 		tfVal := tftypes.NewValue(tfType, nil)
 
-		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
-
-			if diags.HasError() {
-				return nil, diags
-			}
-		}
-
 		attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
 
 		if err != nil {
@@ -202,6 +195,33 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 				"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 			)
 			return nil, diags
+		}
+
+		switch t := attrVal.(type) {
+		case xattr.ValidateableAttribute:
+			resp := xattr.ValidateAttributeResponse{}
+
+			t.ValidateAttribute(ctx,
+				xattr.ValidateAttributeRequest{
+					Path: path,
+				},
+				&resp,
+			)
+
+			diags.Append(resp.Diagnostics...)
+
+			if diags.HasError() {
+				return nil, diags
+			}
+		default:
+			//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+			if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
+				diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
+
+				if diags.HasError() {
+					return nil, diags
+				}
+			}
 		}
 
 		return attrVal, diags
@@ -220,6 +240,9 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 			// debugging purposes, then correct the path afterwards.
 			valPath := path.AtListIndex(i)
 
+			// If the element implements xattr.ValidateableAttribute, or xattr.TypeWithValidate,
+			// and the element does not validate then diagnostics will be added here and returned
+			// before reaching the switch statement below.
 			val, valDiags := FromValue(ctx, elemType, val.Index(i).Interface(), valPath)
 			diags.Append(valDiags...)
 
@@ -236,10 +259,30 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 				valPath = path.AtSetValue(val)
 			}
 
-			if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
-				diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
+			switch t := val.(type) {
+			case xattr.ValidateableAttribute:
+				resp := xattr.ValidateAttributeResponse{}
+
+				t.ValidateAttribute(ctx,
+					xattr.ValidateAttributeRequest{
+						Path: valPath,
+					},
+					&resp,
+				)
+
+				diags.Append(resp.Diagnostics...)
+
 				if diags.HasError() {
 					return nil, diags
+				}
+			default:
+				//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+				if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
+					diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
+
+					if diags.HasError() {
+						return nil, diags
+					}
 				}
 			}
 
@@ -291,6 +334,9 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 		for i := 0; i < val.Len(); i++ {
 			valPath := path.AtTupleIndex(i)
 
+			// If the element implements xattr.ValidateableAttribute, or xattr.TypeWithValidate,
+			// and the element does not validate then diagnostics will be added here and returned
+			// before reaching the switch statement below.
 			val, valDiags := FromValue(ctx, elemAttrType, val.Index(i).Interface(), valPath)
 			diags.Append(valDiags...)
 
@@ -303,10 +349,30 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 				return nil, append(diags, toTerraformValueErrorDiag(err, path))
 			}
 
-			if typeWithValidate, ok := elemAttrType.(xattr.TypeWithValidate); ok {
-				diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
+			switch t := val.(type) {
+			case xattr.ValidateableAttribute:
+				resp := xattr.ValidateAttributeResponse{}
+
+				t.ValidateAttribute(ctx,
+					xattr.ValidateAttributeRequest{
+						Path: valPath,
+					},
+					&resp,
+				)
+
+				diags.Append(resp.Diagnostics...)
+
 				if diags.HasError() {
 					return nil, diags
+				}
+			default:
+				//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+				if typeWithValidate, ok := elemAttrType.(xattr.TypeWithValidate); ok {
+					diags.Append(typeWithValidate.Validate(ctx, tfVal, valPath)...)
+
+					if diags.HasError() {
+						return nil, diags
+					}
 				}
 			}
 
@@ -329,14 +395,6 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 
 	tfVal := tftypes.NewValue(tfType, tfElems)
 
-	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
-
-		if diags.HasError() {
-			return nil, diags
-		}
-	}
-
 	attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
 
 	if err != nil {
@@ -346,6 +404,33 @@ func FromSlice(ctx context.Context, typ attr.Type, val reflect.Value, path path.
 			"An unexpected error was encountered trying to convert from slice value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 		)
 		return nil, diags
+	}
+
+	switch t := attrVal.(type) {
+	case xattr.ValidateableAttribute:
+		resp := xattr.ValidateAttributeResponse{}
+
+		t.ValidateAttribute(ctx,
+			xattr.ValidateAttributeRequest{
+				Path: path,
+			},
+			&resp,
+		)
+
+		diags.Append(resp.Diagnostics...)
+
+		if diags.HasError() {
+			return nil, diags
+		}
+	default:
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
+
+			if diags.HasError() {
+				return nil, diags
+			}
+		}
 	}
 
 	return attrVal, diags

@@ -10,6 +10,7 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = BoolParameter{}
+var _ ParameterWithBoolValidators = BoolParameter{}
 
 // BoolParameter represents a function parameter that is a boolean.
 //
@@ -70,6 +71,15 @@ type BoolParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of bool validators that should be applied to the
+	// parameter.
+	Validators []BoolParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p BoolParameter) GetValidators() []BoolParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

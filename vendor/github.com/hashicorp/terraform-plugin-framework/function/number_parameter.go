@@ -10,6 +10,7 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = NumberParameter{}
+var _ ParameterWithNumberValidators = NumberParameter{}
 
 // NumberParameter represents a function parameter that is a 512-bit arbitrary
 // precision number.
@@ -65,6 +66,15 @@ type NumberParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of validators that can be used to validate the
+	// parameter.
+	Validators []NumberParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p NumberParameter) GetValidators() []NumberParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

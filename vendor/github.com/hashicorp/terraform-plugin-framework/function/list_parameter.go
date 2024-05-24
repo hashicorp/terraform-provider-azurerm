@@ -17,6 +17,7 @@ import (
 var (
 	_ Parameter                                      = ListParameter{}
 	_ fwfunction.ParameterWithValidateImplementation = ListParameter{}
+	_ ParameterWithListValidators                    = ListParameter{}
 )
 
 // ListParameter represents a function parameter that is an ordered list of a
@@ -82,6 +83,15 @@ type ListParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of list validators that should be applied to the
+	// parameter.
+	Validators []ListParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p ListParameter) GetValidators() []ListParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

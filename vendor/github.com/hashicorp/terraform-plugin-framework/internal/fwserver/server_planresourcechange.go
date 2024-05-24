@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // PlanResourceChangeRequest is the framework server request for the
@@ -406,9 +407,19 @@ func MarkComputedNilsAsUnknown(ctx context.Context, config tftypes.Value, resour
 			}
 		}
 
+		// Value type from planned state to create unknown with
+		newValueType := val.Type()
+
+		// If the attribute is dynamic then we can't use the planned state value to create an unknown, as it may be a concrete type.
+		// This logic explicitly sets the unknown value type to dynamic so the type can be determined during apply.
+		_, isDynamic := attribute.GetType().(basetypes.DynamicTypable)
+		if isDynamic {
+			newValueType = tftypes.DynamicPseudoType
+		}
+
 		logging.FrameworkDebug(ctx, "marking computed attribute that is null in the config as unknown")
 
-		return tftypes.NewValue(val.Type(), tftypes.UnknownValue), nil
+		return tftypes.NewValue(newValueType, tftypes.UnknownValue), nil
 	}
 }
 

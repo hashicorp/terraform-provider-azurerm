@@ -265,6 +265,11 @@ func (m MapValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	// A map with no elementType is an invalid state
+	if m.elementType == nil || other.elementType == nil {
+		return false
+	}
+
 	if !m.elementType.Equal(other.elementType) {
 		return false
 	}

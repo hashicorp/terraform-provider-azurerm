@@ -10,6 +10,7 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = DynamicParameter{}
+var _ ParameterWithDynamicValidators = DynamicParameter{}
 
 // DynamicParameter represents a function parameter that is a dynamic, rather
 // than a static type. Static types are always preferable over dynamic
@@ -65,6 +66,15 @@ type DynamicParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of dynamic validators that should be applied to the
+	// parameter.
+	Validators []DynamicParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p DynamicParameter) GetValidators() []DynamicParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

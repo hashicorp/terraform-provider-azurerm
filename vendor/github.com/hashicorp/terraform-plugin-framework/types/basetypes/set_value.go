@@ -258,6 +258,11 @@ func (s SetValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	// A set with no elementType is an invalid state
+	if s.elementType == nil || other.elementType == nil {
+		return false
+	}
+
 	if !s.elementType.Equal(other.elementType) {
 		return false
 	}

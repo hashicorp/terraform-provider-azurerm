@@ -17,6 +17,7 @@ import (
 var (
 	_ Parameter                                      = ObjectParameter{}
 	_ fwfunction.ParameterWithValidateImplementation = ObjectParameter{}
+	_ ParameterWithObjectValidators                  = ObjectParameter{}
 )
 
 // ObjectParameter represents a function parameter that is a mapping of
@@ -84,6 +85,15 @@ type ObjectParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of object validators that should be applied to the
+	// parameter.
+	Validators []ObjectParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p ObjectParameter) GetValidators() []ObjectParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

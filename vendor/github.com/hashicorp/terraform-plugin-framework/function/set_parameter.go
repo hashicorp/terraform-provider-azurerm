@@ -17,6 +17,7 @@ import (
 var (
 	_ Parameter                                      = SetParameter{}
 	_ fwfunction.ParameterWithValidateImplementation = SetParameter{}
+	_ ParameterWithSetValidators                     = SetParameter{}
 )
 
 // SetParameter represents a function parameter that is an unordered set of a
@@ -82,6 +83,15 @@ type SetParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of set validators that should be applied to the
+	// parameter.
+	Validators []SetParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p SetParameter) GetValidators() []SetParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

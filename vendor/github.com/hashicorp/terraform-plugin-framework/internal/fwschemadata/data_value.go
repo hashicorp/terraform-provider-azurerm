@@ -7,13 +7,14 @@ import (
 	"context"
 	"errors"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/totftypes"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ValueAtPath retrieves the attribute found at `path` and returns it as an
@@ -76,17 +77,6 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 	//       If found, convert this value to an unknown value.
 	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/186
 
-	if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); ok {
-		logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
-		logging.FrameworkTrace(ctx, "Calling provider defined Type Validate")
-		diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, schemaPath)...)
-		logging.FrameworkTrace(ctx, "Called provider defined Type Validate")
-
-		if diags.HasError() {
-			return nil, diags
-		}
-	}
-
 	attrValue, err := attrType.ValueFromTerraform(ctx, tfValue)
 
 	if err != nil {
@@ -97,6 +87,43 @@ func (d Data) ValueAtPath(ctx context.Context, schemaPath path.Path) (attr.Value
 				"Error: "+err.Error(),
 		)
 		return nil, diags
+	}
+
+	switch t := attrValue.(type) {
+	case xattr.ValidateableAttribute:
+		resp := xattr.ValidateAttributeResponse{}
+
+		logging.FrameworkTrace(ctx, "Value implements ValidateableAttribute")
+		logging.FrameworkTrace(ctx, "Calling provider defined Value ValidateAttribute")
+
+		t.ValidateAttribute(ctx,
+			xattr.ValidateAttributeRequest{
+				Path: schemaPath,
+			},
+			&resp,
+		)
+
+		diags.Append(resp.Diagnostics...)
+
+		logging.FrameworkTrace(ctx, "Called provider defined Value ValidateAttribute")
+
+		if diags.HasError() {
+			return nil, diags
+		}
+	default:
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+		if attrTypeWithValidate, ok := attrType.(xattr.TypeWithValidate); ok {
+			logging.FrameworkTrace(ctx, "Type implements TypeWithValidate")
+			logging.FrameworkTrace(ctx, "Calling provider defined Type Validate")
+
+			diags.Append(attrTypeWithValidate.Validate(ctx, tfValue, schemaPath)...)
+
+			logging.FrameworkTrace(ctx, "Called provider defined Type Validate")
+
+			if diags.HasError() {
+				return nil, diags
+			}
+		}
 	}
 
 	return attrValue, diags

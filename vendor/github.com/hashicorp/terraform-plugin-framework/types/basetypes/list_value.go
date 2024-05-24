@@ -258,6 +258,11 @@ func (l ListValue) Equal(o attr.Value) bool {
 		return false
 	}
 
+	// A list with no elementType is an invalid state
+	if l.elementType == nil || other.elementType == nil {
+		return false
+	}
+
 	if !l.elementType.Equal(other.elementType) {
 		return false
 	}

@@ -10,6 +10,7 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = Float64Parameter{}
+var _ ParameterWithFloat64Validators = Float64Parameter{}
 
 // Float64Parameter represents a function parameter that is a 64-bit floating
 // point number.
@@ -67,6 +68,15 @@ type Float64Parameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of float64 validators that should be applied to the
+	// parameter.
+	Validators []Float64ParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p Float64Parameter) GetValidators() []Float64ParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

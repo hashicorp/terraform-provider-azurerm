@@ -7,15 +7,17 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 var (
-	_ SetTypable             = SetType{}
+	_ SetTypable = SetType{}
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	_ xattr.TypeWithValidate = SetType{}
 )
 
@@ -174,6 +176,7 @@ func (st SetType) Validate(ctx context.Context, in tftypes.Value, path path.Path
 		return diags
 	}
 
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	validatableType, isValidatable := st.ElementType().(xattr.TypeWithValidate)
 
 	// Attempting to use map[tftypes.Value]struct{} for duplicate detection yields:

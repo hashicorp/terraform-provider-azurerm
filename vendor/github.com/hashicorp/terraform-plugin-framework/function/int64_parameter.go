@@ -10,6 +10,7 @@ import (
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = Int64Parameter{}
+var _ ParameterWithInt64Validators = Int64Parameter{}
 
 // Int64Parameter represents a function parameter that is a 64-bit integer.
 //
@@ -66,6 +67,15 @@ type Int64Parameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of int64 validators that should be applied to the
+	// parameter.
+	Validators []Int64ParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p Int64Parameter) GetValidators() []Int64ParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

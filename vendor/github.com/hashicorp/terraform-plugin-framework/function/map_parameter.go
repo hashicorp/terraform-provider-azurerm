@@ -17,6 +17,7 @@ import (
 var (
 	_ Parameter                                      = MapParameter{}
 	_ fwfunction.ParameterWithValidateImplementation = MapParameter{}
+	_ ParameterWithMapValidators                     = MapParameter{}
 )
 
 // MapParameter represents a function parameter that is a mapping of a single
@@ -82,6 +83,15 @@ type MapParameter struct {
 	// alphabetical character and followed by alphanumeric or underscore
 	// characters.
 	Name string
+
+	// Validators is a list of map validators that should be applied to the
+	// parameter.
+	Validators []MapParameterValidator
+}
+
+// GetValidators returns the list of validators for the parameter.
+func (p MapParameter) GetValidators() []MapParameterValidator {
+	return p.Validators
 }
 
 // GetAllowNullValue returns if the parameter accepts a null value.

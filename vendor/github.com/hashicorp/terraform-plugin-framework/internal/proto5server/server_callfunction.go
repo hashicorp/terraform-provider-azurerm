@@ -40,9 +40,9 @@ func (s *Server) CallFunction(ctx context.Context, protoReq *tfprotov5.CallFunct
 		return toproto5.CallFunctionResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto5.CallFunctionRequest(ctx, protoReq, serverFunction, functionDefinition)
+	fwReq, fwReqError := fromproto5.CallFunctionRequest(ctx, protoReq, serverFunction, functionDefinition)
 
-	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, function.FuncErrorFromDiags(ctx, diags))
+	fwResp.Error = function.ConcatFuncErrors(fwResp.Error, fwReqError)
 
 	if fwResp.Error != nil {
 		//nolint:nilerr // error is assigned to fwResp.Error

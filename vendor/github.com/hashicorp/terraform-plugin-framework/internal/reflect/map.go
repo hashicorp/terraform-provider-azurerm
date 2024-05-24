@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Map creates a map value that matches the type of `target`, and populates it
@@ -103,14 +104,6 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 	if val.IsNil() {
 		tfVal := tftypes.NewValue(tfType, nil)
 
-		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
-
-			if diags.HasError() {
-				return nil, diags
-			}
-		}
-
 		attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
 
 		if err != nil {
@@ -120,6 +113,33 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 				"An unexpected error was encountered trying to convert from map value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 			)
 			return nil, diags
+		}
+
+		switch t := attrVal.(type) {
+		case xattr.ValidateableAttribute:
+			resp := xattr.ValidateAttributeResponse{}
+
+			t.ValidateAttribute(ctx,
+				xattr.ValidateAttributeRequest{
+					Path: path,
+				},
+				&resp,
+			)
+
+			diags.Append(resp.Diagnostics...)
+
+			if diags.HasError() {
+				return nil, diags
+			}
+		default:
+			//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+			if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
+				diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
+
+				if diags.HasError() {
+					return nil, diags
+				}
+			}
 		}
 
 		return attrVal, diags
@@ -137,22 +157,48 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 			)
 			return nil, diags
 		}
-		val, valDiags := FromValue(ctx, elemType, val.MapIndex(key).Interface(), path.AtMapKey(key.String()))
+
+		mapKeyPath := path.AtMapKey(key.String())
+
+		// If the element implements xattr.ValidateableAttribute, or xattr.TypeWithValidate,
+		// and the element does not validate then diagnostics will be added here and returned
+		// before reaching the switch statement below.
+		val, valDiags := FromValue(ctx, elemType, val.MapIndex(key).Interface(), mapKeyPath)
 		diags.Append(valDiags...)
 
 		if diags.HasError() {
 			return nil, diags
 		}
+
 		tfVal, err := val.ToTerraformValue(ctx)
 		if err != nil {
 			return nil, append(diags, toTerraformValueErrorDiag(err, path))
 		}
 
-		if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal, path.AtMapKey(key.String()))...)
+		switch t := val.(type) {
+		case xattr.ValidateableAttribute:
+			resp := xattr.ValidateAttributeResponse{}
+
+			t.ValidateAttribute(ctx,
+				xattr.ValidateAttributeRequest{
+					Path: mapKeyPath,
+				},
+				&resp,
+			)
+
+			diags.Append(resp.Diagnostics...)
 
 			if diags.HasError() {
 				return nil, diags
+			}
+		default:
+			//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+			if typeWithValidate, ok := elemType.(xattr.TypeWithValidate); ok {
+				diags.Append(typeWithValidate.Validate(ctx, tfVal, mapKeyPath)...)
+
+				if diags.HasError() {
+					return nil, diags
+				}
 			}
 		}
 
@@ -166,14 +212,6 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 
 	tfVal := tftypes.NewValue(tfType, tfElems)
 
-	if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
-		diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
-
-		if diags.HasError() {
-			return nil, diags
-		}
-	}
-
 	attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
 
 	if err != nil {
@@ -183,6 +221,33 @@ func FromMap(ctx context.Context, typ attr.TypeWithElementType, val reflect.Valu
 			"An unexpected error was encountered trying to convert to map value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 		)
 		return nil, diags
+	}
+
+	switch t := attrVal.(type) {
+	case xattr.ValidateableAttribute:
+		resp := xattr.ValidateAttributeResponse{}
+
+		t.ValidateAttribute(ctx,
+			xattr.ValidateAttributeRequest{
+				Path: path,
+			},
+			&resp,
+		)
+
+		diags.Append(resp.Diagnostics...)
+
+		if diags.HasError() {
+			return nil, diags
+		}
+	default:
+		//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
+			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
+
+			if diags.HasError() {
+				return nil, diags
+			}
+		}
 	}
 
 	return attrVal, diags

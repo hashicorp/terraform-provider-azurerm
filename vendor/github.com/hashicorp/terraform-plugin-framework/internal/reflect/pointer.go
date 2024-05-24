@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Pointer builds a new zero value of the concrete type that `target`
@@ -93,14 +94,6 @@ func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path p
 	if value.IsNil() {
 		tfVal := tftypes.NewValue(typ.TerraformType(ctx), nil)
 
-		if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
-			diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
-
-			if diags.HasError() {
-				return nil, diags
-			}
-		}
-
 		attrVal, err := typ.ValueFromTerraform(ctx, tfVal)
 
 		if err != nil {
@@ -110,6 +103,33 @@ func FromPointer(ctx context.Context, typ attr.Type, value reflect.Value, path p
 				"An unexpected error was encountered trying to convert from pointer value. This is always an error in the provider. Please report the following to the provider developer:\n\n"+err.Error(),
 			)
 			return nil, diags
+		}
+
+		switch t := attrVal.(type) {
+		case xattr.ValidateableAttribute:
+			resp := xattr.ValidateAttributeResponse{}
+
+			t.ValidateAttribute(ctx,
+				xattr.ValidateAttributeRequest{
+					Path: path,
+				},
+				&resp,
+			)
+
+			diags.Append(resp.Diagnostics...)
+
+			if diags.HasError() {
+				return nil, diags
+			}
+		default:
+			//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
+			if typeWithValidate, ok := typ.(xattr.TypeWithValidate); ok {
+				diags.Append(typeWithValidate.Validate(ctx, tfVal, path)...)
+
+				if diags.HasError() {
+					return nil, diags
+				}
+			}
 		}
 
 		return attrVal, diags

@@ -9,16 +9,18 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Float64Typable extends attr.Type for float64 types.
 // Implement this interface to create a custom Float64Type type.
 type Float64Typable interface {
+	//nolint:staticcheck // xattr.TypeWithValidate is deprecated, but we still need to support it.
 	xattr.TypeWithValidate
 
 	// ValueFromFloat64 should convert the Float64 to a Float64Valuable type.
