@@ -6,11 +6,9 @@ package network
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -274,12 +272,8 @@ func resourceExpressRouteCircuitPeeringCreateUpdate(d *pluginsdk.ResourceData, m
 	circuitConnClient := meta.(*clients.Client).Network.ExpressRouteCircuitConnections
 	circuitConnectionId := commonids.NewExpressRouteCircuitPeeringID(id.SubscriptionId, id.ResourceGroupName, id.CircuitName, id.PeeringName)
 	connResp, err := circuitConnClient.List(ctx, circuitConnectionId)
-	if err != nil {
-		if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusNotFound {
-			log.Printf("[Debug]: Circuit connections not found. HTTP Code 404.")
-		} else {
-			return fmt.Errorf("retrieving %s: %+v", circuitConnectionId, err)
-		}
+	if err != nil && !response.WasNotFound(connResp.HttpResponse) {
+		return fmt.Errorf("retrieving %s: %+v", circuitConnectionId, err)
 	}
 
 	var connection *[]expressroutecircuitpeerings.ExpressRouteCircuitConnection
