@@ -73,6 +73,7 @@ func (c VirtualWANsClient) VirtualWansListCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.VirtualWansList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

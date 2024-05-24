@@ -72,6 +72,7 @@ func (c BastionHostsClient) GetBastionShareableLinkCompleteMatchingPredicate(ctx
 
 	resp, err := c.GetBastionShareableLink(ctx, id, input)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

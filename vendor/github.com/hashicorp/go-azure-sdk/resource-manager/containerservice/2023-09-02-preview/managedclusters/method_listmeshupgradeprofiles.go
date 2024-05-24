@@ -73,6 +73,7 @@ func (c ManagedClustersClient) ListMeshUpgradeProfilesCompleteMatchingPredicate(
 
 	resp, err := c.ListMeshUpgradeProfiles(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

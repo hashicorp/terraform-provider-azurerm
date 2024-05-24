@@ -72,6 +72,7 @@ func (c LoadBalancersClient) LoadBalancerLoadBalancingRulesListCompleteMatchingP
 
 	resp, err := c.LoadBalancerLoadBalancingRulesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -104,6 +104,7 @@ func (c QueryPackQueriesClient) QueriesSearchCompleteMatchingPredicate(ctx conte
 
 	resp, err := c.QueriesSearch(ctx, id, input, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
