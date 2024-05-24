@@ -69,7 +69,7 @@ func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// Determine the queue endpoint, so we can build a data plane ID
-	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeBlob)
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeQueue)
 	if err != nil {
 		return fmt.Errorf("determining Queue endpoint: %v", err)
 	}
