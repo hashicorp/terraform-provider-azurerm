@@ -217,10 +217,10 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 		if v, ok := d.GetOk("network_security_group_id"); ok {
 			targetResourceId = v.(string)
 		}
-	} else {
-		if v, ok := d.GetOk("target_resource_id"); ok {
-			targetResourceId = v.(string)
-		}
+	}
+
+	if v, ok := d.GetOk("target_resource_id"); ok {
+		targetResourceId = v.(string)
 	}
 
 	// For newly created resources, the "name" is required, it is set as Optional and Computed is merely for the existing ones for the sake of backward compatibility.
@@ -404,12 +404,11 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("storage_account_id", props.StorageId)
 			}
 
-			targetResourceId := ""
 			if !features.FourPointOhBeta() {
-				d.Set("network_security_group_id", targetResourceId)
+				d.Set("network_security_group_id", props.TargetResourceId)
 			}
 
-			d.Set("target_resource_id", targetResourceId)
+			d.Set("target_resource_id", props.TargetResourceId)
 
 			if err := d.Set("retention_policy", flattenNetworkWatcherFlowLogRetentionPolicy(props.RetentionPolicy)); err != nil {
 				return fmt.Errorf("setting `retention_policy`: %+v", err)
