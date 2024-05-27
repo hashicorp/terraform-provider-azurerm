@@ -1,28 +1,44 @@
-## 3.105.0 (Unreleased)
+## 3.106.0 (Unreleased)
+
+ENHANCEMENTS
+
+* dependencies: updating to `v0.20240523.1095414` of `github.com/hashicorp/go-azure-sdk` [GH-26090]
+
+## 3.105.0 (May 24, 2024)
 
 BREAKING CHANGE:
 
-* `azurerm_kubernetes_cluster` - the properties `workload_autoscaler_profile.vertical_pod_autoscaler_update_mode` and `workload_autoscaler_profile.vertical_pod_autoscaler_controlled_values` are no longer populated since they're not exported in API version `2023-09-02-preview` [GH-25663]
+* `azurerm_kubernetes_cluster` - the properties `workload_autoscaler_profile.vertical_pod_autoscaler_update_mode` and `workload_autoscaler_profile.vertical_pod_autoscaler_controlled_values` are no longer populated since they're not exported in API version `2023-09-02-preview` ([#25663](https://github.com/hashicorp/terraform-provider-azurerm/issues/25663))
 
 FEATURES:
 
-* New Resource: `azurerm_api_management_policy_fragment` [GH-24968]
+* New Resource: `azurerm_api_management_policy_fragment` ([#24968](https://github.com/hashicorp/terraform-provider-azurerm/issues/24968))
 
 ENHANCEMENTS:
 
-* dependencies: `containerservice` - updating to use version `2023-09-02-preview` [GH-25663]
-* `azurerm_machine_learning_compute_cluster` - add validation for `name` [GH-26060]
+* dependencies: updating to `v0.20240522.1080424` of `github.com/hashicorp/go-azure-sdk` ([#26069](https://github.com/hashicorp/terraform-provider-azurerm/issues/26069))
+* `containerservice`: updating to use API Version `2023-09-02-preview` ([#25663](https://github.com/hashicorp/terraform-provider-azurerm/issues/25663))
+* `azurerm_application_insights_standard_web_test` - `http_verb` can now be set to `HEAD` and `OPTIONS` ([#26077](https://github.com/hashicorp/terraform-provider-azurerm/issues/26077))
+* `azurerm_cdn_frontdoor_rule` - updating the validation for `match_values` within the `uri_path_condition` block  to support a forward-slash ([#26017](https://github.com/hashicorp/terraform-provider-azurerm/issues/26017))
+* `azurerm_linux_web_app` - normalising the value for `virtual_network_subnet_id` ([#25885](https://github.com/hashicorp/terraform-provider-azurerm/issues/25885))
+* `azurerm_machine_learning_compute_cluster` - add validation for `name` ([#26060](https://github.com/hashicorp/terraform-provider-azurerm/issues/26060))
+* `azurerm_machine_learning_compute_cluster` - improve validation to allow an empty `subnet_resource_id` when the Workspace is using a managed Virtual Network ([#26073](https://github.com/hashicorp/terraform-provider-azurerm/issues/26073))
+* `azurerm_postgresql_flexible_server` - the field `public_network_access_enabled` is now configurable (previously this was computed-only/not settable via the API) ([#25812](https://github.com/hashicorp/terraform-provider-azurerm/issues/25812))
+* `azurerm_snapshot` - support for `disk_access_id` ([#25996](https://github.com/hashicorp/terraform-provider-azurerm/issues/25996))
+* `azurerm_windows_web_app` - normalising the value for `virtual_network_subnet_id` ([#25885](https://github.com/hashicorp/terraform-provider-azurerm/issues/25885))
 
 BUG FIXES:
 
-* `azurerm_container_app_job` - updating the validation for the `name` field [GH-26049]
-* `azurerm_container_app_job` - updating the validation for the `name` field within the `custom_scale_rule` block [GH-26049]
-* `azurerm_container_app_job` - updating the validation for the `name` field within the `rules` block [GH-26049]
-* `azurerm_linux_function_app_slot` - fixed panic when planning from a version older than 3.88.0 [GH-25838]
-* `azurerm_pim_active_role_assignment` - fix a persistent diff when `ticket` is not specified [GH-26059]
-* `azurerm_pim_eligible_role_assignment` - fix a persistent diff when `ticket` is not specified [GH-26059]
-* `azurerm_windows_function_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot [GH-25634]
-* `azurerm_windows_web_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot [GH-25634]
+* `azurerm_container_app_environment_custom_domain`: parsing the Log Analytics Workspace ID insensitively to workaround the API returning this inconsistently ([#26074](https://github.com/hashicorp/terraform-provider-azurerm/issues/26074))
+* `azurerm_container_app_job` - updating the validation for the `name` field ([#26049](https://github.com/hashicorp/terraform-provider-azurerm/issues/26049))
+* `azurerm_container_app_job` - updating the validation for the `name` field within the `custom_scale_rule` block ([#26049](https://github.com/hashicorp/terraform-provider-azurerm/issues/26049))
+* `azurerm_container_app_job` - updating the validation for the `name` field within the `rules` block ([#26049](https://github.com/hashicorp/terraform-provider-azurerm/issues/26049))
+* `azurerm_linux_function_app_slot` - fixed panic when planning from a version older than 3.88.0 ([#25838](https://github.com/hashicorp/terraform-provider-azurerm/issues/25838))
+* `azurerm_pim_active_role_assignment` - fix a persistent diff when `ticket` is not specified ([#26059](https://github.com/hashicorp/terraform-provider-azurerm/issues/26059))
+* `azurerm_pim_eligible_role_assignment` - fix a persistent diff when `ticket` is not specified ([#26059](https://github.com/hashicorp/terraform-provider-azurerm/issues/26059))
+* `azurerm_policy_definition` - recreate the resource if the `parameters` property is updated to include fewer items ([#26083](https://github.com/hashicorp/terraform-provider-azurerm/issues/26083)) 
+* `azurerm_windows_function_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot ([#25634](https://github.com/hashicorp/terraform-provider-azurerm/issues/25634))
+* `azurerm_windows_web_app_slot` - set Server Farm ID in payload when using a Virtual Network Subnet for the slot ([#25634](https://github.com/hashicorp/terraform-provider-azurerm/issues/25634))
 
 
 ## 3.104.2 (May 20, 2024)

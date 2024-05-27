@@ -392,6 +392,20 @@ func TestAccCdnFrontDoorRule_allowForwardSlashUrlConditionMatchValue(t *testing.
 	})
 }
 
+func TestAccCdnFrontDoorRule_allowForwardSlashUrl2ConditionMatchValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allowForwardSlashUrl2ConditionMatchValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorAny(t *testing.T) {
 	// NOTE: Regression test case for issue #23504
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
@@ -1341,6 +1355,42 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
   conditions {
     url_path_condition {
       match_values     = ["/"]
+      negate_condition = false
+      operator         = "EndsWith"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) allowForwardSlashUrl2ConditionMatchValue(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  actions {
+    route_configuration_override_action {
+      cache_behavior                = "HonorOrigin"
+      compression_enabled           = true
+      query_string_caching_behavior = "IgnoreQueryString"
+    }
+  }
+
+  conditions {
+    url_path_condition {
+      match_values     = ["/legacy-login"]
       negate_condition = false
       operator         = "EndsWith"
     }

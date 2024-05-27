@@ -104,6 +104,7 @@ func (c PolicyFragmentClient) ListReferencesCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListReferences(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -73,6 +73,7 @@ func (c NetworkSecurityGroupsClient) ListAllCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListAll(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

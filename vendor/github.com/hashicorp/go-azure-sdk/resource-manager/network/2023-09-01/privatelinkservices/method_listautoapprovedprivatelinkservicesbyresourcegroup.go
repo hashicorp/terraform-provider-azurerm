@@ -72,6 +72,7 @@ func (c PrivateLinkServicesClient) ListAutoApprovedPrivateLinkServicesByResource
 
 	resp, err := c.ListAutoApprovedPrivateLinkServicesByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -72,6 +72,7 @@ func (c DevBoxDefinitionsClient) ListByDevCenterCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListByDevCenter(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
