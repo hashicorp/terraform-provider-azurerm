@@ -15,7 +15,8 @@ func (r TypedSDKBitCheck) Run() (errors []error) {
 	for _, s := range provider.SupportedTypedServices() {
 		for _, resource := range s.Resources() {
 			modelType := reflect.TypeOf(resource.ModelObject())
-			if modelType != nil && modelType.Kind() == reflect.Ptr { // Have to nil-check here due to base types not having a model. e.g. roleAssignmentBaseResource
+			switch {
+			case modelType != nil && modelType.Kind() == reflect.Ptr:
 				model := modelType.Elem()
 				if model.Kind() != reflect.Struct {
 					errors = append(errors, fmt.Errorf("%s is not a pointer to a struct\n", modelType.Name()))
@@ -23,11 +24,14 @@ func (r TypedSDKBitCheck) Run() (errors []error) {
 				}
 
 				errors = append(errors, checkForBits(model)...)
-			} else if modelType == nil {
-				continue // as noted above inherited resources do not expose a model and are expected to return `nil` in ModelObject()
-			} else {
+
+			case modelType == nil:
+				continue
+
+			default:
 				errors = append(errors, fmt.Errorf("%q cannot be bit checked, ModelObject did not return a pointer\n", resource.ResourceType()))
 			}
+
 		}
 		for _, datasource := range s.DataSources() {
 			modelType := reflect.TypeOf(datasource.ModelObject())
