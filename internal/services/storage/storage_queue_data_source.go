@@ -86,18 +86,18 @@ func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
-	if props == nil {
-		return fmt.Errorf("retrieving %s: result was nil", id)
-	}
 
 	d.SetId(id.ID())
 
 	d.Set("name", queueName)
 	d.Set("storage_account_name", accountName)
 
-	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("setting `metadata`: %v", err)
+	if props != nil {
+		if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
+			return fmt.Errorf("setting `metadata`: %v", err)
+		}
 	}
+
 
 	resourceManagerId := parse.NewStorageQueueResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", queueName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
