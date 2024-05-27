@@ -12,7 +12,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 )
 
 var (
@@ -130,49 +129,9 @@ func (c *Client) KeyVaultIDFromBaseUrl(ctx context.Context, subscriptionId commo
 		return &v.keyVaultId, nil
 	}
 
-	// Pull out the list of Key Vaults available within the Subscription to re-populate the cache
-	//
-	// Whilst we've historically used the Resources API to query the single Key Vault in question
-	// this endpoint has caching related issues - and whilst the ResourceGraph API has been suggested
-	// as an alternative that fixes this, we've seen similar caching issues there.
-	// Therefore, we're falling back on querying all the Key Vaults within the specified Subscription, which
-	// comes from the `KeyVault` Resource Provider rather than the `Resources` Resource Provider - which
-	// is an approach we've used previously, but now with better caching.
-	//
-	// Whilst querying ALL Key Vaults within a Subscription IS excessive where only a single Key Vault
-	// is used - having the cache populated (one-time, per Provider launch) should alleviate problems
-	// in Terraform Configurations defining a large number of Key Vault items.
-	//
-	// @tombuildsstuff: I vaguely recall the `ListBySubscription` API having a low rate limit (5x/second?)
-	// however the rate-limits defined here seem to apply only to Managed HSMs and not Key Vaults?
-	// https://learn.microsoft.com/en-us/azure/key-vault/general/service-limits
-	//
-	// Finally, it's worth noting that we intentionally List ALL the Key Vaults within a Subscription
-	// to be able to cache ALL of them - prior to looking up the specific Key Vault we're interested
-	// in from the freshly populated cache.
-	// This fixes an issue in the previous implementation where the Cache was being repeatedly semi-populated
-	// until the specified Key Vault was found, at which point we skipped populating the cache, which
-	// affected both the `Resources` API implementation:
-	// https://github.com/hashicorp/terraform-provider-azurerm/blob/3e88e5e74e12577d785f10298281b1b3c172254f/internal/services/keyvault/client/helpers.go#L133-L173
-	// and the `ListBySubscription` endpoint:
-	// https://github.com/hashicorp/terraform-provider-azurerm/blob/a5e728dc62e832e74d7bb0f40a79af0ae5a79e1e/azurerm/helpers/azure/key_vault.go#L42-L89
-	opts := vaults.DefaultListBySubscriptionOperationOptions()
-	results, err := c.VaultsClient.ListBySubscriptionComplete(ctx, subscriptionId, opts)
-	if err != nil {
-		return nil, fmt.Errorf("listing the Key Vaults within %s: %+v", subscriptionId, err)
-	}
-	for _, item := range results.Items {
-		if item.Id == nil || item.Properties.VaultUri == nil {
-			continue
-		}
-
-		// Populate the key vault into the cache
-		keyVaultId, err := commonids.ParseKeyVaultIDInsensitively(*item.Id)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q as a Key Vault ID: %+v", *item.Id, err)
-		}
-		vaultUri := *item.Properties.VaultUri
-		c.AddToCache(*keyVaultId, vaultUri)
+	// Populate the cache
+	if err := c.populateCache(ctx, subscriptionId); err != nil {
+		return nil, fmt.Errorf("populating the Key Vaults cache for %s: %+v", subscriptionId, err)
 	}
 
 	// Now that the cache has been repopulated, check if we have the key vault or not
