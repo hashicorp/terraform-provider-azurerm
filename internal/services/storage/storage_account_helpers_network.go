@@ -34,17 +34,23 @@ func flattenAccountNetworkRules(input *storageaccounts.NetworkRuleSet) []interfa
 	output := make([]interface{}, 0)
 
 	if input != nil {
+		ipRules := flattenAccountNetworkRuleIPRules(input.IPRules)
+		privateLinkAccess := flattenAccountNetworkRulePrivateLinkAccess(input.ResourceAccessRules)
+		virtualNetworkRules := flattenAccountNetworkRuleVirtualNetworkRules(input.VirtualNetworkRules)
+
 		// ignore the default values
-		if input.DefaultAction == storageaccounts.DefaultActionAllow && pointer.From(input.Bypass) == storageaccounts.BypassAzureServices {
+		usesDefaultValues := input.DefaultAction == storageaccounts.DefaultActionAllow && pointer.From(input.Bypass) == storageaccounts.BypassAzureServices
+		hasOtherValues := len(ipRules) > 0 || len(privateLinkAccess) > 0 || len(virtualNetworkRules) > 0
+		if usesDefaultValues && !hasOtherValues {
 			return output
 		}
 
 		output = append(output, map[string]interface{}{
 			"bypass":                     pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleBypass(input.Bypass)),
 			"default_action":             string(input.DefaultAction),
-			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleIPRules(input.IPRules)),
-			"private_link_access":        flattenAccountNetworkRulePrivateLinkAccess(input.ResourceAccessRules),
-			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, flattenAccountNetworkRuleVirtualNetworkRules(input.VirtualNetworkRules)),
+			"ip_rules":                   pluginsdk.NewSet(pluginsdk.HashString, ipRules),
+			"private_link_access":        privateLinkAccess,
+			"virtual_network_subnet_ids": pluginsdk.NewSet(pluginsdk.HashString, virtualNetworkRules),
 		})
 	}
 

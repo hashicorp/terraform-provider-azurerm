@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sort"
 	"strings"
 	"time"
 
@@ -27,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -207,6 +207,7 @@ func resourceAccount() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
 			"custom_domain": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -816,11 +817,18 @@ func resourceAccount() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"large_file_share_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
+			"large_file_share_enabled": func() *pluginsdk.Schema {
+				s := &pluginsdk.Schema{
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false, // @tombuildsstuff: this now defaults to `true` when `account_kind` is set to `FileStorage`
+				}
+				if !features.FourPointOhBeta() {
+					s.Computed = true
+					s.Default = nil
+				}
+				return s
+			}(),
 
 			"local_user_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -1253,15 +1261,6 @@ func resourceAccount() *pluginsdk.Resource {
 	}
 }
 
-func sortedKeysFromSlice(input map[storageaccounts.Kind]struct{}) []string {
-	keys := make([]string, 0)
-	for key := range input {
-		keys = append(keys, string(key))
-	}
-	sort.Strings(keys)
-	return keys
-}
-
 func resourceAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	tenantId := meta.(*clients.Client).Account.TenantId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -1553,10 +1552,8 @@ func resourceAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// Error if the user has tried to enable multichannel on a standard tier storage account
 			smb := sharePayload.Properties.ProtocolSettings.Smb
 			if smb != nil && smb.Multichannel != nil {
-				if smb.Multichannel.Enabled != nil {
-					if *sharePayload.Properties.ProtocolSettings.Smb.Multichannel.Enabled {
-						return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
-					}
+				if smb.Multichannel.Enabled != nil && *smb.Multichannel.Enabled {
+					return fmt.Errorf("`multichannel_enabled` isn't supported for Standard tier Storage accounts")
 				}
 
 				sharePayload.Properties.ProtocolSettings.Smb.Multichannel = nil
@@ -2940,18 +2937,16 @@ func expandAccountShareProperties(input []interface{}) fileservice.FileServicePr
 		},
 	}
 
-	if len(input) == 0 || input[0] == nil {
-		return props
-	}
+	if len(input) > 0 && input[0] != nil {
+		v := input[0].(map[string]interface{})
 
-	v := input[0].(map[string]interface{})
+		props.Properties.ShareDeleteRetentionPolicy = expandAccountShareDeleteRetentionPolicy(v["retention_policy"].([]interface{}))
 
-	props.Properties.ShareDeleteRetentionPolicy = expandAccountShareDeleteRetentionPolicy(v["retention_policy"].([]interface{}))
+		props.Properties.Cors = expandAccountSharePropertiesCorsRule(v["cors_rule"].([]interface{}))
 
-	props.Properties.Cors = expandAccountSharePropertiesCorsRule(v["cors_rule"].([]interface{}))
-
-	props.Properties.ProtocolSettings = &fileservice.ProtocolSettings{
-		Smb: expandAccountSharePropertiesSMB(v["smb"].([]interface{})),
+		props.Properties.ProtocolSettings = &fileservice.ProtocolSettings{
+			Smb: expandAccountSharePropertiesSMB(v["smb"].([]interface{})),
+		}
 	}
 
 	return props
@@ -3060,6 +3055,7 @@ func expandAccountSharePropertiesSMB(input []interface{}) *fileservice.SmbSettin
 			AuthenticationMethods:    pointer.To(""),
 			KerberosTicketEncryption: pointer.To(""),
 			ChannelEncryption:        pointer.To(""),
+			Multichannel:             nil,
 		}
 	}
 
@@ -3106,7 +3102,7 @@ func flattenAccountSharePropertiesSMB(input *fileservice.ProtocolSettings) []int
 		multichannelEnabled = *input.Smb.Multichannel.Enabled
 	}
 
-	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && input.Smb.Multichannel == nil {
+	if len(versions) == 0 && len(authenticationMethods) == 0 && len(kerberosTicketEncryption) == 0 && len(channelEncryption) == 0 && (input.Smb.Multichannel == nil || input.Smb.Multichannel.Enabled == nil) {
 		return []interface{}{}
 	}
 
