@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -31,10 +31,10 @@ type ModuleHash struct {
 }
 
 type AutomationPowerShell72ModuleModel struct {
-	AutomationAccountID string            `tfschema:"automation_account_id"`
-	Name                string            `tfschema:"name"`
-	ModuleLink          []ModuleLinkModel `tfschema:"module_link"`
-	Tags                map[string]string `tfschema:"tags"`
+	AutomationAccountID string                 `tfschema:"automation_account_id"`
+	Name                string                 `tfschema:"name"`
+	ModuleLink          []ModuleLinkModel      `tfschema:"module_link"`
+	Tags                map[string]interface{} `tfschema:"tags"`
 }
 
 type PowerShell72ModuleResource struct{}
@@ -142,7 +142,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 				Properties: module.ModuleCreateOrUpdateProperties{
 					ContentLink: expandPowerShell72ModuleLink(model.ModuleLink),
 				},
-				Tags: pointer.To(model.Tags),
+				Tags: tags.Expand(model.Tags),
 			}
 
 			if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -231,7 +231,10 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 				Properties: module.ModuleCreateOrUpdateProperties{
 					ContentLink: expandPowerShell72ModuleLink(model.ModuleLink),
 				},
-				Tags: pointer.To(model.Tags),
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				parameters.Tags = tags.Expand(model.Tags)
 			}
 
 			if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, *id, parameters); err != nil {
@@ -326,7 +329,9 @@ func (r PowerShell72ModuleResource) Read() sdk.ResourceFunc {
 
 			output.Name = id.PowerShell72ModuleName
 			output.AutomationAccountID = module.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID()
-			output.Tags = pointer.From(resp.Model.Tags)
+			if resp.Model != nil {
+				output.Tags = tags.Flatten(resp.Model.Tags)
+			}
 
 			return metadata.Encode(&output)
 		},
