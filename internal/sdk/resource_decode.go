@@ -241,7 +241,18 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 
 		mapOutput := reflect.MakeMap(ty.Type())
 		for key, val := range *mapConfig {
-			mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+			// GetOkExists always returns map[string]int rather than map[string]int64 - so we need to ensure we don't try to set the wrong type into the map
+			switch mapOutput.Type().Elem().Kind() {
+			case reflect.Int64:
+				// Guard against GetOkExists being updated to return int64
+				if v, ok := val.(int); ok {
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(int64(v)))
+				} else {
+					mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+				}
+			default:
+				mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
+			}
 		}
 
 		tmp.Elem().Set(mapOutput)
