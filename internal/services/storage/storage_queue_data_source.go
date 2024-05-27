@@ -98,7 +98,6 @@ func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-
 	resourceManagerId := parse.NewStorageQueueResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", queueName)
 	d.Set("resource_manager_id", resourceManagerId.ID())
 
