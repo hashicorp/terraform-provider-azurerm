@@ -637,11 +637,11 @@ resource "azurerm_container_app_job" "test" {
     parallelism              = 4
     replica_completion_count = 1
   }
-  secrets {
+  secret {
     name  = "registry-password"
     value = azurerm_container_registry.test.admin_password
   }
-  registries {
+  registry {
     server               = azurerm_container_registry.test.login_server
     username             = azurerm_container_registry.test.admin_username
     password_secret_name = "registry-password"
@@ -738,17 +738,17 @@ resource "azurerm_container_app_job" "test" {
     replica_completion_count = 2
   }
 
-  secrets {
+  secret {
     name  = "registry-password"
     value = azurerm_container_registry.test.admin_password
   }
 
-  secrets {
+  secret {
     name  = "foo"
     value = "bar"
   }
 
-  registries {
+  registry {
     server               = azurerm_container_registry.test.login_server
     username             = azurerm_container_registry.test.admin_username
     password_secret_name = "registry-password"
