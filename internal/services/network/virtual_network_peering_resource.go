@@ -184,13 +184,13 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 	locks.ByID(virtualNetworkPeeringResourceType)
 	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
 
-	existing, err := client.Get(ctx, pointer.From(id))
+	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if existing.Model == nil || existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", pointer.From(id))
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
 	if d.HasChange("allow_forwarded_traffic") {
@@ -211,12 +211,8 @@ func resourceVirtualNetworkPeeringUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, pointer.From(id), pointer.From(existing.Model), virtualnetworkpeerings.CreateOrUpdateOperationOptions{SyncRemoteAddressSpace: pointer.To(virtualnetworkpeerings.SyncRemoteAddressSpaceTrue)})
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualnetworkpeerings.CreateOrUpdateOperationOptions{SyncRemoteAddressSpace: pointer.To(virtualnetworkpeerings.SyncRemoteAddressSpaceTrue)}); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-	if err := future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	return resourceVirtualNetworkPeeringRead(d, meta)
@@ -232,7 +228,7 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.Get(ctx, pointer.From(id))
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -256,7 +252,7 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 			if network := peer.RemoteVirtualNetwork; network != nil {
 				parsed, err := commonids.ParseVirtualNetworkIDInsensitively(*network.Id)
 				if err != nil {
-					return fmt.Errorf("parsing %q as a Virtual Network ID: %+v", *network.Id, err)
+					return err
 				}
 				remoteVirtualNetworkId = parsed.ID()
 			}
@@ -280,13 +276,8 @@ func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interfa
 	locks.ByID(virtualNetworkPeeringResourceType)
 	defer locks.UnlockByID(virtualNetworkPeeringResourceType)
 
-	future, err := client.Delete(ctx, pointer.From(id))
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return err

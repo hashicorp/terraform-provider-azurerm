@@ -127,12 +127,12 @@ func (r VirtualNetworkPeeringResource) Exists(ctx context.Context, clients *clie
 	if err != nil {
 		return nil, err
 	}
-	resp, err := clients.Network.VirtualNetworkPeerings.Get(ctx, pointer.From(id))
+	resp, err := clients.Network.VirtualNetworkPeerings.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -141,13 +141,8 @@ func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clie
 		return nil, err
 	}
 
-	future, err := client.Network.VirtualNetworkPeerings.Delete(ctx, pointer.From(id))
-	if err != nil {
+	if err := client.Network.VirtualNetworkPeerings.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting on virtual network peering: %+v", err)
-	}
-
-	if err = future.Poller.PollUntilDone(ctx); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return utils.Bool(true), nil
