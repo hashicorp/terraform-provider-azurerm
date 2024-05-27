@@ -103,7 +103,7 @@ func resourceExpressRouteGatewayCreateUpdate(d *pluginsdk.ResourceData, meta int
 	gatewayId := expressrouteconnections.NewExpressRouteGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ExpressRouteGatewayName)
 
 	respConnections, err := connectionsClient.List(ctx, gatewayId)
-	if err != nil {
+	if err != nil && !response.WasNotFound(respConnections.HttpResponse) {
 		return fmt.Errorf("retrieving %s: %+v", gatewayId, err)
 	}
 
