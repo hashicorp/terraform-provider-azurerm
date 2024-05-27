@@ -29,8 +29,8 @@ type AntimalwareConfiguration struct {
 	RealTimeProtectionEnabled bool                    `tfschema:"real_time_protection_enabled"`
 	ScheduledScanEnabled      bool                    `tfschema:"scheduled_scan_enabled"`
 	ScanType                  string                  `tfschema:"scheduled_scan_type"`
-	ScanDay                   int                     `tfschema:"scheduled_scan_day"`
-	ScanTimeInMinutes         int                     `tfschema:"scheduled_scan_time_in_minutes"`
+	ScanDay                   int64                   `tfschema:"scheduled_scan_day"`
+	ScanTimeInMinutes         int64                   `tfschema:"scheduled_scan_time_in_minutes"`
 }
 
 type AntimalwareExclusions struct {
@@ -42,7 +42,7 @@ type AntimalwareExclusions struct {
 type BackupConfiguration struct {
 	PolicyName                    string                         `tfschema:"policy_name"`
 	TimeZone                      string                         `tfschema:"time_zone"`
-	InstantRpRetentionRangeInDays int                            `tfschema:"instant_rp_retention_range_in_days"`
+	InstantRpRetentionRangeInDays int64                          `tfschema:"instant_rp_retention_range_in_days"`
 	SchedulePolicy                []SchedulePolicyConfiguration  `tfschema:"schedule_policy"`
 	RetentionPolicy               []RetentionPolicyConfiguration `tfschema:"retention_policy"`
 }
@@ -77,7 +77,7 @@ type RetentionPolicyConfiguration struct {
 }
 
 type RetentionDurationConfiguration struct {
-	Count        int    `tfschema:"count"`
+	Count        int64  `tfschema:"count"`
 	DurationType string `tfschema:"duration_type"`
 }
 
@@ -752,11 +752,11 @@ func flattenAntiMalwareConfig(configMap map[string]interface{}) []AntimalwareCon
 	}
 
 	if val, ok := configMap["Antimalware/ScanDay"]; ok {
-		antimalware[0].ScanDay = int(val.(float64))
+		antimalware[0].ScanDay = int64(val.(float64))
 	}
 
 	if val, ok := configMap["Antimalware/ScanTimeInMinutes"]; ok {
-		antimalware[0].ScanTimeInMinutes = int(val.(float64))
+		antimalware[0].ScanTimeInMinutes = int64(val.(float64))
 	}
 
 	exclusions := AntimalwareExclusions{}
@@ -816,7 +816,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	}
 
 	if val, ok := configMap["Backup/InstantRpRetentionRangeInDays"]; ok {
-		backup[0].InstantRpRetentionRangeInDays = int(val.(float64))
+		backup[0].InstantRpRetentionRangeInDays = int64(val.(float64))
 	}
 
 	schedulePolicy := SchedulePolicyConfiguration{}
@@ -863,7 +863,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	retentionDuration := RetentionDurationConfiguration{}
 	retentionDurationChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/DailySchedule/RetentionDuration/Count"]; ok {
-		retentionDuration.Count = int(val.(float64))
+		retentionDuration.Count = int64(val.(float64))
 		retentionDurationChanged = true
 	}
 
@@ -892,7 +892,7 @@ func flattenBackupConfig(configMap map[string]interface{}) []BackupConfiguration
 	weeklyRetentionDuration := RetentionDurationConfiguration{}
 	weeklyRetentionDurationChanged := false
 	if val, ok := configMap["Backup/RetentionPolicy/WeeklySchedule/RetentionDuration/Count"]; ok {
-		weeklyRetentionDuration.Count = int(val.(float64))
+		weeklyRetentionDuration.Count = int64(val.(float64))
 		weeklyRetentionDurationChanged = true
 	}
 

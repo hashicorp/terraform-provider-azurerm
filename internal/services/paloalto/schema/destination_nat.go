@@ -24,12 +24,12 @@ type DestinationNAT struct {
 
 type FrontendEndpointConfiguration struct {
 	PublicIPID string `tfschema:"public_ip_address_id"`
-	Port       int    `tfschema:"port"`
+	Port       int64  `tfschema:"port"`
 }
 
 type BackendEndpointConfiguration struct {
 	PublicIP string `tfschema:"public_ip_address"`
-	Port     int    `tfschema:"port"`
+	Port     int64  `tfschema:"port"`
 }
 
 // DestinationNATSchema returns the schema for a Palo Alto NGFW Front End Settings
@@ -121,7 +121,7 @@ func ExpandDestinationNAT(input []DestinationNAT) *[]firewalls.FrontendSetting {
 				Address: firewalls.IPAddress{
 					ResourceId: pointer.To(fec.PublicIPID),
 				},
-				Port: strconv.Itoa(fec.Port),
+				Port: strconv.FormatInt(fec.Port, 10),
 			}
 		}
 
@@ -131,7 +131,7 @@ func ExpandDestinationNAT(input []DestinationNAT) *[]firewalls.FrontendSetting {
 				Address: firewalls.IPAddress{
 					Address: pointer.To(bec.PublicIP),
 				},
-				Port: strconv.Itoa(bec.Port),
+				Port: strconv.FormatInt(bec.Port, 10),
 			}
 		}
 
@@ -145,8 +145,8 @@ func FlattenDestinationNAT(input *[]firewalls.FrontendSetting) []DestinationNAT 
 	result := make([]DestinationNAT, 0)
 	if feSettings := pointer.From(input); len(feSettings) > 0 {
 		for _, v := range feSettings {
-			bePort, _ := strconv.Atoi(v.BackendConfiguration.Port)
-			fePort, _ := strconv.Atoi(v.FrontendConfiguration.Port)
+			bePort, _ := strconv.ParseInt(v.BackendConfiguration.Port, 10, 0)
+			fePort, _ := strconv.ParseInt(v.FrontendConfiguration.Port, 10, 0)
 			fe := DestinationNAT{
 				Name:     v.Name,
 				Protocol: string(v.Protocol),

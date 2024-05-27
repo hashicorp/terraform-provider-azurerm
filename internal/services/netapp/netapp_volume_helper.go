@@ -48,7 +48,7 @@ func expandNetAppVolumeGroupVolumeExportPolicyRule(input []netAppModels.ExportPo
 			Cifs:                utils.Bool(cifsEnabled),
 			Nfsv3:               utils.Bool(item.Nfsv3Enabled),
 			Nfsv41:              utils.Bool(item.Nfsv41Enabled),
-			RuleIndex:           utils.Int64(int64(item.RuleIndex)),
+			RuleIndex:           utils.Int64(item.RuleIndex),
 			UnixReadOnly:        utils.Bool(item.UnixReadOnly),
 			UnixReadWrite:       utils.Bool(item.UnixReadWrite),
 			HasRootAccess:       utils.Bool(item.RootAccessEnabled),
@@ -349,7 +349,7 @@ func flattenNetAppVolumeGroupVolumesExportPolicies(input *[]volumegroups.ExportP
 	for _, item := range pointer.From(input) {
 		rule := netAppModels.ExportPolicyRule{}
 
-		rule.RuleIndex = int(pointer.From(item.RuleIndex))
+		rule.RuleIndex = pointer.From(item.RuleIndex)
 		rule.AllowedClients = pointer.From(item.AllowedClients)
 		rule.Nfsv3Enabled = pointer.From(item.Nfsv3)
 		rule.Nfsv41Enabled = pointer.From(item.Nfsv41)

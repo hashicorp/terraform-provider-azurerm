@@ -67,7 +67,7 @@ type Linux struct {
 }
 
 type MonthlyOccurrence struct {
-	Occurrence int    `tfschema:"occurrence"`
+	Occurrence int64  `tfschema:"occurrence"`
 	Day        string `tfschema:"day"`
 }
 
@@ -90,7 +90,7 @@ type Schedule struct {
 	IsEnabled               bool                `tfschema:"is_enabled"`
 	NextRun                 string              `tfschema:"next_run"`
 	NextRunOffsetMinutes    float64             `tfschema:"next_run_offset_minutes"`
-	Interval                int                 `tfschema:"interval"`
+	Interval                int64               `tfschema:"interval"`
 	Frequency               string              `tfschema:"frequency"`
 	CreationTime            string              `tfschema:"creation_time"`
 	LastModifiedTime        string              `tfschema:"last_modified_time"`
@@ -886,7 +886,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 					IsEnabled:               pointer.From(scheduleConfiguration.IsEnabled),
 					NextRun:                 pointer.From(scheduleConfiguration.NextRun),
 					NextRunOffsetMinutes:    pointer.From(scheduleConfiguration.NextRunOffsetMinutes),
-					Interval:                int(pointer.From(scheduleConfiguration.Interval)),
+					Interval:                pointer.From(scheduleConfiguration.Interval),
 					Frequency:               string(pointer.From(scheduleConfiguration.Frequency)),
 					CreationTime:            pointer.From(scheduleConfiguration.CreationTime),
 					LastModifiedTime:        pointer.From(scheduleConfiguration.LastModifiedTime),
@@ -908,7 +908,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 						mo := make([]MonthlyOccurrence, 0)
 						for _, v := range monthlyOccurrence {
 							mo = append(mo, MonthlyOccurrence{
-								Occurrence: int(pointer.From(v.Occurrence)),
+								Occurrence: pointer.From(v.Occurrence),
 								Day:        string(pointer.From(v.Day)),
 							})
 						}
@@ -935,7 +935,7 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 							for _, v := range moRaw {
 								mo := v.(map[string]interface{})
 								mos = append(mos, MonthlyOccurrence{
-									Occurrence: mo["occurrence"].(int),
+									Occurrence: int64(mo["occurrence"].(int)),
 									Day:        mo["day"].(string),
 								})
 							}
@@ -1098,7 +1098,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 						ExpiryTime:              pointer.To(v.ExpiryTime),
 						ExpiryTimeOffsetMinutes: pointer.To(v.ExpiryTimeOffsetMinutes),
 						Frequency:               pointer.To(softwareupdateconfiguration.ScheduleFrequency(v.Frequency)),
-						Interval:                pointer.To(int64(v.Interval)),
+						Interval:                pointer.To(v.Interval),
 						IsEnabled:               pointer.To(v.IsEnabled),
 						NextRun:                 pointer.To(v.NextRun),
 						NextRunOffsetMinutes:    pointer.To(v.NextRunOffsetMinutes),
@@ -1126,7 +1126,7 @@ func (m SoftwareUpdateConfigurationResource) Update() sdk.ResourceFunc {
 							for _, mo := range v.MonthlyOccurrence {
 								monthlyOccurrences = append(monthlyOccurrences, softwareupdateconfiguration.AdvancedScheduleMonthlyOccurrence{
 									Day:        pointer.To(softwareupdateconfiguration.ScheduleDay(mo.Day)),
-									Occurrence: pointer.To(int64(mo.Occurrence)),
+									Occurrence: pointer.To(mo.Occurrence),
 								})
 							}
 
@@ -1216,7 +1216,7 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 			ExpiryTime:              pointer.To(v.ExpiryTime),
 			ExpiryTimeOffsetMinutes: pointer.To(v.ExpiryTimeOffsetMinutes),
 			Frequency:               pointer.To(softwareupdateconfiguration.ScheduleFrequency(v.Frequency)),
-			Interval:                pointer.To(int64(v.Interval)),
+			Interval:                pointer.To(v.Interval),
 			IsEnabled:               pointer.To(v.IsEnabled),
 			NextRun:                 pointer.To(v.NextRun),
 			NextRunOffsetMinutes:    pointer.To(v.NextRunOffsetMinutes),
@@ -1244,7 +1244,7 @@ func expandUpdateConfig(input SoftwareUpdateConfigurationModel) *softwareupdatec
 				for _, mo := range v.MonthlyOccurrence {
 					monthlyOccurrences = append(monthlyOccurrences, softwareupdateconfiguration.AdvancedScheduleMonthlyOccurrence{
 						Day:        pointer.To(softwareupdateconfiguration.ScheduleDay(mo.Day)),
-						Occurrence: pointer.To(int64(mo.Occurrence)),
+						Occurrence: pointer.To(mo.Occurrence),
 					})
 				}
 
