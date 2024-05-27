@@ -258,7 +258,7 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if v, ok := d.GetOk("virtual_network_id"); ok {
 		if sku != bastionhosts.BastionHostSkuNameDeveloper {
-			return fmt.Errorf("`virtual_network_id` only supports `Developer` SKU")
+			return fmt.Errorf("`virtual_network_id` is only supported when `sku` is `Developer`")
 		}
 
 		parameters.Properties.VirtualNetwork = &bastionhosts.SubResource{
@@ -408,7 +408,11 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 			virtualNetworkId := ""
 			if vnet := props.VirtualNetwork; vnet != nil {
-				virtualNetworkId = pointer.From(vnet.Id)
+				vnetId, err := commonids.ParseVirtualNetworkID(pointer.From(vnet.Id))
+				if err != nil {
+					return err
+				}
+				virtualNetworkId = vnetId.ID()
 			}
 			d.Set("virtual_network_id", virtualNetworkId)
 
