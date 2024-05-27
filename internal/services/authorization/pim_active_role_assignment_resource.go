@@ -117,6 +117,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "The schedule details for this role assignment",
 			Elem: &pluginsdk.Resource{
@@ -181,6 +182,7 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "Ticket details relating to the assignment",
 			Elem: &pluginsdk.Resource{
@@ -236,11 +238,13 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			var scheduleInfo *roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo
+			scheduleInfo := &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{
+				Expiration: &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfoExpiration{
+					Type: pointer.To(roleassignmentschedulerequests.TypeNoExpiration),
+				},
+			}
 
 			if len(config.ScheduleInfo) > 0 {
-				scheduleInfo = &roleassignmentschedulerequests.RoleAssignmentScheduleRequestPropertiesScheduleInfo{}
-
 				if config.ScheduleInfo[0].StartDateTime != "" {
 					scheduleInfo.StartDateTime = pointer.To(config.ScheduleInfo[0].StartDateTime)
 				}

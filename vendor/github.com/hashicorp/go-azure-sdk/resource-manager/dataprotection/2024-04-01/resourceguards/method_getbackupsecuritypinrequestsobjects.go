@@ -72,6 +72,7 @@ func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjectsCompleteMatchin
 
 	resp, err := c.GetBackupSecurityPINRequestsObjects(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

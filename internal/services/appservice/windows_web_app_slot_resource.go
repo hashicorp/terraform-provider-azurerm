@@ -374,6 +374,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 
 			if webAppSlot.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(webAppSlot.VirtualNetworkSubnetID)
+				siteEnvelope.Properties.ServerFarmId = pointer.To(servicePlanId.ID())
 			}
 
 			if err := client.CreateOrUpdateSlotThenPoll(ctx, id, siteEnvelope); err != nil {

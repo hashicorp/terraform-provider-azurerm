@@ -100,6 +100,7 @@ func (c MachineLearningComputesClient) ComputeListCompleteMatchingPredicate(ctx 
 
 	resp, err := c.ComputeList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

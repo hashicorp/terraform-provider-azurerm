@@ -73,6 +73,7 @@ func (c VirtualNetworksClient) ListCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.List(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

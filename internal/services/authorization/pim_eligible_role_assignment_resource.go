@@ -118,6 +118,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "The schedule details for this eligible role assignment",
 			Elem: &pluginsdk.Resource{
@@ -182,6 +183,7 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Type:        pluginsdk.TypeList,
 			MaxItems:    1,
 			Optional:    true,
+			Computed:    true,
 			ForceNew:    true,
 			Description: "Ticket details relating to the eligible assignment",
 			Elem: &pluginsdk.Resource{
@@ -237,11 +239,13 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			var scheduleInfo *roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesScheduleInfo
+			scheduleInfo := &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesScheduleInfo{
+				Expiration: &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesScheduleInfoExpiration{
+					Type: pointer.To(roleeligibilityschedulerequests.TypeNoExpiration),
+				},
+			}
 
 			if len(config.ScheduleInfo) > 0 {
-				scheduleInfo = &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestPropertiesScheduleInfo{}
-
 				if config.ScheduleInfo[0].StartDateTime != "" {
 					scheduleInfo.StartDateTime = pointer.To(config.ScheduleInfo[0].StartDateTime)
 				}

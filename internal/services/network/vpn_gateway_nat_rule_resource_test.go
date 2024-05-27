@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VPNGatewayNatRuleResource struct{}
@@ -109,17 +109,17 @@ func TestAccVpnGatewayNatRule_externalMappingAndInternalMapping(t *testing.T) {
 }
 
 func (r VPNGatewayNatRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VpnGatewayNatRuleID(state.ID)
+	id, err := virtualwans.ParseNatRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.NatRuleClient.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
+	resp, err := clients.Network.VirtualWANs.NatRulesGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r VPNGatewayNatRuleResource) basic(data acceptance.TestData) string {

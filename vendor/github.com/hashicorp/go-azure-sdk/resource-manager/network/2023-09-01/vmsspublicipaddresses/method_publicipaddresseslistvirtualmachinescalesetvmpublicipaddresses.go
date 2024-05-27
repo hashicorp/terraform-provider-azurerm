@@ -73,6 +73,7 @@ func (c VMSSPublicIPAddressesClient) PublicIPAddressesListVirtualMachineScaleSet
 
 	resp, err := c.PublicIPAddressesListVirtualMachineScaleSetVMPublicIPAddresses(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -50,6 +50,12 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"basic":  testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
 			"legacy": testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacy,
 		},
+		"keys": {
+			"basic":              testAccKeyVaultMHSMKey_basic,
+			"complete":           testAccKeyVaultMHSMKey_complete,
+			"purge":              testAccKeyVaultHSMKey_purge,
+			"softDeleteRecovery": testAccKeyVaultHSMKey_softDeleteRecovery,
+		},
 	})
 }
 
