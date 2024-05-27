@@ -78,11 +78,11 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Backup Policy PostgreSQL Flexible Server. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Backup Policy for the PostgreSQL Flexible Server. Changing this forces a new resource to be created.
 
 * `vault_id` - (Required) The ID of the Backup Vault where the Backup Policy PostgreSQL Flexible Server should exist. Changing this forces a new resource to be created.
 
-* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval. Changing this forces a new resource to be created.
+* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly back. It should follow `ISO 8601` repeating time interval format. Changing this forces a new resource to be created.
 
 * `default_retention_rule` - (Required) A `default_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
@@ -100,7 +100,7 @@ A `default_retention_rule` block supports the following:
 
 A `retention_rule` block supports the following:
 
-* `name` - (Required) The name which should be used for this retention rule. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the retention rule. Changing this forces a new resource to be created.
 
 * `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new resource to be created.
 

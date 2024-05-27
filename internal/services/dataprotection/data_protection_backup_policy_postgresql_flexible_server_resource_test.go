@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -71,12 +70,9 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Exists(ctx c
 	}
 	resp, err := client.DataProtection.BackupPolicyClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving DataProtection BackupPolicy (%q): %+v", id, err)
+		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) template(data acceptance.TestData) string {
@@ -145,7 +141,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) complete(dat
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "test" {
   name                            = "acctest-dbp-%d"
   vault_id                        = azurerm_data_protection_backup_vault.test.id
-  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W"]
+  backup_repeating_time_intervals = ["R/2021-05-23T02:30:00+00:00/P1W", "R/2021-05-24T03:40:00+00:00/P1W"]
   time_zone                       = "India Standard Time"
 
   default_retention_rule {
@@ -179,8 +175,8 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
     }
 
     criteria {
-      days_of_week           = ["Thursday"]
-      months_of_year         = ["November"]
+      days_of_week           = ["Thursday", "Friday"]
+      months_of_year         = ["November", "December"]
       scheduled_backup_times = ["2021-05-23T02:30:00Z"]
     }
   }
@@ -197,7 +193,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
     criteria {
       weeks_of_month         = ["First", "Last"]
       days_of_week           = ["Tuesday"]
-      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+      scheduled_backup_times = ["2021-05-23T02:30:00Z", "2021-05-24T03:40:00Z"]
     }
   }
 }

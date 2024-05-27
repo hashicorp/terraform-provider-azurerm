@@ -292,7 +292,7 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Create() sdk
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-				return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -589,7 +589,7 @@ func flattenBackupPolicyPostgreSQLFlexibleServerRetentionRules(input []backuppol
 			var taggingPriority int
 			var taggingCriteria []BackupPolicyPostgreSQLFlexibleServerCriteria
 
-			if retentionRule.IsDefault == nil || !pointer.From(retentionRule.IsDefault) {
+			if !pointer.From(retentionRule.IsDefault) {
 				name = retentionRule.Name
 
 				for _, criteria := range taggingCriterias {
