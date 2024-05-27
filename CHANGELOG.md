@@ -4,11 +4,30 @@ UPGRADE NOTES:
 
 * This release updates the Key Vault cache to load Key Vaults using both the Key Vaults List API **and** the Resources API to workaround the API returning incomplete/stale data. To achieve this, and provide consistency between tooling, we are intentionally using the same older version of the Resources API as the current version of Azure CLI. [GH-26070]
 
+FEATURES:
+
+* New Data Source: `azurerm_arc_resource_bridge_appliance` [GH-25731]
+* New Data Source: `azurerm_storage_queue` [GH-26087]
+
 ENHANCEMENTS
 
 * dependencies: updating to `v0.20240523.1095414` of `github.com/hashicorp/go-azure-sdk` [GH-26090]
 * `keyvault`: populating the cache using both the Key Vault List and Resources API to workaround incomplete/stale data being returned [GH-26070]
+* `virtualnetworkpeerings`: update to use `hashicorp/go-azure-sdk` [GH-26065]
+* `azurerm_automation_powershell72_module` - add support for the `tags` property [GH-26106]
+* `azurerm_bastion_host` - added support for `Developer` SKU [GH-26068]
+* `azurerm_container_registry` - add validation to fail fast when setting `public_network_access_enabled` with an invalid SKU [GH-26054]
+* `azurerm_linux_virtual_machine` - `hibernation_enabled` can now be updated [GH-26112]
+* `azurerm_route_map` - `parameter` is now Optional when the action type is `Drop` [GH-26003]
+* `azurerm_windows_virtual_machine` - `hibernation_enabled` can now be updated [GH-26112]
 
+BUG FIXES:
+
+* `azurerm_app_configuration_feature` - update polling interval to tolerate eventual consistency of the API [GH-26025]
+* `azurerm_app_configuration_key` - update polling interval to tolerate eventual consistency of the API [GH-26025]
+* `azurerm_postgresql_flexible_server` - prevent premature check on updated `storage_mb` value that prevents the resource from being re-created [GH-25986]
+* `azurerm_redis_access_cache_policy_assignment` - add locks to stabilize creation of multiple policy assignments [GH-26085]
+* `azurerm_redis_access_cache_policy` - add locks to stabilize creation of multiple policy assignments [GH-26085]
 
 ## 3.105.0 (May 24, 2024)
 
