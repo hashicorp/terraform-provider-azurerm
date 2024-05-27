@@ -52,7 +52,7 @@ type MachineLearningRegistryModel struct {
 	Name                          string                                     `tfschema:"name"`
 	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
 	PublicNetworkAccessEnabled    bool                                       `tfschema:"public_network_access_enabled"`
-	MainRegion                    ReplicationRegion                          `tfschema:"main_region"`
+	MainRegion                    []ReplicationRegion                        `tfschema:"main_region"`
 	ReplicationRegions            []ReplicationRegion                        `tfschema:"replication_regions"`
 	Location                      string                                     `tfschema:"location"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
@@ -107,12 +107,10 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			MaxItems: 1,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
+					"location": commonschema.LocationComputed(),
 
 					"custom_storage_account_id": {
 						Type:          pluginsdk.TypeString,
@@ -162,10 +160,10 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 
 					"acr_sku": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(registries.SkuNameBasic),
-							string(registries.SkuNameStandard),
+							// string(registries.SkuNameBasic),
+							// string(registries.SkuNameStandard),
 							string(registries.SkuNamePremium),
 						}, false),
 						ConflictsWith: []string{"main_region.0.custom_acr_account_id"},
@@ -180,30 +178,31 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"replication_regions": {
-			Type: pluginsdk.TypeList,
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"location": commonschema.Location(),
 
 					"custom_storage_account_id": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ConflictsWith: []string{"replication_regions.0.storage_account_type"},
-						ValidateFunc:  commonids.ValidateStorageAccountID,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// ConflictsWith: []string{"replication_regions.0.storage_account_type"},
+						ValidateFunc: commonids.ValidateStorageAccountID,
 					},
 
 					"custom_acr_account_id": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ValidateFunc:  registries.ValidateRegistryID,
-						ConflictsWith: []string{"main+region.0.acr_sku"},
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: registries.ValidateRegistryID,
+						// ConflictsWith: []string{"replication_regions.0.acr_sku"},
 					},
 
 					"storage_account_type": {
-						Type:          pluginsdk.TypeString,
-						Optional:      true,
-						ConflictsWith: []string{"replication_regions.0.custom_storage_account_id"},
-						AtLeastOneOf:  []string{"replication_regions.0.custom_storage_account_id", "replication_regions.0.storage_account_type"},
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// ConflictsWith: []string{"replication_regions.0.custom_storage_account_id"},
+						// AtLeastOneOf:  []string{"replication_regions.0.custom_storage_account_id", "replication_regions.0.storage_account_type"},
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard_LRS",
 							"Standard_GRS",
@@ -223,8 +222,9 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"hsn_enabled": {
-						Type:    pluginsdk.TypeBool,
-						Default: false,
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 
 					"system_create_storage_account_id": {
@@ -234,12 +234,13 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 
 					"acr_sku": {
 						Type:     pluginsdk.TypeString,
-						Required: true,
+						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(registries.SkuNameBasic),
 							string(registries.SkuNameStandard),
 							string(registries.SkuNamePremium),
 						}, false),
+						// ConflictsWith: []string{"replication_regions.0.custom_acr_account_id"},
 					},
 
 					"system_created_acr_id": {
@@ -322,7 +323,7 @@ func (r MachineLearningRegistry) Create() sdk.ResourceFunc {
 			}
 
 			var regions []registry.RegistryRegionArmDetails
-			mainCopy := model.MainRegion
+			mainCopy := model.MainRegion[0]
 			mainCopy.Location = model.Location
 			regions = append(regions, expandRegistryRegionDetail(mainCopy))
 			for _, region := range model.ReplicationRegions {
@@ -406,7 +407,7 @@ func (r MachineLearningRegistry) Update() sdk.ResourceFunc {
 					Location: state.Location,
 				}
 				var regions []registry.RegistryRegionArmDetails
-				mainCopy := state.MainRegion
+				mainCopy := state.MainRegion[0]
 				mainCopy.Location = state.Location
 				regions = append(regions, expandRegistryRegionDetail(mainCopy))
 				for _, region := range state.ReplicationRegions {
@@ -470,7 +471,7 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 			regions := flattenRegistryRegionDetails(prop.RegionDetails)
 			for _, region := range regions {
 				if region.Location == resp.Model.Location {
-					model.MainRegion = region
+					model.MainRegion = []ReplicationRegion{region}
 				} else {
 					model.ReplicationRegions = append(model.ReplicationRegions, region)
 				}
@@ -533,6 +534,7 @@ func expandRegistryRegionDetail(input ReplicationRegion) registry.RegistryRegion
 		}
 	}
 
+	result.AcrDetails = &[]registry.AcrDetails{acr}
 	return result
 }
 

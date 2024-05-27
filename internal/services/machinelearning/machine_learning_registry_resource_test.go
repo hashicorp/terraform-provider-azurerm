@@ -23,8 +23,7 @@ func TestAccMachineLearningRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_registry", "test")
 	r := MachineLearningRegistry{}
 
-	fmt.Println(r.basic(data))
-	t.Skip()
+	t.Skip(r.basic(data))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
