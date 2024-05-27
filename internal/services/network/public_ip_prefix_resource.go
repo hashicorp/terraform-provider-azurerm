@@ -25,9 +25,9 @@ import (
 
 func resourcePublicIpPrefix() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePublicIpPrefixCreateUpdate,
+		Create: resourcePublicIpPrefixCreate,
 		Read:   resourcePublicIpPrefixRead,
-		Update: resourcePublicIpPrefixCreateUpdate,
+		Update: resourcePublicIpPrefixUpdate,
 		Delete: resourcePublicIpPrefixDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := publicipprefixes.ParsePublicIPPrefixID(id)
@@ -94,7 +94,7 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 	}
 }
 
-func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPPrefixes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -103,16 +103,15 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP Prefix creation.")
 
 	id := publicipprefixes.NewPublicIPPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, publicipprefixes.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
+
+	existing, err := client.Get(ctx, id, publicipprefixes.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_public_ip_prefix", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_public_ip_prefix", id.ID())
 	}
 
 	publicIpPrefix := publicipprefixes.PublicIPPrefix{
@@ -133,10 +132,34 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, publicIpPrefix); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourcePublicIpPrefixRead(d, meta)
+}
+
+func resourcePublicIpPrefixUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PublicIPPrefixes
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	if d.HasChange("tags") {
+
+		id, err := publicipprefixes.ParsePublicIPPrefixID(d.Id())
+		if err != nil {
+			return err
+		}
+
+		payload := publicipprefixes.TagsObject{
+			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
+
+		if _, err = client.UpdateTags(ctx, *id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
 
 	return resourcePublicIpPrefixRead(d, meta)
 }
