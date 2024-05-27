@@ -19,7 +19,7 @@ var cases = map[string][]string{
 	"test-4": {"/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualmachinescalesets/scaleSet1/virtualmachines/machine1/networkinterfaCes/networkInterface1/ipconFigurations/ipConfig1/PublicipAddresses/publicAddress1", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1/virtualMachines/machine1/networkInterfaces/networkInterface1/ipConfigurations/ipConfig1/publicIPAddresses/publicAddress1"},
 }
 
-func TestArmIDFormatterFunction_multiple(t *testing.T) {
+func TestProviderFunctionNormaliseResourceID_multiple(t *testing.T) {
 	t.Parallel()
 
 	resource.UnitTest(t, resource.TestCase{
