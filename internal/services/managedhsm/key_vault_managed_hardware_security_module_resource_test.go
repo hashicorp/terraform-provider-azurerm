@@ -172,7 +172,6 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   admin_object_ids              = [data.azurerm_client_config.current.object_id]
   purge_protection_enabled      = false
-  public_network_access_enabled = true
 }
 `, template, data.RandomInteger)
 }
