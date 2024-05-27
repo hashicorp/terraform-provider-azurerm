@@ -49,8 +49,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                              = "queuedstest-%[1]s"
-  storage_account_name              = "${azurerm_storage_account.test.name}"
+  name                 = "queuedstest-%[1]s"
+  storage_account_name = "${azurerm_storage_account.test.name}"
   metadata = {
     k1 = "v1"
     k2 = "v2"
