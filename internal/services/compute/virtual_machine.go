@@ -40,7 +40,6 @@ func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 
 				"hibernation_enabled": {
 					Type:     pluginsdk.TypeBool,
-					ForceNew: true,
 					Optional: true,
 					Default:  false,
 				},
