@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `outbound_network_access_restricted` - (Optional) Whether outbound network access is restricted for the Cognitive AI Service Account. Defaults to `false`.
 
-* `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive AI Service Account. Defaults to `true`.
+* `public_network_access` - (Optional) Whether public network access is allowed for the Cognitive AI Service Account. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
 * `storage` - (Optional) A `storage` block as defined below.
 

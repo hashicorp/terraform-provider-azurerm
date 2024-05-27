@@ -425,7 +425,7 @@ resource "azurerm_cognitive_account_ai_services" "test" {
   fqdns                              = ["foo.com", "bar.com"]
   local_auth_enabled                 = false
   outbound_network_access_restricted = false
-  public_network_access_enabled      = false
+  public_network_access              = "Disabled"
   custom_subdomain_name              = "acctestcogacc-%[1]d"
 
   customer_managed_key {

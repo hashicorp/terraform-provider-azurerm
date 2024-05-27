@@ -75,7 +75,7 @@ type AIServicesAccountResourceResourceModel struct {
 	LocalAuthEnabled                bool                                       `tfschema:"local_auth_enabled"`
 	NetworkACLs                     []AIServicesAccountNetworkACLs             `tfschema:"network_acls"`
 	OutboundNetworkAccessRestricted bool                                       `tfschema:"outbound_network_access_restricted"`
-	PublicNetworkAccessEnabled      bool                                       `tfschema:"public_network_access_enabled"`
+	PublicNetworkAccess             string                                     `tfschema:"public_network_access"`
 	Tags                            map[string]string                          `tfschema:"tags"`
 	Endpoint                        string                                     `tfschema:"endpoint"`
 	PrimaryAccessKey                string                                     `tfschema:"primary_access_key"`
@@ -205,10 +205,14 @@ func (AIServicesAccountResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
+		"public_network_access": {
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(cognitiveservicesaccounts.PublicNetworkAccessEnabled),
+				string(cognitiveservicesaccounts.PublicNetworkAccessDisabled),
+			}, false),
+			Default: string(cognitiveservicesaccounts.PublicNetworkAccessEnabled),
 		},
 
 		"storage": {
@@ -305,10 +309,6 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 			locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 			defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-			publicNetworkAccess := cognitiveservicesaccounts.PublicNetworkAccessEnabled
-			if !model.PublicNetworkAccessEnabled {
-				publicNetworkAccess = cognitiveservicesaccounts.PublicNetworkAccessDisabled
-			}
 			props := cognitiveservicesaccounts.Account{
 				Kind:     utils.String("AIServices"),
 				Location: utils.String(azure.NormalizeLocation(model.Location)),
@@ -319,7 +319,7 @@ func (AIServicesAccountResource) Create() sdk.ResourceFunc {
 					NetworkAcls:                   networkACLs,
 					CustomSubDomainName:           pointer.FromString(model.CustomSubdomainName),
 					AllowedFqdnList:               pointer.To(model.Fqdns),
-					PublicNetworkAccess:           &publicNetworkAccess,
+					PublicNetworkAccess:           pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess)),
 					RestrictOutboundNetworkAccess: pointer.To(model.OutboundNetworkAccessRestricted),
 					DisableLocalAuth:              pointer.To(!model.LocalAuthEnabled),
 					Encryption:                    expandAIServicesAccountCustomerManagedKey(model.CustomerManagedKey),
@@ -400,11 +400,7 @@ func (AIServicesAccountResource) Read() sdk.ResourceFunc {
 					state.NetworkACLs = flattenAIServicesAccountNetworkACLs(props.NetworkAcls)
 					state.Fqdns = pointer.From(props.AllowedFqdnList)
 
-					publicNetworkAccess := true
-					if props.PublicNetworkAccess != nil {
-						publicNetworkAccess = *props.PublicNetworkAccess == cognitiveservicesaccounts.PublicNetworkAccessEnabled
-					}
-					state.PublicNetworkAccessEnabled = publicNetworkAccess
+					state.PublicNetworkAccess = string(*props.PublicNetworkAccess)
 
 					outboundNetworkAccessRestricted := false
 					if props.RestrictOutboundNetworkAccess != nil {
@@ -467,11 +463,6 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 			locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 			defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
-			publicNetworkAccess := cognitiveservicesaccounts.PublicNetworkAccessEnabled
-			if !model.PublicNetworkAccessEnabled {
-				publicNetworkAccess = cognitiveservicesaccounts.PublicNetworkAccessDisabled
-			}
-
 			props := cognitiveservicesaccounts.Account{
 				Sku: &cognitiveservicesaccounts.Sku{
 					Name: model.SkuName,
@@ -480,7 +471,7 @@ func (AIServicesAccountResource) Update() sdk.ResourceFunc {
 					NetworkAcls:                   networkACLs,
 					CustomSubDomainName:           pointer.FromString(model.CustomSubdomainName),
 					AllowedFqdnList:               pointer.To(model.Fqdns),
-					PublicNetworkAccess:           &publicNetworkAccess,
+					PublicNetworkAccess:           pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess)),
 					RestrictOutboundNetworkAccess: pointer.To(model.OutboundNetworkAccessRestricted),
 					DisableLocalAuth:              pointer.To(!model.LocalAuthEnabled),
 					Encryption:                    expandAIServicesAccountCustomerManagedKey(model.CustomerManagedKey),
