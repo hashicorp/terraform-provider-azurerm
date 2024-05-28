@@ -67,9 +67,9 @@ resource "azurerm_postgresql_flexible_server_firewall_rules" "example" {
 
 The following arguments are supported:
 
-* `server_id` - (Required) The ID of the PostgreSQL Flexible Server from which to create these PostgreSQL Flexible Server Firewall Rules. Changing this forces a new PostgreSQL Flexible Server Firewall Rules resource to be created.
+* `server_id` - (Required) The ID of the PostgreSQL Flexible Server from which to create these PostgreSQL Flexible Server Firewall Rules. Changing this forces a new resource to be created.
 
-* `firewall_rule` - (Optional) A `firewall_rule` object as defined below.
+* `firewall_rule` - (Optional) A `firewall_rule` object as defined below. Changing this forces a new resource to be created.
 
 ---
 
