@@ -65,8 +65,16 @@ func (ContainerRegistryCacheRuleDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
+type ContainerRegistryCacheRuleDataSourceModel struct {
+	Name                string `tfschema:"name"`
+	ContainerRegistryId string `tfschema:"container_registry_id"`
+	CredentialSetId     string `tfschema:"credential_set_id"`
+	SourceRepo          string `tfschema:"source_repo"`
+	TargetRepo          string `tfschema:"target_repo"`
+}
+
 func (ContainerRegistryCacheRuleDataSource) ModelObject() interface{} {
-	return nil
+	return &ContainerRegistryCacheRuleDataSourceModel{}
 }
 
 func (ContainerRegistryCacheRuleDataSource) Arguments() map[string]*pluginsdk.Schema {
