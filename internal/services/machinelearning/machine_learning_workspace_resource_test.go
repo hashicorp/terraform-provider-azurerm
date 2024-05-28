@@ -1258,12 +1258,12 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                          = "acctest-MLW-%[2]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  application_insights_id       = azurerm_application_insights.test.id
-  key_vault_id                  = azurerm_key_vault.test.id
-  storage_account_id            = azurerm_storage_account.test.id
+  name                    = "acctest-MLW-%[2]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  key_vault_id            = azurerm_key_vault.test.id
+  storage_account_id      = azurerm_storage_account.test.id
 
   serverless_compute {
     public_ip_enabled = true
