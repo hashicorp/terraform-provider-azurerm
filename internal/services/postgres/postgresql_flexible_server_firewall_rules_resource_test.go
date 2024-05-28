@@ -108,7 +108,7 @@ func (r PostgresqlFlexibleServerFirewallRulesResource) requiresImport(data accep
 %s
 
 resource "azurerm_postgresql_flexible_server_firewall_rules" "import" {
-  server_id        = azurerm_postgresql_flexible_server_firewall_rules.test.server_id
+  server_id        = azurerm_postgresql_flexible_server_firewall_rules.test.id
   firewall_rule {
 	name             = "acctest-FSFR"
 	start_ip_address = "122.122.0.0"
