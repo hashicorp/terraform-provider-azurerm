@@ -36,7 +36,7 @@ func dataSourceStorageTable() *pluginsdk.Resource {
 			},
 
 			"acl": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -93,12 +93,6 @@ func dataSourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("locating Storage Account %q for Table %q", accountName, tableName)
 	}
 
-	// tablesDataPlaneClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
-	// if err != nil {
-	// 	return fmt.Errorf("building Tables Client: %v", err)
-
-	// }
-
 	// Determine the table endpoint, so we can build a data plane ID
 	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
 	if err != nil {
@@ -112,14 +106,6 @@ func dataSourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	id := tables.NewTableID(*accountId, tableName)
-
-	// props, err := tablesDataPlaneClient.Get(ctx, tableName)
-	// if err != nil {
-	// 	return fmt.Errorf("retrieving %s: %v", id, err)
-	// }
-	// if props == nil {
-	// 	return fmt.Errorf("retrieving %s: result was nil", id)
-	// }
 
 	aclClient, err := storageClient.TablesDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingOnlySharedKeyAuth())
 	if err != nil {
