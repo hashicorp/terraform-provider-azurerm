@@ -12,6 +12,9 @@ import (
 type GetPropertiesResponse struct {
 	HttpResponse *http.Response
 
+	// The default encryption scope for the filesystem.
+	DefaultEncryptionScope string
+
 	// A map of base64-encoded strings to store as user-defined properties with the File System
 	// Note that items may only contain ASCII characters in the ISO-8859-1 character set.
 	// This automatically gets converted to a comma-separated list of name and
@@ -47,19 +50,23 @@ func (c Client) GetProperties(ctx context.Context, fileSystemName string) (resul
 
 	var resp *client.Response
 	resp, err = req.Execute(ctx)
-	if resp != nil {
+	if resp != nil && resp.Response != nil {
 		result.HttpResponse = resp.Response
 
-		if resp.Header != nil {
-			propertiesRaw := resp.Header.Get("x-ms-properties")
-			var properties *map[string]string
-			properties, err = parseProperties(propertiesRaw)
-			if err != nil {
-				return
-			}
+		if err == nil {
+			if resp.Header != nil {
+				result.DefaultEncryptionScope = resp.Header.Get("x-ms-default-encryption-scope")
 
-			result.Properties = *properties
-			result.NamespaceEnabled = strings.EqualFold(resp.Header.Get("x-ms-namespace-enabled"), "true")
+				propertiesRaw := resp.Header.Get("x-ms-properties")
+				var properties *map[string]string
+				properties, err = parseProperties(propertiesRaw)
+				if err != nil {
+					return
+				}
+
+				result.Properties = *properties
+				result.NamespaceEnabled = strings.EqualFold(resp.Header.Get("x-ms-namespace-enabled"), "true")
+			}
 		}
 	}
 	if err != nil {

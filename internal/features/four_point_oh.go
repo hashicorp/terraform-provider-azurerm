@@ -3,13 +3,15 @@
 
 package features
 
+// import "os"
+
 // nolint gocritic
 // DeprecatedInFourPointOh returns the deprecation message if the provider
 // is running in 4.0 mode - otherwise is returns an empty string (such that
 // this deprecation should be ignored).
-//
-// This will be used to signify resources which will be Deprecated in 4.0,
-// but not Removed (which will happen in a later, presumably 5.0 release).
+// This can be used for the following scenarios:
+//   - Signify resources which will be Deprecated in 4.0, but not Removed (which will happen in a later release).
+//   - For properties undergoing a rename, where the renamed property will only be introduced in the next release
 func DeprecatedInFourPointOh(deprecationMessage string) string {
 	if !FourPointOhBeta() {
 		return ""

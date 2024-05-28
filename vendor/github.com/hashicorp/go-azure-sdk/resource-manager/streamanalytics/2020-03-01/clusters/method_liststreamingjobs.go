@@ -72,6 +72,7 @@ func (c ClustersClient) ListStreamingJobsCompleteMatchingPredicate(ctx context.C
 
 	resp, err := c.ListStreamingJobs(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

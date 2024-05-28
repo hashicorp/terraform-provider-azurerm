@@ -39,11 +39,11 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	ResourceGroupName         string                              `tfschema:"resource_group_name"`
 	SkuName                   string                              `tfschema:"sku_name"`
 	StorageAccountType        string                              `tfschema:"storage_account_type"`
-	StorageSizeInGb           int                                 `tfschema:"storage_size_in_gb"`
+	StorageSizeInGb           int64                               `tfschema:"storage_size_in_gb"`
 	SubnetId                  string                              `tfschema:"subnet_id"`
 	Tags                      map[string]string                   `tfschema:"tags"`
 	TimezoneId                string                              `tfschema:"timezone_id"`
-	VCores                    int                                 `tfschema:"vcores"`
+	VCores                    int64                               `tfschema:"vcores"`
 }
 
 var _ sdk.DataSource = MsSqlManagedInstanceDataSource{}
@@ -220,7 +220,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 					model.PublicDataEndpointEnabled = *props.PublicDataEndpointEnabled
 				}
 				if props.StorageSizeInGB != nil {
-					model.StorageSizeInGb = int(*props.StorageSizeInGB)
+					model.StorageSizeInGb = int64(*props.StorageSizeInGB)
 				}
 				if props.SubnetID != nil {
 					model.SubnetId = *props.SubnetID
@@ -229,7 +229,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 					model.TimezoneId = *props.TimezoneID
 				}
 				if props.VCores != nil {
-					model.VCores = int(*props.VCores)
+					model.VCores = int64(*props.VCores)
 				}
 			}
 

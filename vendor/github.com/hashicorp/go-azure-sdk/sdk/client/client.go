@@ -71,7 +71,11 @@ func RequestRetryAll(retryFuncs ...RequestRetryFunc) func(resp *http.Response, o
 // RetryableErrorHandler simply returns the resp and err, this is needed to make the Do() method
 // of retryablehttp client return early with the response body not drained.
 func RetryableErrorHandler(resp *http.Response, err error, _ int) (*http.Response, error) {
-	return resp, err
+	if resp == nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 // Request embeds *http.Request and adds useful metadata
@@ -82,6 +86,8 @@ type Request struct {
 
 	Client BaseClient
 	Pager  odata.CustomPager
+
+	CustomErrorParser ResponseErrorParser
 
 	// Embed *http.Request so that we can send this to an *http.Client
 	*http.Request
@@ -436,7 +442,7 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 	}
 
 	// Instantiate a RetryableHttp client and configure its CheckRetry func
-	r := c.retryableClient(func(ctx context.Context, r *http.Response, err error) (bool, error) {
+	r := c.retryableClient(ctx, func(ctx context.Context, r *http.Response, err error) (bool, error) {
 		// First check for badly malformed responses
 		if r == nil {
 			if req.IsIdempotent() {
@@ -532,22 +538,33 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 		// Determine suitable error text
 		var errText string
-		switch {
-		case resp.OData != nil && resp.OData.Error != nil && resp.OData.Error.String() != "":
-			errText = fmt.Sprintf("error: %s", resp.OData.Error)
 
-		default:
-			defer resp.Body.Close()
-
-			respBody, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
+		// Use a custom response error handler if provided
+		if req.CustomErrorParser != nil {
+			if err = req.CustomErrorParser.FromResponse(resp.Response); err != nil {
+				errText = err.Error()
 			}
-			if len(respBody) == 0 {
-				return resp, fmt.Errorf("unexpected status %s received with no body", status)
-			}
+		}
 
-			errText = fmt.Sprintf("response: %s", respBody)
+		// Fall back to parsing error text from OData
+		if errText == "" {
+			switch {
+			case resp.OData != nil && resp.OData.Error != nil && resp.OData.Error.String() != "":
+				errText = fmt.Sprintf("error: %s", resp.OData.Error)
+
+			default:
+				defer resp.Body.Close()
+
+				respBody, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
+				}
+				if len(respBody) == 0 {
+					return resp, fmt.Errorf("unexpected status %s received with no body", status)
+				}
+
+				errText = fmt.Sprintf("response: %s", respBody)
+			}
 		}
 
 		return resp, fmt.Errorf("unexpected status %s with %s", status, errText)
@@ -647,7 +664,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 }
 
 // retryableClient instantiates a new *retryablehttp.Client having the provided checkRetry func
-func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retryablehttp.Client) {
+func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.CheckRetry) (r *retryablehttp.Client) {
 	r = retryablehttp.NewClient()
 
 	r.Backoff = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
@@ -672,6 +689,18 @@ func (c *Client) retryableClient(checkRetry retryablehttp.CheckRetry) (r *retrya
 	r.CheckRetry = checkRetry
 	r.ErrorHandler = RetryableErrorHandler
 	r.Logger = log.Default()
+	r.RetryWaitMin = 1 * time.Second
+	r.RetryWaitMax = 61 * time.Second
+
+	// Default RetryMax of 16 takes approx 10 minutes to iterate
+	r.RetryMax = 16
+
+	// Extend the RetryMax if the context timeout exceeds 10 minutes
+	if deadline, ok := ctx.Deadline(); ok {
+		if timeout := deadline.Sub(time.Now()); timeout > 10*time.Minute {
+			r.RetryMax = int(math.Round(timeout.Minutes())) + 6
+		}
+	}
 
 	tlsConfig := tls.Config{
 		MinVersion: tls.VersionTLS12,

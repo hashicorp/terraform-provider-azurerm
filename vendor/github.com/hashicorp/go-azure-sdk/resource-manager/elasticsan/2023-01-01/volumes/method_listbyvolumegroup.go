@@ -72,6 +72,7 @@ func (c VolumesClient) ListByVolumeGroupCompleteMatchingPredicate(ctx context.Co
 
 	resp, err := c.ListByVolumeGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

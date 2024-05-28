@@ -197,14 +197,24 @@ func TestAccProvider_clientCertificateAuth(t *testing.T) {
 			}
 		}
 
+		clientId, err := getClientId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		authConfig := &auth.Credentials{
-			Environment: *env,
-			TenantID:    d.Get("tenant_id").(string),
-			ClientID:    d.Get("client_id").(string),
+			Environment:               *env,
+			TenantID:                  *tenantId,
+			ClientID:                  *clientId,
+			ClientCertificateData:     certData,
+			ClientCertificatePath:     d.Get("client_certificate_path").(string),
+			ClientCertificatePassword: d.Get("client_certificate_password").(string),
 			EnableAuthenticatingUsingClientCertificate: true,
-			ClientCertificateData:                      certData,
-			ClientCertificatePath:                      d.Get("client_certificate_path").(string),
-			ClientCertificatePassword:                  d.Get("client_certificate_password").(string),
 		}
 
 		return buildClient(ctx, provider, d, authConfig)
@@ -267,12 +277,17 @@ func testAccProvider_clientSecretAuthFromEnvironment(t *testing.T) {
 			return nil, diag.FromErr(err)
 		}
 
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		authConfig := &auth.Credentials{
 			Environment:                           *env,
-			TenantID:                              d.Get("tenant_id").(string),
+			TenantID:                              *tenantId,
 			ClientID:                              *clientId,
-			EnableAuthenticatingUsingClientSecret: true,
 			ClientSecret:                          *clientSecret,
+			EnableAuthenticatingUsingClientSecret: true,
 		}
 
 		return buildClient(ctx, provider, d, authConfig)
@@ -330,12 +345,17 @@ func testAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 			return nil, diag.FromErr(err)
 		}
 
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		authConfig := &auth.Credentials{
 			Environment:                           *env,
-			TenantID:                              d.Get("tenant_id").(string),
+			TenantID:                              *tenantId,
 			ClientID:                              *clientId,
-			EnableAuthenticatingUsingClientSecret: true,
 			ClientSecret:                          *clientSecret,
+			EnableAuthenticatingUsingClientSecret: true,
 		}
 
 		return buildClient(ctx, provider, d, authConfig)
@@ -380,10 +400,20 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 			return nil, diag.FromErr(err)
 		}
 
+		clientId, err := getClientId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		authConfig := &auth.Credentials{
 			Environment:                   *env,
-			TenantID:                      d.Get("tenant_id").(string),
-			ClientID:                      d.Get("client_id").(string),
+			TenantID:                      *tenantId,
+			ClientID:                      *clientId,
 			EnableAuthenticationUsingOIDC: true,
 			OIDCAssertionToken:            *oidcToken,
 		}
@@ -428,13 +458,23 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 			t.Fatalf("configuring environment %q: %v", envName, err)
 		}
 
+		clientId, err := getClientId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
 		authConfig := &auth.Credentials{
 			Environment:                         *env,
-			TenantID:                            d.Get("tenant_id").(string),
-			ClientID:                            d.Get("client_id").(string),
-			EnableAuthenticationUsingGitHubOIDC: true,
+			TenantID:                            *tenantId,
+			ClientID:                            *clientId,
 			GitHubOIDCTokenRequestToken:         d.Get("oidc_request_token").(string),
 			GitHubOIDCTokenRequestURL:           d.Get("oidc_request_url").(string),
+			EnableAuthenticationUsingGitHubOIDC: true,
 		}
 
 		return buildClient(ctx, provider, d, authConfig)
@@ -499,8 +539,8 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 			Environment:                   *env,
 			TenantID:                      *tenantId,
 			ClientID:                      *clientId,
-			EnableAuthenticationUsingOIDC: true,
 			OIDCAssertionToken:            *oidcToken,
+			EnableAuthenticationUsingOIDC: true,
 		}
 
 		return buildClient(ctx, provider, d, authConfig)

@@ -272,7 +272,7 @@ resource "azurerm_key_vault_access_policy" "cluster" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_user_assigned_identity.test.principal_id
 
-  key_permissions = ["Get", "UnwrapKey", "WrapKey"]
+  key_permissions = ["Get", "UnwrapKey", "WrapKey", "GetRotationPolicy"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {

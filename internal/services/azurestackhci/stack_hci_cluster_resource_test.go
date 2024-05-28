@@ -37,6 +37,24 @@ func TestAccStackHCICluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccStackHCICluster_basicWithoutClientId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithoutClientId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cloud_id").IsNotEmpty(),
+				check.That(data.ResourceName).Key("service_endpoint").IsNotEmpty(),
+				check.That(data.ResourceName).Key("resource_provider_object_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStackHCICluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
 	r := StackHCIClusterResource{}
@@ -176,6 +194,20 @@ func (r StackHCIClusterResource) Exists(ctx context.Context, client *clients.Cli
 	}
 
 	return utils.Bool(resp.Model != nil), nil
+}
+
+func (r StackHCIClusterResource) basicWithoutClientId(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stack_hci_cluster" "test" {
+  name                = "acctest-StackHCICluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+}
+`, template, data.RandomInteger)
 }
 
 func (r StackHCIClusterResource) basic(data acceptance.TestData) string {
