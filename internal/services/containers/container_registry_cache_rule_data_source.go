@@ -27,7 +27,7 @@ func (ContainerRegistryCacheRuleDataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.ContainerRegistryClient_v2023_07_01.CacheRules
+			client := metadata.Client.Containers.CacheRulesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			containerRegistryId := metadata.ResourceData.Get("container_registry_id").(string)
