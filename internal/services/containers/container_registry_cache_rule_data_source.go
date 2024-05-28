@@ -30,6 +30,11 @@ func (ContainerRegistryCacheRuleDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.Containers.CacheRulesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
+			var state ContainerRegistryCacheRuleDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
 			containerRegistryId := metadata.ResourceData.Get("container_registry_id").(string)
 			registryId, err := registries.ParseRegistryID(containerRegistryId)
 			if err != nil {
