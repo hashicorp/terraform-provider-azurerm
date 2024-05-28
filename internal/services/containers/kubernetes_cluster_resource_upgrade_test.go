@@ -279,49 +279,95 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"max_surge":                     "2%",
-				"drain_timeout_in_minutes":      35,
-				"node_soak_duration_in_minutes": 18,
-			}),
+			Config: r.upgradeSettings(data, 35, 18),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").HasValue("40"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.node_soak_duration_in_minutes").HasValue("18"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"max_surge":                     "10%",
-				"drain_timeout_in_minutes":      0,
-				"node_soak_duration_in_minutes": 0,
-			}),
+			Config: r.upgradeSettings(data, 1, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("10%"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").HasValue("0"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.node_soak_duration_in_minutes").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"max_surge": "10%",
-			}),
+			Config: r.upgradeSettingsMaxSurge(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").DoesNotExist(),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes").DoesNotExist(),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.node_soak_duration_in_minutes").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
 	})
+}
+
+func (r KubernetesClusterResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoakDuration int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge                     = "10%%"
+      drain_timeout_in_minutes      = %d
+      node_soak_duration_in_minutes = %d
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, drainTimeout, nodeSoakDuration)
+}
+
+func (r KubernetesClusterResource) upgradeSettingsMaxSurge(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesClusterResource) upgradeControlPlaneConfig(data acceptance.TestData, controlPlaneVersion string) string {

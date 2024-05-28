@@ -4,6 +4,7 @@
 package containers
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -64,6 +65,15 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 		}),
 
 		Schema: resourceKubernetesClusterNodePoolSchema(),
+
+		CustomizeDiff: pluginsdk.CustomDiffInSequence(
+			pluginsdk.ForceNewIfChange("upgrade_settings.0.drain_timeout_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != 0 && new == 0
+			}),
+			pluginsdk.ForceNewIfChange("upgrade_settings.0.node_soak_duration_in_minutes", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != 0 && new == 0
+			}),
+		),
 	}
 }
 
@@ -1140,7 +1150,6 @@ func upgradeSettingsSchema() *pluginsdk.Schema {
 					"drain_timeout_in_minutes": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
-						Default:  30,
 					},
 					"node_soak_duration_in_minutes": {
 						Type:         pluginsdk.TypeInt,
@@ -1244,7 +1253,7 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUpgradeSettings {
 	setting := &agentpools.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
-		return setting
+		return nil
 	}
 
 	v := input[0].(map[string]interface{})

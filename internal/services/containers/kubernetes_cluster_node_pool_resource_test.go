@@ -565,67 +565,23 @@ func TestAccKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"max_surge":                "2",
-				"drain_timeout_in_minutes": 35,
-			}),
+			Config: r.upgradeSettings(data, 35, 18),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("2"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.drain_timeout_in_minutes").HasValue("35"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.node_soak_duration_in_minutes").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"max_surge":                     "10%",
-				"node_soak_duration_in_minutes": 18,
-			}),
+			Config: r.upgradeSettings(data, 1, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").HasValue("10%"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.drain_timeout_in_minutes").DoesNotExist(),
-				check.That(data.ResourceName).Key("upgrade_settings.0.node_soak_duration_in_minutes").HasValue("18"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"drain_timeout_in_minutes": 0,
-			}),
-
+			Config: r.upgradeSettingsRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").DoesNotExist(),
-				check.That(data.ResourceName).Key("upgrade_settings.0.drain_timeout_in_minutes").HasValue("0"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.node_soak_duration_in_minutes").DoesNotExist(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.upgradeSettingsConfig(data, map[string]interface{}{
-				"node_soak_duration_in_minutes": 0,
-			}),
-
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("upgrade_settings.0.max_surge").DoesNotExist(),
-				check.That(data.ResourceName).Key("upgrade_settings.0.drain_timeout_in_minutes").DoesNotExist(),
-				check.That(data.ResourceName).Key("upgrade_settings.0.node_soak_duration_in_minutes").HasValue("0"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.upgradeSettingsConfig(data, map[string]interface{}{}),
-
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_settings.#").DoesNotExist(),
 			),
 		},
 		data.ImportStep(),
@@ -2073,28 +2029,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsConfig(data acceptance.TestData, nodePoolConfig map[string]interface{}) string {
+func (r KubernetesClusterNodePoolResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoakDuration int) string {
 	template := r.templateConfig(data)
-
-	var upgradeSettingsTemplate string
-	keys := []string{"max_surge", "drain_timeout_in_minutes", "node_soak_duration_in_minutes"}
-
-	for _, key := range keys {
-		if value, ok := nodePoolConfig[key]; ok {
-			switch v := value.(type) {
-			case string:
-				if v != "" {
-					upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %q", key, v)
-				}
-			case int:
-				upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %d", key, v)
-			}
-		}
-	}
-
-	if upgradeSettingsTemplate != "" {
-		upgradeSettingsTemplate = fmt.Sprintf(`upgrade_settings {%s\n  }`, upgradeSettingsTemplate)
-	}
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2108,9 +2044,32 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_DS2_v2"
   node_count            = 3
-  %s
+  upgrade_settings {
+    max_surge                     = "10%%"
+    drain_timeout_in_minutes      = %d
+    node_soak_duration_in_minutes = %d
+  }
 }
-`, template, upgradeSettingsTemplate)
+`, template, drainTimeout, nodeSoakDuration)
+}
+
+func (r KubernetesClusterNodePoolResource) upgradeSettingsRemoved(data acceptance.TestData) string {
+	template := r.templateConfig(data)
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 3
+}
+`, template)
 }
 
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {

@@ -23,7 +23,7 @@ type KubernetesClusterResource struct{}
 
 var (
 	olderKubernetesVersion        = "1.28.5"
-	currentKubernetesVersion      = "1.29.0"
+	currentKubernetesVersion      = "1.29.2"
 	olderKubernetesVersionAlias   = "1.28"
 	currentKubernetesVersionAlias = "1.29"
 )
@@ -708,58 +708,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
-}
-
-func (r KubernetesClusterResource) upgradeSettingsConfig(data acceptance.TestData, nodePoolConfig map[string]interface{}) string {
-	var upgradeSettingsTemplate string
-
-	keys := []string{"max_surge", "drain_timeout_in_minutes", "node_soak_duration_in_minutes"}
-
-	for _, key := range keys {
-		if value, ok := nodePoolConfig[key]; ok {
-			switch v := value.(type) {
-			case string:
-				if v != "" {
-					upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %q", key, v)
-				}
-			case int:
-				upgradeSettingsTemplate += fmt.Sprintf("\n    %s = %d", key, v)
-			}
-		}
-	}
-
-	if upgradeSettingsTemplate != "" {
-		upgradeSettingsTemplate = fmt.Sprintf(`upgrade_settings {%s\n  }`, upgradeSettingsTemplate)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-    %s
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, upgradeSettingsTemplate)
 }
 
 func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {

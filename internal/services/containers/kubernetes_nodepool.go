@@ -2212,19 +2212,21 @@ func findDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProfile
 func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.AgentPoolUpgradeSettings {
 	setting := &managedclusters.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
-		return setting
+		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = utils.String(maxSurgeRaw)
 	}
-	if drainTimeoutInMinutesRaw := v["drain_timeout_in_minutes"].(int); drainTimeoutInMinutesRaw != 0 {
-		setting.DrainTimeoutInMinutes = utils.Int64(int64(drainTimeoutInMinutesRaw))
+
+	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
+		setting.DrainTimeoutInMinutes = pointer.To(int64(drainTimeoutInMinutesRaw))
 	}
-	if nodeSoakDurationInMinutesRaw := v["drain_timeout_in_minutes"].(int); nodeSoakDurationInMinutesRaw != 0 {
-		setting.NodeSoakDurationInMinutes = utils.Int64(int64(nodeSoakDurationInMinutesRaw))
+	if nodeSoakDurationInMinutesRaw, ok := v["node_soak_duration_in_minutes"].(int); ok {
+		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
 	}
+
 	return setting
 }
 
