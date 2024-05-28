@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -24,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -70,7 +68,7 @@ func (r ContainerAppJobResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -100,48 +98,6 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 
 		"secret": helpers.SecretsSchema(),
 
-		"secrets": {
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			Sensitive:     true,
-			ConflictsWith: []string{"secret"},
-			Deprecated:    "`secrets` has been renamed to `secret` and will be removed in version 4.0 of the AzureRM Provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"identity": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.Any(
-							commonids.ValidateUserAssignedIdentityID,
-							validation.StringInSlice([]string{"System"}, false),
-						),
-						Description: "The identity to use for accessing key vault reference.",
-					},
-
-					"key_vault_secret_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-						Description:  "The Key Vault Secret ID. Could be either one of `id` or `versionless_id`.",
-					},
-
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.SecretName,
-						Description:  "The secret name.",
-					},
-
-					"value": {
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Sensitive:   true,
-						Description: "The value for this secret.",
-					},
-				},
-			},
-		},
-
 		"replica_retry_limit": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
@@ -149,42 +105,6 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"registry": helpers.ContainerAppRegistrySchema(),
-
-		"registries": {
-			Type:          pluginsdk.TypeList,
-			MinItems:      1,
-			Optional:      true,
-			ConflictsWith: []string{"registry"},
-			Deprecated:    "`registries` has been renamed to `registry` and will be removed in version 4.0 of the AzureRM Provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"server": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-						Description:  "The hostname for the Container Registry.",
-					},
-
-					"username": {
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Description: "The username to use for this Container Registry.",
-					},
-
-					"password_secret_name": {
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Description: "The name of the Secret Reference containing the password value for this user on the Container Registry.",
-					},
-
-					"identity": {
-						Type:        pluginsdk.TypeString,
-						Optional:    true,
-						Description: "ID of the System or User Managed Identity used to pull images from the Container Registry",
-					},
-				},
-			},
-		},
 
 		"event_trigger_config": {
 			Type:     pluginsdk.TypeList,
@@ -285,6 +205,24 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FourPointOhBeta() {
+		schema["secrets"] = helpers.SecretsSchema()
+		schema["secrets"].ConflictsWith = []string{"secret"}
+		schema["secrets"].Computed = true
+		schema["secrets"].Deprecated = "`secrets` has been renamed to `secret` and will be removed in version 4.0 of the AzureRM Provider."
+		schema["secret"].ConflictsWith = []string{"secrets"}
+		schema["secret"].Computed = true
+
+		schema["registries"] = helpers.ContainerAppRegistrySchema()
+		schema["registries"].ConflictsWith = []string{"registry"}
+		schema["registries"].Computed = true
+		schema["registries"].Deprecated = "`registries` has been renamed to `registry` and will be removed in version 4.0 of the AzureRM Provider."
+		schema["registry"].ConflictsWith = []string{"registries"}
+		schema["registry"].Computed = true
+	}
+
+	return schema
 }
 
 func (r ContainerAppJobResource) Attributes() map[string]*schema.Schema {
@@ -611,11 +549,6 @@ func (r ContainerAppJobResource) Delete() sdk.ResourceFunc {
 func (r ContainerAppJobResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var job ContainerAppJobModel
-			if err := metadata.DecodeDiff(&job); err != nil {
-				return err
-			}
-
 			if metadata.ResourceDiff != nil && metadata.ResourceDiff.HasChange("secrets") {
 				stateSecretsRaw, configSecretsRaw := metadata.ResourceDiff.GetChange("secrets")
 				stateSecrets := stateSecretsRaw.(*schema.Set).List()
@@ -640,17 +573,6 @@ func (r ContainerAppJobResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 			}
-
-			if !features.FourPointOhBeta() {
-				if len(job.SecretsDeprecated) > 0 && len(job.Secrets) > 0 {
-					return fmt.Errorf("cannot use both `secret` and `secrets` blocks in the same configuration")
-				}
-
-				if len(job.RegistriesDeprecated) > 0 && len(job.Registries) > 0 {
-					return fmt.Errorf("cannot use both `registry` and `registries` blocks in the same configuration")
-				}
-			}
-
 			return nil
 		},
 	}
