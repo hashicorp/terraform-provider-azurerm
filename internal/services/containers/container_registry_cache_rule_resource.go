@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/cacherules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -40,9 +40,9 @@ func (ContainerRegistryCacheRule) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: registries.ValidateRegistryID,
 		},
 		"credential_set_id": {
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Description: "The ARM resource ID of the credential store which is associated with the cache rule.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Description:  "The ARM resource ID of the credential store which is associated with the cache rule.",
 			ValidateFunc: credentialsets.ValidateCredentialSetID,
 		},
 		"source_repo": {
@@ -74,7 +74,7 @@ type ContainerRegistryCacheRuleResourceModel struct {
 }
 
 func (ContainerRegistryCacheRule) ModelObject() interface{} {
-	return &ContainerRegistryCacheRuleReourceModel{}
+	return &ContainerRegistryCacheRuleResourceModel{}
 }
 
 func (ContainerRegistryCacheRule) ResourceType() string {
@@ -108,38 +108,36 @@ func (r ContainerRegistryCacheRule) Create() sdk.ResourceFunc {
 				metadata.ResourceData.Get("name").(string),
 			)
 
-
-		existing, err := cacheRulesClient.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			existing, err := cacheRulesClient.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+				}
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
-		}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError("azurerm_container_registry_cache_rule", id.ID())
+			}
 
-		// TODO: make a check that the repo is available in the registry.
-		// TODO: validate the source repo.
+			// TODO: make a check that the repo is available in the registry.
+			// TODO: validate the source repo.
 
-		parameters := cacherules.CacheRule{
-			Name: &id.CacheRuleName,
-			Properties: &cacherules.CacheRuleProperties{
-				SourceRepository: pointer.To(config.SourceRepo),
-				TargetRepository: pointer.To(config.TargetRepo),
-			},
-		}
+			parameters := cacherules.CacheRule{
+				Name: &id.CacheRuleName,
+				Properties: &cacherules.CacheRuleProperties{
+					SourceRepository: pointer.To(config.SourceRepo),
+					TargetRepository: pointer.To(config.TargetRepo),
+				},
+			}
 
-		// Conditionally add CredentialSetResourceId if credentialSetId is not empty
-		if config.CredentialSetId != "" {
-			parameters.Properties.CredentialSetResourceId = pointer.To(config.CredentialSetId)
-		}
+			// Conditionally add CredentialSetResourceId if credentialSetId is not empty
+			if config.CredentialSetId != "" {
+				parameters.Properties.CredentialSetResourceId = pointer.To(config.CredentialSetId)
+			}
 
-		if err := cacheRulesClient.CreateThenPoll(ctx, id, parameters); err != nil {
-			return fmt.Errorf("creating %s: %+v", id, err)
-		}
-
+			if err := cacheRulesClient.CreateThenPoll(ctx, id, parameters); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 
 			metadata.SetID(id)
 

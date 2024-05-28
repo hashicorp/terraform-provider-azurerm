@@ -27,7 +27,7 @@ import (
 type Client struct {
 	AgentPoolsClient                            *agentpools.AgentPoolsClient
 	ContainerInstanceClient                     *containerinstance.ContainerInstanceClient
-	CacheRulesClient         *cacherules.CacheRulesClient
+	CacheRulesClient                            *cacherules.CacheRulesClient
 	ContainerRegistryClient_v2021_08_01_preview *containerregistry_v2021_08_01_preview.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
@@ -63,7 +63,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		return nil, err
 	}
 
-cacheRulesClient, err := cacherules.NewCacheRulesClientWithBaseURI(o.Environment.ResourceManager)
+	cacheRulesClient, err := cacherules.NewCacheRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Cache Rules client: %+v", err)
 	}
@@ -127,7 +127,7 @@ cacheRulesClient, err := cacherules.NewCacheRulesClientWithBaseURI(o.Environment
 	return &Client{
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
-		CacheRulesClient:         cacheRulesClient,
+		CacheRulesClient:                            cacheRulesClient,
 		ContainerRegistryClient_v2021_08_01_preview: containerRegistryClient_v2021_08_01_preview,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
