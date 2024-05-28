@@ -634,8 +634,8 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   cluster_profile {
-    domain       = "aro-%[3]s.com"
-    version      = "4.13.23"
+    domain  = "aro-%[3]s.com"
+    version = "4.13.23"
   }
 
   network_profile {
