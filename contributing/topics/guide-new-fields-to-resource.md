@@ -88,7 +88,7 @@ d.Set("public_network_access_enabled", publicNetworkAccess)
 
 * In cases where a new property or block requires additional setup or pre-requisites it makes sense to create a dedicated test for it.
 
-* Adding a new property or updating an existing property with a default should be checked properly against the current version of Terraform State and the Azure API as tests won't be able to catch a potential breaking change, see our [section on defaults and breaking changes](defaults-and-breaking-changes.md)
+* Adding a new property or updating an existing property with a default should be checked properly against the current version of Terraform State and the Azure API as tests won't be able to catch a potential breaking change, see our [section on defaults and breaking changes](guide-breaking-changes.md)
 
 ## Docs
 
