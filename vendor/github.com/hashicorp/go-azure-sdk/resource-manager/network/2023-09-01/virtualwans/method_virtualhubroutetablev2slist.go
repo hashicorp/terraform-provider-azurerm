@@ -72,6 +72,7 @@ func (c VirtualWANsClient) VirtualHubRouteTableV2sListCompleteMatchingPredicate(
 
 	resp, err := c.VirtualHubRouteTableV2sList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

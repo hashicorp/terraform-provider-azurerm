@@ -33,6 +33,23 @@ func TestAccRedisCacheAccessPolicyAssignment_basic(t *testing.T) {
 	})
 }
 
+func TestAccRedisCacheAccessPolicyAssignment_multi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy_assignment", "test")
+	r := RedisCacheAccessPolicyAssignmentResource{}
+	accessPolicyAssignmentTwo := "azurerm_redis_cache_access_policy_assignment.test2"
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(accessPolicyAssignmentTwo).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		data.ImportStep(accessPolicyAssignmentTwo),
+	})
+}
+
 func TestAccRedisCacheAccessPolicyAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache_access_policy_assignment", "test")
 	r := RedisCacheAccessPolicyAssignmentResource{}
@@ -109,6 +126,33 @@ resource "azurerm_redis_cache_access_policy_assignment" "import" {
   access_policy_name = azurerm_redis_cache_access_policy_assignment.test.access_policy_name
   object_id          = azurerm_redis_cache_access_policy_assignment.test.object_id
   object_id_alias    = azurerm_redis_cache_access_policy_assignment.test.object_id_alias
+}
+`, r.basic(data))
+}
+
+func (r RedisCacheAccessPolicyAssignmentResource) multi(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azuread" {}
+
+resource "azurerm_redis_cache_access_policy" "test2" {
+  name           = "acctestRedisAccessPolicytest2"
+  redis_cache_id = azurerm_redis_cache.test.id
+  permissions    = "+@read +@connection +cluster|info allkeys"
+}
+
+resource "azuread_group" "test2" {
+  display_name     = "acctestredis"
+  security_enabled = true
+}
+
+resource "azurerm_redis_cache_access_policy_assignment" "test2" {
+  name               = "acctestRedisAccessPolicyAssignmentTest2"
+  redis_cache_id     = azurerm_redis_cache.test.id
+  access_policy_name = "Data Contributor"
+  object_id          = azuread_group.test2.id
+  object_id_alias    = "Group"
 }
 `, r.basic(data))
 }

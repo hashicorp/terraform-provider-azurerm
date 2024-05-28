@@ -199,6 +199,20 @@ resource "azurerm_route_map" "test" {
       route_prefix    = ["10.0.0.0/8"]
     }
   }
+
+  rule {
+    name                 = "rule2"
+    next_step_if_matched = "Terminate"
+
+    action {
+      type = "Drop"
+    }
+
+    match_criterion {
+      match_condition = "Contains"
+      route_prefix    = ["172.16.0.0/12"]
+    }
+  }
 }
 `, r.template(data), nameSuffix)
 }
@@ -212,7 +226,7 @@ resource "azurerm_route_map" "test" {
   virtual_hub_id = azurerm_virtual_hub.test.id
 
   rule {
-    name                 = "rule2"
+    name                 = "rule3"
     next_step_if_matched = "Terminate"
 
     action {

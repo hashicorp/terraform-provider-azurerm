@@ -72,6 +72,7 @@ func (c ResourceGuardsClient) GetUpdateProtectionPolicyRequestsObjectsCompleteMa
 
 	resp, err := c.GetUpdateProtectionPolicyRequestsObjects(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

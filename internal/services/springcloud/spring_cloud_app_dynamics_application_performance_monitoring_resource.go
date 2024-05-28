@@ -30,7 +30,7 @@ type SpringCloudAppDynamicsApplicationPerformanceMonitoringModel struct {
 	AgentUniqueHostId     string `tfschema:"agent_unique_host_id"`
 	ControllerHostName    string `tfschema:"controller_host_name"`
 	ControllerSslEnabled  bool   `tfschema:"controller_ssl_enabled"`
-	ControllerPort        int    `tfschema:"controller_port"`
+	ControllerPort        int64  `tfschema:"controller_port"`
 	AgentAccountName      string `tfschema:"agent_account_name"`
 	AgentAccountAccessKey string `tfschema:"agent_account_access_key"`
 }
@@ -366,7 +366,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Read() s
 					}
 					if value, ok := (*props.Properties)["controller_port"]; ok {
 						if v, err := strconv.ParseInt(value, 10, 32); err == nil {
-							state.ControllerPort = int(v)
+							state.ControllerPort = v
 						}
 					}
 				}

@@ -72,6 +72,7 @@ func (c StaticSitesClient) GetDatabaseConnectionsCompleteMatchingPredicate(ctx c
 
 	resp, err := c.GetDatabaseConnections(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}
